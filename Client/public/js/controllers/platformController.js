@@ -15811,7 +15811,6 @@ define(['js/app'], function (myApp) {
                     if (vm.totalChildrenBalanceBoolean) {
                         vm.getTotalChildrenBalance(data.data, partner);
                     }
-                    $scope.safeApply();
                 })
             };
 
@@ -15832,7 +15831,6 @@ define(['js/app'], function (myApp) {
                     vm.partnerLoadingDailyActivePlayer = false;
                     vm.dailyActivePlayerBoolean = false;
                     vm.drawPartnerTable(partner);
-                    $scope.safeApply();
                 })
             };
 
@@ -15853,8 +15851,6 @@ define(['js/app'], function (myApp) {
                     vm.partnerLoadingWeeklyActivePlayer = false;
                     vm.weeklyActivePlayerBoolean = false;
                     vm.drawPartnerTable(partner);
-                    //end loading spinner
-                    $scope.safeApply();
                 })
             };
 
@@ -15875,7 +15871,6 @@ define(['js/app'], function (myApp) {
                     vm.partnerLoadingMonthlyActivePlayer = false;
                     vm.monthlyActivePlayerBoolean = false;
                     vm.drawPartnerTable(partner);
-                    $scope.safeApply();
                 })
             };
 
@@ -15896,8 +15891,6 @@ define(['js/app'], function (myApp) {
                     vm.partnerLoadingValidPlayers = false;
                     vm.validPlayersBoolean = false;
                     vm.drawPartnerTable(partner);
-                    //end loading spinner
-                    $scope.safeApply();
                 })
             };
 
@@ -15918,7 +15911,6 @@ define(['js/app'], function (myApp) {
                     vm.partnerLoadingTotalChildrenDeposit = false;
                     vm.totalChildrenDepositBoolean = false;
                     vm.drawPartnerTable(partner);
-                    $scope.safeApply();
                 })
             };
 
@@ -15939,7 +15931,6 @@ define(['js/app'], function (myApp) {
                     vm.partnerLoadingTotalChildrenBalance = false;
                     vm.totalChildrenBalanceBoolean = false;
                     vm.drawPartnerTable(partner);
-                    $scope.safeApply();
                 })
             };
 
