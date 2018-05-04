@@ -602,6 +602,7 @@ var dbPlayerFeedback = {
 function applyExtractPlayerProposal (title, playerType, playerLevelObjId, playerLevelName, credibilityRemarkObjIdArray, credibilityRemarkNameArray,
                                      lastAccessTimeFrom, lastAccessTimeTo, lastAccessTimeRangeString,
                                      lastFeedbackTimeBefore, depositCountOperator, depositCountFormal, depositCountLater,
+                                     bonusAmountOperator, bonusAmountFormal, bonusAmountLater,
                                      playerValueOperator, playerValueFormal, playerValueLater, consumptionTimesOperator,
                                      consumptionTimesFormal, consumptionTimesLater, withdrawalTimesOperator, withdrawalTimesFormal,
                                      withdrawalTimesLater, topUpSumOperator, topUpSumFormal, topUpSumLater, gameProviderIdArray,
@@ -634,6 +635,12 @@ function applyExtractPlayerProposal (title, playerType, playerLevelObjId, player
                     depositCountOperator,
                     depositCountFormal,
                     depositCountLater,
+                    bonusAmountOperator,
+                    bonusAmountFormal,
+                    bonusAmountLater,
+                    playerValueOperator,
+                    playerValueFormal,
+                    playerValueLater,
                     consumptionTimesOperator,
                     consumptionTimesFormal,
                     consumptionTimesLater,
@@ -663,7 +670,214 @@ function applyExtractPlayerProposal (title, playerType, playerLevelObjId, player
 }
 
 function searchPlayerFromExportProposal (proposal) {
-    // todo :: add implementation
+    let query = {};
+
+    if (!(proposal && proposal.data)) {
+        return;
+    }
+
+    let proposalData = proposal.data;
+
+    switch (proposalData.playerType) {
+        case 'Test Player':
+            query.isRealPlayer = false;
+            break;
+        case 'Real Player (Individual)':
+            query.isRealPlayer = true;
+            query.partner = null;
+            break;
+        case 'Real Player (Under Partner)':
+            query.isRealPlayer = true;
+            query.partner = {$ne: null};
+            break;
+        case 'Real Player (all)':
+        default:
+            query.isRealPlayer = true;
+            break;
+    }
+
+    if (proposalData.playerLevel) {
+        query.playerLevel = proposalData.playerLevel;
+    }
+
+    if (proposalData.credibilityRemarks && proposalData.credibilityRemarks.length > 0) {
+        query.credibilityRemarks = {$in: proposalData.credibilityRemarks};
+    }
+
+    if (proposalData.lastAccessTimeFrom || proposalData.lastAccessTimeTo) {
+        query.lastAccessTime = {};
+        if (proposalData.lastAccessTimeFrom) {
+            query.lastAccessTime.$gte = proposalData.lastAccessTimeFrom;
+        }
+
+        if (proposalData.lastAccessTimeTo) {
+            query.lastAccessTime.$lte = proposalData.lastAccessTimeTo;
+        }
+    }
+
+    if (proposalData.lastFeedbackTimeBefore) {
+        query.$or = [{lastFeedbackTime: null}, {lastFeedbackTime: {$lt: proposalData.lastFeedbackTimeBefore}}];
+    }
+
+    if (proposalData.depositCountOperator && proposalData.depositCountFormal != null) {
+        switch (proposalData.depositCountOperator) {
+            case ">=":
+                query.topUpTimes = {
+                    $gte: proposalData.depositCountFormal
+                };
+                break;
+            case "=":
+                query.topUpTimes = proposalData.depositCountFormal;
+                break;
+            case "<=":
+                query.topUpTimes = {
+                    $lte: proposalData.depositCountFormal
+                };
+                break;
+            case "range":
+                if (proposalData.depositCountLater != null) {
+                    query.topUpTimes = {
+                        $lte: proposalData.depositCountLater,
+                        $gte: proposalData.depositCountFormal
+                    };
+                }
+                break;
+        }
+    }
+
+
+    if (proposalData.playerValueOperator && proposalData.playerValueFormal != null) {
+        switch (proposalData.playerValueOperator) {
+            case ">=":
+                query.valueScore = {
+                    $gte: proposalData.playerValueFormal
+                };
+                break;
+            case "=":
+                query.valueScore = proposalData.playerValueFormal;
+                break;
+            case "<=":
+                query.valueScore = {
+                    $lte: proposalData.playerValueFormal
+                };
+                break;
+            case "range":
+                if (proposalData.playerValueLater != null) {
+                    query.valueScore = {
+                        $lte: proposalData.playerValueLater,
+                        $gte: proposalData.playerValueFormal
+                    };
+                }
+                break;
+        }
+    }
+
+    if (proposalData.consumptionTimesOperator && proposalData.consumptionTimesFormal != null) {
+        switch (proposalData.consumptionTimesOperator) {
+            case ">=":
+                query.consumptionTimes = {
+                    $gte: proposalData.consumptionTimesFormal
+                };
+                break;
+            case "=":
+                query.consumptionTimes = proposalData.consumptionTimesFormal;
+                break;
+            case "<=":
+                query.consumptionTimes = {
+                    $lte: proposalData.consumptionTimesFormal
+                };
+                break;
+            case "range":
+                if (proposalData.consumptionTimesLater != null) {
+                    query.consumptionTimes = {
+                        $lte: proposalData.consumptionTimesLater,
+                        $gte: proposalData.consumptionTimesFormal
+                    };
+                }
+                break;
+        }
+    }
+
+    if (proposalData.bonusAmountOperator && proposalData.bonusAmountFormal != null) {
+        switch (proposalData.bonusAmountOperator) {
+            case ">=":
+                query.bonusAmountSum = {
+                    $gte: proposalData.bonusAmountFormal
+                };
+                break;
+            case "=":
+                query.bonusAmountSum = proposalData.bonusAmountFormal;
+                break;
+            case "<=":
+                query.bonusAmountSum = {
+                    $lte: proposalData.bonusAmountFormal
+                };
+                break;
+            case "range":
+                if (proposalData.bonusAmountLater != null) {
+                    query.bonusAmountSum = {
+                        $lte: proposalData.bonusAmountLater,
+                        $gte: proposalData.bonusAmountFormal
+                    };
+                }
+                break;
+        }
+    }
+
+    if (proposalData.withdrawalTimesOperator && proposalData.withdrawalTimesFormal != null) {
+        switch (proposalData.withdrawalTimesOperator) {
+            case ">=":
+                query.withdrawalTimes = {
+                    $gte: proposalData.withdrawalTimesFormal
+                };
+                break;
+            case "=":
+                query.withdrawalTimes = proposalData.withdrawalTimesFormal;
+                break;
+            case "<=":
+                query.withdrawalTimes = {
+                    $lte: proposalData.withdrawalTimesFormal
+                };
+                break;
+            case "range":
+                if (proposalData.withdrawalTimesLater != null) {
+                    query.withdrawalTimes = {
+                        $lte: proposalData.withdrawalTimesLater,
+                        $gte: proposalData.withdrawalTimesFormal
+                    };
+                }
+                break;
+        }
+    }
+
+    if (proposalData.topUpSumOperator && proposalData.topUpSumFormal != null) {
+        switch (proposalData.topUpSumOperator) {
+            case ">=":
+                query.topUpSum = {
+                    $gte: proposalData.topUpSumFormal
+                };
+                break;
+            case "=":
+                query.topUpSum = proposalData.topUpSumFormal;
+                break;
+            case "<=":
+                query.topUpSum = {
+                    $lte: proposalData.topUpSumFormal
+                };
+                break;
+            case "range":
+                if (proposalData.topUpSumLater != null) {
+                    query.topUpSum = {
+                        $lte: proposalData.topUpSumLater,
+                        $gte: proposalData.topUpSumFormal
+                    };
+                }
+                break;
+        }
+    }
+
+    // todo :: continue implementation
+
 }
 
 module.exports = dbPlayerFeedback;
