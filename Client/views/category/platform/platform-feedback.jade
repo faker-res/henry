@@ -192,6 +192,9 @@
                 button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="one";vm.submitPlayerFeedbackQuery(true);') {{"SEARCH_SINGLE" | translate}}
             .inlineBlk
                 button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="many";vm.submitPlayerFeedbackQuery(true);') {{"SEARCH_LIST" | translate}}
+            .inlineBlk
+                //button.btn.btn-warning(ng-if="checkViewPermission('Platform','Feedback','Export')",ng-disabled = 'vm.showExportButton()', ng-click='vm.exportPlayerQuery()') {{"PLAYER_EXPORT_BATCH" | translate}}
+                button.btn.btn-warning(ng-if="checkViewPermission('Platform','Feedback','Export')", ng-click='vm.exportPlayerQuery()') {{"PLAYER_EXPORT_BATCH" | translate}}
                 span#platformFeedbackSpin.collapse
                     i.fa.fa-spinner.fa-spin
                 span.margin-left-5
@@ -393,3 +396,30 @@
                 input.form-control(style='width: 80px', type='number', ng-model='vm.feedbackPlayersPara.index', ng-change='vm.getFeedbackPlayer(vm.feedbackPlayersPara.index)')
             .inlineBlk
                 label {{'Page' | translate}}
+
+#modalExportSetting.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"PLAYER_EXPORT_SETTING" | translate}}
+            .modal-body
+                form(name="form_player_export")
+                    .panel.panel-primary
+                        .panel-body
+                            .well
+                                .row
+                                    .form-group.col-md-6
+                                        label {{'BANNER TITLE' | translate}}
+                                        input.form-control(type='text', ng-model='vm.exportPlayerSetting.title', required)
+                                    .form-group.col-md-6
+                                        label {{'TARGET_EXPORT_WEBSITE' | translate}}
+                                        select.form-control(ng-model='vm.exportPlayerSetting.platform', required)
+                                            option(ng-repeat='(i,v) in vm.allPlatformData', value='{{v}}') {{v.name}}
+                                    .form-group.col-md-6
+                                        label {{'PROPOSAL_EXPIRATION_MINUTE' | translate}}
+                                        input.form-control(type='Number', ng-model='vm.exportPlayerSetting.expirationMins', required)
+            .modal-footer
+                //button.btn.btn-primary.common-button(ng-if='form_new_partner.$invalid', disabled='true') {{"CREATE" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled="form_player_export.$invalid", ng-click="vm.createExportPlayerProposal();") {{"Export" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}

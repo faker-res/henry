@@ -529,6 +529,10 @@ var dbPlayerFeedback = {
         });
     },
 
+    createExportPlayerProposal: function (exportData) {
+
+    },
+
     /*
      * get the latest 5 feedback record for player
      * @param {objectId} playerId
