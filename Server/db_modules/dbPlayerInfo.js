@@ -1046,7 +1046,7 @@ let dbPlayerInfo = {
         })
     },
 
-    createPlayerInfo: function (playerdata, skipReferrals, skipPrefix, isAutoCreate) {
+    createPlayerInfo: function (playerdata, skipReferrals, skipPrefix, isAutoCreate, bFromBI) {
         let playerData = null;
         let platformData = null;
 
@@ -1067,7 +1067,7 @@ let dbPlayerInfo = {
 
             }
 
-            if (playerdata.password.length < 6 || playerdata.password.length > 20 || !playerdata.password.match(alphaNumRegex)) {
+            if ((playerdata.password.length < 6 || playerdata.password.length > 20 || !playerdata.password.match(alphaNumRegex)) && !bFromBI) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
@@ -10060,7 +10060,7 @@ let dbPlayerInfo = {
                                         ).then(transferCreditToProvider);
                                     }
                                     //if it's ipm, don't use async here
-                                    if (isFirstTransfer && (providerData && providerData.providerId != "51" && providerData.providerId != "57")) {
+                                    if (isFirstTransfer && (providerData && providerData.providerId != "51" && providerData.providerId != "57" && providerData.providerId != "70")) {
                                         return transferProm;
                                     }
                                     else {
@@ -10338,7 +10338,8 @@ let dbPlayerInfo = {
                                                 resData.push({
                                                     type: paymentData.merchants[i].topupType,
                                                     status: status,
-                                                    maxDepositAmount: paymentData.merchants[i].permerchantLimits
+                                                    maxDepositAmount: paymentData.merchants[i].permerchantLimits,
+                                                    minDepositAmount: paymentData.merchants[i].permerchantminLimits
                                                 });
                                             }
                                         }

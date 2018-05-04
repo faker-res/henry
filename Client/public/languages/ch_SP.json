@@ -1440,6 +1440,7 @@
   "EXPORT_TXT": "导出TXT",
   "IMPORT_TXT": "导入系统",
   "RESET_TXT": "重置",
+  "SINGLE_MINIMUM": "单笔最低限额",
   "RESET_TEXTAREA": "重置",
   "COPY_TO_CLIPBOARD": "复制",
   "IMPORT_PHONE_TEXTAREA": "导入系统",
