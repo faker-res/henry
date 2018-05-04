@@ -14725,8 +14725,8 @@ let dbPlayerInfo = {
                         name: "DataError",
                         message: "INVALID_DATA"
                     });
-                } else if (!playerData.qq && !data.qq) {
-                    return Promise.resolve();
+                // } else if (!playerData.qq && !data.qq) {
+                //     return Promise.resolve();
                 } else {
                     return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_QQ, proposalData);
                 }
@@ -14759,8 +14759,8 @@ let dbPlayerInfo = {
                         name: "DataError",
                         message: "INVALID_DATA"
                     });
-                } else if (!playerData.wechat && !data.wechat) {
-                    return Promise.resolve();
+                // } else if (!playerData.wechat && !data.wechat) {
+                //     return Promise.resolve();
                 } else {
                     return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_WECHAT, proposalData);
                 }
