@@ -3768,7 +3768,8 @@ var proposal = {
         var dayStartTime = startDate;
         var getNextDate;
 
-        let groupCondition = {$or: [{'data.isAutoApproval':false}, {'noSteps':false}, {'data.isIgnoredAudit': false}]};
+        // let groupCondition = {$or: [{'data.isAutoApproval':false}, {'noSteps':false}, {'data.isIgnoredAudit': false}]};
+        let groupCondition = { noSteps: false};
 
         var getKey = (obj,val) => Object.keys(obj).find(key => obj[key] === val);
 
@@ -3796,7 +3797,7 @@ var proposal = {
             var dayEndTime = getNextDate.call(this, dayStartTime);
             var matchObj = {
                 createTime: {$gte: dayStartTime, $lt: dayEndTime},
-               "data.platformId": ObjectId(platformId),
+                $or: [{"data.platformId": ObjectId(platformId)}, {"data.platform": ObjectId(platformId)}],
             };
 
             countProm.push(dbconfig.collection_proposal.aggregate(

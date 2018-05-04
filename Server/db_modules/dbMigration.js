@@ -1909,7 +1909,7 @@ var dbMigration = {
                 if (playerData) {
                     // return dbMigration.createRequestId(data.requestId).then(
                     //     reId => {
-                            return dbPlayerInfo.createPlayerInfo(playerData, true, true);
+                            return dbPlayerInfo.createPlayerInfo(playerData, true, true, false, true);
                         // }
                     // );
                 }
