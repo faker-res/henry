@@ -940,7 +940,7 @@ p
                                     #basicGroup.tab-pane.fade(ng-class="selectedTab =='basicInfo'?'in active':''")
                                         include partner-edit-form
                                         button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
-                                        button.dialogEditPartnerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_edit_partner.$invalid', ng-click="updateEditedPartner();") {{"UPDATE" | translate}}
+                                        button.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_edit_partner.$invalid', ng-click="updateEditedPartner();") {{"UPDATE" | translate}}
                                     #contactGroup.tab-pane.fade(ng-class="selectedTab =='contactInfo'?'in active':''")
                                         include partner-edit-contact
                                     #withdrawGroup.tab-pane.fade(ng-class="selectedTab =='withdrawInfo'?'in active':''")
