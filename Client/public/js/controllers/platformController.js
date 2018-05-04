@@ -15765,7 +15765,6 @@ define(['js/app'], function (myApp) {
                     resetQuery.pageObj = vm.advancedPartnerQueryObj.pageObj;
                     resetQuery.sortCol = vm.advancedPartnerQueryObj.sortCol;
                     vm.advancedPartnerQueryObj = resetQuery;
-                    console.log('vm.advancedPartnerQueryObj===', vm.advancedPartnerQueryObj);
                     vm.partnerAdvanceSearchQuery = {
                         creditsOperator: ">=",
                         dailyActivePlayerOperator: ">=",
@@ -15955,7 +15954,7 @@ define(['js/app'], function (myApp) {
                     partner.validPlayers = partner.validPlayers ? partner.validPlayers : 0;
                     partner.totalChildrenDeposit = partner.totalChildrenDeposit ? partner.totalChildrenDeposit : 0;
                     partner.totalChildrenBalance = partner.totalChildrenBalance ? partner.totalChildrenBalance : 0;
-                    partner.commissionAmountFromChildren = partner.commissionAmountFromChildren ? partner.commissionAmountFromChildren : 0;
+                    partner.commissionAmountFromChildren = partner.commissionAmountFromChildren ? parseFloat(partner.commissionAmountFromChildren).toFixed(2) : 0;
                 });
 
                 if (!vm.partnerLoadingDailyActivePlayer && !vm.partnerLoadingWeeklyActivePlayer && !vm.partnerLoadingMonthlyActivePlayer &&
