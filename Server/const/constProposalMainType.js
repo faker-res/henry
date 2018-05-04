@@ -98,6 +98,7 @@ const constProposalMainType = {
     "PlayerConvertRewardPoints": constMainType.OTHERS,      //Reward Points
     "PlayerAutoConvertRewardPoints": constMainType.OTHERS,  //Reward Points
     "SettlePartnerCommission": constMainType.OTHERS,
+    "BulkExportPlayerData": constMainType.OTHERS,
 
 };
 

@@ -127,6 +127,7 @@ style.
                                 u {{'Third Party Platform' | translate}}
                             th {{'merchantNo' | translate}}
                             th {{'Backstage Merchant ID' | translate}}
+                            th {{'SINGLE_MINIMUM' | translate}}
                             th {{'SINGLE_LIMIT' | translate}}
                             th {{'DAY_LIMIT' | translate}}
                     tbody
@@ -140,6 +141,7 @@ style.
                                 img(ng-if='v.merchantTypeId', src='{{vm.allMerchantTypeList[v.merchantTypeId].showIconURL}}')
                             td {{v.merchantNo}}
                             td {{v.name}}
+                            td {{v.permerchantminLimits}}
                             td {{v.permerchantLimits}}
                             td {{v.transactionForPlayerOneDay}}
 

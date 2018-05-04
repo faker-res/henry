@@ -67,6 +67,7 @@ const constProposalType = {
     PLAYER_MINUS_REWARD_POINTS: "PlayerMinusRewardPoints",
     PLAYER_CONVERT_REWARD_POINTS: "PlayerConvertRewardPoints",
     PLAYER_AUTO_CONVERT_REWARD_POINTS: "PlayerAutoConvertRewardPoints",
+    BULK_EXPORT_PLAYERS_DATA: "BulkExportPlayerData",
     PLAYER_LOSE_RETURN_REWARD_GROUP: "PlayerLoseReturnRewardGroup"
 };
 
