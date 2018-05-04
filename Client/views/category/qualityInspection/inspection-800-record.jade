@@ -50,29 +50,29 @@
                 i.searchingQualityInspection.fa.fa-spin.fa-spinner(style="display:none")
 
 div
-    label 总共：{{vm.pgn.count}} 笔（有效+无效）对话
+    label {{'Total' | translate}}：{{vm.pgn.count}} {{'COUNT1' | translate}}{{'VALID_INVALID_CONVERSATION' | translate}}
 div(style='height:50px')
     .row(style='background-color:#337ab7;')
         div.col-md-1(style="height:50px")
             div(style='color:white;font-weight:bold;')
                 input.form-control(type="checkbox", id="selectAll", ng-click="vm.checkUncheckSelectAll()" style="float:left;position:absolute;margin-top:8px;")
-                label(for="selectAll" style='float:right;position:absolute;padding-left:20px;padding-top:15px') 选取
+                label(for="selectAll" style='float:right;position:absolute;padding-left:20px;padding-top:15px') {{'SELECT_ALL' | translate}}
         div.col-md-1(style="height:50px")
-            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold') 评估状态
+            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold') {{'EVALUATION_STATUS' | translate}}
         div.col-md-7(style="height:50px")
             div.col-md-2.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold;") Live800{{"Account" | translate}}
-            div.col-md-1.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") 类型
-            div.col-md-1.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") 时间
-            div.col-md-4.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") 对话内容
-            div.col-md-1.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") 超时评分（+/-)
-            div.col-md-1.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") 质检评分（+/-)
-            div.col-md-2.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") 质检评语
+            div.col-md-1.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") {{'Type' | translate}}
+            div.col-md-1.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") {{'TIME' | translate}}
+            div.col-md-4.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") {{'CONVERSATION_CONTENT' | translate}}
+            div.col-md-1.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") {{'OVERTIME_MARK' | translate}}
+            div.col-md-1.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") {{'EVALUATION_MARK' | translate}}
+            div.col-md-2.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") {{'EVALUATION_REVIEW' | translate}}
         div.col-md-1(style="height:50px")
-            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold') 质检评估员
+            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold') {{'QUALITY_ASSESSOR' | translate}}
         div.col-md-1(style="height:50px")
-            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold') 评估时间
+            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold') {{'EVALUATED_TIME' | translate}}
         div.col-md-1(style="height:50px;background-color:red")
-            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold') 申诉内容
+            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold') {{'APPEAL_REASON' | translate}}
 
 conversationform(ng-repeat='conversationform in vm.conversationForm',  cform = 'conversationform', rateconversation = 'vm.rateconversation(conversationform)', confirmrate='vm.confirmRate(conversationform)', storebatch='vm.storeBatchId(conversationform,$event)')
 div.row
@@ -85,20 +85,20 @@ div.row
 div.row(style='margin-top:20px;')
     div.col-md-12
         div.col-md-2
-            span(style="display:inline-block;") 每页显示
+            span(style="display:inline-block;") {{'Length Per Page' | translate}}
             input.form-control(style='max-width:70px;display:inline-block;',type="number",ng-model="vm.pgn.limit",ng-init=100 ,ng-blur="vm.searchLive800()")
-            span(style="display:inline-block;") 笔
+            span(style="display:inline-block;") {{'COUNT1' | translate}}
         div.col-md-7
             //ul.pagination(ng-repeat="i in vm.pgnPages")
                 li(ng-click="vm.gotoPG(i, $event)")
                     a {{$index+1}}
         div.col-md-3
             div(style='display:inline-block')
-                span(style="width:50px;display:inline-block;") 跳到
+                span(style="width:50px;display:inline-block;") {{'Jump to' | translate}}
                 input.form-control(style='max-width:80px;display:inline-block;',type="number",ng-model="vm.pgn.currentPage",ng-init=1 ,ng-blur="vm.gotoPG((vm.pgn.currentPage),null)")
-                span(style="display:inline-block;") / {{ vm.pgn.totalPage }} 页
+                span(style="display:inline-block;") / {{ vm.pgn.totalPage }} {{'Page' | translate}}
             div(style='display:inline-block')
-                .btn.btn-primary(ng-click="vm.nextPG()") 下一页
+                .btn.btn-primary(ng-click="vm.nextPG()") {{'Page_Next' | translate}}
             div(style='display:inline-block')
                 i.searchingQualityInspection.fa.fa-spin.fa-spinner(style="display:none")
 
@@ -115,7 +115,7 @@ div(style='display:none')
                     div.btn.btn-primary.red(ng-click="cancelrate(cform)", style="cursor:pointer;margin-top:2px;width:80px") {{'CANCEL' | translate}}
             div.col-md-7(style='border-left:1px solid black;border-right:1px solid black')
                 .row
-                    div(style="text-align:center;color:red;padding-top:10px;") **** 新的对话开始 ****
+                    div(style="text-align:center;color:red;padding-top:10px;") **** {{'NEW_CONVERSATION_START' | translate}} ****
                 .row(ng-repeat='convert in cform.conversation', style="background-color:{{convert.colors}};border-top:1px solid black")
                     div(style='min-height:80px;padding:4px;',ng-show="convert.roles")
                         div.col-md-2.text-center(style="padding:10px;") {{cform.fpmsAcc.adminName}} ({{cform.live800Acc.id}})
@@ -136,7 +136,7 @@ div(style='display:none')
                             div(ng-if='!cform.editable')
                                 div(style='text-align:center') {{convert.review}}
                 .row
-                    div(style="text-align:center;color:red") 結束對話:访客关闭对话 ({{cform.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
+                    div(style="text-align:center;color:red") {{'CONVERSATION_END' | translate}} ({{cform.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
             div.col-md-1(style="padding-top:10px;")
                 div.text-center  {{cform.qualityAssessor.adminName}}
             div.col-md-1(style="padding-top:10px;")

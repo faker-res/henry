@@ -95,6 +95,14 @@ var PlatformServiceImplement = function () {
         let isValidData = Boolean(data && data.platformId && data.clientData && typeof data.clientData == "string");
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.saveClientData, [data.platformId, data.clientData], isValidData, null, null, true);
     };
+
+    // Create player from DX system
+    this.createPlayerFromTel.onRequest = (wsFunc, conn, data) => {
+        let isValidData = Boolean(data && data.playerAccount && data.password && data.platformId && data.phoneNumber && data.playerType && data.telSalesName && data.promoMethod && data.fame);
+        data.name = data.playerAccount;
+        // Promise create player and partner
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerFromTel, [data], isValidData, null, null, true);
+    };
 };
 
 var proto = PlatformServiceImplement.prototype = Object.create(PlatformService.prototype);
