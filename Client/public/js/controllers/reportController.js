@@ -5478,7 +5478,8 @@ define(['js/app'], function (myApp) {
                     providerGroupColumns.push({
                         title: group.groupName,
                         data: "groupCommissions."+group.groupName+"$",
-                        sClass: "sumFloat alignRight"
+                        sClass: "sumFloat alignRight",
+                        bSortable: false
                     })
                 });
             }
