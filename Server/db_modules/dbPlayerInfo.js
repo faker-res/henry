@@ -10023,7 +10023,7 @@ let dbPlayerInfo = {
                                         ).then(transferCreditToProvider);
                                     }
                                     //if it's ipm, don't use async here
-                                    if (isFirstTransfer && (providerData && providerData.providerId != "51" && providerData.providerId != "57")) {
+                                    if (isFirstTransfer && (providerData && providerData.providerId != "51" && providerData.providerId != "57" && providerData.providerId != "70")) {
                                         return transferProm;
                                     }
                                     else {
