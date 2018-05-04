@@ -452,27 +452,7 @@ let dbPlayerInfo = {
                             return {isPhoneNumberValid: true};
                         }
 
-                        // phone number white listing
-                        if (platformObj.whiteListingPhoneNumbers
-                            && platformObj.whiteListingPhoneNumbers.length > 0
-                            && inputData.phoneNumber
-                            && platformObj.whiteListingPhoneNumbers.indexOf(inputData.phoneNumber) > -1)
-                            return {isPhoneNumberValid: true};
-
-                        if (platformObj.allowSamePhoneNumberToRegister === true) {
-                            return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
-                                phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
-                                platform: platformObjId,
-                                isRealPlayer: true
-                            }, platformObj.samePhoneNumberRegisterCount);
-                            // return {isPhoneNumberValid: true}
-                        } else {
-                            return dbPlayerInfo.isPhoneNumberValidToRegister({
-                                phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
-                                platform: platformObjId,
-                                isRealPlayer: true
-                            });
-                        }
+                        return checkPhoneNumberWhiteList(inputData, platformObj);
                     } else {
                         return Q.reject({
                             status: constServerCode.USERNAME_ALREADY_EXIST,
@@ -623,49 +603,7 @@ let dbPlayerInfo = {
                 }
             ).then(
                 data => {
-                    // determine registrationInterface
-                    if (inputData.domain && inputData.domain.indexOf('fpms8') !== -1) {
-                        inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
-                    }
-                    else if (inputData.userAgent && inputData.userAgent[0]) {
-                        let userAgent = inputData.userAgent[0];
-                        if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
-                            if (inputData.partner) {
-                                inputData.registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
-                            }
-                            else {
-                                inputData.registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
-                            }
-                        }
-                        else if (userAgent.os.indexOf("iOS") !== -1 || userAgent.os.indexOf("ndroid") !== -1 || userAgent.browser.indexOf("obile") !== -1) {
-                            if (inputData.partner) {
-                                inputData.registrationInterface = constPlayerRegistrationInterface.H5_AGENT;
-                            }
-                            else {
-                                inputData.registrationInterface = constPlayerRegistrationInterface.H5_PLAYER;
-                            }
-                        }
-                        else {
-                            if (inputData.partner) {
-                                inputData.registrationInterface = constPlayerRegistrationInterface.WEB_AGENT;
-                            }
-                            else {
-                                inputData.registrationInterface = constPlayerRegistrationInterface.WEB_PLAYER;
-                            }
-                        }
-                    }
-                    else {
-                        inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
-                    }
-
-                    if (inputData.registrationInterface !== constPlayerRegistrationInterface.BACKSTAGE) {
-                        inputData.loginTimes = 1;
-                    }
-                    else if (adminName) {
-                        // insert related CS name when account is opened from backstage
-                        inputData.accAdmin = adminName;
-                        inputData.csOfficer = ObjectId(adminId);
-                    }
+                    inputData = determineRegistrationInterface(inputData, adminName, adminId);
 
                     return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate);
                 }
@@ -711,6 +649,126 @@ let dbPlayerInfo = {
         } else {
             return Q.reject({name: "DataError", message: "Platform does not exist"});
         }
+    },
+
+    createPlayerFromTel: (inputData) => {
+        let platformObj;
+
+        return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    platformObj = platformData;
+
+                    //player flag for new system
+                    inputData.isNewSystem = true;
+                    return dbPlayerInfo.isPlayerNameValidToRegister({
+                        name: inputData.name,
+                        platform: platformObj._id
+                    });
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
+            validData => {
+                if (validData && validData.isPlayerNameValid) {
+                    if (Number(inputData.playerType) === 1) { // todo :: add a platform setting to allow or deny auto create
+                        return checkPhoneNumberWhiteList(inputData, platformObj);
+                    } else {
+                        return {isPhoneNumberValid: true};
+                    }
+                } else {
+                    return Promise.reject({
+                        status: constServerCode.USERNAME_ALREADY_EXIST,
+                        name: "DBError",
+                        message: "Username already exists"
+                    });
+                }
+            }
+        ).then(
+            data => {
+                if (data.isPhoneNumberValid) {
+                    inputData.platform = platformObj._id;
+                    inputData.name = inputData.name.toLowerCase();
+                    delete inputData.platformId;
+
+                    return dbconfig.collection_csOfficerUrl.find({way: inputData.promoMethod})
+                        .populate({path: "admin", model: dbconfig.collection_admin}).lean();
+                } else {
+                    return Promise.reject({
+                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                        name: "DBError",
+                        message: "Phone number already exists"
+                    });
+                }
+            }
+        ).then(
+            methods => {
+                if (methods && methods.length > 0) {
+                    let isAdminExist = false;
+
+                    methods.map(method => {
+                        if (method.admin.adminName === inputData.telSalesName) {
+                            isAdminExist = true;
+                            inputData.csOfficer = method.admin;
+                            inputData.promoteWay = method.way
+                        }
+                    });
+
+                    if (isAdminExist) {
+                        inputData = determineRegistrationInterface(inputData);
+
+                        return dbconfig.collection_playerCredibilityRemark.findOne({
+                            platform: platformObj._id,
+                            name: inputData.fame
+                        }).lean();
+                    } else {
+                        return Promise.reject({
+                            status: constServerCode.CS_OFFICER_NOT_FOUND,
+                            name: "DataError",
+                            message: "CS officer not found"
+                        });
+                    }
+                } else {
+                    return Promise.reject({
+                        status: constServerCode.PROMO_METHOD_NOT_FOUND,
+                        name: "DataError",
+                        message: "Promotion method not found"
+                    });
+                }
+            }
+        ).then(
+            remark => {
+                if (remark) {
+                    // convert gender
+                    inputData.gender = Number(inputData.gender) === 1;
+                    inputData.credibilityRemarks = [remark._id];
+
+                    return dbPlayerInfo.createPlayerInfo(inputData, true, true, true);
+                } else {
+                    return Promise.reject({
+                        status: constServerCode.REMARK_NOT_FOUND,
+                        name: "DataError",
+                        message: "Credibility remark not found"
+                    });
+                }
+            }
+        ).then(
+            data => {
+                if (data) {
+                    dbPlayerInfo.createPlayerLoginRecord(data);
+                    //todo::temp disable similar player untill ip is correct
+                    if (data.lastLoginIp && data.lastLoginIp != "undefined") {
+                        dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
+                    }
+                    // dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber).then();
+                    return data;
+                }
+                else {
+                    return data;
+                }
+            }
+        );
     },
 
     getPlayerDataWithOutPlatformPrefix: function (playerObj) {
@@ -988,8 +1046,7 @@ let dbPlayerInfo = {
         })
     },
 
-    createPlayerInfo: function (playerdata, skipReferrals, skipPrefix, isAutoCreate) {
-        let deferred = Q.defer();
+    createPlayerInfo: function (playerdata, skipReferrals, skipPrefix, isAutoCreate, bFromBI) {
         let playerData = null;
         let platformData = null;
 
@@ -1010,7 +1067,7 @@ let dbPlayerInfo = {
 
             }
 
-            if (playerdata.password.length < 6 || playerdata.password.length > 20 || !playerdata.password.match(alphaNumRegex)) {
+            if ((playerdata.password.length < 6 || playerdata.password.length > 20 || !playerdata.password.match(alphaNumRegex)) && !bFromBI) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
@@ -1027,8 +1084,8 @@ let dbPlayerInfo = {
             }
         }
 
-        dbconfig.collection_platform.findOne({_id: playerdata.platform}).then(
-            function (platform) {
+        return dbconfig.collection_platform.findOne({_id: playerdata.platform}).lean().then(
+            platform => {
                 if (platform) {
                     platformData = platform;
 
@@ -1043,48 +1100,30 @@ let dbPlayerInfo = {
                         return {isPlayerNameValid: true};
                     }
                 } else {
-                    deferred.reject({name: "DBError", message: "No such platform"});
+                    return Promise.reject({name: "DBError", message: "No such platform"});
                 }
             },
-            function (error) {
-                deferred.reject({
+            error => {
+                return Promise.reject({
                     name: "DBError",
                     message: "Error when finding platform",
                     error: error
                 });
             }
         ).then(
-            function (data) {
+            data => {
                 if (data.isPlayerNameValid) {
                     if (isAutoCreate || playerdata.isTestPlayer) {
                         return {isPhoneNumberValid: true};
                     }
 
-                    if (platformData.whiteListingPhoneNumbers
-                        && platformData.whiteListingPhoneNumbers.length > 0
-                        && playerdata.phoneNumber
-                        && platformData.whiteListingPhoneNumbers.indexOf(playerdata.phoneNumber) > -1)
-                        return {isPhoneNumberValid: true};
-
-                    if (platformData.allowSamePhoneNumberToRegister === true) {
-                        return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
-                            phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
-                            platform: playerdata.platform,
-                            isRealPlayer: true
-                        }, platformData.samePhoneNumberRegisterCount);
-                        // return {isPhoneNumberValid: true};
-                    } else {
-                        return dbPlayerInfo.isPhoneNumberValidToRegister({
-                            phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
-                            platform: playerdata.platform,
-                            isRealPlayer: true
-                        });
-                    }
+                    return checkPhoneNumberWhiteList(playerdata, platformData);
                 } else {
-                    deferred.reject({name: "DBError", message: "Length of Player Name is not valid"});
+                    return Promise.reject({name: "DBError", message: "Length of Player Name is not valid"});
                 }
-            }, function (error) {
-                deferred.reject({
+            },
+            error => {
+                return Promise.reject({
                     name: "DBError",
                     message: "Player Name length is not valid",
                     error: error
@@ -1092,18 +1131,18 @@ let dbPlayerInfo = {
             }
         ).then(
             //make sure phone number is unique
-            function (data) {
+            data => {
                 if (data.isPhoneNumberValid) {
                     return dbPlayerInfo.isPlayerNameValidToRegister({
                         name: playerdata.name,
                         platform: playerdata.platform
                     });
                 } else {
-                    deferred.reject({name: "DBError", message: "Phone number already exists"});
+                    return Promise.reject({name: "DBError", message: "Phone number already exists"});
                 }
             },
-            function (error) {
-                deferred.reject({
+            error => {
+                return Promise.reject({
                     status: constServerCode.PHONENUMBER_ALREADY_EXIST,
                     name: "DBError",
                     message: "Phone number already exists",
@@ -1112,42 +1151,42 @@ let dbPlayerInfo = {
             }
         ).then(
             //make sure player name is unique
-            function (data) {
+            data => {
                 if (data.isPlayerNameValid) {
-                    var playerName = new dbconfig.collection_playerName({
+                    let playerName = new dbconfig.collection_playerName({
                         name: playerdata.name,
                         platform: playerdata.platform
                     });
                     return playerName.save();
                 } else {
-                    deferred.reject({name: "DBError", message: "Username already exists"});
+                    return Promise.reject({name: "DBError", message: "Username already exists"});
                 }
             },
-            function (error) {
-                deferred.reject({
+            error => {
+                return Promise.reject({
                     name: "DBError",
                     message: "Username already exists",
                     error: error
                 });
             }
         ).then(
-            function (data) {
+            data => {
                 if (data) {
-                    var player = new dbconfig.collection_players(playerdata);
+                    let player = new dbconfig.collection_players(playerdata);
                     return player.save();
                 } else {
-                    deferred.reject({name: "DBError", message: "Could not save player"});
+                    return Promise.reject({name: "DBError", message: "Could not save player"});
                 }
             },
-            function (error) {
-                deferred.reject({
+            error => {
+                return Promise.reject({
                     name: "DBError",
                     message: "Error in checking player name uniqueness " + error.message,
                     error: error
                 });
             }
         ).then(
-            function (data) {
+            data => {
                 if (data) {
                     playerData = data;
 
@@ -1156,24 +1195,24 @@ let dbPlayerInfo = {
                     }
 
                     let promArr = [];
-                    var levelProm = dbconfig.collection_playerLevel.findOne({
+                    let levelProm = dbconfig.collection_playerLevel.findOne({
                         platform: playerdata.platform,
                         value: mongoose.Types.ObjectId.isValid(playerdata.level) ? playerdata.level : (playerdata.level || 0)
                     }).exec();
-                    var platformProm = dbconfig.collection_platform.findOne({_id: playerdata.platform});
-                    var bankGroupProm = dbconfig.collection_platformBankCardGroup.findOne({
+                    let platformProm = dbconfig.collection_platform.findOne({_id: playerdata.platform});
+                    let bankGroupProm = dbconfig.collection_platformBankCardGroup.findOne({
                         platform: playerdata.platform,
                         bDefault: true
                     });
-                    var merchantGroupProm = dbconfig.collection_platformMerchantGroup.findOne({
+                    let merchantGroupProm = dbconfig.collection_platformMerchantGroup.findOne({
                         platform: playerdata.platform,
                         bDefault: true
                     });
-                    var alipayGroupProm = dbconfig.collection_platformAlipayGroup.findOne({
+                    let alipayGroupProm = dbconfig.collection_platformAlipayGroup.findOne({
                         platform: playerdata.platform,
                         bDefault: true
                     });
-                    var wechatGroupProm = dbconfig.collection_platformWechatPayGroup.findOne({
+                    let wechatGroupProm = dbconfig.collection_platformWechatPayGroup.findOne({
                         platform: playerdata.platform,
                         bDefault: true
                     });
@@ -1183,7 +1222,7 @@ let dbPlayerInfo = {
                     });
                     promArr = [levelProm, platformProm, bankGroupProm, merchantGroupProm, alipayGroupProm, wechatGroupProm, quickpayGroupProm];
                     //special handling for demo players
-                    if(playerData.isTestPlayer) {
+                    if (playerData.isTestPlayer) {
                         let permissionQuery = {
                             "permission.applyBonus": false,
                             "permission.topupOnline": false,
@@ -1199,24 +1238,24 @@ let dbPlayerInfo = {
                             {_id: playerData._id, platform: playerData.platform},
                             permissionQuery,
                             {new: true}
-                        )
+                        );
                         promArr.push(testPlayerHandlingProm);
                     }
-                    return Q.all(promArr);
+                    return Promise.all(promArr);
                 }
                 else {
-                    deferred.reject({name: "DataError", message: "Can't create new player."});
+                    return Promise.reject({name: "DataError", message: "Can't create new player."});
                 }
             },
-            function (error) {
-                deferred.reject({
+            error => {
+                return Promise.reject({
                     name: "DBError",
                     message: "Error creating new player. " + error.message,
                     error: error
                 });
             }
         ).then(
-            function (data) {
+            data => {
                 if (playerData.isRealPlayer && playerData.platform && playerdata.phoneNumber) {
                     dbconfig.collection_smsLog.update(
                         {
@@ -1228,8 +1267,8 @@ let dbPlayerInfo = {
                         {"data.isRegistered": true}, {multi: true}).lean().catch(errorUtils.reportError);
                 }
                 if (data && data[0] && data[1]) {
-                    var proms = [];
-                    var playerUpdateData = {
+                    let proms = [];
+                    let playerUpdateData = {
                         playerLevel: data[0]._id,
                         playerId: (data[1].prefix + playerData.playerId)
                     };
@@ -1268,30 +1307,28 @@ let dbPlayerInfo = {
                             )
                         )
                     }
-                    return Q.all(proms);
+                    return Promise.all(proms);
                 }
                 else {
                     //todo::if there is no player level on platform...improve the handling here
-                    deferred.resolve(playerData);
+                    return playerData;
                 }
             },
-            function (error) {
-                deferred.reject({name: "DBError", message: "Error creating new player.", error: error});
+            error => {
+                return Promise.reject({name: "DBError", message: "Error creating new player.", error: error});
             }
         ).then(
-            function (data) {
-                deferred.resolve(data && data[0]);
+            data => {
+                return data && data[0];
             },
-            function (error) {
-                deferred.reject({name: "DBError", message: "Error updating new player.", error: error});
+            error => {
+                return Promise.reject({name: "DBError", message: "Error updating new player.", error: error});
             }
         ).catch(
-            function (error) {
-                deferred.reject({name: "DBError", message: "Unexpected error updating new player.", error: error});
+            error => {
+                return Promise.reject({name: "DBError", message: "Unexpected error updating new player.", error: error});
             }
         );
-
-        return deferred.promise;
     },
 
     /**
@@ -10023,7 +10060,7 @@ let dbPlayerInfo = {
                                         ).then(transferCreditToProvider);
                                     }
                                     //if it's ipm, don't use async here
-                                    if (isFirstTransfer && (providerData && providerData.providerId != "51" && providerData.providerId != "57")) {
+                                    if (isFirstTransfer && (providerData && providerData.providerId != "51" && providerData.providerId != "57" && providerData.providerId != "70")) {
                                         return transferProm;
                                     }
                                     else {
@@ -10301,7 +10338,8 @@ let dbPlayerInfo = {
                                                 resData.push({
                                                     type: paymentData.merchants[i].topupType,
                                                     status: status,
-                                                    maxDepositAmount: paymentData.merchants[i].permerchantLimits
+                                                    maxDepositAmount: paymentData.merchants[i].permerchantLimits,
+                                                    minDepositAmount: paymentData.merchants[i].permerchantminLimits
                                                 });
                                             }
                                         }
@@ -14725,8 +14763,8 @@ let dbPlayerInfo = {
                         name: "DataError",
                         message: "INVALID_DATA"
                     });
-                } else if (!playerData.qq && !data.qq) {
-                    return Promise.resolve();
+                // } else if (!playerData.qq && !data.qq) {
+                //     return Promise.resolve();
                 } else {
                     return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_QQ, proposalData);
                 }
@@ -14759,8 +14797,8 @@ let dbPlayerInfo = {
                         name: "DataError",
                         message: "INVALID_DATA"
                     });
-                } else if (!playerData.wechat && !data.wechat) {
-                    return Promise.resolve();
+                // } else if (!playerData.wechat && !data.wechat) {
+                //     return Promise.resolve();
                 } else {
                     return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_WECHAT, proposalData);
                 }
@@ -16010,6 +16048,77 @@ function getNextDateByPeriodAndDate(period, startDate) {
             break
     }
     return date;
+}
+
+function checkPhoneNumberWhiteList (inputData, platformObj) {
+    // phone number white listing
+    if (platformObj.whiteListingPhoneNumbers
+        && platformObj.whiteListingPhoneNumbers.length > 0
+        && inputData.phoneNumber
+        && platformObj.whiteListingPhoneNumbers.indexOf(inputData.phoneNumber) > -1)
+        return {isPhoneNumberValid: true};
+
+    if (platformObj.allowSamePhoneNumberToRegister === true) {
+        return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
+            phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
+            platform: platformObj._id,
+            isRealPlayer: true
+        }, platformObj.samePhoneNumberRegisterCount);
+        // return {isPhoneNumberValid: true}
+    } else {
+        return dbPlayerInfo.isPhoneNumberValidToRegister({
+            phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
+            platform: platformObj._id,
+            isRealPlayer: true
+        });
+    }
+}
+
+function determineRegistrationInterface (inputData, adminName, adminId) {
+    if (inputData.domain && inputData.domain.indexOf('fpms8') !== -1) {
+        inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
+    }
+    else if (inputData.userAgent && inputData.userAgent[0]) {
+        let userAgent = inputData.userAgent[0];
+        if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
+            if (inputData.partner) {
+                inputData.registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
+            }
+            else {
+                inputData.registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
+            }
+        }
+        else if (userAgent.os.indexOf("iOS") !== -1 || userAgent.os.indexOf("ndroid") !== -1 || userAgent.browser.indexOf("obile") !== -1) {
+            if (inputData.partner) {
+                inputData.registrationInterface = constPlayerRegistrationInterface.H5_AGENT;
+            }
+            else {
+                inputData.registrationInterface = constPlayerRegistrationInterface.H5_PLAYER;
+            }
+        }
+        else {
+            if (inputData.partner) {
+                inputData.registrationInterface = constPlayerRegistrationInterface.WEB_AGENT;
+            }
+            else {
+                inputData.registrationInterface = constPlayerRegistrationInterface.WEB_PLAYER;
+            }
+        }
+    }
+    else {
+        inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
+    }
+
+    if (inputData.registrationInterface !== constPlayerRegistrationInterface.BACKSTAGE) {
+        inputData.loginTimes = 1;
+    }
+    else if (adminName) {
+        // insert related CS name when account is opened from backstage
+        inputData.accAdmin = adminName;
+        inputData.csOfficer = ObjectId(adminId);
+    }
+
+    return inputData;
 }
 
 

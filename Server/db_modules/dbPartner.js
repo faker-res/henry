@@ -5029,7 +5029,7 @@ let dbPartner = {
                                 }
                             ).exec();
 
-                            return {partnerId: partnerId, size: totalCredit}
+                            return {partnerId: partnerId, amount: totalCredit}
                         }
                     )
                 }
@@ -5091,7 +5091,7 @@ let dbPartner = {
                         }
                     ).exec();
 
-                    return {partnerId: partnerId, size: totalValidCredit};
+                    return {partnerId: partnerId, amount: totalValidCredit};
                 }
             });
         }
@@ -5601,22 +5601,85 @@ let dbPartner = {
         return Promise.all(proms);
     },
 
-    getPartnerSettlementHistory: (partnerName, commissionType, startTime, endTime, sortCol, index, limit) => {
+    getPartnerSettlementHistory: (platformObjId, partnerName, commissionType, startTime, endTime, sortCol, index, limit) => {
         index = index || 0;
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         sortCol = sortCol || {'_id': -1};
         let query = {
-            partnerName: partnerName,
-            commissionType: commissionType,
-            startTime: startTime,
-            endTime: endTime
+            startTime: {
+                $gte: startTime,
+                $lte: endTime
+            },
+            endTime: {
+                $gte: startTime,
+                $lte: endTime
+            },
+            status: {
+                $gte: 1,
+                $lte: 3
+            }
         };
+        if(partnerName) {
+            query.partnerName = partnerName;
+        }
+        if(commissionType) {
+            query.commissionType = commissionType;
+        }
 
         let count = dbconfig.collection_partnerCommissionLog.count(query).read("secondaryPreferred");
-        let result = dbconfig.collection_partnerCommissionLog.find(query).read("secondaryPreferred").sort(sortCol).skip(index).limit(limit);
+        let result = dbconfig.collection_partnerCommissionLog.find(query).read("secondaryPreferred");
 
         return Promise.all([count, result]).then(data => {
-            return {count: data[0], data: data[1]};
+            let retData = [];
+            let filterData = [];
+            let result = data[1];
+
+            result.forEach(v => {
+                let filterDataIndex = filterData.indexOf([v.commissionType,v.partnerName]);
+                if(filterDataIndex < 0) {
+                    filterData.push([v.commissionType,v.partnerName]);
+
+                    let record = JSON.parse(JSON.stringify(v));
+                    retData.push(record);
+                    retData[retData.length - 1].totalConsumption = 0;
+                    v.downLinesRawCommissionDetail.forEach(v2=>{
+                        retData[retData.length - 1].totalConsumption += v2.consumptionDetail.validAmount;
+                    });
+
+                    retData[retData.length - 1].groupCommissions = {};
+                    v.rawCommissions.forEach(v2=>{
+                        retData[retData.length - 1].groupCommissions[v2.groupName] = v2.amount;
+                    });
+                } else {
+                    v.rawCommissions.forEach(v2=>{
+                        retData[filterDataIndex].groupCommissions[v2.groupName] += v2.amount;
+                    });
+                    v.downLinesRawCommissionDetail.forEach(v2=>{
+                        retData[filterDataIndex].totalConsumption += v2.consumptionDetail.validAmount;
+                    });
+                    retData[filterDataIndex].totalPlatformFee += v.totalPlatformFee;
+                    retData[filterDataIndex].totalReward += v.totalReward;
+                    retData[filterDataIndex].totalRewardFee += v.totalRewardFee;
+                    retData[filterDataIndex].totalTopUp += v.totalTopUp;
+                    retData[filterDataIndex].totalTopUpFee += v.totalTopUpFee;
+                    retData[filterDataIndex].totalWithdrawal += v.totalWithdrawal;
+                    retData[filterDataIndex].totalWithdrawalFee += v.totalWithdrawalFee;
+                    retData[filterDataIndex].nettCommission += v.nettCommission;
+                }
+            });
+
+            let sortKey = sortCol[Object.keys(sortCol)[0]];
+            retData.sort(function(a,b){
+                if(a[sortKey] < b[sortKey]) {
+                    return sortCol[sortKey];
+                } else if(a[sortKey] > b[sortKey]) {
+                    return -sortCol[sortKey];
+                } else {
+                    return 0;
+                }
+            });
+            retData = retData.splice(index, limit);
+            return {count: data[0], data: retData};
         })
     },
 };
@@ -5748,7 +5811,7 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
         {
             $group: {
                 _id: "$providerId",
-                provider: {$first: "providerId"},
+                provider: {$first: "$providerId"},
                 count: {$sum: {$cond: ["$count", "$count", 1]}},
                 validAmount: {$sum: "$validAmount"},
                 bonusAmount: {$sum: "$bonusAmount"},
@@ -5805,7 +5868,7 @@ function getPlayerCommissionTopUpDetail (playerObjId, startTime, endTime, topUpT
     return dbconfig.collection_proposal.aggregate([
         {
             "$match": {
-                "data.playerObjId": playerObjId,
+                "data.playerObjId": {$in: [ObjectId(playerObjId), String(playerObjId)]},
                 "createTime": {
                     "$gte": new Date(startTime),
                     "$lte": new Date(endTime)
@@ -5868,7 +5931,7 @@ function getPlayerCommissionWithdrawDetail (playerObjId, startTime, endTime) {
     return dbconfig.collection_proposal.aggregate([
         {
             "$match": {
-                "data.playerObjId": playerObjId,
+                "data.playerObjId": {$in: [ObjectId(playerObjId), String(playerObjId)]},
                 "createTime": {
                     "$gte": new Date(startTime),
                     "$lte": new Date(endTime)
@@ -6136,7 +6199,7 @@ function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewar
     let rewardProm = dbconfig.collection_proposal.aggregate([
         {
             "$match": {
-                "data.playerObjId": playerObjId,
+                "data.playerObjId": {$in: [ObjectId(playerObjId), String(playerObjId)]},
                 "createTime": {
                     "$gte": new Date(startTime),
                     "$lte": new Date(endTime)
