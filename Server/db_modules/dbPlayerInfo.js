@@ -10301,7 +10301,8 @@ let dbPlayerInfo = {
                                                 resData.push({
                                                     type: paymentData.merchants[i].topupType,
                                                     status: status,
-                                                    maxDepositAmount: paymentData.merchants[i].permerchantLimits
+                                                    maxDepositAmount: paymentData.merchants[i].permerchantLimits,
+                                                    minDepositAmount: paymentData.merchants[i].permerchantminLimits
                                                 });
                                             }
                                         }
