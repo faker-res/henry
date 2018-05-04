@@ -4,7 +4,10 @@ var SettlementBalancer = require('../settlementModule/settlementBalancer');
 var moment = require('moment-timezone');
 var constSystemParam = require('../const/constSystemParam');
 var mongoose = require('mongoose');
-var constPlayerFeedbackResult = require('./../const/constPlayerFeedbackResult');
+const constPlayerFeedbackResult = require('./../const/constPlayerFeedbackResult');
+const constProposalEntryType = require('./../const/constProposalEntryType');
+const constProposalUserType = require('./../const/constProposalUserType');
+const constProposalType = require ('./../const/constProposalType');
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -539,5 +542,66 @@ var dbPlayerFeedback = {
             .populate({path: "adminId", model: dbconfig.collection_admin}).exec();
     }
 };
+
+function applyExtractPlayerProposal (playerType, playerLevelObjId, playerLevelName, credibilityRemarkObjIdArray, credibilityRemarkNameArray,
+                                     lastAccessTimeFrom, lastAccessTimeTo, lastAccessTimeRangeString,
+                                     lastFeedbackTimeBefore, depositCountOperator, depositCountFormal, depositCountLater,
+                                     playerValueOperator, playerValueFormal, playerValueLater, consumptionTimesOperator,
+                                     consumptionTimesFormal, consumptionTimesLater, withdrawalTimesOperator, withdrawalTimesFormal,
+                                     withdrawalTimesLater, topUpSumOperator, topUpSumFormal, topUpSumLater, gameProviderIdArray,
+                                     gameProviderNameArray, isNewSystem, registrationTimeFrom, registrationTimeTo, platformObjId,
+                                     adminInfo, targetExportPlatformObjId, targetExportPlatformName, expirationTime) {
+    return dbconfig.collection_proposalType.findOne({name: constProposalType.BULK_EXPORT_PLAYERS_DATA, platformId: platformObjId}).lean().then(
+        proposalType => {
+            if (!proposalType) {
+                return Promise.reject({
+                    message: "Error in getting proposal type"
+                });
+            }
+
+
+            let proposalData = {
+                type: proposalType._id,
+                creator: adminInfo ? adminInfo : {},
+                data: {
+                    playerType,
+                    playerLevel: playerLevelObjId,
+                    playerLevelName,
+                    credibilityRemarks: credibilityRemarkObjIdArray,
+                    credibilityRemarkNames: credibilityRemarkNameArray,
+                    lastAccessTimeFrom,
+                    lastAccessTimeTo,
+                    lastAccessTimeRangeString,
+                    lastFeedbackTimeBefore,
+                    depositCountOperator,
+                    depositCountFormal,
+                    depositCountLater,
+                    consumptionTimesOperator,
+                    consumptionTimesFormal,
+                    consumptionTimesLater,
+                    withdrawalTimesOperator,
+                    withdrawalTimesFormal,
+                    withdrawalTimesLater,
+                    topUpSumOperator,
+                    topUpSumFormal,
+                    topUpSumLater,
+                    gameProviders: gameProviderIdArray,
+                    gameProviderNames: gameProviderNameArray,
+                    isNewSystem,
+                    registrationTimeTo,
+                    platformObjId,
+                    targetExportPlatform: targetExportPlatformObjId,
+                    targetExportPlatformName,
+                    expirationTime,
+                    remark: ""
+                },
+                entryType: constProposalEntryType.ADMIN,
+                userType: constProposalUserType.SYSTEM_USERS
+            };
+
+            return dbProposal.createProposalWithTypeId(proposalType._id, proposalData);
+        }
+    );
+}
 
 module.exports = dbPlayerFeedback;
