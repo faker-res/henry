@@ -4,6 +4,7 @@ var SettlementBalancer = require('../settlementModule/settlementBalancer');
 var moment = require('moment-timezone');
 var constSystemParam = require('../const/constSystemParam');
 var mongoose = require('mongoose');
+const dbProposal = require('./../db_modules/dbProposal');
 const constPlayerFeedbackResult = require('./../const/constPlayerFeedbackResult');
 const constProposalEntryType = require('./../const/constProposalEntryType');
 const constProposalUserType = require('./../const/constProposalUserType');
@@ -543,7 +544,7 @@ var dbPlayerFeedback = {
     }
 };
 
-function applyExtractPlayerProposal (playerType, playerLevelObjId, playerLevelName, credibilityRemarkObjIdArray, credibilityRemarkNameArray,
+function applyExtractPlayerProposal (title, playerType, playerLevelObjId, playerLevelName, credibilityRemarkObjIdArray, credibilityRemarkNameArray,
                                      lastAccessTimeFrom, lastAccessTimeTo, lastAccessTimeRangeString,
                                      lastFeedbackTimeBefore, depositCountOperator, depositCountFormal, depositCountLater,
                                      playerValueOperator, playerValueFormal, playerValueLater, consumptionTimesOperator,
@@ -551,6 +552,7 @@ function applyExtractPlayerProposal (playerType, playerLevelObjId, playerLevelNa
                                      withdrawalTimesLater, topUpSumOperator, topUpSumFormal, topUpSumLater, gameProviderIdArray,
                                      gameProviderNameArray, isNewSystem, registrationTimeFrom, registrationTimeTo, platformObjId,
                                      adminInfo, targetExportPlatformObjId, targetExportPlatformName, expirationTime) {
+    title = title || "";
     return dbconfig.collection_proposalType.findOne({name: constProposalType.BULK_EXPORT_PLAYERS_DATA, platformId: platformObjId}).lean().then(
         proposalType => {
             if (!proposalType) {
@@ -564,6 +566,7 @@ function applyExtractPlayerProposal (playerType, playerLevelObjId, playerLevelNa
                 type: proposalType._id,
                 creator: adminInfo ? adminInfo : {},
                 data: {
+                    title,
                     playerType,
                     playerLevel: playerLevelObjId,
                     playerLevelName,
