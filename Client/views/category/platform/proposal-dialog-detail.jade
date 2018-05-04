@@ -52,4 +52,4 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
             tr(ng-repeat='(i,v) in vm.selectedProposal.data')
                 td {{ i | translate}}
                 td
-                    div(ng-bind-html='vm.showProposalDetailField(vm.selectedProposal,i,v)')
+                    div(ng-bind-html='vm.showProposalDetailField(vm.selectedProposal,i,v)' ng-style='vm.proposalDetailStyle[i]')

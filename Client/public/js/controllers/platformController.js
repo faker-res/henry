@@ -1506,6 +1506,14 @@ define(['js/app'], function (myApp) {
                 };
 
                 let modes = [1, 2, 3, 4, 5];
+                /* flags to disable settlement mode button after submit sucessfully*/
+                vm.partnerSettlementSubmitted = {
+                    1 : false,
+                    2 : false,
+                    3 : false,
+                    4 : false,
+                    5 : false
+                };
 
                 $scope.$socketPromise("getPlatformPartnerSettLog", {
                     platformObjId: vm.selectedPlatform.id,
@@ -1589,7 +1597,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initSettlePartnerComm = (prev) => {
-                vm.partnerSettlementSubmitted = false;
                 vm.partnerCommVar = {};
                 vm.partnerDLCommDetailTotal = {};
 
@@ -1597,7 +1604,15 @@ define(['js/app'], function (myApp) {
                 vm.partnerCommVar.settMode = prev.settMode;
                 vm.partnerCommVar.startTime = prev.startTime;
                 vm.partnerCommVar.endTime = prev.endTime;
-
+                if (!vm.partnerSettlementSubmitted) {
+                    vm.partnerSettlementSubmitted = {
+                        1: false,
+                        2: false,
+                        3: false,
+                        4: false,
+                        5: false
+                    };
+                }
 
                 vm.selectedSettlePartnerCommPrev = prev;
 
@@ -1624,17 +1639,20 @@ define(['js/app'], function (myApp) {
                         vm.partnerCommissionLog.forEach( partner => {
                                 if (partner){
                                     partner.isAnyCustomPlatformFeeRate = false;
-                                    (partner.rawCommissions).forEach( (group, idxgroup) => {
-                                        partner.isAnyCustomPlatformFeeRate = group.isCustomPlatformFeeRate ? true : partner.isAnyCustomPlatformFeeRate;
-                                        if (group.isCustomPlatformFeeRate == true){
-                                            vm.partnerCommVar.platformFeeTab = idxgroup;
-                                        }
-                                        }
-                                    );
+                                    if (partner.rawCommission && partner.rawCommission.length > 0) {
+                                        (partner.rawCommissions).forEach((group, idxgroup) => {
+                                                partner.isAnyCustomPlatformFeeRate = group.isCustomPlatformFeeRate ? true : partner.isAnyCustomPlatformFeeRate;
+                                                if (group.isCustomPlatformFeeRate == true) {
+                                                    vm.partnerCommVar.platformFeeTab = idxgroup;
+                                                }
+                                            }
+                                        );
+                                    }
                                 }
                             }
                         );
-                        $scope.safeApply();
+                        // $scope.safeApply();
+                        $('#modalPartnerCommPreview').modal();
                     }
                 )
             };
@@ -1672,8 +1690,16 @@ define(['js/app'], function (myApp) {
             /* Check for no remark entry if settleMethod is not normal settlement */
             vm.checkPartnerCommissionLogRemark = function () {
                 delete vm.partnerCommVar.checkedRemark;
+                let applyPartnerCommSettlementArray = [];
                 vm.partnerCommissionLog.forEach( partner => {
                     if (partner) {
+                        applyPartnerCommSettlementArray.push(
+                            {
+                                logId: partner._id,
+                                settleType: parseInt(partner.settleMethod),
+                                remark: partner.remarks ? partner.remarks : ""
+                            }
+                        );
                         if (partner.settleMethod != "1") {
                             if (!partner.remarks || partner.remarks == ""){
                                 vm.partnerCommVar.checkedRemark = "Please Add Remark If Not Normal Executed!";
@@ -1681,29 +1707,15 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 });
+
                 if (!vm.partnerCommVar.checkedRemark){
-                    vm.partnerSettlementSubmitted = true;
-                    vm.bulkApplyPartnerCommission();
+                    vm.partnerSettlementSubmitted[vm.partnerCommVar.settMode] = true;
+                    vm.bulkApplyPartnerCommission(applyPartnerCommSettlementArray);
                 }
             };
 
             /* Apply bulk partner commission settlement */
-            vm.bulkApplyPartnerCommission = function () {
-                let applyPartnerCommSettlementArray = [];
-                vm.partnerCommissionLog.forEach( partner => {
-                    if (partner){
-                        applyPartnerCommSettlementArray.push(
-                            {
-                                logId: partner._id,
-                                settleType: parseInt(partner.settleMethod),
-                                remark: partner.remarks ? partner.remarks : "-"
-                            }
-                        )
-                    }
-                    }
-                );
-                console.log('applyPartnerCommSettlementArray', applyPartnerCommSettlementArray);
-
+            vm.bulkApplyPartnerCommission = function (applyPartnerCommSettlementArray) {
                 let sendData = {
                     applySettlementArray: applyPartnerCommSettlementArray,
                     platformObjId: vm.selectedPlatform.data._id,
@@ -1712,7 +1724,6 @@ define(['js/app'], function (myApp) {
                     endTime: vm.partnerCommVar.endTime
                 };
 
-                console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'bulkApplyPartnerCommission', sendData, function (data) {
                     console.log('returnOutput', data);
                 });
@@ -15071,7 +15082,7 @@ define(['js/app'], function (myApp) {
                     vm.submitPlayerFeedbackQuery();
                 });
             };
-            
+
             vm.getPlayerCreditinFeedbackInfo = function () {
                 vm.curFeedbackPlayer.gameCredit = {};
                 for (var i in vm.platformProviderList) {
@@ -15173,7 +15184,7 @@ define(['js/app'], function (myApp) {
                     console.log("vm.allPartnerFeedbackResults", err)
                 });
             };
-            
+
             vm.getAllPlayerFeedbackTopics = function () {
                 return $scope.$socketPromise('getAllPlayerFeedbackTopics').then(
                     function (data) {
@@ -15225,7 +15236,7 @@ define(['js/app'], function (myApp) {
                     vm.deletePartnerFeedbackResultData.failure = null;
                 }
             };
-            
+
             vm.addFeedbackResult = function (rowData) {
                 vm.clearFeedBackResultDataStatus(rowData);
                 let reqData = {};
@@ -15286,7 +15297,7 @@ define(['js/app'], function (myApp) {
                     );
                 }
             };
-            
+
             vm.deleteFeedbackResult = function (rowData) {
                 vm.clearFeedBackResultDataStatus(rowData);
                 let reqData = {};
@@ -15365,7 +15376,7 @@ define(['js/app'], function (myApp) {
                     vm.deletePartnerFeedbackTopicData.failure = null;
                 }
             };
-            
+
             vm.addFeedbackTopic = function (rowData) {
                 vm.clearFeedBackTopicDataStatus(rowData);
                 let reqData = {};
@@ -15426,7 +15437,7 @@ define(['js/app'], function (myApp) {
                     );
                 }
             };
-            
+
             vm.deleteFeedbackTopic = function (rowData) {
                 vm.clearFeedBackTopicDataStatus(rowData);
                 let reqData = {};
@@ -15629,6 +15640,14 @@ define(['js/app'], function (myApp) {
                     return;
                 }
                 $('#partnerRefreshIcon').addClass('fa-spin');
+                $('#partnerLoadingIcon').addClass('fa fa-spinner fa-spin');
+
+                vm.partnerLoadingDailyActivePlayer = true;
+                vm.partnerLoadingWeeklyActivePlayer = true;
+                vm.partnerLoadingMonthlyActivePlayer = true;
+                vm.partnerLoadingValidPlayers = true;
+                vm.partnerLoadingTotalChildrenDeposit = true;
+                vm.partnerLoadingTotalChildrenBalance = true;
 
                 vm.advancedPartnerQueryObj = vm.advancedPartnerQueryObj || {
                     "platformId": vm.selectedPlatform.id,
@@ -15686,7 +15705,7 @@ define(['js/app'], function (myApp) {
                             }
                         }
 
-                        socketService.$socket($scope.AppSocket, 'getCustomizeCommissionConfigPartner', sendQuery, function (customCommissionConfig) { console.log('customCommissionConfig',customCommissionConfig)
+                        socketService.$socket($scope.AppSocket, 'getCustomizeCommissionConfigPartner', sendQuery, function (customCommissionConfig) {
                             if (customCommissionConfig && customCommissionConfig.data && customCommissionConfig.data.length > 0) {
                                 customCommissionConfig.data.forEach(customSetting => {
                                     if (data && data.data && data.data.data) {
@@ -15744,6 +15763,35 @@ define(['js/app'], function (myApp) {
                 }, 300);
             };
 
+            utilService.actionAfterLoaded('#resetPartnerQuery', function () {
+                $('#resetPartnerQuery').off('click');
+                $('#resetPartnerQuery').click(function () {
+                    utilService.clearDatePickerDate('#regDateTimePicker2');
+                    utilService.clearDatePickerDate('#regEndDateTimePicker2');
+                    utilService.clearDatePickerDate('#lastAccessDateTimePicker2');
+                    utilService.clearDatePickerDate('#lastAccessEndDateTimePicker2');
+                    let resetQuery = {};
+                    resetQuery.index = vm.advancedPartnerQueryObj.index;
+                    resetQuery.limit = vm.advancedPartnerQueryObj.limit;
+                    resetQuery.pageObj = vm.advancedPartnerQueryObj.pageObj;
+                    resetQuery.sortCol = vm.advancedPartnerQueryObj.sortCol;
+                    vm.advancedPartnerQueryObj = resetQuery;
+                    console.log('vm.advancedPartnerQueryObj===', vm.advancedPartnerQueryObj);
+                    vm.partnerAdvanceSearchQuery = {
+                        creditsOperator: ">=",
+                        dailyActivePlayerOperator: ">=",
+                        weeklyActivePlayerOperator: ">=",
+                        monthlyActivePlayerOperator: ">=",
+                        validPlayersOperator: ">=",
+                        totalReferralsOperator: ">=",
+                        totalChildrenDepositOperator: ">=",
+                        totalChildrenBalanceOperator: ">=",
+                        commissionAmountFromChildrenOperator: ">=",
+                    };
+                    vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery);
+                })
+            });
+
             vm.getReferralsList = function (partner) {
                 socketService.$socket($scope.AppSocket, 'getReferralsList', partner, function (data) {
                     if (vm.dailyActivePlayerBoolean) {
@@ -15769,46 +15817,41 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getDailyActivePlayerCount = function (referral, partner) {
-                //start loading spinner
-
                 let sendQuery = {
                     referral: referral,
                     platform: vm.selectedPlatform.id
                 };
 
                 socketService.$socket($scope.AppSocket, 'getDailyActivePlayerCount', sendQuery, function (data) {
-                    // append back the active player number into draw Table data
+                    // append back daily active player into draw table data
                     data.data.forEach( inData => {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-
-                        if ( index !== -1){
+                        if ( index !== -1) {
                             partner.data[index].dailyActivePlayer = inData.size ? inData.size : 0;
                         }
                     });
+                    vm.partnerLoadingDailyActivePlayer = false;
                     vm.dailyActivePlayerBoolean = false;
                     vm.drawPartnerTable(partner);
-                    //end loading spinner
                     $scope.safeApply();
                 })
             };
 
             vm.getWeeklyActivePlayerCount = function (referral, partner) {
-                //start loading spinner
-
                 let sendQuery = {
                     referral: referral,
                     platform: vm.selectedPlatform.id
                 };
 
                 socketService.$socket($scope.AppSocket, 'getWeeklyActivePlayerCount', sendQuery, function (data) {
-                    // append back the active player number into draw Table data
+                    // append back weekly active player into draw table data
                     data.data.forEach( inData => {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-
-                        if ( index !== -1){
+                        if ( index !== -1) {
                             partner.data[index].weeklyActivePlayer = inData.size ? inData.size : 0;
                         }
                     });
+                    vm.partnerLoadingWeeklyActivePlayer = false;
                     vm.weeklyActivePlayerBoolean = false;
                     vm.drawPartnerTable(partner);
                     //end loading spinner
@@ -15817,46 +15860,41 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getMonthlyActivePlayerCount = function (referral, partner) {
-                //start loading spinner
-
                 let sendQuery = {
                     referral: referral,
                     platform: vm.selectedPlatform.id
                 };
 
                 socketService.$socket($scope.AppSocket, 'getMonthlyActivePlayerCount', sendQuery, function (data) {
-                    // append back the active player number into draw Table data
+                    // append back monthly active player into draw table data
                     data.data.forEach( inData => {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-
-                        if ( index !== -1){
+                        if ( index !== -1) {
                             partner.data[index].monthlyActivePlayer = inData.size ? inData.size : 0;
                         }
                     });
+                    vm.partnerLoadingMonthlyActivePlayer = false;
                     vm.monthlyActivePlayerBoolean = false;
                     vm.drawPartnerTable(partner);
-                    //end loading spinner
                     $scope.safeApply();
                 })
             };
 
             vm.getValidPlayersCount = function (referral, partner) {
-                //start loading spinner
-
                 let sendQuery = {
                     referral: referral,
                     platform: vm.selectedPlatform.id
                 };
 
                 socketService.$socket($scope.AppSocket, 'getValidPlayersCount', sendQuery, function (data) {
-                    // append back the active player number into draw Table data
+                    // append back valid players into draw table data
                     data.data.forEach( inData => {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-
-                        if ( index !== -1){
+                        if ( index !== -1) {
                             partner.data[index].validPlayers = inData.size ? inData.size : 0;
                         }
                     });
+                    vm.partnerLoadingValidPlayers = false;
                     vm.validPlayersBoolean = false;
                     vm.drawPartnerTable(partner);
                     //end loading spinner
@@ -15865,49 +15903,43 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getTotalChildrenDeposit = function (referral, partner) {
-                //start loading spinner
-
                 let sendQuery = {
                     referral: referral,
                     platform: vm.selectedPlatform.id
                 };
 
                 socketService.$socket($scope.AppSocket, 'getTotalChildrenDeposit', sendQuery, function (data) {
-                    // append back the active player number into draw Table data
+                    // append back total children deposit into draw table data
                     data.data.forEach( inData => {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-
-                        if ( index !== -1){
+                        if ( index !== -1) {
                             partner.data[index].totalChildrenDeposit = inData.size ? inData.size : 0;
                         }
                     });
+                    vm.partnerLoadingTotalChildrenDeposit = false;
                     vm.totalChildrenDepositBoolean = false;
                     vm.drawPartnerTable(partner);
-                    //end loading spinner
                     $scope.safeApply();
                 })
             };
 
             vm.getTotalChildrenBalance = function (referral, partner) {
-                //start loading spinner
-
                 let sendQuery = {
                     referral: referral,
                     platform: vm.selectedPlatform.id
                 };
 
                 socketService.$socket($scope.AppSocket, 'getTotalChildrenBalance', sendQuery, function (data) {
-                    // append back the active player number into draw Table data
+                    // append back total children balance into draw table data
                     data.data.forEach( inData => {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-
-                        if ( index !== -1){
+                        if ( index !== -1) {
                             partner.data[index].totalChildrenBalance = inData.size ? inData.size : 0;
                         }
                     });
+                    vm.partnerLoadingTotalChildrenBalance = false;
                     vm.totalChildrenBalanceBoolean = false;
                     vm.drawPartnerTable(partner);
-                    //end loading spinner
                     $scope.safeApply();
                 })
             };
@@ -15936,6 +15968,12 @@ define(['js/app'], function (myApp) {
                     partner.totalChildrenBalance = partner.totalChildrenBalance ? partner.totalChildrenBalance : 0;
                     partner.commissionAmountFromChildren = partner.commissionAmountFromChildren ? partner.commissionAmountFromChildren : 0;
                 });
+
+                if (!vm.partnerLoadingDailyActivePlayer && !vm.partnerLoadingWeeklyActivePlayer && !vm.partnerLoadingMonthlyActivePlayer &&
+                    !vm.partnerLoadingValidPlayers && !vm.partnerLoadingTotalChildrenDeposit && !vm.partnerLoadingTotalChildrenBalance) {
+                    $('#partnerLoadingIcon').removeClass('fa fa-spinner fa-spin');
+                }
+
                 vm.partners = data.data;
                 vm.platformPartnerCount = data.size;
                 vm.selectedPartnerCount = 0;
@@ -16642,7 +16680,7 @@ define(['js/app'], function (myApp) {
                     filtersElement: '',
                     queryFunction: vm.getPartnersByAdvanceQueryDebounced
                 });
-                vm.advancedPartnerQueryObj.pageObj.init({maxCount: data.size});
+                //vm.advancedPartnerQueryObj.pageObj.init({maxCount: data.size});
 
                 if (vm.selectedSinglePartner) {
                     vm.partnerTable
@@ -21596,6 +21634,100 @@ define(['js/app'], function (myApp) {
                     proposalId: proposalId
                 }, function (data) {
                     vm.selectedProposal = data.data;
+                    vm.proposalDetailStyle = {};
+
+                    if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "SettlePartnerCommission") {
+                        let proposalDetail = {};
+                        if (!vm.selectedProposal.data) {
+                            vm.selectedProposal.data = {};
+                        }
+                        let grossCommission = 0;
+                        let totalPlatformFee = 0;
+
+                        let customizedStyle = {
+                            'font-weight': 'bold',
+                            'color': 'red'
+                        };
+                        let isCustomized = false;
+
+                        let consumptionUsed = vm.selectedProposal.data.commissionType == 5 ? "CONSUMPTION" : "SITE_LOSE_WIN";
+
+                        proposalDetail["MAIN_TYPE"] = $translate("SettlePartnerCommission");
+                        proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                        proposalDetail["CREATION_TIME"] = $scope.timeReformat(vm.selectedProposal.createTime);
+                        proposalDetail["COMMISSION_PERIOD"] = $scope.dateReformat(vm.selectedProposal.data.startTime) + " - " + $scope.dateReformat(vm.selectedProposal.data.endTime);
+                        proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
+                        proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
+                        proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
+                        proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
+
+                        vm.selectedProposal.data.rawCommissions.map(rawCommission => {
+                            grossCommission += rawCommission.amount;
+                            let str = rawCommission.amount + $translate("YEN") + " "
+                                + "(" + $translate(consumptionUsed) + ": " + (-rawCommission.totalConsumption) + "/"
+                                + $translate("RATIO") + ": " + (rawCommission.commissionRate * 100) + "%)";
+
+                            proposalDetail[rawCommission.groupName + " " + $translate("Commission")] =  str;
+
+                            if (rawCommission.isCustomCommissionRate) {
+                                vm.proposalDetailStyle[rawCommission.groupName + " " + $translate("Commission")] = customizedStyle;
+                                isCustomized = true;
+                            }
+                        });
+
+                        proposalDetail["REQUIRED_PROMO_DEDUCTION"] = vm.selectedProposal.data.totalRewardFee + $translate("YEN")
+                            + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalReward + "/"
+                            + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebatePromo) + "%)";
+
+                        if (vm.selectedProposal.data.rateAfterRebatePromoIsCustom) {
+                            vm.proposalDetailStyle["REQUIRED_PROMO_DEDUCTION"] = customizedStyle;
+                            isCustomized = true;
+                        }
+
+                        proposalDetail["REQUIRED_PLATFORM_FEES_DEDUCTION"] = "";
+                        vm.selectedProposal.data.rawCommissions.map(rawCommission => {
+                            totalPlatformFee += rawCommission.platformFee;
+                            let str = rawCommission.platformFee + $translate("YEN") + " "
+                                + "(" + $translate("SITE_LOSE_WIN") + ": " + rawCommission.siteBonusAmount + "/"
+                                + $translate("RATIO") + ": " + (rawCommission.platformFeeRate) + "%)";
+
+                            proposalDetail["- " + rawCommission.groupName] =  str;
+
+                            if (rawCommission.isCustomPlatformFeeRate) {
+                                vm.proposalDetailStyle["- " + rawCommission.groupName] = customizedStyle;
+                                isCustomized = true;
+                            }
+                        });
+
+                        proposalDetail["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = vm.selectedProposal.data.totalTopUpFee + $translate("YEN")
+                            + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalTopUp + "/"
+                            + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalDeposit) + "%)";
+
+                        if (vm.selectedProposal.data.rateAfterRebateTotalDepositIsCustom) {
+                            vm.proposalDetailStyle["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = customizedStyle;
+                            isCustomized = true;
+                        }
+
+                        proposalDetail["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = vm.selectedProposal.data.totalWithdrawalFee + $translate("YEN")
+                            + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalWithdrawal + "/"
+                            + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal) + "%)";
+
+                        if (vm.selectedProposal.data.rateAfterRebateTotalWithdrawalIsCustom) {
+                            vm.proposalDetailStyle["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = customizedStyle;
+                            isCustomized = true;
+                        }
+
+                        if (isCustomized) {
+                            vm.proposalDetailStyle["COMMISSION_TYPE"] = customizedStyle;
+                        }
+
+                        let totalFee = Number(vm.selectedProposal.data.totalRewardFee) + Number(totalPlatformFee) + Number(vm.selectedProposal.data.totalTopUpFee) + Number(vm.selectedProposal.data.totalWithdrawalFee);
+
+                        proposalDetail["COMMISSION_TOTAL"] = vm.selectedProposal.data.amount + " "
+                            + "(" + grossCommission + "-" + totalFee + ")";
+
+                        vm.selectedProposal.data = proposalDetail;
+                    }
 
                     if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
                         let proposalDetail = {};
@@ -21777,6 +21909,100 @@ define(['js/app'], function (myApp) {
                     proposalId: proposalId
                 }, function (data) {
                     vm.selectedProposal = data.data;
+                    vm.proposalDetailStyle = {};
+
+                    if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "SettlePartnerCommission") {
+                        let proposalDetail = {};
+                        if (!vm.selectedProposal.data) {
+                            vm.selectedProposal.data = {};
+                        }
+                        let grossCommission = 0;
+                        let totalPlatformFee = 0;
+
+                        let customizedStyle = {
+                            'font-weight': 'bold',
+                            'color': 'red'
+                        };
+                        let isCustomized = false;
+
+                        let consumptionUsed = vm.selectedProposal.data.commissionType == 5 ? "CONSUMPTION" : "SITE_LOSE_WIN";
+
+                        proposalDetail["MAIN_TYPE"] = $translate("SettlePartnerCommission");
+                        proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                        proposalDetail["CREATION_TIME"] = $scope.timeReformat(vm.selectedProposal.createTime);
+                        proposalDetail["COMMISSION_PERIOD"] = $scope.dateReformat(vm.selectedProposal.data.startTime) + " - " + $scope.dateReformat(vm.selectedProposal.data.endTime);
+                        proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
+                        proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
+                        proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
+                        proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
+
+                        vm.selectedProposal.data.rawCommissions.map(rawCommission => {
+                            grossCommission += rawCommission.amount;
+                            let str = rawCommission.amount + $translate("YEN") + " "
+                                + "(" + $translate(consumptionUsed) + ": " + (-rawCommission.totalConsumption) + "/"
+                                + $translate("RATIO") + ": " + (rawCommission.commissionRate * 100) + "%)";
+
+                            proposalDetail[rawCommission.groupName + " " + $translate("Commission")] =  str;
+
+                            if (rawCommission.isCustomCommissionRate) {
+                                vm.proposalDetailStyle[rawCommission.groupName + " " + $translate("Commission")] = customizedStyle;
+                                isCustomized = true;
+                            }
+                        });
+
+                        proposalDetail["REQUIRED_PROMO_DEDUCTION"] = vm.selectedProposal.data.totalRewardFee + $translate("YEN")
+                            + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalReward + "/"
+                            + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebatePromo) + "%)";
+
+                        if (vm.selectedProposal.data.rateAfterRebatePromoIsCustom) {
+                            vm.proposalDetailStyle["REQUIRED_PROMO_DEDUCTION"] = customizedStyle;
+                            isCustomized = true;
+                        }
+
+                        proposalDetail["REQUIRED_PLATFORM_FEES_DEDUCTION"] = "";
+                        vm.selectedProposal.data.rawCommissions.map(rawCommission => {
+                            totalPlatformFee += rawCommission.platformFee;
+                            let str = rawCommission.platformFee + $translate("YEN") + " "
+                                + "(" + $translate("SITE_LOSE_WIN") + ": " + rawCommission.siteBonusAmount + "/"
+                                + $translate("RATIO") + ": " + (rawCommission.platformFeeRate) + "%)";
+
+                            proposalDetail["- " + rawCommission.groupName] =  str;
+
+                            if (rawCommission.isCustomPlatformFeeRate) {
+                                vm.proposalDetailStyle["- " + rawCommission.groupName] = customizedStyle;
+                                isCustomized = true;
+                            }
+                        });
+
+                        proposalDetail["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = vm.selectedProposal.data.totalTopUpFee + $translate("YEN")
+                            + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalTopUp + "/"
+                            + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalDeposit) + "%)";
+
+                        if (vm.selectedProposal.data.rateAfterRebateTotalDepositIsCustom) {
+                            vm.proposalDetailStyle["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = customizedStyle;
+                            isCustomized = true;
+                        }
+
+                        proposalDetail["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = vm.selectedProposal.data.totalWithdrawalFee + $translate("YEN")
+                            + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalWithdrawal + "/"
+                            + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal) + "%)";
+
+                        if (vm.selectedProposal.data.rateAfterRebateTotalWithdrawalIsCustom) {
+                            vm.proposalDetailStyle["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = customizedStyle;
+                            isCustomized = true;
+                        }
+
+                        if (isCustomized) {
+                            vm.proposalDetailStyle["COMMISSION_TYPE"] = customizedStyle;
+                        }
+
+                        let totalFee = Number(vm.selectedProposal.data.totalRewardFee) + Number(totalPlatformFee) + Number(vm.selectedProposal.data.totalTopUpFee) + Number(vm.selectedProposal.data.totalWithdrawalFee);
+
+                        proposalDetail["COMMISSION_TOTAL"] = vm.selectedProposal.data.amount + " "
+                            + "(" + grossCommission + "-" + totalFee + ")";
+
+                        vm.selectedProposal.data = proposalDetail;
+                    }
 
                     if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
                         let proposalDetail = {};
@@ -23775,7 +24001,6 @@ define(['js/app'], function (myApp) {
 
                         if (partnerObjId) {
                             vm.partnerCommission = commonService.applyPartnerCustomRate(partnerObjId, vm.partnerCommission, vm.customPartnerCommission);
-                            vm.getPlatformPartnersData();
                         }
                     })
                 });
@@ -24093,6 +24318,7 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
                         $scope.$evalAsync(() => {
                             vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id);
+                            vm.getPlatformPartnersData();
                         });
                     });
                 }
@@ -24151,6 +24377,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
                     $scope.$evalAsync(() => {
+                        vm.getPlatformPartnersData();
                         vm.commissionRateEditRow(field, false);
                     })
                 });

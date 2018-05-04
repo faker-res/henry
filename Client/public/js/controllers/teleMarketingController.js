@@ -4047,7 +4047,8 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#sendSMSTableStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                    $("#sendSMSTableStartDatetimePicker").data('datetimepicker').setLocalDate( $('#teleMarketingOverviewStartDatetimePicker').data('datetimepicker').getLocalDate() );
 
                     $('#sendSMSTableEndDatetimePicker').datetimepicker({
                         language: 'en',
@@ -4055,7 +4056,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#sendSMSTableEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+                    $("#sendSMSTableEndDatetimePicker").data('datetimepicker').setLocalDate( $('#teleMarketingOverviewEndDatetimePicker').data('datetimepicker').getLocalDate() );
 
                     $('#sendSMSTableMsgStartDatetimePicker').datetimepicker({
                         language: 'en',
@@ -4104,8 +4105,8 @@ define(['js/app'], function (myApp) {
             if (vm.telePlayerSendingMsgTable){
                 sendQuery.customerType= vm.telePlayerSendingMsgTable.customerType ? vm.telePlayerSendingMsgTable.customerType : "all";
 
-                sendQuery.importedTelStartTime =$('#sendSMSTableStartDatetimePicker').data('datetimepicker') ? $('#sendSMSTableStartDatetimePicker').data('datetimepicker').getLocalDate() : utilService.getThisMonthStartTime();
-                sendQuery.importedTelEndTime = $('#sendSMSTableEndDatetimePicker').data('datetimepicker') ? $('#sendSMSTableEndDatetimePicker').data('datetimepicker').getLocalDate() : utilService.getThisMonthEndTime();
+                sendQuery.importedTelStartTime = $('#sendSMSTableStartDatetimePicker').data('datetimepicker') ? $('#sendSMSTableStartDatetimePicker').data('datetimepicker').getLocalDate() : $('#teleMarketingOverviewStartDatetimePicker').data('datetimepicker').getLocalDate();
+                sendQuery.importedTelEndTime = $('#sendSMSTableEndDatetimePicker').data('datetimepicker') ? $('#sendSMSTableEndDatetimePicker').data('datetimepicker').getLocalDate() : $('#teleMarketingOverviewEndDatetimePicker').data('datetimepicker').getLocalDate();
 
                 sendQuery.lastSendingStartTime =$('#sendSMSTableMsgStartDatetimePicker').data('datetimepicker') ? $('#sendSMSTableMsgStartDatetimePicker').data('datetimepicker').getLocalDate() : null;
                 sendQuery.lastSendingEndTime = $('#sendSMSTableMsgEndDatetimePicker').data('datetimepicker') ? $('#sendSMSTableMsgEndDatetimePicker').data('datetimepicker').getLocalDate() : null;
@@ -4257,7 +4258,6 @@ define(['js/app'], function (myApp) {
 
                 ],
                 "paging": true,
-                "scrollX": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                     $compile(nRow)($scope);
                 }
@@ -4385,56 +4385,14 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         }
 
-        // vm.sendMsgToTelePlayer = function (){
-        //     if (vm.msgSendingGroupData && vm.msgSendingGroupData.length > 0){
-        //         let counterSuccess = 0, counterFailure = 0;
-        //         vm.msgSendingGroupData.forEach( data => {
-        //             let sendObj = {
-        //                 platformId: data.platformId,
-        //                 channel: 2,
-        //                 tel: data.phoneNumber,
-        //                 dxPhone: data.dxMissionId
-        //             };
-        //
-        //             socketService.$socket($scope.AppSocket, 'sendSMSToDXPlayer', sendObj, function (data) {
-        //                 if(data.success) {
-        //                     counterSuccess++;
-        //                     console.log("SMS Sent:", data);
-        //                     if (counterSuccess == vm.msgSendingGroupData.length) {
-        //                         vm.responseMsg = $translate("SUCCESS");
-        //                     }
-        //                 } else {
-        //                     counterFailure++;
-        //                     vm.responseMsg = '(' + counterFailure + ')' + $translate("FAIL");
-        //                 }
-        //                 $scope.safeApply();
-        //
-        //             }, function (error) {
-        //                     console.log("error", error);
-        //                     counterFailure++;
-        //                     vm.responseMsg = '(' + counterFailure + ')' + $translate("FAIL");
-        //                     $scope.safeApply();
-        //                 }
-        //             );
-        //
-        //         });
-        //
-        //
-        //
-        //
-        //     }
-        // }
         vm.sendMsgToTelePlayer = function () {
             if (vm.msgSendingGroupData && vm.msgSendingGroupData.length > 0) {
 
                 let counterSuccess = 0, counterFailure = 0;
-                //vm.msgSendingGroupData.forEach( data => {
+
                 let sendObj = {
-                    //platformId: data.platformId,
                     channel: vm.smsChannel, //vm.smsChannel,
                     msgDetail: vm.msgSendingGroupData,
-                    //tel: data.phoneNumber,
-                    //dxPhone: data.dxMissionId
                 };
 
                 socketService.$socket($scope.AppSocket, 'sendSMSToDXPlayer', sendObj, function (data) {
