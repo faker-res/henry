@@ -5029,7 +5029,7 @@ let dbPartner = {
                                 }
                             ).exec();
 
-                            return {partnerId: partnerId, size: totalCredit}
+                            return {partnerId: partnerId, amount: totalCredit}
                         }
                     )
                 }
@@ -5091,7 +5091,7 @@ let dbPartner = {
                         }
                     ).exec();
 
-                    return {partnerId: partnerId, size: totalValidCredit};
+                    return {partnerId: partnerId, amount: totalValidCredit};
                 }
             });
         }

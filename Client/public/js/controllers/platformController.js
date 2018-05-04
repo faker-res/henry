@@ -15905,7 +15905,7 @@ define(['js/app'], function (myApp) {
                     data.data.forEach( inData => {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
                         if ( index !== -1) {
-                            partner.data[index].totalChildrenDeposit = inData.size ? inData.size : 0;
+                            partner.data[index].totalChildrenDeposit = inData.amount ? inData.amount : 0;
                         }
                     });
                     vm.partnerLoadingTotalChildrenDeposit = false;
@@ -15925,7 +15925,7 @@ define(['js/app'], function (myApp) {
                     data.data.forEach( inData => {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
                         if ( index !== -1) {
-                            partner.data[index].totalChildrenBalance = inData.size ? inData.size : 0;
+                            partner.data[index].totalChildrenBalance = inData.amount ? inData.amount : 0;
                         }
                     });
                     vm.partnerLoadingTotalChildrenBalance = false;
