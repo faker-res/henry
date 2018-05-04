@@ -4050,11 +4050,9 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
             let updatedPlayer = updatedData[0];
             if (updatedPlayer.validCredit < 0) {
                 updatedPlayer.validCredit = 0;
+                return updatedPlayer.save();
             }
-            if (updatedPlayer.lockedCredit < 0) {
-                updatedPlayer.lockedCredit = 0;
-            }
-            return updatedPlayer.save();
+            return updatedPlayer;
         },
         error => {
             return Promise.reject({name: "DBError", message: "Error updating player.", error: error});

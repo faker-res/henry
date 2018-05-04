@@ -15705,7 +15705,7 @@ define(['js/app'], function (myApp) {
                             }
                         }
 
-                        socketService.$socket($scope.AppSocket, 'getCustomizeCommissionConfigPartner', sendQuery, function (customCommissionConfig) { console.log('customCommissionConfig',customCommissionConfig)
+                        socketService.$socket($scope.AppSocket, 'getCustomizeCommissionConfigPartner', sendQuery, function (customCommissionConfig) {
                             if (customCommissionConfig && customCommissionConfig.data && customCommissionConfig.data.length > 0) {
                                 customCommissionConfig.data.forEach(customSetting => {
                                     if (data && data.data && data.data.data) {
@@ -16680,7 +16680,7 @@ define(['js/app'], function (myApp) {
                     filtersElement: '',
                     queryFunction: vm.getPartnersByAdvanceQueryDebounced
                 });
-                vm.advancedPartnerQueryObj.pageObj.init({maxCount: data.size});
+                //vm.advancedPartnerQueryObj.pageObj.init({maxCount: data.size});
 
                 if (vm.selectedSinglePartner) {
                     vm.partnerTable
@@ -24001,7 +24001,6 @@ define(['js/app'], function (myApp) {
 
                         if (partnerObjId) {
                             vm.partnerCommission = commonService.applyPartnerCustomRate(partnerObjId, vm.partnerCommission, vm.customPartnerCommission);
-                            vm.getPlatformPartnersData();
                         }
                     })
                 });
@@ -24319,6 +24318,7 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
                         $scope.$evalAsync(() => {
                             vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id);
+                            vm.getPlatformPartnersData();
                         });
                     });
                 }
@@ -24377,6 +24377,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
                     $scope.$evalAsync(() => {
+                        vm.getPlatformPartnersData();
                         vm.commissionRateEditRow(field, false);
                     })
                 });
