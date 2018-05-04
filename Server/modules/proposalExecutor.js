@@ -243,6 +243,7 @@ var proposalExecutor = {
             this.executions.executePlayerAutoConvertRewardPoints.des = "Player Auto Convert Reward Points";
             this.executions.executeCustomizePartnerCommRate.des = "Customize Partner Commmission Rate";
             this.executions.executeSettlePartnerCommission.des = "Settle Partner Commission";
+            this.executions.executeBulkExportPlayerData.des = "Bulk Export Player Data";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -307,6 +308,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerAutoConvertRewardPoints.des = "Reject Player Auto Convert Reward Points";
             this.rejections.rejectCustomizePartnerCommRate.des = "Reject Customize Partner Commmission Rate";
             this.rejections.rejectSettlePartnerCommission.des = "Reject Settle Partner Commission";
+            this.rejections.rejectBulkExportPlayerData.des = "Reject Bulk Export Player Data";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -2910,6 +2912,13 @@ var proposalExecutor = {
                     );
                 }
             },
+
+            executeBulkExportPlayerData: function (proposalData, deferred) {
+                if (proposalData && proposalData.data) {
+                    // do nothing
+                    deferred.resolve(proposalData);
+                }
+            },
         },
 
         /**
@@ -3621,6 +3630,10 @@ var proposalExecutor = {
             },
 
             rejectSettlePartnerCommission: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectBulkExportPlayerData: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
         }

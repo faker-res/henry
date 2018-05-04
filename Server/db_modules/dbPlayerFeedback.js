@@ -9,6 +9,8 @@ const constPlayerFeedbackResult = require('./../const/constPlayerFeedbackResult'
 const constProposalEntryType = require('./../const/constProposalEntryType');
 const constProposalUserType = require('./../const/constProposalUserType');
 const constProposalType = require ('./../const/constProposalType');
+const constServerCode = require ('./../const/constServerCode');
+const constProposalStatus = require ('./../const/constProposalStatus');
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -541,6 +543,59 @@ var dbPlayerFeedback = {
         lilmit = limit || 5;
         return dbconfig.collection_playerFeedback.find({playerId: playerId}).sort({createTime: -1}).limit(limit)
             .populate({path: "adminId", model: dbconfig.collection_admin}).exec();
+    },
+
+    getExportedData: function (proposalId, ipAddress) {
+        let allowedIP = [
+            "122.146.88.32",
+        ];
+
+        if (!allowedIP.includes(ipAddress)) {
+            return Promise.reject({
+                code: constServerCode.INVALID_API_USER,
+                message: "IP not authorized"
+            })
+        }
+
+        return dbconfig.collection_proposal.findOne({proposalId: proposalId})
+            .populate({path: "type", model: dbconfig.collection_proposalType})
+            .lean().then(
+            proposal => {
+                if (!proposal || !proposal.type || !proposal.type.name !== constProposalType.BULK_EXPORT_PLAYERS_DATA || proposal.status === constProposalStatus.PENDING) {
+                    return Promise.reject({
+                        code: constServerCode.INVALID_PROPOSAL,
+                        message: "Cannot find proposal"
+                    });
+                }
+
+                if (proposal.expirationTime < new Date()) {
+                    return Promise.reject({
+                        code: constServerCode.SESSION_EXPIRED,
+                        message: "Current request is expired"
+                    });
+                }
+
+                if (proposal.status !== constProposalStatus.APPROVED) {
+                    return Promise.reject({
+                        code: constServerCode.SESSION_EXPIRED,
+                        message: "Proposal already used"
+                    });
+                }
+
+                return dbconfig.collection_proposal.findOneAndUpdate({_id: proposal._id, createTime: proposal.createTime}, {$set: {status: constProposalStatus.SUCCESS}}, {new: true}).lean();
+            }
+        ).then(
+            proposal => {
+                if (!proposal) {
+                    return Promise.reject({
+                        code: constServerCode.CONCURRENT_DETECTED,
+                        message: "Concurrent issue detected"
+                    });
+                }
+
+                return searchPlayerFromExportProposal(proposal);
+            }
+        )
     }
 };
 
@@ -595,9 +650,9 @@ function applyExtractPlayerProposal (title, playerType, playerLevelObjId, player
                     platformObjId,
                     targetExportPlatform: targetExportPlatformObjId,
                     targetExportPlatformName,
-                    expirationTime,
                     remark: ""
                 },
+                expirationTime,
                 entryType: constProposalEntryType.ADMIN,
                 userType: constProposalUserType.SYSTEM_USERS
             };
@@ -605,6 +660,10 @@ function applyExtractPlayerProposal (title, playerType, playerLevelObjId, player
             return dbProposal.createProposalWithTypeId(proposalType._id, proposalData);
         }
     );
+}
+
+function searchPlayerFromExportProposal (proposal) {
+    // todo :: add implementation
 }
 
 module.exports = dbPlayerFeedback;
