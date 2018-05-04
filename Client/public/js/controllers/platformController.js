@@ -17780,7 +17780,7 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     });
                 }else{
-                    vm.partnerValidity.player.validPlayerName = true;
+                    vm.partnerValidity = {};
                     form.$setValidity('invalidPartnerPlayer', true);
                 }
             }
