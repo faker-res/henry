@@ -803,6 +803,17 @@ function searchPlayerFromExportProposal (proposal) {
         }
     }
 
+    if (proposalData.registrationTimeFrom || proposalData.registrationTimeTo) {
+        query.registrationTime = {};
+        if (proposalData.registrationTimeFrom) {
+            query.registrationTime.$gte = proposalData.registrationTimeFrom;
+        }
+
+        if (proposalData.registrationTimeTo) {
+            query.registrationTime.$lte = proposalData.registrationTimeTo;
+        }
+    }
+
     if (proposalData.lastFeedbackTimeBefore) {
         query.$or = [{lastFeedbackTime: null}, {lastFeedbackTime: {$lt: proposalData.lastFeedbackTimeBefore}}];
     }
@@ -810,7 +821,6 @@ function searchPlayerFromExportProposal (proposal) {
     if (proposalData.depositCountOperator && proposalData.depositCountFormal != null) {
         query.topUpTimes = getMongoQueryForNumber(proposalData.depositCountOperator, proposalData.depositCountFormal, proposalData.depositCountLater);
     }
-
 
     if (proposalData.playerValueOperator && proposalData.playerValueFormal != null) {
         query.valueScore = getMongoQueryForNumber(proposalData.playerValueOperator, proposalData.playerValueFormal, proposalData.playerValueLater);

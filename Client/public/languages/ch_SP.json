@@ -1118,6 +1118,7 @@
   "PARTNERPLAYERBOUNS_REPORT": "代理下玩家充值提款报表",
   "lastBonusTime": "最近提款时间",
   "BonusTime": "提款次数",
+  "WITHDRAWAL_TIMES": "提款次数",
   "BonusAmount": "提款额",
   "BONUS_AMOUNT": "提款额",
   "Bonus": "提款",
@@ -3643,6 +3644,7 @@
   "SITE_LOSE_WIN": "网站输赢",
   "COMMISSION_TOTAL": "佣金总结",
   "BulkExportPlayerData": "玩家资料导出（批量）",
+  "TARGET_SITE": "目标网站",
 
   "Please Enter Task Name": "请输入该任务 名称",
   "Please Enter Task Description": "请输入该任务 备注",
