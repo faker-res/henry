@@ -4,6 +4,7 @@ var SettlementBalancer = require('../settlementModule/settlementBalancer');
 var moment = require('moment-timezone');
 var constSystemParam = require('../const/constSystemParam');
 var mongoose = require('mongoose');
+const dbutility = require('./../modules/dbutility');
 const dbProposal = require('./../db_modules/dbProposal');
 const constPlayerFeedbackResult = require('./../const/constPlayerFeedbackResult');
 const constProposalEntryType = require('./../const/constProposalEntryType');
@@ -543,7 +544,7 @@ var dbPlayerFeedback = {
             exportData.consumptionTimesOperator, exportData.consumptionTimesFormal, exportData.consumptionTimesLater, exportData.withdrawalTimesOperator,
             exportData.withdrawalTimesFormal, exportData.withdrawalTimesLater, exportData.topUpSumOperator, exportData.topUpSumFormal, exportData.topUpSumLater,
             exportData.gameProviderIdArray, exportData.gameProviderNameArray, exportData.isNewSystem, exportData.registrationTimeFrom, exportData.registrationTimeTo,
-            exportData.platformObjId, exportData.adminInfo, exportData.targetExportPlatformObjId, exportData.targetExportPlatformName, exportData.expirationTime) //todo huat see here
+            exportData.platformObjId, exportData.adminInfo, exportData.targetExportPlatformObjId, exportData.targetExportPlatformName, exportData.expirationTime);
     },
 
     /*
@@ -557,8 +558,11 @@ var dbPlayerFeedback = {
     },
 
     getExportedData: function (proposalId, ipAddress) {
+        let proposal = {};
         let allowedIP = [
             "122.146.88.32",
+            "localhost",
+            "127.0.0.1",
         ];
 
         if (!allowedIP.includes(ipAddress)) {
@@ -572,7 +576,7 @@ var dbPlayerFeedback = {
             .populate({path: "type", model: dbconfig.collection_proposalType})
             .lean().then(
             proposal => {
-                if (!proposal || !proposal.type || !proposal.type.name !== constProposalType.BULK_EXPORT_PLAYERS_DATA || proposal.status === constProposalStatus.PENDING) {
+                if (!proposal || !proposal.type || proposal.type.name !== constProposalType.BULK_EXPORT_PLAYERS_DATA || proposal.status === constProposalStatus.PENDING) {
                     return Promise.reject({
                         code: constServerCode.INVALID_PROPOSAL,
                         message: "Cannot find proposal"
@@ -596,17 +600,90 @@ var dbPlayerFeedback = {
                 return dbconfig.collection_proposal.findOneAndUpdate({_id: proposal._id, createTime: proposal.createTime}, {$set: {status: constProposalStatus.SUCCESS}}, {new: true}).lean();
             }
         ).then(
-            proposal => {
-                if (!proposal) {
+            proposalRecord => {
+                if (!proposalRecord) {
                     return Promise.reject({
                         code: constServerCode.CONCURRENT_DETECTED,
                         message: "Concurrent issue detected"
                     });
                 }
 
-                return searchPlayerFromExportProposal(proposal);
+                proposal = proposalRecord;
+
+                let originPlatformProm = Promise.resolve();
+                if (proposal.data && proposal.data.platformId) {
+                    originPlatformProm = dbconfig.collection_platform.findOne({_id: proposal.data.platformId}, {platformId: 1}).lean();
+                }
+
+                let targetPlatformProm = Promise.resolve();
+                if (proposal.data && proposal.data.targetExportPlatform) {
+                    targetPlatformProm = dbconfig.collection_platform.findOne({_id: proposal.data.targetExportPlatform}, {platformId: 1}).lean();
+                }
+                
+                let playersProm = searchPlayerFromExportProposal(proposal);
+
+                return Promise.all([playersProm, originPlatformProm, targetPlatformProm]);
             }
-        )
+        ).then(
+            data => {
+                let players = data[0];
+                let originPlatform = data[1];
+                let targetPlatform = data[2];
+
+                players = players || [];
+                let originPlatformId = originPlatform && originPlatform.platformId ? originPlatform.platformId : '';
+                let targetPlatformId = targetPlatform && targetPlatform.platformId ? targetPlatform.platformId : '';
+
+                let formattedPlayersData = [];
+
+                players.map(player => {
+                    let playerData = {
+                        playerAccount: player.name,
+                        realName: player.realName,
+                        gender: player.gender,
+                        DOB: player.DOB,
+                        phoneNumber: dbutility.decryptPhoneNumber(player.phoneNumber),
+                        wechat: player.wechat,
+                        qq: player.qq,
+                        email: player.email,
+                        registerTime: player.registrationTime,
+                        lastLoginTime: player.lastAccessTime,
+                        totalLoginTimes: player.loginTimes,
+                        totalDepositTimes: player.topUpTimes,
+                        totalDepositAmount: player.topUpSum,
+                        fame: [],
+                        playerValue: player.valueScore,
+                        playerLevel: player.playerLevel.name,
+                        totalWithdrawTimes: player.withdrawTimes,
+                        totalWithdrawAmount: player.withdrawSum,
+                        gameLobby: [],
+                    };
+
+                    if (player.credibilityRemarks && player.credibilityRemarks.length > 0) {
+                        player.credibilityRemarks.map(remark => {
+                            playerData.fame.push(remark.name);
+                        });
+                    }
+
+                    if (player.gameProviderPlayed && player.gameProviderPlayed.length > 0) {
+                        player.gameProviderPlayed.map(provider => {
+                            playerData.gameLobby.push(provider.name);
+                        });
+                    }
+
+                    formattedPlayersData.push(playerData);
+                });
+
+                let title = proposal.data && proposal.data.title ? proposal.data.title : "";
+
+                return {
+                    title: title,
+                    sourcePlatformId: originPlatformId,
+                    targetPlatformId: targetPlatformId,
+                    players: formattedPlayersData
+                }
+            }
+        );
     }
 };
 
@@ -627,7 +704,6 @@ function applyExtractPlayerProposal (title, playerType, playerLevelObjId, player
                     message: "Error in getting proposal type"
                 });
             }
-
 
             let proposalData = {
                 type: proposalType._id,
@@ -664,13 +740,14 @@ function applyExtractPlayerProposal (title, playerType, playerLevelObjId, player
                     gameProviders: gameProviderIdArray,
                     gameProviderNames: gameProviderNameArray,
                     isNewSystem,
+                    registrationTimeFrom,
                     registrationTimeTo,
-                    platformObjId,
+                    platformId: platformObjId,
                     targetExportPlatform: targetExportPlatformObjId,
                     targetExportPlatformName,
                     remark: ""
                 },
-                expirationTime,
+                expirationTime: new Date(expirationTime),
                 entryType: constProposalEntryType.ADMIN,
                 userType: constProposalUserType.SYSTEM_USERS
             };
@@ -707,7 +784,7 @@ function searchPlayerFromExportProposal (proposal) {
             break;
     }
 
-    if (proposalData.playerLevel) {
+    if (proposalData.playerLevel && String(proposalData.playerLevel).length === 24) {
         query.playerLevel = proposalData.playerLevel;
     }
 
@@ -731,164 +808,68 @@ function searchPlayerFromExportProposal (proposal) {
     }
 
     if (proposalData.depositCountOperator && proposalData.depositCountFormal != null) {
-        switch (proposalData.depositCountOperator) {
-            case ">=":
-                query.topUpTimes = {
-                    $gte: proposalData.depositCountFormal
-                };
-                break;
-            case "=":
-                query.topUpTimes = proposalData.depositCountFormal;
-                break;
-            case "<=":
-                query.topUpTimes = {
-                    $lte: proposalData.depositCountFormal
-                };
-                break;
-            case "range":
-                if (proposalData.depositCountLater != null) {
-                    query.topUpTimes = {
-                        $lte: proposalData.depositCountLater,
-                        $gte: proposalData.depositCountFormal
-                    };
-                }
-                break;
-        }
+        query.topUpTimes = getMongoQueryForNumber(proposalData.depositCountOperator, proposalData.depositCountFormal, proposalData.depositCountLater);
     }
 
 
     if (proposalData.playerValueOperator && proposalData.playerValueFormal != null) {
-        switch (proposalData.playerValueOperator) {
-            case ">=":
-                query.valueScore = {
-                    $gte: proposalData.playerValueFormal
-                };
-                break;
-            case "=":
-                query.valueScore = proposalData.playerValueFormal;
-                break;
-            case "<=":
-                query.valueScore = {
-                    $lte: proposalData.playerValueFormal
-                };
-                break;
-            case "range":
-                if (proposalData.playerValueLater != null) {
-                    query.valueScore = {
-                        $lte: proposalData.playerValueLater,
-                        $gte: proposalData.playerValueFormal
-                    };
-                }
-                break;
-        }
+        query.valueScore = getMongoQueryForNumber(proposalData.playerValueOperator, proposalData.playerValueFormal, proposalData.playerValueLater);
     }
 
     if (proposalData.consumptionTimesOperator && proposalData.consumptionTimesFormal != null) {
-        switch (proposalData.consumptionTimesOperator) {
-            case ">=":
-                query.consumptionTimes = {
-                    $gte: proposalData.consumptionTimesFormal
-                };
-                break;
-            case "=":
-                query.consumptionTimes = proposalData.consumptionTimesFormal;
-                break;
-            case "<=":
-                query.consumptionTimes = {
-                    $lte: proposalData.consumptionTimesFormal
-                };
-                break;
-            case "range":
-                if (proposalData.consumptionTimesLater != null) {
-                    query.consumptionTimes = {
-                        $lte: proposalData.consumptionTimesLater,
-                        $gte: proposalData.consumptionTimesFormal
-                    };
-                }
-                break;
-        }
+        query.consumptionTimes = getMongoQueryForNumber(proposalData.consumptionTimesOperator, proposalData.consumptionTimesFormal, proposalData.consumptionTimesLater);
     }
 
     if (proposalData.bonusAmountOperator && proposalData.bonusAmountFormal != null) {
-        switch (proposalData.bonusAmountOperator) {
-            case ">=":
-                query.bonusAmountSum = {
-                    $gte: proposalData.bonusAmountFormal
-                };
-                break;
-            case "=":
-                query.bonusAmountSum = proposalData.bonusAmountFormal;
-                break;
-            case "<=":
-                query.bonusAmountSum = {
-                    $lte: proposalData.bonusAmountFormal
-                };
-                break;
-            case "range":
-                if (proposalData.bonusAmountLater != null) {
-                    query.bonusAmountSum = {
-                        $lte: proposalData.bonusAmountLater,
-                        $gte: proposalData.bonusAmountFormal
-                    };
-                }
-                break;
-        }
+        query.bonusAmountSum = getMongoQueryForNumber(proposalData.bonusAmountOperator, proposalData.bonusAmountFormal, proposalData.bonusAmountLater);
     }
 
     if (proposalData.withdrawalTimesOperator && proposalData.withdrawalTimesFormal != null) {
-        switch (proposalData.withdrawalTimesOperator) {
-            case ">=":
-                query.withdrawalTimes = {
-                    $gte: proposalData.withdrawalTimesFormal
-                };
-                break;
-            case "=":
-                query.withdrawalTimes = proposalData.withdrawalTimesFormal;
-                break;
-            case "<=":
-                query.withdrawalTimes = {
-                    $lte: proposalData.withdrawalTimesFormal
-                };
-                break;
-            case "range":
-                if (proposalData.withdrawalTimesLater != null) {
-                    query.withdrawalTimes = {
-                        $lte: proposalData.withdrawalTimesLater,
-                        $gte: proposalData.withdrawalTimesFormal
-                    };
-                }
-                break;
-        }
+        query.withdrawalTimes = getMongoQueryForNumber(proposalData.withdrawalTimesOperator, proposalData.withdrawalTimesFormal, proposalData.withdrawalTimesLater);
     }
 
     if (proposalData.topUpSumOperator && proposalData.topUpSumFormal != null) {
-        switch (proposalData.topUpSumOperator) {
-            case ">=":
-                query.topUpSum = {
-                    $gte: proposalData.topUpSumFormal
-                };
-                break;
-            case "=":
-                query.topUpSum = proposalData.topUpSumFormal;
-                break;
-            case "<=":
-                query.topUpSum = {
-                    $lte: proposalData.topUpSumFormal
-                };
-                break;
-            case "range":
-                if (proposalData.topUpSumLater != null) {
-                    query.topUpSum = {
-                        $lte: proposalData.topUpSumLater,
-                        $gte: proposalData.topUpSumFormal
-                    };
-                }
-                break;
-        }
+        query.topUpSum = getMongoQueryForNumber(proposalData.topUpSumOperator, proposalData.topUpSumFormal, proposalData.topUpSumLater);
     }
 
-    // todo :: continue implementation
+    if (proposalData.gameProviders && proposalData.gameProviders.length > 0) {
+        query.gameProviderPlayed = {$in: proposalData.gameProviders};
+    }
 
+    if (proposalData.isNewSystem === "old") {
+        query.isNewSystem = {$ne: true};
+    } else if (proposalData.isNewSystem === "new") {
+        query.isNewSystem = true;
+    }
+
+    return dbconfig.collection_players.find(query, {similarPlayers: 0, userAgent: 0, games: 0, favoriteGames: 0, loginIps:0})
+        .populate({path: 'credibilityRemarks', model: dbconfig.collection_playerCredibilityRemark})
+        .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
+        .populate({path: 'gameProviderPlayed', model: dbconfig.collection_gameProvider})
+        .lean();
+}
+
+
+function getMongoQueryForNumber (operator, formalValue, laterValue) {
+    switch (operator) {
+        case ">=":
+            return {
+                $gte: formalValue
+            };
+        case "=":
+            return formalValue;
+        case "<=":
+            return {
+                $lte: formalValue
+            };
+        case "range":
+            if (laterValue != null) {
+                return {
+                    $lte: laterValue,
+                    $gte: formalValue
+                };
+            }
+    }
 }
 
 module.exports = dbPlayerFeedback;

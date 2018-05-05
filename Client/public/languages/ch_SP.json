@@ -3642,6 +3642,7 @@
   "YEN": "元",
   "SITE_LOSE_WIN": "网站输赢",
   "COMMISSION_TOTAL": "佣金总结",
+  "BulkExportPlayerData": "玩家资料导出（批量）",
 
   "Please Enter Task Name": "请输入该任务 名称",
   "Please Enter Task Description": "请输入该任务 备注",
