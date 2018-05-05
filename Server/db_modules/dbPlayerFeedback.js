@@ -533,6 +533,17 @@ var dbPlayerFeedback = {
         });
     },
 
+    createExportPlayerProposal: function (exportData) {
+        applyExtractPlayerProposal(exportData.title, exportData.playerType, exportData.playerLevelObjId, exportData.playerLevelName, exportData.credibilityRemarkObjIdArray,
+            exportData.credibilityRemarkNameArray, exportData.lastAccessTimeFrom, exportData.lastAccessTimeTo, exportData.lastAccessTimeRangeString,
+            exportData.lastFeedbackTimeBefore, exportData.depositCountOperator, exportData.depositCountFormal, exportData.depositCountLater, exportData.bonusAmountOperator,
+            exportData.bonusAmountFormal, exportData.bonusAmountLater, exportData.playerValueOperator, exportData.playerValueFormal, exportData.playerValueLater,
+            exportData.consumptionTimesOperator, exportData.consumptionTimesFormal, exportData.consumptionTimesLater, exportData.withdrawalTimesOperator,
+            exportData.withdrawalTimesFormal, exportData.withdrawalTimesLater, exportData.topUpSumOperator, exportData.topUpSumFormal, exportData.topUpSumLater,
+            exportData.gameProviderIdArray, exportData.gameProviderNameArray, exportData.isNewSystem, exportData.registrationTimeFrom, exportData.registrationTimeTo,
+            exportData.platformObjId, exportData.adminInfo, exportData.targetExportPlatformObjId, exportData.targetExportPlatformName, exportData.expirationTime) //todo huat see here
+    },
+
     /*
      * get the latest 5 feedback record for player
      * @param {objectId} playerId
