@@ -5803,8 +5803,8 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
             $match: {
                 playerId: playerObjId,
                 createTime: {
-                    $gte: startTime,
-                    $lt: endTime
+                    $gte: new Date(startTime),
+                    $lt: new Date(endTime)
                 },
             }
         },
