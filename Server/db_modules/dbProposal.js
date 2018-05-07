@@ -395,7 +395,10 @@ var proposal = {
                         wsMessageClient.sendMessage(constMessageClientTypes.MANAGEMENT, "management", "notifyNewProposal", data);
                     }
 
-                    if (data[2] == 0) {
+                    if (proposalData.expirationTime) {
+                        expiredDate = new Date(proposalData.expirationTime);
+                    }
+                    else if (data[2] == 0) {
                         expiredDate = constMaxDateTime;
                     }
                     else {

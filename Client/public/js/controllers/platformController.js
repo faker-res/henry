@@ -14550,7 +14550,7 @@ define(['js/app'], function (myApp) {
                     },
                     targetExportPlatformObjId: chosenPlatform._id,
                     targetExportPlatformName: chosenPlatform.name,
-                    expirationTime: vm.exportPlayerSetting.expirationMins,
+                    expirationTime: new Date(new Date().setMinutes(new Date().getMinutes() + (vm.exportPlayerSetting.expirationMins || 60))),
                     dataCount: vm.feedbackPlayersPara.total || 0
                 }
 
@@ -17875,6 +17875,9 @@ define(['js/app'], function (myApp) {
                         }
                         $scope.safeApply();
                     });
+                }else{
+                    vm.partnerValidity = {};
+                    form.$setValidity('invalidPartnerPlayer', true);
                 }
             }
 
