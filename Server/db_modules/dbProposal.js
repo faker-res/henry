@@ -3762,20 +3762,17 @@ var proposal = {
         )
     },
 
-    getManualApprovalRecords: (platformId, startDate, endDate, period, mainTypeList) => {
-        let proms = [];
-        let allProms = [];
-        let countProm = [];
-        let allCountProm = [];
-        let debugPromPlayerBonus = [];
-        let debugPromUpdatePlayer = [];
-        let debugPromOthers = [];
+    getManualApprovalRecords: (startDate, endDate, period, playerBonusList, updatePlayerList, updatePartnerList, rewardList, othersList) => {
+
+        let playerBonusArr = [];
+        let updatePlayerArr = [];
+        let updatePartnerArr = [];
+        let rewardArr = [];
+        let othersArr = [];
+        let allArr = [];
 
         var dayStartTime = startDate;
         var getNextDate;
-
-        // let groupCondition = {$or: [{'data.isAutoApproval':false}, {'noSteps':false}, {'data.isIgnoredAudit': false}]};
-        let groupCondition = {noSteps: false};
 
         var getKey = (obj,val) => Object.keys(obj).find(key => obj[key] === val);
 
@@ -3799,198 +3796,191 @@ var proposal = {
                     return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
                 }
         }
+
         while (dayStartTime.getTime() < endDate.getTime()) {
             var dayEndTime = getNextDate.call(this, dayStartTime);
             var matchObj = {
                 createTime: {$gte: dayStartTime, $lt: dayEndTime},
-                $or: [{"data.platformId": ObjectId(platformId)}, {"data.platform": ObjectId(platformId)}],
             };
 
-            debugPromPlayerBonus.push(dbconfig.collection_proposal.find(Object.assign({}, matchObj, {mainType: "PlayerBonus"})))
-            debugPromUpdatePlayer.push(dbconfig.collection_proposal.find(Object.assign({}, matchObj,  {mainType: "UpdatePlayer"})))
-            debugPromOthers.push(dbconfig.collection_proposal.find(Object.assign({}, matchObj,  {mainType: "Others"})))
-            // debugPromReward.push(dbconfig.collection_proposal.find(Object.assign({}, matchObj,  {mainType: {$in: mainTypeList}}))
+            let searchQ1 = Object.assign({}, matchObj, {type: {$in: playerBonusList} });
+            playerBonusArr.push(dbconfig.collection_proposal.find(searchQ1).lean().then( playerBonusData => {
+                let totalCount = 0;
+                let successCount = 0;
+                let rejectCount = 0;
+                let manualCount = 0;
 
-            countProm.push(dbconfig.collection_proposal.aggregate(
-                {$match:
-                    Object.assign({}, matchObj,  {mainType: {$in: mainTypeList}})
-                },
-                {
-                    $group: {
-                        _id: "$mainType",
-                        count: {$sum: 1}
-                    }
-                }).read("secondaryPreferred"));
-
-            allCountProm.push(dbconfig.collection_proposal.find(matchObj).lean().count());
-
-            proms.push(dbconfig.collection_proposal.aggregate(
-                {$match:
-                    Object.assign({}, matchObj, {mainType: {$in: mainTypeList}}, groupCondition)
-                },
-                {
-                    $group: {
-                        _id: {mainType: "$mainType", status: "$status"},
-                        count: {$sum: 1}
-                    }
-                }).read("secondaryPreferred").then(result => {
-
-                    let holder = {};
-                    let retResult = [];
-                    if (result && result.length > 0){
-
-                        result.forEach(d => {
-
-                            if (holder.hasOwnProperty(d._id.mainType)) {
-                                if (d._id.status == "Approved"){
-                                    holder[d._id.mainType] = [holder[d._id.mainType][0] + d.count, holder[d._id.mainType][1]];
-                                }
-                                else if(d._id.status == "Rejected"){
-                                    holder[d._id.mainType] = [holder[d._id.mainType][0], holder[d._id.mainType][1] + d.count];
-                                }
-
-                            } else {
-                                if (d._id.status == "Approved"){
-                                    holder[d._id.mainType] = [d.count, 0];
-                                }
-                                else if(d._id.status == "Rejected"){
-                                    holder[d._id.mainType] = [0, d.count];
-                                }
-                            }
-
-                        });
-
-                        for (var prop in holder) {
-                            retResult.push({
-                                mainType: prop,
-                                successCount: holder[prop][0],
-                                rejectCount: holder[prop][1],
-                                manualCount: holder[prop][0] + holder[prop][1]
-                            })
-
+                if (playerBonusData && playerBonusData.length >0){
+                    totalCount = playerBonusData.length;
+                    playerBonusData.forEach( playerBonusDetail => {
+                        if(!playerBonusDetail.noSteps && playerBonusDetail.status == "Approved"){
+                            successCount += 1;
                         }
-
-                        if(retResult.length != mainTypeList.length){
-                            mainTypeList.forEach( type => {
-                                let index = retResult.findIndex(p => p.mainType == type);
-                                if (index == -1){
-                                    retResult.push({mainType: type, successCount: 0, rejectCount: 0, manualCount: 0});
-                                }
-                            })
+                        if(!playerBonusDetail.noSteps && playerBonusDetail.status == "Rejected"){
+                            rejectCount += 1;
                         }
-
-                    }
-                    else{
-
-                        mainTypeList.forEach(type => {
-                            retResult.push({mainType: type, successCount: 0, rejectCount: 0, manualCount: 0});
-                        })
-                    }
-
-                return retResult;
-            }));
-
-            allProms.push(dbconfig.collection_proposal.aggregate(
-                {$match:
-                    Object.assign({}, matchObj, groupCondition)
-                },
-                {
-                    $group: {
-                        _id: {status: "$status"},
-                        count: {$sum: 1}
-                    }
-                }).read("secondaryPreferred").then(allResult => {
-
-                let returnResult = [];
-                if (allResult && allResult.length > 0) {
-
-                    let successCount = 0;
-                    let rejectCount = 0;
-
-                    allResult.forEach(d => {
-                        if (d._id.status == "Approved") {
-                            successCount += d.count;
-                        }
-                        else if (d._id.status == "Rejected") {
-                            rejectCount += d.count
-                        }
-                    });
-
-                    returnResult.push({successCount: successCount, rejectCount: rejectCount, manualCount: successCount + rejectCount});
-
+                    })
+                    manualCount = successCount + rejectCount;
                 }
-                else {
 
-                    returnResult.push({successCount: 0, rejectCount: 0, manualCount: 0});
+                return {totalCount: totalCount, successCount: successCount, rejectCount: rejectCount, manualCount: manualCount};
 
+            }))
+
+            let searchQ2 = Object.assign({}, matchObj, {type: {$in: updatePlayerList} });
+            updatePlayerArr.push(dbconfig.collection_proposal.find(searchQ2).lean().then(updatePlayerData => {
+                let totalCount = 0;
+                let successCount = 0;
+                let rejectCount = 0;
+                let manualCount = 0;
+
+                if (updatePlayerData && updatePlayerData.length > 0){
+                    totalCount = updatePlayerData.length;
+                    updatePlayerData.forEach( updatePlayerDataDetail => {
+                        if(!updatePlayerDataDetail.noSteps && updatePlayerDataDetail.status == "Approved"){
+                            successCount += 1;
+                        }
+                        if(!updatePlayerDataDetail.noSteps && updatePlayerDataDetail.status == "Rejected"){
+                            rejectCount += 1;
+                        }
+                    })
+                    manualCount = successCount + rejectCount;
                 }
-                return returnResult
-            }));
+
+                return {totalCount: totalCount, successCount: successCount, rejectCount: rejectCount, manualCount: manualCount};
+
+            }))
+
+            let searchQ3 = Object.assign({}, matchObj, {type: {$in: updatePartnerList} });
+            updatePartnerArr.push(dbconfig.collection_proposal.find(searchQ3).lean().then( updatePartnerData => {
+                let totalCount = 0;
+                let successCount = 0;
+                let rejectCount = 0;
+                let manualCount = 0;
+
+                if (updatePartnerData && updatePartnerData.length > 0){
+                    totalCount = updatePartnerData.length;
+                    updatePartnerData.forEach( updatePartnerDataDetail => {
+                        if(!updatePartnerDataDetail.noSteps && updatePartnerDataDetail.status == "Approved"){
+                            successCount += 1;
+                        }
+                        if(!updatePartnerDataDetail.noSteps && updatePartnerDataDetail.status == "Rejected"){
+                            rejectCount += 1;
+                        }
+                    })
+                    manualCount = successCount + rejectCount;
+                }
+
+                return {totalCount: totalCount, successCount: successCount, rejectCount: rejectCount, manualCount: manualCount};
+
+            }))
+
+            let searchQ4 = Object.assign({}, matchObj, {type: {$in: rewardList} });
+            rewardArr.push(dbconfig.collection_proposal.find(searchQ4).lean().then( rewardData => {
+                let totalCount = 0;
+                let successCount = 0;
+                let rejectCount = 0;
+                let manualCount = 0;
+
+                if (rewardData && rewardData.length > 0){
+                    totalCount = rewardData.length;
+                    rewardData.forEach( rewardDataDetail => {
+                        if(!rewardDataDetail.noSteps && rewardDataDetail.status == "Approved"){
+                            successCount += 1;
+                        }
+                        if(!rewardDataDetail.noSteps && rewardDataDetail.status == "Rejected"){
+                            rejectCount += 1;
+                        }
+                    })
+                    manualCount = successCount + rejectCount;
+                }
+
+                return {totalCount: totalCount, successCount: successCount, rejectCount: rejectCount, manualCount: manualCount};
+
+            }))
+
+            let searchQ5 = Object.assign({}, matchObj, {type: {$in: othersList} });
+            othersArr.push(dbconfig.collection_proposal.find(searchQ5).lean().then( othersData => {
+                let totalCount = 0;
+                let successCount = 0;
+                let rejectCount = 0;
+                let manualCount = 0;
+
+                if (othersData && othersData.length > 0){
+                    totalCount = othersData.length;
+                    othersData.forEach( otherDataDetail => {
+                        if(!otherDataDetail.noSteps && otherDataDetail.status == "Approved"){
+                            successCount += 1;
+                        }
+                        if(!otherDataDetail.noSteps && otherDataDetail.status == "Rejected"){
+                            rejectCount += 1;
+                        }
+                    })
+                    manualCount = successCount + rejectCount;
+                }
+
+                return {totalCount: totalCount, successCount: successCount, rejectCount: rejectCount, manualCount: manualCount};
+
+            }))
+
+            let searchQ6 = Object.assign({}, matchObj);
+            allArr.push(dbconfig.collection_proposal.find(searchQ6).lean().then( allData => {
+                let totalCount = 0;
+                let successCount = 0;
+                let rejectCount = 0;
+                let manualCount = 0;
+
+                if (allData && allData.length > 0){
+                    totalCount = allData.length;
+                    allData.forEach( allDataDetail => {
+                        if(!allDataDetail.noSteps && allDataDetail.status == "Approved"){
+                            successCount += 1;
+                        }
+                        if(!allDataDetail.noSteps && allDataDetail.status == "Rejected"){
+                            rejectCount += 1;
+                        }
+                    })
+                    manualCount = successCount + rejectCount;
+                }
+
+                return {totalCount: totalCount, successCount: successCount, rejectCount: rejectCount, manualCount: manualCount};
+
+            }))
 
             dayStartTime = dayEndTime;
         }
-        return Promise.all([Promise.all(countProm), Promise.all(proms), Promise.all(allCountProm), Promise.all(allProms), Promise.all(debugPromPlayerBonus), Promise.all(debugPromUpdatePlayer), Promise.all(debugPromOthers)]).then(data => {
-            if (!data && !data[0] && !data[1] && !data[2] && !data[3] && !data[4] && !data[5] && !data[6]) {
+        return Promise.all([Promise.all(playerBonusArr), Promise.all(updatePlayerArr), Promise.all(updatePartnerArr), Promise.all(rewardArr), Promise.all(othersArr), Promise.all(allArr)]).then(data => {
+            if (!data && !data[0] && !data[1] && !data[2] && !data[3] && !data[4] && !data[5]) {
                 return Q.reject({name: 'DataError', message: 'Can not find the proposal data'})
             }
 
-            console.log("CHECKING-----check playerBonus data", data[4])
-            console.log("CHECKING-----check updatePlayer data", data[5])
-            console.log("CHECKING-----check others data", data[6])
-
             let tempDate = startDate;
-            let tempDate2 = startDate;
 
-            let res = [];
-            let allRes = [];
-
-            for (let i = 0; i < data[1].length; i++) {  // number of date
-
-
-                if (data[1][i].length > 0) {
-
-                    if (data[0][i].length == 0){
-                        data[1][i].forEach( inData => {
-                            inData.count = 0;
-                        })
-                    }
-                    else{
-                        data[1][i].forEach( inData => {
-                            let index = data[0][i].findIndex(t => t._id == inData.mainType);
-                            if (index != -1) {
-                                inData.count = data[0][i][index].count
-                            }
-                            else{
-                                inData.count = 0 // set count = 0 for those mainTypes are not included in the countProm
-                            }
-                        })
-                    }
-
+            if (data[0].length == data[1].length && data[1].length == data[2].length && data[2].length == data[3].length && data[3].length == data[4].length && data[4].length == data[5].length){
+                for (let i = 0; i < data[0].length; i++) {  // number of date
+                    data[0][i].date = tempDate;
+                    data[1][i].date = tempDate;
+                    data[2][i].date = tempDate;
+                    data[3][i].date = tempDate;
+                    data[4][i].date = tempDate;
+                    data[5][i].date = tempDate;
+                    tempDate = getNextDate(tempDate);
                 }
-
-                res.push({date: tempDate, data: data[1][i]});
-                tempDate = getNextDate(tempDate);
-
+            }
+            else{
+                return Q.reject({name: 'DataError', message: 'The data mismatched'})
             }
 
-            for(let j = 0; j < data[3].length; j++){
-                if (data[3][j].length > 0){
-
-                    data[3][j].forEach( inData => {
-
-                        inData.count = data[2][j] ? data[2][j] : 0;
-                        allRes.push({date: tempDate2, data: inData});
-                    })
-
-                }
-
-                tempDate2 = getNextDate(tempDate2);
-            }
-
-            return [res, allRes];
+            return [data[0], data[1], data[2], data[3], data[4], data[5]];
 
         });
     },
+
+    getAllProposalTypeByPlatformId: (platformId) => {
+
+        return dbconfig.collection_proposalType.find({platformId: ObjectId(platformId)}).lean();
+    },
+
 
     getOnlineTopupAnalysisByPlatform: (platformId, startDate, endDate, analysisCategory) => {
         return dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_TOP_UP}).read("secondaryPreferred").lean().then(
