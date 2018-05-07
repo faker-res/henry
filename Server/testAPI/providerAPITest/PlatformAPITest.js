@@ -119,6 +119,16 @@
         });
     };
 
+    proto.avaiCreditForInOut = function (callback, requestData) {
+        var data = requestData || {};
+        this._service.avaiCreditForInOut.request(data);
+        this._service.avaiCreditForInOut.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     proto.verifyUserPassword = function (callback, requestData) {
         let data = requestData || {name: 'testclientplayer'};
         this._service.verifyUserPassword.request(data);
