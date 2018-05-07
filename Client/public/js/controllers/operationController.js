@@ -1125,11 +1125,15 @@ define(['js/app'], function (myApp) {
                         "data": null,
                         render: function (data, type, row) {
                             if (data.hasOwnProperty('creator')) {
-                                if(data.creator && data.creator.type && data.creator.type == "partner"){
-                                    if (data.creator.name) {
-                                        return $translate('PARTNER') + ": " + data.creator.name;
-                                    } else {
-                                        return $translate('PARTNER') + ": " + data.creator.id;
+                                if(data.creator && data.creator.type){
+                                    if (data.type && data.type.name && data.type.name == "CustomizePartnerCommRate" && data.creator.type == "admin") {
+                                        return $translate('CUSTOMER_SERVICE') + ": " + data.creator.name;
+                                    } else if (data.creator.type == "partner") {
+                                        if (data.creator.name) {
+                                            return $translate('PARTNER') + ": " + data.creator.name;
+                                        } else {
+                                            return $translate('PARTNER') + ": " + data.creator.id;
+                                        }
                                     }
                                 }
                                 return data.creator.name;
