@@ -14550,7 +14550,8 @@ define(['js/app'], function (myApp) {
                     },
                     targetExportPlatformObjId: chosenPlatform._id,
                     targetExportPlatformName: chosenPlatform.name,
-                    expirationTime: vm.exportPlayerSetting.expirationMins
+                    expirationTime: vm.exportPlayerSetting.expirationMins,
+                    dataCount: vm.feedbackPlayersPara.total || 0
                 }
 
                 socketService.$socket($scope.AppSocket, 'createExportPlayerProposal',sendQuery
