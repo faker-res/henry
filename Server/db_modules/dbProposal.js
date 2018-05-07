@@ -621,12 +621,15 @@ var proposal = {
                 }
             }
         ).then(
-            data => ({
-                proposalId: proposalId,
-                orderStatus: orderStatus,
-                depositId: requestId,
-                type: type
-            }),
+            data => {
+                console.error("######updateTopupProposal 6");
+                return {
+                    proposalId: proposalId,
+                    orderStatus: orderStatus,
+                    depositId: requestId,
+                    type: type
+                };
+            },
             error => {
                 if (!error.data) {
                     console.error("######updateTopupProposal 4")
