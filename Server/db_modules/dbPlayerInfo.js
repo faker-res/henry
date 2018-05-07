@@ -16064,6 +16064,9 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
             }
         );
     }
+    else{
+        return Q.resolve();
+    }
 }
 
 function generateDemoPlayerName(platformDemoPlayerPrefix, platformObjId, count) {
