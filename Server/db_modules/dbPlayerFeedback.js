@@ -544,7 +544,7 @@ var dbPlayerFeedback = {
             exportData.consumptionTimesOperator, exportData.consumptionTimesFormal, exportData.consumptionTimesLater, exportData.withdrawalTimesOperator,
             exportData.withdrawalTimesFormal, exportData.withdrawalTimesLater, exportData.topUpSumOperator, exportData.topUpSumFormal, exportData.topUpSumLater,
             exportData.gameProviderIdArray, exportData.gameProviderNameArray, exportData.isNewSystem, exportData.registrationTimeFrom, exportData.registrationTimeTo,
-            exportData.platformObjId, exportData.adminInfo, exportData.targetExportPlatformObjId, exportData.targetExportPlatformName, exportData.expirationTime, exportData.count);
+            exportData.platformObjId, exportData.adminInfo, exportData.targetExportPlatformObjId, exportData.targetExportPlatformName, exportData.expirationTime, exportData.dataCount);
     },
 
     /*
