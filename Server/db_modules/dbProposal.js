@@ -556,10 +556,12 @@ var proposal = {
         return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate({_id: ObjectId(id)}, updateData, {new: true}).exec();
     },
     updateTopupProposal: function (proposalId, status, requestId, orderStatus, remark) {
+        console.error("######updateTopupProposal 1")
         var proposalObj = null;
         var type = constPlayerTopUpType.ONLINE;
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
+                console.error("######updateTopupProposal 2")
                 proposalObj = proposalData;
                 if (proposalData && proposalData.data && proposalData.data.bankCardType != null) {
                     type = constPlayerTopUpType.MANUAL;
@@ -575,6 +577,7 @@ var proposal = {
                         || proposalData.status == constProposalStatus.EXPIRED || proposalData.status == constProposalStatus.RECOVER
                         || proposalData.status == constProposalStatus.CANCEL) && proposalData.data &&
                     (proposalData.data.requestId == requestId || !proposalData.data.requestId)) {
+                    console.error("######updateTopupProposal 5")
                     return proposalData;
                 }
                 else {
@@ -603,6 +606,7 @@ var proposal = {
             }
         ).then(
             data => {
+                console.error("######updateTopupProposal 3")
                 if (status == constProposalStatus.SUCCESS) {
                     return dbPlayerInfo.updatePlayerTopupProposal(proposalId, true, remark);
                 } else if (status == constProposalStatus.FAIL) {
@@ -625,6 +629,7 @@ var proposal = {
             }),
             error => {
                 if (!error.data) {
+                    console.error("######updateTopupProposal 4")
                     return Q.reject({
                         status: constServerCode.COMMON_ERROR,
                         name: "DataError",
