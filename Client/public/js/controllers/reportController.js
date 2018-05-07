@@ -2285,6 +2285,19 @@ define(['js/app'], function (myApp) {
             }, true);
         };
 
+        vm.getNumberQueryStr = function (operator, formal, later) {
+            if (operator && formal != null) {
+                switch (operator) {
+                    case ">=":
+                    case "=":
+                    case "<=":
+                        return operator + " " + formal;
+                    case "range":
+                        return formal + " - " + later;
+                }
+            }
+        };
+
         vm.getMismatchReport = function () {
             $('#onlinePaymentMismatchTableSpin').show();
             let sendQuery = {
@@ -6319,6 +6332,44 @@ define(['js/app'], function (myApp) {
                     proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.alipayQRCode || " ";
                     proposalDetail["ALIPAY_QR_ADDRESS"] = vm.selectedProposal.data.qrcodeAddress || " ";
                     proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                    vm.selectedProposal.data = proposalDetail;
+                }
+
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "BulkExportPlayerData") {
+                    let proposalDetail = {};
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+
+                    let depositCountQueryString = vm.getNumberQueryStr(vm.selectedProposal.data.depositCountOperator, vm.selectedProposal.data.depositCountFormal, vm.selectedProposal.data.depositCountLater);
+                    let topUpSumQueryString = vm.getNumberQueryStr(vm.selectedProposal.data.topUpSumOperator, vm.selectedProposal.data.topUpSumFormal, vm.selectedProposal.data.topUpSumLater);
+                    let playerValueQueryString = vm.getNumberQueryStr(vm.selectedProposal.data.playerValueOperator, vm.selectedProposal.data.playerValueFormal, vm.selectedProposal.data.playerValueLater);
+                    let totalConsumptionQueryString = vm.getNumberQueryStr(vm.selectedProposal.data.consumptionTimesOperator, vm.selectedProposal.data.consumptionTimesFormal, vm.selectedProposal.data.consumptionTimesLater);
+                    let bonusAmountQueryString = vm.getNumberQueryStr(vm.selectedProposal.data.bonusAmountOperator, vm.selectedProposal.data.bonusAmountFormal, vm.selectedProposal.data.bonusAmountLater);
+                    let withdrawalTimesQueryString = vm.getNumberQueryStr(vm.selectedProposal.data.withdrawalTimesOperator, vm.selectedProposal.data.withdrawalTimesFormal, vm.selectedProposal.data.withdrawalTimesLater);
+
+
+                    proposalDetail["MAIN_TYPE"] = $translate("BulkExportPlayerData");
+                    proposalDetail["USER_TYPE"] = $translate(vm.selectedProposal.playerType);
+                    proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName || $translate("ALL");
+                    proposalDetail["CREDIBILITY"] = vm.selectedProposal.data.credibilityRemarkNames && vm.selectedProposal.data.credibilityRemarkNames.length > 0 ? vm.selectedProposal.data.credibilityRemarkNames.join(', ') : " ";
+                    proposalDetail["LAST_ACCESS_TILL_NOW"] = vm.selectedProposal.data.lastAccessTimeRangeString || " ";
+                    proposalDetail["DEPOSIT_COUNT"] = depositCountQueryString || " ";
+                    proposalDetail["PLAYER_VALUE"] = playerValueQueryString || " ";
+                    proposalDetail["TOTAL_CONSUMPTION_TIMES"] = totalConsumptionQueryString || " ";
+                    proposalDetail["PLAYER_PROFIT_AMOUNT"] = bonusAmountQueryString || " ";
+                    proposalDetail["WITHDRAWAL_TIMES"] = withdrawalTimesQueryString || " ";
+                    proposalDetail["TOTAL_TOP_UP"] = topUpSumQueryString || " ";
+                    proposalDetail["GAME_LOBBY"] = vm.selectedProposal.data.gameProviderNames && vm.selectedProposal.data.gameProviderNames.length > 0 ? vm.selectedProposal.data.gameProviderNames.join(', ') : " ";
+                    proposalDetail["RECIPIENTS_APLIPAY_NAME"] = vm.selectedProposal.data.alipayName || " ";
+                    proposalDetail["REGISTRATION_TIME_START"] = vm.selectedProposal.data.lastAccessTimeFrom ? $scope.timeReformat(new Date(vm.selectedProposal.data.lastAccessTimeFrom)) : " ";
+                    proposalDetail["REGISTRATION_TIME_END"] = vm.selectedProposal.data.registrationTimeTo ? $scope.timeReformat(new Date(vm.selectedProposal.data.registrationTimeTo)) : " ";
+                    proposalDetail["EXPORT_PLAYER_COUNT"] = vm.selectedProposal.data.exportCount || " ";
+                    proposalDetail["TARGET_SITE"] = vm.selectedProposal.data.targetExportPlatformName || " ";
+                    proposalDetail["expirationTime"] = vm.selectedProposal.expirationTime ? $scope.timeReformat(new Date(vm.selectedProposal.expirationTime)) : " ";
+
+                    proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || "";
+                    proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || "";
                     vm.selectedProposal.data = proposalDetail;
                 }
 

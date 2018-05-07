@@ -1045,6 +1045,8 @@
   "MANUAL_APPROVAL_PERCENTAGE": "Manual Approval Percentage",
   "LOGIN_DOMAIN": "Login Domain",
 
+  "PLAYER_EXPORT_BATCH": "Export",
+
   "TOPUPMANUAL_AMOUNT": "Manual Top Up Amount",
   "TOPUPMANUAL_COUNT": "Manual Top Up Count",
   "TOPUPMANUAL_HEADCOUNT": "Manual Top Up Head Count",
