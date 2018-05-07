@@ -1123,11 +1123,14 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Player Name length is not valid",
-                    error: error
-                });
+                if (!error.message) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Player Name length is not valid",
+                        error: error
+                    });
+                }
+                return Promise.reject(error);
             }
         ).then(
             //make sure phone number is unique
@@ -1142,12 +1145,15 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                return Promise.reject({
-                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                    name: "DBError",
-                    message: "Phone number already exists",
-                    error: error
-                });
+                if (!error.message) {
+                    return Promise.reject({
+                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                        name: "DBError",
+                        message: "Phone number already exists",
+                        error: error
+                    });
+                }
+                return Promise.reject(error);
             }
         ).then(
             //make sure player name is unique
@@ -1163,11 +1169,14 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Username already exists",
-                    error: error
-                });
+                if (!error.message) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Username already exists",
+                        error: error
+                    });
+                }
+                return Promise.reject(error);
             }
         ).then(
             data => {
@@ -1179,11 +1188,14 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Error in checking player name uniqueness " + error.message,
-                    error: error
-                });
+                if (!error.message) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Error in checking player name uniqueness " + error.message,
+                        error: error
+                    });
+                }
+                return Promise.reject(error);
             }
         ).then(
             data => {
@@ -1248,11 +1260,14 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Error creating new player. " + error.message,
-                    error: error
-                });
+                if (!error.message) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Error creating new player. " + error.message,
+                        error: error
+                    });
+                }
+                return Promise.reject(error);
             }
         ).then(
             data => {
@@ -1315,18 +1330,31 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                return Promise.reject({name: "DBError", message: "Error creating new player.", error: error});
+                if (!error.message) {
+                    return Promise.reject({name: "DBError", message: "Error creating new player.", error: error});
+                }
+                return Promise.reject(error);
             }
         ).then(
             data => {
                 return data && data[0];
             },
             error => {
-                return Promise.reject({name: "DBError", message: "Error updating new player.", error: error});
+                if (!error.message) {
+                    return Promise.reject({name: "DBError", message: "Error updating new player.", error: error});
+                }
+                return Promise.reject(error);
             }
         ).catch(
             error => {
-                return Promise.reject({name: "DBError", message: "Unexpected error updating new player.", error: error});
+                if (!error.message) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Unexpected error updating new player.",
+                        error: error
+                    });
+                }
+                return Promise.reject(error);
             }
         );
     },
