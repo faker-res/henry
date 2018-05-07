@@ -18,8 +18,8 @@ form(name="form_new_partner", novalidate)
             span.help-block(ng-show="form_new_partner.password2.$dirty && form_new_partner.password2.$error.match && !form_new_partner.password2.$error.required") {{"PASSWORD_NOT_MATCH" | translate}}
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
-            label.control-label *{{"REAL_NAME" | translate}}
-            input.form-control(type="text", placeholder="{{'REAL_NAME' | translate}}", ng-model="vm.newPartner.realName", required)
+            label.control-label {{"REAL_NAME" | translate}}
+            input.form-control(type="text", placeholder="{{'REAL_NAME' | translate}}", ng-model="vm.newPartner.realName")
         .form-group.col-md-6
             label.control-label *{{"TELEPHONE" | translate}}
             input.form-control(ng-mouseleave="vm.duplicatePhoneNumberDetector(true,false)", type="telephone", name="telephone", placeholder="{{'TELEPHONE' | translate}}", maxlength="11", ng-pattern="vm.phonePattern", ng-model="vm.newPartner.phoneNumber",required)

@@ -4340,9 +4340,9 @@ define(['js/app'], function (myApp) {
 
             vm.getSMSTemplate();
             var phoneCall = {
-                playerId: data.playerObjId.playerId,
-                name: data.playerObjId.name,
-                toText: data.playerName ? data.playerName : data.playerObjId.name,
+                playerId: data && data.playerObjId && data.playerObjId.playerId ? data.playerObjId.playerId : "",
+                name: data && data.playerObjId && data.playerObjId.name ? data.playerObjId.name : "",
+                toText: data.playerName ? data.playerName : data.playerObjId.name || "",
                 platform: "jinshihao",
                 loadingNumber: true,
             }

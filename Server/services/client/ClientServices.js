@@ -122,6 +122,7 @@
                 "getPlatformSmsGroups",
                 "getClientData",
                 "saveClientData",
+                "extractUserFromFpms",
                 "createPlayerFromTel"
             ];
             addServiceFunctions(sinonet, this, functionNames);
