@@ -4736,7 +4736,7 @@ let dbPartner = {
                             }
                         }).read("secondaryPreferred").then(topUpRecord => {
                         if (topUpRecord) {
-                            topUpRecord.filter(player => player.topUpAmount >= activePlayerTopUpAmount && player.topUpCount >= activePlayerTopUpTimes);
+                            topUpRecord = topUpRecord.filter(player => player.topUpAmount >= activePlayerTopUpAmount && player.topUpCount >= activePlayerTopUpTimes);
 
                             let playerList = [];
 
@@ -4982,7 +4982,7 @@ let dbPartner = {
                             }
                         }).read("secondaryPreferred").then(topUpRecord => {
                         if (topUpRecord) {
-                            topUpRecord.filter(player => player.topUpAmount >= validPlayerTopUpAmount && player.topUpCount >= validPlayerTopUpTimes);
+                            topUpRecord = topUpRecord.filter(player => player.topUpAmount >= validPlayerTopUpAmount && player.topUpCount >= validPlayerTopUpTimes);
 
                             let playerList = [];
 
