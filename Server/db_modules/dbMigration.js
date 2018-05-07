@@ -1885,7 +1885,7 @@ var dbMigration = {
                         proms.push(providerProm);
                     }
                     if( playerData.forbidRewardEvents ){
-                        let eventProm = dbconfig.collection_rewardEvent.find({platformId: data.platform, name: {$in: playerData.forbidRewardEvents}}).lean();
+                        let eventProm = dbconfig.collection_rewardEvent.find({platform: data.platform, name: {$in: playerData.forbidRewardEvents}}).lean();
                         proms.push(eventProm);
                     }
                     return Q.all(proms).then(

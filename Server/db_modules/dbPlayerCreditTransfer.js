@@ -1036,18 +1036,18 @@ let dbPlayerCreditTransfer = {
      * @param forSync
      */
     playerCreditTransferFromProviderWithProviderGroup: function (playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync) {
-        let pCTFP = this;
-        let lockedAmount = 0;
+        //let pCTFP = this;
+        //let lockedAmount = 0;
         let rewardTaskTransferredAmount = 0;
         let validCreditToAdd = 0;
         let gameCredit = 0;
         let playerCredit = 0;
         let rewardTaskCredit = 0;
-        let transferId = new Date().getTime();
+        //let transferId = new Date().getTime();
         let providerPlayerObj = 0;
 
-        let rewardGroupObj;
-        let updateObj = {};
+        //let rewardGroupObj;
+        //let updateObj = {};
         let checkBResolve = false;
 
         // First, need to make sure there's money in provider first
@@ -1074,15 +1074,23 @@ let dbPlayerCreditTransfer = {
                             throw new Error("Insufficient amount to transfer out");
                         }
                         else {
-                            return Promise.reject({
-                                status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                                name: "DataError",
-                                errorMessage: "Player does not have enough credit."
-                            });
+                            return Promise.resolve(
+                                {
+                                    playerId: playerId,
+                                    providerId: providerShortId,
+                                    providerCredit: parseFloat(gameCredit).toFixed(2),
+                                    playerCredit: parseFloat(playerCredit).toFixed(2),
+                                    rewardCredit: parseFloat(rewardTaskCredit).toFixed(2),
+                                    transferCredit: {
+                                        playerCredit: parseFloat(validCreditToAdd).toFixed(2),
+                                        rewardCredit: parseFloat(rewardTaskTransferredAmount).toFixed(2)
+                                    }
+                                }
+                            );
                         }
                     }
 
-                    return checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync);
+                    return dbPlayerCreditTransfer.TransferPlayerCreditFromProviderWithProviderGroup(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, providerPlayerObj, checkBResolve, adminName, cpName);
                 } else {
                     return Promise.reject({
                         name: "DataError",
@@ -1099,7 +1107,22 @@ let dbPlayerCreditTransfer = {
                     return Promise.reject(err);
                 }
             }
-        ).then(
+        );
+    },
+
+    TransferPlayerCreditFromProviderWithProviderGroup: function(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, providerPlayerObj, checkBResolve, adminName, cpName) {
+        let pCTFP = this;
+        let lockedAmount = 0;
+        let rewardTaskTransferredAmount = 0;
+        let validCreditToAdd = 0;
+        let gameCredit = 0;
+        let playerCredit = 0;
+        let rewardTaskCredit = 0;
+        let transferId = new Date().getTime();
+
+        let rewardGroupObj;
+        let updateObj = {};
+        return checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync).then(
             res => {
                 if (res && res[0] && res[1]) {
                     amount = res[0];
