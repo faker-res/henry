@@ -17874,6 +17874,9 @@ define(['js/app'], function (myApp) {
                         }
                         $scope.safeApply();
                     });
+                }else{
+                    vm.partnerValidity = {};
+                    form.$setValidity('invalidPartnerPlayer', true);
                 }
             }
 
