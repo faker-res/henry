@@ -5715,9 +5715,9 @@ let dbPartner = {
             let result = data[1];
 
             result.forEach(v => {
-                let filterDataIndex = filterData.indexOf([v.commissionType,v.partnerName]);
+                let filterDataIndex = filterData.indexOf(v.commissionType+v.partnerName);
                 if(filterDataIndex < 0) {
-                    filterData.push([v.commissionType,v.partnerName]);
+                    filterData.push(v.commissionType+v.partnerName);
 
                     let record = JSON.parse(JSON.stringify(v));
                     retData.push(record);
