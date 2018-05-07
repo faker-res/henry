@@ -2791,7 +2791,11 @@ var dbPlayerTopUpRecord = {
                         pData => {
                             if (pData) {
                                 console.error("######addTestTopUp 1")
-                                return dbProposal.updateTopupProposal(pData.proposalId, constProposalStatus.SUCCESS, pData.data.requestId, 1);
+                                return dbProposal.updateTopupProposal(pData.proposalId, constProposalStatus.SUCCESS, pData.data.requestId, 1).catch(
+                                    error => {
+                                        console.error(error);
+                                    }
+                                );
                             }
                         }
                     ).then(
@@ -2801,6 +2805,7 @@ var dbPlayerTopUpRecord = {
             }
         ).then(
             topUpResult => {
+                console.error("######addTestTopUp 4")
                 if (topUpResult) {
                     if (createTime) {
                         console.error("######addTestTopUp 2")
