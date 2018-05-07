@@ -2,6 +2,7 @@ const WebSocketUtil = require("./../../server_common/WebSocketUtil");
 const PlatformService = require("./../../services/client/ClientServices").PlatformService;
 const dbPlatform = require('./../../db_modules/dbPlatform');
 const dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
+const dbPlayerFeedback = require('./../../db_modules/dbPlayerFeedback');
 const dbPlatformAnnouncement = require("../../db_modules/dbPlatformAnnouncement");
 const dbUtility = require('./../../modules/dbutility');
 const dbPlayerConsumptionRecord = require('./../../db_modules/dbPlayerConsumptionRecord');
@@ -102,6 +103,12 @@ var PlatformServiceImplement = function () {
         data.name = data.playerAccount;
         // Promise create player and partner
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerFromTel, [data], isValidData, null, null, true);
+    };
+
+    this.extractUserFromFpms.onRequest = (wsFunc, conn, data) => {
+        let isValidData = Boolean(data && data.proposalId);
+        let ipAddress = conn.upgradeReq.connection.remoteAddress || '';
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerFeedback.getExportedData, [data.proposalId,ipAddress], isValidData, null, null, true);
     };
 };
 

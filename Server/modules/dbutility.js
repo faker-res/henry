@@ -4,6 +4,7 @@ module.exports = new dbUtilityFunc();
 
 var constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
 const uaParser = require('ua-parser-js');
+const rsaCrypto = require('../modules/rsaCrypto');
 var Q = require("q");
 var dbconfig = require("./dbproperties.js");
 var moment = require('moment-timezone');
@@ -996,8 +997,22 @@ var dbUtility = {
             inputDevice = constPlayerRegistrationInterface.BACKSTAGE;
         }
         return inputDevice;
-    }
+    },
 
+    decryptPhoneNumber: (phoneNumberRaw) => {
+        let decryptedPhoneNo = phoneNumberRaw;
+
+        if (phoneNumberRaw && phoneNumberRaw.length > 20) {
+            try {
+                decryptedPhoneNo = rsaCrypto.decrypt(phoneNumberRaw);
+            }
+            catch (err) {
+                console.log(err);
+                decryptedPhoneNo = "";
+            }
+        }
+        return decryptedPhoneNo;
+    }
 };
 
 var proto = dbUtilityFunc.prototype;

@@ -214,6 +214,21 @@
     </div>
 </div>
 
+<h3>EXTRACT USER FROM FPMS (玩家资料导出)</h3>
+<div class="test-container">
+    <div>
+        <label>proposalId
+            <input name="proposalId">
+        </label>
+    </div>
+
+    <p></p>
+    <button data-api-name="extractUserFromFpms">Get</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlatformAPITest','testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPlatformAPITest, ClientConnectionAPITest) {
