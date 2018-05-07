@@ -106,6 +106,24 @@
 
     };
 
+    proto.createPlayerFromTel = function (callback, requestData) {
+        this._service.createPlayerFromTel.request(requestData);
+        this._service.createPlayerFromTel.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.extractUserFromFpms = function (callback, requestData) {
+        this._service.extractUserFromFpms.request(requestData);
+        this._service.extractUserFromFpms.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     if (isNode) {
         module.exports = ClientPlatformAPITest;
     } else {

@@ -14468,9 +14468,103 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.exportPlayerQuery = function () {
+                // vm.exportQuery
+                vm.exportPlayerSetting = {};
+                $('#modalExportSetting').modal().show();
+            }
+
+            vm.showExportButton = function () {
+                return (!(vm.feedbackPlayersPara && vm.feedbackPlayersPara.total)|| vm.feedbackPlayersPara.total <= 0);
+            }
+
+            vm.createExportPlayerProposal = function () {
+                let chosenPlatform = JSON.parse(vm.exportPlayerSetting.platform);
+                let playerName = "";
+                let credibilityRemarkName = [];
+                let gameProviderName = [];
+                for (let i = 0; i < vm.allPlayerLvl.length; i++) {
+                    if (vm.allPlayerLvl[i] && vm.allPlayerLvl[i].name && vm.allPlayerLvl[i]._id.toString() == vm.exportPlayerFilter.playerLevel.toString()) {
+                        playerName = vm.allPlayerLvl[i].name;
+                        break;
+                    }
+                }
+                if (vm.exportPlayerFilter.credibilityRemarks.length) {
+                    for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                        for (let k = 0; k < vm.exportPlayerFilter.credibilityRemarks.length; k++) {
+                            if (vm.credibilityRemarks[j]._id && vm.credibilityRemarks[j]._id.toString() == vm.exportPlayerFilter.credibilityRemarks[k].toString()) {
+                                credibilityRemarkName.push(vm.credibilityRemarks[j].name);
+                            }
+                        }
+                    }
+                }
+                if (vm.exportPlayerFilter.gameProviderId.length) {
+                    for (let j = 0; j < vm.allGameProviders.length; j++) {
+                        for (let k = 0; k < vm.exportPlayerFilter.gameProviderId.length; k++) {
+                            if (vm.allGameProviders[j]._id && vm.allGameProviders[j]._id.toString() == vm.exportPlayerFilter.gameProviderId[k].toString()) {
+                                gameProviderName.push(vm.allGameProviders[j].name);
+                            }
+                        }
+                    }
+                }
+
+                let sendQuery = {
+                    title: vm.exportPlayerSetting.title,
+                    playerType: vm.exportPlayerFilter.playerType,
+                    playerLevelObjId: vm.exportPlayerFilter.playerLevel,
+                    playerLevelName: playerName,
+                    credibilityRemarkObjIdArray: vm.exportPlayerFilter.credibilityRemarks,
+                    credibilityRemarkNameArray: credibilityRemarkName,
+                    lastAccessTimeFrom: vm.exportQuery.lastAccessTime.$gte,
+                    lastAccessTimeTo: vm.exportQuery.lastAccessTime.$lte || vm.exportQuery.lastAccessTime.$lt ,
+                    lastAccessTimeRangeString: vm.exportPlayerFilter.lastAccess,
+                    lastFeedbackTimeBefore: vm.exportPlayerFilter.filterFeedback,
+                    depositCountOperator: vm.exportPlayerFilter.depositCountOperator,
+                    depositCountFormal: vm.exportPlayerFilter.depositCountFormal,
+                    depositCountLater: vm.exportPlayerFilter.depositCountLater,
+                    bonusAmountOperator: vm.exportPlayerFilter.bonusAmountOperator,
+                    bonusAmountFormal: vm.exportPlayerFilter.bonusAmountFormal,
+                    bonusAmountLater: vm.exportPlayerFilter.bonusAmountLatter,
+                    playerValueOperator: vm.exportPlayerFilter.playerValueOperator,
+                    playerValueFormal: vm.exportPlayerFilter.playerValueFormal,
+                    playerValueLater: vm.exportPlayerFilter.playerValueLatter,
+                    consumptionTimesOperator: vm.exportPlayerFilter.consumptionTimesOperator,
+                    consumptionTimesFormal: vm.exportPlayerFilter.consumptionTimesFormal,
+                    consumptionTimesLater: vm.exportPlayerFilter.consumptionTimesLatter,
+                    withdrawalTimesOperator: vm.exportPlayerFilter.withdrawTimesOperator,
+                    withdrawalTimesFormal: vm.exportPlayerFilter.withdrawTimesFormal,
+                    withdrawalTimesLater: vm.exportPlayerFilter.withdrawTimesLatter,
+                    topUpSumOperator: vm.exportPlayerFilter.topUpSumOperator,
+                    topUpSumFormal: vm.exportPlayerFilter.topUpSumFormal,
+                    topUpSumLater: vm.exportPlayerFilter.topUpSumLatter,
+                    gameProviderIdArray: vm.exportPlayerFilter.gameProviderId,
+                    gameProviderNameArray: gameProviderName,
+                    isNewSystem: vm.exportPlayerFilter.isNewSystem,
+                    registrationTimeFrom: vm.exportQuery.registrationTime.$gte,
+                    registrationTimeTo: vm.exportQuery.registrationTime.$lte || vm.exportQuery.registrationTime.$lt,
+                    platformObjId: vm.selectedPlatform.data._id,
+                    adminInfo: {
+                        type: "admin",
+                        name: authService.adminName,
+                        id: authService.adminId
+                    },
+                    targetExportPlatformObjId: chosenPlatform._id,
+                    targetExportPlatformName: chosenPlatform.name,
+                    expirationTime: new Date(new Date().setMinutes(new Date().getMinutes() + (vm.exportPlayerSetting.expirationMins || 60)))
+                }
+
+                socketService.$socket($scope.AppSocket, 'createExportPlayerProposal',sendQuery
+                    , function (data) {
+                    socketService.showConfirmMessage("Success");
+                }, function (err){
+                    socketService.showErrorMessage(err);
+                });
+            }
+
             vm.submitPlayerFeedbackQuery = function (isNewSearch) {
                 if (!vm.selectedPlatform) return;
                 console.log('vm.feedback', vm.playerFeedbackQuery);
+                vm.exportPlayerFilter = JSON.parse(JSON.stringify(vm.playerFeedbackQuery))
                 let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
                 let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
                 let sendQuery = {platform: vm.selectedPlatform.id};
@@ -14689,6 +14783,7 @@ define(['js/app'], function (myApp) {
 
                 $('#platformFeedbackSpin').show();
                 console.log('sendQuery', sendQuery);
+                vm.exportQuery = sendQuery;
                 console.log('vm.playerFeedbackSearchType', vm.playerFeedbackSearchType);
                 if (isNewSearch) {
                     vm.feedbackPlayersPara.index = 1;
@@ -15776,7 +15871,6 @@ define(['js/app'], function (myApp) {
                     resetQuery.pageObj = vm.advancedPartnerQueryObj.pageObj;
                     resetQuery.sortCol = vm.advancedPartnerQueryObj.sortCol;
                     vm.advancedPartnerQueryObj = resetQuery;
-                    console.log('vm.advancedPartnerQueryObj===', vm.advancedPartnerQueryObj);
                     vm.partnerAdvanceSearchQuery = {
                         creditsOperator: ">=",
                         dailyActivePlayerOperator: ">=",
@@ -15812,7 +15906,6 @@ define(['js/app'], function (myApp) {
                     if (vm.totalChildrenBalanceBoolean) {
                         vm.getTotalChildrenBalance(data.data, partner);
                     }
-                    $scope.safeApply();
                 })
             };
 
@@ -15833,7 +15926,6 @@ define(['js/app'], function (myApp) {
                     vm.partnerLoadingDailyActivePlayer = false;
                     vm.dailyActivePlayerBoolean = false;
                     vm.drawPartnerTable(partner);
-                    $scope.safeApply();
                 })
             };
 
@@ -15854,8 +15946,6 @@ define(['js/app'], function (myApp) {
                     vm.partnerLoadingWeeklyActivePlayer = false;
                     vm.weeklyActivePlayerBoolean = false;
                     vm.drawPartnerTable(partner);
-                    //end loading spinner
-                    $scope.safeApply();
                 })
             };
 
@@ -15876,7 +15966,6 @@ define(['js/app'], function (myApp) {
                     vm.partnerLoadingMonthlyActivePlayer = false;
                     vm.monthlyActivePlayerBoolean = false;
                     vm.drawPartnerTable(partner);
-                    $scope.safeApply();
                 })
             };
 
@@ -15897,8 +15986,6 @@ define(['js/app'], function (myApp) {
                     vm.partnerLoadingValidPlayers = false;
                     vm.validPlayersBoolean = false;
                     vm.drawPartnerTable(partner);
-                    //end loading spinner
-                    $scope.safeApply();
                 })
             };
 
@@ -15913,13 +16000,12 @@ define(['js/app'], function (myApp) {
                     data.data.forEach( inData => {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
                         if ( index !== -1) {
-                            partner.data[index].totalChildrenDeposit = inData.size ? inData.size : 0;
+                            partner.data[index].totalChildrenDeposit = inData.amount ? inData.amount : 0;
                         }
                     });
                     vm.partnerLoadingTotalChildrenDeposit = false;
                     vm.totalChildrenDepositBoolean = false;
                     vm.drawPartnerTable(partner);
-                    $scope.safeApply();
                 })
             };
 
@@ -15934,13 +16020,12 @@ define(['js/app'], function (myApp) {
                     data.data.forEach( inData => {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
                         if ( index !== -1) {
-                            partner.data[index].totalChildrenBalance = inData.size ? inData.size : 0;
+                            partner.data[index].totalChildrenBalance = inData.amount ? inData.amount : 0;
                         }
                     });
                     vm.partnerLoadingTotalChildrenBalance = false;
                     vm.totalChildrenBalanceBoolean = false;
                     vm.drawPartnerTable(partner);
-                    $scope.safeApply();
                 })
             };
 
@@ -15966,7 +16051,7 @@ define(['js/app'], function (myApp) {
                     partner.validPlayers = partner.validPlayers ? partner.validPlayers : 0;
                     partner.totalChildrenDeposit = partner.totalChildrenDeposit ? partner.totalChildrenDeposit : 0;
                     partner.totalChildrenBalance = partner.totalChildrenBalance ? partner.totalChildrenBalance : 0;
-                    partner.commissionAmountFromChildren = partner.commissionAmountFromChildren ? partner.commissionAmountFromChildren : 0;
+                    partner.commissionAmountFromChildren = partner.commissionAmountFromChildren ? parseFloat(partner.commissionAmountFromChildren).toFixed(2) : 0;
                 });
 
                 if (!vm.partnerLoadingDailyActivePlayer && !vm.partnerLoadingWeeklyActivePlayer && !vm.partnerLoadingMonthlyActivePlayer &&
@@ -17789,6 +17874,9 @@ define(['js/app'], function (myApp) {
                         }
                         $scope.safeApply();
                     });
+                }else{
+                    vm.partnerValidity = {};
+                    form.$setValidity('invalidPartnerPlayer', true);
                 }
             }
 
