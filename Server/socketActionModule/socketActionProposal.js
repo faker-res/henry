@@ -554,10 +554,16 @@ function socketActionProposal(socketIO, socket) {
 
         getManualApprovalRecords: function getManualApprovalRecords(data) {
             let actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.period && data.mainType);
+            var isValidData = Boolean(data && data.startDate && data.endDate && data.period && data.playerBonus && data.updatePlayerList && data.updatePartnerList && data.reward && data.others);
             var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
             var endTime = data.endDate ? new Date(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbProposal.getManualApprovalRecords, [data.platformId, startTime, endTime, data.period, data.mainType], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getManualApprovalRecords, [startTime, endTime, data.period, data.playerBonus, data.updatePlayerList, data.updatePartnerList, data.reward, data.others], actionName, isValidData);
+        },
+
+        getAllProposalTypeByPlatformId: function getAllProposalTypeByPlatformId(data) {
+            let actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbProposal.getAllProposalTypeByPlatformId, [data.platformId], actionName, isValidData);
         },
 
         getOnlineTopupAnalysisByPlatform: function getOnlineTopupAnalysisByPlatform(data) {
