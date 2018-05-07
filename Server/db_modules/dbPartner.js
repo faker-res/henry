@@ -4715,52 +4715,124 @@ let dbPartner = {
                         break;
                 }
 
-                return dbconfig.collection_playerTopUpRecord.aggregate(
-                    {
-                        $match: {
-                            playerId: {$in: playerIdList},
-                            platformId: platformId,
-                            createTime: {
-                                $gte: new Date(activeTime.startTime),
-                                $lt: new Date(activeTime.endTime),
+                if (activePlayerTopUpTimes > 0) { //only if require Active Player to have top up record
+                    return dbconfig.collection_playerTopUpRecord.aggregate(
+                        {
+                            $match: {
+                                playerId: {$in: playerIdList},
+                                platformId: platformId,
+                                createTime: {
+                                    $gte: new Date(activeTime.startTime),
+                                    $lt: new Date(activeTime.endTime),
+                                }
+                            }
+
+                        },
+                        {
+                            $group: {
+                                _id: "$playerId",
+                                topUpAmount: {$sum: "$amount"},
+                                topUpCount: {$sum: 1}
+                            }
+                        }).read("secondaryPreferred").then(topUpRecord => {
+                        if (topUpRecord) {
+                            topUpRecord = topUpRecord.filter(player => player.topUpAmount >= activePlayerTopUpAmount && player.topUpCount >= activePlayerTopUpTimes);
+
+                            let playerList = [];
+
+                            topUpRecord.forEach( record => {
+                                playerList.push(ObjectId(record._id));
+                            });
+
+                            if (activePlayerConsumptionTimes > 0) { //only if require Active Player to have consumption record
+                                return dbconfig.collection_playerConsumptionRecord.aggregate(
+                                    {
+                                        $match: {
+                                            playerId: {$in: playerList},
+                                            platformId: platformId,
+                                            createTime: {
+                                                $gte: new Date(activeTime.startTime),
+                                                $lt: new Date(activeTime.endTime),
+                                            }
+                                        }
+                                    },
+                                    {
+                                        $group: {
+                                            _id: "$playerId",
+                                            consumptionAmount: {$sum: "$amount"},
+                                            consumptionCount: {$sum: 1}
+                                        }
+                                    }).read("secondaryPreferred").then(records => {
+                                        if (records) {
+                                            records = records.filter(records => records.consumptionCount >= activePlayerConsumptionTimes && records.consumptionAmount >= activePlayerConsumptionAmount);
+
+                                            switch (period) {
+                                                case 'day':
+                                                    dbconfig.collection_partner.findOneAndUpdate(
+                                                        {
+                                                            _id: partnerId,
+                                                            platform: platformId,
+                                                        },
+                                                        {
+                                                            $set: {dailyActivePlayer: records.length}
+                                                        }
+                                                    ).exec();
+                                                    break;
+                                                case 'week':
+                                                    dbconfig.collection_partner.findOneAndUpdate(
+                                                        {
+                                                            _id: partnerId,
+                                                            platform: platformId,
+                                                        },
+                                                        {
+                                                            $set: {weeklyActivePlayer: records.length}
+                                                        }
+                                                    ).exec();
+                                                    break;
+                                                case 'month':
+                                                default:
+                                                    dbconfig.collection_partner.findOneAndUpdate(
+                                                        {
+                                                            _id: partnerId,
+                                                            platform: platformId,
+                                                        },
+                                                        {
+                                                            $set: {monthlyActivePlayer: records.length}
+                                                        }
+                                                    ).exec();
+                                                    break;
+                                            }
+                                            return {partnerId: partnerId, size: records.length}
+                                        }
+                                    }
+                                )
+                            }
+                            else {
+                                return {partnerId: partnerId, size: topUpRecord.length}
                             }
                         }
-
-                    },
-                    {
-                        $group: {
-                            _id: "$playerId",
-                            topUpAmount: {$sum: "$amount"},
-                            topUpCount: {$sum: 1}
-                        }
-                    }).read("secondaryPreferred").then(topUpRecord => {
-                    if (topUpRecord) {
-                        topUpRecord.filter(player => player.topUpAmount >= activePlayerTopUpAmount && player.topUpCount >= activePlayerTopUpTimes);
-
-                        let playerList = [];
-
-                        topUpRecord.forEach( record => {
-                            playerList.push(ObjectId(record._id));
-                        });
-
-                        return dbconfig.collection_playerConsumptionRecord.aggregate(
-                            {
-                                $match: {
-                                    playerId: {$in: playerList},
-                                    platformId: platformId,
-                                    createTime: {
-                                        $gte: new Date(activeTime.startTime),
-                                        $lt: new Date(activeTime.endTime),
-                                    }
+                    })
+                }
+                else if (activePlayerConsumptionTimes > 0) { //only if require Active Player to have consumption record
+                    return dbconfig.collection_playerConsumptionRecord.aggregate(
+                        {
+                            $match: {
+                                playerId: {$in: playerIdList},
+                                platformId: platformId,
+                                createTime: {
+                                    $gte: new Date(activeTime.startTime),
+                                    $lt: new Date(activeTime.endTime),
                                 }
-                            },
-                            {
-                                $group: {
-                                    _id: "$playerId",
-                                    consumptionAmount: {$sum: "$amount"},
-                                    consumptionCount: {$sum: 1}
-                                }
-                            }).read("secondaryPreferred").then(records => {
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$playerId",
+                                consumptionAmount: {$sum: "$amount"},
+                                consumptionCount: {$sum: 1}
+                            }
+                        }).read("secondaryPreferred").then(records => {
+                            if (records) {
                                 records = records.filter(records => records.consumptionCount >= activePlayerConsumptionTimes && records.consumptionAmount >= activePlayerConsumptionAmount);
 
                                 switch (period) {
@@ -4799,12 +4871,14 @@ let dbPartner = {
                                         ).exec();
                                         break;
                                 }
-
                                 return {partnerId: partnerId, size: records.length}
                             }
-                        )
-                    }
-                })
+                        }
+                    )
+                }
+                else {
+                    return {partnerId: partnerId}
+                }
             });
         }
     },
@@ -4891,60 +4965,102 @@ let dbPartner = {
                 let validPlayerConsumptionTimes = config.validPlayerConsumptionTimes;
                 let validPlayerConsumptionAmount = config.validPlayerConsumptionAmount;
 
-                return dbconfig.collection_playerTopUpRecord.aggregate(
-                    {
-                        $match: {
-                            playerId: {$in: playerIdList},
-                            platformId: platformId,
-                        }
-                    },
-                    {
-                        $group: {
-                            _id: "$playerId",
-                            topUpAmount: {$sum: "$amount"},
-                            topUpCount: {$sum: 1}
-                        }
-                    }).read("secondaryPreferred").then(topUpRecord => {
-                    if (topUpRecord) {
-                        topUpRecord.filter(player => player.topUpAmount >= validPlayerTopUpAmount && player.topUpCount >= validPlayerTopUpTimes);
 
-                        let playerList = [];
+                if (validPlayerTopUpTimes > 0) { //only if require Valid Player to have top up record
+                    return dbconfig.collection_playerTopUpRecord.aggregate(
+                        {
+                            $match: {
+                                playerId: {$in: playerIdList},
+                                platformId: platformId,
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$playerId",
+                                topUpAmount: {$sum: "$amount"},
+                                topUpCount: {$sum: 1}
+                            }
+                        }).read("secondaryPreferred").then(topUpRecord => {
+                        if (topUpRecord) {
+                            topUpRecord = topUpRecord.filter(player => player.topUpAmount >= validPlayerTopUpAmount && player.topUpCount >= validPlayerTopUpTimes);
 
-                        topUpRecord.forEach( record => {
-                            playerList.push(ObjectId(record._id));
-                        });
+                            let playerList = [];
 
-                        return dbconfig.collection_playerConsumptionRecord.aggregate(
-                            {
-                                $match: {
-                                    playerId: {$in: playerList},
-                                    platformId: platformId,
-                                }
-                            },
-                            {
-                                $group: {
-                                    _id: "$playerId",
-                                    consumptionAmount: {$sum: "$amount"},
-                                    consumptionCount: {$sum: 1}
-                                }
-                            }).read("secondaryPreferred").then(records => {
-                                records = records.filter(records => records.consumptionCount >= validPlayerConsumptionTimes && records.consumptionAmount >= validPlayerConsumptionAmount);
+                            topUpRecord.forEach( record => {
+                                playerList.push(ObjectId(record._id));
+                            });
 
-                                dbconfig.collection_partner.findOneAndUpdate(
+                            if (validPlayerConsumptionTimes > 0) { //only if require Valid Player to have consumption record
+                                return dbconfig.collection_playerConsumptionRecord.aggregate(
                                     {
-                                        _id: partnerId,
-                                        platform: platformId,
+                                        $match: {
+                                            playerId: {$in: playerList},
+                                            platformId: platformId,
+                                        }
                                     },
                                     {
-                                        $set: {validPlayers: records.length}
-                                    }
-                                ).exec();
+                                        $group: {
+                                            _id: "$playerId",
+                                            consumptionAmount: {$sum: "$amount"},
+                                            consumptionCount: {$sum: 1}
+                                        }
+                                    }).read("secondaryPreferred").then(records => {
+                                        records = records.filter(records => records.consumptionCount >= validPlayerConsumptionTimes && records.consumptionAmount >= validPlayerConsumptionAmount);
 
-                                return {partnerId: partnerId, size: records.length}
+                                        dbconfig.collection_partner.findOneAndUpdate(
+                                            {
+                                                _id: partnerId,
+                                                platform: platformId,
+                                            },
+                                            {
+                                                $set: {validPlayers: records.length}
+                                            }
+                                        ).exec();
+
+                                        return {partnerId: partnerId, size: records.length}
+                                    }
+                                )
                             }
-                        )
-                    }
-                })
+                            else {
+                                return {partnerId: partnerId, size: topUpRecord.length}
+                            }
+                        }
+                    })
+                }
+                else if (validPlayerConsumptionTimes > 0) { //only if require Valid Player to have consumption record
+                    return dbconfig.collection_playerConsumptionRecord.aggregate(
+                        {
+                            $match: {
+                                playerId: {$in: playerIdList},
+                                platformId: platformId,
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$playerId",
+                                consumptionAmount: {$sum: "$amount"},
+                                consumptionCount: {$sum: 1}
+                            }
+                        }).read("secondaryPreferred").then(records => {
+                            records = records.filter(records => records.consumptionCount >= validPlayerConsumptionTimes && records.consumptionAmount >= validPlayerConsumptionAmount);
+
+                            dbconfig.collection_partner.findOneAndUpdate(
+                                {
+                                    _id: partnerId,
+                                    platform: platformId,
+                                },
+                                {
+                                    $set: {validPlayers: records.length}
+                                }
+                            ).exec();
+
+                            return {partnerId: partnerId, size: records.length}
+                        }
+                    )
+                }
+                else {
+                    return {partnerId: partnerId}
+                }
             });
         }
     },
@@ -5101,6 +5217,12 @@ let dbPartner = {
         return dbconfig.collection_partner.findById(partnerObjId).lean().then(
             partnerObj => {
                 if (partnerObj) {
+                    let creatorData = adminInfo || {
+                        type: 'partner',
+                        name: partnerObj.partnerName,
+                        id: partnerObj._id
+                    }
+
                     let proposalData = {
                         creator: adminInfo || {
                             type: 'partner',
@@ -5118,7 +5240,7 @@ let dbPartner = {
                         isPlatformRate: isPlatformRate,
                         isDelete: isDelete
                     };
-                    return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {data: proposalData});
+                    return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {creator: creatorData, data: proposalData});
                 }
             }
         );
@@ -5635,9 +5757,9 @@ let dbPartner = {
             let result = data[1];
 
             result.forEach(v => {
-                let filterDataIndex = filterData.indexOf([v.commissionType,v.partnerName]);
+                let filterDataIndex = filterData.indexOf(v.commissionType+v.partnerName);
                 if(filterDataIndex < 0) {
-                    filterData.push([v.commissionType,v.partnerName]);
+                    filterData.push(v.commissionType+v.partnerName);
 
                     let record = JSON.parse(JSON.stringify(v));
                     retData.push(record);
@@ -5803,8 +5925,8 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
             $match: {
                 playerId: playerObjId,
                 createTime: {
-                    $gte: startTime,
-                    $lt: endTime
+                    $gte: new Date(startTime),
+                    $lt: new Date(endTime)
                 },
             }
         },

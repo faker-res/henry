@@ -1125,11 +1125,15 @@ define(['js/app'], function (myApp) {
                         "data": null,
                         render: function (data, type, row) {
                             if (data.hasOwnProperty('creator')) {
-                                if(data.creator && data.creator.type && data.creator.type == "partner"){
-                                    if (data.creator.name) {
-                                        return $translate('PARTNER') + ": " + data.creator.name;
-                                    } else {
-                                        return $translate('PARTNER') + ": " + data.creator.id;
+                                if(data.creator && data.creator.type){
+                                    if (data.type && data.type.name && data.type.name == "CustomizePartnerCommRate" && data.creator.type == "admin") {
+                                        return $translate('CUSTOMER_SERVICE') + ": " + data.creator.name;
+                                    } else if (data.creator.type == "partner") {
+                                        if (data.creator.name) {
+                                            return $translate('PARTNER') + ": " + data.creator.name;
+                                        } else {
+                                            return $translate('PARTNER') + ": " + data.creator.id;
+                                        }
                                     }
                                 }
                                 return data.creator.name;
@@ -2198,7 +2202,7 @@ define(['js/app'], function (myApp) {
                 proposalDetail["RECIPIENTS_APLIPAY_NAME"] = vm.selectedProposal.data.alipayName || " ";
                 proposalDetail["REGISTRATION_TIME_START"] = vm.selectedProposal.data.lastAccessTimeFrom ? $scope.timeReformat(new Date(vm.selectedProposal.data.lastAccessTimeFrom)) : " ";
                 proposalDetail["REGISTRATION_TIME_END"] = vm.selectedProposal.data.registrationTimeTo ? $scope.timeReformat(new Date(vm.selectedProposal.data.registrationTimeTo)) : " ";
-                // proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " "; // todo :: 转移玩家总数
+                proposalDetail["EXPORT_PLAYER_COUNT"] = vm.selectedProposal.data.exportCount || " ";
                 proposalDetail["TARGET_SITE"] = vm.selectedProposal.data.targetExportPlatformName || " ";
                 proposalDetail["expirationTime"] = vm.selectedProposal.expirationTime ? $scope.timeReformat(new Date(vm.selectedProposal.expirationTime)) : " ";
 

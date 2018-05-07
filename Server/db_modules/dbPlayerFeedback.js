@@ -544,7 +544,7 @@ var dbPlayerFeedback = {
             exportData.consumptionTimesOperator, exportData.consumptionTimesFormal, exportData.consumptionTimesLater, exportData.withdrawalTimesOperator,
             exportData.withdrawalTimesFormal, exportData.withdrawalTimesLater, exportData.topUpSumOperator, exportData.topUpSumFormal, exportData.topUpSumLater,
             exportData.gameProviderIdArray, exportData.gameProviderNameArray, exportData.isNewSystem, exportData.registrationTimeFrom, exportData.registrationTimeTo,
-            exportData.platformObjId, exportData.adminInfo, exportData.targetExportPlatformObjId, exportData.targetExportPlatformName, exportData.expirationTime);
+            exportData.platformObjId, exportData.adminInfo, exportData.targetExportPlatformObjId, exportData.targetExportPlatformName, exportData.expirationTime, exportData.dataCount);
     },
 
     /*
@@ -695,7 +695,7 @@ function applyExtractPlayerProposal (title, playerType, playerLevelObjId, player
                                      consumptionTimesFormal, consumptionTimesLater, withdrawalTimesOperator, withdrawalTimesFormal,
                                      withdrawalTimesLater, topUpSumOperator, topUpSumFormal, topUpSumLater, gameProviderIdArray,
                                      gameProviderNameArray, isNewSystem, registrationTimeFrom, registrationTimeTo, platformObjId,
-                                     adminInfo, targetExportPlatformObjId, targetExportPlatformName, expirationTime) {
+                                     adminInfo, targetExportPlatformObjId, targetExportPlatformName, expirationTime, exportCount) {
     title = title || "";
     return dbconfig.collection_proposalType.findOne({name: constProposalType.BULK_EXPORT_PLAYERS_DATA, platformId: platformObjId}).lean().then(
         proposalType => {
@@ -745,6 +745,7 @@ function applyExtractPlayerProposal (title, playerType, playerLevelObjId, player
                     platformId: platformObjId,
                     targetExportPlatform: targetExportPlatformObjId,
                     targetExportPlatformName,
+                    exportCount,
                     remark: ""
                 },
                 expirationTime: new Date(expirationTime),

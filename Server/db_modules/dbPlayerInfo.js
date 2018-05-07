@@ -1123,11 +1123,14 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Player Name length is not valid",
-                    error: error
-                });
+                if (!error.message) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Player Name length is not valid",
+                        error: error
+                    });
+                }
+                return Promise.reject(error);
             }
         ).then(
             //make sure phone number is unique
@@ -1142,12 +1145,15 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                return Promise.reject({
-                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                    name: "DBError",
-                    message: "Phone number already exists",
-                    error: error
-                });
+                if (!error.message) {
+                    return Promise.reject({
+                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                        name: "DBError",
+                        message: "Phone number already exists",
+                        error: error
+                    });
+                }
+                return Promise.reject(error);
             }
         ).then(
             //make sure player name is unique
@@ -1163,11 +1169,14 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Username already exists",
-                    error: error
-                });
+                if (!error.message) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Username already exists",
+                        error: error
+                    });
+                }
+                return Promise.reject(error);
             }
         ).then(
             data => {
@@ -1179,11 +1188,14 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Error in checking player name uniqueness " + error.message,
-                    error: error
-                });
+                if (!error.message) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Error in checking player name uniqueness " + error.message,
+                        error: error
+                    });
+                }
+                return Promise.reject(error);
             }
         ).then(
             data => {
@@ -1248,11 +1260,14 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Error creating new player. " + error.message,
-                    error: error
-                });
+                if (!error.message) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Error creating new player. " + error.message,
+                        error: error
+                    });
+                }
+                return Promise.reject(error);
             }
         ).then(
             data => {
@@ -1315,18 +1330,31 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                return Promise.reject({name: "DBError", message: "Error creating new player.", error: error});
+                if (!error.message) {
+                    return Promise.reject({name: "DBError", message: "Error creating new player.", error: error});
+                }
+                return Promise.reject(error);
             }
         ).then(
             data => {
                 return data && data[0];
             },
             error => {
-                return Promise.reject({name: "DBError", message: "Error updating new player.", error: error});
+                if (!error.message) {
+                    return Promise.reject({name: "DBError", message: "Error updating new player.", error: error});
+                }
+                return Promise.reject(error);
             }
         ).catch(
             error => {
-                return Promise.reject({name: "DBError", message: "Unexpected error updating new player.", error: error});
+                if (!error.message) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Unexpected error updating new player.",
+                        error: error
+                    });
+                }
+                return Promise.reject(error);
             }
         );
     },
@@ -2888,9 +2916,6 @@ let dbPlayerInfo = {
                         promArr = [recordProm, logProm];
                     }
 
-                    // Check any limited offer matched
-                    checkLimitedOfferToApply(proposalData);
-
                     //no need to check player reward task status now.
                     //var rewardTaskProm = dbRewardTask.checkPlayerRewardTaskStatus(playerId);
                     return Q.all(promArr);
@@ -2909,6 +2934,7 @@ let dbPlayerInfo = {
                     topupRecordData.topUpRecordId = topupRecordData._id;
                     // Async - Check reward group task to apply on player top up
                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, topupRecordData).catch(errorUtils.reportError);
+                    checkLimitedOfferToApply(proposalData, topupRecordData._id).catch(errorUtils.reportError);
                     dbConsumptionReturnWithdraw.clearXimaWithdraw(playerData._id).catch(errorUtils.reportError);
                     dbPlayerInfo.checkPlayerLevelUp(playerId, playerData.platform).catch(console.log);
                     deferred.resolve(data && data[0]);
@@ -15889,7 +15915,7 @@ function censoredPlayerName(name) {
  * Check any limited offer intention pending for apply when top up
  * @param proposalData
  */
-function checkLimitedOfferToApply(proposalData) {
+function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
     if (proposalData && proposalData.data && proposalData.data.limitedOfferObjId) {
         let topupProposal = proposalData;
         let newProp;
@@ -15944,6 +15970,11 @@ function checkLimitedOfferToApply(proposalData) {
         ).then(
             res => {
                 if (res) {
+                    dbconfig.collection_playerTopUpRecord.findOneAndUpdate({_id: topUpRecordObjId}, {
+                        bDirty: true,
+                        $push: {usedEvent: newProp.data.eventId}
+                    }).catch(errorUtils.reportError);
+
                     return dbUtility.findOneAndUpdateForShard(
                         dbconfig.collection_proposal,
                         {_id: proposalData.data.limitedOfferObjId},
@@ -15960,7 +15991,7 @@ function checkLimitedOfferToApply(proposalData) {
                     )
                 }
             }
-        ).catch(errorUtils.reportError);
+        );
     }
 }
 

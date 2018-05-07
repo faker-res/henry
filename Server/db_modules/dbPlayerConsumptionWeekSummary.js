@@ -1016,10 +1016,10 @@ var dbPlayerConsumptionWeekSummary = {
                     res.totalAmount = returnAmount < 1 ? 0 : returnAmount;
 
                     // DO NOT REMOVE - DEBUG USE
-                    // console.log('consumptionSummariesByKey', consumptionSummariesByKey);
-                    // console.log('consumptionRecSumm', consumptionRecSumm);
-                    // console.log('res', res);
-                    // console.log('doneXIMAConsumption', doneXIMAConsumption);
+                    console.log('consumptionSummariesByKey', consumptionSummariesByKey);
+                    console.log('consumptionRecSumm', consumptionRecSumm);
+                    console.log('res', res);
+                    console.log('doneXIMAConsumption', doneXIMAConsumption);
 
                     if (platformData.useProviderGroup) {
                         let totalConsumptionRec = consumptionRecSumm && consumptionRecSumm.length > 0 ? consumptionRecSumm.reduce((a, b) => a + b.validAmount, 0) : 0;
