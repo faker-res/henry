@@ -1423,13 +1423,13 @@ let dbRewardPoints = {
 
             list.push(listData);
         }
-
+        console.log('playerData playerId::',playerId);
         if (playerId) {
             let playerProm = dbConfig.collection_players.findOne({playerId})
                 .populate({path: "platform", model: dbConfig.collection_platform})
                 .populate({path: "rewardPointsObjId", model: dbConfig.collection_rewardPoints})
                 .lean().then(
-                    playerData => {
+                    playerData => { console.log('playerData checked::',playerData);
                         if (!playerData) {
                             return Promise.reject({name: "DataError", message: "Invalid player data"});
                         }
@@ -1437,10 +1437,11 @@ let dbRewardPoints = {
                         platform = playerData.platform;
                         platformObjId = playerData.platform._id;
                         if (playerData.rewardPointsObjId) {
+                            console.log('rewardPointsObjId checked::',playerData.rewardPointsObjId);
                             if (playerData.rewardPointsObjId.points) {
                                 rewardPoints = playerData.rewardPointsObjId.points;
                             }
-
+                            console.log('rewardPoints checked::',rewardPoints);
                             if (playerData.rewardPointsObjId._id) {
                                 rewardPointsObjId = playerData.rewardPointsObjId._id;
                             }
