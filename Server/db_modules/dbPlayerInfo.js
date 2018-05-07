@@ -2888,9 +2888,6 @@ let dbPlayerInfo = {
                         promArr = [recordProm, logProm];
                     }
 
-                    // Check any limited offer matched
-                    checkLimitedOfferToApply(proposalData);
-
                     //no need to check player reward task status now.
                     //var rewardTaskProm = dbRewardTask.checkPlayerRewardTaskStatus(playerId);
                     return Q.all(promArr);
@@ -2909,6 +2906,7 @@ let dbPlayerInfo = {
                     topupRecordData.topUpRecordId = topupRecordData._id;
                     // Async - Check reward group task to apply on player top up
                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, topupRecordData).catch(errorUtils.reportError);
+                    checkLimitedOfferToApply(proposalData, topupRecordData._id).catch(errorUtils.reportError);
                     dbConsumptionReturnWithdraw.clearXimaWithdraw(playerData._id).catch(errorUtils.reportError);
                     dbPlayerInfo.checkPlayerLevelUp(playerId, playerData.platform).catch(console.log);
                     deferred.resolve(data && data[0]);
@@ -15889,7 +15887,7 @@ function censoredPlayerName(name) {
  * Check any limited offer intention pending for apply when top up
  * @param proposalData
  */
-function checkLimitedOfferToApply(proposalData) {
+function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
     if (proposalData && proposalData.data && proposalData.data.limitedOfferObjId) {
         let topupProposal = proposalData;
         let newProp;
@@ -15944,6 +15942,11 @@ function checkLimitedOfferToApply(proposalData) {
         ).then(
             res => {
                 if (res) {
+                    dbconfig.collection_playerTopUpRecord.findOneAndUpdate({_id: topUpRecordObjId}, {
+                        bDirty: true,
+                        $push: {usedEvent: newProp.data.eventId}
+                    }).catch(errorUtils.reportError);
+
                     return dbUtility.findOneAndUpdateForShard(
                         dbconfig.collection_proposal,
                         {_id: proposalData.data.limitedOfferObjId},
@@ -15960,7 +15963,7 @@ function checkLimitedOfferToApply(proposalData) {
                     )
                 }
             }
-        ).catch(errorUtils.reportError);
+        );
     }
 }
 
