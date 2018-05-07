@@ -2198,7 +2198,7 @@ define(['js/app'], function (myApp) {
                 proposalDetail["RECIPIENTS_APLIPAY_NAME"] = vm.selectedProposal.data.alipayName || " ";
                 proposalDetail["REGISTRATION_TIME_START"] = vm.selectedProposal.data.lastAccessTimeFrom ? $scope.timeReformat(new Date(vm.selectedProposal.data.lastAccessTimeFrom)) : " ";
                 proposalDetail["REGISTRATION_TIME_END"] = vm.selectedProposal.data.registrationTimeTo ? $scope.timeReformat(new Date(vm.selectedProposal.data.registrationTimeTo)) : " ";
-                // proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " "; // todo :: 转移玩家总数
+                proposalDetail["EXPORT_PLAYER_COUNT"] = vm.selectedProposal.data.exportCount || " ";
                 proposalDetail["TARGET_SITE"] = vm.selectedProposal.data.targetExportPlatformName || " ";
                 proposalDetail["expirationTime"] = vm.selectedProposal.expirationTime ? $scope.timeReformat(new Date(vm.selectedProposal.expirationTime)) : " ";
 
