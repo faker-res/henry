@@ -4,10 +4,14 @@ var SettlementBalancer = require('../settlementModule/settlementBalancer');
 var moment = require('moment-timezone');
 var constSystemParam = require('../const/constSystemParam');
 var mongoose = require('mongoose');
+const dbutility = require('./../modules/dbutility');
+const dbProposal = require('./../db_modules/dbProposal');
 const constPlayerFeedbackResult = require('./../const/constPlayerFeedbackResult');
 const constProposalEntryType = require('./../const/constProposalEntryType');
 const constProposalUserType = require('./../const/constProposalUserType');
 const constProposalType = require ('./../const/constProposalType');
+const constServerCode = require ('./../const/constServerCode');
+const constProposalStatus = require ('./../const/constProposalStatus');
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -532,6 +536,17 @@ var dbPlayerFeedback = {
         });
     },
 
+    createExportPlayerProposal: function (exportData) {
+        applyExtractPlayerProposal(exportData.title, exportData.playerType, exportData.playerLevelObjId, exportData.playerLevelName, exportData.credibilityRemarkObjIdArray,
+            exportData.credibilityRemarkNameArray, exportData.lastAccessTimeFrom, exportData.lastAccessTimeTo, exportData.lastAccessTimeRangeString,
+            exportData.lastFeedbackTimeBefore, exportData.depositCountOperator, exportData.depositCountFormal, exportData.depositCountLater, exportData.bonusAmountOperator,
+            exportData.bonusAmountFormal, exportData.bonusAmountLater, exportData.playerValueOperator, exportData.playerValueFormal, exportData.playerValueLater,
+            exportData.consumptionTimesOperator, exportData.consumptionTimesFormal, exportData.consumptionTimesLater, exportData.withdrawalTimesOperator,
+            exportData.withdrawalTimesFormal, exportData.withdrawalTimesLater, exportData.topUpSumOperator, exportData.topUpSumFormal, exportData.topUpSumLater,
+            exportData.gameProviderIdArray, exportData.gameProviderNameArray, exportData.isNewSystem, exportData.registrationTimeFrom, exportData.registrationTimeTo,
+            exportData.platformObjId, exportData.adminInfo, exportData.targetExportPlatformObjId, exportData.targetExportPlatformName, exportData.expirationTime, exportData.dataCount);
+    },
+
     /*
      * get the latest 5 feedback record for player
      * @param {objectId} playerId
@@ -540,17 +555,148 @@ var dbPlayerFeedback = {
         lilmit = limit || 5;
         return dbconfig.collection_playerFeedback.find({playerId: playerId}).sort({createTime: -1}).limit(limit)
             .populate({path: "adminId", model: dbconfig.collection_admin}).exec();
+    },
+
+    getExportedData: function (proposalId, ipAddress) {
+        let proposal = {};
+        let allowedIP = [
+            "122.146.88.32",
+            "localhost",
+            "127.0.0.1",
+        ];
+
+        if (!allowedIP.includes(ipAddress)) {
+            return Promise.reject({
+                code: constServerCode.INVALID_API_USER,
+                message: "IP not authorized"
+            })
+        }
+
+        return dbconfig.collection_proposal.findOne({proposalId: proposalId})
+            .populate({path: "type", model: dbconfig.collection_proposalType})
+            .lean().then(
+            proposal => {
+                if (!proposal || !proposal.type || proposal.type.name !== constProposalType.BULK_EXPORT_PLAYERS_DATA || proposal.status === constProposalStatus.PENDING) {
+                    return Promise.reject({
+                        code: constServerCode.INVALID_PROPOSAL,
+                        message: "Cannot find proposal"
+                    });
+                }
+
+                if (proposal.expirationTime < new Date()) {
+                    return Promise.reject({
+                        code: constServerCode.SESSION_EXPIRED,
+                        message: "Current request is expired"
+                    });
+                }
+
+                if (proposal.status !== constProposalStatus.APPROVED) {
+                    return Promise.reject({
+                        code: constServerCode.SESSION_EXPIRED,
+                        message: "Proposal already used"
+                    });
+                }
+
+                return dbconfig.collection_proposal.findOneAndUpdate({_id: proposal._id, createTime: proposal.createTime}, {$set: {status: constProposalStatus.SUCCESS}}, {new: true}).lean();
+            }
+        ).then(
+            proposalRecord => {
+                if (!proposalRecord) {
+                    return Promise.reject({
+                        code: constServerCode.CONCURRENT_DETECTED,
+                        message: "Concurrent issue detected"
+                    });
+                }
+
+                proposal = proposalRecord;
+
+                let originPlatformProm = Promise.resolve();
+                if (proposal.data && proposal.data.platformId) {
+                    originPlatformProm = dbconfig.collection_platform.findOne({_id: proposal.data.platformId}, {platformId: 1}).lean();
+                }
+
+                let targetPlatformProm = Promise.resolve();
+                if (proposal.data && proposal.data.targetExportPlatform) {
+                    targetPlatformProm = dbconfig.collection_platform.findOne({_id: proposal.data.targetExportPlatform}, {platformId: 1}).lean();
+                }
+                
+                let playersProm = searchPlayerFromExportProposal(proposal);
+
+                return Promise.all([playersProm, originPlatformProm, targetPlatformProm]);
+            }
+        ).then(
+            data => {
+                let players = data[0];
+                let originPlatform = data[1];
+                let targetPlatform = data[2];
+
+                players = players || [];
+                let originPlatformId = originPlatform && originPlatform.platformId ? originPlatform.platformId : '';
+                let targetPlatformId = targetPlatform && targetPlatform.platformId ? targetPlatform.platformId : '';
+
+                let formattedPlayersData = [];
+
+                players.map(player => {
+                    let playerData = {
+                        playerAccount: player.name,
+                        realName: player.realName,
+                        gender: player.gender,
+                        DOB: player.DOB,
+                        phoneNumber: dbutility.decryptPhoneNumber(player.phoneNumber),
+                        wechat: player.wechat,
+                        qq: player.qq,
+                        email: player.email,
+                        registerTime: player.registrationTime,
+                        lastLoginTime: player.lastAccessTime,
+                        totalLoginTimes: player.loginTimes,
+                        totalDepositTimes: player.topUpTimes,
+                        totalDepositAmount: player.topUpSum,
+                        fame: [],
+                        playerValue: player.valueScore,
+                        playerLevel: player.playerLevel.name,
+                        totalWithdrawTimes: player.withdrawTimes,
+                        totalWithdrawAmount: player.withdrawSum,
+                        gameLobby: [],
+                    };
+
+                    if (player.credibilityRemarks && player.credibilityRemarks.length > 0) {
+                        player.credibilityRemarks.map(remark => {
+                            playerData.fame.push(remark.name);
+                        });
+                    }
+
+                    if (player.gameProviderPlayed && player.gameProviderPlayed.length > 0) {
+                        player.gameProviderPlayed.map(provider => {
+                            playerData.gameLobby.push(provider.name);
+                        });
+                    }
+
+                    formattedPlayersData.push(playerData);
+                });
+
+                let title = proposal.data && proposal.data.title ? proposal.data.title : "";
+
+                return {
+                    title: title,
+                    sourcePlatformId: originPlatformId,
+                    targetPlatformId: targetPlatformId,
+                    players: formattedPlayersData
+                }
+            }
+        );
     }
 };
 
-function applyExtractPlayerProposal (playerType, playerLevelObjId, playerLevelName, credibilityRemarkObjIdArray, credibilityRemarkNameArray,
+function applyExtractPlayerProposal (title, playerType, playerLevelObjId, playerLevelName, credibilityRemarkObjIdArray, credibilityRemarkNameArray,
                                      lastAccessTimeFrom, lastAccessTimeTo, lastAccessTimeRangeString,
                                      lastFeedbackTimeBefore, depositCountOperator, depositCountFormal, depositCountLater,
+                                     bonusAmountOperator, bonusAmountFormal, bonusAmountLater,
                                      playerValueOperator, playerValueFormal, playerValueLater, consumptionTimesOperator,
                                      consumptionTimesFormal, consumptionTimesLater, withdrawalTimesOperator, withdrawalTimesFormal,
                                      withdrawalTimesLater, topUpSumOperator, topUpSumFormal, topUpSumLater, gameProviderIdArray,
                                      gameProviderNameArray, isNewSystem, registrationTimeFrom, registrationTimeTo, platformObjId,
-                                     adminInfo, targetExportPlatformObjId, targetExportPlatformName, expirationTime) {
+                                     adminInfo, targetExportPlatformObjId, targetExportPlatformName, expirationTime, exportCount) {
+    title = title || "";
     return dbconfig.collection_proposalType.findOne({name: constProposalType.BULK_EXPORT_PLAYERS_DATA, platformId: platformObjId}).lean().then(
         proposalType => {
             if (!proposalType) {
@@ -559,11 +705,11 @@ function applyExtractPlayerProposal (playerType, playerLevelObjId, playerLevelNa
                 });
             }
 
-
             let proposalData = {
                 type: proposalType._id,
                 creator: adminInfo ? adminInfo : {},
                 data: {
+                    title,
                     playerType,
                     playerLevel: playerLevelObjId,
                     playerLevelName,
@@ -576,6 +722,12 @@ function applyExtractPlayerProposal (playerType, playerLevelObjId, playerLevelNa
                     depositCountOperator,
                     depositCountFormal,
                     depositCountLater,
+                    bonusAmountOperator,
+                    bonusAmountFormal,
+                    bonusAmountLater,
+                    playerValueOperator,
+                    playerValueFormal,
+                    playerValueLater,
                     consumptionTimesOperator,
                     consumptionTimesFormal,
                     consumptionTimesLater,
@@ -588,13 +740,15 @@ function applyExtractPlayerProposal (playerType, playerLevelObjId, playerLevelNa
                     gameProviders: gameProviderIdArray,
                     gameProviderNames: gameProviderNameArray,
                     isNewSystem,
+                    registrationTimeFrom,
                     registrationTimeTo,
-                    platformObjId,
+                    platformId: platformObjId,
                     targetExportPlatform: targetExportPlatformObjId,
                     targetExportPlatformName,
-                    expirationTime,
+                    exportCount,
                     remark: ""
                 },
+                expirationTime: new Date(expirationTime),
                 entryType: constProposalEntryType.ADMIN,
                 userType: constProposalUserType.SYSTEM_USERS
             };
@@ -602,6 +756,131 @@ function applyExtractPlayerProposal (playerType, playerLevelObjId, playerLevelNa
             return dbProposal.createProposalWithTypeId(proposalType._id, proposalData);
         }
     );
+}
+
+function searchPlayerFromExportProposal (proposal) {
+    let query = {};
+
+    if (!(proposal && proposal.data)) {
+        return;
+    }
+
+    let proposalData = proposal.data;
+
+    switch (proposalData.playerType) {
+        case 'Test Player':
+            query.isRealPlayer = false;
+            break;
+        case 'Real Player (Individual)':
+            query.isRealPlayer = true;
+            query.partner = null;
+            break;
+        case 'Real Player (Under Partner)':
+            query.isRealPlayer = true;
+            query.partner = {$ne: null};
+            break;
+        case 'Real Player (all)':
+        default:
+            query.isRealPlayer = true;
+            break;
+    }
+
+    if (proposalData.playerLevel && String(proposalData.playerLevel).length === 24) {
+        query.playerLevel = proposalData.playerLevel;
+    }
+
+    if (proposalData.credibilityRemarks && proposalData.credibilityRemarks.length > 0) {
+        query.credibilityRemarks = {$in: proposalData.credibilityRemarks};
+    }
+
+    if (proposalData.lastAccessTimeFrom || proposalData.lastAccessTimeTo) {
+        query.lastAccessTime = {};
+        if (proposalData.lastAccessTimeFrom) {
+            query.lastAccessTime.$gte = proposalData.lastAccessTimeFrom;
+        }
+
+        if (proposalData.lastAccessTimeTo) {
+            query.lastAccessTime.$lte = proposalData.lastAccessTimeTo;
+        }
+    }
+
+    if (proposalData.registrationTimeFrom || proposalData.registrationTimeTo) {
+        query.registrationTime = {};
+        if (proposalData.registrationTimeFrom) {
+            query.registrationTime.$gte = proposalData.registrationTimeFrom;
+        }
+
+        if (proposalData.registrationTimeTo) {
+            query.registrationTime.$lte = proposalData.registrationTimeTo;
+        }
+    }
+
+    if (proposalData.lastFeedbackTimeBefore) {
+        query.$or = [{lastFeedbackTime: null}, {lastFeedbackTime: {$lt: proposalData.lastFeedbackTimeBefore}}];
+    }
+
+    if (proposalData.depositCountOperator && proposalData.depositCountFormal != null) {
+        query.topUpTimes = getMongoQueryForNumber(proposalData.depositCountOperator, proposalData.depositCountFormal, proposalData.depositCountLater);
+    }
+
+    if (proposalData.playerValueOperator && proposalData.playerValueFormal != null) {
+        query.valueScore = getMongoQueryForNumber(proposalData.playerValueOperator, proposalData.playerValueFormal, proposalData.playerValueLater);
+    }
+
+    if (proposalData.consumptionTimesOperator && proposalData.consumptionTimesFormal != null) {
+        query.consumptionTimes = getMongoQueryForNumber(proposalData.consumptionTimesOperator, proposalData.consumptionTimesFormal, proposalData.consumptionTimesLater);
+    }
+
+    if (proposalData.bonusAmountOperator && proposalData.bonusAmountFormal != null) {
+        query.bonusAmountSum = getMongoQueryForNumber(proposalData.bonusAmountOperator, proposalData.bonusAmountFormal, proposalData.bonusAmountLater);
+    }
+
+    if (proposalData.withdrawalTimesOperator && proposalData.withdrawalTimesFormal != null) {
+        query.withdrawalTimes = getMongoQueryForNumber(proposalData.withdrawalTimesOperator, proposalData.withdrawalTimesFormal, proposalData.withdrawalTimesLater);
+    }
+
+    if (proposalData.topUpSumOperator && proposalData.topUpSumFormal != null) {
+        query.topUpSum = getMongoQueryForNumber(proposalData.topUpSumOperator, proposalData.topUpSumFormal, proposalData.topUpSumLater);
+    }
+
+    if (proposalData.gameProviders && proposalData.gameProviders.length > 0) {
+        query.gameProviderPlayed = {$in: proposalData.gameProviders};
+    }
+
+    if (proposalData.isNewSystem === "old") {
+        query.isNewSystem = {$ne: true};
+    } else if (proposalData.isNewSystem === "new") {
+        query.isNewSystem = true;
+    }
+
+    return dbconfig.collection_players.find(query, {similarPlayers: 0, userAgent: 0, games: 0, favoriteGames: 0, loginIps:0})
+        .populate({path: 'credibilityRemarks', model: dbconfig.collection_playerCredibilityRemark})
+        .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
+        .populate({path: 'gameProviderPlayed', model: dbconfig.collection_gameProvider})
+        .lean();
+}
+
+
+function getMongoQueryForNumber (operator, formalValue, laterValue) {
+    switch (operator) {
+        case ">=":
+            return {
+                $gte: formalValue
+            };
+        case "=":
+            return formalValue;
+        case "<=":
+            return {
+                $lte: formalValue
+            };
+        case "range":
+            if (laterValue != null) {
+                return {
+                    $lte: laterValue,
+                    $gte: formalValue
+                };
+            }
+    }
 }
 
 module.exports = dbPlayerFeedback;

@@ -285,6 +285,9 @@ var simplifiedChinese = {
     "Player does not have enough consumption": "玩家没有足够的投注额",
     "Unable to check game credit for demo player": "试玩玩家无法查看额度",
     "Unable to transfer credit for demo player": "试玩玩家无法转入转出",
+    "CS officer not found": "找不到对应的电销员账号",
+    "Promotion method not found": "找不到对应的推广方式",
+    "Credibility remark not found": "找不到对应的信用",
     "Unable to get login URL for demo player": "试玩玩家无法获取登入链接",
     "Redemption failed, the points to be redeemed are less than the minimum credit (1)": "兑换失败，欲兑换的点数不足最低金额（1）元",
     "Player already applied max amount of points for today.": "领取失败： 很抱歉，已达今日可领取积分上限。",
@@ -315,7 +318,10 @@ var simplifiedChinese = {
     "ALL_PROVIDERS": "全部供应商",
     "This phone number has applied for max reward times in event period": "此电话已经达到了该优惠周期内的申请上限",
     "Password should be alphanumeric and within 20 characters": "密码只能为6-20位的数字和字母",
-    "Player does not have permission for reward point task": "目前进行维护当中，详情请联系客服谘询，谢谢"
+    "Player does not have permission for reward point task": "目前进行维护当中，详情请联系客服谘询，谢谢",
+    "IP not authorized": "此IP不被授权使用此功能",
+    "Current request is expired": "已过期，请从新申请",
+    "Proposal already used": "已使用过，请从新申请",
     //todo::add missing messages here
 
     /*

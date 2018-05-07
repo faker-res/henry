@@ -121,7 +121,9 @@
                 "clickCount",
                 "getPlatformSmsGroups",
                 "getClientData",
-                "saveClientData"
+                "saveClientData",
+                "extractUserFromFpms",
+                "createPlayerFromTel"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

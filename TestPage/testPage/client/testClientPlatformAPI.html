@@ -135,6 +135,100 @@
     </div>
 </div>
 
+<h3>电销系统开户(Create Player From Tel)</h3>
+<div class="test-container">
+    <div>
+        <label>Player Account
+            <input name="playerAccount">
+        </label>
+    </div>
+    <div>
+        <label>Real Name
+            <input name="realName">
+        </label>
+    </div>
+    <div>
+        <label>Password
+            <input name="password">
+        </label>
+    </div>
+    <div>
+        <label>Platform ID
+            <input name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Phone Number
+            <input name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>Player Type
+            <input name="playerType">
+        </label>
+    </div>
+    <div>
+        <label>QQ
+            <input name="qq">
+        </label>
+    </div>
+    <div>
+        <label>Wechat
+            <input name="wechat">
+        </label>
+    </div>
+    <div>
+        <label>Email
+            <input name="email">
+        </label>
+    </div>
+    <div>
+        <label>Gender
+            <input name="gender">
+        </label>
+    </div>
+    <div>
+        <label>Date of birth
+            <input name="DOB">
+        </label>
+    </div>
+    <div>
+        <label>Tel Sales Name
+            <input name="telSalesName">
+        </label>
+    </div>
+    <div>
+        <label>Promotion Method
+            <input name="promoMethod">
+        </label>
+    </div>
+    <div>
+        <label>Fame
+            <input name="fame">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="createPlayerFromTel">Add</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>EXTRACT USER FROM FPMS (玩家资料导出)</h3>
+<div class="test-container">
+    <div>
+        <label>proposalId
+            <input name="proposalId">
+        </label>
+    </div>
+
+    <p></p>
+    <button data-api-name="extractUserFromFpms">Get</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlatformAPITest','testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPlatformAPITest, ClientConnectionAPITest) {

@@ -5175,6 +5175,12 @@ let dbPartner = {
         return dbconfig.collection_partner.findById(partnerObjId).lean().then(
             partnerObj => {
                 if (partnerObj) {
+                    let creatorData = adminInfo || {
+                        type: 'partner',
+                        name: partnerObj.partnerName,
+                        id: partnerObj._id
+                    }
+
                     let proposalData = {
                         creator: adminInfo || {
                             type: 'partner',
@@ -5192,7 +5198,7 @@ let dbPartner = {
                         isPlatformRate: isPlatformRate,
                         isDelete: isDelete
                     };
-                    return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {data: proposalData});
+                    return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {creator: creatorData, data: proposalData});
                 }
             }
         );
@@ -5877,8 +5883,8 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
             $match: {
                 playerId: playerObjId,
                 createTime: {
-                    $gte: startTime,
-                    $lt: endTime
+                    $gte: new Date(startTime),
+                    $lt: new Date(endTime)
                 },
             }
         },

@@ -305,6 +305,7 @@ var roleChecker = {
             },
             "Feedback": {
                 Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],
+                Export: [],
                 Create: ['createPlayerFeedback'],
                 ModifyFeedbackResult: ['createPlayerFeedbackResult', 'deletePlayerFeedbackResult'],
                 ModifyFeedbackTopic: ['createPlayerFeedbackTopic', 'deletePlayerFeedbackTopic']
@@ -804,7 +805,7 @@ var roleChecker = {
                     //console.warn("[roleChecker.js] Nobody can call action '%s' because it has no access rules!  (Except for superuser.)  Please add '%s' to roleChecker.linkedViews.", socketAction, socketAction);
                     //return false;
 
-                    console.warn("[roleChecker.js] Everybody can call action '%s' because it has no access rules!  Please add '%s' to roleChecker.linkedViews or roleChecker.publicActions.", socketAction, socketAction);
+                    // console.warn("[roleChecker.js] Everybody can call action '%s' because it has no access rules!  Please add '%s' to roleChecker.linkedViews or roleChecker.publicActions.", socketAction, socketAction);
                     return true;
                 } else {
                     // Check to see if one of the ACL requirements is satisfied by one of the user's roles
@@ -982,7 +983,7 @@ function checkForMissingACLs() {
 
         for (var actionName in category) {
             if (!roleChecker.accessControlListsByAction[actionName] && !roleChecker.publicActions[actionName]) {
-                console.warn("TODO: Please add action '%s' (from '%s' category), to roleChecker.linkedViews or roleChecker.publicActions, otherwise no client (or all clients) will be able to call it.", actionName, categoryName);
+                // console.warn("TODO: Please add action '%s' (from '%s' category), to roleChecker.linkedViews or roleChecker.publicActions, otherwise no client (or all clients) will be able to call it.", actionName, categoryName);
             }
         }
     });

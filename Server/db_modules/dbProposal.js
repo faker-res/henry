@@ -357,6 +357,7 @@ var proposal = {
                                 && data[0].name != constProposalType.PLAYER_CONSECUTIVE_REWARD_GROUP
                                 && data[0].name != constProposalType.PLAYER_LEVEL_MIGRATION
                                 && data[0].name != constProposalType.PLAYER_LEVEL_UP
+                                && data[0].name != constProposalType.BULK_EXPORT_PLAYERS_DATA
                             ) {
                                 deferred.reject({
                                     name: "DBError",
@@ -395,7 +396,10 @@ var proposal = {
                         wsMessageClient.sendMessage(constMessageClientTypes.MANAGEMENT, "management", "notifyNewProposal", data);
                     }
 
-                    if (data[2] == 0) {
+                    if (proposalData.expirationTime) {
+                        expiredDate = new Date(proposalData.expirationTime);
+                    }
+                    else if (data[2] == 0) {
                         expiredDate = constMaxDateTime;
                     }
                     else {
@@ -3764,12 +3768,15 @@ var proposal = {
         let allProms = [];
         let countProm = [];
         let allCountProm = [];
+        let debugPromPlayerBonus = [];
+        let debugPromUpdatePlayer = [];
+        let debugPromOthers = [];
 
         var dayStartTime = startDate;
         var getNextDate;
 
         // let groupCondition = {$or: [{'data.isAutoApproval':false}, {'noSteps':false}, {'data.isIgnoredAudit': false}]};
-        let groupCondition = { noSteps: false};
+        let groupCondition = {noSteps: false};
 
         var getKey = (obj,val) => Object.keys(obj).find(key => obj[key] === val);
 
@@ -3799,6 +3806,11 @@ var proposal = {
                 createTime: {$gte: dayStartTime, $lt: dayEndTime},
                 $or: [{"data.platformId": ObjectId(platformId)}, {"data.platform": ObjectId(platformId)}],
             };
+
+            debugPromPlayerBonus.push(dbconfig.collection_proposal.find(Object.assign({}, matchObj, {mainType: "PlayerBonus"})))
+            debugPromUpdatePlayer.push(dbconfig.collection_proposal.find(Object.assign({}, matchObj,  {mainType: "UpdatePlayer"})))
+            debugPromOthers.push(dbconfig.collection_proposal.find(Object.assign({}, matchObj,  {mainType: "Others"})))
+            // debugPromReward.push(dbconfig.collection_proposal.find(Object.assign({}, matchObj,  {mainType: {$in: mainTypeList}}))
 
             countProm.push(dbconfig.collection_proposal.aggregate(
                 {$match:
@@ -3918,10 +3930,14 @@ var proposal = {
 
             dayStartTime = dayEndTime;
         }
-        return Promise.all([Promise.all(countProm), Promise.all(proms), Promise.all(allCountProm), Promise.all(allProms)]).then(data => {
-            if (!data && !data[0] && !data[1] && !data[2] && !data[3]) {
+        return Promise.all([Promise.all(countProm), Promise.all(proms), Promise.all(allCountProm), Promise.all(allProms), Promise.all(debugPromPlayerBonus), Promise.all(debugPromUpdatePlayer), Promise.all(debugPromOthers)]).then(data => {
+            if (!data && !data[0] && !data[1] && !data[2] && !data[3] && !data[4] && !data[5] && !data[6]) {
                 return Q.reject({name: 'DataError', message: 'Can not find the proposal data'})
             }
+
+            console.log("CHECKING-----check playerBonus data", data[4])
+            console.log("CHECKING-----check updatePlayer data", data[5])
+            console.log("CHECKING-----check others data", data[6])
 
             let tempDate = startDate;
             let tempDate2 = startDate;
