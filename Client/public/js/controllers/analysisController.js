@@ -1100,7 +1100,6 @@ define(['js/app'], function (myApp) {
                         sendData.updatePartnerList = updatePartnerProposalTypeList;
                         sendData.reward = rewardProposalTypeList;
                         sendData.others = othersProposalTypeList;
-                        // sendData.all = allProposalTypeList;
 
                         socketService.$socket($scope.AppSocket, 'getManualApprovalRecords', sendData, function (data) {
 
