@@ -1050,121 +1050,135 @@ define(['js/app'], function (myApp) {
 
             vm.isShowLoadingSpinner('#manualApprovalAnalysis', true);
             var sendData = {
-                platformId: vm.selectedPlatform._id,
                 period: vm.queryPara.manualApproval.periodText,
                 startDate: vm.queryPara.manualApproval.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.manualApproval.endTime.data('datetimepicker').getLocalDate(),
-                mainType: ["PlayerBonus", "UpdatePlayer", "UpdatePartner", "Reward", "Others"]
             }
 
-            socketService.$socket($scope.AppSocket, 'getManualApprovalRecords', sendData, function (data) {
-                $scope.$evalAsync(() => {
+            $scope.$socketPromise('getAllProposalTypeByPlatformId', {
+                platformId: vm.selectedPlatform._id,
+            }).then(
+                res => {
+                    if (res.data && res.data.length > 0){
+                        // categorize the proposalType
 
-                    if (data.data[0] && data.data[1]){
-                        vm.manualApprovalData = data.data[0];
-                        vm.allManualApprovalData = data.data[1];
+                        let playerBonusProposalTypeList = [];
+                        let updatePlayerProposalTypeList = [];
+                        let updatePartnerProposalTypeList = [];
+                        let rewardProposalTypeList = [];
+                        let othersProposalTypeList = [];
 
-                        vm.isShowLoadingSpinner('#manualApprovalAnalysis', false);
 
-                        // filter out playerBonus
-                        vm.playerBonusData = [];
-                        vm.manualApprovalData.forEach( manualApprovalData => {
+                        res.data.forEach ( inData => {
 
-                            let filteredData = manualApprovalData.data.filter(playerBonus => {
-                                return playerBonus.mainType == "PlayerBonus"
-                            })
-                            vm.playerBonusData.push({date: manualApprovalData.date, data: filteredData[0]});
-                        });
+                            let typeName = null;
+                            typeName = utilService.getProposalGroupValue(inData, false);
 
-                        vm.playerBonusAvgData.totalCount = vm.calculateAverageData(vm.playerBonusData, "data", "count");
-                        vm.playerBonusAvgData.successCount = vm.calculateAverageData(vm.playerBonusData, "data", "successCount");
-                        vm.playerBonusAvgData.rejectCount = vm.calculateAverageData(vm.playerBonusData, "data", "rejectCount");
-                        vm.playerBonusAvgData.manualCount = vm.calculateAverageData(vm.playerBonusData, "data", "manualCount");
+                            if (typeName){
+                                switch (typeName) {
+                                    case "Bonus Proposal":
+                                        playerBonusProposalTypeList.push(inData._id);
+                                        break;
+                                    case "PLAYER_INFORMATION":
+                                        updatePlayerProposalTypeList.push(inData._id);
+                                        break;
+                                    case "PARTNER_INFORMATION":
+                                        updatePartnerProposalTypeList.push(inData._id);
+                                        break;
+                                    case "Reward Proposal":
+                                        rewardProposalTypeList.push(inData._id);
+                                        break;
+                                    case "Others":
+                                        othersProposalTypeList.push(inData._id);
+                                        break;
+                                }
+                            }
+                        })
 
-                        vm.drawManualApprovalPieChart([{count:vm.playerBonusAvgData.totalCount-vm.playerBonusAvgData.manualCount, label: $translate("Total_AutoApproval")}, {count: vm.playerBonusAvgData.manualCount, label: $translate("Total_ManualApproval")}], "#pie-playerBonusManualApproval");
+                        sendData.playerBonus = playerBonusProposalTypeList;
+                        sendData.updatePlayerList = updatePlayerProposalTypeList;
+                        sendData.updatePartnerList = updatePartnerProposalTypeList;
+                        sendData.reward = rewardProposalTypeList;
+                        sendData.others = othersProposalTypeList;
 
-                        // filter out UpdatePlayer
-                        vm.updatePlayerData = [];
-                        vm.manualApprovalData.forEach( manualApprovalData => {
+                        socketService.$socket($scope.AppSocket, 'getManualApprovalRecords', sendData, function (data) {
 
-                            let filteredData = manualApprovalData.data.filter(updatePlayer => {
-                                return updatePlayer.mainType == "UpdatePlayer"
-                            })
-                            vm.updatePlayerData.push({date: manualApprovalData.date, data: filteredData[0]});
-                        });
+                            $scope.$evalAsync(() => {
+                                if (!data && !data[0] && !data[1] && !data[2] && !data[3] && !data[4] && !data[5]) {
+                                    return Q.reject({name: 'DataError', message: 'Can not find the proposal data'})
+                                }
 
-                        vm.updatePlayerAvgData.totalCount = vm.calculateAverageData(vm.updatePlayerData, "data", "count");
-                        vm.updatePlayerAvgData.successCount = vm.calculateAverageData(vm.updatePlayerData, "data", "successCount");
-                        vm.updatePlayerAvgData.rejectCount = vm.calculateAverageData(vm.updatePlayerData, "data", "rejectCount");
-                        vm.updatePlayerAvgData.manualCount = vm.calculateAverageData(vm.updatePlayerData, "data", "manualCount");
+                                vm.isShowLoadingSpinner('#manualApprovalAnalysis', false);
 
-                        vm.drawManualApprovalPieChart([{count:vm.updatePlayerAvgData.totalCount-vm.updatePlayerAvgData.manualCount, label: $translate("Total_AutoApproval")}, {count: vm.updatePlayerAvgData.manualCount, label: $translate("Total_ManualApproval")}], "#pie-updatePlayerManualApproval");
-                        
-                        // filter out UpdatePartner
-                        vm.updatePartnerData = [];
-                        vm.manualApprovalData.forEach( manualApprovalData => {
+                                // draw playerBonus
+                                vm.playerBonusData = data.data[0];
+                                vm.playerBonusAvgData.totalCount = vm.calculateAverageData(vm.playerBonusData, "totalCount");
+                                vm.playerBonusAvgData.successCount = vm.calculateAverageData(vm.playerBonusData, "successCount");
+                                vm.playerBonusAvgData.rejectCount = vm.calculateAverageData(vm.playerBonusData, "rejectCount");
+                                vm.playerBonusAvgData.manualCount = vm.calculateAverageData(vm.playerBonusData, "manualCount");
 
-                            let filteredData = manualApprovalData.data.filter(updatePartner => {
-                                return updatePartner.mainType == "UpdatePartner"
-                            })
-                            vm.updatePartnerData.push({date: manualApprovalData.date, data: filteredData[0]});
-                        });
+                                vm.drawManualApprovalPieChart([{count:vm.playerBonusAvgData.totalCount-vm.playerBonusAvgData.manualCount, label: $translate("Total_AutoApproval")}, {count: vm.playerBonusAvgData.manualCount, label: $translate("Total_ManualApproval")}], "#pie-playerBonusManualApproval");
 
-                        vm.updatePartnerAvgData.totalCount = vm.calculateAverageData(vm.updatePartnerData, "data", "count");
-                        vm.updatePartnerAvgData.successCount = vm.calculateAverageData(vm.updatePartnerData, "data", "successCount");
-                        vm.updatePartnerAvgData.rejectCount = vm.calculateAverageData(vm.updatePartnerData, "data", "rejectCount");
-                        vm.updatePartnerAvgData.manualCount = vm.calculateAverageData(vm.updatePartnerData, "data", "manualCount");
+                                // draw updatePlayer
+                                vm.updatePlayerData = data.data[1];
+                                vm.updatePlayerAvgData.totalCount = vm.calculateAverageData(vm.updatePlayerData, "totalCount");
+                                vm.updatePlayerAvgData.successCount = vm.calculateAverageData(vm.updatePlayerData,"successCount");
+                                vm.updatePlayerAvgData.rejectCount = vm.calculateAverageData(vm.updatePlayerData, "rejectCount");
+                                vm.updatePlayerAvgData.manualCount = vm.calculateAverageData(vm.updatePlayerData, "manualCount");
 
-                        vm.drawManualApprovalPieChart([{count:vm.updatePartnerAvgData.totalCount-vm.updatePartnerAvgData.manualCount, label: $translate("Total_AutoApproval")}, {count: vm.updatePartnerAvgData.manualCount, label: $translate("Total_ManualApproval")}], "#pie-updatePartnerManualApproval");
+                                vm.drawManualApprovalPieChart([{count:vm.updatePlayerAvgData.totalCount-vm.updatePlayerAvgData.manualCount, label: $translate("Total_AutoApproval")}, {count: vm.updatePlayerAvgData.manualCount, label: $translate("Total_ManualApproval")}], "#pie-updatePlayerManualApproval");
 
-                        // filter out all reward
-                        vm.rewardData = [];
-                        vm.manualApprovalData.forEach( manualApprovalData => {
+                                // draw updatePartner
+                                vm.updatePartnerData = data.data[2];
+                                vm.updatePartnerAvgData.totalCount = vm.calculateAverageData(vm.updatePartnerData, "totalCount");
+                                vm.updatePartnerAvgData.successCount = vm.calculateAverageData(vm.updatePartnerData, "successCount");
+                                vm.updatePartnerAvgData.rejectCount = vm.calculateAverageData(vm.updatePartnerData, "rejectCount");
+                                vm.updatePartnerAvgData.manualCount = vm.calculateAverageData(vm.updatePartnerData, "manualCount");
 
-                            let filteredData = manualApprovalData.data.filter(reward => {
-                                return reward.mainType == "Reward"
-                            })
-                            vm.rewardData.push({date: manualApprovalData.date, data: filteredData[0]});
-                        });
+                                vm.drawManualApprovalPieChart([{count:vm.updatePartnerAvgData.totalCount-vm.updatePartnerAvgData.manualCount, label: $translate("Total_AutoApproval")}, {count: vm.updatePartnerAvgData.manualCount, label: $translate("Total_ManualApproval")}], "#pie-updatePartnerManualApproval");
 
-                        vm.rewardAvgData.totalCount = vm.calculateAverageData(vm.rewardData, "data", "count");
-                        vm.rewardAvgData.successCount = vm.calculateAverageData(vm.rewardData, "data", "successCount");
-                        vm.rewardAvgData.rejectCount = vm.calculateAverageData(vm.rewardData, "data", "rejectCount");
-                        vm.rewardAvgData.manualCount = vm.calculateAverageData(vm.rewardData, "data", "manualCount");
+                                // draw reward
+                                vm.rewardData = data.data[3];
+                                vm.rewardAvgData.totalCount = vm.calculateAverageData(vm.rewardData, "totalCount");
+                                vm.rewardAvgData.successCount = vm.calculateAverageData(vm.rewardData, "successCount");
+                                vm.rewardAvgData.rejectCount = vm.calculateAverageData(vm.rewardData, "rejectCount");
+                                vm.rewardAvgData.manualCount = vm.calculateAverageData(vm.rewardData, "manualCount");
 
-                        vm.drawManualApprovalPieChart([{count:vm.rewardAvgData.totalCount-vm.rewardAvgData.manualCount, label: $translate("Total_AutoApproval")}, {count: vm.rewardAvgData.manualCount, label: $translate("Total_ManualApproval")}], "#pie-rewardManualApproval");
+                                vm.drawManualApprovalPieChart([{count:vm.rewardAvgData.totalCount-vm.rewardAvgData.manualCount, label: $translate("Total_AutoApproval")}, {count: vm.rewardAvgData.manualCount, label: $translate("Total_ManualApproval")}], "#pie-rewardManualApproval");
 
-                        // filter out others
-                        vm.othersData = [];
-                        vm.manualApprovalData.forEach( manualApprovalData => {
+                                // draw others
+                                vm.othersData = data.data[4];
+                                vm.othersAvgData.totalCount = vm.calculateAverageData(vm.othersData, "totalCount");
+                                vm.othersAvgData.successCount = vm.calculateAverageData(vm.othersData, "successCount");
+                                vm.othersAvgData.rejectCount = vm.calculateAverageData(vm.othersData, "rejectCount");
+                                vm.othersAvgData.manualCount = vm.calculateAverageData(vm.othersData, "manualCount");
 
-                            let filteredData = manualApprovalData.data.filter(others => {
-                                return others.mainType == "Others"
-                            })
-                            vm.othersData.push({date: manualApprovalData.date, data: filteredData[0]});
-                        });
+                                vm.drawManualApprovalPieChart([{count:vm.othersAvgData.totalCount-vm.othersAvgData.manualCount, label: $translate("Total_AutoApproval")}, {count: vm.othersAvgData.manualCount, label: $translate("Total_ManualApproval")}], "#pie-othersManualApproval");
 
-                        vm.othersAvgData.totalCount = vm.calculateAverageData(vm.othersData, "data", "count");
-                        vm.othersAvgData.successCount = vm.calculateAverageData(vm.othersData, "data", "successCount");
-                        vm.othersAvgData.rejectCount = vm.calculateAverageData(vm.othersData, "data", "rejectCount");
-                        vm.othersAvgData.manualCount = vm.calculateAverageData(vm.othersData, "data", "manualCount");
+                                // draw all
+                                vm.allManualApprovalData = data.data[5];
+                                vm.allAvgData.totalCount = vm.calculateAverageData(vm.allManualApprovalData, "totalCount");
+                                vm.allAvgData.successCount = vm.calculateAverageData(vm.allManualApprovalData, "successCount");
+                                vm.allAvgData.rejectCount = vm.calculateAverageData(vm.allManualApprovalData, "rejectCount");
+                                vm.allAvgData.manualCount = vm.calculateAverageData(vm.allManualApprovalData, "manualCount");
 
-                        vm.drawManualApprovalPieChart([{count:vm.othersAvgData.totalCount-vm.othersAvgData.manualCount, label: $translate("Total_AutoApproval")}, {count: vm.othersAvgData.manualCount, label: $translate("Total_ManualApproval")}], "#pie-othersManualApproval");
+                                vm.drawManualApprovalPieChart([{count:vm.allAvgData.totalCount-vm.allAvgData.manualCount, label: $translate("Total_AutoApproval")}, {count: vm.allAvgData.manualCount, label: $translate("Total_ManualApproval")}], "#pie-allManualApproval");
 
-                        // filter out "all"
-                        vm.allAvgData.totalCount = vm.calculateAverageData(vm.allManualApprovalData, "data", "count");
-                        vm.allAvgData.successCount = vm.calculateAverageData(vm.allManualApprovalData, "data", "successCount");
-                        vm.allAvgData.rejectCount = vm.calculateAverageData(vm.allManualApprovalData, "data", "rejectCount");
-                        vm.allAvgData.manualCount = vm.calculateAverageData(vm.allManualApprovalData, "data", "manualCount");
+                            });
 
-                        vm.drawManualApprovalPieChart([{count:vm.allAvgData.totalCount-vm.allAvgData.manualCount, label: $translate("Total_AutoApproval")}, {count: vm.allAvgData.manualCount, label: $translate("Total_ManualApproval")}], "#pie-allManualApproval");
-
+                        }, function (data) {
+                                vm.isShowLoadingSpinner('#manualApprovalAnalysis', false);
+                                console.log("Failed to retrieve the data", data);
+                            }
+                        )
                     }
-                })
-            }, function (data) {
-                vm.isShowLoadingSpinner('#manualApprovalAnalysis', false);
-                console.log("Failed to retrieve the data", data);
-            });
+                    else{
+                        vm.isShowLoadingSpinner('#manualApprovalAnalysis', false);
+                        console.log("Failed to retrieve the data", res);
+                    }
+
+                }
+            );
 
         };
 

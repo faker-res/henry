@@ -1123,11 +1123,14 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Player Name length is not valid",
-                    error: error
-                });
+                if (!error.message) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Player Name length is not valid",
+                        error: error
+                    });
+                }
+                return Promise.reject(error);
             }
         ).then(
             //make sure phone number is unique
@@ -1142,12 +1145,15 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                return Promise.reject({
-                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                    name: "DBError",
-                    message: "Phone number already exists",
-                    error: error
-                });
+                if (!error.message) {
+                    return Promise.reject({
+                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                        name: "DBError",
+                        message: "Phone number already exists",
+                        error: error
+                    });
+                }
+                return Promise.reject(error);
             }
         ).then(
             //make sure player name is unique
@@ -1163,11 +1169,14 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Username already exists",
-                    error: error
-                });
+                if (!error.message) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Username already exists",
+                        error: error
+                    });
+                }
+                return Promise.reject(error);
             }
         ).then(
             data => {
@@ -1179,11 +1188,14 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Error in checking player name uniqueness " + error.message,
-                    error: error
-                });
+                if (!error.message) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Error in checking player name uniqueness " + error.message,
+                        error: error
+                    });
+                }
+                return Promise.reject(error);
             }
         ).then(
             data => {
@@ -1248,11 +1260,14 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Error creating new player. " + error.message,
-                    error: error
-                });
+                if (!error.message) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Error creating new player. " + error.message,
+                        error: error
+                    });
+                }
+                return Promise.reject(error);
             }
         ).then(
             data => {
@@ -1315,18 +1330,31 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                return Promise.reject({name: "DBError", message: "Error creating new player.", error: error});
+                if (!error.message) {
+                    return Promise.reject({name: "DBError", message: "Error creating new player.", error: error});
+                }
+                return Promise.reject(error);
             }
         ).then(
             data => {
                 return data && data[0];
             },
             error => {
-                return Promise.reject({name: "DBError", message: "Error updating new player.", error: error});
+                if (!error.message) {
+                    return Promise.reject({name: "DBError", message: "Error updating new player.", error: error});
+                }
+                return Promise.reject(error);
             }
         ).catch(
             error => {
-                return Promise.reject({name: "DBError", message: "Unexpected error updating new player.", error: error});
+                if (!error.message) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Unexpected error updating new player.",
+                        error: error
+                    });
+                }
+                return Promise.reject(error);
             }
         );
     },
@@ -14736,6 +14764,77 @@ let dbPlayerInfo = {
                 });
     },
 
+    avaiCreditForInOut: function avaiCreditForInOut(playerId, providerId) {
+        let returnData = {};
+        let providerData = {};
+        let playerData = {};
+        return dbconfig.collection_players.findOne({playerId: playerId})
+            .populate({path: "platform", model: dbconfig.collection_platform}).then(
+            playerDetails=> {
+                playerData = playerDetails;
+                if (playerDetails && playerDetails._id) {
+                    returnData.localFreeCredit = playerDetails.validCredit;
+                    return dbconfig.collection_gameProvider.findOne({providerId: providerId}).lean();
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"});
+                }
+            }
+        ).then(
+            gameProvider => {
+                if (gameProvider) {
+                    providerData = gameProvider;
+                    return dbconfig.collection_rewardTaskGroup.find({
+                        platformId: playerData.platform._id,
+                        playerId: playerData._id,
+                        status: constRewardTaskStatus.STARTED
+                    }).populate({
+                        path: "providerGroup",
+                        model: dbconfig.collection_gameProviderGroup
+                    }).lean();
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find Provider"});
+                }
+            }
+        ).then(
+                rewardTaskGroup => {
+                    if (rewardTaskGroup && rewardTaskGroup.length) {
+                        let isFound = false;
+                        for (let i = 0; i < rewardTaskGroup.length; i++) {
+                            if (rewardTaskGroup[i].providerGroup && rewardTaskGroup[i].providerGroup.providers) {
+                                for (let j = 0; j < rewardTaskGroup[i].providerGroup.providers.length; j++) {
+                                    if (rewardTaskGroup[i].providerGroup.providers[j].toString() == providerData._id.toString()) {
+                                        isFound = true;
+                                        returnData.localLockedCredit = rewardTaskGroup[i].rewardAmt;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (isFound) {
+                                break;
+                            }
+                        }
+                    } else {
+                        returnData.localLockedCredit = 0;
+                    }
+                    returnData.totalAvailCredit = returnData.localLockedCredit + returnData.localFreeCredit;
+                    return cpmsAPI.player_queryCredit({
+                        username: playerData.name,
+                        platformId: playerData.platform.platformId,
+                        providerId: providerData.providerId,
+                    })
+                }
+        ).then(
+            gameCredit => {
+                if (gameCredit) {
+                    returnData.creditInGame = gameCredit.credit
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find game credit"});
+                }
+                return returnData;
+            }
+        );
+    },
+
     /**
      * Create new Proposal to update player QQ
      * @param {json} data - proposal data
@@ -15964,6 +16063,9 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
                 }
             }
         );
+    }
+    else{
+        return Q.resolve();
     }
 }
 
