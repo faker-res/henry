@@ -1558,7 +1558,7 @@ let dbPlayerInfo = {
             }
         ).then(
             function (rewardPointsData) {
-                let rewardPointsRecord = rewardPointsData[0];
+                let rewardPointsRecord = rewardPointsData ? rewardPointsData[0] : null;
                 let points = 0, rewardPointsObjId;
 
                 if (rewardPointsRecord && rewardPointsRecord.points && rewardPointsRecord._id) {
