@@ -1135,7 +1135,7 @@ let dbPlayerInfo = {
         ).then(
             //make sure phone number is unique
             data => {
-                if (data.isPhoneNumberValid) {
+                if (data.isPhoneNumberValid || bFromBI) {
                     return dbPlayerInfo.isPlayerNameValidToRegister({
                         name: playerdata.name,
                         platform: playerdata.platform
