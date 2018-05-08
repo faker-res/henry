@@ -17227,7 +17227,11 @@ define(['js/app'], function (myApp) {
                     let selectedPartner = vm.isOneSelectedPartner();
                     let editPartner = vm.editPartner;
                     vm.editPartner.DOB = new Date(vm.editPartner.DOB);
-                    vm.selectedCommissionTab($scope.constPartnerCommissionSettlementType[vm.editPartner.commissionType]);
+                    vm.selectedCommissionTab(
+                        $scope.constPartnerCommissionSettlementType[vm.editPartner.commissionType],
+                        selectedPartner._id
+                    );
+                    vm.commissionRateConfig = Object.assign({}, vm.srcCommissionRateConfig);
 
                     let option = {
                         $scope: $scope,
@@ -24001,6 +24005,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPartnerCommissionConfigWithGameProviderGroup', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         let existProviderCommissionSetting = [];
+                        vm.customPartnerCommission = [];
 
                         if (data && data.data && data.data.length) {
                             data.data.filter(existSetting => {
@@ -24019,7 +24024,6 @@ define(['js/app'], function (myApp) {
                                 });
 
                                 if (existSetting.partner) {
-                                    vm.customPartnerCommission = vm.customPartnerCommission || [];
                                     vm.customPartnerCommission.push(existSetting);
                                 }
                             });
@@ -24341,8 +24345,7 @@ define(['js/app'], function (myApp) {
                     });
 
                     return p.then(()=> {
-                        vm.getPartnerCommissionConfigWithGameProviderConfig();
-                        $scope.safeApply();
+                        $scope.$evalAsync(vm.getPartnerCommissionConfigWithGameProviderConfig);
                     });
                 }
             }
