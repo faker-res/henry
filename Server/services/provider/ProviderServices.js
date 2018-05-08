@@ -206,6 +206,7 @@
                 "isUserExist",
                 "getConsumptionIncentivePlayer",
                 "getPlayerInfoByName",
+                "avaiCreditForInOut",
                 "verifyUserPassword",
                 "verifyUserPasswordWithTransferIn"
             ];
