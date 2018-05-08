@@ -177,7 +177,7 @@ var PlayerServiceImplement = function () {
 
     this.loginBIPlayer.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.name && data.platformId && data.password);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.loginBIPlayer, [data], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.loginBIPlayer, [data.name, data.platformId, data.password], isValidData);
     };
 
 };
