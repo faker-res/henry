@@ -1075,7 +1075,7 @@ let dbPlayerInfo = {
                 });
             }
 
-            if ((playerdata.realName && !playerdata.realName.match(chineseRegex))) {
+            if ((playerdata.realName && !playerdata.realName.match(chineseRegex)) && !bFromBI) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
