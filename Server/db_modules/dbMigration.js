@@ -1815,7 +1815,6 @@ var dbMigration = {
             playerLevelData => {
                 if (playerLevelData) {
                     data.playerLevel = playerLevelData._id;
-                    // return dbPlayerInfo.createPlayerInfo(data);
                     return data;
                 }
                 else {
@@ -1888,6 +1887,10 @@ var dbMigration = {
                         let eventProm = dbconfig.collection_rewardEvent.find({platform: data.platform, name: {$in: playerData.forbidRewardEvents}}).lean();
                         proms.push(eventProm);
                     }
+                    if( playerData.credibilityRemarks ){
+                        let creditProm = dbconfig.collection_playerCredibilityRemark.find({platform: data.platform, name: {$in: playerData.credibilityRemarks}}).lean();
+                        proms.push(creditProm);
+                    }
                     return Q.all(proms).then(
                         resData => {
                             if( resData && resData[0] && resData[0].length > 0 ){
@@ -1895,6 +1898,9 @@ var dbMigration = {
                             }
                             if( resData && resData[1] && resData[1].length > 0 ) {
                                 playerData.forbidRewardEvents = resData[1].map(event => event._id);
+                            }
+                            if( resData && resData[2] && resData[2].length > 0 ) {
+                                playerData.credibilityRemarks = resData[2].map(credit => credit._id);
                             }
                             return playerData;
                         }

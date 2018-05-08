@@ -908,6 +908,8 @@ var dbPlayerConsumptionWeekSummary = {
         };
         let consumptionRecProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ).then(
             props => {
+                console.log('props', props);
+
                 if (props && props.length > 0) {
                     props.map(prop => {
                         Object.keys(prop.data.returnDetail).forEach(el => {
@@ -1019,6 +1021,7 @@ var dbPlayerConsumptionWeekSummary = {
                     console.log('consumptionSummariesByKey', consumptionSummariesByKey);
                     console.log('consumptionRecSumm', consumptionRecSumm);
                     console.log('res', res);
+                    console.log('proposalQ', proposalQ);
                     console.log('doneXIMAConsumption', doneXIMAConsumption);
 
                     if (platformData.useProviderGroup) {
