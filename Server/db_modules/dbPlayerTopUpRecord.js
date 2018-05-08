@@ -2790,7 +2790,6 @@ var dbPlayerTopUpRecord = {
                     return dbconfig.collection_proposal.findOne({proposalId: topUpResult.proposalId}).lean().then(
                         pData => {
                             if (pData) {
-                                console.error("######addTestTopUp 1")
                                 return dbProposal.updateTopupProposal(pData.proposalId, constProposalStatus.SUCCESS, pData.data.requestId, 1).catch(
                                     error => {
                                         console.error(error);
@@ -2805,10 +2804,8 @@ var dbPlayerTopUpRecord = {
             }
         ).then(
             topUpResult => {
-                console.error("######addTestTopUp 4")
                 if (topUpResult) {
                     if (createTime) {
-                        console.error("######addTestTopUp 2")
                         let proposalProm = dbconfig.collection_proposal.findOne({
                             proposalId: topUpResult.proposalId
                         }).lean().then(
@@ -2847,7 +2844,6 @@ var dbPlayerTopUpRecord = {
                                 }
                             }
                         );
-                        console.error("######addTestTopUp 3")
                         return Q.all([proposalProm, recordProm]);
                     }
                     else {
