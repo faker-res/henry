@@ -14776,12 +14776,24 @@ let dbPlayerInfo = {
                 });
     },
 
-    avaiCreditForInOut: function avaiCreditForInOut(playerId, providerId) {
+    avaiCreditForInOut: function avaiCreditForInOut(platformId, playerName, providerId) {
         let returnData = {};
         let providerData = {};
         let playerData = {};
-        return dbconfig.collection_players.findOne({playerId: playerId})
-            .populate({path: "platform", model: dbconfig.collection_platform}).then(
+        let platformData = {};
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformDetail => {
+                if (platformDetail) {
+                    platformData = platformDetail;
+                    return dbconfig.collection_players.findOne({
+                        platform: platformDetail._id,
+                        name: playerName
+                    }).lean();
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
             playerDetails=> {
                 playerData = playerDetails;
                 if (playerDetails && playerDetails._id) {
@@ -14796,7 +14808,7 @@ let dbPlayerInfo = {
                 if (gameProvider) {
                     providerData = gameProvider;
                     return dbconfig.collection_rewardTaskGroup.find({
-                        platformId: playerData.platform._id,
+                        platformId: platformData._id,
                         playerId: playerData._id,
                         status: constRewardTaskStatus.STARTED
                     }).populate({
@@ -14831,7 +14843,7 @@ let dbPlayerInfo = {
                     returnData.totalAvailCredit = returnData.localLockedCredit + returnData.localFreeCredit;
                     return cpmsAPI.player_queryCredit({
                         username: playerData.name,
-                        platformId: playerData.platform.platformId,
+                        platformId: platformData.platformId,
                         providerId: providerData.providerId,
                     })
                 }
