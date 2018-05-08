@@ -56,8 +56,9 @@ var PlatformServiceImplement = function () {
 
     this.avaiCreditForInOut.expectsData = 'playerId: String';
     this.avaiCreditForInOut.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.playerId && data.providerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.avaiCreditForInOut, [data.playerId, data.providerId], isValidData);
+        var isValidData = Boolean(data && data.platformId && data.playerName && data.providerId);
+        console.log("walaodata",data, isValidData)
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.avaiCreditForInOut, [data.platformId, data.playerName, data.providerId], isValidData);
     };
 
     this.verifyUserPassword.expectsData = 'loginname: String, password: String';
