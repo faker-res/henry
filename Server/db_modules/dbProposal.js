@@ -3799,15 +3799,13 @@ var proposal = {
                     return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
                 }
         }
-
-
+        
         while (dayStartTime.getTime() < endDate.getTime()) {
             var dayEndTime = getNextDate.call(this, dayStartTime);
             var matchObj = {
                 createTime: {$gte: dayStartTime, $lt: dayEndTime},
             };
 
-           // let searchQ1 = Object.assign({}, matchObj, {type: {$in: playerBonusList} });
             playerBonusArr.push(dbconfig.collection_proposal.aggregate(
                     {$match:
                         Object.assign({}, matchObj,{type: {$in: playerBonusList.map( p => ObjectId(p))}} )
