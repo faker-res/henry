@@ -4762,9 +4762,9 @@ let dbPartner = {
                                             consumptionAmount: {$sum: "$amount"},
                                             consumptionCount: {$sum: 1}
                                         }
-                                    }).read("secondaryPreferred").then(records => {
-                                        if (records) {
-                                            records = records.filter(records => records.consumptionCount >= activePlayerConsumptionTimes && records.consumptionAmount >= activePlayerConsumptionAmount);
+                                    }).read("secondaryPreferred").then(consumptionRecord => {
+                                        if (consumptionRecord) {
+                                            consumptionRecord = consumptionRecord.filter(record => record.consumptionCount >= activePlayerConsumptionTimes && record.consumptionAmount >= activePlayerConsumptionAmount);
 
                                             switch (period) {
                                                 case 'day':
@@ -4774,7 +4774,7 @@ let dbPartner = {
                                                             platform: platformId,
                                                         },
                                                         {
-                                                            $set: {dailyActivePlayer: records.length}
+                                                            $set: {dailyActivePlayer: consumptionRecord.length}
                                                         }
                                                     ).exec();
                                                     break;
@@ -4785,7 +4785,7 @@ let dbPartner = {
                                                             platform: platformId,
                                                         },
                                                         {
-                                                            $set: {weeklyActivePlayer: records.length}
+                                                            $set: {weeklyActivePlayer: consumptionRecord.length}
                                                         }
                                                     ).exec();
                                                     break;
@@ -4797,12 +4797,12 @@ let dbPartner = {
                                                             platform: platformId,
                                                         },
                                                         {
-                                                            $set: {monthlyActivePlayer: records.length}
+                                                            $set: {monthlyActivePlayer: consumptionRecord.length}
                                                         }
                                                     ).exec();
                                                     break;
                                             }
-                                            return {partnerId: partnerId, size: records.length}
+                                            return {partnerId: partnerId, size: consumptionRecord.length}
                                         }
                                     }
                                 )
@@ -4831,9 +4831,9 @@ let dbPartner = {
                                 consumptionAmount: {$sum: "$amount"},
                                 consumptionCount: {$sum: 1}
                             }
-                        }).read("secondaryPreferred").then(records => {
-                            if (records) {
-                                records = records.filter(records => records.consumptionCount >= activePlayerConsumptionTimes && records.consumptionAmount >= activePlayerConsumptionAmount);
+                        }).read("secondaryPreferred").then(consumptionRecord => {
+                            if (consumptionRecord) {
+                                consumptionRecord = consumptionRecord.filter(record => record.consumptionCount >= activePlayerConsumptionTimes && record.consumptionAmount >= activePlayerConsumptionAmount);
 
                                 switch (period) {
                                     case 'day':
@@ -4843,7 +4843,7 @@ let dbPartner = {
                                                 platform: platformId,
                                             },
                                             {
-                                                $set: {dailyActivePlayer: records.length}
+                                                $set: {dailyActivePlayer: consumptionRecord.length}
                                             }
                                         ).exec();
                                         break;
@@ -4854,7 +4854,7 @@ let dbPartner = {
                                                 platform: platformId,
                                             },
                                             {
-                                                $set: {weeklyActivePlayer: records.length}
+                                                $set: {weeklyActivePlayer: consumptionRecord.length}
                                             }
                                         ).exec();
                                         break;
@@ -4866,12 +4866,12 @@ let dbPartner = {
                                                 platform: platformId,
                                             },
                                             {
-                                                $set: {monthlyActivePlayer: records.length}
+                                                $set: {monthlyActivePlayer: consumptionRecord.length}
                                             }
                                         ).exec();
                                         break;
                                 }
-                                return {partnerId: partnerId, size: records.length}
+                                return {partnerId: partnerId, size: consumptionRecord.length}
                             }
                         }
                     )
