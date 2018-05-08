@@ -913,7 +913,7 @@ define(['js/app'], function (myApp) {
                         initFeedbackAdmin();
                         break;
                     case "Partner":
-                        vm.partnerCommission = vm.partnerCommission || {};
+                        vm.partnerCommission = {};
                         vm.getAllPartnerCommSettPreview();
                         vm.getCommissionRateGameProviderGroup();
                         vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
@@ -17227,6 +17227,7 @@ define(['js/app'], function (myApp) {
                     let selectedPartner = vm.isOneSelectedPartner();
                     let editPartner = vm.editPartner;
                     vm.editPartner.DOB = new Date(vm.editPartner.DOB);
+                    vm.selectedCommissionTab($scope.constPartnerCommissionSettlementType[vm.editPartner.commissionType]);
 
                     let option = {
                         $scope: $scope,
