@@ -12,6 +12,7 @@ var PartnerServiceImplement = function () {
     this.create.expectsData = 'partnerName: String, platform: String';
     this.create.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.partnerName && data.platform != null);
+        data.isNewSystem = false;
         if (!isValidData) {
             errorUtils.logMigrationDataInvalidError(this, data);
         }
