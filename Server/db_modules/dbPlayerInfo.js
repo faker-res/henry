@@ -1075,7 +1075,7 @@ let dbPlayerInfo = {
                 });
             }
 
-            if ((playerdata.realName && !playerdata.realName.match(chineseRegex))) {
+            if ((playerdata.realName && !playerdata.realName.match(chineseRegex)) && !bFromBI) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
@@ -1135,7 +1135,7 @@ let dbPlayerInfo = {
         ).then(
             //make sure phone number is unique
             data => {
-                if (data.isPhoneNumberValid) {
+                if (data.isPhoneNumberValid || bFromBI) {
                     return dbPlayerInfo.isPlayerNameValidToRegister({
                         name: playerdata.name,
                         platform: playerdata.platform
@@ -1558,7 +1558,7 @@ let dbPlayerInfo = {
             }
         ).then(
             function (rewardPointsData) {
-                let rewardPointsRecord = rewardPointsData[0];
+                let rewardPointsRecord = rewardPointsData ? rewardPointsData[0] : null;
                 let points = 0, rewardPointsObjId;
 
                 if (rewardPointsRecord && rewardPointsRecord.points && rewardPointsRecord._id) {
@@ -16175,20 +16175,26 @@ function checkPhoneNumberWhiteList (inputData, platformObj) {
         && platformObj.whiteListingPhoneNumbers.indexOf(inputData.phoneNumber) > -1)
         return {isPhoneNumberValid: true};
 
-    if (platformObj.allowSamePhoneNumberToRegister === true) {
-        return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
-            phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
-            platform: platformObj._id,
-            isRealPlayer: true
-        }, platformObj.samePhoneNumberRegisterCount);
-        // return {isPhoneNumberValid: true}
-    } else {
-        return dbPlayerInfo.isPhoneNumberValidToRegister({
-            phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
-            platform: platformObj._id,
-            isRealPlayer: true
-        });
+    if(inputData && inputData.phoneNumber){
+        if (platformObj.allowSamePhoneNumberToRegister === true) {
+            return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
+                phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
+                platform: platformObj._id,
+                isRealPlayer: true
+            }, platformObj.samePhoneNumberRegisterCount);
+            // return {isPhoneNumberValid: true}
+        } else {
+            return dbPlayerInfo.isPhoneNumberValidToRegister({
+                phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
+                platform: platformObj._id,
+                isRealPlayer: true
+            });
+        }
     }
+    else{
+        return {isPhoneNumberValid: true};
+    }
+
 }
 
 function determineRegistrationInterface (inputData, adminName, adminId) {
