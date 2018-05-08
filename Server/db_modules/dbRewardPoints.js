@@ -390,8 +390,10 @@ let dbRewardPoints = {
 
                 let rewardProgressProm = [];
                 if (relevantEvents.length) {
+                    console.log("debugRelevantEvent",relevantEvents.length);
                     relevantEvents.forEach(relevantData => {
                         if (relevantData._id) {
+                            console.log("debugRelevantEventData",relevantData._id,playerRewardPoints._id);
                             let eventPeriodStartTime = getEventPeriodStartTime(relevantData);
                             let rewardProm = dbConfig.collection_rewardPointsProgress.findOne({
                                 rewardPointsObjId: playerRewardPoints._id,
@@ -2050,18 +2052,22 @@ function updateGameProgressCount(progress, event, consumptionRecord) {
     if (event.target.singleConsumptionAmount && event.target.dailyConsumptionCount) {
         // case scenario 1
         progressUpdated = updateProgressBaseOnConsumptionCount(progress, event.target.singleConsumptionAmount, event.target.dailyConsumptionCount, consumptionRecord, eventPeriodStartTime);
+        console.log("debugBaseOnConsumptionCount", progressUpdated);
     }
     else if (event.target.dailyValidConsumptionAmount) {
         // case scenario 2
         progressUpdated = updateProgressBaseOnConsumptionAmount(progress, event.target.dailyValidConsumptionAmount, consumptionRecord, eventPeriodStartTime);
+        console.log("debugBaseOnConsumptionAmount", progressUpdated);
     }
     else if (event.target.dailyWinGameCount) {
         // case scenario 3
         progressUpdated = updateProgressBaseOnDailyWinGameCount(progress, event.target.dailyWinGameCount, consumptionRecord, eventPeriodStartTime);
+        console.log("debugBaseOnDailyWinGameCount", progressUpdated);
     }
 
     if (progress.count >= event.consecutiveCount) {
         progress.isApplicable = true;
+        console.log("debugProgressApplicable", progress.isApplicable)
     }
 
     return progressUpdated;
@@ -2073,7 +2079,7 @@ function updateProgressBaseOnConsumptionCount(progress, singleConsumptionAmount,
     }
 
     let todayStartTime = dbUtility.getTodaySGTime().startTime;
-
+    console.log("debugProgressConsumptionCount1", progress)
     if (!progress.lastUpdateTime || eventPeriodStartTime && progress.lastUpdateTime < eventPeriodStartTime) {
         // a fresh start
         progress.isApplied = false;
@@ -2101,7 +2107,7 @@ function updateProgressBaseOnConsumptionCount(progress, singleConsumptionAmount,
     if (progress.todayConsumptionCount >= dailyConsumptionCount) {
         progress.count++;
     }
-
+    console.log("debugProgressConsumptionCount2", progress)
     return true;
 }
 
@@ -2109,7 +2115,7 @@ function updateProgressBaseOnConsumptionAmount (progress, dailyValidConsumptionA
     let todayStartTime = dbUtility.getTodaySGTime().startTime;
 
     dailyValidConsumptionAmount = Number(dailyValidConsumptionAmount);
-
+    console.log("debugProgressConsumptionAmount1", progress)
     if (!progress.lastUpdateTime || eventPeriodStartTime && progress.lastUpdateTime < eventPeriodStartTime) {
         // a fresh start
         progress.isApplied = false;
@@ -2138,7 +2144,7 @@ function updateProgressBaseOnConsumptionAmount (progress, dailyValidConsumptionA
         progress.todayConsumptionAmountProgress = dailyValidConsumptionAmount;
         progress.count++;
     }
-
+    console.log("debugProgressConsumptionAmount2", progress)
     return true;
 }
 
@@ -2149,7 +2155,7 @@ function updateProgressBaseOnDailyWinGameCount (progress, dailyWinGameCount, con
 
     dailyWinGameCount = Number(dailyWinGameCount);
     let todayStartTime = dbUtility.getTodaySGTime().startTime;
-
+    console.log("debugProgressWinGame1", progress)
     if (!progress.lastUpdateTime || eventPeriodStartTime && progress.lastUpdateTime < eventPeriodStartTime) {
         // a fresh start
         progress.isApplied = false;
@@ -2177,7 +2183,7 @@ function updateProgressBaseOnDailyWinGameCount (progress, dailyWinGameCount, con
     if (progress.todayWinCount >= dailyWinGameCount) {
         progress.count++;
     }
-
+    console.log("debugProgressWinGame2", progress)
     return true;
 }
 
