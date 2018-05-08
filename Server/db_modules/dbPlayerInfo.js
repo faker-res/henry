@@ -16175,20 +16175,26 @@ function checkPhoneNumberWhiteList (inputData, platformObj) {
         && platformObj.whiteListingPhoneNumbers.indexOf(inputData.phoneNumber) > -1)
         return {isPhoneNumberValid: true};
 
-    if (platformObj.allowSamePhoneNumberToRegister === true) {
-        return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
-            phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
-            platform: platformObj._id,
-            isRealPlayer: true
-        }, platformObj.samePhoneNumberRegisterCount);
-        // return {isPhoneNumberValid: true}
-    } else {
-        return dbPlayerInfo.isPhoneNumberValidToRegister({
-            phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
-            platform: platformObj._id,
-            isRealPlayer: true
-        });
+    if(inputData && inputData.phoneNumber){
+        if (platformObj.allowSamePhoneNumberToRegister === true) {
+            return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
+                phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
+                platform: platformObj._id,
+                isRealPlayer: true
+            }, platformObj.samePhoneNumberRegisterCount);
+            // return {isPhoneNumberValid: true}
+        } else {
+            return dbPlayerInfo.isPhoneNumberValidToRegister({
+                phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
+                platform: platformObj._id,
+                isRealPlayer: true
+            });
+        }
     }
+    else{
+        return {isPhoneNumberValid: true};
+    }
+
 }
 
 function determineRegistrationInterface (inputData, adminName, adminId) {
