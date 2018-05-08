@@ -19512,9 +19512,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.refreshSPicker = () => {
-                $timeout(function () {
-                    $('.spicker').selectpicker('refresh');
-                }, 0);
+                $('.spicker').selectpicker('refresh');
+                // $timeout(function () {
+                //     $('.spicker').selectpicker('refresh');
+                // }, 0);
             };
 
             vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
@@ -24845,16 +24846,20 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPlatformProviderGroup = () => {
-                return $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
-                    vm.gameProviderGroup = data.data;
-                    vm.gameProviderGroupNames = {};
-                    for (let i = 0; i < vm.gameProviderGroup.length; i++) {
-                        let providerGroup = vm.gameProviderGroup[i];
-                        vm.gameProviderGroupNames[providerGroup._id] = providerGroup.name;
+                return $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(
+                    data => {
+                        if (data) {
+                            $scope.$evalAsync(() => {
+                                vm.gameProviderGroup = data.data;
+                                vm.gameProviderGroupNames = {};
+                                for (let i = 0; i < vm.gameProviderGroup.length; i++) {
+                                    let providerGroup = vm.gameProviderGroup[i];
+                                    vm.gameProviderGroupNames[providerGroup._id] = providerGroup.name;
+                                }
+                            });
+                        }
                     }
-
-                    $scope.safeApply();
-                });
+                );
             };
 
             vm.submitAddPlayerLvl = function () {
