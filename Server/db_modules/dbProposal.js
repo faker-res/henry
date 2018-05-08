@@ -3799,8 +3799,9 @@ var proposal = {
                     return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
                 }
         }
-        
-        while (dayStartTime.getTime() < endDate.getTime()) {
+
+        // while (dayStartTime.getTime() < endDate.getTime()) {
+        for ( ; dayStartTime.getTime() < endDate.getTime(); dayStartTime = dayEndTime) {
             var dayEndTime = getNextDate.call(this, dayStartTime);
             var matchObj = {
                 createTime: {$gte: dayStartTime, $lt: dayEndTime},
@@ -3883,7 +3884,6 @@ var proposal = {
                 }
 
             }))
-
 
             updatePartnerArr.push(dbconfig.collection_proposal.aggregate(
                 {$match:
@@ -4041,7 +4041,7 @@ var proposal = {
 
             }))
 
-            dayStartTime = dayEndTime;
+            // dayStartTime = dayEndTime;
         }
         return Promise.all([Promise.all(playerBonusArr), Promise.all(updatePlayerArr), Promise.all(updatePartnerArr), Promise.all(rewardArr), Promise.all(othersArr), Promise.all(allArr)]).then(data => {
             if (!data && !data[0] && !data[1] && !data[2] && !data[3] && !data[4] && !data[5]) {
