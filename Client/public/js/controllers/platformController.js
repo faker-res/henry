@@ -19977,7 +19977,7 @@ define(['js/app'], function (myApp) {
                     case 'providerGroup':
                         vm.availableGameProviders = vm.allGameProvider;
                         vm.providerGroupConfig = {showWarning: false};
-                        vm.getPlatformProviderGroup();
+                        $scope.$evalAsync(vm.getPlatformProviderGroup);
                         break;
                     case 'smsGroup':
                         vm.deletingSmsGroup = null;
@@ -24856,6 +24856,7 @@ define(['js/app'], function (myApp) {
                                     let providerGroup = vm.gameProviderGroup[i];
                                     vm.gameProviderGroupNames[providerGroup._id] = providerGroup.name;
                                 }
+                                vm.endLoadWeekDay();
                             });
                         }
                     }
