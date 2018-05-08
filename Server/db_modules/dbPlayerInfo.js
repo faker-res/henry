@@ -2906,7 +2906,7 @@ let dbPlayerInfo = {
                     topupRecordData.topUpRecordId = topupRecordData._id;
                     // Async - Check reward group task to apply on player top up
                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, topupRecordData).catch(errorUtils.reportError);
-                    checkLimitedOfferToApply(proposalData, topupRecordData._id).catch(errorUtils.reportError);
+                    checkLimitedOfferToApply(proposalData, topupRecordData._id);
                     dbConsumptionReturnWithdraw.clearXimaWithdraw(playerData._id).catch(errorUtils.reportError);
                     dbPlayerInfo.checkPlayerLevelUp(playerId, playerData.platform).catch(console.log);
                     deferred.resolve(data && data[0]);
