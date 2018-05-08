@@ -1547,18 +1547,30 @@ let dbPlayerInfo = {
                     data.bankAccount = dbUtility.encodeBankAcc(data.bankAccount);
                 }
                 apiData = data;
-                apiData.userCurrentPoint = apiData.rewardPointsObjId && apiData.rewardPointsObjId.points ? apiData.rewardPointsObjId.points : 0;
-                apiData.rewardPointsObjId = apiData.rewardPointsObjId && apiData.rewardPointsObjId._id;
 
-                // if (data.realName) {
-                //     data.realName = dbUtility.encodeRealName(data.realName);
-                // }
-                // if (data.bankAccountName) {
-                //     data.bankAccountName = dbUtility.encodeRealName(data.bankAccountName);
-                // }
+                if (data && data.platform && data._id && !data.rewardPointsObjId) {
+                    let rewardPointsProm = dbconfig.collection_rewardPoints.findOne({
+                        platformObjId: data.platform,
+                        playerObjId: data._id
+                    }).lean();
+                    return Promise.all([rewardPointsProm]);
+                }
+            }
+        ).then(
+            function (rewardPointsData) {
+                let rewardPointsRecord = rewardPointsData[0];
+                let points = 0, rewardPointsObjId;
 
-                if (data.platform) {
-                    return dbconfig.collection_platform.findOne({_id: data.platform});
+                if (rewardPointsRecord && rewardPointsRecord.points && rewardPointsRecord._id) {
+                    points = rewardPointsRecord.points;
+                    rewardPointsObjId = rewardPointsRecord._id;
+                }
+
+                apiData.userCurrentPoint = apiData.rewardPointsObjId && apiData.rewardPointsObjId.points ? apiData.rewardPointsObjId.points : points;
+                apiData.rewardPointsObjId = apiData.rewardPointsObjId && apiData.rewardPointsObjId._id ? apiData.rewardPointsObjId._id : rewardPointsObjId;
+
+                if (apiData.platform) {
+                    return dbconfig.collection_platform.findOne({_id: apiData.platform});
                 }
             }, function (err) {
                 deferred.reject({name: "DBError", message: "Error in getting player data", error: err})
