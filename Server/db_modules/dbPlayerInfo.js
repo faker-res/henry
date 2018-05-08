@@ -1548,7 +1548,7 @@ let dbPlayerInfo = {
                 }
                 apiData = data;
 
-                if (data && data.platform && data._id && !data.rewardPointsObjId) {
+                if (data && data.platform && data._id) {
                     let rewardPointsProm = dbconfig.collection_rewardPoints.findOne({
                         platformObjId: data.platform,
                         playerObjId: data._id
