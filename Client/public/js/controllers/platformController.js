@@ -17232,6 +17232,7 @@ define(['js/app'], function (myApp) {
                         selectedPartner._id
                     );
                     vm.commissionRateConfig = Object.assign({}, vm.srcCommissionRateConfig);
+                    vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
 
                     let option = {
                         $scope: $scope,
@@ -24470,6 +24471,8 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
                     $scope.$evalAsync(() => {
+                        vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id);
+                        vm.getCommissionRateGameProviderGroup();
                         vm.getPlatformPartnersData();
                         vm.commissionRateEditRow(field, false);
                     })
