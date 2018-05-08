@@ -1075,7 +1075,7 @@ let dbPlayerInfo = {
                 });
             }
 
-            if ((playerdata.realName && !playerdata.realName.match(chineseRegex))) {
+            if ((playerdata.realName && !playerdata.realName.match(chineseRegex)) && !bFromBI) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
@@ -1135,7 +1135,7 @@ let dbPlayerInfo = {
         ).then(
             //make sure phone number is unique
             data => {
-                if (data.isPhoneNumberValid) {
+                if (data.isPhoneNumberValid || bFromBI) {
                     return dbPlayerInfo.isPlayerNameValidToRegister({
                         name: playerdata.name,
                         platform: playerdata.platform
@@ -1547,18 +1547,30 @@ let dbPlayerInfo = {
                     data.bankAccount = dbUtility.encodeBankAcc(data.bankAccount);
                 }
                 apiData = data;
-                apiData.userCurrentPoint = apiData.rewardPointsObjId && apiData.rewardPointsObjId.points ? apiData.rewardPointsObjId.points : 0;
-                apiData.rewardPointsObjId = apiData.rewardPointsObjId && apiData.rewardPointsObjId._id;
 
-                // if (data.realName) {
-                //     data.realName = dbUtility.encodeRealName(data.realName);
-                // }
-                // if (data.bankAccountName) {
-                //     data.bankAccountName = dbUtility.encodeRealName(data.bankAccountName);
-                // }
+                if (data && data.platform && data._id) {
+                    let rewardPointsProm = dbconfig.collection_rewardPoints.findOne({
+                        platformObjId: data.platform,
+                        playerObjId: data._id
+                    }).lean();
+                    return Promise.all([rewardPointsProm]);
+                }
+            }
+        ).then(
+            function (rewardPointsData) {
+                let rewardPointsRecord = rewardPointsData ? rewardPointsData[0] : null;
+                let points = 0, rewardPointsObjId;
 
-                if (data.platform) {
-                    return dbconfig.collection_platform.findOne({_id: data.platform});
+                if (rewardPointsRecord && rewardPointsRecord.points && rewardPointsRecord._id) {
+                    points = rewardPointsRecord.points;
+                    rewardPointsObjId = rewardPointsRecord._id;
+                }
+
+                apiData.userCurrentPoint = apiData.rewardPointsObjId && apiData.rewardPointsObjId.points ? apiData.rewardPointsObjId.points : points;
+                apiData.rewardPointsObjId = apiData.rewardPointsObjId && apiData.rewardPointsObjId._id ? apiData.rewardPointsObjId._id : rewardPointsObjId;
+
+                if (apiData.platform) {
+                    return dbconfig.collection_platform.findOne({_id: apiData.platform});
                 }
             }, function (err) {
                 deferred.reject({name: "DBError", message: "Error in getting player data", error: err})
@@ -9068,7 +9080,7 @@ let dbPlayerInfo = {
                         let creditProm = Q.resolve();
 
                         if (player.lastPlayedProvider && player.lastPlayedProvider.status == constGameStatus.ENABLE) {
-                            creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(player.playerId, player.platform._id, player.lastPlayedProvider.providerId, -1, null, true);
+                            creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(player.playerId, player.platform._id, player.lastPlayedProvider.providerId, -1, null, true).catch(errorUtils.reportError);
                         }
 
                         return creditProm.then(
@@ -14764,12 +14776,24 @@ let dbPlayerInfo = {
                 });
     },
 
-    avaiCreditForInOut: function avaiCreditForInOut(playerId, providerId) {
+    avaiCreditForInOut: function avaiCreditForInOut(platformId, playerName, providerId) {
         let returnData = {};
         let providerData = {};
         let playerData = {};
-        return dbconfig.collection_players.findOne({playerId: playerId})
-            .populate({path: "platform", model: dbconfig.collection_platform}).then(
+        let platformData = {};
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformDetail => {
+                if (platformDetail) {
+                    platformData = platformDetail;
+                    return dbconfig.collection_players.findOne({
+                        platform: platformDetail._id,
+                        name: playerName
+                    }).lean();
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
             playerDetails=> {
                 playerData = playerDetails;
                 if (playerDetails && playerDetails._id) {
@@ -14784,7 +14808,7 @@ let dbPlayerInfo = {
                 if (gameProvider) {
                     providerData = gameProvider;
                     return dbconfig.collection_rewardTaskGroup.find({
-                        platformId: playerData.platform._id,
+                        platformId: platformData._id,
                         playerId: playerData._id,
                         status: constRewardTaskStatus.STARTED
                     }).populate({
@@ -14819,7 +14843,7 @@ let dbPlayerInfo = {
                     returnData.totalAvailCredit = returnData.localLockedCredit + returnData.localFreeCredit;
                     return cpmsAPI.player_queryCredit({
                         username: playerData.name,
-                        platformId: playerData.platform.platformId,
+                        platformId: platformData.platformId,
                         providerId: providerData.providerId,
                     })
                 }
@@ -16163,20 +16187,26 @@ function checkPhoneNumberWhiteList (inputData, platformObj) {
         && platformObj.whiteListingPhoneNumbers.indexOf(inputData.phoneNumber) > -1)
         return {isPhoneNumberValid: true};
 
-    if (platformObj.allowSamePhoneNumberToRegister === true) {
-        return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
-            phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
-            platform: platformObj._id,
-            isRealPlayer: true
-        }, platformObj.samePhoneNumberRegisterCount);
-        // return {isPhoneNumberValid: true}
-    } else {
-        return dbPlayerInfo.isPhoneNumberValidToRegister({
-            phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
-            platform: platformObj._id,
-            isRealPlayer: true
-        });
+    if(inputData && inputData.phoneNumber){
+        if (platformObj.allowSamePhoneNumberToRegister === true) {
+            return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
+                phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
+                platform: platformObj._id,
+                isRealPlayer: true
+            }, platformObj.samePhoneNumberRegisterCount);
+            // return {isPhoneNumberValid: true}
+        } else {
+            return dbPlayerInfo.isPhoneNumberValidToRegister({
+                phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
+                platform: platformObj._id,
+                isRealPlayer: true
+            });
+        }
     }
+    else{
+        return {isPhoneNumberValid: true};
+    }
+
 }
 
 function determineRegistrationInterface (inputData, adminName, adminId) {

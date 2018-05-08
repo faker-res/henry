@@ -3765,7 +3765,7 @@ var proposal = {
         )
     },
 
-    getManualApprovalRecords: (startDate, endDate, period, playerBonusList, updatePlayerList, updatePartnerList, rewardList, othersList) => {
+    getManualApprovalRecords: (startDate, endDate, period, playerBonusList, updatePlayerList, updatePartnerList, rewardList, othersList, allList) => {
 
         let playerBonusArr = [];
         let updatePlayerArr = [];
@@ -3800,157 +3800,248 @@ var proposal = {
                 }
         }
 
-        while (dayStartTime.getTime() < endDate.getTime()) {
+        // while (dayStartTime.getTime() < endDate.getTime()) {
+        for ( ; dayStartTime.getTime() < endDate.getTime(); dayStartTime = dayEndTime) {
             var dayEndTime = getNextDate.call(this, dayStartTime);
             var matchObj = {
                 createTime: {$gte: dayStartTime, $lt: dayEndTime},
             };
 
-            let searchQ1 = Object.assign({}, matchObj, {type: {$in: playerBonusList} });
-            playerBonusArr.push(dbconfig.collection_proposal.find(searchQ1).lean().then( playerBonusData => {
-                let totalCount = 0;
-                let successCount = 0;
-                let rejectCount = 0;
-                let manualCount = 0;
+            playerBonusArr.push(dbconfig.collection_proposal.aggregate(
+                    {$match:
+                        Object.assign({}, matchObj,{type: {$in: playerBonusList.map( p => ObjectId(p))}} )
+                    },
+                    {
+                        $group: {
+                            _id: {},
+                            totalCount: {$sum: 1},
+                            successCount: {$sum: {$cond: [
+                                {$and: [
+                                    {$eq: ["$noSteps", false]},
+                                    {$or: [
+                                        {$eq: ["$status", constProposalStatus.SUCCESS]},
+                                        {$eq: ["$status", constProposalStatus.APPROVED]}
+                                        ]}
+                                ]}, 1, 0
+                            ]}},
+                            rejectCount: {$sum: {$cond: [
+                                {$and: [
+                                    {$eq: ["$noSteps", false]},
+                                    {$or: [
+                                        {$eq: ["$status", constProposalStatus.FAIL]},
+                                        {$eq: ["$status", constProposalStatus.REJECTED]}
+                                    ]}
+                                ]}, 1, 0
+                            ]}},
+                        }
+                    }).read("secondaryPreferred").then(result => {
 
-                if (playerBonusData && playerBonusData.length >0){
-                    totalCount = playerBonusData.length;
-                    playerBonusData.forEach( playerBonusDetail => {
-                        if(!playerBonusDetail.noSteps && playerBonusDetail.status == "Approved"){
-                            successCount += 1;
+                        if (result && result.length > 0){
+                            let manualCount = (result[0].successCount || 0) + (result[0].rejectCount || 0);
+                            return {totalCount: result[0].totalCount || 0, successCount: result[0].successCount || 0, rejectCount: result[0].rejectCount || 0, manualCount: manualCount};
                         }
-                        if(!playerBonusDetail.noSteps && playerBonusDetail.status == "Rejected"){
-                            rejectCount += 1;
+                        else{
+                            return {totalCount: 0, successCount: 0, rejectCount: 0, manualCount: 0};
                         }
-                    })
-                    manualCount = successCount + rejectCount;
+
+                }))
+
+            updatePlayerArr.push(dbconfig.collection_proposal.aggregate(
+                {$match:
+                    Object.assign({}, matchObj,{type: {$in: updatePlayerList.map( p => ObjectId(p))}} )
+                },
+                {
+                    $group: {
+                        _id: {},
+                        totalCount: {$sum: 1},
+                        successCount: {$sum: {$cond: [
+                            {$and: [
+                                {$eq: ["$noSteps", false]},
+                                {$or: [
+                                    {$eq: ["$status", constProposalStatus.SUCCESS]},
+                                    {$eq: ["$status", constProposalStatus.APPROVED]}
+                                ]}
+                            ]}, 1, 0
+                        ]}},
+                        rejectCount: {$sum: {$cond: [
+                            {$and: [
+                                {$eq: ["$noSteps", false]},
+                                {$or: [
+                                    {$eq: ["$status", constProposalStatus.FAIL]},
+                                    {$eq: ["$status", constProposalStatus.REJECTED]}
+                                ]}
+                            ]}, 1, 0
+                        ]}},
+                    }
+                }).read("secondaryPreferred").then(result => {
+
+                if (result && result.length > 0){
+                    let manualCount = (result[0].successCount || 0) + (result[0].rejectCount || 0);
+                    return {totalCount: result[0].totalCount || 0, successCount: result[0].successCount || 0, rejectCount: result[0].rejectCount || 0, manualCount: manualCount};
                 }
-
-                return {totalCount: totalCount, successCount: successCount, rejectCount: rejectCount, manualCount: manualCount};
+                else{
+                    return {totalCount: 0, successCount: 0, rejectCount: 0, manualCount: 0};
+                }
 
             }))
 
-            let searchQ2 = Object.assign({}, matchObj, {type: {$in: updatePlayerList} });
-            updatePlayerArr.push(dbconfig.collection_proposal.find(searchQ2).lean().then(updatePlayerData => {
-                let totalCount = 0;
-                let successCount = 0;
-                let rejectCount = 0;
-                let manualCount = 0;
+            updatePartnerArr.push(dbconfig.collection_proposal.aggregate(
+                {$match:
+                    Object.assign({}, matchObj,{type: {$in: updatePartnerList.map( p => ObjectId(p))}} )
+                },
+                {
+                    $group: {
+                        _id: {},
+                        totalCount: {$sum: 1},
+                        successCount: {$sum: {$cond: [
+                            {$and: [
+                                {$eq: ["$noSteps", false]},
+                                {$or: [
+                                    {$eq: ["$status", constProposalStatus.SUCCESS]},
+                                    {$eq: ["$status", constProposalStatus.APPROVED]}
+                                ]}
+                            ]}, 1, 0
+                        ]}},
+                        rejectCount: {$sum: {$cond: [
+                            {$and: [
+                                {$eq: ["$noSteps", false]},
+                                {$or: [
+                                    {$eq: ["$status", constProposalStatus.FAIL]},
+                                    {$eq: ["$status", constProposalStatus.REJECTED]}
+                                ]}
+                            ]}, 1, 0
+                        ]}},
+                    }
+                }).read("secondaryPreferred").then(result => {
 
-                if (updatePlayerData && updatePlayerData.length > 0){
-                    totalCount = updatePlayerData.length;
-                    updatePlayerData.forEach( updatePlayerDataDetail => {
-                        if(!updatePlayerDataDetail.noSteps && updatePlayerDataDetail.status == "Approved"){
-                            successCount += 1;
-                        }
-                        if(!updatePlayerDataDetail.noSteps && updatePlayerDataDetail.status == "Rejected"){
-                            rejectCount += 1;
-                        }
-                    })
-                    manualCount = successCount + rejectCount;
+                if (result && result.length > 0){
+                    let manualCount = (result[0].successCount || 0) + (result[0].rejectCount || 0);
+                    return {totalCount: result[0].totalCount || 0, successCount: result[0].successCount || 0, rejectCount: result[0].rejectCount || 0, manualCount: manualCount};
                 }
-
-                return {totalCount: totalCount, successCount: successCount, rejectCount: rejectCount, manualCount: manualCount};
+                else{
+                    return {totalCount: 0, successCount: 0, rejectCount: 0, manualCount: 0};
+                }
 
             }))
 
-            let searchQ3 = Object.assign({}, matchObj, {type: {$in: updatePartnerList} });
-            updatePartnerArr.push(dbconfig.collection_proposal.find(searchQ3).lean().then( updatePartnerData => {
-                let totalCount = 0;
-                let successCount = 0;
-                let rejectCount = 0;
-                let manualCount = 0;
+            rewardArr.push(dbconfig.collection_proposal.aggregate(
+                {$match:
+                    Object.assign({}, matchObj,{type: {$in: rewardList.map( p => ObjectId(p))}} )
+                },
+                {
+                    $group: {
+                        _id: {},
+                        totalCount: {$sum: 1},
+                        successCount: {$sum: {$cond: [
+                            {$and: [
+                                {$eq: ["$noSteps", false]},
+                                {$or: [
+                                    {$eq: ["$status", constProposalStatus.SUCCESS]},
+                                    {$eq: ["$status", constProposalStatus.APPROVED]}
+                                ]}
+                            ]}, 1, 0
+                        ]}},
+                        rejectCount: {$sum: {$cond: [
+                            {$and: [
+                                {$eq: ["$noSteps", false]},
+                                {$or: [
+                                    {$eq: ["$status", constProposalStatus.FAIL]},
+                                    {$eq: ["$status", constProposalStatus.REJECTED]}
+                                ]}
+                            ]}, 1, 0
+                        ]}},
+                    }
+                }).read("secondaryPreferred").then(result => {
 
-                if (updatePartnerData && updatePartnerData.length > 0){
-                    totalCount = updatePartnerData.length;
-                    updatePartnerData.forEach( updatePartnerDataDetail => {
-                        if(!updatePartnerDataDetail.noSteps && updatePartnerDataDetail.status == "Approved"){
-                            successCount += 1;
-                        }
-                        if(!updatePartnerDataDetail.noSteps && updatePartnerDataDetail.status == "Rejected"){
-                            rejectCount += 1;
-                        }
-                    })
-                    manualCount = successCount + rejectCount;
+                if (result && result.length > 0){
+                    let manualCount = (result[0].successCount || 0) + (result[0].rejectCount || 0);
+                    return {totalCount: result[0].totalCount || 0, successCount: result[0].successCount || 0, rejectCount: result[0].rejectCount || 0, manualCount: manualCount};
                 }
-
-                return {totalCount: totalCount, successCount: successCount, rejectCount: rejectCount, manualCount: manualCount};
+                else{
+                    return {totalCount: 0, successCount: 0, rejectCount: 0, manualCount: 0};
+                }
 
             }))
 
-            let searchQ4 = Object.assign({}, matchObj, {type: {$in: rewardList} });
-            rewardArr.push(dbconfig.collection_proposal.find(searchQ4).lean().then( rewardData => {
-                let totalCount = 0;
-                let successCount = 0;
-                let rejectCount = 0;
-                let manualCount = 0;
+            othersArr.push(dbconfig.collection_proposal.aggregate(
+                {$match:
+                    Object.assign({}, matchObj,{type: {$in: othersList.map( p => ObjectId(p))}} )
+                },
+                {
+                    $group: {
+                        _id: {},
+                        totalCount: {$sum: 1},
+                        successCount: {$sum: {$cond: [
+                            {$and: [
+                                {$eq: ["$noSteps", false]},
+                                {$or: [
+                                    {$eq: ["$status", constProposalStatus.SUCCESS]},
+                                    {$eq: ["$status", constProposalStatus.APPROVED]}
+                                ]}
+                            ]}, 1, 0
+                        ]}},
+                        rejectCount: {$sum: {$cond: [
+                            {$and: [
+                                {$eq: ["$noSteps", false]},
+                                {$or: [
+                                    {$eq: ["$status", constProposalStatus.FAIL]},
+                                    {$eq: ["$status", constProposalStatus.REJECTED]}
+                                ]}
+                            ]}, 1, 0
+                        ]}},
+                    }
+                }).read("secondaryPreferred").then(result => {
 
-                if (rewardData && rewardData.length > 0){
-                    totalCount = rewardData.length;
-                    rewardData.forEach( rewardDataDetail => {
-                        if(!rewardDataDetail.noSteps && rewardDataDetail.status == "Approved"){
-                            successCount += 1;
-                        }
-                        if(!rewardDataDetail.noSteps && rewardDataDetail.status == "Rejected"){
-                            rejectCount += 1;
-                        }
-                    })
-                    manualCount = successCount + rejectCount;
+                if (result && result.length > 0){
+                    let manualCount = (result[0].successCount || 0) + (result[0].rejectCount || 0);
+                    return {totalCount: result[0].totalCount || 0, successCount: result[0].successCount || 0, rejectCount: result[0].rejectCount || 0, manualCount: manualCount};
                 }
-
-                return {totalCount: totalCount, successCount: successCount, rejectCount: rejectCount, manualCount: manualCount};
+                else{
+                    return {totalCount: 0, successCount: 0, rejectCount: 0, manualCount: 0};
+                }
 
             }))
 
-            let searchQ5 = Object.assign({}, matchObj, {type: {$in: othersList} });
-            othersArr.push(dbconfig.collection_proposal.find(searchQ5).lean().then( othersData => {
-                let totalCount = 0;
-                let successCount = 0;
-                let rejectCount = 0;
-                let manualCount = 0;
+            allArr.push(dbconfig.collection_proposal.aggregate(
+                {$match:
+                    Object.assign({}, matchObj,{type: {$in: allList.map( p => ObjectId(p))}} )
+                },
+                {
+                    $group: {
+                        _id: {},
+                        totalCount: {$sum: 1},
+                        successCount: {$sum: {$cond: [
+                            {$and: [
+                                {$eq: ["$noSteps", false]},
+                                {$or: [
+                                    {$eq: ["$status", constProposalStatus.SUCCESS]},
+                                    {$eq: ["$status", constProposalStatus.APPROVED]}
+                                ]}
+                            ]}, 1, 0
+                        ]}},
+                        rejectCount: {$sum: {$cond: [
+                            {$and: [
+                                {$eq: ["$noSteps", false]},
+                                {$or: [
+                                    {$eq: ["$status", constProposalStatus.FAIL]},
+                                    {$eq: ["$status", constProposalStatus.REJECTED]}
+                                ]}
+                            ]}, 1, 0
+                        ]}},
+                    }
+                }).read("secondaryPreferred").then(result => {
 
-                if (othersData && othersData.length > 0){
-                    totalCount = othersData.length;
-                    othersData.forEach( otherDataDetail => {
-                        if(!otherDataDetail.noSteps && otherDataDetail.status == "Approved"){
-                            successCount += 1;
-                        }
-                        if(!otherDataDetail.noSteps && otherDataDetail.status == "Rejected"){
-                            rejectCount += 1;
-                        }
-                    })
-                    manualCount = successCount + rejectCount;
+                if (result && result.length > 0){
+                    let manualCount = (result[0].successCount || 0) + (result[0].rejectCount || 0);
+                    return {totalCount: result[0].totalCount || 0, successCount: result[0].successCount || 0, rejectCount: result[0].rejectCount || 0, manualCount: manualCount};
                 }
-
-                return {totalCount: totalCount, successCount: successCount, rejectCount: rejectCount, manualCount: manualCount};
+                else{
+                    return {totalCount: 0, successCount: 0, rejectCount: 0, manualCount: 0};
+                }
 
             }))
 
-            let searchQ6 = Object.assign({}, matchObj);
-            allArr.push(dbconfig.collection_proposal.find(searchQ6).lean().then( allData => {
-                let totalCount = 0;
-                let successCount = 0;
-                let rejectCount = 0;
-                let manualCount = 0;
-
-                if (allData && allData.length > 0){
-                    totalCount = allData.length;
-                    allData.forEach( allDataDetail => {
-                        if(!allDataDetail.noSteps && allDataDetail.status == "Approved"){
-                            successCount += 1;
-                        }
-                        if(!allDataDetail.noSteps && allDataDetail.status == "Rejected"){
-                            rejectCount += 1;
-                        }
-                    })
-                    manualCount = successCount + rejectCount;
-                }
-
-                return {totalCount: totalCount, successCount: successCount, rejectCount: rejectCount, manualCount: manualCount};
-
-            }))
-
-            dayStartTime = dayEndTime;
+            // dayStartTime = dayEndTime;
         }
         return Promise.all([Promise.all(playerBonusArr), Promise.all(updatePlayerArr), Promise.all(updatePartnerArr), Promise.all(rewardArr), Promise.all(othersArr), Promise.all(allArr)]).then(data => {
             if (!data && !data[0] && !data[1] && !data[2] && !data[3] && !data[4] && !data[5]) {
