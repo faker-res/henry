@@ -554,10 +554,10 @@ function socketActionProposal(socketIO, socket) {
 
         getManualApprovalRecords: function getManualApprovalRecords(data) {
             let actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.startDate && data.endDate && data.period && data.playerBonus && data.updatePlayerList && data.updatePartnerList && data.reward && data.others);
+            var isValidData = Boolean(data && data.startDate && data.endDate && data.period && data.playerBonus && data.updatePlayerList && data.updatePartnerList && data.reward && data.others && data.all);
             var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
             var endTime = data.endDate ? new Date(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbProposal.getManualApprovalRecords, [startTime, endTime, data.period, data.playerBonus, data.updatePlayerList, data.updatePartnerList, data.reward, data.others], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getManualApprovalRecords, [startTime, endTime, data.period, data.playerBonus, data.updatePlayerList, data.updatePartnerList, data.reward, data.others, data.all], actionName, isValidData);
         },
 
         getAllProposalTypeByPlatformId: function getAllProposalTypeByPlatformId(data) {
