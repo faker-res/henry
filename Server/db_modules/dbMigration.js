@@ -1902,6 +1902,9 @@ var dbMigration = {
                             if( resData && resData[2] && resData[2].length > 0 ) {
                                 playerData.credibilityRemarks = resData[2].map(credit => credit._id);
                             }
+                            else{
+                                delete playerData.credibilityRemarks;
+                            }
                             return playerData;
                         }
                     );
