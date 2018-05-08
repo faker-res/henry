@@ -2790,7 +2790,11 @@ var dbPlayerTopUpRecord = {
                     return dbconfig.collection_proposal.findOne({proposalId: topUpResult.proposalId}).lean().then(
                         pData => {
                             if (pData) {
-                                return dbProposal.updateTopupProposal(pData.proposalId, constProposalStatus.SUCCESS, pData.data.requestId, 1);
+                                return dbProposal.updateTopupProposal(pData.proposalId, constProposalStatus.SUCCESS, pData.data.requestId, 1).catch(
+                                    error => {
+                                        console.error(error);
+                                    }
+                                );
                             }
                         }
                     ).then(
@@ -2807,13 +2811,16 @@ var dbPlayerTopUpRecord = {
                         }).lean().then(
                             proposalData => {
                                 if (proposalData) {
-                                    dbconfig.collection_proposal.remove({_id: proposalData._id}).then();
-                                    delete proposalData._id;
-                                    delete proposalData.proposalId;
-                                    proposalData.createTime = dbUtility.getSGTimeOf(createTime);
-                                    proposalData.settleTime = dbUtility.getSGTimeOf(createTime);
-                                    let newProposal = new dbconfig.collection_proposal(proposalData);
-                                    return newProposal.save();
+                                    return dbconfig.collection_proposal.remove({_id: proposalData._id}).then(
+                                        res => {
+                                            delete proposalData._id;
+                                            delete proposalData.proposalId;
+                                            proposalData.createTime = dbUtility.getSGTimeOf(createTime);
+                                            proposalData.settleTime = dbUtility.getSGTimeOf(createTime);
+                                            let newProposal = new dbconfig.collection_proposal(proposalData);
+                                            return newProposal.save();
+                                        }
+                                    );
                                 }
                             }
                         );
@@ -2825,12 +2832,15 @@ var dbPlayerTopUpRecord = {
                         }).sort({createTime: -1}).limit(1).lean().then(
                             recordData => {
                                 if (recordData && recordData[0]) {
-                                    dbconfig.collection_playerTopUpRecord.remove({_id: recordData[0]._id}).then();
-                                    delete recordData[0]._id;
-                                    recordData[0].createTime = dbUtility.getSGTimeOf(createTime);
-                                    recordData[0].settlementTime = dbUtility.getSGTimeOf(createTime);
-                                    let newRecord = new dbconfig.collection_playerTopUpRecord(recordData[0]);
-                                    return newRecord.save();
+                                    return dbconfig.collection_playerTopUpRecord.remove({_id: recordData[0]._id}).then(
+                                        res => {
+                                            delete recordData[0]._id;
+                                            recordData[0].createTime = dbUtility.getSGTimeOf(createTime);
+                                            recordData[0].settlementTime = dbUtility.getSGTimeOf(createTime);
+                                            let newRecord = new dbconfig.collection_playerTopUpRecord(recordData[0]);
+                                            return newRecord.save();
+                                        }
+                                    );
                                 }
                             }
                         );

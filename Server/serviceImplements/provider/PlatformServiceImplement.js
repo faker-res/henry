@@ -54,6 +54,12 @@ var PlatformServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerInfo, [{name: data.loginname}], isValidData);
     };
 
+    this.avaiCreditForInOut.expectsData = 'playerId: String';
+    this.avaiCreditForInOut.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.playerId && data.providerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.avaiCreditForInOut, [data.playerId, data.providerId], isValidData);
+    };
+
     this.verifyUserPassword.expectsData = 'loginname: String, password: String';
     this.verifyUserPassword.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.loginname && data.password);

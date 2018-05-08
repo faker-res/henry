@@ -37,10 +37,10 @@
                         thead
                             tr
                                 th(ng-click="vm.manualApprovalDataSort( 'playerBonus', 'date')") {{ vm.queryPara.manualApproval.periodText | translate}}
-                                th(ng-click="vm.manualApprovalDataSort('playerBonus','data.count')") {{"Total_Proposal"| translate}}
-                                th(ng-click="vm.manualApprovalDataSort('playerBonus','data.successCount')") {{'Approved_Manual_Approval' | translate}}
-                                th(ng-click="vm.manualApprovalDataSort('playerBonus','data.rejectCount')") {{'Rejected_Manual_Approval' | translate}}
-                                th(ng-click="vm.manualApprovalDataSort('playerBonus','data.manualCount')") {{'Total_ManualApproval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('playerBonus','totalCount')") {{"Total_Proposal"| translate}}
+                                th(ng-click="vm.manualApprovalDataSort('playerBonus','successCount')") {{'Approved_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('playerBonus','rejectCount')") {{'Rejected_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('playerBonus','manualCount')") {{'Total_ManualApproval' | translate}}
 
                         tbody
                             tr
@@ -58,13 +58,13 @@
                                 td
                                     span {{ v.date | date:"yyyy-MM-dd" }}
                                 td
-                                    span {{ v.data.count }}
+                                    span {{ v.totalCount }}
                                 td
-                                    span {{ v.data.successCount }}
+                                    span {{ v.successCount }}
                                 td
-                                    span {{ v.data.rejectCount }}
+                                    span {{ v.rejectCount }}
                                 td
-                                    span {{ v.data.manualCount}}
+                                    span {{ v.manualCount}}
 
         .row
             .col-md-6
@@ -80,10 +80,10 @@
                         thead
                             tr
                                 th(ng-click="vm.manualApprovalDataSort( 'updatePlayer', 'date')") {{ vm.queryPara.manualApproval.periodText | translate}}
-                                th(ng-click="vm.manualApprovalDataSort('updatePlayer','data.count')") {{"Total_Proposal"| translate}}
-                                th(ng-click="vm.manualApprovalDataSort('updatePlayer','data.successCount')") {{'Approved_Manual_Approval' | translate}}
-                                th(ng-click="vm.manualApprovalDataSort('updatePlayer','data.rejectCount')") {{'Rejected_Manual_Approval' | translate}}
-                                th(ng-click="vm.manualApprovalDataSort('updatePlayer','data.manualCount')") {{'Total_ManualApproval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('updatePlayer','totalCount')") {{"Total_Proposal"| translate}}
+                                th(ng-click="vm.manualApprovalDataSort('updatePlayer','successCount')") {{'Approved_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('updatePlayer','rejectCount')") {{'Rejected_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('updatePlayer','manualCount')") {{'Total_ManualApproval' | translate}}
                         tbody
                             tr
                                 td
@@ -100,13 +100,13 @@
                                 td
                                     span {{ v.date | date:"yyyy-MM-dd" }}
                                 td
-                                    span {{ v.data.count }}
+                                    span {{ v.totalCount }}
                                 td
-                                    span {{ v.data.successCount }}
+                                    span {{ v.successCount }}
                                 td
-                                    span {{ v.data.rejectCount }}
+                                    span {{ v.rejectCount }}
                                 td
-                                    span {{ v.data.manualCount}}
+                                    span {{ v.manualCount}}
 
         .row
             .col-md-6
@@ -121,11 +121,11 @@
                     table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
                         thead
                             tr
-                                th(ng-click="vm.manualApprovalDataSort( 'updateParner', 'date')") {{ vm.queryPara.manualApproval.periodText | translate}}
-                                th(ng-click="vm.manualApprovalDataSort('updateParner','data.count')") {{"Total_Proposal"| translate}}
-                                th(ng-click="vm.manualApprovalDataSort('updateParner','data.successCount')") {{'Approved_Manual_Approval' | translate}}
-                                th(ng-click="vm.manualApprovalDataSort('updateParner','data.rejectCount')") {{'Rejected_Manual_Approval' | translate}}
-                                th(ng-click="vm.manualApprovalDataSort('updateParner','data.manualCount')") {{'Total_ManualApproval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort( 'updatePartner', 'date')") {{ vm.queryPara.manualApproval.periodText | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('updatePartner','totalCount')") {{"Total_Proposal"| translate}}
+                                th(ng-click="vm.manualApprovalDataSort('updatePartner','successCount')") {{'Approved_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('updatePartner','rejectCount')") {{'Rejected_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('updatePartner','manualCount')") {{'Total_ManualApproval' | translate}}
                         tbody
                             tr
                                 td
@@ -138,17 +138,17 @@
                                     span {{ vm.updatePartnerAvgData.rejectCount }}
                                 td
                                     span {{ vm.updatePartnerAvgData.manualCount }}
-                            tr(ng-repeat='(i, v) in vm.updatePartnerData | orderBy: vm.manualApprovalSort.updateParner')
+                            tr(ng-repeat='(i, v) in vm.updatePartnerData | orderBy: vm.manualApprovalSort.updatePartner')
                                 td
                                     span {{ v.date | date:"yyyy-MM-dd" }}
                                 td
-                                    span {{ v.data.count }}
+                                    span {{ v.totalCount }}
                                 td
-                                    span {{ v.data.successCount }}
+                                    span {{ v.successCount }}
                                 td
-                                    span {{ v.data.rejectCount }}
+                                    span {{ v.rejectCount }}
                                 td
-                                    span {{ v.data.manualCount}}
+                                    span {{ v.manualCount}}
 
         .row
             .col-md-6
@@ -164,10 +164,10 @@
                         thead
                             tr
                                 th(ng-click="vm.manualApprovalDataSort( 'allReward', 'date')") {{ vm.queryPara.manualApproval.periodText | translate}}
-                                th(ng-click="vm.manualApprovalDataSort('allReward','data.count')") {{"Total_Proposal"| translate}}
-                                th(ng-click="vm.manualApprovalDataSort('allReward','data.successCount')") {{'Approved_Manual_Approval' | translate}}
-                                th(ng-click="vm.manualApprovalDataSort('allReward','data.rejectCount')") {{'Rejected_Manual_Approval' | translate}}
-                                th(ng-click="vm.manualApprovalDataSort('allReward','data.manualCount')") {{'Total_ManualApproval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('allReward','totalCount')") {{"Total_Proposal"| translate}}
+                                th(ng-click="vm.manualApprovalDataSort('allReward','successCount')") {{'Approved_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('allReward','rejectCount')") {{'Rejected_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('allReward','manualCount')") {{'Total_ManualApproval' | translate}}
                         tbody
                             tr
                                 td
@@ -184,13 +184,13 @@
                                 td
                                     span {{ v.date | date:"yyyy-MM-dd" }}
                                 td
-                                    span {{ v.data.count }}
+                                    span {{ v.totalCount }}
                                 td
-                                    span {{ v.data.successCount }}
+                                    span {{ v.successCount }}
                                 td
-                                    span {{ v.data.rejectCount }}
+                                    span {{ v.rejectCount }}
                                 td
-                                    span {{ v.data.manualCount}}
+                                    span {{ v.manualCount}}
 
         .row
             .col-md-6
@@ -206,10 +206,10 @@
                         thead
                             tr
                                 th(ng-click="vm.manualApprovalDataSort( 'miscellaneous', 'date')") {{ vm.queryPara.manualApproval.periodText | translate}}
-                                th(ng-click="vm.manualApprovalDataSort('miscellaneous','data.count')") {{"Total_Proposal"| translate}}
-                                th(ng-click="vm.manualApprovalDataSort('miscellaneous','data.successCount')") {{'Approved_Manual_Approval' | translate}}
-                                th(ng-click="vm.manualApprovalDataSort('miscellaneous','data.rejectCount')") {{'Rejected_Manual_Approval' | translate}}
-                                th(ng-click="vm.manualApprovalDataSort('miscellaneous','data.manualCount')") {{'Total_ManualApproval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('miscellaneous','totalCount')") {{"Total_Proposal"| translate}}
+                                th(ng-click="vm.manualApprovalDataSort('miscellaneous','successCount')") {{'Approved_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('miscellaneous','rejectCount')") {{'Rejected_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('miscellaneous','manualCount')") {{'Total_ManualApproval' | translate}}
                         tbody
                             tr
                                 td
@@ -226,13 +226,13 @@
                                 td
                                     span {{ v.date | date:"yyyy-MM-dd" }}
                                 td
-                                    span {{ v.data.count }}
+                                    span {{ v.totalCount }}
                                 td
-                                    span {{ v.data.successCount }}
+                                    span {{ v.successCount }}
                                 td
-                                    span {{ v.data.rejectCount }}
+                                    span {{ v.rejectCount }}
                                 td
-                                    span {{ v.data.manualCount}}
+                                    span {{ v.manualCount}}
 
         .row
             .col-md-6
@@ -247,10 +247,10 @@
                         thead
                             tr
                                 th(ng-click="vm.manualApprovalDataSort( 'all', 'date')") {{ vm.queryPara.manualApproval.periodText | translate}}
-                                th(ng-click="vm.manualApprovalDataSort('all','data.count')") {{"Total_Proposal"| translate}}
-                                th(ng-click="vm.manualApprovalDataSort('all','data.successCount')") {{'Approved_Manual_Approval' | translate}}
-                                th(ng-click="vm.manualApprovalDataSort('all','data.rejectCount')") {{'Rejected_Manual_Approval' | translate}}
-                                th(ng-click="vm.manualApprovalDataSort('all','data.manualCount')") {{'Total_ManualApproval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('all','totalCount')") {{"Total_Proposal"| translate}}
+                                th(ng-click="vm.manualApprovalDataSort('all','successCount')") {{'Approved_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('all','rejectCount')") {{'Rejected_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('all','manualCount')") {{'Total_ManualApproval' | translate}}
                         tbody
                             tr
                                 td
@@ -267,13 +267,13 @@
                                 td
                                     span {{ v.date | date:"yyyy-MM-dd" }}
                                 td
-                                    span {{ v.data.count }}
+                                    span {{ v.totalCount }}
                                 td
-                                    span {{ v.data.successCount }}
+                                    span {{ v.successCount }}
                                 td
-                                    span {{ v.data.rejectCount }}
+                                    span {{ v.rejectCount }}
                                 td
-                                    span {{ v.data.manualCount}}
+                                    span {{ v.manualCount}}
 
 
 p(ng-init="vm.loadPageFunc(vm.showPageName)")
