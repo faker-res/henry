@@ -490,7 +490,7 @@ let dbRewardPoints = {
     },
 
     applyRewardPoint: (playerObjId, rewardPointsEventObjId, inputDevice, rewardPointsConfig) => {
-        // eventData and playerRewardPoints are optional parameter
+    // eventData and playerRewardPoints are optional parameter
         let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(playerObjId);
         let getRewardPointEventProm = dbConfig.collection_rewardPointsEvent.findOne({_id: rewardPointsEventObjId}).lean();
 
@@ -1423,29 +1423,19 @@ let dbRewardPoints = {
 
             list.push(listData);
         }
-        console.log('playerData playerId::',playerId);
+
         if (playerId) {
             let playerProm = dbConfig.collection_players.findOne({playerId})
                 .populate({path: "platform", model: dbConfig.collection_platform})
                 .populate({path: "rewardPointsObjId", model: dbConfig.collection_rewardPoints})
                 .lean().then(
-                    playerData => { console.log('playerData checked::',playerData);
+                    playerData => {
                         if (!playerData) {
                             return Promise.reject({name: "DataError", message: "Invalid player data"});
                         }
                         player = playerData;
                         platform = playerData.platform;
                         platformObjId = playerData.platform._id;
-                        if (playerData.rewardPointsObjId) {
-                            console.log('rewardPointsObjId checked::',playerData.rewardPointsObjId);
-                            if (playerData.rewardPointsObjId.points) {
-                                rewardPoints = playerData.rewardPointsObjId.points;
-                            }
-                            console.log('rewardPoints checked::',rewardPoints);
-                            if (playerData.rewardPointsObjId._id) {
-                                rewardPointsObjId = playerData.rewardPointsObjId._id;
-                            }
-                        }
                     }
                 );
             firstProm = playerProm;
@@ -1463,6 +1453,26 @@ let dbRewardPoints = {
         }
 
         return firstProm.then(() => {
+            if(player && player._id && platformObjId) {
+                let rewardPointsProm = dbConfig.collection_rewardPoints.findOne({
+                    platformObjId: platformObjId,
+                    playerObjId: player._id
+                }).lean();
+
+                return Promise.all([rewardPointsProm]);
+            }
+        }).then(rewardPointsData => {
+            let rewardPointsRecord = rewardPointsData && rewardPointsData[0] ? rewardPointsData[0] : [];
+
+            if (rewardPointsRecord) {
+                if (rewardPointsRecord.points) {
+                    rewardPoints = rewardPointsRecord.points;
+                }
+                if (rewardPointsRecord._id) {
+                    rewardPointsObjId = rewardPointsRecord._id;
+                }
+            }
+
             return Q.all([dbRewardPointsLvlConfig.getRewardPointsLvlConfig(platformObjId), dbPlayerLevel.getPlayerLevel({platform: platformObjId}),
                 dbGameProvider.getPlatformProviderGroup(platformObjId), dbPlayerInfo.getPlayerRewardPointsDailyConvertedPoints(rewardPointsObjId),
                 dbPlayerInfo.getPlayerRewardPointsDailyAppliedPoints(rewardPointsObjId)]).then(
