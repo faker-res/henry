@@ -4964,7 +4964,7 @@ let dbPartner = {
                 let validPlayerTopUpAmount = config.validPlayerTopUpAmount;
                 let validPlayerConsumptionTimes = config.validPlayerConsumptionTimes;
                 let validPlayerConsumptionAmount = config.validPlayerConsumptionAmount;
-
+                let validPlayerValue = config.validPlayerValue;
 
                 if (validPlayerTopUpTimes > 0) { //only if require Valid Player to have top up record
                     return dbconfig.collection_playerTopUpRecord.aggregate(
@@ -5004,20 +5004,67 @@ let dbPartner = {
                                             consumptionAmount: {$sum: "$amount"},
                                             consumptionCount: {$sum: 1}
                                         }
-                                    }).read("secondaryPreferred").then(records => {
-                                        records = records.filter(records => records.consumptionCount >= validPlayerConsumptionTimes && records.consumptionAmount >= validPlayerConsumptionAmount);
+                                    }).read("secondaryPreferred").then(consumptionRecord => {
+                                        if (consumptionRecord) {
+                                            consumptionRecord = consumptionRecord.filter(record => record.consumptionCount >= validPlayerConsumptionTimes && record.consumptionAmount >= validPlayerConsumptionAmount);
 
-                                        dbconfig.collection_partner.findOneAndUpdate(
-                                            {
-                                                _id: partnerId,
-                                                platform: platformId,
-                                            },
-                                            {
-                                                $set: {validPlayers: records.length}
+                                            let playerListing = [];
+
+                                            consumptionRecord.forEach( record => {
+                                                playerListing.push(ObjectId(record._id));
+                                            });
+
+                                            if (validPlayerValue) { //only if require value score for Valid Player
+                                                return dbconfig.collection_players.aggregate(
+                                                    {
+                                                        $match: {
+                                                            _id: {$in: playerListing},
+                                                            platform: platformId,
+                                                        }
+                                                    },
+                                                    {
+                                                        $project: {
+                                                            name: 1,
+                                                            valueScore: 1
+                                                        }
+                                                    }).read("secondaryPreferred").then(players => {
+                                                    if (players) {
+                                                        players = players.filter(player => player.valueScore >= validPlayerValue);
+
+                                                        dbconfig.collection_partner.findOneAndUpdate(
+                                                            {
+                                                                _id: partnerId,
+                                                                platform: platformId,
+                                                            },
+                                                            {
+                                                                $set: {validPlayers: players.length}
+                                                            }
+                                                        ).exec();
+
+                                                        return {partnerId: partnerId, size: players.length}
+                                                    }
+                                                    else {
+                                                        return {partnerId: partnerId}
+                                                    }
+                                                });
                                             }
-                                        ).exec();
+                                            else {
+                                                dbconfig.collection_partner.findOneAndUpdate(
+                                                    {
+                                                        _id: partnerId,
+                                                        platform: platformId,
+                                                    },
+                                                    {
+                                                        $set: {validPlayers: consumptionRecord.length}
+                                                    }
+                                                ).exec();
 
-                                        return {partnerId: partnerId, size: records.length}
+                                                return {partnerId: partnerId, size: consumptionRecord.length}
+                                            }
+                                        }
+                                        else {
+                                            return {partnerId: partnerId}
+                                        }
                                     }
                                 )
                             }
@@ -5041,8 +5088,83 @@ let dbPartner = {
                                 consumptionAmount: {$sum: "$amount"},
                                 consumptionCount: {$sum: 1}
                             }
-                        }).read("secondaryPreferred").then(records => {
-                            records = records.filter(records => records.consumptionCount >= validPlayerConsumptionTimes && records.consumptionAmount >= validPlayerConsumptionAmount);
+                        }).read("secondaryPreferred").then(consumptionRecord => {
+                            if (consumptionRecord) {
+                                consumptionRecord = consumptionRecord.filter(record => record.consumptionCount >= validPlayerConsumptionTimes && record.consumptionAmount >= validPlayerConsumptionAmount);
+
+                                let playerList = [];
+
+                                consumptionRecord.forEach( record => {
+                                    playerList.push(ObjectId(record._id));
+                                });
+
+                                if (validPlayerValue) { //only if require value score for Valid Player
+                                    return dbconfig.collection_players.aggregate(
+                                        {
+                                            $match: {
+                                                _id: {$in: playerList},
+                                                platform: platformId,
+                                            }
+                                        },
+                                        {
+                                            $project: {
+                                                name: 1,
+                                                valueScore: 1
+                                            }
+                                        }).read("secondaryPreferred").then(players => {
+                                        if (players) {
+                                            players = players.filter(player => player.valueScore >= validPlayerValue);
+
+                                            dbconfig.collection_partner.findOneAndUpdate(
+                                                {
+                                                    _id: partnerId,
+                                                    platform: platformId,
+                                                },
+                                                {
+                                                    $set: {validPlayers: players.length}
+                                                }
+                                            ).exec();
+
+                                            return {partnerId: partnerId, size: players.length}
+                                        }
+                                        else {
+                                            return {partnerId: partnerId}
+                                        }
+                                    });
+                                }
+                                else {
+                                    dbconfig.collection_partner.findOneAndUpdate(
+                                        {
+                                            _id: partnerId,
+                                            platform: platformId,
+                                        },
+                                        {
+                                            $set: {validPlayers: consumptionRecord.length}
+                                        }
+                                    ).exec();
+
+                                    return {partnerId: partnerId, size: consumptionRecord.length}
+                                }
+                            }
+                        }
+                    )
+                }
+                else if (validPlayerValue) { //only if require value score for Valid Player
+                    return dbconfig.collection_players.aggregate(
+                        {
+                            $match: {
+                                _id: {$in: playerIdList},
+                                platform: platformId,
+                            }
+                        },
+                        {
+                            $project: {
+                                name: 1,
+                                valueScore: 1
+                            }
+                        }).read("secondaryPreferred").then(players => {
+                        if (players) {
+                            players = players.filter(player => player.valueScore >= validPlayerValue);
 
                             dbconfig.collection_partner.findOneAndUpdate(
                                 {
@@ -5050,13 +5172,16 @@ let dbPartner = {
                                     platform: platformId,
                                 },
                                 {
-                                    $set: {validPlayers: records.length}
+                                    $set: {validPlayers: players.length}
                                 }
                             ).exec();
 
-                            return {partnerId: partnerId, size: records.length}
+                            return {partnerId: partnerId, size: players.length}
                         }
-                    )
+                        else {
+                            return {partnerId: partnerId}
+                        }
+                    });
                 }
                 else {
                     return {partnerId: partnerId}
