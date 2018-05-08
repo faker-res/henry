@@ -9068,7 +9068,7 @@ let dbPlayerInfo = {
                         let creditProm = Q.resolve();
 
                         if (player.lastPlayedProvider && player.lastPlayedProvider.status == constGameStatus.ENABLE) {
-                            creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(player.playerId, player.platform._id, player.lastPlayedProvider.providerId, -1, null, true);
+                            creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(player.playerId, player.platform._id, player.lastPlayedProvider.providerId, -1, null, true).catch(errorUtils.reportError);
                         }
 
                         return creditProm.then(
