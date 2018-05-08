@@ -1896,8 +1896,14 @@ var dbMigration = {
                             if( resData && resData[0] && resData[0].length > 0 ){
                                 playerData.forbidProviders = resData[0].map(provider => provider._id);
                             }
+                            else{
+                                delete playerData.forbidProviders;
+                            }
                             if( resData && resData[1] && resData[1].length > 0 ) {
                                 playerData.forbidRewardEvents = resData[1].map(event => event._id);
+                            }
+                            else{
+                                delete playerData.forbidRewardEvents;
                             }
                             if( resData && resData[2] && resData[2].length > 0 ) {
                                 playerData.credibilityRemarks = resData[2].map(credit => credit._id);
