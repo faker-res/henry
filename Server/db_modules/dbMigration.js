@@ -1997,7 +1997,7 @@ var dbMigration = {
                         let profile = {name: player.name, password: player.password};
                         let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
 
-                        resolve({
+                        return Q.resolve({
                             playerId: player.playerId,
                             token: token
                         });
