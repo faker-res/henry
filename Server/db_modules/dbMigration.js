@@ -641,32 +641,32 @@ var dbMigration = {
                     return Q.reject({name: "DataError", message: "Can not find platform"});
                 }
             }
-        ).then(
-            //find bank name id based on code
-            partnerData => {
-                if (data.bankName != null) {
-                    return pmsAPI.bankcard_getBankTypeList({}).then(
-                        list => {
-                            if (list && list.data && list.data.length > 0) {
-                                var type = list.data.find(bankType => bankType.bankTypeId == data.bankName);
-                                if (type) {
-                                    data.bankName = type.id;
-                                    return data;
-                                }
-                                else {
-                                    return Q.reject({name: "DataError", message: "Can not find bank type id"});
-                                }
-                            }
-                            else {
-                                return Q.reject({name: "DataError", message: "Can not find bank type list"});
-                            }
-                        }
-                    );
-                }
-                else {
-                    return partnerData;
-                }
-            }
+        // ).then(
+        //     //find bank name id based on code
+        //     partnerData => {
+        //         if (data.bankName != null) {
+        //             return pmsAPI.bankcard_getBankTypeList({}).then(
+        //                 list => {
+        //                     if (list && list.data && list.data.length > 0) {
+        //                         var type = list.data.find(bankType => bankType.bankTypeId == data.bankName);
+        //                         if (type) {
+        //                             data.bankName = type.id;
+        //                             return data;
+        //                         }
+        //                         else {
+        //                             return Q.reject({name: "DataError", message: "Can not find bank type id"});
+        //                         }
+        //                     }
+        //                     else {
+        //                         return Q.reject({name: "DataError", message: "Can not find bank type list"});
+        //                     }
+        //                 }
+        //             );
+        //         }
+        //         else {
+        //             return partnerData;
+        //         }
+        //     }
         ).then(
             partnerData => {
                 if (partnerData) {
@@ -680,6 +680,39 @@ var dbMigration = {
                 else {
                     return Q.reject({name: "DataError", message: "Invalid partner data"});
                 }
+            }
+        ).then(
+            partnerData => {
+                console.log(partnerData);
+                if( partnerData && partnerData._id && data.players && data.players.length > 0 ){
+                    let proms = [];
+                    let remark = "未添加玩家：";
+                    let bUpdate = false;
+                    data.players.forEach(
+                        name => {
+                            let prom = dbconfig.collection_players.findOne({name: name, platform: partnerData.platform}).then(
+                                playerData => {
+                                    if( playerData ){
+                                        return dbconfig.collection_players.findOneAndUpdate({_id: playerData._id, platform: playerData.platform}, {partner: partnerData._id});
+                                    }
+                                    else{
+                                        remark += name + ", ";
+                                        bUpdate = true;
+                                    }
+                                }
+                            );
+                            proms.push(prom);
+                        }
+                    );
+                    Q.all(proms).then(
+                        res => {
+                            if( bUpdate ){
+                                return dbconfig.collection_partner.findOneAndUpdate({_id: partnerData._id, platform: partnerData.platform}, {remarks: remark});
+                            }
+                        }
+                    ).catch(error => {console.error(error)} );
+                }
+                return partnerData;
             }
         ).then(
             res => dbMigration.resHandler(data, "partner", "createPartner"),
