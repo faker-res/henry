@@ -295,7 +295,7 @@ p
                                                     .col-sm-4(style='white-space: nowrap;')
                                                         label {{"REMARK" | translate}}
                                                     .col-sm-8
-                                                        text(style='height:inherit') {{vm.selectedSinglePartner.remark || 'NONE' | translate}}
+                                                        text(style='height:inherit') {{vm.selectedSinglePartner.remarks || 'NONE' | translate}}
                                         td.text-left
                                             button.btn.btn-primary.common-button-sm(ng-click="vm.openEditPartnerDialog('basicInfo');", ng-if="checkViewPermission('Platform', 'Partner', 'Edit')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner") {{"EDIT" | translate}}
                                             br

@@ -361,6 +361,10 @@ let dbPlayerReward = {
             }
             else {
                 let applicableParamIndex = -1;
+
+                console.log('isApplicableRewardCondition', isApplicableRewardCondition);
+                console.log('lastTopUp', lastTopUp);
+
                 if (isApplicableRewardCondition && lastTopUp && lastTopUp.amount) {
                     for (let i = 0; i < paramOfLevel.length; i++) {
                         let selectedParam = paramOfLevel[i];
@@ -370,6 +374,9 @@ let dbPlayerReward = {
                         }
                     }
                 }
+
+                console.log('applicableParamIndex', applicableParamIndex);
+                console.log('paramOfLevel', paramOfLevel);
 
                 for (let i = 0; i < paramOfLevel.length; i++) {
                     let selectedParam = paramOfLevel[i];

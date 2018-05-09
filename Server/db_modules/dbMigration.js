@@ -25,6 +25,8 @@ var moment = require('moment-timezone');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const constSystemParam = require("../const/constSystemParam");
+const md5 = require('md5');
+const dbUtility = require('./../modules/dbutility');
 
 var dbMigration = {
 
@@ -639,32 +641,32 @@ var dbMigration = {
                     return Q.reject({name: "DataError", message: "Can not find platform"});
                 }
             }
-        ).then(
-            //find bank name id based on code
-            partnerData => {
-                if (data.bankName != null) {
-                    return pmsAPI.bankcard_getBankTypeList({}).then(
-                        list => {
-                            if (list && list.data && list.data.length > 0) {
-                                var type = list.data.find(bankType => bankType.bankTypeId == data.bankName);
-                                if (type) {
-                                    data.bankName = type.id;
-                                    return data;
-                                }
-                                else {
-                                    return Q.reject({name: "DataError", message: "Can not find bank type id"});
-                                }
-                            }
-                            else {
-                                return Q.reject({name: "DataError", message: "Can not find bank type list"});
-                            }
-                        }
-                    );
-                }
-                else {
-                    return partnerData;
-                }
-            }
+        // ).then(
+        //     //find bank name id based on code
+        //     partnerData => {
+        //         if (data.bankName != null) {
+        //             return pmsAPI.bankcard_getBankTypeList({}).then(
+        //                 list => {
+        //                     if (list && list.data && list.data.length > 0) {
+        //                         var type = list.data.find(bankType => bankType.bankTypeId == data.bankName);
+        //                         if (type) {
+        //                             data.bankName = type.id;
+        //                             return data;
+        //                         }
+        //                         else {
+        //                             return Q.reject({name: "DataError", message: "Can not find bank type id"});
+        //                         }
+        //                     }
+        //                     else {
+        //                         return Q.reject({name: "DataError", message: "Can not find bank type list"});
+        //                     }
+        //                 }
+        //             );
+        //         }
+        //         else {
+        //             return partnerData;
+        //         }
+        //     }
         ).then(
             partnerData => {
                 if (partnerData) {
@@ -678,6 +680,38 @@ var dbMigration = {
                 else {
                     return Q.reject({name: "DataError", message: "Invalid partner data"});
                 }
+            }
+        ).then(
+            partnerData => {
+                if( partnerData && partnerData._id && data.players && data.players.length > 0 ){
+                    let proms = [];
+                    let remark = "未添加玩家：";
+                    let bUpdate = false;
+                    data.players.forEach(
+                        name => {
+                            let prom = dbconfig.collection_players.findOne({name: name, platform: partnerData.platform}).then(
+                                playerData => {
+                                    if( playerData ){
+                                        return dbconfig.collection_players.findOneAndUpdate({_id: playerData._id, platform: playerData.platform}, {partner: partnerData._id});
+                                    }
+                                    else{
+                                        remark += name + ", ";
+                                        bUpdate = true;
+                                    }
+                                }
+                            );
+                            proms.push(prom);
+                        }
+                    );
+                    Q.all(proms).then(
+                        res => {
+                            if( bUpdate ){
+                                return dbconfig.collection_partner.findOneAndUpdate({_id: partnerData._id, platform: partnerData.platform}, {remarks: remark});
+                            }
+                        }
+                    ).catch(error => {console.error(error)} );
+                }
+                return partnerData;
             }
         ).then(
             res => dbMigration.resHandler(data, "partner", "createPartner"),
@@ -1989,21 +2023,37 @@ var dbMigration = {
                     return Promise.reject({message: "Player not found"}); // will go to catch and handle it anyway
                 }
 
-                return new Promise((resolve, reject) => {
-                    bcrypt.compare(String(password), String(player.password), function (err, isMatch) {
-                        if (err || !isMatch) {
-                            return reject({message: "Password changed"});
-                        }
-
+                if (dbUtility.isMd5(player.password)) {
+                    if (md5(password) == player.password) {
                         let profile = {name: player.name, password: player.password};
                         let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
 
-                        resolve({
+                        return Q.resolve({
                             playerId: player.playerId,
                             token: token
                         });
+                    }
+                    else {
+                        return Q.reject({message: "Password changed"});
+                    }
+                }
+                else{
+                    return new Promise((resolve, reject) => {
+                        bcrypt.compare(String(password), String(player.password), function (err, isMatch) {
+                            if (err || !isMatch) {
+                                return reject({message: "Password changed"});
+                            }
+
+                            let profile = {name: player.name, password: player.password};
+                            let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+                            resolve({
+                                playerId: player.playerId,
+                                token: token
+                            });
+                        });
                     });
-                });
+                }
             }
         );
     }
