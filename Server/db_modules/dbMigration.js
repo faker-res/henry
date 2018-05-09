@@ -25,7 +25,6 @@ var moment = require('moment-timezone');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const constSystemParam = require("../const/constSystemParam");
-const dbUtil = require('./../modules/dbutility');
 const md5 = require('md5');
 const dbUtility = require('./../modules/dbutility');
 
