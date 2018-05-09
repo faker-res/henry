@@ -25,6 +25,9 @@ var moment = require('moment-timezone');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const constSystemParam = require("../const/constSystemParam");
+const dbUtil = require('./../modules/dbutility');
+const md5 = require('md5');
+const dbUtility = require('./../modules/dbutility');
 
 var dbMigration = {
 
@@ -1989,12 +1992,8 @@ var dbMigration = {
                     return Promise.reject({message: "Player not found"}); // will go to catch and handle it anyway
                 }
 
-                return new Promise((resolve, reject) => {
-                    bcrypt.compare(String(password), String(player.password), function (err, isMatch) {
-                        if (err || !isMatch) {
-                            return reject({message: "Password changed"});
-                        }
-
+                if (dbUtility.isMd5(player.password)) {
+                    if (md5(password) == player.password) {
                         let profile = {name: player.name, password: player.password};
                         let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
 
@@ -2002,8 +2001,28 @@ var dbMigration = {
                             playerId: player.playerId,
                             token: token
                         });
+                    }
+                    else {
+                        return Q.reject({message: "Password changed"});
+                    }
+                }
+                else{
+                    return new Promise((resolve, reject) => {
+                        bcrypt.compare(String(password), String(player.password), function (err, isMatch) {
+                            if (err || !isMatch) {
+                                return reject({message: "Password changed"});
+                            }
+
+                            let profile = {name: player.name, password: player.password};
+                            let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+                            resolve({
+                                playerId: player.playerId,
+                                token: token
+                            });
+                        });
                     });
-                });
+                }
             }
         );
     }
