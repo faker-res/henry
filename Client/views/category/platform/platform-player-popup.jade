@@ -173,14 +173,14 @@
                                                     .col-sm-4(style='white-space: nowrap;')
                                                         label {{"BANK_ACCOUNT_PROVINCE" | translate}}
                                                     .col-sm-8
-                                                        text {{vm.showProvinceStr ? vm.showProvinceStr : 'Unknown' | translate}}
+                                                        text {{vm.showProvinceStr ? vm.showProvinceStr : (vm.selectedSinglePlayer.bankAccountProvince || 'Unknown') | translate}}
                                         .row
                                             .col-md-4
                                                 .row
                                                     .col-sm-4(style='white-space: nowrap;')
                                                         label {{"BANK_ACCOUNT_CITY" | translate}}
                                                     .col-sm-8
-                                                        text {{vm.showCityStr ? vm.showCityStr : 'Unknown' | translate}}
+                                                        text {{vm.showCityStr ? vm.showCityStr : (vm.selectedSinglePlayer.bankAccountCity || 'Unknown') | translate}}
                                             .col-md-4
                                                 .row
                                                     .col-sm-4(style='white-space: nowrap;')

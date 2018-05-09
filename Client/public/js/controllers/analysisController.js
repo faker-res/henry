@@ -1067,6 +1067,7 @@ define(['js/app'], function (myApp) {
                         let updatePartnerProposalTypeList = [];
                         let rewardProposalTypeList = [];
                         let othersProposalTypeList = [];
+                        let allProposalTypeList = [];
 
 
                         res.data.forEach ( inData => {
@@ -1095,11 +1096,16 @@ define(['js/app'], function (myApp) {
                             }
                         })
 
+                        res.data.forEach( inData => {
+                            allProposalTypeList.push(inData._id);
+                        })
+
                         sendData.playerBonus = playerBonusProposalTypeList;
                         sendData.updatePlayerList = updatePlayerProposalTypeList;
                         sendData.updatePartnerList = updatePartnerProposalTypeList;
                         sendData.reward = rewardProposalTypeList;
                         sendData.others = othersProposalTypeList;
+                        sendData.all = allProposalTypeList;
 
                         socketService.$socket($scope.AppSocket, 'getManualApprovalRecords', sendData, function (data) {
 
