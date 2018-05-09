@@ -683,7 +683,6 @@ var dbMigration = {
             }
         ).then(
             partnerData => {
-                console.log(partnerData);
                 if( partnerData && partnerData._id && data.players && data.players.length > 0 ){
                     let proms = [];
                     let remark = "未添加玩家：";
