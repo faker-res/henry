@@ -1581,9 +1581,9 @@ let dbPlayerInfo = {
                 apiData.name = apiData.name.replace(platformData.prefix, "");
                 delete apiData.platform;
                 var a, b, c;
-                a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: apiData.bankAccountProvince}) : true;
-                b = apiData.bankAccountCity ? pmsAPI.foundation_getCity({cityId: apiData.bankAccountCity}) : true;
-                c = apiData.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: apiData.bankAccountDistrict}) : true;
+                a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: apiData.bankAccountProvince, queryId: serverInstance.getQueryId()}) : true;
+                b = apiData.bankAccountCity ? pmsAPI.foundation_getCity({cityId: apiData.bankAccountCity, queryId: serverInstance.getQueryId()}) : true;
+                c = apiData.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: apiData.bankAccountDistrict, queryId: serverInstance.getQueryId()}) : true;
                 var creditProm = dbPlayerInfo.getPlayerCredit(apiData.playerId);
                 let convertedRewardPointsProm = dbPlayerInfo.getPlayerRewardPointsDailyConvertedPoints(apiData.rewardPointsObjId);
                 let appliedRewardPointsProm = dbPlayerInfo.getPlayerRewardPointsDailyAppliedPoints(apiData.rewardPointsObjId);
