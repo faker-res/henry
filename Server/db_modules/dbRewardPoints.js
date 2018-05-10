@@ -745,6 +745,9 @@ let dbRewardPoints = {
             );
             return Q.all(proms)
         }
+        else{
+            return Promise.reject(false)
+        }
     },
 
     getLoginRewardPoints: function (playerId, platformId) {
