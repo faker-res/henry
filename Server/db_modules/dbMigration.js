@@ -674,7 +674,7 @@ var dbMigration = {
                         return dbPartner.createPartnerWithParent(partnerData);
                     }
                     else {
-                        return dbPartner.createPartner(partnerData);
+                        return dbPartner.createPartner(partnerData, true);
                     }
                 }
                 else {

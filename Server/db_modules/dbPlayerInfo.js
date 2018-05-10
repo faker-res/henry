@@ -9541,7 +9541,8 @@ let dbPlayerInfo = {
                         return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, bSuccess, proposalData);
                     }
                     else {
-                        SMSSender.sendByPlayerId(data.data.playerId, constPlayerSMSSetting.APPLY_BONUS);
+                        proposalExecutor.sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
+                        // SMSSender.sendByPlayerId(data.data.playerId, constPlayerSMSSetting.APPLY_BONUS);
                         // return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, bSuccess, proposalData);
                     }
                 }

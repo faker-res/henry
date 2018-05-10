@@ -219,7 +219,9 @@ var dbPlayerRegistrationIntentRecord = {
         return dbconfig.collection_players.findOne({playerId:query.playerId,platform:query.platform})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).then(
                 (playerData) => {
-                    updateQuery.data.playerLevelName = playerData.playerLevel.name;
+                    if(playerData && playerData.playerLevel){
+                        updateQuery.data.playerLevelName = playerData.playerLevel.name;
+                    }
                     if (query && query._id && query.createTime) {
                         proposalProm = dbconfig.collection_proposal.findOneAndUpdate(queryObj, updateQuery, {new: true});
                         if(updateData && updateData != "Fail"){
