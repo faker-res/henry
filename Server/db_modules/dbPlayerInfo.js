@@ -1004,7 +1004,7 @@ let dbPlayerInfo = {
                     if (fieldName == 'lastLoginIp') {
                         similarPlayerDataContent = searchVal;
                     } else {
-                        similarPlayerDataContent = func ? func(result[i][fieldName]) : result[i][fieldName];
+                        similarPlayerDataContent = func ? func(result[i][fieldName]) : results[i][fieldName];
                     }
                     let similarPlayerData = {
                         playerObjId: results[i]._id,
@@ -9793,7 +9793,7 @@ let dbPlayerInfo = {
     authenticate: function (playerId, token, playerIp, conn) {
         var deferred = Q.defer();
         jwt.verify(token, constSystemParam.API_AUTH_SECRET_KEY, function (err, decoded) {
-            if (err) {
+            if (err || !decoded) {
                 // Jwt token error
                 deferred.reject({name: "DataError", message: "Token is not authenticated"});
             }
@@ -9804,6 +9804,10 @@ let dbPlayerInfo = {
                 }).then(
                     playerData => {
                         if (playerData) {
+                            if( decoded && decoded.name != playerData.name ){
+                                deferred.reject({name: "DataError", message: "Player id does not match!"});
+                                return;
+                            }
                             // if (playerData.lastLoginIp == playerIp) {
                             if (playerData.isTestPlayer && isDemoPlayerExpire(playerData, playerData.platform.demoPlayerValidDays)) {
                                 deferred.reject({
@@ -9825,7 +9829,7 @@ let dbPlayerInfo = {
                             // }
                         }
                         else {
-                            deferred.reject({name: "DataError", message: "Can't find player"});
+                            deferred.reject({name: "DataError", message: "Can not find player"});
                         }
                     }
                 );
