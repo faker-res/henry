@@ -3908,8 +3908,6 @@ let dbPlayerReward = {
             }
         }
 
-        console.log('topupMatchQuery', topupMatchQuery);
-
         let topupInPeriodProm = dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
         let eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
 
@@ -4361,9 +4359,6 @@ let dbPlayerReward = {
 
         return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
             data => {
-
-                console.log('topupInPeriodData', data[0]);
-
                 let topupInPeriodData = data[0];
                 let eventInPeriodData = data[1];
                 let rewardSpecificData = data[2];
