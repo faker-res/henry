@@ -177,6 +177,8 @@ var proposalExecutor = {
         }
     },
 
+    sendMessageToPlayer: sendMessageToPlayer,
+
         init: function () {
             this.executions.executeUpdatePlayerInfo.des = "Update player information";
             this.executions.executeUpdatePlayerCredit.des = "Update player credit";
@@ -1838,7 +1840,7 @@ var proposalExecutor = {
                         return pmsAPI.bonus_applyBonus(message).then(
                             bonusData => {
                                 if (bonusData) {
-                                    sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
+                                    // sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
                                     increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
                                     return bonusData;
                                 }
@@ -3778,6 +3780,48 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
     );
 }
 
+function sendMessageToPlayer (proposalData,type,metaDataObj) {
+    //type that need to add 'Success' status
+    let needSendMessageRewardTypes = [constRewardType.PLAYER_PROMO_CODE_REWARD, constRewardType.PLAYER_CONSUMPTION_RETURN, constRewardType.PLAYER_LIMITED_OFFERS_REWARD,constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
+        constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
+        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,constRewardType.PLAYER_LEVEL_UP
+    ];
+
+    // type reference to constMessageType or constMessageTypeParam.name
+    let messageType = type;
+    if(needSendMessageRewardTypes.indexOf(type)!==-1){
+        messageType = type + 'Success';
+    }
+
+    let providerProm = Promise.resolve();
+    if (messageType == messageType.PLAYER_LEVEL_UP_SUCCESS && proposalData && proposalData.data && proposalData.data.providerGroup) {
+        providerProm = dbconfig.collection_gameProviderGroup.findOne({
+            _id:ObjectId(proposalData.data.providerGroup)
+        });
+    }
+    providerProm.then(
+        providerData => {
+            if (messageType == constMessageType.PLAYER_LEVEL_UP_SUCCESS) {
+                if (providerData && providerData.name) {
+                    proposalData.data.providerGroup = providerData.name;
+                } else {
+                    proposalData.data.providerGroup = '自由额度';
+                }
+                if (proposalData && proposalData.data && !proposalData.data.requiredUnlockAmount) {
+                    proposalData.data.requiredUnlockAmount = 0;
+                }
+            }
+
+            SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, messageType, proposalData);
+            // Currently can't see it's dependable when provider group is off, and maybe causing manual reward task can't be proporly executed
+            // Changing into async function
+            //dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).catch(errorUtils.reportError);
+            //send message if there is any template created for this reward
+            return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, messageType, metaDataObj).catch(err=>{console.error(err)});
+        })
+
+}
+
 function disablePlayerWithdrawal(playerObjId, platformObjId, proposalId) {
     return dbconfig.collection_players.findOneAndUpdate({
         _id: playerObjId,
@@ -3810,47 +3854,6 @@ function disablePlayerWithdrawal(playerObjId, platformObjId, proposalId) {
     )
 }
 
-function sendMessageToPlayer (proposalData,type,metaDataObj) {
-    //type that need to add 'Success' status
-    let needSendMessageRewardTypes = [constRewardType.PLAYER_PROMO_CODE_REWARD, constRewardType.PLAYER_CONSUMPTION_RETURN, constRewardType.PLAYER_LIMITED_OFFERS_REWARD,constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
-        constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
-        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,constRewardType.PLAYER_LEVEL_UP
-    ];
-
-    // type reference to constMessageType or constMessageTypeParam.name
-    let messageType = type;
-    if(needSendMessageRewardTypes.indexOf(type)!==-1){
-         messageType = type + 'Success';
-    }
-
-    let providerProm = Promise.resolve();
-    if (messageType == messageType.PLAYER_LEVEL_UP_SUCCESS && proposalData && proposalData.data && proposalData.data.providerGroup) {
-        providerProm = dbconfig.collection_gameProviderGroup.findOne({
-            _id:ObjectId(proposalData.data.providerGroup)
-        });
-    }
-    providerProm.then(
-        providerData => {
-            if (messageType == constMessageType.PLAYER_LEVEL_UP_SUCCESS) {
-                if (providerData && providerData.name) {
-                    proposalData.data.providerGroup = providerData.name;
-                } else {
-                    proposalData.data.providerGroup = '自由额度';
-                }
-                if (proposalData && proposalData.data && !proposalData.data.requiredUnlockAmount) {
-                    proposalData.data.requiredUnlockAmount = 0;
-                }
-            }
-
-            SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, messageType, proposalData);
-            // Currently can't see it's dependable when provider group is off, and maybe causing manual reward task can't be proporly executed
-            // Changing into async function
-            //dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).catch(errorUtils.reportError);
-            //send message if there is any template created for this reward
-            return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, messageType, metaDataObj).catch(err=>{console.error(err)});
-        })
-
-}
 function createRewardLogForProposal(rewardTypeName, proposalData) {
     rewardTypeName = proposalData.type.name;
 

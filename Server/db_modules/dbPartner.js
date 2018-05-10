@@ -128,7 +128,7 @@ let dbPartner = {
      * Create a new partner
      * @param {json} partnerdata - The data of the partner user. Refer to Partner schema.
      */
-    createPartner: function (partnerdata) {
+    createPartner: function (partnerdata, bFromBI) {
         let deferred = Q.defer();
 
         let platformData = null;
@@ -211,7 +211,7 @@ let dbPartner = {
             }
         ).then(
             function (data) {
-                if (data.isPhoneNumberValid) {
+                if (data.isPhoneNumberValid || bFromBI) {
                     return dbPartner.isPartnerNameValidToRegister({
                         partnerName: partnerdata.partnerName,
                         realName: partnerdata.realName,
