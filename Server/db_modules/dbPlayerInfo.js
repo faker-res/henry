@@ -14860,6 +14860,7 @@ let dbPlayerInfo = {
             }
         ).then(
             rewardTaskGroup => {
+                returnData.localLockedCredit = 0;
                 if (rewardTaskGroup && rewardTaskGroup.length) {
                     let isFound = false;
                     for (let i = 0; i < rewardTaskGroup.length; i++) {
@@ -14876,8 +14877,6 @@ let dbPlayerInfo = {
                             break;
                         }
                     }
-                } else {
-                    returnData.localLockedCredit = 0;
                 }
                 returnData.totalAvailCredit = returnData.localLockedCredit + returnData.localFreeCredit;
                 return cpmsAPI.player_queryCredit({
