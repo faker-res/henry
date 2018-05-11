@@ -27,6 +27,7 @@ const bcrypt = require('bcrypt');
 const constSystemParam = require("../const/constSystemParam");
 const md5 = require('md5');
 const dbUtility = require('./../modules/dbutility');
+const mobileDetect = require('mobile-detect');
 
 var dbMigration = {
 
@@ -2007,7 +2008,8 @@ var dbMigration = {
         // );
     },
 
-    loginBIPlayer: function (platformId, name, password) {
+    loginBIPlayer: function (platformId, name, password, loginIp, userAgent) {
+        let playerObj = null;
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if (platformData) {
@@ -2022,7 +2024,7 @@ var dbMigration = {
                 if (!player) {
                     return Promise.reject({message: "Player not found"}); // will go to catch and handle it anyway
                 }
-
+                playerObj = player;
                 if (dbUtility.isMd5(player.password)) {
                     if (md5(password) == player.password) {
                         let profile = {name: player.name, password: player.password};
@@ -2054,6 +2056,51 @@ var dbMigration = {
                         });
                     });
                 }
+            }
+        ).then(
+            data => {
+                if(data && data.playerId){
+                    dbconfig.collection_players.findOneAndUpdate({_id: playerObj._id, platform: playerObj.platform}, {lastLoginIp: loginIp}, {new: true}).then(
+                        playerData => {
+                            //add player login record
+                            let uaObj = {};
+                            if(userAgent){
+                                var md = new mobileDetect(userAgent);
+                                uaObj = {
+                                    browser: userAgent.browser.name || '',
+                                    device: userAgent.device.name || (mobileDetect && md.mobile()) ? md.mobile() : 'PC',
+                                    os: userAgent.os.name || '',
+                                };
+                            }
+                            let geo = geoip.lookup(playerData.lastLoginIp);
+                            let geoInfo = {};
+                            if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                                geoInfo = {
+                                    country: geo ? geo.country : null,
+                                    city: geo ? geo.city : null,
+                                    longitude: geo && geo.ll ? geo.ll[1] : null,
+                                    latitude: geo && geo.ll ? geo.ll[0] : null
+                                }
+                            }
+                            let recordData = {
+                                player: playerData._id,
+                                platform: playerData.platform,
+                                loginIP: playerData.lastLoginIp,
+                                clientDomain: playerData.clientDomain ? playerData.clientDomain : "",
+                                userAgent: uaObj,
+                                isRealPlayer: playerData.isRealPlayer,
+                                isTestPlayer: playerData.isTestPlayer,
+                                partner: playerData.partner ? playerData.partner : null,
+                                loginTime: new Date()
+                            };
+
+                            Object.assign(recordData, geoInfo);
+                            let record = new dbconfig.collection_playerLoginRecord(recordData);
+                            record.save().then().catch();
+                        }
+                    ).then().catch();
+                }
+                return data;
             }
         );
     }
