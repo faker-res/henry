@@ -2059,7 +2059,7 @@ var dbMigration = {
             }
         ).then(
             data => {
-                if(data && data.playerId){
+                if(data && data.playerId && loginIp){
                     dbconfig.collection_players.findOneAndUpdate({_id: playerObj._id, platform: playerObj.platform}, {lastLoginIp: loginIp}, {new: true}).then(
                         playerData => {
                             //add player login record
