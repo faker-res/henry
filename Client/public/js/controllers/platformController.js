@@ -17266,6 +17266,7 @@ define(['js/app'], function (myApp) {
                         selectedPartner._id
                     );
                     vm.commissionRateConfig = Object.assign({}, vm.srcCommissionRateConfig);
+                    vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
 
                     let option = {
                         $scope: $scope,
@@ -19545,9 +19546,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.refreshSPicker = () => {
-                $timeout(function () {
-                    $('.spicker').selectpicker('refresh');
-                }, 0);
+                $('.spicker').selectpicker('refresh');
+                // $timeout(function () {
+                //     $('.spicker').selectpicker('refresh');
+                // }, 0);
             };
 
             vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
@@ -20009,7 +20011,7 @@ define(['js/app'], function (myApp) {
                     case 'providerGroup':
                         vm.availableGameProviders = vm.allGameProvider;
                         vm.providerGroupConfig = {showWarning: false};
-                        vm.getPlatformProviderGroup();
+                        $scope.$evalAsync(vm.getPlatformProviderGroup);
                         break;
                     case 'smsGroup':
                         vm.deletingSmsGroup = null;
@@ -24504,6 +24506,8 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
                     $scope.$evalAsync(() => {
+                        vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id);
+                        vm.getCommissionRateGameProviderGroup();
                         vm.getPlatformPartnersData();
                         vm.commissionRateEditRow(field, false);
                     })
@@ -24876,16 +24880,21 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPlatformProviderGroup = () => {
-                return $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
-                    vm.gameProviderGroup = data.data;
-                    vm.gameProviderGroupNames = {};
-                    for (let i = 0; i < vm.gameProviderGroup.length; i++) {
-                        let providerGroup = vm.gameProviderGroup[i];
-                        vm.gameProviderGroupNames[providerGroup._id] = providerGroup.name;
+                return $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(
+                    data => {
+                        if (data) {
+                            $scope.$evalAsync(() => {
+                                vm.gameProviderGroup = data.data;
+                                vm.gameProviderGroupNames = {};
+                                for (let i = 0; i < vm.gameProviderGroup.length; i++) {
+                                    let providerGroup = vm.gameProviderGroup[i];
+                                    vm.gameProviderGroupNames[providerGroup._id] = providerGroup.name;
+                                }
+                                vm.endLoadWeekDay();
+                            });
+                        }
                     }
-
-                    $scope.safeApply();
-                });
+                );
             };
 
             vm.submitAddPlayerLvl = function () {

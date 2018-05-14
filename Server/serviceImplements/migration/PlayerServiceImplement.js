@@ -175,6 +175,12 @@ var PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.importBIPlayer, [data], isValidData);
     };
 
+    this.loginBIPlayer.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.name && data.platformId && data.password);
+        var uaString = conn.upgradeReq.headers['user-agent'];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.loginBIPlayer, [data.platformId, data.name, data.password, data.loginIp, uaString], isValidData);
+    };
+
 };
 
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);

@@ -76,56 +76,57 @@ var proposalExecutor = {
             return types;
         },
 
-        approveOrRejectProposal: function (executionType, rejectionType, bApprove, proposalData, rejectIfMissing) {
-            const isNewFunc =
-                executionType === 'executeFixPlayerCreditTransfer'
-                || executionType === 'executeUpdatePlayerCredit';
+    approveOrRejectProposal: function (executionType, rejectionType, bApprove, proposalData, rejectIfMissing) {
+        const isNewFunc =
+            executionType === 'executeFixPlayerCreditTransfer'
+            || executionType === 'executeUpdatePlayerCredit'
+            || executionType === 'executePlayerConsumptionReturn';
 
-            if (isNewFunc) {
-                return proposalExecutor.approveOrRejectProposal2(executionType, rejectionType, bApprove, proposalData, rejectIfMissing);
-            } else {
-                "use strict";
-                if (bApprove) {
-                    if (proposalExecutor.executions[executionType]) {
-                        const deferred = Q.defer();
-                        proposalExecutor.executions[executionType](proposalData, deferred);
-                        return deferred.promise.then(
-                            responseData => {
-                                return dbconfig.collection_proposal.findOneAndUpdate({
-                                    _id: proposalData._id,
-                                    createTime: proposalData.createTime
-                                }, {
-                                    settleTime: new Date()
-                                }).then(
-                                    res => {
-                                        if (proposalData.mainType === 'Reward' && executionType != "executeManualUnlockPlayerReward") {
-                                            return createRewardLogForProposal("GET_FROM_PROPOSAL", proposalData).then(
-                                                () => responseData
-                                            );
-                                        } else {
-                                            return responseData;
-                                        }
+        if (isNewFunc) {
+            return proposalExecutor.approveOrRejectProposal2(executionType, rejectionType, bApprove, proposalData, rejectIfMissing);
+        } else {
+            "use strict";
+            if (bApprove) {
+                if (proposalExecutor.executions[executionType]) {
+                    const deferred = Q.defer();
+                    proposalExecutor.executions[executionType](proposalData, deferred);
+                    return deferred.promise.then(
+                        responseData => {
+                            return dbconfig.collection_proposal.findOneAndUpdate({
+                                _id: proposalData._id,
+                                createTime: proposalData.createTime
+                            }, {
+                                settleTime: new Date()
+                            }).then(
+                                res => {
+                                    if (proposalData.mainType === 'Reward' && executionType != "executeManualUnlockPlayerReward") {
+                                        return createRewardLogForProposal("GET_FROM_PROPOSAL", proposalData).then(
+                                            () => responseData
+                                        );
+                                    } else {
+                                        return responseData;
                                     }
-                                );
-                            }
-                        );
-                    }
-                    else {
-                        return rejectIfMissing ? Q.reject({name: "DBError", message: "Incorrect execution type"}) : Q.resolve();
-                    }
+                                }
+                            );
+                        }
+                    );
                 }
                 else {
-                    if (proposalExecutor.rejections[rejectionType]) {
-                        const deferred = Q.defer();
-                        proposalExecutor.rejections[rejectionType](proposalData, deferred);
-                        return deferred.promise;
-                    }
-                    else {
-                        return rejectIfMissing ? Q.reject({name: "DBError", message: "Incorrect execution type"}) : Q.resolve();
-                    }
+                    return rejectIfMissing ? Q.reject({name: "DBError", message: "Incorrect execution type"}) : Q.resolve();
                 }
             }
-        },
+            else {
+                if (proposalExecutor.rejections[rejectionType]) {
+                    const deferred = Q.defer();
+                    proposalExecutor.rejections[rejectionType](proposalData, deferred);
+                    return deferred.promise;
+                }
+                else {
+                    return rejectIfMissing ? Q.reject({name: "DBError", message: "Incorrect execution type"}) : Q.resolve();
+                }
+            }
+        }
+    },
 
     /**
      * Try fix approval executed halfway issue
@@ -176,6 +177,8 @@ var proposalExecutor = {
             }
         }
     },
+
+    sendMessageToPlayer: sendMessageToPlayer,
 
         init: function () {
             this.executions.executeUpdatePlayerInfo.des = "Update player information";
@@ -480,95 +483,6 @@ var proposalExecutor = {
                     return Promise.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
                 }
             },
-            // /**
-            //  * TODO:: Might need to check which rewardTask is used
-            //  * execution function for update player credit proposal type
-            //  */
-            // executeUpdatePlayerCredit: function (proposalData, deferred, bTransfer) {
-            //     //valid data
-            //     if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.updateAmount != null) {
-            //         //changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateAmount, constProposalType.UPDATE_PLAYER_CREDIT, proposalData.data).then(deferred.resolve, deferred.reject);
-            //         //check player reward task
-            //         return dbconfig.collection_rewardTask.findOne({
-            //             playerId: proposalData.data.playerObjId,
-            //             status: constRewardTaskStatus.STARTED
-            //         }).then(
-            //             taskData => {
-            //                 if (taskData && proposalData.data.updateLockedAmount != null) {
-            //                     taskData.inProvider = false;
-            //                     taskData._inputCredit = 0;
-            //                     taskData.currentAmount = proposalData.data.updateLockedAmount;
-            //                     return taskData.save();
-            //                 }
-            //             }
-            //         ).then(
-            //             data => {
-            //                 var updateObj = {
-            //                     $inc: {
-            //                         validCredit: proposalData.data.updateAmount > 0 ? proposalData.data.updateAmount : 0
-            //                     }
-            //                 };
-            //                 if (proposalData.data.updateLockedAmount != null) {
-            //                     updateObj.lockedCredit = proposalData.data.updateLockedAmount;
-            //                     //updateObj.lastPlayedProvider = null;
-            //                 }
-            //                 return dbconfig.collection_players.findOneAndUpdate(
-            //                     {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
-            //                     updateObj,
-            //                     {new: true}
-            //                 ).then(
-            //                     newPlayer => {
-            //                         //make sure credit can not be negative number
-            //                         if (newPlayer.validCredit < 0) {
-            //                             newPlayer.validCredit = 0;
-            //                         }
-            //                         if (newPlayer.lockedCredit < 0) {
-            //                             newPlayer.lockedCredit = 0;
-            //                         }
-            //                         return newPlayer.save();
-            //                     }
-            //                 );
-            //             }
-            //         ).then(
-            //             player => {
-            //                 // DEBUG EXECUTED HALF WAY
-            //                 console.log('executeUpdatePlayerCredit player', player, proposalData);
-            //
-            //                 if (!player) {
-            //                     deferred.reject({
-            //                         name: "DataError",
-            //                         message: "Can't update player credit: player not found."
-            //                     });
-            //                     return;
-            //                 }
-            //                 //mark credit transfer log as used
-            //                 if (proposalData.data.transferId) {
-            //                     dbUtil.findOneAndUpdateForShard(
-            //                         dbconfig.collection_playerCreditTransferLog,
-            //                         {transferId: proposalData.data.transferId},
-            //                         {bUsed: true},
-            //                         constShardKeys.collection_playerCreditTransferLog
-            //                     ).then().catch(console.error);
-            //                 }
-            //                 let changeType = bTransfer ? constProposalType.FIX_PLAYER_CREDIT_TRANSFER : constProposalType.UPDATE_PLAYER_CREDIT;
-            //
-            //                 proposalData.data.proposalId = proposalData.proposalId;
-            //
-            //                 if (proposalData.data.updateAmount > 0) {
-            //                     dbLogger.createCreditChangeLogWithLockedCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateAmount,
-            //                         changeType, player.validCredit, player.lockedAmount, proposalData.data.changedLockedAmount, null, proposalData.data);
-            //                 }
-            //                 deferred.resolve(player);
-            //             },
-            //             error => {
-            //                 deferred.reject({name: "DBError", message: "Error updating player.", error: error});
-            //             }
-            //         );
-            //     }
-            //     else {
-            //         deferred.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
-            //     }
-            // },
 
             /**
              * execution function for fix player credit transfer
@@ -602,40 +516,6 @@ var proposalExecutor = {
                     }
                 );
             },
-
-            // /**
-            //  * execution function for fix player credit transfer
-            //  */
-            // executeFixPlayerCreditTransfer: function (proposalData, deferred) {
-            //     isTransferIdRepaired(proposalData.data.transferId).then(
-            //         isRepaired => {
-            //             if (!isRepaired) {
-            //                 setTransferIdAsRepaired(proposalData.data.transferId).catch(errorUtils.reportError);
-            //
-            //                 return dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).lean();
-            //             }
-            //             else {
-            //                 deferred.reject({name: "DataError", message: "This transfer has been repaired."});
-            //             }
-            //         },
-            //         err => {
-            //             deferred.reject({name: "DataError", message: "Incorrect proposal data", error: Error(err)});
-            //         }
-            //     ).then(
-            //         platform => {
-            //             if (platform) {
-            //                 if (platform.useProviderGroup) {
-            //                     proposalData.data.proposalId = proposalData.proposalId;
-            //                     fixTransferCreditWithProposalGroup(proposalData.data.transferId, proposalData.data.updateAmount, proposalData.data).then(
-            //                         deferred.resolve, deferred.reject);
-            //                 }
-            //                 else {
-            //                     proposalExecutor.executions.executeUpdatePlayerCredit(proposalData, deferred, true);
-            //                 }
-            //             }
-            //         }
-            //     );
-            // },
 
             /**
              * execution function for player consumption return fix
@@ -1737,9 +1617,9 @@ var proposalExecutor = {
             },
 
             /**
-             * execution function for first top up proposal type
+             * execution function for player consumption return
              */
-            executePlayerConsumptionReturn: function (proposalData, deferred) {
+            executePlayerConsumptionReturn: function (proposalData) {
                 //create reward task for related player
                 //verify data
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount >= 0 && proposalData.data.platformId) {
@@ -1757,7 +1637,7 @@ var proposalExecutor = {
                         // providerGroup: proposalData.data.providerGroup
                     };
                     proposalData.data.proposalId = proposalData.proposalId;
-                    dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).lean().then(
+                    return dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).lean().then(
                         platformData => {
                             let promiseUse;
                             if (platformData && platformData.useProviderGroup && proposalData.data.spendingAmount) {
@@ -1765,7 +1645,7 @@ var proposalExecutor = {
                             } else {
                                 promiseUse = changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.rewardAmount, constRewardType.PLAYER_CONSUMPTION_RETURN, proposalData.data);
                             }
-                            promiseUse.then(
+                            return promiseUse.then(
                                 () => {
                                     //remove all consumption summaries
                                     if (!Number(proposalData.data.spendingAmount)) {
@@ -1774,12 +1654,12 @@ var proposalExecutor = {
                                     sendMessageToPlayer(proposalData,constRewardType.PLAYER_CONSUMPTION_RETURN,{});
                                     dbOperation.removeWithRetry(dbconfig.collection_playerConsumptionSummary, {_id: {$in: proposalData.data.summaryIds}}).catch(errorUtils.reportError);
                                 }
-                            ).then(deferred.resolve, deferred.reject);
+                            );
                         }
                     ).catch(errorUtils.reportError);
                 }
                 else {
-                    deferred.reject({name: "DataError", message: "Incorrect player consumption return proposal data"});
+                    return Promise.reject({name: "DataError", message: "Incorrect player consumption return proposal data"});
                 }
             },
 
@@ -1838,7 +1718,7 @@ var proposalExecutor = {
                         return pmsAPI.bonus_applyBonus(message).then(
                             bonusData => {
                                 if (bonusData) {
-                                    sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
+                                    // sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
                                     increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
                                     return bonusData;
                                 }
@@ -3778,6 +3658,48 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
     );
 }
 
+function sendMessageToPlayer (proposalData,type,metaDataObj) {
+    //type that need to add 'Success' status
+    let needSendMessageRewardTypes = [constRewardType.PLAYER_PROMO_CODE_REWARD, constRewardType.PLAYER_CONSUMPTION_RETURN, constRewardType.PLAYER_LIMITED_OFFERS_REWARD,constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
+        constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
+        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,constRewardType.PLAYER_LEVEL_UP
+    ];
+
+    // type reference to constMessageType or constMessageTypeParam.name
+    let messageType = type;
+    if(needSendMessageRewardTypes.indexOf(type)!==-1){
+        messageType = type + 'Success';
+    }
+
+    let providerProm = Promise.resolve();
+    if (messageType == messageType.PLAYER_LEVEL_UP_SUCCESS && proposalData && proposalData.data && proposalData.data.providerGroup) {
+        providerProm = dbconfig.collection_gameProviderGroup.findOne({
+            _id:ObjectId(proposalData.data.providerGroup)
+        });
+    }
+    providerProm.then(
+        providerData => {
+            if (messageType == constMessageType.PLAYER_LEVEL_UP_SUCCESS) {
+                if (providerData && providerData.name) {
+                    proposalData.data.providerGroup = providerData.name;
+                } else {
+                    proposalData.data.providerGroup = '自由额度';
+                }
+                if (proposalData && proposalData.data && !proposalData.data.requiredUnlockAmount) {
+                    proposalData.data.requiredUnlockAmount = 0;
+                }
+            }
+
+            SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, messageType, proposalData);
+            // Currently can't see it's dependable when provider group is off, and maybe causing manual reward task can't be proporly executed
+            // Changing into async function
+            //dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).catch(errorUtils.reportError);
+            //send message if there is any template created for this reward
+            return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, messageType, metaDataObj).catch(err=>{console.error(err)});
+        })
+
+}
+
 function disablePlayerWithdrawal(playerObjId, platformObjId, proposalId) {
     return dbconfig.collection_players.findOneAndUpdate({
         _id: playerObjId,
@@ -3810,47 +3732,6 @@ function disablePlayerWithdrawal(playerObjId, platformObjId, proposalId) {
     )
 }
 
-function sendMessageToPlayer (proposalData,type,metaDataObj) {
-    //type that need to add 'Success' status
-    let needSendMessageRewardTypes = [constRewardType.PLAYER_PROMO_CODE_REWARD, constRewardType.PLAYER_CONSUMPTION_RETURN, constRewardType.PLAYER_LIMITED_OFFERS_REWARD,constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
-        constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
-        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,constRewardType.PLAYER_LEVEL_UP
-    ];
-
-    // type reference to constMessageType or constMessageTypeParam.name
-    let messageType = type;
-    if(needSendMessageRewardTypes.indexOf(type)!==-1){
-         messageType = type + 'Success';
-    }
-
-    let providerProm = Promise.resolve();
-    if (messageType == messageType.PLAYER_LEVEL_UP_SUCCESS && proposalData && proposalData.data && proposalData.data.providerGroup) {
-        providerProm = dbconfig.collection_gameProviderGroup.findOne({
-            _id:ObjectId(proposalData.data.providerGroup)
-        });
-    }
-    providerProm.then(
-        providerData => {
-            if (messageType == constMessageType.PLAYER_LEVEL_UP_SUCCESS) {
-                if (providerData && providerData.name) {
-                    proposalData.data.providerGroup = providerData.name;
-                } else {
-                    proposalData.data.providerGroup = '自由额度';
-                }
-                if (proposalData && proposalData.data && !proposalData.data.requiredUnlockAmount) {
-                    proposalData.data.requiredUnlockAmount = 0;
-                }
-            }
-
-            SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, messageType, proposalData);
-            // Currently can't see it's dependable when provider group is off, and maybe causing manual reward task can't be proporly executed
-            // Changing into async function
-            //dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).catch(errorUtils.reportError);
-            //send message if there is any template created for this reward
-            return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, messageType, metaDataObj).catch(err=>{console.error(err)});
-        })
-
-}
 function createRewardLogForProposal(rewardTypeName, proposalData) {
     rewardTypeName = proposalData.type.name;
 

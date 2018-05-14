@@ -128,7 +128,7 @@ let dbPartner = {
      * Create a new partner
      * @param {json} partnerdata - The data of the partner user. Refer to Partner schema.
      */
-    createPartner: function (partnerdata) {
+    createPartner: function (partnerdata, bFromBI) {
         let deferred = Q.defer();
 
         let platformData = null;
@@ -211,7 +211,7 @@ let dbPartner = {
             }
         ).then(
             function (data) {
-                if (data.isPhoneNumberValid) {
+                if (data.isPhoneNumberValid || bFromBI) {
                     return dbPartner.isPartnerNameValidToRegister({
                         partnerName: partnerdata.partnerName,
                         realName: partnerdata.realName,
@@ -4939,6 +4939,7 @@ let dbPartner = {
                 let validPlayerTopUpAmount = config.validPlayerTopUpAmount;
                 let validPlayerConsumptionTimes = config.validPlayerConsumptionTimes;
                 let validPlayerConsumptionAmount = config.validPlayerConsumptionAmount;
+                let validPlayerValue = config.validPlayerValue;
 
                 return dbconfig.collection_playerTopUpRecord.aggregate(
                     {
@@ -4956,7 +4957,7 @@ let dbPartner = {
                     }).read("secondaryPreferred").then(topUpRecord => {
                     if (topUpRecord) {
                         topUpRecord = topUpRecord.filter(player => player.topUpAmount >= validPlayerTopUpAmount && player.topUpCount >= validPlayerTopUpTimes);
-
+            
                         if (topUpRecord && topUpRecord.length > 0){
                             let playerList = [];
                             let topUpPlayerList = [];

@@ -22,6 +22,12 @@ var dbProposal = require('../db_modules/dbProposal');
 var dbLogger = require('../modules/dbLogger');
 var proposalExecutor = require('../modules/proposalExecutor');
 var moment = require('moment-timezone');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const constSystemParam = require("../const/constSystemParam");
+const md5 = require('md5');
+const dbUtility = require('./../modules/dbutility');
+const mobileDetect = require('mobile-detect');
 
 var dbMigration = {
 
@@ -541,7 +547,7 @@ var dbMigration = {
                                 createTime = createTime || new Date();
 
                                 var expiredDate = moment(createTime).add('hour', proposalType.expirationDuration).format('YYYY-MM-DD HH:mm:ss.sss');
-                            
+
                                 var newRecord = {
                                     mainType: constProposalMainType[typeName],
                                     type: proposalType._id,
@@ -636,32 +642,32 @@ var dbMigration = {
                     return Q.reject({name: "DataError", message: "Can not find platform"});
                 }
             }
-        ).then(
-            //find bank name id based on code
-            partnerData => {
-                if (data.bankName != null) {
-                    return pmsAPI.bankcard_getBankTypeList({}).then(
-                        list => {
-                            if (list && list.data && list.data.length > 0) {
-                                var type = list.data.find(bankType => bankType.bankTypeId == data.bankName);
-                                if (type) {
-                                    data.bankName = type.id;
-                                    return data;
-                                }
-                                else {
-                                    return Q.reject({name: "DataError", message: "Can not find bank type id"});
-                                }
-                            }
-                            else {
-                                return Q.reject({name: "DataError", message: "Can not find bank type list"});
-                            }
-                        }
-                    );
-                }
-                else {
-                    return partnerData;
-                }
-            }
+        // ).then(
+        //     //find bank name id based on code
+        //     partnerData => {
+        //         if (data.bankName != null) {
+        //             return pmsAPI.bankcard_getBankTypeList({}).then(
+        //                 list => {
+        //                     if (list && list.data && list.data.length > 0) {
+        //                         var type = list.data.find(bankType => bankType.bankTypeId == data.bankName);
+        //                         if (type) {
+        //                             data.bankName = type.id;
+        //                             return data;
+        //                         }
+        //                         else {
+        //                             return Q.reject({name: "DataError", message: "Can not find bank type id"});
+        //                         }
+        //                     }
+        //                     else {
+        //                         return Q.reject({name: "DataError", message: "Can not find bank type list"});
+        //                     }
+        //                 }
+        //             );
+        //         }
+        //         else {
+        //             return partnerData;
+        //         }
+        //     }
         ).then(
             partnerData => {
                 if (partnerData) {
@@ -669,12 +675,44 @@ var dbMigration = {
                         return dbPartner.createPartnerWithParent(partnerData);
                     }
                     else {
-                        return dbPartner.createPartner(partnerData);
+                        return dbPartner.createPartner(partnerData, true);
                     }
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Invalid partner data"});
                 }
+            }
+        ).then(
+            partnerData => {
+                if( partnerData && partnerData._id && data.players && data.players.length > 0 ){
+                    let proms = [];
+                    let remark = "未添加玩家：";
+                    let bUpdate = false;
+                    data.players.forEach(
+                        name => {
+                            let prom = dbconfig.collection_players.findOne({name: name, platform: partnerData.platform}).then(
+                                playerData => {
+                                    if( playerData ){
+                                        return dbconfig.collection_players.findOneAndUpdate({_id: playerData._id, platform: playerData.platform}, {partner: partnerData._id});
+                                    }
+                                    else{
+                                        remark += name + ", ";
+                                        bUpdate = true;
+                                    }
+                                }
+                            );
+                            proms.push(prom);
+                        }
+                    );
+                    Q.all(proms).then(
+                        res => {
+                            if( bUpdate ){
+                                return dbconfig.collection_partner.findOneAndUpdate({_id: partnerData._id, platform: partnerData.platform}, {remarks: remark});
+                            }
+                        }
+                    ).catch(error => {console.error(error)} );
+                }
+                return partnerData;
             }
         ).then(
             res => dbMigration.resHandler(data, "partner", "createPartner"),
@@ -1722,21 +1760,24 @@ var dbMigration = {
             }
         ).then(
             promData => {
-                if(promData){
+                if (promData) {
                     delete data.updateData.partner;
                     delete data.updateData.referral;
                     delete data.updateData.playerLevel;
-                    if(promData[0]){
+                    if (promData[0]) {
                         data.updateData.partner = promData[0]._id;
                     }
-                    if(promData[1]){
+                    if (promData[1]) {
                         data.updateData.referral = promData[1]._id;
                     }
-                    if(promData[2]){
+                    if (promData[2]) {
                         data.updateData.playerLevel = promData[2]._id;
                     }
                 }
-                return dbconfig.collection_players.findOneAndUpdate({_id: playerObj._id, platform: platformObjId}, data.updateData);
+                return dbconfig.collection_players.findOneAndUpdate({
+                    _id: playerObj._id,
+                    platform: platformObjId
+                }, data.updateData);
             }
         ).then(
             res => dbMigration.resHandler(data, "player", "updatePlayer"),
@@ -1744,7 +1785,7 @@ var dbMigration = {
         );
     },
 
-    updatePartner: function(data){
+    updatePartner: function (data) {
         var platformObjId = null;
         var partnerObj = null;
         return dbconfig.collection_platform.findOne({platformId: data.platform}).then(
@@ -1762,24 +1803,30 @@ var dbMigration = {
             }
         ).then(
             partnerData => {
-                if(partnerData){
+                if (partnerData) {
                     var parentProm = null;
                     partnerObj = partnerData;
-                    if( data.updateData.parentName ){
-                        parentProm = dbconfig.collection_partner.findOne({parentName: data.updateData.parentName, platform: platformObjId});
+                    if (data.updateData.parentName) {
+                        parentProm = dbconfig.collection_partner.findOne({
+                            parentName: data.updateData.parentName,
+                            platform: platformObjId
+                        });
                     }
                     return Q.resolve(parentProm);
                 }
-                else{
+                else {
                     return Q.reject({name: "DataError", message: "Can not find partner"});
                 }
             }
         ).then(
             parentData => {
-                if( parentData ){
+                if (parentData) {
                     data.updateData.parent = parentData._id;
                 }
-                return dbconfig.collection_partner.findOneAndUpdate({_id: partnerObj._id, platform: partnerObj.platform}, data.updateData);
+                return dbconfig.collection_partner.findOneAndUpdate({
+                    _id: partnerObj._id,
+                    platform: partnerObj.platform
+                }, data.updateData);
             }
         ).then(
             res => dbMigration.resHandler(data, "partner", "updatePartner"),
@@ -1787,7 +1834,7 @@ var dbMigration = {
         );
     },
 
-    importBIPlayer: function(data){
+    importBIPlayer: function (data) {
         data.remark = data.remark || "";
 
         //check compulsory param
@@ -1826,13 +1873,16 @@ var dbMigration = {
                 if (playerData) {
                     if (playerData.partner) {
                         //add partner to player if this player has partner
-                        return dbconfig.collection_partner.findOne({platform: data.platform, partnerName: playerData.partner}).then(
+                        return dbconfig.collection_partner.findOne({
+                            platform: data.platform,
+                            partnerName: playerData.partner
+                        }).then(
                             partnerData => {
                                 if (partnerData) {
                                     playerData.partner = partnerData._id;
                                 }
                                 else {
-                                    playerData.remark += " 查无次代理："+ playerData.partner;
+                                    playerData.remark += " 查无次代理：" + playerData.partner;
                                     delete playerData.partner;
                                 }
                                 return playerData;
@@ -1853,13 +1903,16 @@ var dbMigration = {
                 if (playerData) {
                     if (playerData.referral) {
                         //add partner to player if this player has partner
-                        return dbconfig.collection_players.findOne({platform: data.platform, name: playerData.referral}).then(
+                        return dbconfig.collection_players.findOne({
+                            platform: data.platform,
+                            name: playerData.referral
+                        }).then(
                             referralData => {
                                 if (referralData) {
                                     playerData.referral = referralData._id;
                                 }
                                 else {
-                                    playerData.remark += " 查无次推荐人："+ playerData.referral;
+                                    playerData.remark += " 查无次推荐人：" + playerData.referral;
                                     delete playerData.referral;
                                 }
                                 return playerData;
@@ -1879,36 +1932,42 @@ var dbMigration = {
                 if (playerData) {
                     //processing permissions
                     let proms = [];
-                    if( playerData.forbidProviders ){
+                    if (playerData.forbidProviders) {
                         let providerProm = dbconfig.collection_gameProvider.find({providerId: {$in: playerData.forbidProviders}}).lean();
                         proms.push(providerProm);
                     }
-                    if( playerData.forbidRewardEvents ){
-                        let eventProm = dbconfig.collection_rewardEvent.find({platform: data.platform, name: {$in: playerData.forbidRewardEvents}}).lean();
+                    if (playerData.forbidRewardEvents) {
+                        let eventProm = dbconfig.collection_rewardEvent.find({
+                            platform: data.platform,
+                            name: {$in: playerData.forbidRewardEvents}
+                        }).lean();
                         proms.push(eventProm);
                     }
-                    if( playerData.credibilityRemarks ){
-                        let creditProm = dbconfig.collection_playerCredibilityRemark.find({platform: data.platform, name: {$in: playerData.credibilityRemarks}}).lean();
+                    if (playerData.credibilityRemarks) {
+                        let creditProm = dbconfig.collection_playerCredibilityRemark.find({
+                            platform: data.platform,
+                            name: {$in: playerData.credibilityRemarks}
+                        }).lean();
                         proms.push(creditProm);
                     }
                     return Q.all(proms).then(
                         resData => {
-                            if( resData && resData[0] && resData[0].length > 0 ){
+                            if (resData && resData[0] && resData[0].length > 0) {
                                 playerData.forbidProviders = resData[0].map(provider => provider._id);
                             }
-                            else{
+                            else {
                                 delete playerData.forbidProviders;
                             }
-                            if( resData && resData[1] && resData[1].length > 0 ) {
+                            if (resData && resData[1] && resData[1].length > 0) {
                                 playerData.forbidRewardEvents = resData[1].map(event => event._id);
                             }
-                            else{
+                            else {
                                 delete playerData.forbidRewardEvents;
                             }
-                            if( resData && resData[2] && resData[2].length > 0 ) {
+                            if (resData && resData[2] && resData[2].length > 0) {
                                 playerData.credibilityRemarks = resData[2].map(credit => credit._id);
                             }
-                            else{
+                            else {
                                 delete playerData.credibilityRemarks;
                             }
                             return playerData;
@@ -1924,8 +1983,8 @@ var dbMigration = {
                 if (playerData) {
                     // return dbMigration.createRequestId(data.requestId).then(
                     //     reId => {
-                            return dbPlayerInfo.createPlayerInfo(playerData, true, true, false, true);
-                        // }
+                    return dbPlayerInfo.createPlayerInfo(playerData, true, true, false, true);
+                    // }
                     // );
                 }
                 else {
@@ -1947,6 +2006,103 @@ var dbMigration = {
         //     res => dbMigration.resHandler(data, "admin", "createPlayer"),
         //     error => dbMigration.errorHandler("player", "createPlayer", data, error)
         // );
+    },
+
+    loginBIPlayer: function (platformId, name, password, loginIp, userAgent) {
+        let playerObj = null;
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    return dbconfig.collection_players.findOne({platform: platformData._id, name: name}).lean();
+                }
+                else {
+                    return Promise.reject({message: "Platform not found"});
+                }
+            }
+        ).then(
+            player => {
+                if (!player) {
+                    return Promise.reject({message: "Player not found"}); // will go to catch and handle it anyway
+                }
+                playerObj = player;
+                if (dbUtility.isMd5(player.password)) {
+                    if (md5(password) == player.password) {
+                        let profile = {name: player.name, password: player.password};
+                        let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+                        return Q.resolve({
+                            playerId: player.playerId,
+                            token: token
+                        });
+                    }
+                    else {
+                        return Q.reject({message: "Password changed"});
+                    }
+                }
+                else{
+                    return new Promise((resolve, reject) => {
+                        bcrypt.compare(String(password), String(player.password), function (err, isMatch) {
+                            if (err || !isMatch) {
+                                return reject({message: "Password changed"});
+                            }
+
+                            let profile = {name: player.name, password: player.password};
+                            let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+                            resolve({
+                                playerId: player.playerId,
+                                token: token
+                            });
+                        });
+                    });
+                }
+            }
+        ).then(
+            data => {
+                if(data && data.playerId && loginIp){
+                    dbconfig.collection_players.findOneAndUpdate({_id: playerObj._id, platform: playerObj.platform}, {lastLoginIp: loginIp}, {new: true}).then(
+                        playerData => {
+                            //add player login record
+                            let uaObj = {};
+                            if(userAgent){
+                                var md = new mobileDetect(userAgent);
+                                uaObj = {
+                                    browser: userAgent.browser.name || '',
+                                    device: userAgent.device.name || (mobileDetect && md.mobile()) ? md.mobile() : 'PC',
+                                    os: userAgent.os.name || '',
+                                };
+                            }
+                            let geo = geoip.lookup(playerData.lastLoginIp);
+                            let geoInfo = {};
+                            if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                                geoInfo = {
+                                    country: geo ? geo.country : null,
+                                    city: geo ? geo.city : null,
+                                    longitude: geo && geo.ll ? geo.ll[1] : null,
+                                    latitude: geo && geo.ll ? geo.ll[0] : null
+                                }
+                            }
+                            let recordData = {
+                                player: playerData._id,
+                                platform: playerData.platform,
+                                loginIP: playerData.lastLoginIp,
+                                clientDomain: playerData.clientDomain ? playerData.clientDomain : "",
+                                userAgent: uaObj,
+                                isRealPlayer: playerData.isRealPlayer,
+                                isTestPlayer: playerData.isTestPlayer,
+                                partner: playerData.partner ? playerData.partner : null,
+                                loginTime: new Date()
+                            };
+
+                            Object.assign(recordData, geoInfo);
+                            let record = new dbconfig.collection_playerLoginRecord(recordData);
+                            record.save().then().catch();
+                        }
+                    ).then().catch();
+                }
+                return data;
+            }
+        );
     }
 
 };
