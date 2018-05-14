@@ -1281,7 +1281,9 @@ p
                                 th {{'TOTAL_CHILDREN_DEPOSIT' | translate}}
                                 th {{'TOTAL_CHILDREN_BALANCE' | translate}}
                         tbody
-                            tr(ng-repeat="v in vm.playerDetailsSummary")
+                            tr(ng-if="vm.playerDetailsSummary.length == 0")
+                                td(colspan = 10) {{ 'No data available in table' | translate }}
+                            tr(ng-if="vm.playerDetailsSummary.length > 0", ng-repeat="v in vm.playerDetailsSummary")
                                 td {{v.name}}
                                 td {{v.realName}}
                                 td {{v.manualTopUp}}
@@ -1292,7 +1294,7 @@ p
                                 td {{v.totalBonus}}
                                 td {{v.totalDepositAmount}}
                                 td {{v.validCredit}}
-                            tr
+                            tr(ng-if="vm.playerDetailsSummary.length > 0")
                                 td(colspan=2) {{"Totalsum" | translate}}
                                 td {{vm.playerDetailsSummary.sumOfManualTopUp}}
                                 td {{vm.playerDetailsSummary.sumOfOnlineTopUp}}
