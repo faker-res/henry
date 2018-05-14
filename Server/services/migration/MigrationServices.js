@@ -80,7 +80,8 @@
                 "updatePlayerCredit",
                 "updatePlayerLevel",
                 "updatePlayer",
-                "importBIPlayer"
+                "importBIPlayer",
+                "loginBIPlayer"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

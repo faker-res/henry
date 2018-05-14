@@ -361,6 +361,10 @@ let dbPlayerReward = {
             }
             else {
                 let applicableParamIndex = -1;
+
+                console.log('isApplicableRewardCondition', isApplicableRewardCondition);
+                console.log('lastTopUp', lastTopUp);
+
                 if (isApplicableRewardCondition && lastTopUp && lastTopUp.amount) {
                     for (let i = 0; i < paramOfLevel.length; i++) {
                         let selectedParam = paramOfLevel[i];
@@ -370,6 +374,9 @@ let dbPlayerReward = {
                         }
                     }
                 }
+
+                console.log('applicableParamIndex', applicableParamIndex);
+                console.log('paramOfLevel', paramOfLevel);
 
                 for (let i = 0; i < paramOfLevel.length; i++) {
                     let selectedParam = paramOfLevel[i];
@@ -950,10 +957,10 @@ let dbPlayerReward = {
 
             if (!intervalTime) {
                 // get last similar reward proposal
-                similarRewardProposalProm = dbConfig.collection_proposal.find(rewardProposalQuery).sort({createTime: -1}).limit(1).lean();
+                similarRewardProposalProm = dbConfig.collection_proposal.find(rewardProposalQuery).sort({"data.consecutiveNumber": -1, createTime: -1}).limit(1).lean();
             } else {
                 rewardProposalQuery.settleTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
-                similarRewardProposalProm = dbConfig.collection_proposal.find(rewardProposalQuery).sort({createTime: -1}).lean();
+                similarRewardProposalProm = dbConfig.collection_proposal.find(rewardProposalQuery).sort({"data.consecutiveNumber": -1, createTime: -1}).lean();
             }
 
             return similarRewardProposalProm;

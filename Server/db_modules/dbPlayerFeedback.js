@@ -561,6 +561,8 @@ var dbPlayerFeedback = {
         let proposal = {};
         let allowedIP = [
             "122.146.88.32",
+            "101.78.133.210",
+            "10.167.11.155",
             "localhost",
             "127.0.0.1",
         ];

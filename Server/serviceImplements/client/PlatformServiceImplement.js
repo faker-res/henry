@@ -108,6 +108,7 @@ var PlatformServiceImplement = function () {
     this.extractUserFromFpms.onRequest = (wsFunc, conn, data) => {
         let isValidData = Boolean(data && data.proposalId);
         let ipAddress = conn.upgradeReq.connection.remoteAddress || '';
+        console.log("extractUserFromFpms ip:", ipAddress);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerFeedback.getExportedData, [data.proposalId,ipAddress], isValidData, null, null, true);
     };
 };

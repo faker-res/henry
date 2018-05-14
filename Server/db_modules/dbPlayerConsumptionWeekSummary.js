@@ -419,14 +419,15 @@ var dbPlayerConsumptionWeekSummary = {
                                                             // Solve computed very small amount issue
                                                             consumpDiff = consumpDiff > -0.01 && consumpDiff < 0.01 ? 0 : consumpDiff;
 
-                                                            // Offset if it matters
-                                                            if (proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount + consumpDiff > 0) {
-                                                                // Log the offset
-                                                                proposalData.data.devCheckMsg = proposalData.data.devCheckMsg || "";
-                                                                proposalData.data.devCheckMsg +=
-                                                                    "GameType: " + el._id + ", " +
-                                                                    "Original: " + proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount + ", ";
+                                                            // Log this operation
+                                                            proposalData.data.devCheckMsg = proposalData.data.devCheckMsg || "";
+                                                            proposalData.data.devCheckMsg +=
+                                                                "GameType: " + el._id + ", " +
+                                                                "Original: " + proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount + ", " +
+                                                                "Current: " + el.validAmount + ", ";
 
+                                                            // Offset if it matters
+                                                            if (proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount + consumpDiff >= 0) {
                                                                 proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount += consumpDiff;
                                                                 proposalData.data.rewardAmount += consumpDiff * returnRatio;
                                                                 proposalData.data.spendingAmount += consumpDiff * returnRatio;
@@ -908,6 +909,8 @@ var dbPlayerConsumptionWeekSummary = {
         };
         let consumptionRecProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ).then(
             props => {
+                console.log('props', props);
+
                 if (props && props.length > 0) {
                     props.map(prop => {
                         Object.keys(prop.data.returnDetail).forEach(el => {
@@ -1019,6 +1022,7 @@ var dbPlayerConsumptionWeekSummary = {
                     // console.log('consumptionSummariesByKey', consumptionSummariesByKey);
                     // console.log('consumptionRecSumm', consumptionRecSumm);
                     // console.log('res', res);
+                    // console.log('proposalQ', proposalQ);
                     // console.log('doneXIMAConsumption', doneXIMAConsumption);
 
                     if (platformData.useProviderGroup) {
@@ -1034,7 +1038,7 @@ var dbPlayerConsumptionWeekSummary = {
 
                                 let consumpDiff = el.validAmount - res[el._id].consumptionAmount - res[el._id].nonXIMAAmt;
 
-                                if (res[el._id].consumptionAmount + consumpDiff > 0) {
+                                if (res[el._id].consumptionAmount + consumpDiff >= 0) {
                                     res[el._id].consumptionAmount += consumpDiff;
                                     res[el._id].returnAmount += consumpDiff * res[el._id].ratio;
                                     totalAmtDiff += consumpDiff * res[el._id].ratio;

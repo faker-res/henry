@@ -295,7 +295,7 @@ p
                                                     .col-sm-4(style='white-space: nowrap;')
                                                         label {{"REMARK" | translate}}
                                                     .col-sm-8
-                                                        text(style='height:inherit') {{vm.selectedSinglePartner.remark || 'NONE' | translate}}
+                                                        text(style='height:inherit') {{vm.selectedSinglePartner.remarks || 'NONE' | translate}}
                                         td.text-left
                                             button.btn.btn-primary.common-button-sm(ng-click="vm.openEditPartnerDialog('basicInfo');", ng-if="checkViewPermission('Platform', 'Partner', 'Edit')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner") {{"EDIT" | translate}}
                                             br
@@ -1280,7 +1280,7 @@ p
                                 th {{'TOTAL_BONUS' | translate}}
                                 th {{'TOTAL_CHILDREN_DEPOSIT' | translate}}
                                 th {{'TOTAL_CHILDREN_BALANCE' | translate}}
-                        tbody()
+                        tbody
                             tr(ng-repeat="v in vm.playerDetailsSummary")
                                 td {{v.name}}
                                 td {{v.realName}}
@@ -1302,3 +1302,33 @@ p
                                 td {{vm.playerDetailsSummary.sumOfTotalBonus}}
                                 td {{vm.playerDetailsSummary.sumOfTotalDeposit}}
                                 td {{vm.playerDetailsSummary.sumOfTotalBalance}}
+
+#modalActivePartnerInfo.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"totalCount" | translate}} {{": "}} {{vm.selectedPartnerObjArr.size}}
+            .modal-body
+                div
+                    table.simple-table
+                        thead
+                            tr
+                                th {{ vm.selectedPartnerObjArr.title | translate}}
+                                th {{'REAL_NAME' | translate}}
+                                th {{'TOP_UP_TIMES' | translate}}
+                                th {{'TOP_UP_AMOUNT' | translate}}
+                                th {{'TIMES_CONSUMED' | translate}}
+                                th {{'VALID_CONSUMPTION' | translate}}
+                                th {{'PlayerValue' | translate}}
+                        tbody
+                            tr(ng-if="vm.selectedPartnerObjArr.data.length == 0")
+                                td(colspan = 7) {{ 'No data available in table' | translate }}
+                            tr(ng-if="vm.selectedPartnerObjArr.data.length > 0", ng-repeat="v in vm.selectedPartnerObjArr.data")
+                                td {{v.name}}
+                                td {{v.realName}}
+                                td {{v.topUpCount}}
+                                td {{v.topUpAmount}}
+                                td {{v.consumptionCount}}
+                                td {{v.consumptionAmount}}
+                                td {{v.valueScore}}

@@ -913,7 +913,7 @@ define(['js/app'], function (myApp) {
                         initFeedbackAdmin();
                         break;
                     case "Partner":
-                        vm.partnerCommission = vm.partnerCommission || {};
+                        vm.partnerCommission = {};
                         vm.getAllPartnerCommSettPreview();
                         vm.getCommissionRateGameProviderGroup();
                         vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
@@ -7962,6 +7962,7 @@ define(['js/app'], function (myApp) {
                             platformWechatPayGroupList: vm.platformWechatPayGroupList,
                             platformQuickPayGroupList: vm.platformQuickPayGroupList,
                             allPlayerTrustLvl: vm.allPlayerTrustLvl,
+                            isIdInList: commonService.isIdInList,
                             //vm.platformCreditTransferLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                             updateEditedPlayer: function () {
 
@@ -8145,6 +8146,7 @@ define(['js/app'], function (myApp) {
                     }
                 }
             };
+
             vm.getReferralPlayer = function (editObj, type) {
                 var sendData = null;
                 if (type === 'change' && editObj.referralName) {
@@ -15922,6 +15924,7 @@ define(['js/app'], function (myApp) {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
                         if ( index !== -1) {
                             partner.data[index].dailyActivePlayer = inData.size ? inData.size : 0;
+                            partner.data[index].dailyActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
                         }
                     });
                     vm.partnerLoadingDailyActivePlayer = false;
@@ -15942,6 +15945,7 @@ define(['js/app'], function (myApp) {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
                         if ( index !== -1) {
                             partner.data[index].weeklyActivePlayer = inData.size ? inData.size : 0;
+                            partner.data[index].weeklyActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
                         }
                     });
                     vm.partnerLoadingWeeklyActivePlayer = false;
@@ -15962,6 +15966,7 @@ define(['js/app'], function (myApp) {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
                         if ( index !== -1) {
                             partner.data[index].monthlyActivePlayer = inData.size ? inData.size : 0;
+                            partner.data[index].monthlyActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
                         }
                     });
                     vm.partnerLoadingMonthlyActivePlayer = false;
@@ -15982,6 +15987,7 @@ define(['js/app'], function (myApp) {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
                         if ( index !== -1) {
                             partner.data[index].validPlayers = inData.size ? inData.size : 0;
+                            partner.data[index].validActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
                         }
                     });
                     vm.partnerLoadingValidPlayers = false;
@@ -16282,36 +16288,36 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('DAILY_ACTIVE'), data: "dailyActivePlayer", advSearch: true, "sClass": "",
-                            render: function (data, type, row) {
+                            render: function (data, type, row, index) {
                                 let link = $('<a>', {
-                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                    'ng-click': 'vm.showActivePartnerInfoModal("' + index.row + '","DAILY_ACTIVE")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
                         },
                         {
                             title: $translate('WEEKLY_ACTIVE'), data: "weeklyActivePlayer", advSearch: true, "sClass": "",
-                            render: function (data, type, row) {
+                            render: function (data, type, row, index) {
                                 let link = $('<a>', {
-                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                    'ng-click': 'vm.showActivePartnerInfoModal("' + index.row + '","WEEKLY_ACTIVE")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
                         },
                         {
                             title: $translate('MONTHLY_ACTIVE'), data: "monthlyActivePlayer", advSearch: true, "sClass": "",
-                            render: function (data, type, row) {
+                            render: function (data, type, row, index) {
                                 let link = $('<a>', {
-                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                    'ng-click': 'vm.showActivePartnerInfoModal("' + index.row + '","MONTHLY_ACTIVE")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
                         },
                         {
                             title: $translate('VALID_PLAYER'), data: "validPlayers", advSearch: true, "sClass": "",
-                            render: function (data, type, row) {
+                            render: function (data, type, row, index) {
                                 let link = $('<a>', {
-                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                    'ng-click': 'vm.showActivePartnerInfoModal("' + index.row + '","VALID_ACTIVE")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -16968,6 +16974,36 @@ define(['js/app'], function (myApp) {
                 $('#modalPartnerInfo').modal().show();
             };
 
+            vm.showActivePartnerInfoModal = function (index, activeType) {
+
+                vm.selectedPartnerObjArr = {}
+
+                switch(activeType){
+                    case "DAILY_ACTIVE":
+                        vm.selectedPartnerObjArr.title = "Daily Active Player";
+                        vm.selectedPartnerObjArr.data =  vm.partners[Number(index)].dailyActivePlayerObjArr || [];
+                        vm.selectedPartnerObjArr.size = vm.partners[Number(index)].dailyActivePlayerObjArr && vm.partners[Number(index)].dailyActivePlayerObjArr.length ? vm.partners[Number(index)].dailyActivePlayerObjArr.length : 0;
+                        break;
+                    case "WEEKLY_ACTIVE":
+                        vm.selectedPartnerObjArr.title = "Weekly Active Player";
+                        vm.selectedPartnerObjArr.data =  vm.partners[Number(index)].weeklyActivePlayerObjArr || [];
+                        vm.selectedPartnerObjArr.size = vm.partners[Number(index)].weeklyActivePlayerObjArr && vm.partners[Number(index)].weeklyActivePlayerObjArr.length ? vm.partners[Number(index)].weeklyActivePlayerObjArr.length : 0;
+                        break;
+                    case "MONTHLY_ACTIVE":
+                        vm.selectedPartnerObjArr.title = "Monthly Active Player";
+                        vm.selectedPartnerObjArr.data =  vm.partners[Number(index)].monthlyActivePlayerObjArr || [];
+                        vm.selectedPartnerObjArr.size = vm.partners[Number(index)].monthlyActivePlayerObjArr && vm.partners[Number(index)].monthlyActivePlayerObjArr.length ? vm.partners[Number(index)].monthlyActivePlayerObjArr.length : 0;
+                        break;
+                    case "VALID_ACTIVE":
+                        vm.selectedPartnerObjArr.title = "Valid Active Player";
+                        vm.selectedPartnerObjArr.data =  vm.partners[Number(index)].validActivePlayerObjArr || [];
+                        vm.selectedPartnerObjArr.size =  vm.partners[Number(index)].validActivePlayerObjArr && vm.partners[Number(index)].validActivePlayerObjArr.length ? vm.partners[Number(index)].validActivePlayerObjArr.length : 0;
+                        break;
+                }
+
+                $('#modalActivePartnerInfo').modal().show();
+            };
+
             vm.getProvince = function () {
                 vm.showProvinceStr = '';
                 let province = vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountProvince ? vm.selectedSinglePartner.bankAccountProvince : '';
@@ -17295,6 +17331,12 @@ define(['js/app'], function (myApp) {
                     let selectedPartner = vm.isOneSelectedPartner();
                     let editPartner = vm.editPartner;
                     vm.editPartner.DOB = new Date(vm.editPartner.DOB);
+                    vm.selectedCommissionTab(
+                        $scope.constPartnerCommissionSettlementType[vm.editPartner.commissionType],
+                        selectedPartner._id
+                    );
+                    vm.commissionRateConfig = Object.assign({}, vm.srcCommissionRateConfig);
+                    vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
 
                     let option = {
                         $scope: $scope,
@@ -17349,6 +17391,7 @@ define(['js/app'], function (myApp) {
                             today: new Date().toISOString(),
                             commissionType: vm.constPartnerCommisionType,
                             partnerId: selectedPartner._id,
+                            isIdInList: commonService.isIdInList,
                             partnerBeforeEditing: _.clone(editPartner),
                             newPartner: _.clone(editPartner),
                             updateEditedPartner: function () {
@@ -19574,9 +19617,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.refreshSPicker = () => {
-                $timeout(function () {
-                    $('.spicker').selectpicker('refresh');
-                }, 0);
+                $('.spicker').selectpicker('refresh');
+                // $timeout(function () {
+                //     $('.spicker').selectpicker('refresh');
+                // }, 0);
             };
 
             vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
@@ -20038,7 +20082,7 @@ define(['js/app'], function (myApp) {
                     case 'providerGroup':
                         vm.availableGameProviders = vm.allGameProvider;
                         vm.providerGroupConfig = {showWarning: false};
-                        vm.getPlatformProviderGroup();
+                        $scope.$evalAsync(vm.getPlatformProviderGroup);
                         break;
                     case 'smsGroup':
                         vm.deletingSmsGroup = null;
@@ -22449,6 +22493,8 @@ define(['js/app'], function (myApp) {
                     result = $translate(val);
                 } else if (fieldName === 'applyForDate') {
                     result = new Date(val).toLocaleDateString("en-US", {timeZone: "Asia/Singapore"});
+                } else if (fieldName === 'DOB') {
+                    result = commonService.convertDOBDateFormat(val);
                 } else if (fieldName === 'returnDetail') {
                     // Example data structure : {"GameType:9" : {"ratio" : 0.01, "consumeValidAmount" : 6000}}
                     let newReturnDetail = {};
@@ -24068,6 +24114,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPartnerCommissionConfigWithGameProviderGroup', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         let existProviderCommissionSetting = [];
+                        vm.customPartnerCommission = [];
 
                         if (data && data.data && data.data.length) {
                             data.data.filter(existSetting => {
@@ -24086,7 +24133,6 @@ define(['js/app'], function (myApp) {
                                 });
 
                                 if (existSetting.partner) {
-                                    vm.customPartnerCommission = vm.customPartnerCommission || [];
                                     vm.customPartnerCommission.push(existSetting);
                                 }
                             });
@@ -24408,8 +24454,7 @@ define(['js/app'], function (myApp) {
                     });
 
                     return p.then(()=> {
-                        vm.getPartnerCommissionConfigWithGameProviderConfig();
-                        $scope.safeApply();
+                        $scope.$evalAsync(vm.getPartnerCommissionConfigWithGameProviderConfig);
                     });
                 }
             }
@@ -24534,6 +24579,8 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
                     $scope.$evalAsync(() => {
+                        vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id);
+                        vm.getCommissionRateGameProviderGroup();
                         vm.getPlatformPartnersData();
                         vm.commissionRateEditRow(field, false);
                     })
@@ -24906,16 +24953,21 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPlatformProviderGroup = () => {
-                return $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
-                    vm.gameProviderGroup = data.data;
-                    vm.gameProviderGroupNames = {};
-                    for (let i = 0; i < vm.gameProviderGroup.length; i++) {
-                        let providerGroup = vm.gameProviderGroup[i];
-                        vm.gameProviderGroupNames[providerGroup._id] = providerGroup.name;
+                return $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(
+                    data => {
+                        if (data) {
+                            $scope.$evalAsync(() => {
+                                vm.gameProviderGroup = data.data;
+                                vm.gameProviderGroupNames = {};
+                                for (let i = 0; i < vm.gameProviderGroup.length; i++) {
+                                    let providerGroup = vm.gameProviderGroup[i];
+                                    vm.gameProviderGroupNames[providerGroup._id] = providerGroup.name;
+                                }
+                                vm.endLoadWeekDay();
+                            });
+                        }
                     }
-
-                    $scope.safeApply();
-                });
+                );
             };
 
             vm.submitAddPlayerLvl = function () {
