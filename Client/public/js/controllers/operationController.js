@@ -1180,7 +1180,11 @@ define(['js/app'], function (myApp) {
                         "title": $translate('STATUS'),
                         "data": 'process',
                         render: function (data, type, row) {
-                            let text = $translate(row.status ? row.status : (data.status ? data.status : 'UNKNOWN'));
+                            let status = row.status;
+                            if (row.type && row.type.name == "BulkExportPlayerData") {
+                                status = status === "Approved" ? "approved" : status;
+                            }
+                            let text = $translate(status ? status : (data.status ? data.status : 'UNKNOWN'));
                             text = text === "approved" ? "Approved" : text;
 
                             let textClass = '';
