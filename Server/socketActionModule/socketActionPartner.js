@@ -519,6 +519,12 @@ function socketActionPartner(socketIO, socket) {
             let isValidData = Boolean(data.platformObjId && data.partnerName || data.commissionType && data.startTime && data.endTime);
             socketUtil.emitter(self.socket, dbPartner.getPartnerSettlementHistory, [data.platformObjId, data.partnerName, data.commissionType, data.startTime, data.endTime, data.sortCol, data.index, data.limit], actionName, isValidData);
         },
+
+        getChildrenDetails: function getChildrenDetails (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform && data.partnerId);
+            socketUtil.emitter(self.socket, dbPartner.getChildrenDetails, [data.platform, data.partnerId], actionName, isValidData);
+        },
     };
 
     socketActionPartner.actions = this.actions;
