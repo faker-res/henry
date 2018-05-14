@@ -44,13 +44,16 @@ form(name='form_playerPaymentInfo').well
             .col-md-4(style='padding-left:0')
                 label.control-label {{"PHONE_PROVINCE" | translate}}
                 select.form-control(type='text', ng-model='currentProvince.province', ng-options='v.id as v.name for (i,v) in provinceList', ng-change='changeProvince(true)', ng-disabled='!isEditingPlayerPayment')
+                    option(ng-if="!isIdInList(provinceList, currentProvince.province)" ng-value="currentProvince.province") {{currentProvince.province}}
             .col-md-4(style='padding-right:0')
                 label.control-label {{"PHONE_CITY" | translate}}
                 select.form-control(type='text', ng-model='currentCity.city', ng-options='v.id as v.name for (i,v) in cityList', ng-change='changeCity(true)', ng-disabled='!isEditingPlayerPayment')
+                    option(ng-if="!isIdInList(cityList, currentCity.city)" ng-value="currentCity.city") {{currentCity.city}}
             .col-md-4(style='padding-right:0')
                 label.control-label {{"districtId" | translate}}
                 select.form-control(type='text', ng-model='currentDistrict.district', ng-options='v.id as v.name for (i,v) in districtList', ng-disabled='!isEditingPlayerPayment')
                     option(value='')
+                    option(ng-if="!isIdInList(districtList, currentDistrict.district)" ng-value="currentDistrict.district") {{currentDistrict.district}}
         .form-group-col-md-6
             label.control-label {{'Account Branch' | translate}}
             input.form-control(ng-model='playerPayment.bankAddress', ng-disabled='!isEditingPlayerPayment')
