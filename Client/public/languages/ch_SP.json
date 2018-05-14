@@ -3700,6 +3700,7 @@
   "POINT_CONVERSION" : "积分兑换",
   "TOTAL_REWARD" : "总优惠",
   "TOTAL_TOPUP" : "总存款金额",
+  "TOTAL_BONUS" : "总提款金额",
   "BONUS_WINLOSE" : "输赢",
   "NORMAL_EXECUTED" : "正常结算",
   "RESET_THEN_EXECUTED" : "结算前清空馀额",

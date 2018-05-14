@@ -1258,3 +1258,47 @@ p
                                     text.span(ng-style='vm.partnerCommVar.group.isCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.platformFee}}
                                     text.span {{'/'}}
                                     text.span(ng-style='vm.partnerCommissionLog[vm.partnerCommVar.partner].isAnyCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommissionLog[vm.partnerCommVar.partner].totalPlatformFee}}
+
+#modalPlayerDetailsSummaryTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"totalCount" | translate}} {{": "}} {{vm.playerDetailsSummary.totalCount}}
+            .modal-body
+                div
+                    table.simple-table
+                        thead
+                            tr
+                                th {{'TOTAL_CHILDREN_COUNT' | translate}}
+                                th {{'REAL_NAME' | translate}}
+                                th {{'TOPUPMANUAL' | translate}}
+                                th {{'TOPUPONLINE' | translate}}
+                                th {{'ALIPAY' | translate}}
+                                th {{'WECHATPAY' | translate}}
+                                th {{'TOTAL_TOPUP' | translate}}
+                                th {{'TOTAL_BONUS' | translate}}
+                                th {{'TOTAL_CHILDREN_DEPOSIT' | translate}}
+                                th {{'TOTAL_CHILDREN_BALANCE' | translate}}
+                        tbody()
+                            tr(ng-repeat="v in vm.playerDetailsSummary")
+                                td {{v.name}}
+                                td {{v.realName}}
+                                td {{v.manualTopUp}}
+                                td {{v.onlineTopUp}}
+                                td {{v.aliPayTopUp}}
+                                td {{v.wechatTopUp}}
+                                td {{v.topUpSum}}
+                                td {{v.totalBonus}}
+                                td {{v.totalDepositAmount}}
+                                td {{v.validCredit}}
+                            tr
+                                td(colspan=2) {{"Totalsum" | translate}}
+                                td {{vm.playerDetailsSummary.sumOfManualTopUp}}
+                                td {{vm.playerDetailsSummary.sumOfOnlineTopUp}}
+                                td {{vm.playerDetailsSummary.sumOfAliPayTopUp}}
+                                td {{vm.playerDetailsSummary.sumOfWechatTopUp}}
+                                td {{vm.playerDetailsSummary.sumOfTotalTopUp}}
+                                td {{vm.playerDetailsSummary.sumOfTotalBonus}}
+                                td {{vm.playerDetailsSummary.sumOfTotalDeposit}}
+                                td {{vm.playerDetailsSummary.sumOfTotalBalance}}

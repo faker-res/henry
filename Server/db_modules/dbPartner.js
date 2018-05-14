@@ -16,6 +16,7 @@ var constServerCode = require('../const/constServerCode');
 var geoip = require('geoip-lite');
 var dbProposal = require('../db_modules/dbProposal');
 var constProposalType = require('../const/constProposalType');
+var constPlayerTopUpTypes = require('../const/constPlayerTopUpType');
 var jwt = require('jsonwebtoken');
 var errorUtils = require("../modules/errorUtils.js");
 var pmsAPI = require("../externalAPI/pmsAPI.js");
@@ -5123,6 +5124,113 @@ let dbPartner = {
         return Promise.all(totalChildrenBalanceProm).then( data => {
             return data;
         })
+    },
+
+    getChildrenDetails: (platform, partnerId) => {
+        if(!platform || !partnerId){
+            return;
+        }
+
+        return dbconfig.collection_players.find({platform: platform, partner: ObjectId(partnerId)}).lean().then(
+            playerDetails => {
+                if(playerDetails){
+                    let calculatedDetailsProm = [];
+
+                    playerDetails.map(
+                        player => {
+                            if(player){
+                                calculatedDetailsProm.push(dbPartner.getPlayerCalculatedDetails(player));
+                            }
+                        }
+                    )
+
+                    return Promise.all(calculatedDetailsProm);
+                }
+            }
+        )
+    },
+
+    getPlayerCalculatedDetails: (player) => {
+        let getPlayerTopUpDetailsProm = dbPartner.getPlayerTopUpDetails(player._id);
+        let getPlayerBonusDetailsProm = dbPartner.getPlayerBonusDetails(player._id, player.platform);
+        let playerObj = player;
+        playerObj.manualTopUp = 0;
+        playerObj.onlineTopUp = 0;
+        playerObj.aliPayTopUp = 0;
+        playerObj.wechatTopUp = 0;
+        playerObj.totalBonus = 0;
+        playerObj.totalDepositAmount = playerObj.topUpSum || 0;
+
+        return Promise.all([getPlayerTopUpDetailsProm, getPlayerBonusDetailsProm]).then(
+            result => {
+                if(result && result[0] && result[1]){
+                    let topUpDetails = result[0];
+                    let bonusDetails = result[1][0];
+
+                    topUpDetails.forEach(topUpData => {
+                        if(topUpData && topUpData._id && topUpData._id.topUpType){
+                            if(topUpData._id.topUpType == constPlayerTopUpTypes.MANUAL){
+                                playerObj.manualTopUp = topUpData.totalTopUpCount;
+                            }else if(topUpData._id.topUpType == constPlayerTopUpTypes.ONLINE){
+                                playerObj.onlineTopUp = topUpData.totalTopUpCount;
+                            }else if(topUpData._id.topUpType == constPlayerTopUpTypes.ALIPAY){
+                                playerObj.aliPayTopUp = topUpData.totalTopUpCount;
+                            }else if(topUpData._id.topUpType == constPlayerTopUpTypes.WECHAT){
+                                playerObj.wechatTopUp = topUpData.totalTopUpCount;
+                            }
+                        }
+                    })
+
+                    if(bonusDetails && bonusDetails.totalBonusAmount ){
+                        playerObj.totalBonus = bonusDetails.totalBonusAmount;
+                        playerObj.totalDepositAmount = playerObj.topUpSum - bonusDetails.totalBonusAmount;
+                    }
+
+                    return playerObj;
+                }
+            }
+        )
+    },
+
+    getPlayerTopUpDetails: (playerObjId) => {
+        return dbconfig.collection_playerTopUpRecord.aggregate(
+            {
+                $match: {
+                    playerId: playerObjId,
+                }
+            },
+            {
+                $group: {
+                    _id: {"topUpType": "$topUpType"},
+                    totalTopUpCount: {$sum: 1}
+                }
+            }
+        )
+    },
+
+    getPlayerBonusDetails: (playerObjId, platformObjId) => {
+        return dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: constProposalType.PLAYER_BONUS}).then(
+            proposalType => {
+                if(proposalType){
+                    return dbconfig.collection_proposal.aggregate(
+                        {
+                            $match: {
+                                type: proposalType._id,
+                                'data.playerObjId': playerObjId,
+                                status: constProposalStatus.APPROVED
+                            }
+                        },
+                        {
+                            $group: {
+                                //_id: "$data.amount",
+                                _id: null,
+                                totalBonusAmount: {$sum: "$data.amount"}
+                            }
+                        }
+                    )
+                }
+            }
+        );
     },
 
     getTotalChildrenValidCredit: (partnerDetail) => {
