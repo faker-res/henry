@@ -65,16 +65,16 @@ var proposalExecutor = {
             return types;
         },
 
-        /**
-         * get all rejection types
-         */
-        getAllRejectionTypes: function () {
-            var types = {};
-            for (var key in proposalExecutor.rejections) {
-                types[key] = proposalExecutor.rejections[key].des;
-            }
-            return types;
-        },
+    /**
+     * get all rejection types
+     */
+    getAllRejectionTypes: function () {
+        var types = {};
+        for (var key in proposalExecutor.rejections) {
+            types[key] = proposalExecutor.rejections[key].des;
+        }
+        return types;
+    },
 
     approveOrRejectProposal: function (executionType, rejectionType, bApprove, proposalData, rejectIfMissing) {
         const isNewFunc =
