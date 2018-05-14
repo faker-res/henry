@@ -288,7 +288,7 @@ let dbPlayerReward = {
                         }
                         break;
                     case "4":
-                        if (numberOfTopUpWithinPeriod >= event.condition.topUpCountType[1] && numberOfTopUpWithinPeriod >= event.condition.topUpCountType[2]) {
+                        if (numberOfTopUpWithinPeriod >= event.condition.topUpCountType[1] && numberOfTopUpWithinPeriod < event.condition.topUpCountType[2]) {
                             isTopUpCountValid = true;
                         }
                         break;
