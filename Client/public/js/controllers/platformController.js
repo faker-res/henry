@@ -1528,16 +1528,7 @@ define(['js/app'], function (myApp) {
                     }
                 )
 
-                // socketService.$socket($scope.AppSocket, 'getPlatformPartnerSettLog',
-                //     {},
-                //     ret => {
-                //         vm.partnerCommissionSettlement.startTime = vm.dateReformat(ret.data.startTime);
-                //         vm.partnerCommissionSettlement.endTime = vm.dateReformat(ret.data.endTime);
-                //         $scope.safeApply();
-                //     });
-                //
-
-                // $scope.safeApply();
+                vm.getAllPartnerCommSettPreview();
             };
 
             vm.generatePartnerCommSettPreview = (modeObj) => {
@@ -1548,18 +1539,6 @@ define(['js/app'], function (myApp) {
                     endTime: modeObj.settEndTime
                 }).then(vm.startPlatformPartnerCommissionSettlement());
 
-                // socketService.$socket($scope.AppSocket, 'getPartnerCommSettPreview',
-                //     {
-                //         platformId: vm.selectedPlatform.id,
-                //         isSettled: false
-                //     },
-                //     res => {
-                //         vm.partnerCommissionSettlement.status = 'completed';
-                //         vm.partnerCommissionSettlement.result = $translate('Success');
-                //     },
-                //     err => {
-                //     }
-                // );
             };
 
             vm.skipNextPartnerCommissionPeriod = (modeObj, toLatest = false, isConfirm = false) => {
@@ -1591,7 +1570,7 @@ define(['js/app'], function (myApp) {
                     platformObjId: vm.selectedPlatform.id
                 }).then(
                     previews => {
-                        vm.allPartnerCommSettPreview = previews.data;
+                        $scope.$evalAsync(() => vm.allPartnerCommSettPreview = previews.data);
                     }
                 );
             };
