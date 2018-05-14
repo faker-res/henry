@@ -42,14 +42,23 @@ form(name='form_partnerPaymentInfo').well
         .form-group-col-md-6
             .col-md-4(style='padding-left:0')
                 label.control-label {{"PHONE_PROVINCE" | translate}}
-                select.form-control(type='text', ng-model='currentProvince.province', ng-options='v.id as v.name for (i,v) in provinceList', ng-change='changeProvince(true)', ng-disabled='!isEditingPartnerPayment')
+                //select.form-control(type='text', ng-model='currentProvince.province', ng-options='v.id as v.name for (i,v) in provinceList', ng-change='changeProvince(true)', ng-disabled='!isEditingPartnerPayment')
+                select.form-control(type='text', ng-model='currentProvince.province' ng-change='changeProvince(true)', ng-disabled='!isEditingPartnerPayment' ng-init="originalProvinceId = currentProvince.province")
+                    option(ng-repeat="(i,v) in provinceList" ng-value='v.id') {{v.name}}
+                    option(ng-value="originalProvinceId") {{originalProvinceId}}
             .col-md-4(style='padding-right:0')
                 label.control-label {{"PHONE_CITY" | translate}}
-                select.form-control(type='text', ng-model='currentCity.city', ng-options='v.id as v.name for (i,v) in cityList', ng-change='changeCity(true)', ng-disabled='!isEditingPartnerPayment')
+                //select.form-control(type='text', ng-model='currentCity.city', ng-options='v.id as v.name for (i,v) in cityList', ng-change='changeCity(true)', ng-disabled='!isEditingPartnerPayment')
+                select.form-control(type='text', ng-model='currentCity.city', ng-change='changeCity(true)', ng-disabled='!isEditingPartnerPayment' ng-init="originalCityId = currentCity.city")
+                    option(ng-repeat="(i,v) in cityList" ng-value='v.id') {{v.name}}
+                    option(ng-value="originalCityId") {{originalCityId}}
             .col-md-4(style='padding-right:0')
                 label.control-label {{"districtId" | translate}}
-                select.form-control(type='text', ng-model='currentDistrict.district', ng-options='v.id as v.name for (i,v) in districtList', ng-disabled='!isEditingPartnerPayment')
+                //select.form-control(type='text', ng-model='currentDistrict.district', ng-options='v.id as v.name for (i,v) in districtList', ng-disabled='!isEditingPartnerPayment')
+                select.form-control(type='text', ng-model='currentDistrict.district', ng-disabled='!isEditingPartnerPayment' ng-init="originalDistrictId = currentDistrict.district")
                     option(value='')
+                    option(ng-repeat="(i,v) in districtList" ng-value='v.id') {{v.name}}
+                    option(ng-value="originalDistrictId") {{originalDistrictId}}
         .form-group-col-md-6
             label.control-label {{'Account Branch' | translate}}
             input.form-control(ng-model='partnerPayment.bankAddress', ng-disabled='!isEditingPartnerPayment')

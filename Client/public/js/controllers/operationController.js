@@ -786,6 +786,8 @@ define(['js/app'], function (myApp) {
                 result = $translate(val);
             } else if (fieldName === 'applyForDate') {
                 result = new Date(val).toLocaleDateString("en-US", {timeZone: "Asia/Singapore"});
+            } else if (fieldName === 'DOB') {
+                result = commonService.convertDOBDateFormat(val);
             } else if (fieldName === 'returnDetail') {
                 // Example data structure : {"GameType:9" : {"ratio" : 0.01, "consumeValidAmount" : 6000}}
 
@@ -1053,9 +1055,9 @@ define(['js/app'], function (myApp) {
                         ? v.data.alipayAccount
                         : null;
                     // remove the time from the ISO date for display purpose
-                    if (v.data.DOB) {
-                        v.data.DOB = v.data.DOB.slice(0, 10);
-                    }
+                    // if (v.data.DOB) {
+                    //     v.data.DOB = v.data.DOB.slice(0, 10);
+                    // }
                     // convert the status of gender from Boolean to string for display purpose
                     if (v.data.gender == true) {
                         v.data.gender = "男";
@@ -1178,7 +1180,11 @@ define(['js/app'], function (myApp) {
                         "title": $translate('STATUS'),
                         "data": 'process',
                         render: function (data, type, row) {
-                            let text = $translate(row.status ? row.status : (data.status ? data.status : 'UNKNOWN'));
+                            let status = row.status;
+                            if (row.type && row.type.name == "BulkExportPlayerData") {
+                                status = status === "Approved" ? "approved" : status;
+                            }
+                            let text = $translate(status ? status : (data.status ? data.status : 'UNKNOWN'));
                             text = text === "approved" ? "Approved" : text;
 
                             let textClass = '';
@@ -1983,13 +1989,14 @@ define(['js/app'], function (myApp) {
                 proposalDetail["COMMISSION_PERIOD"] = $scope.dateReformat(vm.selectedProposal.data.startTime) + " - " + $scope.dateReformat(vm.selectedProposal.data.endTime);
                 proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
                 proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
-                proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
+                proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.status);
                 proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
                 vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                     grossCommission += rawCommission.amount;
                     let str = rawCommission.amount + $translate("YEN") + " "
-                        + "(" + $translate(consumptionUsed) + ": " + (-rawCommission.totalConsumption) + "/"
+                        + "(" + $translate(consumptionUsed) + ": " + (rawCommission.totalConsumption) + "/"
+                        + $translate('active') + ": " + (vm.selectedProposal.data.activeCount || 0) + "/"
                         + $translate("RATIO") + ": " + (rawCommission.commissionRate * 100) + "%)";
 
                     proposalDetail[rawCommission.groupName + " " + $translate("Commission")] =  str;
@@ -2192,6 +2199,7 @@ define(['js/app'], function (myApp) {
                 proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName || $translate("ALL");
                 proposalDetail["CREDIBILITY"] = vm.selectedProposal.data.credibilityRemarkNames && vm.selectedProposal.data.credibilityRemarkNames.length > 0 ? vm.selectedProposal.data.credibilityRemarkNames.join(', ') : " ";
                 proposalDetail["LAST_ACCESS_TILL_NOW"] = vm.selectedProposal.data.lastAccessTimeRangeString || " ";
+                proposalDetail["FILTER_FEEDBACK_DAY"] = vm.selectedProposal.data.lastFeedbackTimeBefore || " ";
                 proposalDetail["DEPOSIT_COUNT"] = depositCountQueryString || " ";
                 proposalDetail["PLAYER_VALUE"] = playerValueQueryString || " ";
                 proposalDetail["TOTAL_CONSUMPTION_TIMES"] = totalConsumptionQueryString || " ";
