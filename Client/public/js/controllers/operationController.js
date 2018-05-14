@@ -2199,6 +2199,7 @@ define(['js/app'], function (myApp) {
                 proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName || $translate("ALL");
                 proposalDetail["CREDIBILITY"] = vm.selectedProposal.data.credibilityRemarkNames && vm.selectedProposal.data.credibilityRemarkNames.length > 0 ? vm.selectedProposal.data.credibilityRemarkNames.join(', ') : " ";
                 proposalDetail["LAST_ACCESS_TILL_NOW"] = vm.selectedProposal.data.lastAccessTimeRangeString || " ";
+                proposalDetail["FILTER_FEEDBACK_DAY"] = vm.selectedProposal.data.lastFeedbackTimeBefore || " ";
                 proposalDetail["DEPOSIT_COUNT"] = depositCountQueryString || " ";
                 proposalDetail["PLAYER_VALUE"] = playerValueQueryString || " ";
                 proposalDetail["TOTAL_CONSUMPTION_TIMES"] = totalConsumptionQueryString || " ";
