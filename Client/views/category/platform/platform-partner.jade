@@ -1258,3 +1258,33 @@ p
                                     text.span(ng-style='vm.partnerCommVar.group.isCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.platformFee}}
                                     text.span {{'/'}}
                                     text.span(ng-style='vm.partnerCommissionLog[vm.partnerCommVar.partner].isAnyCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommissionLog[vm.partnerCommVar.partner].totalPlatformFee}}
+
+#modalActivePartnerInfo.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"totalCount" | translate}} {{": "}} {{vm.selectedPartnerObjArr.size}}
+            .modal-body
+                div
+                    table.simple-table
+                        thead
+                            tr
+                                th {{ vm.selectedPartnerObjArr.title | translate}}
+                                th {{'REAL_NAME' | translate}}
+                                th {{'TOP_UP_TIMES' | translate}}
+                                th {{'TOP_UP_AMOUNT' | translate}}
+                                th {{'TIMES_CONSUMED' | translate}}
+                                th {{'VALID_CONSUMPTION' | translate}}
+                                th {{'PlayerValue' | translate}}
+                        tbody
+                            tr(ng-if="vm.selectedPartnerObjArr.data.length == 0")
+                                td(colspan = 7) {{ 'No data available in table' | translate }}
+                            tr(ng-if="vm.selectedPartnerObjArr.data.length > 0", ng-repeat="v in vm.selectedPartnerObjArr.data")
+                                td {{v.name}}
+                                td {{v.realName}}
+                                td {{v.topUpCount}}
+                                td {{v.topUpAmount}}
+                                td {{v.consumptionCount}}
+                                td {{v.consumptionAmount}}
+                                td {{v.valueScore}}
