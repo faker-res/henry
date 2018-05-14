@@ -4778,7 +4778,7 @@ let dbPartner = {
 
                                                 if (index != -1){
 
-                                                    let playerIndex = partnerDetail.findIndex(q => q._id == record._id);
+                                                    let playerIndex = partnerDetail.findIndex(q => q._id.toString() == record._id.toString());
 
                                                     if(playerIndex != -1){
                                                         consumptionPlayerList.push({
@@ -4992,7 +4992,7 @@ let dbPartner = {
 
                                             if (index != -1){
 
-                                                let playerIndex = partnerDetail.findIndex(q => q._id == record._id);
+                                                let playerIndex = partnerDetail.findIndex(q => q._id.toString() == record._id.toString());
 
                                                 if(playerIndex != -1){
                                                     if (partnerDetail[playerIndex].valueScore >= validPlayerValue){
