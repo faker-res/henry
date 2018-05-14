@@ -16036,6 +16036,74 @@ define(['js/app'], function (myApp) {
                 })
             };
 
+            vm.getChildrenDetails = function (partnerId) {
+                let sendQuery = {
+                    partnerId: partnerId,
+                    platform: vm.selectedPlatform.id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getChildrenDetails', sendQuery, function (data) {
+                    let sumOfManualTopUp = 0;
+                    let sumOfOnlineTopUp = 0;
+                    let sumOfAliPayTopUp = 0;
+                    let sumOfWechatTopUp = 0;
+                    let sumOfTotalTopUp = 0;
+                    let sumOfTotalBonus = 0;
+                    let sumOfTotalDeposit = 0;
+                    let sumOfTotalBalance = 0;
+                    
+                    if(data && data.data){
+                        data.data.forEach(result => {
+                            if(result){
+                                if(result.manualTopUp){
+                                    sumOfManualTopUp = sumOfManualTopUp + result.manualTopUp;
+                                }
+
+                                if(result.onlineTopUp){
+                                    sumOfOnlineTopUp = sumOfOnlineTopUp + result.onlineTopUp;
+                                }
+
+                                if(result.aliPayTopUp){
+                                    sumOfAliPayTopUp = sumOfAliPayTopUp + result.aliPayTopUp;
+                                }
+
+                                if(result.wechatTopUp){
+                                    sumOfWechatTopUp = sumOfWechatTopUp + result.wechatTopUp;
+                                }
+
+                                if(result.topUpSum){
+                                    sumOfTotalTopUp = sumOfTotalTopUp + result.topUpSum;
+                                }
+
+                                if(result.totalBonus){
+                                    sumOfTotalBonus = sumOfTotalBonus + result.totalBonus;
+                                }
+
+                                if(result.totalDepositAmount){
+                                    sumOfTotalDeposit = sumOfTotalDeposit + result.totalDepositAmount;
+                                }
+
+                                if(result.validCredit){
+                                    sumOfTotalBalance = sumOfTotalBalance + result.validCredit;
+                                }
+                            }
+                        })
+
+                        vm.playerDetailsSummary = data.data;
+                        vm.playerDetailsSummary.totalCount = data.data.length;
+                        vm.playerDetailsSummary.sumOfManualTopUp = sumOfManualTopUp;
+                        vm.playerDetailsSummary.sumOfOnlineTopUp = sumOfOnlineTopUp;
+                        vm.playerDetailsSummary.sumOfAliPayTopUp = sumOfAliPayTopUp;
+                        vm.playerDetailsSummary.sumOfWechatTopUp = sumOfWechatTopUp;
+                        vm.playerDetailsSummary.sumOfTotalTopUp = sumOfTotalTopUp;
+                        vm.playerDetailsSummary.sumOfTotalBonus = sumOfTotalBonus;
+                        vm.playerDetailsSummary.sumOfTotalDeposit = sumOfTotalDeposit;
+                        vm.playerDetailsSummary.sumOfTotalBalance = sumOfTotalBalance;
+                        $('#modalPlayerDetailsSummaryTable').modal().show();
+                    }
+                })
+            };
+
             //draw partner table based on data
             vm.drawPartnerTable = function (data) {
                 vm.getReferralsList(data);
@@ -16258,7 +16326,7 @@ define(['js/app'], function (myApp) {
                             title: $translate('TOTAL_CHILDREN_COUNT'), data: "totalReferrals", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
                                 let link = $('<a>', {
-                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                    'ng-click': 'vm.getChildrenDetails("' + row._id + '")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -16270,7 +16338,7 @@ define(['js/app'], function (myApp) {
                             "sClass": "alignRight sumFloat",
                             render: function (data, type, row) {
                                 let link = $('<a>', {
-                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                    'ng-click': 'vm.getChildrenDetails("' + row._id + '")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -16282,7 +16350,7 @@ define(['js/app'], function (myApp) {
                             "sClass": "alignRight sumFloat",
                             render: function (data, type, row) {
                                 let link = $('<a>', {
-                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                    'ng-click': 'vm.getChildrenDetails("' + row._id + '")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
