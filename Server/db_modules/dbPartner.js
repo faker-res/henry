@@ -5456,9 +5456,6 @@ let dbPartner = {
                     let isCustomPlatformFeeRate = platformFeeRateData.isCustom;
 
                     let rawCommission = calculateRawCommission(totalConsumption, commissionRates[groupRate.groupName].commissionRate);
-                    if (rawCommission < 0) {
-                        rawCommission = 0;
-                    }
 
                     let platformFee =  platformFeeRate * totalConsumption / 100;
                     platformFee = platformFee >= 0 ? platformFee : 0;
@@ -6558,6 +6555,7 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
                     commissionType: commissionLog.commissionType,
                     partnerCommissionRateConfig: commissionLog.partnerCommissionRateConfig,
                     rawCommissions: commissionLog.rawCommissions,
+                    activeCount: commissionLog.activeDownLines,
                     totalRewardFee: commissionLog.totalRewardFee,
                     totalReward: commissionLog.totalReward,
                     totalTopUpFee: commissionLog.totalTopUpFee,
