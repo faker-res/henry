@@ -7962,6 +7962,7 @@ define(['js/app'], function (myApp) {
                             platformWechatPayGroupList: vm.platformWechatPayGroupList,
                             platformQuickPayGroupList: vm.platformQuickPayGroupList,
                             allPlayerTrustLvl: vm.allPlayerTrustLvl,
+                            isIdInList: commonService.isIdInList,
                             //vm.platformCreditTransferLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                             updateEditedPlayer: function () {
 
@@ -8145,6 +8146,7 @@ define(['js/app'], function (myApp) {
                     }
                 }
             };
+
             vm.getReferralPlayer = function (editObj, type) {
                 var sendData = null;
                 if (type === 'change' && editObj.referralName) {
@@ -17321,6 +17323,7 @@ define(['js/app'], function (myApp) {
                             today: new Date().toISOString(),
                             commissionType: vm.constPartnerCommisionType,
                             partnerId: selectedPartner._id,
+                            isIdInList: commonService.isIdInList,
                             partnerBeforeEditing: _.clone(editPartner),
                             newPartner: _.clone(editPartner),
                             updateEditedPartner: function () {
@@ -22422,6 +22425,8 @@ define(['js/app'], function (myApp) {
                     result = $translate(val);
                 } else if (fieldName === 'applyForDate') {
                     result = new Date(val).toLocaleDateString("en-US", {timeZone: "Asia/Singapore"});
+                } else if (fieldName === 'DOB') {
+                    result = commonService.convertDOBDateFormat(val);
                 } else if (fieldName === 'returnDetail') {
                     // Example data structure : {"GameType:9" : {"ratio" : 0.01, "consumeValidAmount" : 6000}}
                     let newReturnDetail = {};
