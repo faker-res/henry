@@ -7962,6 +7962,7 @@ define(['js/app'], function (myApp) {
                             platformWechatPayGroupList: vm.platformWechatPayGroupList,
                             platformQuickPayGroupList: vm.platformQuickPayGroupList,
                             allPlayerTrustLvl: vm.allPlayerTrustLvl,
+                            isIdInList: vm.isIdInList,
                             //vm.platformCreditTransferLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                             updateEditedPlayer: function () {
 
@@ -8145,6 +8146,26 @@ define(['js/app'], function (myApp) {
                     }
                 }
             };
+
+            vm.isIdInList = (list, id) => {
+                if (!id) {
+                    return true;
+                }
+                if (!list instanceof Array) {
+                    return false;
+                }
+
+                for (let i = 0; i < list.length; i++) {
+                    let item = list[i];
+                    if (item.id == id) {
+                        return true;
+                    }
+                }
+
+                let sixDigitRegex = /^\d{6}$/;
+                return Boolean(sixDigitRegex.test(id));
+            };
+
             vm.getReferralPlayer = function (editObj, type) {
                 var sendData = null;
                 if (type === 'change' && editObj.referralName) {
@@ -17287,6 +17308,7 @@ define(['js/app'], function (myApp) {
                             today: new Date().toISOString(),
                             commissionType: vm.constPartnerCommisionType,
                             partnerId: selectedPartner._id,
+                            isIdInList: vm.isIdInList,
                             partnerBeforeEditing: _.clone(editPartner),
                             newPartner: _.clone(editPartner),
                             updateEditedPartner: function () {
