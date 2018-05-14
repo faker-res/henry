@@ -786,6 +786,8 @@ define(['js/app'], function (myApp) {
                 result = $translate(val);
             } else if (fieldName === 'applyForDate') {
                 result = new Date(val).toLocaleDateString("en-US", {timeZone: "Asia/Singapore"});
+            } else if (fieldName === 'DOB') {
+                result = commonService.convertDOBDateFormat(val);
             } else if (fieldName === 'returnDetail') {
                 // Example data structure : {"GameType:9" : {"ratio" : 0.01, "consumeValidAmount" : 6000}}
 
@@ -1053,9 +1055,9 @@ define(['js/app'], function (myApp) {
                         ? v.data.alipayAccount
                         : null;
                     // remove the time from the ISO date for display purpose
-                    if (v.data.DOB) {
-                        v.data.DOB = v.data.DOB.slice(0, 10);
-                    }
+                    // if (v.data.DOB) {
+                    //     v.data.DOB = v.data.DOB.slice(0, 10);
+                    // }
                     // convert the status of gender from Boolean to string for display purpose
                     if (v.data.gender == true) {
                         v.data.gender = "男";

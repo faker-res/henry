@@ -22388,6 +22388,8 @@ define(['js/app'], function (myApp) {
                     result = $translate(val);
                 } else if (fieldName === 'applyForDate') {
                     result = new Date(val).toLocaleDateString("en-US", {timeZone: "Asia/Singapore"});
+                } else if (fieldName === 'DOB') {
+                    result = commonService.convertDOBDateFormat(val);
                 } else if (fieldName === 'returnDetail') {
                     // Example data structure : {"GameType:9" : {"ratio" : 0.01, "consumeValidAmount" : 6000}}
                     let newReturnDetail = {};
