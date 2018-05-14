@@ -133,6 +133,25 @@ define([], () => {
 
             return commSett;
         }
+
+        this.isIdInList = (list, id) => {
+            if (!id) {
+                return true;
+            }
+            if (!list instanceof Array) {
+                return false;
+            }
+
+            for (let i = 0; i < list.length; i++) {
+                let item = list[i];
+                if (item.id == id) {
+                    return true;
+                }
+            }
+
+            let sixDigitRegex = /^\d{6}$/;
+            return Boolean(sixDigitRegex.test(id));
+        };
     };
 
     let commonServiceApp = angular.module('commonService', []);
