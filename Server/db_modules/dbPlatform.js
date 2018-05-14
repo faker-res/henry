@@ -2834,9 +2834,10 @@ var dbPlatform = {
         );
     },
 
-    getPlatformPartnerSettlementStatus: (platformObjId, startTime, endTime) => {
+    getPlatformPartnerSettlementStatus: (platformObjId, commissionType, startTime, endTime) => {
         return dbconfig.collection_partnerCommSettLog.find({
             platform: platformObjId,
+            settMode: parseInt(commissionType),
             $or: [{
                 startTime: {
                     $gte: startTime,
