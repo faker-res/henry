@@ -4939,7 +4939,7 @@ let dbPartner = {
                 let validPlayerTopUpAmount = config.validPlayerTopUpAmount;
                 let validPlayerConsumptionTimes = config.validPlayerConsumptionTimes;
                 let validPlayerConsumptionAmount = config.validPlayerConsumptionAmount;
-                let validPlayerValue = config.validPlayerValue;
+                let validPlayerValue = config.validPlayerValue || 0;
 
                 return dbconfig.collection_playerTopUpRecord.aggregate(
                     {
@@ -4983,16 +4983,6 @@ let dbPartner = {
                                 }).read("secondaryPreferred").then(records => {
                                     records = records.filter(records => records.consumptionCount >= validPlayerConsumptionTimes && records.consumptionAmount >= validPlayerConsumptionAmount);
 
-                                    dbconfig.collection_partner.findOneAndUpdate(
-                                        {
-                                            _id: partnerId,
-                                            platform: platformId,
-                                        },
-                                        {
-                                            $set: {validPlayers: records.length}
-                                        }
-                                    ).exec();
-
                                     if (records && records.length > 0){
 
                                         let consumptionPlayerList = [];
@@ -5005,23 +4995,37 @@ let dbPartner = {
                                                 let playerIndex = partnerDetail.findIndex(q => q._id == record._id);
 
                                                 if(playerIndex != -1){
-                                                    consumptionPlayerList.push({
-                                                        _id: record._id,
-                                                        topUpAmount: topUpPlayerList[index].topUpAmount,
-                                                        topUpCount: topUpPlayerList[index].topUpCount,
-                                                        consumptionAmount: record.consumptionAmount,
-                                                        consumptionCount: record.consumptionCount,
-                                                        valueScore: partnerDetail[playerIndex].valueScore,
-                                                        realName: partnerDetail[playerIndex].realName,
-                                                        name: partnerDetail[playerIndex].name
-                                                    })
+                                                    if (partnerDetail[playerIndex].valueScore >= validPlayerValue){
+                                                        consumptionPlayerList.push({
+                                                            _id: record._id,
+                                                            topUpAmount: topUpPlayerList[index].topUpAmount,
+                                                            topUpCount: topUpPlayerList[index].topUpCount,
+                                                            consumptionAmount: record.consumptionAmount,
+                                                            consumptionCount: record.consumptionCount,
+                                                            valueScore: partnerDetail[playerIndex].valueScore,
+                                                            realName: partnerDetail[playerIndex].realName,
+                                                            name: partnerDetail[playerIndex].name
+                                                        })
+                                                    }
+
                                                 }
 
                                             }
 
                                         })
 
-                                        return {partnerId: partnerId, size: records.length, downLiner: consumptionPlayerList}
+                                        dbconfig.collection_partner.findOneAndUpdate(
+                                            {
+                                                _id: partnerId,
+                                                platform: platformId,
+                                            },
+                                            {
+                                                $set: {validPlayers: consumptionPlayerList.length}
+                                            },
+                                            {new: true}
+                                        ).exec();
+
+                                        return {partnerId: partnerId, size: consumptionPlayerList.length, downLiner: consumptionPlayerList}
                                     }
                                     else{
                                         return {partnerId: partnerId, size: 0, downLiner: []}
