@@ -59,6 +59,28 @@ define([], () => {
             elementBody.removeChild(dummy);
         }
 
+        this.convertDOBDateFormat = function (DOBDate) {
+            // conversion to new Date() from ISOString date format by using toLocaleString() will have delay after year 1982
+            // the delay will result wrong displaying date
+            // solution to this: generat the string format from new Date() by using basic functions (getFullYear(), geMonth(), getDate())
+            if (DOBDate) {
+
+                let displayedDOB = new Date(DOBDate);
+                var y = displayedDOB.getFullYear();
+                var m = displayedDOB.getMonth() + 1;
+                if (m < 10) {
+                    m = '0' + m;
+                }
+
+                var d = displayedDOB.getDate();
+                if (d < 10) {
+                    d = '0' + d;
+                }
+
+                return y + "-" + m + "-" + d
+            }
+        };
+
         /**
          * Check if partner has custom rate
          * @param partnerObjId
