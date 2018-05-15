@@ -15900,10 +15900,12 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getDailyActivePlayerCount', sendQuery, function (data) {
                     // append back daily active player into draw table data
                     data.data.forEach( inData => {
-                        let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-                        if ( index !== -1) {
-                            partner.data[index].dailyActivePlayer = inData.size ? inData.size : 0;
-                            partner.data[index].dailyActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
+                        if (inData && inData.partnerId) {
+                            let index = partner.data.findIndex(p => p._id === inData.partnerId);
+                            if (index !== -1) {
+                                partner.data[index].dailyActivePlayer = inData.size ? inData.size : 0;
+                                partner.data[index].dailyActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
+                            }
                         }
                     });
                     vm.partnerLoadingDailyActivePlayer = false;
@@ -15921,10 +15923,12 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getWeeklyActivePlayerCount', sendQuery, function (data) {
                     // append back weekly active player into draw table data
                     data.data.forEach( inData => {
-                        let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-                        if ( index !== -1) {
-                            partner.data[index].weeklyActivePlayer = inData.size ? inData.size : 0;
-                            partner.data[index].weeklyActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
+                        if (inData && inData.partnerId) {
+                            let index = partner.data.findIndex(p => p._id === inData.partnerId);
+                            if (index !== -1) {
+                                partner.data[index].weeklyActivePlayer = inData.size ? inData.size : 0;
+                                partner.data[index].weeklyActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
+                            }
                         }
                     });
                     vm.partnerLoadingWeeklyActivePlayer = false;
@@ -15942,10 +15946,12 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getMonthlyActivePlayerCount', sendQuery, function (data) {
                     // append back monthly active player into draw table data
                     data.data.forEach( inData => {
-                        let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-                        if ( index !== -1) {
-                            partner.data[index].monthlyActivePlayer = inData.size ? inData.size : 0;
-                            partner.data[index].monthlyActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
+                        if (inData && inData.partnerId) {
+                            let index = partner.data.findIndex(p => p._id === inData.partnerId);
+                            if (index !== -1) {
+                                partner.data[index].monthlyActivePlayer = inData.size ? inData.size : 0;
+                                partner.data[index].monthlyActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
+                            }
                         }
                     });
                     vm.partnerLoadingMonthlyActivePlayer = false;
@@ -15963,10 +15969,12 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getValidPlayersCount', sendQuery, function (data) {
                     // append back valid players into draw table data
                     data.data.forEach( inData => {
-                        let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-                        if ( index !== -1) {
-                            partner.data[index].validPlayers = inData.size ? inData.size : 0;
-                            partner.data[index].validActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
+                        if (inData && inData.partnerId){
+                            let index =  partner.data.findIndex(p => p._id === inData.partnerId);
+                            if ( index !== -1) {
+                                partner.data[index].validPlayers = inData.size ? inData.size : 0;
+                                partner.data[index].validActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
+                            }
                         }
                     });
                     vm.partnerLoadingValidPlayers = false;
