@@ -314,12 +314,16 @@ var proposal = {
                     // Player modify payment info
                     if (data[0].name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposalData.data.isPlayerInit) {
                         proposalData.status = constProposalStatus.SUCCESS;
+                        // auto approve, set the noSteps to true
+                        proposalData.noSteps = true;
                     }
 
                     // Player modify phone number
                     let phoneUpdateProposalType = [constProposalType.UPDATE_PLAYER_PHONE, constProposalType.UPDATE_PARTNER_PHONE];
                     if (phoneUpdateProposalType.includes(data[0].name) && proposalData.data.isPlayerInit) {
                         proposalData.status = constProposalStatus.SUCCESS;
+                        // auto approve, set the noSteps to true
+                        proposalData.noSteps = true;
                     }
 
                     // attach player info if available
