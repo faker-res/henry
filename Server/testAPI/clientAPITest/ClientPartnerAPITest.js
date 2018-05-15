@@ -218,6 +218,12 @@
         this.partnerService.getCrewActiveInfo.once(callback);
     };
 
+    proto.getCrewDepositInfo = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.getCrewDepositInfo.request(data);
+        this.partnerService.getCrewDepositInfo.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPartnerAPITest;
     } else {
