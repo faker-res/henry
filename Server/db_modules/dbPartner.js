@@ -6221,41 +6221,9 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
-            platformData => {
-                if (!platformData) {
-                    return Promise.reject({
-                        code: constServerCode.INVALID_PLATFORM,
-                        name: "DataError",
-                        message: "Cannot find platform"
-                    });
-                }
-
-                platform = platformData;
-
-                return dbconfig.collection_partner.findOne({platform: platform._id, partnerId: partnerId}).lean();
-            }
-        ).then(
-            partnerData => {
-                if (!partnerData) {
-                    return Promise.reject({
-                        code: constServerCode.PARTNER_NAME_INVALID,
-                        name: "DataError",
-                        message: "Cannot find partner"
-                    });
-                }
-
-                partner = partnerData;
-
-                return dbconfig.collection_players.find({platform: platform._id, partner: partner._id}).lean();
-            }
-        ).then(
-            downLineData => {
-                if (!downLineData || downLineData.length < 1) {
-                    downLineData = [];
-                }
-
-                downLines = downLineData;
+        return getPartnerCrewsData(platformId, partnerId).then(
+            crewsData => {
+                ({platform, partner, downLines} = crewsData);
 
                 return getRelevantActivePlayerRequirement(platform._id, periodCycle);
             }
@@ -7215,6 +7183,56 @@ function getCrewsInfo (players, startTime, endTime, activePlayerRequirement) {
     });
 
     return Promise.all(playerDetailsProm);
+}
+
+function getPartnerCrewsData (platformId, partnerId) {
+    let platform = {};
+    let partner = {};
+    let downLines = [];
+
+    return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+        platformData => {
+            if (!platformData) {
+                return Promise.reject({
+                    code: constServerCode.INVALID_PLATFORM,
+                    name: "DataError",
+                    message: "Cannot find platform"
+                });
+            }
+
+            platform = platformData;
+
+            return dbconfig.collection_partner.findOne({platform: platform._id, partnerId: partnerId}).lean();
+        }
+    ).then(
+        partnerData => {
+            if (!partnerData) {
+                return Promise.reject({
+                    code: constServerCode.PARTNER_NAME_INVALID,
+                    name: "DataError",
+                    message: "Cannot find partner"
+                });
+            }
+
+            partner = partnerData;
+
+            return dbconfig.collection_players.find({platform: platform._id, partner: partner._id}).lean();
+        }
+    ).then(
+        downLineData => {
+            if (!downLineData || downLineData.length < 1) {
+                downLineData = [];
+            }
+
+            downLines = downLineData;
+
+            return {
+                platform,
+                partner,
+                downLines
+            };
+        }
+    );
 }
 
 
