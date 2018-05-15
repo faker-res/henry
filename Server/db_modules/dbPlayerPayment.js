@@ -201,7 +201,7 @@ const dbPlayerPayment = {
                     return Q.reject({name: "DataError", message: "Cannot find player"})
                 }
             }
-        );
+        ).catch(() => []);
     }
 
 };
