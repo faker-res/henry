@@ -2365,9 +2365,9 @@ let dbPlayerInfo = {
         let playerNames = query.playerNames;
         let addList = forbidTopUpTypes.addList;
         let removeList = forbidTopUpTypes.removeList;
-        let updateData = {};
 
         playerNames.forEach(name => {
+            let updateData = {};
             let prom = dbconfig.collection_players.findOne({name: name, platform: query.platformObjId})
                 .then(data => {
                     let playerForbidTopupType = data.forbidTopUpType.filter(item => {
@@ -2421,12 +2421,12 @@ let dbPlayerInfo = {
 
     updateBatchPlayerForbidProviders: function (platformObjId, playerNames, forbidProviders) {
 
-        let updateData = {};
         let addList = forbidProviders.addList;
         let removeList = forbidProviders.removeList;
         let proms = [];
 
         playerNames.forEach(player => {
+            let updateData = {};
             let prom = dbconfig.collection_players.findOne({name: player, platform: platformObjId})
                 .then(data => {
 
@@ -2454,6 +2454,7 @@ let dbPlayerInfo = {
     },
     managingDataList: function (dataList, addList, removeList) {
         let result = [];
+        // add those new Item to List first
         dataList.forEach(d => {
             result.push(String(d));
         })
@@ -2463,25 +2464,27 @@ let dbPlayerInfo = {
                 result.push(item);
             }
         })
-
+        // only left those data not include in the remove list
         result = result.filter(rItem => {
-            // Doing this convert, is because one of this function will sent back object, the indexOf will goes wrong.
             let currentItem = String(rItem);
-            if (removeList.length == 0) {
-                finalResult.push(currentItem);
-            } else if (removeList.indexOf(currentItem) == -1) {
-                finalResult.push(currentItem);
+            if(removeList.length == 0){
+                return currentItem;
+            }else{
+                if(removeList.indexOf(currentItem) == -1){
+                    return currentItem;
+                }
             }
         })
-        return finalResult;
+        return result;
     },
     updateBatchPlayerForbidRewardEvents: function (platformObjId, playerNames, forbidRewardEvents) {
-        let updateData = {};
+
         let result = [];
         let addList = forbidRewardEvents.addList;
         let removeList = forbidRewardEvents.removeList;
         let proms = [];
         playerNames.forEach(name => {
+            let updateData = {};
             let prom = dbconfig.collection_players.findOne({'name': name, 'platform': platformObjId})
                 .then(data => {
                     let playerForbidRewardEvents = data.forbidRewardEvents || [];
@@ -2510,11 +2513,12 @@ let dbPlayerInfo = {
 
     updateBatchPlayerForbidRewardPointsEvent: function (playerNames, platformObjId, forbidRewardPointsEvent) {
         let proms = [];
-        let updateData = {};
+
         let addList = forbidRewardPointsEvent.addList;
         let removeList = forbidRewardPointsEvent.removeList;
 
         playerNames.forEach(name => {
+            let updateData = {};
             let prom = dbconfig.collection_players.findOne({name: name, platform: platformObjId})
                 .then(data => {
                     let playerForbidRewardPointsEvent = data.forbidRewardPointsEvent || [];
@@ -12951,10 +12955,11 @@ let dbPlayerInfo = {
 
         let addList = remarks.addList;
         let removeList = remarks.removeList;
-        let updateData = {credibilityRemarks: []};
+
         let proms = [];
 
         playerNames.forEach(playerName => {
+            let updateData = {credibilityRemarks: []};
             let prom = dbconfig.collection_players.findOne({name: playerName, platform: platformObjId})
                 .then(data => {
                     let playerCredibilityRemarks = data.credibilityRemarks.filter(item => {
