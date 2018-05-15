@@ -626,8 +626,8 @@ function socketActionPlatform(socketIO, socket) {
 
         getPlatformPartnerSettlementStatus: function getPlatformPartnerSettlementStatus(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime);
-            socketUtil.emitter(self.socket, dbPlatform.getPlatformPartnerSettlementStatus, [ObjectId(data.platformObjId), data.startTime, data.endTime], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.commissionType && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPlatform.getPlatformPartnerSettlementStatus, [ObjectId(data.platformObjId), data.commissionType, data.startTime, data.endTime], actionName, isValidData);
         }
     };
     socketActionPlatform.actions = this.actions;

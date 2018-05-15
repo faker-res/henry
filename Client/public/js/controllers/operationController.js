@@ -1180,7 +1180,11 @@ define(['js/app'], function (myApp) {
                         "title": $translate('STATUS'),
                         "data": 'process',
                         render: function (data, type, row) {
-                            let text = $translate(row.status ? row.status : (data.status ? data.status : 'UNKNOWN'));
+                            let status = row.status;
+                            if (row.type && row.type.name == "BulkExportPlayerData") {
+                                status = status === "Approved" ? "approved" : status;
+                            }
+                            let text = $translate(status ? status : (data.status ? data.status : 'UNKNOWN'));
                             text = text === "approved" ? "Approved" : text;
 
                             let textClass = '';
@@ -2195,6 +2199,7 @@ define(['js/app'], function (myApp) {
                 proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName || $translate("ALL");
                 proposalDetail["CREDIBILITY"] = vm.selectedProposal.data.credibilityRemarkNames && vm.selectedProposal.data.credibilityRemarkNames.length > 0 ? vm.selectedProposal.data.credibilityRemarkNames.join(', ') : " ";
                 proposalDetail["LAST_ACCESS_TILL_NOW"] = vm.selectedProposal.data.lastAccessTimeRangeString || " ";
+                proposalDetail["FILTER_FEEDBACK_DAY"] = vm.selectedProposal.data.lastFeedbackTimeBefore || " ";
                 proposalDetail["DEPOSIT_COUNT"] = depositCountQueryString || " ";
                 proposalDetail["PLAYER_VALUE"] = playerValueQueryString || " ";
                 proposalDetail["TOTAL_CONSUMPTION_TIMES"] = totalConsumptionQueryString || " ";
