@@ -43,6 +43,18 @@ let dbRewardPoints = {
         return dbConfig.collection_rewardPoints.findOneAndUpdate({_id: rewardPointsObjId}, {playerLevel: playerLevelObjId}, {new: true}).lean();
     },
 
+    deductPointManually: (playerObjId, updateAmount, remark, userDevice) => {
+        return dbConfig.collection_players.findOne({_id: ObjectId(playerObjId)}).lean().then(
+            playerData => {
+                if (playerData) {
+                    dbPlayerInfo.updatePlayerRewardPointsRecord(playerObjId, playerData.platform, updateAmount, remark, null, null, playerData.name, userDevice).catch(errorUtils.reportError);
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"});
+                }
+            }
+        )
+    },
+
     createRewardPoints: (playerObjId, playerData) => {
         // playerData is an optional parameter
         let playerDataProm = Promise.resolve(playerData);

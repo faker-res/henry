@@ -5527,7 +5527,7 @@ let dbPartner = {
             {
                 $group: {
                     _id: {"topUpType": "$topUpType"},
-                    totalTopUpCount: {$sum: 1}
+                    totalTopUpCount: {$sum: "$amount"}
                 }
             }
         )
@@ -6204,41 +6204,9 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
-            platformData => {
-                if (!platformData) {
-                    return Promise.reject({
-                        code: constServerCode.INVALID_PLATFORM,
-                        name: "DataError",
-                        message: "Cannot find platform"
-                    });
-                }
-
-                platform = platformData;
-
-                return dbconfig.collection_partner.findOne({platform: platform._id, partnerId: partnerId}).lean();
-            }
-        ).then(
-            partnerData => {
-                if (!partnerData) {
-                    return Promise.reject({
-                        code: constServerCode.PARTNER_NAME_INVALID,
-                        name: "DataError",
-                        message: "Cannot find partner"
-                    });
-                }
-
-                partner = partnerData;
-
-                return dbconfig.collection_players.find({platform: platform._id, partner: partner._id}).lean();
-            }
-        ).then(
-            downLineData => {
-                if (!downLineData || downLineData.length < 1) {
-                    downLineData = [];
-                }
-
-                downLines = downLineData;
+        return getPartnerCrewsData(platformId, partnerId).then(
+            crewsData => {
+                ({platform, partner, downLines} = crewsData);
 
                 return getRelevantActivePlayerRequirement(platform._id, periodCycle);
             }
@@ -6248,7 +6216,15 @@ let dbPartner = {
                 let outputProms = [];
 
                 for (let i = 0; i < circleTimes; i++) {
-                    let prom = getPlayersActiveDetail(downLines, new Date(nextPeriod.startTime), new Date(nextPeriod.endTime), activePlayerRequirement);
+                    let prom = getCrewsInfo(downLines, new Date(nextPeriod.startTime), new Date(nextPeriod.endTime), activePlayerRequirement).then(
+                        playerActiveDetails => {
+                            return {
+                                date: new Date(nextPeriod.startTime),
+                                activeCrewNumbers: getActiveDownLineCount(playerActiveDetails),
+                                list: playerActiveDetails
+                            }
+                        }
+                    );
                     nextPeriod = getPreviousCommissionPeriod(periodCycle, nextPeriod);
                     outputProms.push(prom);
                 }
@@ -6256,7 +6232,44 @@ let dbPartner = {
                 return Promise.all(outputProms);
             }
         );
-    }
+    },
+
+    getCrewDepositInfo: (platformId, partnerId, periodCycle, circleTimes) => {
+        if (!circleTimes) {
+            return {};
+        }
+
+        circleTimes = circleTimes > 30 ? 30 : circleTimes;
+
+        let platform = {};
+        let partner = {};
+        let downLines = [];
+
+        return getPartnerCrewsData(platformId, partnerId).then(
+            crewsData => {
+                ({platform, partner, downLines} = crewsData);
+
+                let nextPeriod = getCurrentCommissionPeriod(periodCycle);
+                let outputProms = [];
+
+                for (let i = 0; i < circleTimes; i++) {
+                    let prom = getCrewsInfo(downLines, new Date(nextPeriod.startTime), new Date(nextPeriod.endTime)).then(
+                        playerDetails => {
+                            return {
+                                date: new Date(nextPeriod.startTime),
+                                depositCrewNumber: getCrewDepositCount(playerDetails),
+                                list: playerDetails
+                            }
+                        }
+                    );
+                    nextPeriod = getPreviousCommissionPeriod(periodCycle, nextPeriod);
+                    outputProms.push(prom);
+                }
+
+                return Promise.all(outputProms);
+            }
+        );
+    },
 };
 
 
@@ -6730,6 +6743,17 @@ function getActiveDownLineCount (downLineRawDetail) {
     return count;
 }
 
+function getCrewDepositCount (crewInfo) {
+    let count = 0;
+    crewInfo.map(player => {
+        if (player.depositAmount) {
+            count++;
+        }
+    });
+
+    return count;
+}
+
 function getTotalPlayerConsumptionByProviderGroupName (downLineRawDetail, providerGroups) {
     let total = {};
 
@@ -7151,7 +7175,7 @@ function getCommissionTypeName (commissionType) {
     }
 }
 
-function getPlayerActiveDetail (player, startTime, endTime, activePlayerRequirement) {
+function getCrewInfo (player, startTime, endTime, activePlayerRequirement) {
     let playerActiveDetail = {};
     let consumptionDetailProm = getPlayerCommissionConsumptionDetail(player._id, startTime, endTime);
     let topUpDetailProm = getPlayerCommissionTopUpDetail(player._id, startTime, endTime);
@@ -7163,7 +7187,7 @@ function getPlayerActiveDetail (player, startTime, endTime, activePlayerRequirem
             let topUpDetail = data[1];
             let withdrawalDetail = data[2];
 
-            return playerActiveDetail = {
+            playerActiveDetail = {
                 crewAccount: player.name,
                 depositAmount: topUpDetail.topUpAmount,
                 depositCount: topUpDetail.topUpTimes,
@@ -7171,26 +7195,73 @@ function getPlayerActiveDetail (player, startTime, endTime, activePlayerRequirem
                 betCounts: consumptionDetail.consumptionTimes,
                 withdrawAmount: withdrawalDetail.withdrawalAmount,
                 crewProfit: consumptionDetail.bonusAmount,
-                active: isPlayerActive(activePlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount)
+            };
+
+            if (activePlayerRequirement) {
+                playerActiveDetail.active = isPlayerActive(activePlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount);
             }
+
+            return playerActiveDetail;
         }
     )
 }
 
-function getPlayersActiveDetail (players, startTime, endTime, activePlayerRequirement) {
-    let playerActiveDetailsProms = [];
+function getCrewsInfo (players, startTime, endTime, activePlayerRequirement) {
+    let playerDetailsProm = [] ;
     players.map(player => {
-        let prom = getPlayerActiveDetail(player, startTime, endTime, activePlayerRequirement);
-        playerActiveDetailsProms.push(prom);
+        let prom = getCrewInfo(player, startTime, endTime, activePlayerRequirement);
+        playerDetailsProm.push(prom);
     });
 
-    return Promise.all(playerActiveDetailsProms).then(
-        playerActiveDetails => {
-            return {
-                date: new Date(startTime),
-                activeCrewNumbers: getActiveDownLineCount(playerActiveDetails),
-                list: playerActiveDetails
+    return Promise.all(playerDetailsProm);
+}
+
+function getPartnerCrewsData (platformId, partnerId) {
+    let platform = {};
+    let partner = {};
+    let downLines = [];
+
+    return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+        platformData => {
+            if (!platformData) {
+                return Promise.reject({
+                    code: constServerCode.INVALID_PLATFORM,
+                    name: "DataError",
+                    message: "Cannot find platform"
+                });
             }
+
+            platform = platformData;
+
+            return dbconfig.collection_partner.findOne({platform: platform._id, partnerId: partnerId}).lean();
+        }
+    ).then(
+        partnerData => {
+            if (!partnerData) {
+                return Promise.reject({
+                    code: constServerCode.PARTNER_NAME_INVALID,
+                    name: "DataError",
+                    message: "Cannot find partner"
+                });
+            }
+
+            partner = partnerData;
+
+            return dbconfig.collection_players.find({platform: platform._id, partner: partner._id}).lean();
+        }
+    ).then(
+        downLineData => {
+            if (!downLineData || downLineData.length < 1) {
+                downLineData = [];
+            }
+
+            downLines = downLineData;
+
+            return {
+                platform,
+                partner,
+                downLines
+            };
         }
     );
 }

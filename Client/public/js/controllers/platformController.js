@@ -1613,13 +1613,13 @@ define(['js/app'], function (myApp) {
                     endTime: prev.endTime
                 }).then(
                     partnerCommObj => {
-                        console.log('partnerCommissionLog', partnerCommObj);
                         vm.partnerCommissionLog = partnerCommObj.data;
                         vm.partnerCommissionLog.forEach( partner => {
                                 if (partner){
                                     partner.isAnyCustomPlatformFeeRate = false;
-                                    if (partner.rawCommission && partner.rawCommission.length > 0) {
+                                    if (partner.rawCommissions && partner.rawCommissions.length > 0) {
                                         (partner.rawCommissions).forEach((group, idxgroup) => {
+                                                group.commissionRate = +(group.commissionRate*100).toFixed(2);
                                                 partner.isAnyCustomPlatformFeeRate = group.isCustomPlatformFeeRate ? true : partner.isAnyCustomPlatformFeeRate;
                                                 if (group.isCustomPlatformFeeRate == true) {
                                                     vm.partnerCommVar.platformFeeTab = idxgroup;
@@ -1630,7 +1630,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                         );
-                        // $scope.safeApply();
+                        console.log('partnerCommissionLog', vm.partnerCommissionLog);
                         $('#modalPartnerCommPreview').modal();
                     }
                 )
