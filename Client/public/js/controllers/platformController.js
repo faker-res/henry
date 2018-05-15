@@ -17322,7 +17322,7 @@ define(['js/app'], function (myApp) {
                         $scope.constPartnerCommissionSettlementType[vm.editPartner.commissionType],
                         selectedPartner._id
                     );
-                    vm.commissionRateConfig = Object.assign({}, vm.srcCommissionRateConfig);
+                    vm.commissionRateConfig = JSON.parse(JSON.stringify(vm.srcCommissionRateConfig));
                     vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
 
                     let option = {
