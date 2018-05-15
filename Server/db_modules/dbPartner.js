@@ -4679,7 +4679,6 @@ let dbPartner = {
     },
 
     getPartnerActivePlayer: (partnerDetail, activeTime, period) => {
-
         if(partnerDetail && partnerDetail.length > 0) {
             let playerIdList = [];
 
@@ -4697,23 +4696,23 @@ let dbPartner = {
 
                 switch (period) {
                     case 'day':
-                        activePlayerTopUpTimes = config.dailyActivePlayerTopUpTimes;
-                        activePlayerTopUpAmount = config.dailyActivePlayerTopUpAmount;
-                        activePlayerConsumptionTimes = config.dailyActivePlayerConsumptionTimes;
-                        activePlayerConsumptionAmount = config.dailyActivePlayerConsumptionAmount;
+                        activePlayerTopUpTimes = config.dailyActivePlayerTopUpTimes ? config.dailyActivePlayerTopUpTimes : 0;
+                        activePlayerTopUpAmount = config.dailyActivePlayerTopUpAmount ? config.dailyActivePlayerTopUpAmount : 0;
+                        activePlayerConsumptionTimes = config.dailyActivePlayerConsumptionTimes ? config.dailyActivePlayerConsumptionTimes : 0;
+                        activePlayerConsumptionAmount = config.dailyActivePlayerConsumptionAmount ? config.dailyActivePlayerConsumptionAmount : 0;
                         break;
                     case 'week':
-                        activePlayerTopUpTimes = config.weeklyActivePlayerTopUpTimes;
-                        activePlayerTopUpAmount = config.weeklyActivePlayerTopUpAmount;
-                        activePlayerConsumptionTimes = config.weeklyActivePlayerConsumptionTimes;
-                        activePlayerConsumptionAmount = config.weeklyActivePlayerConsumptionAmount;
+                        activePlayerTopUpTimes = config.weeklyActivePlayerTopUpTimes ? config.weeklyActivePlayerTopUpTimes : 0;
+                        activePlayerTopUpAmount = config.weeklyActivePlayerTopUpAmount ? config.weeklyActivePlayerTopUpAmount : 0;
+                        activePlayerConsumptionTimes = config.weeklyActivePlayerConsumptionTimes ? config.weeklyActivePlayerConsumptionTimes : 0;
+                        activePlayerConsumptionAmount = config.weeklyActivePlayerConsumptionAmount ? config.weeklyActivePlayerConsumptionAmount : 0;
                         break;
                     case 'month':
                     default:
-                        activePlayerTopUpTimes = config.monthlyActivePlayerTopUpTimes;
-                        activePlayerTopUpAmount = config.monthlyActivePlayerTopUpAmount;
-                        activePlayerConsumptionTimes = config.monthlyActivePlayerConsumptionTimes;
-                        activePlayerConsumptionAmount = config.monthlyActivePlayerConsumptionAmount;
+                        activePlayerTopUpTimes = config.monthlyActivePlayerTopUpTimes ? config.monthlyActivePlayerTopUpTimes : 0;
+                        activePlayerTopUpAmount = config.monthlyActivePlayerTopUpAmount ? config.monthlyActivePlayerTopUpAmount : 0;
+                        activePlayerConsumptionTimes = config.monthlyActivePlayerConsumptionTimes ? config.monthlyActivePlayerConsumptionTimes : 0;
+                        activePlayerConsumptionAmount = config.monthlyActivePlayerConsumptionAmount ? config.monthlyActivePlayerConsumptionAmount : 0;
                         break;
                 }
 
@@ -4734,35 +4733,35 @@ let dbPartner = {
                             topUpAmount: {$sum: "$amount"},
                             topUpCount: {$sum: 1}
                         }
-                    }).read("secondaryPreferred").then(topUpRecords => {
+                    }
+                ).read("secondaryPreferred").then(topUpRecords => {
                     if (topUpRecords) {
-
                         topUpRecords = topUpRecords.filter(player => player.topUpAmount >= activePlayerTopUpAmount && player.topUpCount >= activePlayerTopUpTimes);
 
-                        if (activePlayerTopUpTimes == 0) {
+                        if (activePlayerTopUpTimes === 0) {
                             if (topUpRecords && topUpRecords.length > 0) {
                                 playerIdList.forEach(playerId => {
-                                    let index = topUpRecords.findIndex(p => p._id.toString() == playerId.toString())
-                                    if (index == -1) {
-                                        topUpRecords.push({_id: playerId, topUpAmount: 0, topUpCount: 0})
+                                    let index = topUpRecords.findIndex(p => p._id.toString() === playerId.toString());
+                                    if (index === -1) {
+                                        topUpRecords.push({
+                                            _id: playerId,
+                                            topUpAmount: 0,
+                                            topUpCount: 0
+                                        })
                                     }
                                 })
-
                             }
-                            else{
+                            else {
                                 playerIdList.forEach(playerId => {
-
                                     topUpRecords.push({
                                         _id: playerId,
                                         topUpAmount: 0,
                                         topUpCount: 0
                                     })
-
                                 })
                             }
                         }
                         return topUpRecords
-
                     }
                 });
 
@@ -4783,16 +4782,16 @@ let dbPartner = {
                             consumptionAmount: {$sum: "$validAmount"},
                             consumptionCount: {$sum: 1}
                         }
-                    }).read("secondaryPreferred").then(consumptionRecords => {
+                    }
+                ).read("secondaryPreferred").then(consumptionRecords => {
                     if (consumptionRecords) {
-
                         consumptionRecords = consumptionRecords.filter(player => player.consumptionCount >= activePlayerConsumptionTimes && player.consumptionAmount >= activePlayerConsumptionAmount);
 
-                        if (activePlayerConsumptionTimes == 0) {
+                        if (activePlayerConsumptionTimes === 0) {
                             if (consumptionRecords && consumptionRecords.length > 0) {
                                 playerIdList.forEach(playerId => {
-                                    let index = consumptionRecords.findIndex(p => p._id.toString() == playerId.toString())
-                                    if (index == -1) {
+                                    let index = consumptionRecords.findIndex(p => p._id.toString() === playerId.toString());
+                                    if (index === -1) {
                                         consumptionRecords.push({
                                             _id: playerId,
                                             consumptionAmount: 0,
@@ -4800,27 +4799,22 @@ let dbPartner = {
                                         })
                                     }
                                 })
-
                             }
-                            else{
+                            else {
                                 playerIdList.forEach(playerId => {
-
                                     consumptionRecords.push({
                                         _id: playerId,
                                         consumptionAmount: 0,
                                         consumptionCount: 0
                                     })
-
                                 })
                             }
                         }
                         return consumptionRecords
-
                     }
                 });
 
                 return Promise.all([playerTopUpRecord, playerConsumptionRecord]).then(data => {
-
                     if (data) {
                         let topUpRecord = data[0];
                         let consumptionRecord = data[1];
@@ -4828,11 +4822,10 @@ let dbPartner = {
                         let result = [];
                         if (topUpRecord && topUpRecord.length > 0 && consumptionRecord && consumptionRecord.length > 0) {
                             topUpRecord.forEach(topUp => {
-                                let index = consumptionRecord.findIndex(p => p._id.toString() == topUp._id.toString());
-                                if (index != -1) {
-                                    let pIndex = partnerDetail.findIndex(q => q._id.toString() == topUp._id.toString());
-                                    if (pIndex != -1) {
-
+                                let index = consumptionRecord.findIndex(p => p._id.toString() === topUp._id.toString());
+                                if (index !== -1) {
+                                    let pIndex = partnerDetail.findIndex(q => q._id.toString() === topUp._id.toString());
+                                    if (pIndex !== -1) {
                                         result.push({
                                             _id: topUp._id,
                                             topUpAmount: topUp.topUpAmount,
@@ -4884,7 +4877,6 @@ let dbPartner = {
                                 ).exec();
                                 break;
                         }
-
                         return {partnerId: partnerId, size: result.length, downLiner: result}
                     }
                 })
@@ -5039,7 +5031,6 @@ let dbPartner = {
 
         partnerArr.referral.forEach(partner => {
             if (partner && partner.length){
-                console.log("ttestt", partner)
                 dailyActivePlayerProm.push( dbPartner.getPartnerActivePlayer(partner, todayTime, period) );
             }
         });
@@ -5110,12 +5101,11 @@ let dbPartner = {
                 if (!config) {
                     Q.reject({name: "DataError", message: "Cannot find partnerLvlConfig"});
                 }
-                let validPlayerTopUpTimes = config.validPlayerTopUpTimes;
-                let validPlayerTopUpAmount = config.validPlayerTopUpAmount;
-                let validPlayerConsumptionTimes = config.validPlayerConsumptionTimes;
-                let validPlayerConsumptionAmount = config.validPlayerConsumptionAmount;
-                let validPlayerValue = config.validPlayerValue || 0;
-
+                let validPlayerTopUpTimes = config.validPlayerTopUpTimes ? config.validPlayerTopUpTimes : 0;
+                let validPlayerTopUpAmount = config.validPlayerTopUpAmount ? config.validPlayerTopUpAmount : 0;
+                let validPlayerConsumptionTimes = config.validPlayerConsumptionTimes ? config.validPlayerConsumptionTimes : 0;
+                let validPlayerConsumptionAmount = config.validPlayerConsumptionAmount ? config.validPlayerConsumptionAmount : 0;
+                let validPlayerValue = config.validPlayerValue ? config.validPlayerValue : 0;
 
                 let playerTopUpRecord = dbconfig.collection_playerTopUpRecord.aggregate(
                     {
@@ -5130,35 +5120,35 @@ let dbPartner = {
                             topUpAmount: {$sum: "$amount"},
                             topUpCount: {$sum: 1}
                         }
-                    }).read("secondaryPreferred").then(topUpRecords => {
+                    }
+                ).read("secondaryPreferred").then(topUpRecords => {
                     if (topUpRecords) {
-
                         topUpRecords = topUpRecords.filter(player => player.topUpAmount >= validPlayerTopUpAmount && player.topUpCount >= validPlayerTopUpTimes);
 
-                        if (validPlayerTopUpTimes == 0) {
+                        if (validPlayerTopUpTimes === 0) {
                             if (topUpRecords && topUpRecords.length > 0) {
                                 playerIdList.forEach(playerId => {
-                                    let index = topUpRecords.findIndex(p => p._id.toString() == playerId.toString())
-                                    if (index == -1) {
-                                        topUpRecords.push({_id: playerId, topUpAmount: 0, topUpCount: 0})
+                                    let index = topUpRecords.findIndex(p => p._id.toString() === playerId.toString());
+                                    if (index === -1) {
+                                        topUpRecords.push({
+                                            _id: playerId,
+                                            topUpAmount: 0,
+                                            topUpCount: 0
+                                        })
                                     }
                                 })
-
                             }
-                            else{
+                            else {
                                 playerIdList.forEach(playerId => {
-
                                     topUpRecords.push({
                                         _id: playerId,
                                         topUpAmount: 0,
                                         topUpCount: 0
                                     })
-
                                 })
                             }
                         }
                         return topUpRecords
-
                     }
                 });
 
@@ -5175,16 +5165,16 @@ let dbPartner = {
                             consumptionAmount: {$sum: "$validAmount"},
                             consumptionCount: {$sum: 1}
                         }
-                    }).read("secondaryPreferred").then(consumptionRecords => {
+                    }
+                ).read("secondaryPreferred").then(consumptionRecords => {
                     if (consumptionRecords) {
-
                         consumptionRecords = consumptionRecords.filter(player => player.consumptionCount >= validPlayerConsumptionTimes && player.consumptionAmount >= validPlayerConsumptionAmount);
 
-                        if (validPlayerConsumptionTimes == 0) {
+                        if (validPlayerConsumptionTimes === 0) {
                             if (consumptionRecords && consumptionRecords.length > 0) {
                                 playerIdList.forEach(playerId => {
-                                    let index = consumptionRecords.findIndex(p => p._id.toString() == playerId.toString())
-                                    if (index == -1) {
+                                    let index = consumptionRecords.findIndex(p => p._id.toString() === playerId.toString());
+                                    if (index === -1) {
                                         consumptionRecords.push({
                                             _id: playerId,
                                             consumptionAmount: 0,
@@ -5192,27 +5182,22 @@ let dbPartner = {
                                         })
                                     }
                                 })
-
                             }
-                            else{
+                            else {
                                 playerIdList.forEach(playerId => {
-
                                     consumptionRecords.push({
                                         _id: playerId,
                                         consumptionAmount: 0,
                                         consumptionCount: 0
                                     })
-
                                 })
                             }
                         }
                         return consumptionRecords
-
                     }
                 });
 
                 return Promise.all([playerTopUpRecord, playerConsumptionRecord]).then(data => {
-
                     if (data) {
                         let topUpRecord = data[0];
                         let consumptionRecord = data[1];
@@ -5220,10 +5205,10 @@ let dbPartner = {
                         let result = [];
                         if (topUpRecord && topUpRecord.length > 0 && consumptionRecord && consumptionRecord.length > 0) {
                             topUpRecord.forEach(topUp => {
-                                let index = consumptionRecord.findIndex(p => p._id.toString() == topUp._id.toString());
-                                if (index != -1) {
-                                    let pIndex = partnerDetail.findIndex(q => q._id.toString() == topUp._id.toString());
-                                    if (pIndex != -1) {
+                                let index = consumptionRecord.findIndex(p => p._id.toString() === topUp._id.toString());
+                                if (index !== -1) {
+                                    let pIndex = partnerDetail.findIndex(q => q._id.toString() === topUp._id.toString());
+                                    if (pIndex !== -1) {
                                         if (partnerDetail[pIndex].valueScore >= validPlayerValue) {
                                             result.push({
                                                 _id: topUp._id,
@@ -5251,9 +5236,7 @@ let dbPartner = {
                             },
                             {new: true}
                         ).exec();
-
                         return {partnerId: partnerId, size: result.length, downLiner: result}
-
                     }
                 })
             })
@@ -5406,7 +5389,8 @@ let dbPartner = {
                         topUpAmount: {$sum: "$amount"},
                         topUpCount: {$sum: 1}
                     }
-                }).read("secondaryPreferred").then(topUpRecord => {
+                }
+            ).read("secondaryPreferred").then(topUpRecord => {
                 if (topUpRecord) {
                     topUpRecord.map(player => totalTopUpAmount += player.topUpAmount);
 
@@ -5431,24 +5415,23 @@ let dbPartner = {
                                 bonusAmount: {$sum: "$data.amount"},
                                 bonusCount: {$sum: 1}
                             }
-                        }).read("secondaryPreferred").then(records => {
-                            records.map(player => totalBonusAmount += player.bonusAmount);
-                            let totalCredit = (totalTopUpAmount - totalBonusAmount);
-                            totalCredit = totalCredit.toFixed(2);
-
-                            dbconfig.collection_partner.findOneAndUpdate(
-                                {
-                                    _id: partnerId,
-                                    platform: platformId,
-                                },
-                                {
-                                    $set: {totalChildrenDeposit: totalCredit}
-                                }
-                            ).exec();
-
-                            return {partnerId: partnerId, amount: totalCredit}
                         }
-                    )
+                    ).read("secondaryPreferred").then(records => {
+                        records.map(player => totalBonusAmount += player.bonusAmount);
+                        let totalCredit = (totalTopUpAmount - totalBonusAmount);
+                        totalCredit = totalCredit.toFixed(2);
+
+                        dbconfig.collection_partner.findOneAndUpdate(
+                            {
+                                _id: partnerId,
+                                platform: platformId,
+                            },
+                            {
+                                $set: {totalChildrenDeposit: totalCredit}
+                            }
+                        ).exec();
+                        return {partnerId: partnerId, amount: totalCredit}
+                    })
                 }
             });
         }
@@ -5600,7 +5583,8 @@ let dbPartner = {
                         validCredit: {$sum: "$validCredit"},
                         validCreditCount: {$sum: 1}
                     }
-                }).read("secondaryPreferred").then(topUpRecord => {
+                }
+            ).read("secondaryPreferred").then(topUpRecord => {
                 if (topUpRecord) {
                     topUpRecord.map(player => totalValidCredit += player.validCredit);
                     totalValidCredit = totalValidCredit.toFixed(2);
@@ -5614,7 +5598,6 @@ let dbPartner = {
                             $set: {totalChildrenBalance: totalValidCredit}
                         }
                     ).exec();
-
                     return {partnerId: partnerId, amount: totalValidCredit};
                 }
             });
