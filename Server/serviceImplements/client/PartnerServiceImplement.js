@@ -418,12 +418,27 @@ var PartnerServiceImplement = function () {
     this.getCrewActiveInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data.platformId && data.partnerId && data.period && data.circleTimes);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewActiveInfo, [data.platformId, data.partnerId, data.period, data.circleTimes], isValidData, false, false, true);
-    }
+    };
 
     this.getCrewDepositInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data.platformId && data.partnerId && data.period && data.circleTimes);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewDepositInfo, [data.platformId, data.partnerId, data.period, data.circleTimes], isValidData, false, false, true);
-    }
+    };
+
+    this.getCrewWithdrawInfo.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data.platformId && data.partnerId && data.period && data.circleTimes);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewWithdrawInfo, [data.platformId, data.partnerId, data.period, data.circleTimes], isValidData, false, false, true);
+    };
+
+    this.getCrewBetInfo.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data.platformId && data.partnerId && data.period && data.circleTimes);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewBetInfo, [data.platformId, data.partnerId, data.period, data.circleTimes], isValidData, false, false, true);
+    };
+
+    this.getNewCrewInfo.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data.platformId && data.partnerId && data.period && data.circleTimes);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getNewCrewInfo, [data.platformId, data.partnerId, data.period, data.circleTimes], isValidData, false, false, true);
+    };
 };
 var proto = PartnerServiceImplement.prototype = Object.create(PartnerService.prototype);
 proto.constructor = PartnerServiceImplement;
