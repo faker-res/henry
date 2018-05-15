@@ -6249,7 +6249,44 @@ let dbPartner = {
                 return Promise.all(outputProms);
             }
         );
-    }
+    },
+
+    getCrewDepositInfo: (platformId, partnerId, periodCycle, circleTimes) => {
+        if (!circleTimes) {
+            return {};
+        }
+
+        circleTimes = circleTimes > 30 ? 30 : circleTimes;
+
+        let platform = {};
+        let partner = {};
+        let downLines = [];
+
+        return getPartnerCrewsData(platformId, partnerId).then(
+            crewsData => {
+                ({platform, partner, downLines} = crewsData);
+
+                let nextPeriod = getCurrentCommissionPeriod(periodCycle);
+                let outputProms = [];
+
+                for (let i = 0; i < circleTimes; i++) {
+                    let prom = getCrewsInfo(downLines, new Date(nextPeriod.startTime), new Date(nextPeriod.endTime)).then(
+                        playerDetails => {
+                            return {
+                                date: new Date(nextPeriod.startTime),
+                                depositCrewNumber: getCrewDepositCount(playerDetails),
+                                list: playerDetails
+                            }
+                        }
+                    );
+                    nextPeriod = getPreviousCommissionPeriod(periodCycle, nextPeriod);
+                    outputProms.push(prom);
+                }
+
+                return Promise.all(outputProms);
+            }
+        );
+    },
 };
 
 
@@ -6716,6 +6753,17 @@ function getActiveDownLineCount (downLineRawDetail) {
     let count = 0;
     downLineRawDetail.map(player => {
         if (player.active) {
+            count++;
+        }
+    });
+
+    return count;
+}
+
+function getCrewDepositCount (crewInfo) {
+    let count = 0;
+    crewInfo.map(player => {
+        if (player.depositAmount) {
             count++;
         }
     });

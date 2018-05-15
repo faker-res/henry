@@ -413,6 +413,7 @@
                 "updatePartnerWeChat",
                 "updatePartnerEmail",
                 "getCrewActiveInfo",
+                "getCrewDepositInfo",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
