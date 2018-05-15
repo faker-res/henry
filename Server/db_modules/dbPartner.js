@@ -5544,7 +5544,7 @@ let dbPartner = {
             {
                 $group: {
                     _id: {"topUpType": "$topUpType"},
-                    totalTopUpCount: {$sum: 1}
+                    totalTopUpCount: {$sum: "$amount"}
                 }
             }
         )
