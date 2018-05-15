@@ -415,6 +415,9 @@
                 "updatePartnerEmail",
                 "getCrewActiveInfo",
                 "getCrewDepositInfo",
+                "getCrewWithdrawInfo",
+                "getCrewBetInfo",
+                "getNewCrewInfo",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

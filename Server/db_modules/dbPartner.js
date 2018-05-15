@@ -6216,12 +6216,15 @@ let dbPartner = {
                 let outputProms = [];
 
                 for (let i = 0; i < circleTimes; i++) {
-                    let prom = getCrewsInfo(downLines, new Date(nextPeriod.startTime), new Date(nextPeriod.endTime), activePlayerRequirement).then(
+                    let startTime = new Date(nextPeriod.startTime);
+                    let endTime = new Date(nextPeriod.endTime);
+
+                    let prom = getCrewsInfo(downLines, startTime, endTime, activePlayerRequirement).then(
                         playerActiveDetails => {
                             return {
-                                date: new Date(nextPeriod.startTime),
+                                date: startTime,
                                 activeCrewNumbers: getActiveDownLineCount(playerActiveDetails),
-                                list: playerActiveDetails
+                                list: playerActiveDetails.filter(player => player.active)
                             }
                         }
                     );
@@ -6253,11 +6256,135 @@ let dbPartner = {
                 let outputProms = [];
 
                 for (let i = 0; i < circleTimes; i++) {
-                    let prom = getCrewsInfo(downLines, new Date(nextPeriod.startTime), new Date(nextPeriod.endTime)).then(
+                    let startTime = new Date(nextPeriod.startTime);
+                    let endTime = new Date(nextPeriod.endTime);
+
+                    let prom = getCrewsInfo(downLines, startTime, endTime).then(
                         playerDetails => {
                             return {
-                                date: new Date(nextPeriod.startTime),
+                                date: startTime,
                                 depositCrewNumber: getCrewDepositCount(playerDetails),
+                                list: playerDetails.filter(player => player.depositAmount)
+                            }
+                        }
+                    );
+                    nextPeriod = getPreviousCommissionPeriod(periodCycle, nextPeriod);
+                    outputProms.push(prom);
+                }
+
+                return Promise.all(outputProms);
+            }
+        );
+    },
+
+    getCrewWithdrawInfo: (platformId, partnerId, periodCycle, circleTimes) => {
+        if (!circleTimes) {
+            return {};
+        }
+
+        circleTimes = circleTimes > 30 ? 30 : circleTimes;
+
+        let platform = {};
+        let partner = {};
+        let downLines = [];
+
+        return getPartnerCrewsData(platformId, partnerId).then(
+            crewsData => {
+                ({platform, partner, downLines} = crewsData);
+
+                let nextPeriod = getCurrentCommissionPeriod(periodCycle);
+                let outputProms = [];
+
+                for (let i = 0; i < circleTimes; i++) {
+                    let startTime = new Date(nextPeriod.startTime);
+                    let endTime = new Date(nextPeriod.endTime);
+
+                    let prom = getCrewsInfo(downLines, startTime, endTime).then(
+                        playerDetails => {
+                            return {
+                                date: startTime,
+                                depositCrewNumber: getCrewWithdrawCount(playerDetails),
+                                list: playerDetails.filter(player => player.withdrawAmount)
+                            }
+                        }
+                    );
+                    nextPeriod = getPreviousCommissionPeriod(periodCycle, nextPeriod);
+                    outputProms.push(prom);
+                }
+
+                return Promise.all(outputProms);
+            }
+        );
+    },
+
+    getCrewBetInfo: (platformId, partnerId, periodCycle, circleTimes) => {
+        if (!circleTimes) {
+            return {};
+        }
+
+        circleTimes = circleTimes > 30 ? 30 : circleTimes;
+
+        let platform = {};
+        let partner = {};
+        let downLines = [];
+
+        return getPartnerCrewsData(platformId, partnerId).then(
+            crewsData => {
+                ({platform, partner, downLines} = crewsData);
+
+                let nextPeriod = getCurrentCommissionPeriod(periodCycle);
+                let outputProms = [];
+
+                for (let i = 0; i < circleTimes; i++) {
+                    let startTime = new Date(nextPeriod.startTime);
+                    let endTime = new Date(nextPeriod.endTime);
+
+                    let prom = getCrewsInfo(downLines, startTime, endTime).then(
+                        playerDetails => {
+                            return {
+                                date: startTime,
+                                depositCrewNumber: getCrewBetCount(playerDetails),
+                                list: playerDetails.filter(player => player.betCounts)
+                            }
+                        }
+                    );
+                    nextPeriod = getPreviousCommissionPeriod(periodCycle, nextPeriod);
+                    outputProms.push(prom);
+                }
+
+                return Promise.all(outputProms);
+            }
+        );
+    },
+
+    getNewCrewInfo: (platformId, partnerId, periodCycle, circleTimes) => {
+        if (!circleTimes) {
+            return {};
+        }
+
+        circleTimes = circleTimes > 30 ? 30 : circleTimes;
+
+        let platform = {};
+        let partner = {};
+        let downLines = [];
+
+        return getPartnerCrewsData(platformId, partnerId).then(
+            crewsData => {
+                ({platform, partner, downLines} = crewsData);
+
+                let nextPeriod = getCurrentCommissionPeriod(periodCycle);
+                let outputProms = [];
+
+                for (let i = 0; i < circleTimes; i++) {
+                    let startTime = new Date(nextPeriod.startTime);
+                    let endTime = new Date(nextPeriod.endTime);
+                    let newDownLines = downLines.filter(player => player.registrationTime >= startTime && player.registrationTime <= endTime);
+
+                    let prom = getCrewsInfo(newDownLines, startTime, endTime).then(
+                        playerDetails => {
+                            return {
+                                date: startTime,
+                                depositCrewNumber: newDownLines.length,
                                 list: playerDetails
                             }
                         }
@@ -6747,6 +6874,28 @@ function getCrewDepositCount (crewInfo) {
     let count = 0;
     crewInfo.map(player => {
         if (player.depositAmount) {
+            count++;
+        }
+    });
+
+    return count;
+}
+
+function getCrewWithdrawCount (crewInfo) {
+    let count = 0;
+    crewInfo.map(player => {
+        if (player.withdrawAmount) {
+            count++;
+        }
+    });
+
+    return count;
+}
+
+function getCrewBetCount (crewInfo) {
+    let count = 0;
+    crewInfo.map(player => {
+        if (player.betCounts) {
             count++;
         }
     });

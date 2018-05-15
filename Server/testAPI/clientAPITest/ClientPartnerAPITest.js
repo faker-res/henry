@@ -224,6 +224,24 @@
         this.partnerService.getCrewDepositInfo.once(callback);
     };
 
+    proto.getCrewWithdrawInfo = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.getCrewWithdrawInfo.request(data);
+        this.partnerService.getCrewWithdrawInfo.once(callback);
+    };
+
+    proto.getCrewBetInfo = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.getCrewBetInfo.request(data);
+        this.partnerService.getCrewBetInfo.once(callback);
+    };
+
+    proto.getNewCrewInfo = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.getNewCrewInfo.request(data);
+        this.partnerService.getNewCrewInfo.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPartnerAPITest;
     } else {
