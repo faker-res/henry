@@ -212,6 +212,12 @@
         this.partnerService.updatePartnerEmail.once(callback);
     };
 
+    proto.getCrewActiveInfo = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.getCrewActiveInfo.request(data);
+        this.partnerService.getCrewActiveInfo.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPartnerAPITest;
     } else {
