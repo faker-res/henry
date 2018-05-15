@@ -223,10 +223,10 @@ let dbPlayerInfo = {
     /**
      * Update player's reward points and create log
      */
-    updatePlayerRewardPointsRecord: function (playerObjId, platformObjId, updateAmount, remark, adminName, adminId) {
+    updatePlayerRewardPointsRecord: function (playerObjId, platformObjId, updateAmount, remark, adminName, adminId, playerName, userDevice) {
         updateAmount = isNaN(updateAmount) ? 0 : parseInt(updateAmount);
         let category = updateAmount >= 0 ? constRewardPointsLogCategory.POINT_INCREMENT : constRewardPointsLogCategory.POINT_REDUCTION;
-        let userAgent = constPlayerRegistrationInterface.BACKSTAGE;
+        let userAgent = userDevice? userDevice: constPlayerRegistrationInterface.BACKSTAGE;
         let proposalType = updateAmount >= 0 ? constProposalType.PLAYER_ADD_REWARD_POINTS : constProposalType.PLAYER_MINUS_REWARD_POINTS;
         let proposalData = {
             data: {
@@ -236,12 +236,19 @@ let dbPlayerInfo = {
                 category: category,
                 remark: remark,
                 userAgent: userAgent,
-                adminName: adminName
+                // adminName: adminName
             },
             creator: {
-                name: adminName
+                name: playerName? playerName: adminName
             }
         };
+        if (adminName) {
+            proposalData.data.adminName = adminName;
+        }
+        if (userDevice) {
+            proposalData.inputDevice = userDevice;
+        }
+
 
         //if its add RP, get reward points for creation of proposal, RP log created along with proposal creation.
         if (proposalType === constProposalType.PLAYER_ADD_REWARD_POINTS) {

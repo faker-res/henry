@@ -58,6 +58,13 @@
         this.rewardPointsService.getLoginRewardPoints.once(callback);
     };
 
+    proto.deductPointManually = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.rewardPointsService.deductPointManually.request(data);
+        this.rewardPointsService.deductPointManually.once(callback);
+    };
+
 
     proto.getGameRewardPoints = function (callback, requestData) {
         let data = requestData || {};
