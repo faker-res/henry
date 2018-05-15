@@ -401,23 +401,24 @@ var PartnerServiceImplement = function () {
 
     //update partner QQ
     this.updatePartnerQQ.onRequest = function (wsFunc, conn, data) {
-
         var isValidData = Boolean(conn.partnerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.createPartnerQQProposal, [{partnerId: conn.partnerId}, data], isValidData);
     };
 
     this.updatePartnerWeChat.onRequest = function (wsFunc, conn, data) {
-
         var isValidData = Boolean(conn.partnerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.createPartnerWeChatProposal, [{partnerId: conn.partnerId}, data], isValidData);
     };
 
     this.updatePartnerEmail.onRequest = function (wsFunc, conn, data) {
-
         var isValidData = Boolean(conn.partnerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.createPartnerEmailProposal, [{partnerId: conn.partnerId}, data], isValidData);
     };
 
+    this.getCrewActiveInfo.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data.platformId && data.partnerId && data.period && data.circleTimes);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewActiveInfo, [data.platformId, data.partnerId, data.period, data.circleTimes], isValidData, false, false, true);
+    }
 };
 var proto = PartnerServiceImplement.prototype = Object.create(PartnerService.prototype);
 proto.constructor = PartnerServiceImplement;

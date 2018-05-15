@@ -411,7 +411,8 @@
                 "updatePhoneNumberWithSMS",
                 "updatePartnerQQ",
                 "updatePartnerWeChat",
-                "updatePartnerEmail"
+                "updatePartnerEmail",
+                "getCrewActiveInfo",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
