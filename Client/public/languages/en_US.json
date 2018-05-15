@@ -1175,6 +1175,7 @@
   "FIRST_WITHDRAWAL_MANUAL_AUDIT": "First Withdrawal to Manual Audit (regardless of amount)",
   "MANUAL_AUDIT_AFTER_BANK_CHANGED": "First Withdrawal after Bank changed to Manual Audit (regardless of amount)",
   "MANUAL_AUDIT_BAN_WITHDRAWAL": "Ban Withdrawal to Manual Audit (regardless of amount)",
+  "UNLOCK_IF_INIT_AMT_LESS_THAN_LOST_THRESHOLD": "Prior to the execution of deposits and promotions, the system checks that if the balance is lower than the winning or losing limit, it will be unlocked immediately (after re-locking)",
   "LAST_DAILY_SETTLEMENT_TIME": "Last Daily Settlement Time",
   "LAST_WEEKLY_SETTLEMENT_TIME": "Last Weekly Settlement Time",
   "deficitAmount": "Deficit Amount",

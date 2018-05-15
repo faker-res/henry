@@ -24827,6 +24827,7 @@ define(['js/app'], function (myApp) {
                 vm.autoApprovalBasic.profitTimes = vm.selectedPlatform.data.autoApproveProfitTimes;
                 vm.autoApprovalBasic.profitTimesMinAmount = vm.selectedPlatform.data.autoApproveProfitTimesMinAmount;
                 vm.autoApprovalBasic.bonusProfitOffset = vm.selectedPlatform.data.autoApproveBonusProfitOffset;
+                vm.autoApprovalBasic.autoUnlockWhenInitAmtLessThanLostThreshold = vm.selectedPlatform.data.autoUnlockWhenInitAmtLessThanLostThreshold;
                 $scope.safeApply();
             };
 
@@ -25357,7 +25358,7 @@ define(['js/app'], function (myApp) {
                         autoApproveConsumptionOffset: srcData.consumptionOffset,
                         autoApproveProfitTimes: srcData.profitTimes,
                         autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
-                        autoApproveBonusProfitOffset: srcData.bonusProfitOffset,
+                        autoApproveBonusProfitOffset: srcData.bonusProfitOffset,autoUnlockWhenInitAmtLessThanLostThreshold: srcData.autoUnlockWhenInitAmtLessThanLostThreshold,
                     }
                 };
                 console.log('\n\n\nupdateAutoApprovalConfig sendData', JSON.stringify(sendData));

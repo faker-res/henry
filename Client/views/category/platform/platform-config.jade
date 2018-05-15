@@ -1172,6 +1172,10 @@
                                 td {{'MANUAL_AUDIT_BAN_WITHDRAWAL' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.autoApprovalBasic.manualAuditBanWithdrawal', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'UNLOCK_IF_INIT_AMT_LESS_THAN_LOST_THRESHOLD' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.autoApprovalBasic.autoUnlockWhenInitAmtLessThanLostThreshold', ng-disabled='!vm.configTableEdit')
                     br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'autoApproval')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
