@@ -2081,7 +2081,7 @@ function updateGameProgressCount(progress, event, consumptionRecord) {
 
     if (progress.count >= event.consecutiveCount) {
         progress.isApplicable = true;
-        console.log("debugProgressApplicable", progress.isApplicable, consumptionRecord.playerId)
+        console.log("debugProgressApplicable", progress.isApplicable, consumptionRecord.playerId, event._id)
     }
 
     return progressUpdated;
