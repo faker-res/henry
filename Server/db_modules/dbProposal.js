@@ -3848,45 +3848,45 @@ var proposal = {
 
                 }))
 
-            updatePlayerArr.push( dbconfig.collection_proposal.find(
-                Object.assign(
-                    {},
-                    matchObj,
-                    {
-                        type: {$in: updatePlayerList.map( p => ObjectId(p))}, noSteps: false, status: {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.FAIL, constProposalStatus.REJECTED]}
-                    }),
-            {proposalId: 1, status: 1, createTime: 1})
+            // updatePlayerArr.push( dbconfig.collection_proposal.find(
+            //     Object.assign(
+            //         {},
+            //         matchObj,
+            //         {
+            //             type: {$in: updatePlayerList.map( p => ObjectId(p))}, noSteps: false, status: {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.FAIL, constProposalStatus.REJECTED]}
+            //         }),
+            // {proposalId: 1, status: 1, createTime: 1})
 
-                // dbconfig.collection_proposal.aggregate(
-                // {$match:
-                //     Object.assign({}, matchObj,{type: {$in: updatePlayerList.map( p => ObjectId(p))}} )
-                // },
-                // {
-                    // $group: {
-                    //     _id: {},
-                    //     totalCount: {$sum: 1},
-                    //     successCount: {$sum: {$cond: [
-                    //         {$and: [
-                    //             {$eq: ["$noSteps", false]},
-                    //             {$or: [
-                    //                 {$eq: ["$status", constProposalStatus.SUCCESS]},
-                    //                 {$eq: ["$status", constProposalStatus.APPROVED]}
-                    //             ]}
-                    //         ]}, 1, 0
-                    //     ]}},
-                    //     rejectCount: {$sum: {$cond: [
-                    //         {$and: [
-                    //             {$eq: ["$noSteps", false]},
-                    //             {$or: [
-                    //                 {$eq: ["$status", constProposalStatus.FAIL]},
-                    //                 {$eq: ["$status", constProposalStatus.REJECTED]}
-                    //             ]}
-                    //         ]}, 1, 0
-                    //     ]}},
-                    // }
-                // }).read("secondaryPreferred").then(result => {
-                .then(result => {
-                console.log("CHECKING-------", result)
+            updatePlayerArr.push(dbconfig.collection_proposal.aggregate(
+                {$match:
+                    Object.assign({}, matchObj,{type: {$in: updatePlayerList.map( p => ObjectId(p))}} )
+                },
+                {
+                    $group: {
+                        _id: {},
+                        totalCount: {$sum: 1},
+                        successCount: {$sum: {$cond: [
+                            {$and: [
+                                {$eq: ["$noSteps", false]},
+                                {$or: [
+                                    {$eq: ["$status", constProposalStatus.SUCCESS]},
+                                    {$eq: ["$status", constProposalStatus.APPROVED]}
+                                ]}
+                            ]}, 1, 0
+                        ]}},
+                        rejectCount: {$sum: {$cond: [
+                            {$and: [
+                                {$eq: ["$noSteps", false]},
+                                {$or: [
+                                    {$eq: ["$status", constProposalStatus.FAIL]},
+                                    {$eq: ["$status", constProposalStatus.REJECTED]}
+                                ]}
+                            ]}, 1, 0
+                        ]}},
+                    }
+                }).read("secondaryPreferred").then(result => {
+                // .then(result => {
+                // console.log("CHECKING-------", result)
                 if (result && result.length > 0){
                     let manualCount = (result[0].successCount || 0) + (result[0].rejectCount || 0);
                     return {totalCount: result[0].totalCount || 0, successCount: result[0].successCount || 0, rejectCount: result[0].rejectCount || 0, manualCount: manualCount};
