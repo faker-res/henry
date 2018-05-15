@@ -314,8 +314,6 @@ var proposal = {
                     // Player modify payment info
                     if (data[0].name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposalData.data.isPlayerInit) {
                         proposalData.status = constProposalStatus.SUCCESS;
-                        // auto approve, set the noSteps to true
-                        proposalData.noSteps = true;
                     }
 
                     // Player modify phone number
