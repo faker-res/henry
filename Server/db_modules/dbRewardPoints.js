@@ -393,7 +393,7 @@ let dbRewardPoints = {
                     console.log("debugRelevantEvent",relevantEvents.length);
                     relevantEvents.forEach(relevantData => {
                         if (relevantData._id) {
-                            console.log("debugRelevantEventData",relevantData._id,playerRewardPoints._id);
+                            console.log("debugRelevantEventData",relevantData._id,playerRewardPoints._id, consumptionRecord.playerId);
                             let eventPeriodStartTime = getEventPeriodStartTime(relevantData);
                             let rewardProm = dbConfig.collection_rewardPointsProgress.findOne({
                                 rewardPointsObjId: playerRewardPoints._id,
@@ -2066,22 +2066,22 @@ function updateGameProgressCount(progress, event, consumptionRecord) {
     if (event.target.singleConsumptionAmount && event.target.dailyConsumptionCount) {
         // case scenario 1
         progressUpdated = updateProgressBaseOnConsumptionCount(progress, event.target.singleConsumptionAmount, event.target.dailyConsumptionCount, consumptionRecord, eventPeriodStartTime);
-        console.log("debugBaseOnConsumptionCount", progressUpdated);
+        console.log("debugBaseOnConsumptionCount", progressUpdated, consumptionRecord.playerId);
     }
     else if (event.target.dailyValidConsumptionAmount) {
         // case scenario 2
         progressUpdated = updateProgressBaseOnConsumptionAmount(progress, event.target.dailyValidConsumptionAmount, consumptionRecord, eventPeriodStartTime);
-        console.log("debugBaseOnConsumptionAmount", progressUpdated);
+        console.log("debugBaseOnConsumptionAmount", progressUpdated, consumptionRecord.playerId);
     }
     else if (event.target.dailyWinGameCount) {
         // case scenario 3
         progressUpdated = updateProgressBaseOnDailyWinGameCount(progress, event.target.dailyWinGameCount, consumptionRecord, eventPeriodStartTime);
-        console.log("debugBaseOnDailyWinGameCount", progressUpdated);
+        console.log("debugBaseOnDailyWinGameCount", progressUpdated, consumptionRecord.playerId);
     }
 
     if (progress.count >= event.consecutiveCount) {
         progress.isApplicable = true;
-        console.log("debugProgressApplicable", progress.isApplicable)
+        console.log("debugProgressApplicable", progress.isApplicable, consumptionRecord.playerId)
     }
 
     return progressUpdated;
