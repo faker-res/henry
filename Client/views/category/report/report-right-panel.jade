@@ -1164,7 +1164,7 @@
                         th {{'TOTAL_PLATFORM_FEE' | translate}}
                         th {{'TOTAL_TOPUP_FEE' | translate}}
                         th {{'TOTAL_WITHDRAWAL_FEE' | translate}}
-                        th {{'NET_COMMISSION' | translate}}
+                        th {{'REAL_TIME_COMMISSION_FORCAST' | translate}}
                         th {{'PARTNER_ACCOUNT_BALANCE' | translate}}
                         th {{'ACTIVE_DOWNLINES' | translate}}
                         th {{'PREVIOUS_THREE_INTERVAL_ACTIVE_DOWNLINES' | translate}}
@@ -1183,7 +1183,7 @@
                             a(data-toggle="modal", data-target='#modalTopUpFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'topUpDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebateTotalDepositIsCustom ? {color:"red"} : {}') {{v.totalTopUpFee}}
                         td
                             a(data-toggle="modal", data-target='#modalWithdrawalFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'withdrawalDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{v.totalWithdrawalFee}}
-                        td {{v.nettCommission}}
+                        td {{v.nettCommission | number : 2}}
                         td {{v.partnerCredit}}
                         td
                             a(data-toggle="modal", data-target='#modalActivePlayerTable', ng-click="vm.partnerCommVar.partner=i") {{v.activeDownLines}}
