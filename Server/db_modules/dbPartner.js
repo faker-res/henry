@@ -6265,7 +6265,15 @@ let dbPartner = {
                 let outputProms = [];
 
                 for (let i = 0; i < circleTimes; i++) {
-                    let prom = getPlayersActiveDetail(downLines, new Date(nextPeriod.startTime), new Date(nextPeriod.endTime), activePlayerRequirement);
+                    let prom = getCrewsInfo(downLines, new Date(nextPeriod.startTime), new Date(nextPeriod.endTime), activePlayerRequirement).then(
+                        playerActiveDetails => {
+                            return {
+                                date: new Date(nextPeriod.startTime),
+                                activeCrewNumbers: getActiveDownLineCount(playerActiveDetails),
+                                list: playerActiveDetails
+                            }
+                        }
+                    );
                     nextPeriod = getPreviousCommissionPeriod(periodCycle, nextPeriod);
                     outputProms.push(prom);
                 }
@@ -7168,7 +7176,7 @@ function getCommissionTypeName (commissionType) {
     }
 }
 
-function getPlayerActiveDetail (player, startTime, endTime, activePlayerRequirement) {
+function getCrewInfo (player, startTime, endTime, activePlayerRequirement) {
     let playerActiveDetail = {};
     let consumptionDetailProm = getPlayerCommissionConsumptionDetail(player._id, startTime, endTime);
     let topUpDetailProm = getPlayerCommissionTopUpDetail(player._id, startTime, endTime);
@@ -7180,7 +7188,7 @@ function getPlayerActiveDetail (player, startTime, endTime, activePlayerRequirem
             let topUpDetail = data[1];
             let withdrawalDetail = data[2];
 
-            return playerActiveDetail = {
+            playerActiveDetail = {
                 crewAccount: player.name,
                 depositAmount: topUpDetail.topUpAmount,
                 depositCount: topUpDetail.topUpTimes,
@@ -7188,28 +7196,25 @@ function getPlayerActiveDetail (player, startTime, endTime, activePlayerRequirem
                 betCounts: consumptionDetail.consumptionTimes,
                 withdrawAmount: withdrawalDetail.withdrawalAmount,
                 crewProfit: consumptionDetail.bonusAmount,
-                active: isPlayerActive(activePlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount)
+            };
+
+            if (activePlayerRequirement) {
+                playerActiveDetail.active = isPlayerActive(activePlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount);
             }
+
+            return playerActiveDetail;
         }
     )
 }
 
-function getPlayersActiveDetail (players, startTime, endTime, activePlayerRequirement) {
-    let playerActiveDetailsProms = [];
+function getCrewsInfo (players, startTime, endTime, activePlayerRequirement) {
+    let playerDetailsProm = [] ;
     players.map(player => {
-        let prom = getPlayerActiveDetail(player, startTime, endTime, activePlayerRequirement);
-        playerActiveDetailsProms.push(prom);
+        let prom = getCrewInfo(player, startTime, endTime, activePlayerRequirement);
+        playerDetailsProm.push(prom);
     });
 
-    return Promise.all(playerActiveDetailsProms).then(
-        playerActiveDetails => {
-            return {
-                date: new Date(startTime),
-                activeCrewNumbers: getActiveDownLineCount(playerActiveDetails),
-                list: playerActiveDetails
-            }
-        }
-    );
+    return Promise.all(playerDetailsProm);
 }
 
 
