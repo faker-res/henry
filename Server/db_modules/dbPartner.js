@@ -5892,11 +5892,73 @@ let dbPartner = {
             return {count: data[0], data: retData};
         })
     },
-};
-var proto = dbPartnerFunc.prototype;
-proto = Object.assign(proto, dbPartner);
 
-module.exports = dbPartner;
+    getCrewActiveInfo: (platformId, partnerId, periodCycle, circleTimes) => {
+        if (!circleTimes) {
+            return {};
+        }
+
+        circleTimes = circleTimes > 30 ? 30 : circleTimes;
+
+        let platform = {};
+        let partner = {};
+        let downLines = [];
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({
+                        code: constServerCode.INVALID_PLATFORM,
+                        name: "DataError",
+                        message: "Cannot find platform"
+                    });
+                }
+
+                platform = platformData;
+
+                return dbconfig.collection_partner.findOne({platform: platform._id, partnerId: partnerId}).lean();
+            }
+        ).then(
+            partnerData => {
+                if (!partnerData) {
+                    return Promise.reject({
+                        code: constServerCode.PARTNER_NAME_INVALID,
+                        name: "DataError",
+                        message: "Cannot find partner"
+                    });
+                }
+
+                partner = partnerData;
+
+                return dbconfig.collection_players.find({platform: platform._id, partner: partner._id}).lean();
+            }
+        ).then(
+            downLineData => {
+                if (!downLineData || downLineData.length < 1) {
+                    downLineData = [];
+                }
+
+                downLines = downLineData;
+
+                return getRelevantActivePlayerRequirement(platform._id, periodCycle);
+            }
+        ).then(
+            activePlayerRequirement => {
+                let nextPeriod = getCurrentCommissionPeriod(periodCycle);
+                let outputProms = [];
+
+                for (let i = 0; i < circleTimes; i++) {
+                    let prom = getPlayersActiveDetail(downLines, new Date(nextPeriod.startTime), new Date(nextPeriod.endTime), activePlayerRequirement);
+                    nextPeriod = getPreviousCommissionPeriod(periodCycle, nextPeriod);
+                    outputProms.push(prom);
+                }
+
+                return Promise.all(outputProms);
+            }
+        );
+    }
+};
+
 
 function calculateRawCommission (totalDownLineConsumption, commissionRate) {
     return Number(totalDownLineConsumption) * Number(commissionRate);
@@ -6052,15 +6114,17 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
             }
 
             consumptionData.map(providerConsumptionData => {
-                providerGroups.map(group => {
-                   group.providers.map(groupProviderId => {
-                       if (String(groupProviderId) === String(providerConsumptionData.provider)) {
-                           consumptionProviderDetail[group.name].consumptionTimes += providerConsumptionData.count;
-                           consumptionProviderDetail[group.name].validAmount += providerConsumptionData.validAmount;
-                           consumptionProviderDetail[group.name].bonusAmount += providerConsumptionData.bonusAmount;
-                       }
-                   });
-                });
+                if (providerGroups && providerGroups.length > 0) {
+                    providerGroups.map(group => {
+                        group.providers.map(groupProviderId => {
+                            if (String(groupProviderId) === String(providerConsumptionData.provider)) {
+                                consumptionProviderDetail[group.name].consumptionTimes += providerConsumptionData.count;
+                                consumptionProviderDetail[group.name].validAmount += providerConsumptionData.validAmount;
+                                consumptionProviderDetail[group.name].bonusAmount += providerConsumptionData.bonusAmount;
+                            }
+                        });
+                    });
+                }
 
                 consumptionDetail.consumptionTimes += providerConsumptionData.count;
                 consumptionDetail.validAmount += providerConsumptionData.validAmount;
@@ -6113,19 +6177,21 @@ function getPlayerCommissionTopUpDetail (playerObjId, startTime, endTime, topUpT
             for (let i = 0, len = topUpData.length; i < len; i++) {
                 let topUpTypeRecord = topUpData[i];
 
-                switch (String(topUpTypeRecord.typeId)) {
-                    case topUpTypes.onlineTopUpTypeId:
-                        playerTopUpDetail.onlineTopUpAmount = topUpTypeRecord.amount;
-                        break;
-                    case topUpTypes.manualTopUpTypeId:
-                        playerTopUpDetail.manualTopUpAmount = topUpTypeRecord.amount;
-                        break;
-                    case topUpTypes.weChatTopUpTypeId:
-                        playerTopUpDetail.weChatTopUpAmount = topUpTypeRecord.amount;
-                        break;
-                    case topUpTypes.aliPayTopUpTypeId:
-                        playerTopUpDetail.aliPayTopUpAmount = topUpTypeRecord.amount;
-                        break;
+                if (topUpTypes) {
+                    switch (String(topUpTypeRecord.typeId)) {
+                        case topUpTypes.onlineTopUpTypeId:
+                            playerTopUpDetail.onlineTopUpAmount = topUpTypeRecord.amount;
+                            break;
+                        case topUpTypes.manualTopUpTypeId:
+                            playerTopUpDetail.manualTopUpAmount = topUpTypeRecord.amount;
+                            break;
+                        case topUpTypes.weChatTopUpTypeId:
+                            playerTopUpDetail.weChatTopUpAmount = topUpTypeRecord.amount;
+                            break;
+                        case topUpTypes.aliPayTopUpTypeId:
+                            playerTopUpDetail.aliPayTopUpAmount = topUpTypeRecord.amount;
+                            break;
+                    }
                 }
 
                 playerTopUpDetail.topUpAmount += topUpTypeRecord.amount;
@@ -6184,7 +6250,7 @@ function isPlayerActive (activePlayerRequirement, playerConsumptionTimes, player
 
 function getRelevantActivePlayerRequirement (platformObjId, commissionType) {
     let configPrefix = "weeklyActivePlayer";
-    switch (commissionType) {
+    switch (Number(commissionType)) {
         case constPartnerCommissionType.DAILY_BONUS_AMOUNT:
             configPrefix = "dailyActive";
             break;
@@ -6229,7 +6295,7 @@ function getCommissionPeriod (commissionType) {
 }
 
 function getCurrentCommissionPeriod (commissionType) {
-    switch (commissionType) {
+    switch (Number(commissionType)) {
         case constPartnerCommissionType.DAILY_BONUS_AMOUNT:
             return dbutility.getTodaySGTime();
         case constPartnerCommissionType.WEEKLY_BONUS_AMOUNT:
@@ -6712,6 +6778,12 @@ function updateCommissionLogStatus (log, status, remark = "") {
     });
 }
 
+function getPreviousCommissionPeriod (commissionType, currentPeriod) {
+    let currentStartTime = new Date(currentPeriod.startTime);
+    let previousDay = new Date(currentStartTime).setMinutes(currentStartTime.getMinutes() - 5);
+    return getTargetCommissionPeriod(commissionType, new Date(previousDay));
+}
+
 function getPreviousThreeDetailIfExist (partnerObjId, commissionType, startTime) {
     let pastThreeActiveDownLines = [];
     let pastThreeNettCommission = [];
@@ -6778,3 +6850,55 @@ function getCommissionTypeName (commissionType) {
             return "7天-投注额";
     }
 }
+
+function getPlayerActiveDetail (player, startTime, endTime, activePlayerRequirement) {
+    let playerActiveDetail = {};
+    let consumptionDetailProm = getPlayerCommissionConsumptionDetail(player._id, startTime, endTime);
+    let topUpDetailProm = getPlayerCommissionTopUpDetail(player._id, startTime, endTime);
+    let withdrawalDetailProm = getPlayerCommissionWithdrawDetail(player._id, startTime, endTime);
+
+    return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm]).then(
+        data => {
+            let consumptionDetail = data[0];
+            let topUpDetail = data[1];
+            let withdrawalDetail = data[2];
+
+            return playerActiveDetail = {
+                crewAccount: player.name,
+                depositAmount: topUpDetail.topUpAmount,
+                depositCount: topUpDetail.topUpTimes,
+                validBet: consumptionDetail.validAmount,
+                betCounts: consumptionDetail.consumptionTimes,
+                withdrawAmount: withdrawalDetail.withdrawalAmount,
+                crewProfit: consumptionDetail.bonusAmount,
+                active: isPlayerActive(activePlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount)
+            }
+        }
+    )
+}
+
+function getPlayersActiveDetail (players, startTime, endTime, activePlayerRequirement) {
+    let playerActiveDetailsProms = [];
+    players.map(player => {
+        let prom = getPlayerActiveDetail(player, startTime, endTime, activePlayerRequirement);
+        playerActiveDetailsProms.push(prom);
+    });
+
+    return Promise.all(playerActiveDetailsProms).then(
+        playerActiveDetails => {
+            return {
+                date: new Date(startTime),
+                activeCrewNumbers: getActiveDownLineCount(playerActiveDetails),
+                list: playerActiveDetails
+            }
+        }
+    );
+}
+
+
+
+
+
+var proto = dbPartnerFunc.prototype;
+proto = Object.assign(proto, dbPartner);
+module.exports = dbPartner;
