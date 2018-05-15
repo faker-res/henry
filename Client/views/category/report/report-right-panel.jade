@@ -1176,13 +1176,13 @@
                         td(ng-repeat= "(igrp, grp) in v.rawCommissions")
                             a(ng-style='grp.isCustomCommissionRate ? {color:"red"} : {}', data-toggle="modal", data-target='#modalCommissionTable', ng-click="vm.partnerCommVar.partner=i; vm.partnerCommVar.group=grp; vm.partnerCommVar.selectTab=igrp; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'consumptionDetail')") {{grp.amount}}
                         td
-                            a(data-toggle="modal", data-target='#modalRewardFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'rewardDetail')") {{v.totalRewardFee}}
+                            a(data-toggle="modal", data-target='#modalRewardFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'rewardDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebatePromoIsCustom ? {color:"red"} : {}') {{v.totalRewardFee}}
                         td
                             a(ng-style='v.isAnyCustomPlatformFeeRate ? {color:"red"} : {}', data-toggle="modal", data-target='#modalCommissionTable', ng-click="vm.partnerCommVar.partner=i; vm.partnerCommVar.group=v.rawCommissions[vm.partnerCommVar.platformFeeTab]; vm.partnerCommVar.selectTab=vm.partnerCommVar.platformFeeTab; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'consumptionDetail')") {{v.totalPlatformFee}}
                         td
-                            a(data-toggle="modal", data-target='#modalTopUpFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'topUpDetail')") {{v.totalTopUpFee}}
+                            a(data-toggle="modal", data-target='#modalTopUpFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'topUpDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebateTotalDepositIsCustom ? {color:"red"} : {}') {{v.totalTopUpFee}}
                         td
-                            a(data-toggle="modal", data-target='#modalWithdrawalFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'withdrawalDetail')") {{v.totalWithdrawalFee}}
+                            a(data-toggle="modal", data-target='#modalWithdrawalFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'withdrawalDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{v.totalWithdrawalFee}}
                         td {{v.nettCommission}}
                         td {{v.partnerCredit}}
                         td
@@ -1690,8 +1690,9 @@
                                 td {{vm.partnerDLCommDetailTotal.pointConversion}}
                                 td {{vm.partnerDLCommDetailTotal.total}}
                             tr
-                                td(colspan="8", style="font-weight:bold") {{'Reward Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{':'}} {{vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebatePromo}} {{"%)"}}
-                                td {{vm.realTimeCommissionData[vm.partnerCommVar.partner].totalRewardFee}}
+                                td(colspan="8", style="font-weight:bold") {{'Reward Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
+                                    text.span(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebatePromoIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebatePromo}} {{"%)"}}
+                                td(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebatePromoIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].totalRewardFee}}
 
 #modalTopUpFeeTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:100%;')
@@ -1728,8 +1729,9 @@
                                 td {{vm.partnerDLCommDetailTotal.weChatTopUpAmount}}
                                 td {{vm.partnerDLCommDetailTotal.topUpAmount}}
                             tr
-                                td(colspan="6", style="font-weight:bold") {{'TopUp Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{':'}} {{vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalDeposit}} {{"%)"}}
-                                td {{vm.realTimeCommissionData[vm.partnerCommVar.partner].totalTopUpFee}}
+                                td(colspan="6", style="font-weight:bold") {{'TopUp Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
+                                    text.span(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalDepositIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalDeposit}} {{"%)"}}
+                                td(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalDepositIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].totalTopUpFee}}
 
 #modalWithdrawalFeeTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:100%;')
@@ -1754,8 +1756,9 @@
                                 td(colspan="2", style="font-weight:bold") {{'Total' | translate}}
                                 td {{vm.partnerDLCommDetailTotal.withdrawalAmount}}
                             tr
-                                td(colspan="2", style="font-weight:bold") {{'Withdrawal Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{':'}} {{vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal}} {{"%)"}}
-                                td {{vm.realTimeCommissionData[vm.partnerCommVar.partner].totalWithdrawalFee}}
+                                td(colspan="2", style="font-weight:bold") {{'Withdrawal Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
+                                    text.span(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal}} {{"%)"}}
+                                td(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].totalWithdrawalFee}}
 
 #modalActivePlayerTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:100%;')

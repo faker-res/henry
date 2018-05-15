@@ -2611,6 +2611,7 @@ define(['js/app'], function (myApp) {
                         if (partner) {
                             partner.isAnyCustomPlatformFeeRate = false;
                             (partner.rawCommissions).forEach( (group, idxgroup) => {
+                                group.commissionRate = +(group.commissionRate*100).toFixed(2);
                                 partner.isAnyCustomPlatformFeeRate = group.isCustomPlatformFeeRate ? true : partner.isAnyCustomPlatformFeeRate;
                                 if (group.isCustomPlatformFeeRate == true){
                                     vm.partnerCommVar.platformFeeTab = idxgroup;
