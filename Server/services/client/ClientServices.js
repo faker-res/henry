@@ -316,6 +316,7 @@
             var functionNames = [
                 "applyRewardPoint",
                 "getLoginRewardPoints",
+                "deductPointManually",
                 "getTopUpRewardPointsEvent",
                 "getRewardPointsRanking",
                 "getGameRewardPoints",
