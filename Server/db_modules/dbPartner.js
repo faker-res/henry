@@ -5145,6 +5145,17 @@ let dbPartner = {
                                 })
 
                             }
+                            else{
+                                playerIdList.forEach(playerId => {
+
+                                    topUpRecords.push({
+                                        _id: playerId,
+                                        topUpAmount: 0,
+                                        topUpCount: 0
+                                    })
+
+                                })
+                            }
                         }
                         return topUpRecords
 
@@ -5182,6 +5193,17 @@ let dbPartner = {
                                     }
                                 })
 
+                            }
+                            else{
+                                playerIdList.forEach(playerId => {
+
+                                    consumptionRecords.push({
+                                        _id: playerId,
+                                        consumptionAmount: 0,
+                                        consumptionCount: 0
+                                    })
+
+                                })
                             }
                         }
                         return consumptionRecords
