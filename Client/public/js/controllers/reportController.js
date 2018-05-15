@@ -5888,14 +5888,20 @@ define(['js/app'], function (myApp) {
         vm.getPlatformPartnerSettlementStatus = function(startTime, endTime, callback) {
             let sendData = {
                 platformObjId: vm.selectedPlatform._id,
+                commissionType: vm.partnerSettlementQuery.commissionType,
                 startTime: startTime,
                 endTime: endTime
             };
             console.log("getPlatformPartnerSettlementStatus sendData", sendData);
-            socketService.$socket($scope.AppSocket, 'getPlatformPartnerSettlementStatus', sendData, function (data) {
-                vm.platformPartnerSettlementStatus = data.data;
+            if(sendData.commissionType) {
+                socketService.$socket($scope.AppSocket, 'getPlatformPartnerSettlementStatus', sendData, function (data) {
+                    vm.platformPartnerSettlementStatus = data.data;
+                    callback();
+                });
+            } else {
+                vm.platformPartnerSettlementStatus = [];
                 callback();
-            });
+            }
         };
         //dtp is dateTimePicker
         vm.commonChangeDatePickerStyle = function(dtp, options) {
@@ -5926,6 +5932,7 @@ define(['js/app'], function (myApp) {
                     case $scope.constPartnerCommissionLogStatus.PREVIEW:
                     default:
                         dayHolder.style.background = 'white';
+                        dayHolder.style.textDecoration = 'none';
                         break;
                 }
 
@@ -7185,7 +7192,7 @@ define(['js/app'], function (myApp) {
                     let startDate = refDate.setMonth(
                         vm.partnerSettlementQuery.startTime.data('datetimepicker').getLocalDate().getMonth()+vm.partnerSettlementQueryStartDateCurMonthOffset-1);
                     refDate = new Date(refDate.setMonth(refDate.getMonth()+3));
-                    let endDate = refDate.setDate(refDate.getDate()-1);
+                    let endDate = refDate.setDate(refDate.getDate());
                     vm.getPlatformPartnerSettlementStatus(new Date(startDate), new Date(endDate), callback);
                 };
                 let styleDateTimePickerStart = function(ev) {
@@ -7199,12 +7206,14 @@ define(['js/app'], function (myApp) {
                         vm.partnerSettlementQueryStartDateCurMonthOffset = 0;
                     }
 
-                    getStartTimePlatformPartnerSettlementStatus(function(){
-                        vm.commonChangeDatePickerStyle(
-                            vm.partnerSettlementQuery.startTime.data('datetimepicker'),
-                            {monthOffset:vm.partnerSettlementQueryStartDateCurMonthOffset}
-                        )
-                    });
+                    setTimeout(function() {
+                        getStartTimePlatformPartnerSettlementStatus(function () {
+                            vm.commonChangeDatePickerStyle(
+                                vm.partnerSettlementQuery.startTime.data('datetimepicker'),
+                                {monthOffset: vm.partnerSettlementQueryStartDateCurMonthOffset}
+                            )
+                        })
+                    }, 0);
                 };
 
                 let getEndTimePlatformPartnerSettlementStatus = function(callback) {
@@ -7213,7 +7222,7 @@ define(['js/app'], function (myApp) {
                     let startDate = refDate.setMonth(
                         vm.partnerSettlementQuery.endTime.data('datetimepicker').getLocalDate().getMonth()+vm.partnerSettlementQueryEndDateCurMonthOffset-1);
                     refDate = new Date(refDate.setMonth(refDate.getMonth()+3));
-                    let endDate = refDate.setDate(refDate.getDate()-1);
+                    let endDate = refDate.setDate(refDate.getDate());
                     vm.getPlatformPartnerSettlementStatus(new Date(startDate), new Date(endDate), callback);
                 };
                 let styleDateTimePickerEnd = function(ev) {
@@ -7227,12 +7236,14 @@ define(['js/app'], function (myApp) {
                         vm.partnerSettlementQueryEndDateCurMonthOffset = 0;
                     }
 
-                    getEndTimePlatformPartnerSettlementStatus(function(){
-                        vm.commonChangeDatePickerStyle(
-                            vm.partnerSettlementQuery.endTime.data('datetimepicker'),
-                            {monthOffset:vm.partnerSettlementQueryEndDateCurMonthOffset}
-                        )
-                    });
+                    setTimeout(function() {
+                        getEndTimePlatformPartnerSettlementStatus(function(){
+                            vm.commonChangeDatePickerStyle(
+                                vm.partnerSettlementQuery.endTime.data('datetimepicker'),
+                                {monthOffset:vm.partnerSettlementQueryEndDateCurMonthOffset}
+                            )
+                        });
+                    }, 0);
                 };
 
                 utilService.actionAfterLoaded("#partnerSettlementTablePage", function () {
