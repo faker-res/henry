@@ -2611,6 +2611,7 @@ define(['js/app'], function (myApp) {
                         if (partner) {
                             partner.isAnyCustomPlatformFeeRate = false;
                             (partner.rawCommissions).forEach( (group, idxgroup) => {
+                                group.commissionRate = +(group.commissionRate*100).toFixed(2);
                                 partner.isAnyCustomPlatformFeeRate = group.isCustomPlatformFeeRate ? true : partner.isAnyCustomPlatformFeeRate;
                                 if (group.isCustomPlatformFeeRate == true){
                                     vm.partnerCommVar.platformFeeTab = idxgroup;
@@ -3326,6 +3327,7 @@ define(['js/app'], function (myApp) {
                     item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
                     item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
                     item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
+                    item.registrationAgent$ = item.csOfficer || null;
 
                     item.playerLevel$ = "";
                     if (vm.playerLvlData[item.playerLevel]) {
@@ -3443,7 +3445,8 @@ define(['js/app'], function (myApp) {
                         sClass: 'sumFloat alignRight'
                     },
                     {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: 'playerReportProfit alignRight'},
-                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: 'sumFloat alignRight'}
+                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('Registration Agent'), data: "registrationAgent$"}
                 ],
                 "paging": false,
                 // "dom": '<"top">rt<"bottom"il><"clear">',
@@ -5888,14 +5891,20 @@ define(['js/app'], function (myApp) {
         vm.getPlatformPartnerSettlementStatus = function(startTime, endTime, callback) {
             let sendData = {
                 platformObjId: vm.selectedPlatform._id,
+                commissionType: vm.partnerSettlementQuery.commissionType,
                 startTime: startTime,
                 endTime: endTime
             };
             console.log("getPlatformPartnerSettlementStatus sendData", sendData);
-            socketService.$socket($scope.AppSocket, 'getPlatformPartnerSettlementStatus', sendData, function (data) {
-                vm.platformPartnerSettlementStatus = data.data;
+            if(sendData.commissionType) {
+                socketService.$socket($scope.AppSocket, 'getPlatformPartnerSettlementStatus', sendData, function (data) {
+                    vm.platformPartnerSettlementStatus = data.data;
+                    callback();
+                });
+            } else {
+                vm.platformPartnerSettlementStatus = [];
                 callback();
-            });
+            }
         };
         //dtp is dateTimePicker
         vm.commonChangeDatePickerStyle = function(dtp, options) {
@@ -5926,6 +5935,7 @@ define(['js/app'], function (myApp) {
                     case $scope.constPartnerCommissionLogStatus.PREVIEW:
                     default:
                         dayHolder.style.background = 'white';
+                        dayHolder.style.textDecoration = 'none';
                         break;
                 }
 
@@ -6134,6 +6144,7 @@ define(['js/app'], function (myApp) {
                     let isCustomized = false;
 
                     let consumptionUsed = vm.selectedProposal.data.commissionType == 5 ? "CONSUMPTION" : "SITE_LOSE_WIN";
+                    let consumptionUsedKey = vm.selectedProposal.data.commissionType == 5 ? "totalConsumption" : "siteBonusAmount";
 
                     proposalDetail["MAIN_TYPE"] = $translate("SettlePartnerCommission");
                     proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
@@ -6141,13 +6152,14 @@ define(['js/app'], function (myApp) {
                     proposalDetail["COMMISSION_PERIOD"] = $scope.dateReformat(vm.selectedProposal.data.startTime) + " - " + $scope.dateReformat(vm.selectedProposal.data.endTime);
                     proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
                     proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
-                    proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
+                    proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.status);
                     proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
                     vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                         grossCommission += rawCommission.amount;
                         let str = rawCommission.amount + $translate("YEN") + " "
-                            + "(" + $translate(consumptionUsed) + ": " + (-rawCommission.totalConsumption) + "/"
+                            + "(" + $translate(consumptionUsed) + ": " + (rawCommission[consumptionUsedKey]) + "/"
+                            + $translate('active') + ": " + (vm.selectedProposal.data.activeCount || 0) + "/"
                             + $translate("RATIO") + ": " + (rawCommission.commissionRate * 100) + "%)";
 
                         proposalDetail[rawCommission.groupName + " " + $translate("Commission")] =  str;
@@ -7185,7 +7197,7 @@ define(['js/app'], function (myApp) {
                     let startDate = refDate.setMonth(
                         vm.partnerSettlementQuery.startTime.data('datetimepicker').getLocalDate().getMonth()+vm.partnerSettlementQueryStartDateCurMonthOffset-1);
                     refDate = new Date(refDate.setMonth(refDate.getMonth()+3));
-                    let endDate = refDate.setDate(refDate.getDate()-1);
+                    let endDate = refDate.setDate(refDate.getDate());
                     vm.getPlatformPartnerSettlementStatus(new Date(startDate), new Date(endDate), callback);
                 };
                 let styleDateTimePickerStart = function(ev) {
@@ -7199,12 +7211,14 @@ define(['js/app'], function (myApp) {
                         vm.partnerSettlementQueryStartDateCurMonthOffset = 0;
                     }
 
-                    getStartTimePlatformPartnerSettlementStatus(function(){
-                        vm.commonChangeDatePickerStyle(
-                            vm.partnerSettlementQuery.startTime.data('datetimepicker'),
-                            {monthOffset:vm.partnerSettlementQueryStartDateCurMonthOffset}
-                        )
-                    });
+                    setTimeout(function() {
+                        getStartTimePlatformPartnerSettlementStatus(function () {
+                            vm.commonChangeDatePickerStyle(
+                                vm.partnerSettlementQuery.startTime.data('datetimepicker'),
+                                {monthOffset: vm.partnerSettlementQueryStartDateCurMonthOffset}
+                            )
+                        })
+                    }, 0);
                 };
 
                 let getEndTimePlatformPartnerSettlementStatus = function(callback) {
@@ -7213,7 +7227,7 @@ define(['js/app'], function (myApp) {
                     let startDate = refDate.setMonth(
                         vm.partnerSettlementQuery.endTime.data('datetimepicker').getLocalDate().getMonth()+vm.partnerSettlementQueryEndDateCurMonthOffset-1);
                     refDate = new Date(refDate.setMonth(refDate.getMonth()+3));
-                    let endDate = refDate.setDate(refDate.getDate()-1);
+                    let endDate = refDate.setDate(refDate.getDate());
                     vm.getPlatformPartnerSettlementStatus(new Date(startDate), new Date(endDate), callback);
                 };
                 let styleDateTimePickerEnd = function(ev) {
@@ -7227,12 +7241,14 @@ define(['js/app'], function (myApp) {
                         vm.partnerSettlementQueryEndDateCurMonthOffset = 0;
                     }
 
-                    getEndTimePlatformPartnerSettlementStatus(function(){
-                        vm.commonChangeDatePickerStyle(
-                            vm.partnerSettlementQuery.endTime.data('datetimepicker'),
-                            {monthOffset:vm.partnerSettlementQueryEndDateCurMonthOffset}
-                        )
-                    });
+                    setTimeout(function() {
+                        getEndTimePlatformPartnerSettlementStatus(function(){
+                            vm.commonChangeDatePickerStyle(
+                                vm.partnerSettlementQuery.endTime.data('datetimepicker'),
+                                {monthOffset:vm.partnerSettlementQueryEndDateCurMonthOffset}
+                            )
+                        });
+                    }, 0);
                 };
 
                 utilService.actionAfterLoaded("#partnerSettlementTablePage", function () {

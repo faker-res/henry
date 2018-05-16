@@ -24,6 +24,12 @@ let RewardPointsServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbRewardPoints.applyRewardPoints, [conn.playerObjId, data.eventObjectIds, userInterface], isValidData);
     };
 
+    this.deductPointManually.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.pointToDeduct && data.pointToDeduct < 0 && data.remark);
+        let userInterface = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbRewardPoints.deductPointManually, [conn.playerObjId, data.pointToDeduct, data.remark, userInterface], isValidData);
+    };
+
     this.getLoginRewardPoints.expectsData = '';
     this.getLoginRewardPoints.onRequest = function (wsFunc, conn, data) {
         var isValidData = true;

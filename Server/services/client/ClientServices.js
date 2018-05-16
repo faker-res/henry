@@ -316,6 +316,7 @@
             var functionNames = [
                 "applyRewardPoint",
                 "getLoginRewardPoints",
+                "deductPointManually",
                 "getTopUpRewardPointsEvent",
                 "getRewardPointsRanking",
                 "getGameRewardPoints",
@@ -411,7 +412,13 @@
                 "updatePhoneNumberWithSMS",
                 "updatePartnerQQ",
                 "updatePartnerWeChat",
-                "updatePartnerEmail"
+                "updatePartnerEmail",
+                "getCommissionRate",
+                "getCrewActiveInfo",
+                "getCrewDepositInfo",
+                "getCrewWithdrawInfo",
+                "getCrewBetInfo",
+                "getNewCrewInfo",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

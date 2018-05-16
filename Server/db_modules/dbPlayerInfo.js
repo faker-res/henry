@@ -223,10 +223,10 @@ let dbPlayerInfo = {
     /**
      * Update player's reward points and create log
      */
-    updatePlayerRewardPointsRecord: function (playerObjId, platformObjId, updateAmount, remark, adminName, adminId) {
+    updatePlayerRewardPointsRecord: function (playerObjId, platformObjId, updateAmount, remark, adminName, adminId, playerName, userDevice) {
         updateAmount = isNaN(updateAmount) ? 0 : parseInt(updateAmount);
         let category = updateAmount >= 0 ? constRewardPointsLogCategory.POINT_INCREMENT : constRewardPointsLogCategory.POINT_REDUCTION;
-        let userAgent = constPlayerRegistrationInterface.BACKSTAGE;
+        let userAgent = userDevice? userDevice: constPlayerRegistrationInterface.BACKSTAGE;
         let proposalType = updateAmount >= 0 ? constProposalType.PLAYER_ADD_REWARD_POINTS : constProposalType.PLAYER_MINUS_REWARD_POINTS;
         let proposalData = {
             data: {
@@ -236,12 +236,19 @@ let dbPlayerInfo = {
                 category: category,
                 remark: remark,
                 userAgent: userAgent,
-                adminName: adminName
+                // adminName: adminName
             },
             creator: {
-                name: adminName
+                name: playerName? playerName: adminName
             }
         };
+        if (adminName) {
+            proposalData.data.adminName = adminName;
+        }
+        if (userDevice) {
+            proposalData.inputDevice = userDevice;
+        }
+
 
         //if its add RP, get reward points for creation of proposal, RP log created along with proposal creation.
         if (proposalType === constProposalType.PLAYER_ADD_REWARD_POINTS) {
@@ -2365,9 +2372,9 @@ let dbPlayerInfo = {
         let playerNames = query.playerNames;
         let addList = forbidTopUpTypes.addList;
         let removeList = forbidTopUpTypes.removeList;
-        let updateData = {};
 
         playerNames.forEach(name => {
+            let updateData = {};
             let prom = dbconfig.collection_players.findOne({name: name, platform: query.platformObjId})
                 .then(data => {
                     let playerForbidTopupType = data.forbidTopUpType.filter(item => {
@@ -2421,12 +2428,12 @@ let dbPlayerInfo = {
 
     updateBatchPlayerForbidProviders: function (platformObjId, playerNames, forbidProviders) {
 
-        let updateData = {};
         let addList = forbidProviders.addList;
         let removeList = forbidProviders.removeList;
         let proms = [];
 
         playerNames.forEach(player => {
+            let updateData = {};
             let prom = dbconfig.collection_players.findOne({name: player, platform: platformObjId})
                 .then(data => {
 
@@ -2454,6 +2461,7 @@ let dbPlayerInfo = {
     },
     managingDataList: function (dataList, addList, removeList) {
         let result = [];
+        // add those new Item to List first
         dataList.forEach(d => {
             result.push(String(d));
         })
@@ -2463,25 +2471,27 @@ let dbPlayerInfo = {
                 result.push(item);
             }
         })
-
+        // only left those data not include in the remove list
         result = result.filter(rItem => {
-            // Doing this convert, is because one of this function will sent back object, the indexOf will goes wrong.
             let currentItem = String(rItem);
-            if (removeList.length == 0) {
-                finalResult.push(currentItem);
-            } else if (removeList.indexOf(currentItem) == -1) {
-                finalResult.push(currentItem);
+            if(removeList.length == 0){
+                return currentItem;
+            }else{
+                if(removeList.indexOf(currentItem) == -1){
+                    return currentItem;
+                }
             }
         })
-        return finalResult;
+        return result;
     },
     updateBatchPlayerForbidRewardEvents: function (platformObjId, playerNames, forbidRewardEvents) {
-        let updateData = {};
+
         let result = [];
         let addList = forbidRewardEvents.addList;
         let removeList = forbidRewardEvents.removeList;
         let proms = [];
         playerNames.forEach(name => {
+            let updateData = {};
             let prom = dbconfig.collection_players.findOne({'name': name, 'platform': platformObjId})
                 .then(data => {
                     let playerForbidRewardEvents = data.forbidRewardEvents || [];
@@ -2510,11 +2520,12 @@ let dbPlayerInfo = {
 
     updateBatchPlayerForbidRewardPointsEvent: function (playerNames, platformObjId, forbidRewardPointsEvent) {
         let proms = [];
-        let updateData = {};
+
         let addList = forbidRewardPointsEvent.addList;
         let removeList = forbidRewardPointsEvent.removeList;
 
         playerNames.forEach(name => {
+            let updateData = {};
             let prom = dbconfig.collection_players.findOne({name: name, platform: platformObjId})
                 .then(data => {
                     let playerForbidRewardPointsEvent = data.forbidRewardPointsEvent || [];
@@ -2852,130 +2863,158 @@ let dbPlayerInfo = {
         var deferred = Q.defer();
         let playerData;
         let useProviderGroup = false;
+        let platformObjId = proposalData && proposalData.data && proposalData.data.platformId ? proposalData.data.platformId : 0;
 
-        dbUtility.findOneAndUpdateForShard(
-            dbconfig.collection_players,
-            {_id: playerId},
-            {
-                $inc: {
-                    validCredit: amount,
-                    topUpSum: amount,
-                    dailyTopUpSum: amount,
-                    weeklyTopUpSum: amount,
-                    pastMonthTopUpSum: amount,
-                    topUpTimes: 1,
-                    creditBalance: amount
-                }
-            },
-            constShardKeys.collection_players
-        ).then(data => {
-                if (data) {
-                    if (data.platform) {
-                        return dbconfig.collection_platform.findOne({_id: data.platform}).then(
-                            platformData => {
-                                if (platformData && platformData.useProviderGroup) {
-                                    useProviderGroup = platformData.useProviderGroup;
-
+        return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
+            platformData => {
+                if (platformData && platformData.autoApproveLostThreshold && platformData.autoUnlockWhenInitAmtLessThanLostThreshold) {
+                    if (proposalData && proposalData.data && proposalData.data.playerId) {
+                        return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({playerId: proposalData.data.playerId})
+                            .then(rtgData => {
+                                if (rtgData && rtgData.length) {
+                                    rtgData.forEach(rtg => {
+                                        if (proposalData.data && proposalData.data.providerGroup && rtg.providerGroup && rtg.providerGroup._id
+                                            && (proposalData.data.providerGroup.toString() == rtg.providerGroup._id.toString()) ) {
+                                            if (rtg.initAmt && (rtg.initAmt < platformData.autoApproveLostThreshold)) {
+                                                return dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg.providerGroup);
+                                            }
+                                        } else if (!proposalData.data.providerGroup && !rtg.providerGroup) {
+                                            if (rtg.initAmt && (rtg.initAmt < platformData.autoApproveLostThreshold)) {
+                                                return dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg.providerGroup);
+                                            }
+                                        }
+                                    });
                                 }
+                            });
+                    }
+                }
+            }
+        ).then(() => {
 
-                                return data;
+            dbUtility.findOneAndUpdateForShard(
+                dbconfig.collection_players,
+                {_id: playerId},
+                {
+                    $inc: {
+                        validCredit: amount,
+                        topUpSum: amount,
+                        dailyTopUpSum: amount,
+                        weeklyTopUpSum: amount,
+                        pastMonthTopUpSum: amount,
+                        topUpTimes: 1,
+                        creditBalance: amount
+                    }
+                },
+                constShardKeys.collection_players
+            ).then(data => {
+                    if (data) {
+                        if (data.platform) {
+                            return dbconfig.collection_platform.findOne({_id: data.platform}).then(
+                                platformData => {
+                                    if (platformData && platformData.useProviderGroup) {
+                                        useProviderGroup = platformData.useProviderGroup;
+
+                                    }
+
+                                    return data;
+                                }
+                            )
+                        }
+                    }
+                }
+            ).then(
+                function (data) {
+                    if (data) {
+                        playerData = data;
+
+                        var recordData = {
+                            playerId: data._id,
+                            platformId: data.platform,
+                            amount: amount,
+                            topUpType: topUpType,
+                            createTime: proposalData ? proposalData.createTime : new Date(),
+                            bDirty: false
+                        };
+                        var logData = null;
+                        if (proposalData && proposalData.data) {
+                            if (topUpType == constPlayerTopUpType.MANUAL) {
+                                recordData.bankCardType = proposalData.data.bankCardType;
+                                recordData.bankTypeId = proposalData.data.bankTypeId;
+                                recordData.depositMethod = proposalData.data.depositMethod;
                             }
-                        )
-                    }
-                }
-            }
-        ).then(
-            function (data) {
-                if (data) {
-                    playerData = data;
-
-                    var recordData = {
-                        playerId: data._id,
-                        platformId: data.platform,
-                        amount: amount,
-                        topUpType: topUpType,
-                        createTime: proposalData ? proposalData.createTime : new Date(),
-                        bDirty: false
-                    };
-                    var logData = null;
-                    if (proposalData && proposalData.data) {
-                        if (topUpType == constPlayerTopUpType.MANUAL) {
-                            recordData.bankCardType = proposalData.data.bankCardType;
-                            recordData.bankTypeId = proposalData.data.bankTypeId;
-                            recordData.depositMethod = proposalData.data.depositMethod;
+                            else if (topUpType == constPlayerTopUpType.ONLINE) {
+                                recordData.merchantTopUpType = proposalData.data.topupType;
+                            }
+                            logData = proposalData.data;
+                            recordData.proposalId = proposalData.proposalId;
+                            recordData.userAgent = proposalData.data.userAgent;
                         }
-                        else if (topUpType == constPlayerTopUpType.ONLINE) {
-                            recordData.merchantTopUpType = proposalData.data.topupType;
+                        var newRecord = new dbconfig.collection_playerTopUpRecord(recordData);
+                        var recordProm = newRecord.save();
+                        var type = "";
+                        switch (topUpType) {
+                            case constPlayerTopUpType.ONLINE:
+                                type = constPlayerCreditChangeType.TOP_UP;
+                                break;
+                            case constPlayerTopUpType.MANUAL:
+                                type = constPlayerCreditChangeType.MANUAL_TOP_UP;
+                                break;
+                            case constPlayerTopUpType.ALIPAY:
+                                type = constPlayerCreditChangeType.ALIPAY_TOP_UP;
+                                break;
+                            case constPlayerTopUpType.WECHAT:
+                                type = constPlayerCreditChangeType.WECHAT_TOP_UP;
+                                break;
+                            case constPlayerTopUpType.QUICKPAY:
+                                type = constPlayerCreditChangeType.QUICKPAY_TOP_UP;
+                                break;
+                            default:
+                                type = constPlayerCreditChangeType.TOP_UP;
+                                break;
                         }
-                        logData = proposalData.data;
-                        recordData.proposalId = proposalData.proposalId;
-                        recordData.userAgent = proposalData.data.userAgent;
-                    }
-                    var newRecord = new dbconfig.collection_playerTopUpRecord(recordData);
-                    var recordProm = newRecord.save();
-                    var type = "";
-                    switch (topUpType) {
-                        case constPlayerTopUpType.ONLINE:
-                            type = constPlayerCreditChangeType.TOP_UP;
-                            break;
-                        case constPlayerTopUpType.MANUAL:
-                            type = constPlayerCreditChangeType.MANUAL_TOP_UP;
-                            break;
-                        case constPlayerTopUpType.ALIPAY:
-                            type = constPlayerCreditChangeType.ALIPAY_TOP_UP;
-                            break;
-                        case constPlayerTopUpType.WECHAT:
-                            type = constPlayerCreditChangeType.WECHAT_TOP_UP;
-                            break;
-                        case constPlayerTopUpType.QUICKPAY:
-                            type = constPlayerCreditChangeType.QUICKPAY_TOP_UP;
-                            break;
-                        default:
-                            type = constPlayerCreditChangeType.TOP_UP;
-                            break;
-                    }
-                    var logProm = dbLogger.createCreditChangeLogWithLockedCredit(playerId, data.platform, amount, type, data.validCredit, data.lockedCredit, data.lockedCredit, null, logData);
-                    // var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform).catch(console.log);
-                    let promArr;
+                        var logProm = dbLogger.createCreditChangeLogWithLockedCredit(playerId, data.platform, amount, type, data.validCredit, data.lockedCredit, data.lockedCredit, null, logData);
+                        // var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform).catch(console.log);
+                        let promArr;
 
-                    if (useProviderGroup) {
-                        var freeAmountRewardTaskGroupProm = dbPlayerInfo.checkFreeAmountRewardTaskGroup(playerId, data.platform, amount);
-                        promArr = [recordProm, logProm, freeAmountRewardTaskGroupProm];
-                    } else {
-                        promArr = [recordProm, logProm];
+                        if (useProviderGroup) {
+                            var freeAmountRewardTaskGroupProm = dbPlayerInfo.checkFreeAmountRewardTaskGroup(playerId, data.platform, amount);
+                            promArr = [recordProm, logProm, freeAmountRewardTaskGroupProm];
+                        } else {
+                            promArr = [recordProm, logProm];
+                        }
+
+                        //no need to check player reward task status now.
+                        //var rewardTaskProm = dbRewardTask.checkPlayerRewardTaskStatus(playerId);
+                        return Q.all(promArr);
                     }
+                    else {
+                        deferred.reject({name: "DataError", message: "Can't update player credit."});
+                    }
+                },
+                function (error) {
+                    deferred.reject({name: "DBError", message: "Error finding player.", error: error});
+                }
+            ).then(
+                function (data) {
+                    if (data && data[0]) {
+                        let topupRecordData = data[0];
+                        topupRecordData.topUpRecordId = topupRecordData._id;
+                        // Async - Check reward group task to apply on player top up
+                        dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, topupRecordData).catch(errorUtils.reportError);
+                        checkLimitedOfferToApply(proposalData, topupRecordData._id);
+                        dbConsumptionReturnWithdraw.clearXimaWithdraw(playerData._id).catch(errorUtils.reportError);
+                        dbPlayerInfo.checkPlayerLevelUp(playerId, playerData.platform).catch(console.log);
+                        deferred.resolve(data && data[0]);
+                    }
+                },
+                function (error) {
+                    errorUtils.reportError(error);
+                    deferred.reject({name: "DBError", message: "Error creating top up record", error: error});
+                }
+            );
 
-                    //no need to check player reward task status now.
-                    //var rewardTaskProm = dbRewardTask.checkPlayerRewardTaskStatus(playerId);
-                    return Q.all(promArr);
-                }
-                else {
-                    deferred.reject({name: "DataError", message: "Can't update player credit."});
-                }
-            },
-            function (error) {
-                deferred.reject({name: "DBError", message: "Error finding player.", error: error});
-            }
-        ).then(
-            function (data) {
-                if (data && data[0]) {
-                    let topupRecordData = data[0];
-                    topupRecordData.topUpRecordId = topupRecordData._id;
-                    // Async - Check reward group task to apply on player top up
-                    dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, topupRecordData).catch(errorUtils.reportError);
-                    checkLimitedOfferToApply(proposalData, topupRecordData._id);
-                    dbConsumptionReturnWithdraw.clearXimaWithdraw(playerData._id).catch(errorUtils.reportError);
-                    dbPlayerInfo.checkPlayerLevelUp(playerId, playerData.platform).catch(console.log);
-                    deferred.resolve(data && data[0]);
-                }
-            },
-            function (error) {
-                errorUtils.reportError(error);
-                deferred.reject({name: "DBError", message: "Error creating top up record", error: error});
-            }
-        );
-
-        return deferred.promise;
+            return deferred.promise;
+        });
     },
 
     /*
@@ -12951,10 +12990,11 @@ let dbPlayerInfo = {
 
         let addList = remarks.addList;
         let removeList = remarks.removeList;
-        let updateData = {credibilityRemarks: []};
+
         let proms = [];
 
         playerNames.forEach(playerName => {
+            let updateData = {credibilityRemarks: []};
             let prom = dbconfig.collection_players.findOne({name: playerName, platform: platformObjId})
                 .then(data => {
                     let playerCredibilityRemarks = data.credibilityRemarks.filter(item => {

@@ -141,17 +141,22 @@ let dbRewardTaskGroup = {
         )
     },
 
-    getPlayerAllRewardTaskGroupDetailByPlayerObjId: (query) => {
+    getPlayerAllRewardTaskGroupDetailByPlayerObjId: (query, createTime) => {
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
                 if (playerData) {
                     let playerObjId = playerData._id;
-
-                    return dbconfig.collection_rewardTaskGroup.find({
+                    let rtgQ = {
                         platformId: playerData.platform,
                         playerId: playerObjId,
                         status: constRewardTaskStatus.STARTED
-                    }).populate({
+                    };
+
+                    if (createTime) {
+                        rtgQ.createTime = {$lt: createTime}
+                    }
+
+                    return dbconfig.collection_rewardTaskGroup.find(rtgQ).populate({
                         path: "providerGroup",
                         model: dbconfig.collection_gameProviderGroup
                     }).lean();
@@ -274,6 +279,36 @@ let dbRewardTaskGroup = {
                 return dbRewardTaskGroup.performUnlockPlatformProviderGroup(rewardTaskGroups, adminInfo);
             }
         );
+    },
+
+    unlockRewardTaskGroupByObjId: (gameProviderGroupObjId) => {
+        return dbconfig.collection_rewardTaskGroup.find({
+            providerGroup: {$in: gameProviderGroupObjId},
+            status: constRewardTaskStatus.STARTED
+        }).then(
+            rewardTaskGroups => {
+                let proms = [];
+
+                if (rewardTaskGroups && rewardTaskGroups.length > 0) {
+                    rewardTaskGroups.forEach(grp => {
+                        let updObj = {
+                            status: constRewardTaskStatus.SYSTEM_UNLOCK,
+                            unlockTime: new Date()
+                        };
+
+                        proms.push(
+                            dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
+                                _id: grp._id
+                            }, updObj).then(
+                                () => dbRewardTask.completeRewardTaskGroup(grp, constRewardTaskStatus.SYSTEM_UNLOCK)
+                            )
+                        );
+                    });
+                }
+
+                return Promise.all(proms);
+            }
+        )
     },
 
     getPrevious10PlayerRTG: (platformId, playerId) => {
