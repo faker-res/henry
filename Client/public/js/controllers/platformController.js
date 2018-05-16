@@ -15719,6 +15719,7 @@ define(['js/app'], function (myApp) {
                 $('#partnerRefreshIcon').addClass('fa-spin');
                 $('#partnerLoadingIcon').addClass('fa fa-spinner fa-spin');
 
+                vm.partnerLoadingTotalPlayerDownline = true;
                 vm.partnerLoadingDailyActivePlayer = true;
                 vm.partnerLoadingWeeklyActivePlayer = true;
                 vm.partnerLoadingMonthlyActivePlayer = true;
@@ -15733,6 +15734,7 @@ define(['js/app'], function (myApp) {
                 };
 
                 // init boolean
+                vm.totalPlayerDownlineBoolean = true;
                 vm.dailyActivePlayerBoolean = true;
                 vm.weeklyActivePlayerBoolean = true;
                 vm.monthlyActivePlayerBoolean = true;
@@ -15870,6 +15872,9 @@ define(['js/app'], function (myApp) {
 
             vm.getReferralsList = function (partner) {
                 socketService.$socket($scope.AppSocket, 'getReferralsList', partner, function (data) {
+                    if (vm.totalPlayerDownlineBoolean) {
+                        vm.getTotalPlayerDownline(partner);
+                    }
                     if (vm.dailyActivePlayerBoolean) {
                         vm.getDailyActivePlayerCount(data.data, partner);
                     }
@@ -15888,6 +15893,23 @@ define(['js/app'], function (myApp) {
                     if (vm.totalChildrenBalanceBoolean) {
                         vm.getTotalChildrenBalance(data.data, partner);
                     }
+                })
+            };
+
+            vm.getTotalPlayerDownline = function (partner) {
+                socketService.$socket($scope.AppSocket, 'getTotalPlayerDownline', partner, function (data) {
+                    // append back total player downline into draw table data
+                    data.data.forEach( inData => {
+                        if (inData && inData.partnerId) {
+                            let index = partner.data.findIndex(p => p._id === inData.partnerId);
+                            if (index !== -1) {
+                                partner.data[index].totalPlayerDownline = inData.size ? inData.size : 0;
+                            }
+                        }
+                    });
+                    vm.partnerLoadingTotalPlayerDownline = false;
+                    vm.totalPlayerDownlineBoolean = false;
+                    vm.drawPartnerTable(partner);
                 })
             };
 
@@ -16107,6 +16129,7 @@ define(['js/app'], function (myApp) {
                         partner.lastAccessTime = utilService.getFormatTime(partner.lastAccessTime)
                     }
 
+                    partner.totalPlayerDownline = partner.totalPlayerDownline ? partner.totalPlayerDownline : 0;
                     partner.dailyActivePlayer = partner.dailyActivePlayer ? partner.dailyActivePlayer : 0;
                     partner.weeklyActivePlayer = partner.weeklyActivePlayer ? partner.weeklyActivePlayer : 0;
                     partner.monthlyActivePlayer = partner.monthlyActivePlayer ? partner.monthlyActivePlayer : 0;
@@ -16116,7 +16139,7 @@ define(['js/app'], function (myApp) {
                     partner.commissionAmountFromChildren = partner.commissionAmountFromChildren ? parseFloat(partner.commissionAmountFromChildren).toFixed(2) : 0;
                 });
 
-                if (!vm.partnerLoadingDailyActivePlayer && !vm.partnerLoadingWeeklyActivePlayer && !vm.partnerLoadingMonthlyActivePlayer &&
+                if (!vm.partnerLoadingTotalPlayerDownline && !vm.partnerLoadingDailyActivePlayer && !vm.partnerLoadingWeeklyActivePlayer && !vm.partnerLoadingMonthlyActivePlayer &&
                     !vm.partnerLoadingValidPlayers && !vm.partnerLoadingTotalChildrenDeposit && !vm.partnerLoadingTotalChildrenBalance) {
                     $('#partnerLoadingIcon').removeClass('fa fa-spinner fa-spin');
                 }
@@ -16310,7 +16333,7 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {
-                            title: $translate('TOTAL_CHILDREN_COUNT'), data: "totalReferrals", advSearch: true, "sClass": "",
+                            title: $translate('TOTAL_CHILDREN_COUNT'), data: "totalPlayerDownline", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
                                 let link = $('<a>', {
                                     'ng-click': 'vm.getChildrenDetails("' + row._id + '")'
