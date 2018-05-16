@@ -66,9 +66,6 @@ let dbAutoProposal = {
     processAutoProposals: (proposals, platformObj, useProviderGroup) => {
         if (proposals && proposals.length > 0) {
             return Promise.all(proposals.map(proposal => {
-                // System log for selected proposals to auto audit
-                console.log('Processing auto audit proposals: ', proposal.proposalId);
-
                 return (platformObj.useProviderGroup || useProviderGroup)  ? checkRewardTaskGroup(proposal, platformObj) : checkProposalConsumption(proposal, platformObj)
             }));
         }
@@ -141,7 +138,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 creditLogQuery.operationTime["$gt"] = lastWithdrawDate;
             }
 
-            let RTGPromise = dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: proposal.data.playerObjId});
+            let RTGPromise = dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: proposal.data.playerObjId}, proposal.createTime);
             let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find(transferLogQuery).sort({createTime: 1}).lean();
             let playerInfoPromise = dbconfig.collection_players.findOne(playerQuery, {similarPlayers: 0}).lean();
             let creditLogPromise = dbconfig.collection_creditChangeLog.find(creditLogQuery).sort({operationTime: 1}).lean();
