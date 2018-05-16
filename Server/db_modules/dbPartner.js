@@ -6219,6 +6219,119 @@ let dbPartner = {
         })
     },
 
+    getCommissionRate: (platformId, partnerId, commissionType) => {
+        let platformObj;
+        let partnerObj;
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    platformObj = platformData;
+                    if (partnerId) {
+                        return dbconfig.collection_partner.findOne({
+                            platform: platformObj._id,
+                            partnerId: partnerId
+                        }).lean();
+                    } else {
+                        return Promise.resolve(true);
+                    }
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
+            partnerData => {
+                if (partnerData) {
+                    partnerObj = partnerData;
+                    let commissionQuery = {
+                        platform: platformObj._id,
+                        commissionType: commissionType
+                    };
+
+                    if (!partnerObj._id) {
+                        commissionQuery.partner = {$exists: false};
+                    } else {
+                        commissionQuery.$or = [{'partner': {$exists: false}},{'partner': partnerObj._id}];
+                    }
+
+                    return dbconfig.collection_partnerCommissionConfig.find(commissionQuery)
+                        .populate({
+                        path: "provider",
+                        model: dbconfig.collection_gameProviderGroup
+                    }).lean();
+
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find partner"});
+                }
+            }
+        ).then(
+            commissionData => {
+                if (commissionData) {
+                    let returnData = [];
+                    if (partnerObj._id) {
+                        let customCommission = [];
+                        let oriCommission = [];
+                        for (let i = 0; i < commissionData.length; i++) {
+                            if (commissionData[i].partner) {
+                                customCommission.push(commissionData[i]);
+                            } else {
+                                oriCommission.push(commissionData[i]);
+                            }
+                        }
+
+                        for (let j = 0; j < customCommission.length; j++) {
+                            for (let k = oriCommission.length - 1; k >= 0 ; k--) {
+                                if (customCommission[j].provider._id.toString() == oriCommission[k].provider._id.toString()) {
+                                    customCommission[j].commissionSetting.forEach(cus => {
+                                        oriCommission[k].commissionSetting.forEach(ori => {
+                                            if (cus.playerConsumptionAmountFrom === ori.playerConsumptionAmountFrom
+                                                && cus.playerConsumptionAmountTo === ori.playerConsumptionAmountTo
+                                                && cus.activePlayerValueFrom === ori.activePlayerValueFrom
+                                                && cus.activePlayerValueTo === ori.activePlayerValueTo
+                                                && Number(cus.commissionRate) !== Number(ori.commissionRate)
+                                            ) {
+                                                ori.customizedCommissionRate = cus.commissionRate;
+                                                if (ori.activePlayerValueTo == null) {
+                                                    ori.activePlayerValueTo = "-";
+                                                }
+                                            }
+                                        });
+                                    });
+                                    let commissionObj = {
+                                        providerGroupId: oriCommission[k].provider.providerGroupId ? oriCommission[k].provider.providerGroupId : "",
+                                        providerGroupName: oriCommission[k].provider.name ? oriCommission[k].provider.name : "",
+                                        list: oriCommission[k].commissionSetting
+                                    };
+                                    returnData.push(commissionObj);
+                                    oriCommission.splice(k,1);
+                                }
+                            }
+                        }
+                    } else {
+                        for (let i = 0; i < commissionData.length; i++) {
+                            let commissionObj = {
+                                providerGroupId: commissionData[i].provider.providerGroupId ? commissionData[i].provider.providerGroupId : "",
+                                providerGroupName: commissionData[i].provider.name ? commissionData[i].provider.name : ""
+                            };
+                            if (commissionData[i].commissionSetting && commissionData[i].commissionSetting.length) {
+                                for (let j = 0; j < commissionData[i].commissionSetting.length; j++) {
+                                    if (commissionData[i].commissionSetting[j].activePlayerValueTo == null) {
+                                        commissionData[i].commissionSetting[j].activePlayerValueTo = "-";
+                                    }
+                                }
+                                commissionObj.list = commissionData[i].commissionSetting;
+                            }
+                            returnData.push(commissionObj);
+                        }
+                    }
+                    return returnData;
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find commission rate"});
+                }
+            }
+        )
+    },
+
     getCrewActiveInfo: (platformId, partnerId, periodCycle, circleTimes) => {
         if (!circleTimes) {
             return {};
