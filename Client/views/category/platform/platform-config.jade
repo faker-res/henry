@@ -857,6 +857,10 @@
                                 td
                                     textarea(ng-model='vm.platformBasic.whiteListingPhoneNumbers$', ng-disabled='!vm.configTableEdit')
                             tr
+                                td {{'Blacklisting Phone Number' | translate}}
+                                td
+                                    textarea(ng-model='vm.platformBasic.blackListingPhoneNumbers$', ng-disabled='!vm.configTableEdit')
+                            tr
                                 td {{'PLAYER_MULTIPLE_REWARD' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.canMultiReward', ng-disabled='!vm.configTableEdit')
@@ -1009,6 +1013,10 @@
                                 td {{'partnerWhiteListingPhoneNumbers' | translate}}
                                 td
                                     textarea(ng-model='vm.partnerBasic.partnerWhiteListingPhoneNumbers', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'partnerBlackListingPhoneNumbers' | translate}}
+                                td
+                                    textarea(ng-model='vm.partnerBasic.partnerBlackListingPhoneNumbers', ng-disabled='!vm.configTableEdit')
                             tr
                                 td {{'partnerRequireSMSVerification' | translate}}
                                 td

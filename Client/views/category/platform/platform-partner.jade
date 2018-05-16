@@ -114,15 +114,15 @@
         .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'TOTAL_CHILDREN_COUNT' | translate}}
             div
-                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalReferralsOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
                     option(value='>=') >=
                     option(value='=') =
                     option(value='<=') <=
                     option(value='range') {{'range' | translate}}
                 div(style= "width:8px;display:inline-block")
-                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalReferralsInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.totalReferralsOperator === 'range'") ~
-                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalReferralsInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.totalReferralsOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalPlayerDownlineInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator === 'range'") ~
+                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalPlayerDownlineInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
         .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'TOTAL_CHILDREN_DEPOSIT' | translate}}
             div
@@ -150,15 +150,15 @@
         .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'SETTLED_COMMISSION' | translate}}
             div
-                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.commissionAmountFromChildrenOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
                     option(value='>=') >=
                     option(value='=') =
                     option(value='<=') <=
                     option(value='range') {{'range' | translate}}
                 div(style= "width:8px;display:inline-block")
-                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.commissionAmountFromChildrenInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.commissionAmountFromChildrenOperator === 'range'") ~
-                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.commissionAmountFromChildrenInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.commissionAmountFromChildrenOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalSettledCommissionInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator === 'range'") ~
+                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalSettledCommissionInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
         .search-filter.col-md-3
             label.control-label
             button#resetPartnerQuery.btn.btn-primary.common-button-sm(style="display:block;") {{'Reset' | translate}}
