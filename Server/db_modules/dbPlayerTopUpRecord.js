@@ -2806,6 +2806,7 @@ var dbPlayerTopUpRecord = {
             topUpResult => {
                 if (topUpResult) {
                     if (createTime) {
+                        console.log('createTime ricco1', createTime);
                         let proposalProm = dbconfig.collection_proposal.findOne({
                             proposalId: topUpResult.proposalId
                         }).lean().then(
