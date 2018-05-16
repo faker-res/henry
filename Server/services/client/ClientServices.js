@@ -316,6 +316,7 @@
             var functionNames = [
                 "applyRewardPoint",
                 "getLoginRewardPoints",
+                "deductPointManually",
                 "getTopUpRewardPointsEvent",
                 "getRewardPointsRanking",
                 "getGameRewardPoints",
@@ -414,6 +415,10 @@
                 "updatePartnerEmail",
                 "getCommissionRate",
                 "getCrewActiveInfo",
+                "getCrewDepositInfo",
+                "getCrewWithdrawInfo",
+                "getCrewBetInfo",
+                "getNewCrewInfo",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

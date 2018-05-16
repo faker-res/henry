@@ -72,6 +72,7 @@ proposalSchema.index({"data.limitedOfferObjId": 1});
 proposalSchema.index({"data.expirationTime": 1});
 proposalSchema.index({"data.userAgent": 1});
 proposalSchema.index({"data.topupType": 1});
+proposalSchema.index({"data.consecutiveNumber": 1});
 
 /*
  // Ensure that the caller does not accidentally save an ObjectId in proposal.data.playerId

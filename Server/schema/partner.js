@@ -46,6 +46,8 @@ var partnerSchema = new Schema({
     credits: {type:Number, default: 0},
     //total no of referrals
     totalReferrals: {type:Number, min: 0, default: 0},
+    //total no of player as downline
+    totalPlayerDownline: {type:Number, min: 0, default: 0},
     //no of valid players introduced by the partner till the date
     validPlayers: {type:Number, min: 0, default: 0},
     //no of active players introduced by the partner till the date

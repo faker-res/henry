@@ -4666,7 +4666,7 @@ let dbPartner = {
         )
     },
 
-    getReferralsList: (partnerArr)  => {
+    getReferralsList: (partnerArr) => {
         let partnerProm = [];
         partnerArr.forEach(partner => {
             partnerProm.push(dbconfig.collection_players.find({partner: partner._id, platform: partner.platform}).lean())
@@ -4678,8 +4678,33 @@ let dbPartner = {
         );
     },
 
-    getPartnerActivePlayer: (partnerDetail, activeTime, period) => {
+    getTotalPlayerDownline: (partnerArr) => {
+        let playerCount = [];
+        partnerArr.forEach(partner => {
+            playerCount.push(dbconfig.collection_players.find({partner: partner._id, platform: partner.platform}).count().then(
+                playerCount => {
+                    dbconfig.collection_partner.findOneAndUpdate(
+                        {
+                            _id: partner._id,
+                            platform: partner.platform,
+                        },
+                        {
+                            $set: {totalPlayerDownline: playerCount}
+                        }
+                    ).exec();
+                    return {partnerId: partner._id, size: playerCount}
+                }
+            ));
+        });
 
+        return Promise.all(playerCount).then(
+            data => {
+                return data;
+            }
+        );
+    },
+
+    getPartnerActivePlayer: (partnerDetail, activeTime, period) => {
         if(partnerDetail && partnerDetail.length > 0) {
             let playerIdList = [];
 
@@ -4697,23 +4722,23 @@ let dbPartner = {
 
                 switch (period) {
                     case 'day':
-                        activePlayerTopUpTimes = config.dailyActivePlayerTopUpTimes;
-                        activePlayerTopUpAmount = config.dailyActivePlayerTopUpAmount;
-                        activePlayerConsumptionTimes = config.dailyActivePlayerConsumptionTimes;
-                        activePlayerConsumptionAmount = config.dailyActivePlayerConsumptionAmount;
+                        activePlayerTopUpTimes = config.dailyActivePlayerTopUpTimes ? config.dailyActivePlayerTopUpTimes : 0;
+                        activePlayerTopUpAmount = config.dailyActivePlayerTopUpAmount ? config.dailyActivePlayerTopUpAmount : 0;
+                        activePlayerConsumptionTimes = config.dailyActivePlayerConsumptionTimes ? config.dailyActivePlayerConsumptionTimes : 0;
+                        activePlayerConsumptionAmount = config.dailyActivePlayerConsumptionAmount ? config.dailyActivePlayerConsumptionAmount : 0;
                         break;
                     case 'week':
-                        activePlayerTopUpTimes = config.weeklyActivePlayerTopUpTimes;
-                        activePlayerTopUpAmount = config.weeklyActivePlayerTopUpAmount;
-                        activePlayerConsumptionTimes = config.weeklyActivePlayerConsumptionTimes;
-                        activePlayerConsumptionAmount = config.weeklyActivePlayerConsumptionAmount;
+                        activePlayerTopUpTimes = config.weeklyActivePlayerTopUpTimes ? config.weeklyActivePlayerTopUpTimes : 0;
+                        activePlayerTopUpAmount = config.weeklyActivePlayerTopUpAmount ? config.weeklyActivePlayerTopUpAmount : 0;
+                        activePlayerConsumptionTimes = config.weeklyActivePlayerConsumptionTimes ? config.weeklyActivePlayerConsumptionTimes : 0;
+                        activePlayerConsumptionAmount = config.weeklyActivePlayerConsumptionAmount ? config.weeklyActivePlayerConsumptionAmount : 0;
                         break;
                     case 'month':
                     default:
-                        activePlayerTopUpTimes = config.monthlyActivePlayerTopUpTimes;
-                        activePlayerTopUpAmount = config.monthlyActivePlayerTopUpAmount;
-                        activePlayerConsumptionTimes = config.monthlyActivePlayerConsumptionTimes;
-                        activePlayerConsumptionAmount = config.monthlyActivePlayerConsumptionAmount;
+                        activePlayerTopUpTimes = config.monthlyActivePlayerTopUpTimes ? config.monthlyActivePlayerTopUpTimes : 0;
+                        activePlayerTopUpAmount = config.monthlyActivePlayerTopUpAmount ? config.monthlyActivePlayerTopUpAmount : 0;
+                        activePlayerConsumptionTimes = config.monthlyActivePlayerConsumptionTimes ? config.monthlyActivePlayerConsumptionTimes : 0;
+                        activePlayerConsumptionAmount = config.monthlyActivePlayerConsumptionAmount ? config.monthlyActivePlayerConsumptionAmount : 0;
                         break;
                 }
 
@@ -4734,35 +4759,35 @@ let dbPartner = {
                             topUpAmount: {$sum: "$amount"},
                             topUpCount: {$sum: 1}
                         }
-                    }).read("secondaryPreferred").then(topUpRecords => {
+                    }
+                ).read("secondaryPreferred").then(topUpRecords => {
                     if (topUpRecords) {
-
                         topUpRecords = topUpRecords.filter(player => player.topUpAmount >= activePlayerTopUpAmount && player.topUpCount >= activePlayerTopUpTimes);
 
-                        if (activePlayerTopUpTimes == 0) {
+                        if (activePlayerTopUpTimes === 0) {
                             if (topUpRecords && topUpRecords.length > 0) {
                                 playerIdList.forEach(playerId => {
-                                    let index = topUpRecords.findIndex(p => p._id.toString() == playerId.toString())
-                                    if (index == -1) {
-                                        topUpRecords.push({_id: playerId, topUpAmount: 0, topUpCount: 0})
+                                    let index = topUpRecords.findIndex(p => p._id.toString() === playerId.toString());
+                                    if (index === -1) {
+                                        topUpRecords.push({
+                                            _id: playerId,
+                                            topUpAmount: 0,
+                                            topUpCount: 0
+                                        })
                                     }
                                 })
-
                             }
-                            else{
+                            else {
                                 playerIdList.forEach(playerId => {
-
                                     topUpRecords.push({
                                         _id: playerId,
                                         topUpAmount: 0,
                                         topUpCount: 0
                                     })
-
                                 })
                             }
                         }
                         return topUpRecords
-
                     }
                 });
 
@@ -4783,16 +4808,16 @@ let dbPartner = {
                             consumptionAmount: {$sum: "$validAmount"},
                             consumptionCount: {$sum: 1}
                         }
-                    }).read("secondaryPreferred").then(consumptionRecords => {
+                    }
+                ).read("secondaryPreferred").then(consumptionRecords => {
                     if (consumptionRecords) {
-
                         consumptionRecords = consumptionRecords.filter(player => player.consumptionCount >= activePlayerConsumptionTimes && player.consumptionAmount >= activePlayerConsumptionAmount);
 
-                        if (activePlayerConsumptionTimes == 0) {
+                        if (activePlayerConsumptionTimes === 0) {
                             if (consumptionRecords && consumptionRecords.length > 0) {
                                 playerIdList.forEach(playerId => {
-                                    let index = consumptionRecords.findIndex(p => p._id.toString() == playerId.toString())
-                                    if (index == -1) {
+                                    let index = consumptionRecords.findIndex(p => p._id.toString() === playerId.toString());
+                                    if (index === -1) {
                                         consumptionRecords.push({
                                             _id: playerId,
                                             consumptionAmount: 0,
@@ -4800,27 +4825,22 @@ let dbPartner = {
                                         })
                                     }
                                 })
-
                             }
-                            else{
+                            else {
                                 playerIdList.forEach(playerId => {
-
                                     consumptionRecords.push({
                                         _id: playerId,
                                         consumptionAmount: 0,
                                         consumptionCount: 0
                                     })
-
                                 })
                             }
                         }
                         return consumptionRecords
-
                     }
                 });
 
                 return Promise.all([playerTopUpRecord, playerConsumptionRecord]).then(data => {
-
                     if (data) {
                         let topUpRecord = data[0];
                         let consumptionRecord = data[1];
@@ -4828,11 +4848,10 @@ let dbPartner = {
                         let result = [];
                         if (topUpRecord && topUpRecord.length > 0 && consumptionRecord && consumptionRecord.length > 0) {
                             topUpRecord.forEach(topUp => {
-                                let index = consumptionRecord.findIndex(p => p._id.toString() == topUp._id.toString());
-                                if (index != -1) {
-                                    let pIndex = partnerDetail.findIndex(q => q._id.toString() == topUp._id.toString());
-                                    if (pIndex != -1) {
-
+                                let index = consumptionRecord.findIndex(p => p._id.toString() === topUp._id.toString());
+                                if (index !== -1) {
+                                    let pIndex = partnerDetail.findIndex(q => q._id.toString() === topUp._id.toString());
+                                    if (pIndex !== -1) {
                                         result.push({
                                             _id: topUp._id,
                                             topUpAmount: topUp.topUpAmount,
@@ -4884,7 +4903,6 @@ let dbPartner = {
                                 ).exec();
                                 break;
                         }
-
                         return {partnerId: partnerId, size: result.length, downLiner: result}
                     }
                 })
@@ -5039,7 +5057,6 @@ let dbPartner = {
 
         partnerArr.referral.forEach(partner => {
             if (partner && partner.length){
-                console.log("ttestt", partner)
                 dailyActivePlayerProm.push( dbPartner.getPartnerActivePlayer(partner, todayTime, period) );
             }
         });
@@ -5110,12 +5127,11 @@ let dbPartner = {
                 if (!config) {
                     Q.reject({name: "DataError", message: "Cannot find partnerLvlConfig"});
                 }
-                let validPlayerTopUpTimes = config.validPlayerTopUpTimes;
-                let validPlayerTopUpAmount = config.validPlayerTopUpAmount;
-                let validPlayerConsumptionTimes = config.validPlayerConsumptionTimes;
-                let validPlayerConsumptionAmount = config.validPlayerConsumptionAmount;
-                let validPlayerValue = config.validPlayerValue || 0;
-
+                let validPlayerTopUpTimes = config.validPlayerTopUpTimes ? config.validPlayerTopUpTimes : 0;
+                let validPlayerTopUpAmount = config.validPlayerTopUpAmount ? config.validPlayerTopUpAmount : 0;
+                let validPlayerConsumptionTimes = config.validPlayerConsumptionTimes ? config.validPlayerConsumptionTimes : 0;
+                let validPlayerConsumptionAmount = config.validPlayerConsumptionAmount ? config.validPlayerConsumptionAmount : 0;
+                let validPlayerValue = config.validPlayerValue ? config.validPlayerValue : 0;
 
                 let playerTopUpRecord = dbconfig.collection_playerTopUpRecord.aggregate(
                     {
@@ -5130,35 +5146,35 @@ let dbPartner = {
                             topUpAmount: {$sum: "$amount"},
                             topUpCount: {$sum: 1}
                         }
-                    }).read("secondaryPreferred").then(topUpRecords => {
+                    }
+                ).read("secondaryPreferred").then(topUpRecords => {
                     if (topUpRecords) {
-
                         topUpRecords = topUpRecords.filter(player => player.topUpAmount >= validPlayerTopUpAmount && player.topUpCount >= validPlayerTopUpTimes);
 
-                        if (validPlayerTopUpTimes == 0) {
+                        if (validPlayerTopUpTimes === 0) {
                             if (topUpRecords && topUpRecords.length > 0) {
                                 playerIdList.forEach(playerId => {
-                                    let index = topUpRecords.findIndex(p => p._id.toString() == playerId.toString())
-                                    if (index == -1) {
-                                        topUpRecords.push({_id: playerId, topUpAmount: 0, topUpCount: 0})
+                                    let index = topUpRecords.findIndex(p => p._id.toString() === playerId.toString());
+                                    if (index === -1) {
+                                        topUpRecords.push({
+                                            _id: playerId,
+                                            topUpAmount: 0,
+                                            topUpCount: 0
+                                        })
                                     }
                                 })
-
                             }
-                            else{
+                            else {
                                 playerIdList.forEach(playerId => {
-
                                     topUpRecords.push({
                                         _id: playerId,
                                         topUpAmount: 0,
                                         topUpCount: 0
                                     })
-
                                 })
                             }
                         }
                         return topUpRecords
-
                     }
                 });
 
@@ -5175,16 +5191,16 @@ let dbPartner = {
                             consumptionAmount: {$sum: "$validAmount"},
                             consumptionCount: {$sum: 1}
                         }
-                    }).read("secondaryPreferred").then(consumptionRecords => {
+                    }
+                ).read("secondaryPreferred").then(consumptionRecords => {
                     if (consumptionRecords) {
-
                         consumptionRecords = consumptionRecords.filter(player => player.consumptionCount >= validPlayerConsumptionTimes && player.consumptionAmount >= validPlayerConsumptionAmount);
 
-                        if (validPlayerConsumptionTimes == 0) {
+                        if (validPlayerConsumptionTimes === 0) {
                             if (consumptionRecords && consumptionRecords.length > 0) {
                                 playerIdList.forEach(playerId => {
-                                    let index = consumptionRecords.findIndex(p => p._id.toString() == playerId.toString())
-                                    if (index == -1) {
+                                    let index = consumptionRecords.findIndex(p => p._id.toString() === playerId.toString());
+                                    if (index === -1) {
                                         consumptionRecords.push({
                                             _id: playerId,
                                             consumptionAmount: 0,
@@ -5192,27 +5208,22 @@ let dbPartner = {
                                         })
                                     }
                                 })
-
                             }
-                            else{
+                            else {
                                 playerIdList.forEach(playerId => {
-
                                     consumptionRecords.push({
                                         _id: playerId,
                                         consumptionAmount: 0,
                                         consumptionCount: 0
                                     })
-
                                 })
                             }
                         }
                         return consumptionRecords
-
                     }
                 });
 
                 return Promise.all([playerTopUpRecord, playerConsumptionRecord]).then(data => {
-
                     if (data) {
                         let topUpRecord = data[0];
                         let consumptionRecord = data[1];
@@ -5220,10 +5231,10 @@ let dbPartner = {
                         let result = [];
                         if (topUpRecord && topUpRecord.length > 0 && consumptionRecord && consumptionRecord.length > 0) {
                             topUpRecord.forEach(topUp => {
-                                let index = consumptionRecord.findIndex(p => p._id.toString() == topUp._id.toString());
-                                if (index != -1) {
-                                    let pIndex = partnerDetail.findIndex(q => q._id.toString() == topUp._id.toString());
-                                    if (pIndex != -1) {
+                                let index = consumptionRecord.findIndex(p => p._id.toString() === topUp._id.toString());
+                                if (index !== -1) {
+                                    let pIndex = partnerDetail.findIndex(q => q._id.toString() === topUp._id.toString());
+                                    if (pIndex !== -1) {
                                         if (partnerDetail[pIndex].valueScore >= validPlayerValue) {
                                             result.push({
                                                 _id: topUp._id,
@@ -5251,9 +5262,7 @@ let dbPartner = {
                             },
                             {new: true}
                         ).exec();
-
                         return {partnerId: partnerId, size: result.length, downLiner: result}
-
                     }
                 })
             })
@@ -5406,7 +5415,8 @@ let dbPartner = {
                         topUpAmount: {$sum: "$amount"},
                         topUpCount: {$sum: 1}
                     }
-                }).read("secondaryPreferred").then(topUpRecord => {
+                }
+            ).read("secondaryPreferred").then(topUpRecord => {
                 if (topUpRecord) {
                     topUpRecord.map(player => totalTopUpAmount += player.topUpAmount);
 
@@ -5431,24 +5441,23 @@ let dbPartner = {
                                 bonusAmount: {$sum: "$data.amount"},
                                 bonusCount: {$sum: 1}
                             }
-                        }).read("secondaryPreferred").then(records => {
-                            records.map(player => totalBonusAmount += player.bonusAmount);
-                            let totalCredit = (totalTopUpAmount - totalBonusAmount);
-                            totalCredit = totalCredit.toFixed(2);
-
-                            dbconfig.collection_partner.findOneAndUpdate(
-                                {
-                                    _id: partnerId,
-                                    platform: platformId,
-                                },
-                                {
-                                    $set: {totalChildrenDeposit: totalCredit}
-                                }
-                            ).exec();
-
-                            return {partnerId: partnerId, amount: totalCredit}
                         }
-                    )
+                    ).read("secondaryPreferred").then(records => {
+                        records.map(player => totalBonusAmount += player.bonusAmount);
+                        let totalCredit = (totalTopUpAmount - totalBonusAmount);
+                        totalCredit = totalCredit.toFixed(2);
+
+                        dbconfig.collection_partner.findOneAndUpdate(
+                            {
+                                _id: partnerId,
+                                platform: platformId,
+                            },
+                            {
+                                $set: {totalChildrenDeposit: totalCredit}
+                            }
+                        ).exec();
+                        return {partnerId: partnerId, amount: totalCredit}
+                    })
                 }
             });
         }
@@ -5544,7 +5553,7 @@ let dbPartner = {
             {
                 $group: {
                     _id: {"topUpType": "$topUpType"},
-                    totalTopUpCount: {$sum: 1}
+                    totalTopUpCount: {$sum: "$amount"}
                 }
             }
         )
@@ -5600,7 +5609,8 @@ let dbPartner = {
                         validCredit: {$sum: "$validCredit"},
                         validCreditCount: {$sum: 1}
                     }
-                }).read("secondaryPreferred").then(topUpRecord => {
+                }
+            ).read("secondaryPreferred").then(topUpRecord => {
                 if (topUpRecord) {
                     topUpRecord.map(player => totalValidCredit += player.validCredit);
                     totalValidCredit = totalValidCredit.toFixed(2);
@@ -5614,7 +5624,6 @@ let dbPartner = {
                             $set: {totalChildrenBalance: totalValidCredit}
                         }
                     ).exec();
-
                     return {partnerId: partnerId, amount: totalValidCredit};
                 }
             });
@@ -6334,41 +6343,9 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
-            platformData => {
-                if (!platformData) {
-                    return Promise.reject({
-                        code: constServerCode.INVALID_PLATFORM,
-                        name: "DataError",
-                        message: "Cannot find platform"
-                    });
-                }
-
-                platform = platformData;
-
-                return dbconfig.collection_partner.findOne({platform: platform._id, partnerId: partnerId}).lean();
-            }
-        ).then(
-            partnerData => {
-                if (!partnerData) {
-                    return Promise.reject({
-                        code: constServerCode.PARTNER_NAME_INVALID,
-                        name: "DataError",
-                        message: "Cannot find partner"
-                    });
-                }
-
-                partner = partnerData;
-
-                return dbconfig.collection_players.find({platform: platform._id, partner: partner._id}).lean();
-            }
-        ).then(
-            downLineData => {
-                if (!downLineData || downLineData.length < 1) {
-                    downLineData = [];
-                }
-
-                downLines = downLineData;
+        return getPartnerCrewsData(platformId, partnerId).then(
+            crewsData => {
+                ({platform, partner, downLines} = crewsData);
 
                 return getRelevantActivePlayerRequirement(platform._id, periodCycle);
             }
@@ -6378,7 +6355,18 @@ let dbPartner = {
                 let outputProms = [];
 
                 for (let i = 0; i < circleTimes; i++) {
-                    let prom = getPlayersActiveDetail(downLines, new Date(nextPeriod.startTime), new Date(nextPeriod.endTime), activePlayerRequirement);
+                    let startTime = new Date(nextPeriod.startTime);
+                    let endTime = new Date(nextPeriod.endTime);
+
+                    let prom = getCrewsInfo(downLines, startTime, endTime, activePlayerRequirement).then(
+                        playerActiveDetails => {
+                            return {
+                                date: startTime,
+                                activeCrewNumbers: getActiveDownLineCount(playerActiveDetails),
+                                list: playerActiveDetails.filter(player => player.active)
+                            }
+                        }
+                    );
                     nextPeriod = getPreviousCommissionPeriod(periodCycle, nextPeriod);
                     outputProms.push(prom);
                 }
@@ -6386,7 +6374,213 @@ let dbPartner = {
                 return Promise.all(outputProms);
             }
         );
-    }
+    },
+
+    getCrewDepositInfo: (platformId, partnerId, periodCycle, circleTimes) => {
+        if (!circleTimes) {
+            return {};
+        }
+
+        circleTimes = circleTimes > 30 ? 30 : circleTimes;
+
+        let platform = {};
+        let partner = {};
+        let downLines = [];
+
+        return getPartnerCrewsData(platformId, partnerId).then(
+            crewsData => {
+                ({platform, partner, downLines} = crewsData);
+
+                let nextPeriod = getCurrentCommissionPeriod(periodCycle);
+                let outputProms = [];
+
+                for (let i = 0; i < circleTimes; i++) {
+                    let startTime = new Date(nextPeriod.startTime);
+                    let endTime = new Date(nextPeriod.endTime);
+
+                    let prom = getCrewsInfo(downLines, startTime, endTime).then(
+                        playerDetails => {
+                            let relevantCrews = playerDetails.filter(player => player.depositAmount);
+                            let count = 0;
+                            let totalDepositAmount = 0;
+
+                            relevantCrews.map(player => {
+                                count++;
+                                totalDepositAmount += player.depositAmount;
+                            })
+
+                            return {
+                                date: startTime,
+                                depositCrewNumber: count,
+                                totalDepositAmount: totalDepositAmount,
+                                list: relevantCrews
+                            }
+                        }
+                    );
+                    nextPeriod = getPreviousCommissionPeriod(periodCycle, nextPeriod);
+                    outputProms.push(prom);
+                }
+
+                return Promise.all(outputProms);
+            }
+        );
+    },
+
+    getCrewWithdrawInfo: (platformId, partnerId, periodCycle, circleTimes) => {
+        if (!circleTimes) {
+            return {};
+        }
+
+        circleTimes = circleTimes > 30 ? 30 : circleTimes;
+
+        let platform = {};
+        let partner = {};
+        let downLines = [];
+
+        return getPartnerCrewsData(platformId, partnerId).then(
+            crewsData => {
+                ({platform, partner, downLines} = crewsData);
+
+                let nextPeriod = getCurrentCommissionPeriod(periodCycle);
+                let outputProms = [];
+
+                for (let i = 0; i < circleTimes; i++) {
+                    let startTime = new Date(nextPeriod.startTime);
+                    let endTime = new Date(nextPeriod.endTime);
+
+                    let prom = getCrewsInfo(downLines, startTime, endTime).then(
+                        playerDetails => {
+                            let relevantCrews = playerDetails.filter(player => player.withdrawAmount);
+                            let count = 0;
+                            let totalWithdrawAmount = 0;
+                            relevantCrews.map(player => {
+                                count++;
+                                totalWithdrawAmount += player.withdrawAmount;
+                            });
+
+
+                            return {
+                                date: startTime,
+                                withdrawCrewNumbers: count,
+                                totalWithdrawAmount: totalWithdrawAmount,
+                                list: relevantCrews
+                            }
+                        }
+                    );
+                    nextPeriod = getPreviousCommissionPeriod(periodCycle, nextPeriod);
+                    outputProms.push(prom);
+                }
+
+                return Promise.all(outputProms);
+            }
+        );
+    },
+
+    getCrewBetInfo: (platformId, partnerId, periodCycle, circleTimes, providerGroupId) => {
+        if (!circleTimes) {
+            return {};
+        }
+
+        circleTimes = circleTimes > 30 ? 30 : circleTimes;
+
+        let platform = {};
+        let partner = {};
+        let downLines = [];
+        let providerGroup;
+
+        return getPartnerCrewsData(platformId, partnerId).then(
+            crewsData => {
+                ({platform, partner, downLines} = crewsData);
+
+                if (!providerGroupId) {
+                    return Promise.resolve();
+                }
+
+                return dbconfig.collection_gameProviderGroup.findOne({providerGroupId}).lean();
+            }
+        ).then(
+            providerGroupData => {
+                providerGroup = providerGroupData;
+
+                let nextPeriod = getCurrentCommissionPeriod(periodCycle);
+                let outputProms = [];
+                let providerGroups = providerGroup ? [providerGroup] : null;
+
+                for (let i = 0; i < circleTimes; i++) {
+                    let startTime = new Date(nextPeriod.startTime);
+                    let endTime = new Date(nextPeriod.endTime);
+
+                    let prom = getCrewsInfo(downLines, startTime, endTime, null, providerGroups).then(
+                        playerDetails => {
+                            let relevantCrews = playerDetails.filter(player => player.betCounts);
+                            let count = 0;
+                            let totalValidBet = 0;
+                            let totalCrewProfit = 0;
+
+                            relevantCrews.map(player => {
+                                count++;
+                                totalValidBet += player.validBet;
+                                totalCrewProfit += player.crewProfit;
+                            });
+
+                            return {
+                                date: startTime,
+                                betCrewNumbers: count,
+                                totalValidBet: totalValidBet,
+                                totalCrewProfit: totalCrewProfit,
+                                list: relevantCrews
+                            }
+                        }
+                    );
+                    nextPeriod = getPreviousCommissionPeriod(periodCycle, nextPeriod);
+                    outputProms.push(prom);
+                }
+
+                return Promise.all(outputProms);
+            }
+        );
+    },
+
+    getNewCrewInfo: (platformId, partnerId, periodCycle, circleTimes) => {
+        if (!circleTimes) {
+            return {};
+        }
+
+        circleTimes = circleTimes > 30 ? 30 : circleTimes;
+
+        let platform = {};
+        let partner = {};
+        let downLines = [];
+
+        return getPartnerCrewsData(platformId, partnerId).then(
+            crewsData => {
+                ({platform, partner, downLines} = crewsData);
+
+                let nextPeriod = getCurrentCommissionPeriod(periodCycle);
+                let outputProms = [];
+
+                for (let i = 0; i < circleTimes; i++) {
+                    let startTime = new Date(nextPeriod.startTime);
+                    let endTime = new Date(nextPeriod.endTime);
+                    let newDownLines = downLines.filter(player => player.registrationTime >= startTime && player.registrationTime <= endTime);
+
+                    let prom = getCrewsInfo(newDownLines, startTime, endTime).then(
+                        playerDetails => {
+                            return {
+                                date: startTime,
+                                newCrewNumbers: newDownLines.length,
+                                list: playerDetails
+                            }
+                        }
+                    );
+                    nextPeriod = getPreviousCommissionPeriod(periodCycle, nextPeriod);
+                    outputProms.push(prom);
+                }
+
+                return Promise.all(outputProms);
+            }
+        );
+    },
 };
 
 
@@ -7281,9 +7475,9 @@ function getCommissionTypeName (commissionType) {
     }
 }
 
-function getPlayerActiveDetail (player, startTime, endTime, activePlayerRequirement) {
+function getCrewInfo (player, startTime, endTime, activePlayerRequirement, providerGroups) {
     let playerActiveDetail = {};
-    let consumptionDetailProm = getPlayerCommissionConsumptionDetail(player._id, startTime, endTime);
+    let consumptionDetailProm = getPlayerCommissionConsumptionDetail(player._id, startTime, endTime, providerGroups);
     let topUpDetailProm = getPlayerCommissionTopUpDetail(player._id, startTime, endTime);
     let withdrawalDetailProm = getPlayerCommissionWithdrawDetail(player._id, startTime, endTime);
 
@@ -7293,7 +7487,7 @@ function getPlayerActiveDetail (player, startTime, endTime, activePlayerRequirem
             let topUpDetail = data[1];
             let withdrawalDetail = data[2];
 
-            return playerActiveDetail = {
+            playerActiveDetail = {
                 crewAccount: player.name,
                 depositAmount: topUpDetail.topUpAmount,
                 depositCount: topUpDetail.topUpTimes,
@@ -7301,26 +7495,79 @@ function getPlayerActiveDetail (player, startTime, endTime, activePlayerRequirem
                 betCounts: consumptionDetail.consumptionTimes,
                 withdrawAmount: withdrawalDetail.withdrawalAmount,
                 crewProfit: consumptionDetail.bonusAmount,
-                active: isPlayerActive(activePlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount)
+            };
+
+            if (activePlayerRequirement) {
+                playerActiveDetail.active = isPlayerActive(activePlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount);
             }
+
+            if (providerGroups && providerGroups[0] && consumptionDetail.consumptionProviderDetail && consumptionDetail.consumptionProviderDetail[providerGroups[0].name]) {
+                playerActiveDetail.validBet = consumptionDetail.consumptionProviderDetail[providerGroups[0].name].validAmount;
+                playerActiveDetail.betCounts = consumptionDetail.consumptionProviderDetail[providerGroups[0].name].consumptionTimes;
+                playerActiveDetail.crewProfit = consumptionDetail.consumptionProviderDetail[providerGroups[0].name].bonusAmount;
+            }
+
+            return playerActiveDetail;
         }
     )
 }
 
-function getPlayersActiveDetail (players, startTime, endTime, activePlayerRequirement) {
-    let playerActiveDetailsProms = [];
+function getCrewsInfo (players, startTime, endTime, activePlayerRequirement, providerGroups) {
+    let playerDetailsProm = [] ;
     players.map(player => {
-        let prom = getPlayerActiveDetail(player, startTime, endTime, activePlayerRequirement);
-        playerActiveDetailsProms.push(prom);
+        let prom = getCrewInfo(player, startTime, endTime, activePlayerRequirement, providerGroups);
+        playerDetailsProm.push(prom);
     });
 
-    return Promise.all(playerActiveDetailsProms).then(
-        playerActiveDetails => {
-            return {
-                date: new Date(startTime),
-                activeCrewNumbers: getActiveDownLineCount(playerActiveDetails),
-                list: playerActiveDetails
+    return Promise.all(playerDetailsProm);
+}
+
+function getPartnerCrewsData (platformId, partnerId) {
+    let platform = {};
+    let partner = {};
+    let downLines = [];
+
+    return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+        platformData => {
+            if (!platformData) {
+                return Promise.reject({
+                    code: constServerCode.INVALID_PLATFORM,
+                    name: "DataError",
+                    message: "Cannot find platform"
+                });
             }
+
+            platform = platformData;
+
+            return dbconfig.collection_partner.findOne({platform: platform._id, partnerId: partnerId}).lean();
+        }
+    ).then(
+        partnerData => {
+            if (!partnerData) {
+                return Promise.reject({
+                    code: constServerCode.PARTNER_NAME_INVALID,
+                    name: "DataError",
+                    message: "Cannot find partner"
+                });
+            }
+
+            partner = partnerData;
+
+            return dbconfig.collection_players.find({platform: platform._id, partner: partner._id}).lean();
+        }
+    ).then(
+        downLineData => {
+            if (!downLineData || downLineData.length < 1) {
+                downLineData = [];
+            }
+
+            downLines = downLineData;
+
+            return {
+                platform,
+                partner,
+                downLines
+            };
         }
     );
 }
