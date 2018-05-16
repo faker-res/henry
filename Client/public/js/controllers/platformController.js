@@ -1613,13 +1613,13 @@ define(['js/app'], function (myApp) {
                     endTime: prev.endTime
                 }).then(
                     partnerCommObj => {
-                        console.log('partnerCommissionLog', partnerCommObj);
                         vm.partnerCommissionLog = partnerCommObj.data;
                         vm.partnerCommissionLog.forEach( partner => {
                                 if (partner){
                                     partner.isAnyCustomPlatformFeeRate = false;
-                                    if (partner.rawCommission && partner.rawCommission.length > 0) {
+                                    if (partner.rawCommissions && partner.rawCommissions.length > 0) {
                                         (partner.rawCommissions).forEach((group, idxgroup) => {
+                                                group.commissionRate = +(group.commissionRate*100).toFixed(2);
                                                 partner.isAnyCustomPlatformFeeRate = group.isCustomPlatformFeeRate ? true : partner.isAnyCustomPlatformFeeRate;
                                                 if (group.isCustomPlatformFeeRate == true) {
                                                     vm.partnerCommVar.platformFeeTab = idxgroup;
@@ -1630,7 +1630,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                         );
-                        // $scope.safeApply();
+                        console.log('partnerCommissionLog', vm.partnerCommissionLog);
                         $('#modalPartnerCommPreview').modal();
                     }
                 )
@@ -15900,10 +15900,12 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getDailyActivePlayerCount', sendQuery, function (data) {
                     // append back daily active player into draw table data
                     data.data.forEach( inData => {
-                        let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-                        if ( index !== -1) {
-                            partner.data[index].dailyActivePlayer = inData.size ? inData.size : 0;
-                            partner.data[index].dailyActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
+                        if (inData && inData.partnerId) {
+                            let index = partner.data.findIndex(p => p._id === inData.partnerId);
+                            if (index !== -1) {
+                                partner.data[index].dailyActivePlayer = inData.size ? inData.size : 0;
+                                partner.data[index].dailyActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
+                            }
                         }
                     });
                     vm.partnerLoadingDailyActivePlayer = false;
@@ -15921,10 +15923,12 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getWeeklyActivePlayerCount', sendQuery, function (data) {
                     // append back weekly active player into draw table data
                     data.data.forEach( inData => {
-                        let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-                        if ( index !== -1) {
-                            partner.data[index].weeklyActivePlayer = inData.size ? inData.size : 0;
-                            partner.data[index].weeklyActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
+                        if (inData && inData.partnerId) {
+                            let index = partner.data.findIndex(p => p._id === inData.partnerId);
+                            if (index !== -1) {
+                                partner.data[index].weeklyActivePlayer = inData.size ? inData.size : 0;
+                                partner.data[index].weeklyActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
+                            }
                         }
                     });
                     vm.partnerLoadingWeeklyActivePlayer = false;
@@ -15942,10 +15946,12 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getMonthlyActivePlayerCount', sendQuery, function (data) {
                     // append back monthly active player into draw table data
                     data.data.forEach( inData => {
-                        let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-                        if ( index !== -1) {
-                            partner.data[index].monthlyActivePlayer = inData.size ? inData.size : 0;
-                            partner.data[index].monthlyActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
+                        if (inData && inData.partnerId) {
+                            let index = partner.data.findIndex(p => p._id === inData.partnerId);
+                            if (index !== -1) {
+                                partner.data[index].monthlyActivePlayer = inData.size ? inData.size : 0;
+                                partner.data[index].monthlyActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
+                            }
                         }
                     });
                     vm.partnerLoadingMonthlyActivePlayer = false;
@@ -15963,10 +15969,12 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getValidPlayersCount', sendQuery, function (data) {
                     // append back valid players into draw table data
                     data.data.forEach( inData => {
-                        let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-                        if ( index !== -1) {
-                            partner.data[index].validPlayers = inData.size ? inData.size : 0;
-                            partner.data[index].validActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
+                        if (inData && inData.partnerId){
+                            let index =  partner.data.findIndex(p => p._id === inData.partnerId);
+                            if ( index !== -1) {
+                                partner.data[index].validPlayers = inData.size ? inData.size : 0;
+                                partner.data[index].validActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
+                            }
                         }
                     });
                     vm.partnerLoadingValidPlayers = false;
@@ -17314,7 +17322,7 @@ define(['js/app'], function (myApp) {
                         $scope.constPartnerCommissionSettlementType[vm.editPartner.commissionType],
                         selectedPartner._id
                     );
-                    vm.commissionRateConfig = Object.assign({}, vm.srcCommissionRateConfig);
+                    vm.commissionRateConfig = JSON.parse(JSON.stringify(vm.srcCommissionRateConfig));
                     vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
 
                     let option = {
@@ -24819,6 +24827,7 @@ define(['js/app'], function (myApp) {
                 vm.autoApprovalBasic.profitTimes = vm.selectedPlatform.data.autoApproveProfitTimes;
                 vm.autoApprovalBasic.profitTimesMinAmount = vm.selectedPlatform.data.autoApproveProfitTimesMinAmount;
                 vm.autoApprovalBasic.bonusProfitOffset = vm.selectedPlatform.data.autoApproveBonusProfitOffset;
+                vm.autoApprovalBasic.autoUnlockWhenInitAmtLessThanLostThreshold = vm.selectedPlatform.data.autoUnlockWhenInitAmtLessThanLostThreshold;
                 $scope.safeApply();
             };
 
@@ -25349,7 +25358,7 @@ define(['js/app'], function (myApp) {
                         autoApproveConsumptionOffset: srcData.consumptionOffset,
                         autoApproveProfitTimes: srcData.profitTimes,
                         autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
-                        autoApproveBonusProfitOffset: srcData.bonusProfitOffset,
+                        autoApproveBonusProfitOffset: srcData.bonusProfitOffset,autoUnlockWhenInitAmtLessThanLostThreshold: srcData.autoUnlockWhenInitAmtLessThanLostThreshold,
                     }
                 };
                 console.log('\n\n\nupdateAutoApprovalConfig sendData', JSON.stringify(sendData));

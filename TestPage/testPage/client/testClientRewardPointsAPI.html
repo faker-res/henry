@@ -135,6 +135,30 @@
     </div>
 </div>
 
+<h3>MANUAL DECUCT POINT (扣除积分)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Request Id
+            <input type=text name="requestId">
+        </label>
+    </div>
+    <div>
+        <label>Point to Deduct
+            <input type=number name="pointToDeduct">
+        </label>
+    </div>
+    <div>
+        <label>Remark
+            <input type=text name="remark">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <button id="deductPointManually" data-api-name="deductPointManually">Deduct Point</button>
+    </div>
+</div>
 
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientRewardPointsAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
