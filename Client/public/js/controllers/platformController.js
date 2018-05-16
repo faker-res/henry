@@ -24734,6 +24734,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.usePointSystem = vm.selectedPlatform.data.usePointSystem;
                 vm.platformBasic.usePhoneNumberTwoStepsVerification = vm.selectedPlatform.data.usePhoneNumberTwoStepsVerification;
                 vm.platformBasic.whiteListingPhoneNumbers$ = "";
+                vm.platformBasic.blackListingPhoneNumbers$ = "";
                 vm.platformBasic.playerForbidApplyBonusNeedCsApproval = vm.selectedPlatform.data.playerForbidApplyBonusNeedCsApproval;
                 vm.platformBasic.unreadMailMaxDuration = vm.selectedPlatform.data.unreadMailMaxDuration;
 
@@ -24743,6 +24744,15 @@ define(['js/app'], function (myApp) {
                         let phone = phones[i];
                         vm.platformBasic.whiteListingPhoneNumbers$ += phone;
                         i !== (len - 1) ? vm.platformBasic.whiteListingPhoneNumbers$ += "\n" : "";
+                    }
+                }
+
+                if (vm.selectedPlatform.data.blackListingPhoneNumbers && vm.selectedPlatform.data.blackListingPhoneNumbers.length > 0) {
+                    let phones = vm.selectedPlatform.data.blackListingPhoneNumbers;
+                    for (let i = 0, len = phones.length; i < len; i++) {
+                        let phone = phones[i];
+                        vm.platformBasic.blackListingPhoneNumbers$ += phone;
+                        i !== (len - 1) ? vm.platformBasic.blackListingPhoneNumbers$ += "\n" : "";
                     }
                 }
 
@@ -24756,6 +24766,7 @@ define(['js/app'], function (myApp) {
                 vm.partnerBasic.partnerAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.partnerAllowSamePhoneNumberToRegister;
                 vm.partnerBasic.partnerSamePhoneNumberRegisterCount = vm.selectedPlatform.data.partnerSamePhoneNumberRegisterCount;
                 vm.partnerBasic.partnerWhiteListingPhoneNumbers = "";
+                vm.partnerBasic.partnerBlackListingPhoneNumbers = "";
                 vm.partnerBasic.partnerRequireSMSVerification = vm.selectedPlatform.data.partnerRequireSMSVerification;
                 vm.partnerBasic.partnerRequireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.partnerRequireSMSVerificationForPasswordUpdate;
                 vm.partnerBasic.partnerRequireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.partnerRequireSMSVerificationForPaymentUpdate;
@@ -24772,6 +24783,15 @@ define(['js/app'], function (myApp) {
                         let phone = phones[i];
                         vm.partnerBasic.partnerWhiteListingPhoneNumbers += phone;
                         i !== (len - 1) ? vm.partnerBasic.partnerWhiteListingPhoneNumbers += "\n" : "";
+                    }
+                }
+
+                if (vm.selectedPlatform.data.partnerBlackListingPhoneNumbers && vm.selectedPlatform.data.partnerBlackListingPhoneNumbers.length > 0) {
+                    let phones = vm.selectedPlatform.data.partnerBlackListingPhoneNumbers;
+                    for (let i = 0, len = phones.length; i < len; i++) {
+                        let phone = phones[i];
+                        vm.partnerBasic.partnerBlackListingPhoneNumbers += phone;
+                        i !== (len - 1) ? vm.partnerBasic.partnerBlackListingPhoneNumbers += "\n" : "";
                     }
                 }
                 $scope.safeApply();
@@ -25267,12 +25287,21 @@ define(['js/app'], function (myApp) {
 
             function updatePlatformBasic(srcData) {
                 let whiteListingPhoneNumbers = [];
+                let blackListingPhoneNumbers = [];
 
                 if (srcData.whiteListingPhoneNumbers$) {
                     let phones = srcData.whiteListingPhoneNumbers$.split(/\r?\n/);
                     for (let i = 0, len = phones.length; i < len; i++) {
                         let phone = phones[i].trim();
                         if (phone) whiteListingPhoneNumbers.push(phone);
+                    }
+                }
+
+                if (srcData.blackListingPhoneNumbers$) {
+                    let phones = srcData.blackListingPhoneNumbers$.split(/\r?\n/);
+                    for (let i = 0, len = phones.length; i < len; i++) {
+                        let phone = phones[i].trim();
+                        if (phone) blackListingPhoneNumbers.push(phone);
                     }
                 }
 
@@ -25304,6 +25333,7 @@ define(['js/app'], function (myApp) {
                         smsVerificationExpireTime: srcData.smsVerificationExpireTime,
                         useProviderGroup: srcData.useProviderGroup,
                         whiteListingPhoneNumbers: whiteListingPhoneNumbers,
+                        blackListingPhoneNumbers: blackListingPhoneNumbers,
                         usePointSystem: srcData.usePointSystem,
                         usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification,
                         playerForbidApplyBonusNeedCsApproval: srcData.playerForbidApplyBonusNeedCsApproval,
@@ -25333,12 +25363,21 @@ define(['js/app'], function (myApp) {
 
             function updatePartnerBasic(srcData) {
                 let whiteListingPhoneNumbers = [];
+                let blackListingPhoneNumbers = [];
 
                 if (srcData.partnerWhiteListingPhoneNumbers) {
                     let phones = srcData.partnerWhiteListingPhoneNumbers.split(/\r?\n/);
                     for (let i = 0, len = phones.length; i < len; i++) {
                         let phone = phones[i].trim();
                         if (phone) whiteListingPhoneNumbers.push(phone);
+                    }
+                }
+
+                if (srcData.partnerBlackListingPhoneNumbers) {
+                    let phones = srcData.partnerBlackListingPhoneNumbers.split(/\r?\n/);
+                    for (let i = 0, len = phones.length; i < len; i++) {
+                        let phone = phones[i].trim();
+                        if (phone) blackListingPhoneNumbers.push(phone);
                     }
                 }
                 let sendData = {
@@ -25349,6 +25388,7 @@ define(['js/app'], function (myApp) {
                         partnerAllowSamePhoneNumberToRegister: srcData.partnerAllowSamePhoneNumberToRegister,
                         partnerSamePhoneNumberRegisterCount: srcData.partnerSamePhoneNumberRegisterCount,
                         partnerWhiteListingPhoneNumbers: whiteListingPhoneNumbers,
+                        partnerBlackListingPhoneNumbers: blackListingPhoneNumbers,
                         partnerRequireSMSVerification: srcData.partnerRequireSMSVerification,
                         partnerRequireSMSVerificationForPasswordUpdate: srcData.partnerRequireSMSVerificationForPasswordUpdate,
                         partnerRequireSMSVerificationForPaymentUpdate: srcData.partnerRequireSMSVerificationForPaymentUpdate,

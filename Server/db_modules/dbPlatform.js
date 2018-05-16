@@ -272,6 +272,14 @@ var dbPlatform = {
             delete updateData.whiteListingPhoneNumbers;
         }
 
+        if (!updateData.blackListingPhoneNumbers || (updateData.blackListingPhoneNumbers instanceof Array && updateData.blackListingPhoneNumbers.length === 0)) {
+            delete updateData.blackListingPhoneNumbers;
+        }
+
+        if (!updateData.blackListingPhoneNumbers || (updateData.blackListingPhoneNumbers instanceof Array && updateData.blackListingPhoneNumbers.length === 0)) {
+            delete updateData.blackListingPhoneNumbers;
+        }
+
         if (!updateData.gameProviderNickNames) {
             delete updateData.gameProviderNickNames;
         }
