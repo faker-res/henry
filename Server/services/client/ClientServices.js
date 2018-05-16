@@ -412,6 +412,7 @@
                 "updatePartnerQQ",
                 "updatePartnerWeChat",
                 "updatePartnerEmail",
+                "getCommissionRate",
                 "getCrewActiveInfo",
             ];
             addServiceFunctions(sinonet, this, functionNames);

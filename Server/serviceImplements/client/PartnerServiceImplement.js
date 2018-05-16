@@ -415,6 +415,11 @@ var PartnerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.createPartnerEmailProposal, [{partnerId: conn.partnerId}, data], isValidData);
     };
 
+    this.getCommissionRate.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data.platformId && data.commissionType);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCommissionRate, [data.platformId, data.partnerId, data.commissionType], isValidData, false, false, true);
+    };
+
     this.getCrewActiveInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data.platformId && data.partnerId && data.period && data.circleTimes);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewActiveInfo, [data.platformId, data.partnerId, data.period, data.circleTimes], isValidData, false, false, true);
