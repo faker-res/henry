@@ -355,6 +355,7 @@ let dbRewardPoints = {
 
     updateGameRewardPointProgress: (consumptionRecord) => {
         if (!consumptionRecord || !consumptionRecord.platformId || !consumptionRecord.providerId) {
+            console.log('debug log #0FD401 *** dead here');
             return Promise.resolve();
         }
         let platform;
@@ -381,6 +382,7 @@ let dbRewardPoints = {
         ).then(
             data => {
                 if (!data) {
+                    console.log('debug log #0FD402 *** dead here');
                     return Promise.resolve();
                 }
 
@@ -1926,28 +1928,34 @@ function isRelevantTopupEvent(event, topupMainType, topupProposalData, playerLev
 
 function isRelevantGameEvent(event, consumptionRecord, playerLevelData, gameProviderPTid) {
     if (!event) {
+        console.log('debug log #0FD403');
         return false;
     }
 
     if (!event.status) {
+        console.log('debug log #0FD404');
         return false;
     }
 
     // customPeriodEndTime check
     if (event.customPeriodEndTime && new Date(event.customPeriodEndTime) < new Date()) {
+        console.log('debug log #0FD405');
         return false;
     }
 
     if (event.customPeriodStartTime && new Date(event.customPeriodStartTime) > new Date()) {
+        console.log('debug log #0FD406');
         return false;
     }
 
     if (event.target && event.target.targetDestination && event.target.targetDestination.toString() !== String(consumptionRecord.providerId)) {
+        console.log('debug log #0FD407');
         return false;
     }
 
     // only apply for game provider PT
     if (event.target && event.target.targetDestination && event.target.targetDestination.toString() === gameProviderPTid && event.target.gameType) {
+        console.log('debug log #0FD408');
         let gameTypes = event.target.gameType;
         let gameTypePT = gameTypes.split(',').map(item => item.trim());
         let matchGameTypePT = 0;
@@ -1961,11 +1969,13 @@ function isRelevantGameEvent(event, consumptionRecord, playerLevelData, gameProv
 
         // no matching game type
         if (matchGameTypePT === 0) {
+            console.log('debug log #0FD409');
             return false;
         }
     }
 
     if (event.target && event.target.gameType && (event.target.gameType.toString() !== String(consumptionRecord.cpGameType)) && (event.target.targetDestination.toString() !== gameProviderPTid)) {
+        console.log('debug log #0FD40A');
         return false;
     }
 
@@ -1986,15 +1996,18 @@ function isRelevantGameEvent(event, consumptionRecord, playerLevelData, gameProv
             });
 
             if(matchBetTypes && matchBetTypes.length == 0) {
+                console.log('debug log #0FD40B');
                 return false;
             }
         } else {
+            console.log('debug log #0FD40C');
             return false;
         }
     }
 
     // check player level whether achieve reward event level setting
     if (playerLevelData && playerLevelData.playerLevel && event && event.level && (playerLevelData.playerLevel.value < event.level.value)) {
+        console.log('debug log #0FD40D');
         return false;
     }
 
