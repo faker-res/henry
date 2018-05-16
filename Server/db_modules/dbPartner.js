@@ -6279,16 +6279,21 @@ let dbPartner = {
                             }
                         }
 
-                        for (let j = 0; j < customCommission.length; j++) {
-                            for (let k = oriCommission.length - 1; k >= 0 ; k--) {
-                                if (customCommission[j].provider._id.toString() == oriCommission[k].provider._id.toString()) {
-                                    customCommission[j].commissionSetting.forEach(cus => {
-                                        oriCommission[k].commissionSetting.forEach(ori => {
+                        for (let j = oriCommission.length - 1; j >= 0 ; j--) {
+                            for (let k = 0; k < customCommission.length; k++) {
+                                // if (customCommission[k].provider._id.toString() == oriCommission[j].provider._id.toString()) {
+                                oriCommission[j].commissionSetting.forEach(ori => {
+                                    if (!ori.defaultCommissionRate) {
+                                        ori.defaultCommissionRate = ori.commissionRate;
+                                        delete ori.commissionRate;
+                                    }
+                                    if (customCommission[k].provider._id.toString() == oriCommission[j].provider._id.toString()) {
+                                        customCommission[k].commissionSetting.forEach(cus => {
                                             if (cus.playerConsumptionAmountFrom === ori.playerConsumptionAmountFrom
                                                 && cus.playerConsumptionAmountTo === ori.playerConsumptionAmountTo
                                                 && cus.activePlayerValueFrom === ori.activePlayerValueFrom
                                                 && cus.activePlayerValueTo === ori.activePlayerValueTo
-                                                && Number(cus.commissionRate) !== Number(ori.commissionRate)
+                                                && Number(cus.commissionRate) !== Number(ori.defaultCommissionRate)
                                             ) {
                                                 ori.customizedCommissionRate = cus.commissionRate;
                                                 if (ori.activePlayerValueTo == null) {
@@ -6296,16 +6301,16 @@ let dbPartner = {
                                                 }
                                             }
                                         });
-                                    });
-                                    let commissionObj = {
-                                        providerGroupId: oriCommission[k].provider.providerGroupId ? oriCommission[k].provider.providerGroupId : "",
-                                        providerGroupName: oriCommission[k].provider.name ? oriCommission[k].provider.name : "",
-                                        list: oriCommission[k].commissionSetting
-                                    };
-                                    returnData.push(commissionObj);
-                                    oriCommission.splice(k,1);
-                                }
+                                    }
+                                });
+                                // }
                             }
+                            let commissionObj = {
+                                providerGroupId: oriCommission[j].provider.providerGroupId ? oriCommission[j].provider.providerGroupId : "",
+                                providerGroupName: oriCommission[j].provider.name ? oriCommission[j].provider.name : "",
+                                list: oriCommission[j].commissionSetting
+                            };
+                            returnData.push(commissionObj);
                         }
                     } else {
                         for (let i = 0; i < commissionData.length; i++) {
@@ -6318,6 +6323,8 @@ let dbPartner = {
                                     if (commissionData[i].commissionSetting[j].activePlayerValueTo == null) {
                                         commissionData[i].commissionSetting[j].activePlayerValueTo = "-";
                                     }
+                                    commissionData[i].commissionSetting[j].defaultCommissionRate = commissionData[i].commissionSetting[j].commissionRate;
+                                    delete commissionData[i].commissionSetting[j].commissionRate;
                                 }
                                 commissionObj.list = commissionData[i].commissionSetting;
                             }
