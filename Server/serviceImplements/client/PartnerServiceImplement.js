@@ -432,7 +432,7 @@ var PartnerServiceImplement = function () {
 
     this.getCrewBetInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data.platformId && data.partnerId && data.period && data.circleTimes);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewBetInfo, [data.platformId, data.partnerId, data.period, data.circleTimes], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewBetInfo, [data.platformId, data.partnerId, data.period, data.circleTimes, data.providerGroupId], isValidData, false, false, true);
     };
 
     this.getNewCrewInfo.onRequest = function (wsFunc, conn, data) {
