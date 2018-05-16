@@ -141,17 +141,22 @@ let dbRewardTaskGroup = {
         )
     },
 
-    getPlayerAllRewardTaskGroupDetailByPlayerObjId: (query) => {
+    getPlayerAllRewardTaskGroupDetailByPlayerObjId: (query, createTime) => {
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
                 if (playerData) {
                     let playerObjId = playerData._id;
-
-                    return dbconfig.collection_rewardTaskGroup.find({
+                    let rtgQ = {
                         platformId: playerData.platform,
                         playerId: playerObjId,
                         status: constRewardTaskStatus.STARTED
-                    }).populate({
+                    };
+
+                    if (createTime) {
+                        rtgQ.createTime = {$lt: createTime}
+                    }
+
+                    return dbconfig.collection_rewardTaskGroup.find(rtgQ).populate({
                         path: "providerGroup",
                         model: dbconfig.collection_gameProviderGroup
                     }).lean();
