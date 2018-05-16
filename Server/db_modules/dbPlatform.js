@@ -2524,8 +2524,11 @@ var dbPlatform = {
             }, {new: true});
     },
 
-    createClickCountLog: (platformId, device, pageName, buttonName) => {
+    createClickCountLog: (platformId, device, pageName, buttonName, registerClickApp, registerClickWeb, registerClickH5, ipAddress) => {
         let todayTime = dbUtility.getTodaySGTime();
+        registerClickApp = registerClickApp === 'true' ? true : registerClickApp === 'false' ? false : registerClickApp;
+        registerClickWeb = registerClickWeb === 'true' ? true : registerClickWeb === 'false' ? false : registerClickWeb;
+        registerClickH5 = registerClickH5 === 'true' ? true : registerClickH5 === 'false' ? false : registerClickH5;
 
         return dbconfig.collection_platform.findOne({platformId: platformId}, '_id').lean().then(
             platformObj => {
@@ -2538,8 +2541,33 @@ var dbPlatform = {
                     buttonName: buttonName
                 };
 
+                let countObj = {};
+
+                switch(true) {
+                    case registerClickApp:
+                        countObj = {
+                            count: 1,
+                            registerClickAppCount: 1
+                        };
+                        break;
+                    case registerClickWeb:
+                        countObj = {
+                            count: 1,
+                            registerClickWebCount: 1
+                        };
+                        break;
+                    case registerClickH5:
+                        countObj = {
+                            count: 1,
+                            registerClickH5Count: 1
+                        };
+                        break;
+                    default:
+                        countObj = {count: 1};
+                }
+
                 dbconfig.collection_clickCount
-                    .update(clickCountObj, {$inc: {count: 1}}, {upsert: true})
+                    .update(clickCountObj, {$inc: countObj , $addToSet: {ipAddresses: ipAddress}}, {upsert: true})
                     .exec()
                     .catch(errorUtils.reportError);
             }
