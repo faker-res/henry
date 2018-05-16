@@ -4819,7 +4819,7 @@ function insertRepeatCount(proposals, platformId) {
                     proposal.$playerAllCount = allCount;
                     proposal.$playerCurrentCount = currentCount;
 
-                    if (firstFailure.proposalId.toString() === proposal.proposalId.toString()) {
+                    if (!firstFailure || String(firstFailure.proposalId) === String(proposal.proposalId)) {
                         proposal.$playerGapTime = 0;
                     } else {
                         proposal.$playerGapTime = getMinutesBetweenDates(firstFailure.createTime, new Date(proposal.createTime));

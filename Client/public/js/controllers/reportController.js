@@ -2611,6 +2611,7 @@ define(['js/app'], function (myApp) {
                         if (partner) {
                             partner.isAnyCustomPlatformFeeRate = false;
                             (partner.rawCommissions).forEach( (group, idxgroup) => {
+                                group.commissionRate = +(group.commissionRate*100).toFixed(2);
                                 partner.isAnyCustomPlatformFeeRate = group.isCustomPlatformFeeRate ? true : partner.isAnyCustomPlatformFeeRate;
                                 if (group.isCustomPlatformFeeRate == true){
                                     vm.partnerCommVar.platformFeeTab = idxgroup;
@@ -6143,6 +6144,7 @@ define(['js/app'], function (myApp) {
                     let isCustomized = false;
 
                     let consumptionUsed = vm.selectedProposal.data.commissionType == 5 ? "CONSUMPTION" : "SITE_LOSE_WIN";
+                    let consumptionUsedKey = vm.selectedProposal.data.commissionType == 5 ? "totalConsumption" : "siteBonusAmount";
 
                     proposalDetail["MAIN_TYPE"] = $translate("SettlePartnerCommission");
                     proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
@@ -6150,13 +6152,14 @@ define(['js/app'], function (myApp) {
                     proposalDetail["COMMISSION_PERIOD"] = $scope.dateReformat(vm.selectedProposal.data.startTime) + " - " + $scope.dateReformat(vm.selectedProposal.data.endTime);
                     proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
                     proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
-                    proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
+                    proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.status);
                     proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
                     vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                         grossCommission += rawCommission.amount;
                         let str = rawCommission.amount + $translate("YEN") + " "
-                            + "(" + $translate(consumptionUsed) + ": " + (-rawCommission.totalConsumption) + "/"
+                            + "(" + $translate(consumptionUsed) + ": " + (rawCommission[consumptionUsedKey]) + "/"
+                            + $translate('active') + ": " + (vm.selectedProposal.data.activeCount || 0) + "/"
                             + $translate("RATIO") + ": " + (rawCommission.commissionRate * 100) + "%)";
 
                         proposalDetail[rawCommission.groupName + " " + $translate("Commission")] =  str;
