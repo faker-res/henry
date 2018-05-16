@@ -4666,12 +4666,38 @@ let dbPartner = {
         )
     },
 
-    getReferralsList: (partnerArr)  => {
+    getReferralsList: (partnerArr) => {
         let partnerProm = [];
         partnerArr.forEach(partner => {
             partnerProm.push(dbconfig.collection_players.find({partner: partner._id, platform: partner.platform}).lean())
         });
         return Promise.all(partnerProm).then(
+            data => {
+                return data;
+            }
+        );
+    },
+
+    getTotalPlayerDownline: (partnerArr) => {
+        let playerCount = [];
+        partnerArr.forEach(partner => {
+            playerCount.push(dbconfig.collection_players.find({partner: partner._id, platform: partner.platform}).count().then(
+                playerCount => {
+                    dbconfig.collection_partner.findOneAndUpdate(
+                        {
+                            _id: partner._id,
+                            platform: partner.platform,
+                        },
+                        {
+                            $set: {totalPlayerDownline: playerCount}
+                        }
+                    ).exec();
+                    return {partnerId: partner._id, size: playerCount}
+                }
+            ));
+        });
+
+        return Promise.all(playerCount).then(
             data => {
                 return data;
             }

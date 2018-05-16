@@ -478,6 +478,12 @@ function socketActionPartner(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPartner.getReferralsList, [data.data], actionName, isValidData);
         },
 
+        getTotalPlayerDownline: function getTotalPlayerDownline (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPartner.getTotalPlayerDownline, [data.data], actionName, isValidData);
+        },
+
         getDailyActivePlayerCount: function getDailyActivePlayerCount (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data);
