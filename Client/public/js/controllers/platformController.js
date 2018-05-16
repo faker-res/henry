@@ -1078,7 +1078,7 @@ define(['js/app'], function (myApp) {
                     totalPlayerDownlineOperator: ">=",
                     totalChildrenDepositOperator: ">=",
                     totalChildrenBalanceOperator: ">=",
-                    commissionAmountFromChildrenOperator: ">=",
+                    totalSettledCommissionOperator: ">=",
                 };
                 vm.playerAdvanceSearchQuery = {
                     creditOperator: ">=",
@@ -5383,8 +5383,8 @@ define(['js/app'], function (myApp) {
                             if (rowData.totalChildrenBalance) {
                                 rowData.totalChildrenBalance = rowData.totalChildrenBalance.toFixed(2);
                             }
-                            if (rowData.commissionAmountFromChildren) {
-                                rowData.commissionAmountFromChildren = rowData.commissionAmountFromChildren.toFixed(2);
+                            if (rowData.totalSettledCommission) {
+                                rowData.totalSettledCommission = rowData.totalSettledCommission.toFixed(2);
                             }
                             if (rowData.registrationTime) {
                                 rowData.registrationTime = utilService.getFormatTime(rowData.registrationTime);
@@ -15726,6 +15726,7 @@ define(['js/app'], function (myApp) {
                 vm.partnerLoadingValidPlayers = true;
                 vm.partnerLoadingTotalChildrenDeposit = true;
                 vm.partnerLoadingTotalChildrenBalance = true;
+                vm.partnerLoadingTotalSettledCommission = true;
 
                 vm.advancedPartnerQueryObj = vm.advancedPartnerQueryObj || {
                     "platformId": vm.selectedPlatform.id,
@@ -15741,6 +15742,7 @@ define(['js/app'], function (myApp) {
                 vm.validPlayersBoolean = true;
                 vm.totalChildrenDepositBoolean = true;
                 vm.totalChildrenBalanceBoolean = true;
+                vm.totalSettledCommissionBoolean = true;
 
                 vm.advancedPartnerQueryObj.sortCol = vm.advancedPartnerQueryObj.sortCol || {registrationTime: -1};
 
@@ -15864,7 +15866,7 @@ define(['js/app'], function (myApp) {
                         totalPlayerDownlineOperator: ">=",
                         totalChildrenDepositOperator: ">=",
                         totalChildrenBalanceOperator: ">=",
-                        commissionAmountFromChildrenOperator: ">=",
+                        totalSettledCommissionOperator: ">=",
                     };
                     vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery);
                 })
@@ -15892,6 +15894,9 @@ define(['js/app'], function (myApp) {
                     }
                     if (vm.totalChildrenBalanceBoolean) {
                         vm.getTotalChildrenBalance(data.data, partner);
+                    }
+                    if (vm.totalSettledCommissionBoolean) {
+                        vm.getTotalSettledCommission(partner);
                     }
                 })
             };
@@ -16045,6 +16050,21 @@ define(['js/app'], function (myApp) {
                 })
             };
 
+            vm.getTotalSettledCommission = function (partner) {
+                socketService.$socket($scope.AppSocket, 'getTotalSettledCommission', partner, function (data) {
+                    // append back total settled commission into draw table data
+                    data.data.forEach( inData => {
+                        let index =  partner.data.findIndex(p => p._id === inData.partnerId);
+                        if ( index !== -1) {
+                            partner.data[index].totalSettledCommission = inData.amount ? inData.amount : 0;
+                        }
+                    });
+                    vm.partnerLoadingTotalSettledCommission = false;
+                    vm.totalSettledCommissionBoolean = false;
+                    vm.drawPartnerTable(partner);
+                })
+            };
+
             vm.getChildrenDetails = function (partnerId) {
                 let sendQuery = {
                     partnerId: partnerId,
@@ -16136,11 +16156,11 @@ define(['js/app'], function (myApp) {
                     partner.validPlayers = partner.validPlayers ? partner.validPlayers : 0;
                     partner.totalChildrenDeposit = partner.totalChildrenDeposit ? partner.totalChildrenDeposit : 0;
                     partner.totalChildrenBalance = partner.totalChildrenBalance ? partner.totalChildrenBalance : 0;
-                    partner.commissionAmountFromChildren = partner.commissionAmountFromChildren ? parseFloat(partner.commissionAmountFromChildren).toFixed(2) : 0;
+                    partner.totalSettledCommission = partner.totalSettledCommission ? parseFloat(partner.totalSettledCommission).toFixed(2) : 0;
                 });
 
                 if (!vm.partnerLoadingTotalPlayerDownline && !vm.partnerLoadingDailyActivePlayer && !vm.partnerLoadingWeeklyActivePlayer && !vm.partnerLoadingMonthlyActivePlayer &&
-                    !vm.partnerLoadingValidPlayers && !vm.partnerLoadingTotalChildrenDeposit && !vm.partnerLoadingTotalChildrenBalance) {
+                    !vm.partnerLoadingValidPlayers && !vm.partnerLoadingTotalChildrenDeposit && !vm.partnerLoadingTotalChildrenBalance && !vm.partnerLoadingTotalSettledCommission) {
                     $('#partnerLoadingIcon').removeClass('fa fa-spinner fa-spin');
                 }
 
@@ -16367,7 +16387,7 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('SETTLED_COMMISSION'),
-                            data: "commissionAmountFromChildren",
+                            data: "totalSettledCommission",
                             advSearch: true,
                             "sClass": "alignRight sumFloat",
                             render: function (data, type, row) {

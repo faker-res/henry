@@ -16,7 +16,16 @@ let clickCountSchema = new Schema({
     // button name where user click on
     buttonName: {type: String},
     // count of clicks
-    count: {type: Number, default: 0}
+    count: {type: Number, default: 0},
+    // array of ip address
+    ipAddresses: [String],
+    // count of click using App
+    registerClickAppCount: {type: Number, default: 0},
+    // count of click using Web
+    registerClickWebCount: {type: Number, default: 0},
+    // count of click using H5
+    registerClickH5Count: {type: Number, default: 0}
+
 });
 
 clickCountSchema.index({platform: 1, startTime: 1, endTime: 1, device: 1, pageName: 1, buttonName: 1});
