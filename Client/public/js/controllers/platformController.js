@@ -19334,6 +19334,7 @@ define(['js/app'], function (myApp) {
 
                     delete vm.rewardMainParam.rewardParam;
                 }
+                $scope.safeApply();
             };
 
             vm.rewardPeriodNewRow = (valueCollection) => {
