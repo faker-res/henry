@@ -3326,6 +3326,7 @@ define(['js/app'], function (myApp) {
                     item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
                     item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
                     item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
+                    item.registrationAgent$ = item.csOfficer || null;
 
                     item.playerLevel$ = "";
                     if (vm.playerLvlData[item.playerLevel]) {
@@ -3443,7 +3444,8 @@ define(['js/app'], function (myApp) {
                         sClass: 'sumFloat alignRight'
                     },
                     {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: 'playerReportProfit alignRight'},
-                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: 'sumFloat alignRight'}
+                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('Registration Agent'), data: "registrationAgent$"}
                 ],
                 "paging": false,
                 // "dom": '<"top">rt<"bottom"il><"clear">',
