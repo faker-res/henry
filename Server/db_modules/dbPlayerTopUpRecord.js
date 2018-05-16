@@ -1221,6 +1221,10 @@ var dbPlayerTopUpRecord = {
                         case "5":
                             depositMethod = "微信转账";
                             break;
+                        case 6:
+                        case "6":
+                            depositMethod = "云闪付转帐";
+                            break;
                         default:
                             break;
                     }
@@ -2806,6 +2810,7 @@ var dbPlayerTopUpRecord = {
             topUpResult => {
                 if (topUpResult) {
                     if (createTime) {
+                        console.log('createTime ricco1', createTime);
                         let proposalProm = dbconfig.collection_proposal.findOne({
                             proposalId: topUpResult.proposalId
                         }).lean().then(
