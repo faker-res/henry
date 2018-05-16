@@ -1078,7 +1078,7 @@ define(['js/app'], function (myApp) {
                     totalPlayerDownlineOperator: ">=",
                     totalChildrenDepositOperator: ">=",
                     totalChildrenBalanceOperator: ">=",
-                    commissionAmountFromChildrenOperator: ">=",
+                    totalSettledCommissionOperator: ">=",
                 };
                 vm.playerAdvanceSearchQuery = {
                     creditOperator: ">=",
@@ -15866,7 +15866,7 @@ define(['js/app'], function (myApp) {
                         totalPlayerDownlineOperator: ">=",
                         totalChildrenDepositOperator: ">=",
                         totalChildrenBalanceOperator: ">=",
-                        commissionAmountFromChildrenOperator: ">=",
+                        totalSettledCommissionOperator: ">=",
                     };
                     vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery);
                 })
