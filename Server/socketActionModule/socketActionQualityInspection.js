@@ -128,6 +128,11 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data && data.startTime && data.endTime);
             socketUtil.emitter(self.socket, dbQualityInspection.summarizeLive800Record, [data.startTime,data.endTime], actionName, isDataValid);
         },
+        resummarizeLive800Record: function resummarizeLive800Record(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbQualityInspection.resummarizeLive800Record, [data.startTime,data.endTime], actionName, isDataValid);
+        },
         searchLive800SettlementRecord: function searchLive800SettlementRecord(data){
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data);
