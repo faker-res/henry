@@ -370,6 +370,7 @@ define(['js/app'], function (myApp) {
             };
             vm.batchSave = function(){
                 let batchEdit = [];
+                vm.batchSaveInProgress = true;
                 vm.conversationForm.forEach(item=>{
                     if(vm.batchEditList.indexOf(String(item.messageId))!= -1){
                         batchEdit.push(item);
@@ -478,6 +479,7 @@ define(['js/app'], function (myApp) {
                     vm.conversationForm = data.data;
                     $("#selectAll").removeAttr('checked');
                     $('.searchingQualityInspection').hide();
+                    vm.batchSaveInProgress = false;
                     $scope.safeApply();
                 }
 
@@ -2840,8 +2842,25 @@ define(['js/app'], function (myApp) {
                     endTime: endTime
                 };
 
-                vm.loadingSummarizeLive800Record = true;
                 socketService.$socket($scope.AppSocket, 'summarizeLive800Record', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.summarizedDataDetail = "";
+                        vm.loadingSummarizeLive800Record = false;
+                    })
+                });
+            }
+
+            vm.resummarizeLive800Record = function(){
+                vm.loadingSummarizeLive800Record = true;
+                var startTime = $('#live800SummarizeStartDatetimePicker').data('datetimepicker').getLocalDate();
+                var endTime = $('#live800SummarizeEndDatetimePicker').data('datetimepicker').getLocalDate();
+
+                let sendData = {
+                    startTime: startTime,
+                    endTime: endTime
+                };
+
+                socketService.$socket($scope.AppSocket, 'resummarizeLive800Record', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         vm.summarizedDataDetail = "";
                         vm.loadingSummarizeLive800Record = false;
