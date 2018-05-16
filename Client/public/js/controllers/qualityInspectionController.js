@@ -2842,7 +2842,6 @@ define(['js/app'], function (myApp) {
                     endTime: endTime
                 };
 
-                vm.loadingSummarizeLive800Record = true;
                 socketService.$socket($scope.AppSocket, 'summarizeLive800Record', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         vm.summarizedDataDetail = "";
@@ -2861,7 +2860,6 @@ define(['js/app'], function (myApp) {
                     endTime: endTime
                 };
 
-                vm.loadingSummarizeLive800Record = true;
                 socketService.$socket($scope.AppSocket, 'resummarizeLive800Record', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         vm.summarizedDataDetail = "";
