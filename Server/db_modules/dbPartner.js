@@ -758,7 +758,7 @@ let dbPartner = {
                 {$match:query},
                 {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
                         "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
-                        "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "settledCommission":1, "_id":1, }},
+                        "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "totalSettledCommission":1, "_id":1, }},
                 {$sort:sortObj},
                 {$skip:index},
                 {$limit:limit}
@@ -789,7 +789,7 @@ let dbPartner = {
                 {$match:query},
                 {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
                         "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
-                        "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "commissionAmountFromChildren":1, "_id":1, }},
+                        "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "totalSettledCommission":1, "_id":1, }},
                 {$skip:index},
                 {$limit:limit}
             ]).then(
@@ -5056,7 +5056,7 @@ let dbPartner = {
         let period = 'day';
 
         partnerArr.referral.forEach(partner => {
-            if (partner && partner.length){
+            if (partner && partner.length) {
                 dailyActivePlayerProm.push( dbPartner.getPartnerActivePlayer(partner, todayTime, period) );
             }
         });
@@ -5072,7 +5072,7 @@ let dbPartner = {
         let period = 'week';
 
         partnerArr.referral.forEach(partner => {
-            if (partner && partner.length){
+            if (partner && partner.length) {
                 weeklyActivePlayerProm.push( dbPartner.getPartnerActivePlayer(partner, currentWeek, period) );
             }
         });
@@ -5088,7 +5088,7 @@ let dbPartner = {
         let period = 'month';
 
         partnerArr.referral.forEach(partner => {
-            if (partner && partner.length){
+            if (partner && partner.length) {
                 monthlyActivePlayerProm.push( dbPartner.getPartnerActivePlayer(partner, currentMonth, period) );
             }
         });
@@ -5102,7 +5102,7 @@ let dbPartner = {
         let validPlayersProm = [];
 
         partnerArr.referral.forEach(partner => {
-            if (partner && partner.length){
+            if (partner && partner.length) {
                 validPlayersProm.push( dbPartner.getValidPlayers(partner) );
             }
         });
@@ -5379,7 +5379,7 @@ let dbPartner = {
         let totalChildrenDepositProm = [];
 
         partnerArr.referral.forEach(partner => {
-            if (partner && partner.length){
+            if (partner && partner.length) {
                 totalChildrenDepositProm.push( dbPartner.getTotalChildrenCredit(partner) );
             }
         });
@@ -5431,7 +5431,7 @@ let dbPartner = {
                             $match: {
                                 "data.playerObjId": {$in: playerList},
                                 "data.platformId": platformId,
-                                "mainType": "PlayerBonus",
+                                "mainType": constProposalType.PLAYER_BONUS,
                                 "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                             },
                         },
@@ -5467,12 +5467,57 @@ let dbPartner = {
         let totalChildrenBalanceProm = [];
 
         partnerArr.referral.forEach(partner => {
-            if (partner && partner.length){
+            if (partner && partner.length) {
                 totalChildrenBalanceProm.push( dbPartner.getTotalChildrenValidCredit(partner) );
             }
         });
 
         return Promise.all(totalChildrenBalanceProm).then( data => {
+            return data;
+        })
+    },
+
+    getTotalSettledCommission: (partnerArr)  => {
+        let totalSettledCommissionAmount = [];
+
+        partnerArr.forEach(partner => {
+            let platformId = ObjectId(partner.platform);
+            let partnerId = ObjectId(partner._id);
+            totalSettledCommissionAmount.push(dbconfig.collection_proposal.aggregate(
+                {
+                    $match: {
+                        "data.partnerObjId": partnerId,
+                        "data.platformObjId": platformId,
+                        "mainType": constProposalType.SETTLE_PARTNER_COMMISSION,
+                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                    },
+                },
+                {
+                    $group: {
+                        _id: "$data.partnerName",
+                        commissionAmount: {$sum: "$data.amount"},
+                        commissionCount: {$sum: 1}
+                    }
+                }
+            ).read("secondaryPreferred").then(records => {
+                let totalCommissionAmount = 0;
+                records.map(record => totalCommissionAmount += record.commissionAmount);
+                totalCommissionAmount = parseFloat(totalCommissionAmount).toFixed(2);
+
+                dbconfig.collection_partner.findOneAndUpdate(
+                    {
+                        _id: partnerId,
+                        platform: platformId,
+                    },
+                    {
+                        $set: {totalSettledCommission: totalCommissionAmount}
+                    }
+                ).exec();
+                return {partnerId: partnerId, amount: totalCommissionAmount}
+            }));
+        });
+
+        return Promise.all(totalSettledCommissionAmount).then( data => {
             return data;
         })
     },
