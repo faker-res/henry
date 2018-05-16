@@ -770,6 +770,98 @@
     </div>
 </div>
 
+<h3>GET CREW WITHDRAW INFO (获取下线玩家提款信息)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Partner Id
+            <input type=text name="partnerId">
+        </label>
+    </div>
+    <div>
+        <label>Period
+            <input type=text name="period">
+        </label>
+    </div>
+    <div>
+        <label>Number of Cycle
+            <input type=text name="circleTimes">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <button id="getCrewWithdrawInfo" data-api-name="getCrewWithdrawInfo">Update</button>
+    </div>
+</div>
+
+<h3>GET CREW BET INFO (获取下线玩家投注信息)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Partner Id
+            <input type=text name="partnerId">
+        </label>
+    </div>
+    <div>
+        <label>Period
+            <input type=text name="period">
+        </label>
+    </div>
+    <div>
+        <label>Number of Cycle
+            <input type=text name="circleTimes">
+        </label>
+    </div>
+    <div>
+        <label>Provider Group ID
+            <input type=text name="providerGroupId">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <button id="getCrewBetInfo" data-api-name="getCrewBetInfo">Update</button>
+    </div>
+</div>
+
+<h3>GET NEW CREW INFO (获取新注册下线玩家信息)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Partner Id
+            <input type=text name="partnerId">
+        </label>
+    </div>
+    <div>
+        <label>Period
+            <input type=text name="period">
+        </label>
+    </div>
+    <div>
+        <label>Number of Cycle
+            <input type=text name="circleTimes">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <button id="getNewCrewInfo" data-api-name="getNewCrewInfo">Update</button>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPartnerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
         function (ClientServices, WebSocketClient, TestHelper, ClientPartnerAPITest, ClientConnectionAPITest) {
