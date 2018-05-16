@@ -5483,38 +5483,50 @@ let dbPartner = {
         partnerArr.forEach(partner => {
             let platformId = ObjectId(partner.platform);
             let partnerId = ObjectId(partner._id);
-            totalSettledCommissionAmount.push(dbconfig.collection_proposal.aggregate(
-                {
-                    $match: {
-                        "data.partnerObjId": partnerId,
-                        "data.platformObjId": platformId,
-                        "mainType": constProposalType.SETTLE_PARTNER_COMMISSION,
-                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                    },
-                },
-                {
-                    $group: {
-                        _id: "$data.partnerName",
-                        commissionAmount: {$sum: "$data.amount"},
-                        commissionCount: {$sum: 1}
+
+            let settledCommissionData = dbconfig.collection_proposalType.findOne({
+                platformId: platformId,
+                name: constProposalType.SETTLE_PARTNER_COMMISSION
+            }).then(
+                typeData => {
+                    if (typeData) {
+                        return dbconfig.collection_proposal.aggregate(
+                            {
+                                $match: {
+                                    "data.partnerObjId": partnerId,
+                                    "data.platformObjId": platformId,
+                                    "type": typeData._id,
+                                    "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                },
+                            },
+                            {
+                                $group: {
+                                    _id: "$data.partnerName",
+                                    commissionAmount: {$sum: "$data.amount"},
+                                    commissionCount: {$sum: 1}
+                                }
+                            }
+                        ).read("secondaryPreferred").then(records => {
+                            let totalCommissionAmount = 0;
+                            records.map(record => totalCommissionAmount += record.commissionAmount);
+                            totalCommissionAmount = parseFloat(totalCommissionAmount).toFixed(2);
+
+                            dbconfig.collection_partner.findOneAndUpdate(
+                                {
+                                    _id: partnerId,
+                                    platform: platformId,
+                                },
+                                {
+                                    $set: {totalSettledCommission: totalCommissionAmount}
+                                }
+                            ).exec();
+                            return {partnerId: partnerId, amount: totalCommissionAmount}
+                        })
                     }
                 }
-            ).read("secondaryPreferred").then(records => {
-                let totalCommissionAmount = 0;
-                records.map(record => totalCommissionAmount += record.commissionAmount);
-                totalCommissionAmount = parseFloat(totalCommissionAmount).toFixed(2);
+            );
 
-                dbconfig.collection_partner.findOneAndUpdate(
-                    {
-                        _id: partnerId,
-                        platform: platformId,
-                    },
-                    {
-                        $set: {totalSettledCommission: totalCommissionAmount}
-                    }
-                ).exec();
-                return {partnerId: partnerId, amount: totalCommissionAmount}
-            }));
+            totalSettledCommissionAmount.push(settledCommissionData);
         });
 
         return Promise.all(totalSettledCommissionAmount).then( data => {
