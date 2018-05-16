@@ -80,7 +80,7 @@ div.row
         div.col-md-10
             div
         div.col-md-2
-            .btn.btn-primary(ng-click="vm.batchSave()") {{"BATCH RATE" | translate}}
+            .btn.btn-primary(ng-disabled="vm.batchSaveInProgress", ng-click="vm.batchSave()") {{"BATCH RATE" | translate}}
 
 div.row(style='margin-top:20px;')
     div.col-md-12

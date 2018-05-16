@@ -2150,6 +2150,31 @@ var dbQualityInspection = {
         return dbQualityInspection.getSummarizedLive800Record(queryString, connection)
     },
 
+    resummarizeLive800Record: function(startTime, endTime){
+        let startDate = new Date(startTime);
+        let endDate = new Date(endTime);
+
+        if(startTime && endTime){
+            startTime = new Date(startTime);
+            endTime = new Date(endTime);
+
+            endTime.setHours(23, 59, 59, 999);
+            endTime.setDate(endTime.getDate() - 1);
+
+            let query = {
+                createTime: {
+                    $gte: new Date(startTime),
+                    $lt: new Date(endTime)
+                }
+            }
+            return dbconfig.collection_live800RecordDaySummary.remove(query).then(
+                () => {
+                    return dbQualityInspection.summarizeLive800Record(startDate,endDate);
+                }
+            )
+        }
+    },
+
     getSummarizedLive800Record:function(queryString, connection){
         var deferred = Q.defer();
         let counter = 0;

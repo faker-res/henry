@@ -413,6 +413,7 @@
                 "updatePartnerQQ",
                 "updatePartnerWeChat",
                 "updatePartnerEmail",
+                "getCommissionRate",
                 "getCrewActiveInfo",
                 "getCrewDepositInfo",
                 "getCrewWithdrawInfo",

@@ -212,6 +212,12 @@
         this.partnerService.updatePartnerEmail.once(callback);
     };
 
+    proto.getCommissionRate = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.getCommissionRate.request(data);
+        this.partnerService.getCommissionRate.once(callback);
+    };
+
     proto.getCrewActiveInfo = function (callback, requestData) {
         var data = requestData || {};
         this.partnerService.getCrewActiveInfo.request(data);

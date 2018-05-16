@@ -3149,6 +3149,7 @@
   "dailyMaxRewardPoint": "单日积分上限",
   "Reward Point ID": "积分ID",
   "Proposal Creator": "提案人",
+  "Registration Agent": "开户人员",
   "createTime": "加入时间",
   "The promoCode Type is still valid": "优惠类型还在使用中，不能被删除。",
   "promoName": "礼包名称",
@@ -3724,6 +3725,7 @@
   "Total Consumption" : "投注记录总计",
   "Platform Fee" : "平台费",
   "SKIP" : "跳过",
-  "Totalsum": "总计"
+  "Totalsum": "总计",
+  "Resummarize": "重新收录"
 
 }

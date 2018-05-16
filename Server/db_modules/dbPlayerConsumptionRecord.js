@@ -610,6 +610,7 @@ var dbPlayerConsumptionRecord = {
                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, {}).catch(errorUtils.reportError);
                 }
                 if (record) {
+                    console.log('debug log #0FD400');
                     dbRewardPoints.updateGameRewardPointProgress(record).catch(errorUtils.reportError);
                 }
                 return record
