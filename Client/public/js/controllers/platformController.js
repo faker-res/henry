@@ -24536,6 +24536,12 @@ define(['js/app'], function (myApp) {
             };
 
             vm.customizeCommissionRate = (idx, setting, newConfig, oldConfig, isRevert = false) => {
+                if (isRevert) {
+                    let customCount = newConfig.commissionSetting.filter(e => e.isCustomized).length;
+                    newConfig.commissionSetting[idx].commissionRate = oldConfig.commissionSetting[idx].commissionRate;
+                    isRevert = --customCount === 0;
+                }
+
                 // Check setting has changed or not
                 if (newConfig || isRevert) {
                     let sendData = {
