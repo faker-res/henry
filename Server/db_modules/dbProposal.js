@@ -3425,13 +3425,32 @@ var proposal = {
     },
 
     checkProposalExpiration: function () {
-        return dbconfig.collection_proposal.update(
-            {
-                status: constProposalStatus.PENDING,
-                expirationTime: {$lt: new Date()}
-            },
-            {
-                status: constProposalStatus.EXPIRED
+        return dbconfig.collection_proposalType.find({
+            name: constProposalType.BULK_EXPORT_PLAYERS_DATA
+        }).lean().then(
+            proposalTypeData => {
+                let query = {};
+                if (proposalTypeData && proposalTypeData.length) {
+                    let proposalList = [];
+                    for (let i = 0; i < proposalTypeData.length; i++) {
+                        proposalList.push(proposalTypeData[i]._id);
+                    }
+                    query = {
+                        expirationTime: {$lt: new Date()},
+                        $or: [{'status': constProposalStatus.PENDING}, {$and: [{'type':{$in: proposalList}}, {'status': constProposalStatus.APPROVED}]}]
+                    }
+                } else {
+                    query = {
+                        status: constProposalStatus.PENDING,
+                        expirationTime: {$lt: new Date()}
+                    }
+                }
+                return dbconfig.collection_proposal.update(
+                    query,
+                    {
+                        status: constProposalStatus.EXPIRED
+                    }
+                );
             }
         );
     },
