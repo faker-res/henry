@@ -1195,11 +1195,6 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                //remove player name
-                dbconfig.collection_playerName.remove({
-                    name: playerdata.name,
-                    platform: playerdata.platform
-                }).then();
                 if (!error.message) {
                     return Promise.reject({
                         name: "DBError",
@@ -1272,6 +1267,11 @@ let dbPlayerInfo = {
                 }
             },
             error => {
+                //remove player name
+                dbconfig.collection_playerName.remove({
+                    name: playerdata.name,
+                    platform: playerdata.platform
+                }).then();
                 if (!error.message) {
                     return Promise.reject({
                         name: "DBError",
