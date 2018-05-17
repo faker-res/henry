@@ -229,9 +229,9 @@ var encrypt = {
         let totalChildrenBalanceOperator = data.hasOwnProperty('totalChildrenBalanceOperator') ? data.totalChildrenBalanceOperator : "";
         let totalChildrenBalanceInput1 = data.hasOwnProperty('totalChildrenBalanceInput1') ? data.totalChildrenBalanceInput1 : "";
         let totalChildrenBalanceInput2 = data.hasOwnProperty('totalChildrenBalanceInput2') ? data.totalChildrenBalanceInput2 : "";
-        let commissionAmountFromChildrenOperator = data.hasOwnProperty('commissionAmountFromChildrenOperator') ? data.commissionAmountFromChildrenOperator : "";
-        let commissionAmountFromChildrenInput1 = data.hasOwnProperty('commissionAmountFromChildrenInput1') ? data.commissionAmountFromChildrenInput1 : "";
-        let commissionAmountFromChildrenInput2 = data.hasOwnProperty('commissionAmountFromChildrenInput2') ? data.commissionAmountFromChildrenInput2 : "";
+        let totalSettledCommissionOperator = data.hasOwnProperty('totalSettledCommissionOperator') ? data.totalSettledCommissionOperator : "";
+        let totalSettledCommissionInput1 = data.hasOwnProperty('totalSettledCommissionInput1') ? data.totalSettledCommissionInput1 : "";
+        let totalSettledCommissionInput2 = data.hasOwnProperty('totalSettledCommissionInput2') ? data.totalSettledCommissionInput2 : "";
 
         let query = {};
         if (partnerId !== '') {
@@ -383,19 +383,19 @@ var encrypt = {
                     break;
             }
         }
-        if (commissionAmountFromChildrenOperator && commissionAmountFromChildrenInput1) {
-            switch (commissionAmountFromChildrenOperator) {
+        if (totalSettledCommissionOperator && totalSettledCommissionInput1) {
+            switch (totalSettledCommissionOperator) {
                 case '<=':
-                    query["commissionAmountFromChildren"] = {$lte: commissionAmountFromChildrenInput1};
+                    query["totalSettledCommission"] = {$lte: totalSettledCommissionInput1};
                     break;
                 case '>=':
-                    query["commissionAmountFromChildren"] = {$gte: commissionAmountFromChildrenInput1};
+                    query["totalSettledCommission"] = {$gte: totalSettledCommissionInput1};
                     break;
                 case '=':
-                    query["commissionAmountFromChildren"] = commissionAmountFromChildrenInput1;
+                    query["totalSettledCommission"] = totalSettledCommissionInput1;
                     break;
                 case 'range':
-                    if (commissionAmountFromChildrenInput2) query["commissionAmountFromChildren"] = {$gte: commissionAmountFromChildrenInput1, $lte: commissionAmountFromChildrenInput2};
+                    if (totalSettledCommissionInput2) query["totalSettledCommission"] = {$gte: totalSettledCommissionInput1, $lte: totalSettledCommissionInput2};
                     break;
             }
         }

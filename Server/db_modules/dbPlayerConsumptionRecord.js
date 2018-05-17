@@ -743,7 +743,9 @@ var dbPlayerConsumptionRecord = {
                     }
                 } else {
                     const missingList = [];
+                    let code = constServerCode.COMMON_ERROR;
                     if (verifiedData && !verifiedData[0]) {
+                        code = constServerCode.NO_USER_FOUND;
                         missingList.push("userName");
                     }
                     if (verifiedData && !verifiedData[1]) {
@@ -753,6 +755,7 @@ var dbPlayerConsumptionRecord = {
                         missingList.push("providerId");
                     }
                     return resolveError ? Q.resolve(null) : Q.reject({
+                        code: code,
                         name: "DataError",
                         message: "Could not find documents matching: " + missingList.join(', '),
                         data: recordData

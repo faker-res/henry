@@ -520,6 +520,12 @@ function socketActionPartner(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPartner.getTotalChildrenBalance, [data], actionName, isValidData);
         },
 
+        getTotalSettledCommission: function getTotalSettledCommission (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPartner.getTotalSettledCommission, [data.data], actionName, isValidData);
+        },
+
         getPartnerSettlementHistory: function getPartnerSettlementHistory (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data.platformObjId && data.partnerName || data.commissionType && data.startTime && data.endTime);

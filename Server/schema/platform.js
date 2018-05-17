@@ -93,6 +93,8 @@ var platformSchema = new Schema({
     samePhoneNumberRegisterCount: {type: Number, default: 1},
     // white listing phone number
     whiteListingPhoneNumbers: [{type:String}],
+    // black listing phone number
+    blackListingPhoneNumbers: [{type:String}],
     // Auto approve bonus proposal platform switch
     enableAutoApplyBonus: {type: Boolean, default: false},
     // Auto approve single withdrawal limit
@@ -155,6 +157,8 @@ var platformSchema = new Schema({
     partnerSamePhoneNumberRegisterCount: {type: Number, default: 1},
     // partner white listing phone number
     partnerWhiteListingPhoneNumbers: [{type:String}],
+    // partner black listing phone number
+    partnerBlackListingPhoneNumbers: [{type:String}],
     // Platform-wide SMS Verification Setting, for create partners
     partnerRequireSMSVerification: {type: Boolean, default: false},
     // SMS Verification Setting For partner Password Update

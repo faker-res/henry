@@ -52,6 +52,13 @@ let dbPartner = {
             platformDataResult => {
                 platformData = platformDataResult;
                 if (platformData) {
+                    if(partnerData.phoneNumber && platformData.partnerBlackListingPhoneNumbers){
+                        let indexNo = platformData.partnerBlackListingPhoneNumbers.findIndex(p => p == partnerData.phoneNumber);
+                        if(indexNo != -1){
+                            return Q.reject({name: "DataError", message: "Registration failed, phone number is invalid"});
+                        }
+                    }
+
                     if (!platformData.partnerRequireSMSVerification) {
                         return true;
                     }
@@ -758,7 +765,7 @@ let dbPartner = {
                 {$match:query},
                 {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
                         "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
-                        "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "settledCommission":1, "_id":1, }},
+                        "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "totalSettledCommission":1, "_id":1, }},
                 {$sort:sortObj},
                 {$skip:index},
                 {$limit:limit}
@@ -789,7 +796,7 @@ let dbPartner = {
                 {$match:query},
                 {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
                         "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
-                        "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "commissionAmountFromChildren":1, "_id":1, }},
+                        "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "totalSettledCommission":1, "_id":1, }},
                 {$skip:index},
                 {$limit:limit}
             ]).then(
@@ -5056,7 +5063,7 @@ let dbPartner = {
         let period = 'day';
 
         partnerArr.referral.forEach(partner => {
-            if (partner && partner.length){
+            if (partner && partner.length) {
                 dailyActivePlayerProm.push( dbPartner.getPartnerActivePlayer(partner, todayTime, period) );
             }
         });
@@ -5072,7 +5079,7 @@ let dbPartner = {
         let period = 'week';
 
         partnerArr.referral.forEach(partner => {
-            if (partner && partner.length){
+            if (partner && partner.length) {
                 weeklyActivePlayerProm.push( dbPartner.getPartnerActivePlayer(partner, currentWeek, period) );
             }
         });
@@ -5088,7 +5095,7 @@ let dbPartner = {
         let period = 'month';
 
         partnerArr.referral.forEach(partner => {
-            if (partner && partner.length){
+            if (partner && partner.length) {
                 monthlyActivePlayerProm.push( dbPartner.getPartnerActivePlayer(partner, currentMonth, period) );
             }
         });
@@ -5102,7 +5109,7 @@ let dbPartner = {
         let validPlayersProm = [];
 
         partnerArr.referral.forEach(partner => {
-            if (partner && partner.length){
+            if (partner && partner.length) {
                 validPlayersProm.push( dbPartner.getValidPlayers(partner) );
             }
         });
@@ -5379,7 +5386,7 @@ let dbPartner = {
         let totalChildrenDepositProm = [];
 
         partnerArr.referral.forEach(partner => {
-            if (partner && partner.length){
+            if (partner && partner.length) {
                 totalChildrenDepositProm.push( dbPartner.getTotalChildrenCredit(partner) );
             }
         });
@@ -5431,7 +5438,7 @@ let dbPartner = {
                             $match: {
                                 "data.playerObjId": {$in: playerList},
                                 "data.platformId": platformId,
-                                "mainType": "PlayerBonus",
+                                "mainType": constProposalType.PLAYER_BONUS,
                                 "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                             },
                         },
@@ -5467,12 +5474,69 @@ let dbPartner = {
         let totalChildrenBalanceProm = [];
 
         partnerArr.referral.forEach(partner => {
-            if (partner && partner.length){
+            if (partner && partner.length) {
                 totalChildrenBalanceProm.push( dbPartner.getTotalChildrenValidCredit(partner) );
             }
         });
 
         return Promise.all(totalChildrenBalanceProm).then( data => {
+            return data;
+        })
+    },
+
+    getTotalSettledCommission: (partnerArr)  => {
+        let totalSettledCommissionAmount = [];
+
+        partnerArr.forEach(partner => {
+            let platformId = ObjectId(partner.platform);
+            let partnerId = ObjectId(partner._id);
+
+            let settledCommissionData = dbconfig.collection_proposalType.findOne({
+                platformId: platformId,
+                name: constProposalType.SETTLE_PARTNER_COMMISSION
+            }).then(
+                typeData => {
+                    if (typeData) {
+                        return dbconfig.collection_proposal.aggregate(
+                            {
+                                $match: {
+                                    "data.partnerObjId": partnerId,
+                                    "data.platformObjId": platformId,
+                                    "type": typeData._id,
+                                    "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                },
+                            },
+                            {
+                                $group: {
+                                    _id: "$data.partnerName",
+                                    commissionAmount: {$sum: "$data.amount"},
+                                    commissionCount: {$sum: 1}
+                                }
+                            }
+                        ).read("secondaryPreferred").then(records => {
+                            let totalCommissionAmount = 0;
+                            records.map(record => totalCommissionAmount += record.commissionAmount);
+                            totalCommissionAmount = parseFloat(totalCommissionAmount).toFixed(2);
+
+                            dbconfig.collection_partner.findOneAndUpdate(
+                                {
+                                    _id: partnerId,
+                                    platform: platformId,
+                                },
+                                {
+                                    $set: {totalSettledCommission: totalCommissionAmount}
+                                }
+                            ).exec();
+                            return {partnerId: partnerId, amount: totalCommissionAmount}
+                        })
+                    }
+                }
+            );
+
+            totalSettledCommissionAmount.push(settledCommissionData);
+        });
+
+        return Promise.all(totalSettledCommissionAmount).then( data => {
             return data;
         })
     },
@@ -6279,32 +6343,33 @@ let dbPartner = {
                             }
                         }
 
-                        for (let j = oriCommission.length - 1; j >= 0 ; j--) {
-                            for (let k = 0; k < customCommission.length; k++) {
-                                // if (customCommission[k].provider._id.toString() == oriCommission[j].provider._id.toString()) {
-                                oriCommission[j].commissionSetting.forEach(ori => {
-                                    if (!ori.defaultCommissionRate) {
-                                        ori.defaultCommissionRate = ori.commissionRate;
-                                        delete ori.commissionRate;
-                                    }
-                                    if (customCommission[k].provider._id.toString() == oriCommission[j].provider._id.toString()) {
+                        for (let j = 0; j < oriCommission.length ; j++) {
+                            for (let k = customCommission.length - 1; k >= 0; k--) {
+                                if (customCommission[k].provider._id.toString() == oriCommission[j].provider._id.toString()) {
+                                    oriCommission[j].commissionSetting.forEach(ori => {
                                         customCommission[k].commissionSetting.forEach(cus => {
                                             if (cus.playerConsumptionAmountFrom === ori.playerConsumptionAmountFrom
                                                 && cus.playerConsumptionAmountTo === ori.playerConsumptionAmountTo
                                                 && cus.activePlayerValueFrom === ori.activePlayerValueFrom
                                                 && cus.activePlayerValueTo === ori.activePlayerValueTo
-                                                && Number(cus.commissionRate) !== Number(ori.defaultCommissionRate)
+                                                && Number(cus.commissionRate) !== Number(ori.commissionRate)
                                             ) {
                                                 ori.customizedCommissionRate = cus.commissionRate;
-                                                if (ori.activePlayerValueTo == null) {
-                                                    ori.activePlayerValueTo = "-";
-                                                }
                                             }
                                         });
-                                    }
-                                });
-                                // }
+                                    });
+                                    customCommission.splice(k,1);
+                                }
                             }
+                            oriCommission[j].commissionSetting.forEach(ori => {
+                                if (ori.activePlayerValueTo == null) {
+                                    ori.activePlayerValueTo = "-";
+                                }
+                                if (!ori.hasOwnProperty("defaultCommissionRate")) {
+                                    ori.defaultCommissionRate = ori.commissionRate;
+                                    delete ori.commissionRate;
+                                }
+                            })
                             let commissionObj = {
                                 providerGroupId: oriCommission[j].provider.providerGroupId ? oriCommission[j].provider.providerGroupId : "",
                                 providerGroupName: oriCommission[j].provider.name ? oriCommission[j].provider.name : "",
@@ -6334,6 +6399,153 @@ let dbPartner = {
                     return returnData;
                 } else {
                     return Promise.reject({name: "DataError", message: "Cannot find commission rate"});
+                }
+            }
+        )
+    },
+
+    getPartnerFeeRate: (platformId, partnerId) => {
+        let platformObj;
+        let partnerObj;
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    platformObj = platformData;
+                    if (partnerId) {
+                        return dbconfig.collection_partner.findOne({
+                            platform: platformObj._id,
+                            partnerId: partnerId
+                        }).lean();
+                    } else {
+                        return Promise.resolve(true);
+                    }
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
+            partnerData => {
+                if (partnerData) {
+                    partnerObj = partnerData;
+                    let partnerFeeQuery = {
+                        platform: platformObj._id,
+                        partner: {$exists: false}
+                    };
+
+                    return dbconfig.collection_partnerCommissionRateConfig.find(partnerFeeQuery)
+                        .populate({
+                            path: "rateAfterRebateGameProviderGroup.gameProviderGroupId",
+                            model: dbconfig.collection_gameProviderGroup
+                        }).lean();
+
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find partner"});
+                }
+            }
+        ).then(
+            partnerFeeData => {
+                if (partnerFeeData) {
+                    let returnData = [];
+                    function buildDefaultRateData() {
+                        for (let i = 0; i < partnerFeeData.length; i++) {
+                            let feeObj = {
+                                defaultPromoRate: partnerFeeData[i].rateAfterRebatePromo,
+                                defaultPlatformRate: partnerFeeData[i].rateAfterRebatePlatform,
+                                defaultTotalDepositRate: partnerFeeData[i].rateAfterRebateTotalDeposit,
+                                defaultTotalWithdrawalRate: partnerFeeData[i].rateAfterRebateTotalWithdrawal,
+                                list: []
+                            }
+                            for (let j = 0; j < partnerFeeData[i].rateAfterRebateGameProviderGroup.length; j++) {
+                                let providerGroupRate = partnerFeeData[i].rateAfterRebateGameProviderGroup[j];
+                                let feeObjList = {
+                                    providerGroupId: providerGroupRate.gameProviderGroupId && providerGroupRate.gameProviderGroupId.providerGroupId ? providerGroupRate.gameProviderGroupId.providerGroupId: "",
+                                    providerGroupName: providerGroupRate.name,
+                                    defaultRate: providerGroupRate.rate,
+                                }
+                                feeObj.list.push(feeObjList);
+                            }
+                            returnData.push(feeObj);
+                        }
+                    }
+                    if (partnerObj._id) {
+                        // let customFee = [];
+                        let oriFee = partnerFeeData;
+
+                        let partnerFeeQuery = {
+                            platform: platformObj._id,
+                            partner: partnerObj._id
+                        };
+                        return dbconfig.collection_partnerCommissionRateConfig.find(partnerFeeQuery).lean().then(
+                                customFeeData => {
+                                    if (customFeeData && customFeeData.length) {
+                                        for (let i = 0; i < partnerFeeData.length; i++) {
+                                            let feeObj = {
+                                                defaultPromoRate: partnerFeeData[i].rateAfterRebatePromo,
+                                                defaultPlatformRate: partnerFeeData[i].rateAfterRebatePlatform,
+                                                defaultTotalDepositRate: partnerFeeData[i].rateAfterRebateTotalDeposit,
+                                                defaultTotalWithdrawalRate: partnerFeeData[i].rateAfterRebateTotalWithdrawal,
+                                                list: []
+                                            };
+                                            for (let j = customFeeData.length - 1; j >= 0; j--) {
+                                                if (partnerFeeData[i].platform.toString() == customFeeData[j].platform.toString()) {
+                                                    if (partnerFeeData[i].rateAfterRebatePromo != customFeeData[j].rateAfterRebatePromo) {
+                                                        feeObj.customizedPromoRate = customFeeData[j].rateAfterRebatePromo;
+                                                    }
+                                                    if (partnerFeeData[i].rateAfterRebatePlatform != customFeeData[j].rateAfterRebatePlatform) {
+                                                        feeObj.customizedPlatformRate = customFeeData[j].rateAfterRebatePlatform;
+                                                    }
+                                                    if (partnerFeeData[i].rateAfterRebateTotalDeposit != customFeeData[j].rateAfterRebateTotalDeposit) {
+                                                        feeObj.customizedTotalDepositRate = customFeeData[j].rateAfterRebateTotalDeposit;
+                                                    }
+                                                    if (partnerFeeData[i].rateAfterRebateTotalWithdrawal != customFeeData[j].rateAfterRebateTotalWithdrawal) {
+                                                        feeObj.customizedTotalWithdrawalRate = customFeeData[j].rateAfterRebateTotalWithdrawal;
+                                                    }
+                                                    if (partnerFeeData[i].rateAfterRebateGameProviderGroup) {
+                                                        partnerFeeData[i].rateAfterRebateGameProviderGroup.forEach(ori => {
+                                                            let feeObjList = {
+                                                                providerGroupId: ori.gameProviderGroupId && ori.gameProviderGroupId.providerGroupId ? ori.gameProviderGroupId.providerGroupId : "",
+                                                                providerGroupName: ori.name,
+                                                                defaultRate: ori.rate,
+                                                            }
+                                                            if (customFeeData[j].rateAfterRebateGameProviderGroup) {
+                                                                customFeeData[j].rateAfterRebateGameProviderGroup.forEach(cus => {
+                                                                    if (ori.gameProviderGroupId && ori.gameProviderGroupId._id && cus.gameProviderGroupId
+                                                                        && ori.gameProviderGroupId._id.toString() == cus.gameProviderGroupId.toString()
+                                                                        && ori.rate != cus.rate) {
+                                                                        feeObjList.customizedRate = cus.rate;
+                                                                    }
+                                                                });
+                                                            }
+                                                            feeObj.list.push(feeObjList);
+                                                        });
+                                                    }
+                                                }
+                                            }
+                                            if (partnerFeeData[i].rateAfterRebateGameProviderGroup && partnerFeeData[i].rateAfterRebateGameProviderGroup.length && !feeObj.list.length) {
+                                                partnerFeeData[i].rateAfterRebateGameProviderGroup.forEach(ori => {
+                                                    let feeObjList = {
+                                                        providerGroupId: ori.gameProviderGroupId && ori.gameProviderGroupId.providerGroupId ? ori.gameProviderGroupId.providerGroupId : "",
+                                                        providerGroupName: ori.name,
+                                                        defaultRate: ori.rate,
+                                                    }
+                                                    feeObj.list.push(feeObjList);
+                                                });
+                                            }
+                                            returnData.push(feeObj);
+                                        }
+                                    } else {
+                                        buildDefaultRateData();
+                                    }
+                                    return returnData;
+                                }
+                            );
+                    } else {
+                        buildDefaultRateData();
+                        return returnData;
+                    }
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find partner fee rate"});
                 }
             }
         )
