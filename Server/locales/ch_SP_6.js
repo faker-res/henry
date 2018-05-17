@@ -232,7 +232,7 @@ var simplifiedChinese = {
     "Please enter bank account name or contact cs": "请填写收款人姓名或联系客服",
     "Invalid phone number": "无效手机号码",
     "Partner Name length is not valid": "代理帐号长度无效",
-    "This phone number is already used. Please insert other phone number.": "该号码已经被使用，请使用其他手机号。",
+    "This phone number is already used. Please insert other phone number.": "该号码已注册账号，不支持重复开户。",
     "PlayerLevelUp": "升级奖励",
     "level change fail, please contact cs": "等级变更失效，请联系客服。",
     "The promoCode Type is still valid": "优惠类型还在使用中，不能被删除。",
@@ -315,7 +315,8 @@ var simplifiedChinese = {
     "ALL_PROVIDERS": "全部供应商",
     "This phone number has applied for max reward times in event period": "此电话已经达到了该优惠周期内的申请上限",
     "Password should be alphanumeric and within 20 characters": "密码只能为6-20位的数字和字母",
-    "Player does not have permission for reward point task": "目前进行维护当中，详情请联系客服谘询，谢谢"
+    "Player does not have permission for reward point task": "目前进行维护当中，详情请联系客服谘询，谢谢",
+    "Registration failed, phone number is invalid": "注册失败, 该电话无效"
     //todo::add missing messages here
 
     /*
