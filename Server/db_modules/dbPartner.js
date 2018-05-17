@@ -55,7 +55,7 @@ let dbPartner = {
                     if(partnerData.phoneNumber && platformData.partnerBlackListingPhoneNumbers){
                         let indexNo = platformData.partnerBlackListingPhoneNumbers.findIndex(p => p == partnerData.phoneNumber);
                         if(indexNo != -1){
-                            return Q.reject({name: "DataError", message: "Registration failed, phone number is invalid"});
+                            return Q.reject({name: "DataError", message: localization.localization.translate("Registration failed, phone number is invalid")});
                         }
                     }
 
