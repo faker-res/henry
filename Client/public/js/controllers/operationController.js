@@ -2196,7 +2196,7 @@ define(['js/app'], function (myApp) {
 
 
                 proposalDetail["MAIN_TYPE"] = $translate("BulkExportPlayerData");
-                proposalDetail["USER_TYPE"] = $translate(vm.selectedProposal.playerType) || " ";
+                proposalDetail["USER_TYPE"] = $translate(vm.selectedProposal.data.playerType) || " ";
                 proposalDetail["BANNER TITLE"] = $translate(vm.selectedProposal.data.title) || " ";
                 proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName || $translate("ALL");
                 proposalDetail["CREDIBILITY"] = vm.selectedProposal.data.credibilityRemarkNames && vm.selectedProposal.data.credibilityRemarkNames.length > 0 ? vm.selectedProposal.data.credibilityRemarkNames.join(', ') : " ";
