@@ -6336,32 +6336,33 @@ let dbPartner = {
                             }
                         }
 
-                        for (let j = oriCommission.length - 1; j >= 0 ; j--) {
-                            for (let k = 0; k < customCommission.length; k++) {
-                                // if (customCommission[k].provider._id.toString() == oriCommission[j].provider._id.toString()) {
-                                oriCommission[j].commissionSetting.forEach(ori => {
-                                    if (!ori.defaultCommissionRate) {
-                                        ori.defaultCommissionRate = ori.commissionRate;
-                                        delete ori.commissionRate;
-                                    }
-                                    if (customCommission[k].provider._id.toString() == oriCommission[j].provider._id.toString()) {
+                        for (let j = 0; j < oriCommission.length ; j++) {
+                            for (let k = customCommission.length - 1; k >= 0; k--) {
+                                if (customCommission[k].provider._id.toString() == oriCommission[j].provider._id.toString()) {
+                                    oriCommission[j].commissionSetting.forEach(ori => {
                                         customCommission[k].commissionSetting.forEach(cus => {
                                             if (cus.playerConsumptionAmountFrom === ori.playerConsumptionAmountFrom
                                                 && cus.playerConsumptionAmountTo === ori.playerConsumptionAmountTo
                                                 && cus.activePlayerValueFrom === ori.activePlayerValueFrom
                                                 && cus.activePlayerValueTo === ori.activePlayerValueTo
-                                                && Number(cus.commissionRate) !== Number(ori.defaultCommissionRate)
+                                                && Number(cus.commissionRate) !== Number(ori.commissionRate)
                                             ) {
                                                 ori.customizedCommissionRate = cus.commissionRate;
-                                                if (ori.activePlayerValueTo == null) {
-                                                    ori.activePlayerValueTo = "-";
-                                                }
                                             }
                                         });
-                                    }
-                                });
-                                // }
+                                    });
+                                    customCommission.splice(k,1);
+                                }
                             }
+                            oriCommission[j].commissionSetting.forEach(ori => {
+                                if (ori.activePlayerValueTo == null) {
+                                    ori.activePlayerValueTo = "-";
+                                }
+                                if (!ori.hasOwnProperty("defaultCommissionRate")) {
+                                    ori.defaultCommissionRate = ori.commissionRate;
+                                    delete ori.commissionRate;
+                                }
+                            })
                             let commissionObj = {
                                 providerGroupId: oriCommission[j].provider.providerGroupId ? oriCommission[j].provider.providerGroupId : "",
                                 providerGroupName: oriCommission[j].provider.name ? oriCommission[j].provider.name : "",
