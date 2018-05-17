@@ -390,6 +390,14 @@ let dbPlayerInfo = {
                         return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
 
+                    if(inputData.phoneNumber && platformData.blackListingPhoneNumbers){
+                        let indexNo = platformData.blackListingPhoneNumbers.findIndex(p => p == inputData.phoneNumber);
+
+                        if(indexNo != -1){
+                            return Q.reject({name: "DataError", message: localization.localization.translate("Registration failed, phone number is invalid")});
+                        }
+                    }
+
                     platformId = platformData.platformId;
                     platformObj = platformData;
                     platformObjId = platformData._id;
@@ -1195,11 +1203,6 @@ let dbPlayerInfo = {
                 }
             },
             error => {
-                //remove player name
-                dbconfig.collection_playerName.remove({
-                    name: playerdata.name,
-                    platform: playerdata.platform
-                }).then();
                 if (!error.message) {
                     return Promise.reject({
                         name: "DBError",
@@ -1272,6 +1275,11 @@ let dbPlayerInfo = {
                 }
             },
             error => {
+                //remove player name
+                dbconfig.collection_playerName.remove({
+                    name: playerdata.name,
+                    platform: playerdata.platform
+                }).then();
                 if (!error.message) {
                     return Promise.reject({
                         name: "DBError",

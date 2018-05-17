@@ -19649,10 +19649,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.refreshSPicker = () => {
-                $('.spicker').selectpicker('refresh');
-                // $timeout(function () {
-                //     $('.spicker').selectpicker('refresh');
-                // }, 0);
+                // without this timeout, 'selectpicker refresh' might done before the DOM able to refresh, which evalAsync doesn't help
+                $timeout(function () {
+                    $('.spicker').selectpicker('refresh');
+                }, 0);
             };
 
             vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
@@ -24537,6 +24537,12 @@ define(['js/app'], function (myApp) {
             };
 
             vm.customizeCommissionRate = (idx, setting, newConfig, oldConfig, isRevert = false) => {
+                if (isRevert) {
+                    let customCount = newConfig.commissionSetting.filter(e => e.isCustomized).length;
+                    newConfig.commissionSetting[idx].commissionRate = oldConfig.commissionSetting[idx].commissionRate;
+                    isRevert = --customCount === 0;
+                }
+
                 // Check setting has changed or not
                 if (newConfig || isRevert) {
                     let sendData = {

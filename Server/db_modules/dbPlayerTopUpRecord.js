@@ -1223,7 +1223,7 @@ var dbPlayerTopUpRecord = {
                             break;
                         case 6:
                         case "6":
-                            depositMethod = "云闪付转帐";
+                            depositMethod = "云闪付转账";
                             break;
                         default:
                             break;

@@ -414,6 +414,7 @@
                 "updatePartnerWeChat",
                 "updatePartnerEmail",
                 "getCommissionRate",
+                "getPartnerFeeRate",
                 "getCrewActiveInfo",
                 "getCrewDepositInfo",
                 "getCrewWithdrawInfo",

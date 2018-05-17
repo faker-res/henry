@@ -96,7 +96,15 @@
     };
 
     proto.clickCount = function (callback, requestData) {
-
+        if (requestData.registerClickApp === "false") {
+            delete requestData.registerClickApp;
+        }
+        if (requestData.registerClickWeb === "false") {
+            delete requestData.registerClickWeb;
+        }
+        if (requestData.registerClickH5 === "false") {
+            delete requestData.registerClickH5;
+        }
         this._service.clickCount.request(requestData);
         this._service.clickCount.once(function (data) {
             if (callback && typeof callback === "function") {
