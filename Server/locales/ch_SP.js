@@ -323,7 +323,7 @@ var simplifiedChinese = {
     "Current request is expired": "已过期，请从新申请",
     "Proposal already used": "已使用过，请从新申请",
     "Registration failed, phone number is invalid": "注册失败, 该电话无效",
-    "Sending failed, phone number is invalid": "发送失败，该电话无效"
+    "Phone number has been used": "该号码已注册账号，不支持重复开户"
     //todo::add missing messages here
 
     /*
