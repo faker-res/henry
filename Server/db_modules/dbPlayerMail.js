@@ -378,6 +378,14 @@ const dbPlayerMail = {
                         }
                     }
 
+                    if(telNum && platformData.blackListingPhoneNumbers){
+                        let indexNo = platformData.blackListingPhoneNumbers.findIndex(p => p == telNum);
+
+                        if(indexNo != -1){
+                            return Q.reject({name: "DataError", message: localization.localization.translate("Sending failed, phone number is invalid")});
+                        }
+                    }
+
                     let smsChannelProm = smsAPI.channel_getChannelList({});
                     let smsVerificationLogProm = dbconfig.collection_smsVerificationLog.findOne({
                         tel: telNum,

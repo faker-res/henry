@@ -394,7 +394,7 @@ let dbPlayerInfo = {
                         let indexNo = platformData.blackListingPhoneNumbers.findIndex(p => p == inputData.phoneNumber);
 
                         if(indexNo != -1){
-                            return Q.reject({name: "DataError", message: "Registration failed, phone number is invalid"});
+                            return Q.reject({name: "DataError", message: localization.localization.translate("Registration failed, phone number is invalid")});
                         }
                     }
 
