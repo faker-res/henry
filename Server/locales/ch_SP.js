@@ -232,7 +232,7 @@ var simplifiedChinese = {
     "Please enter bank account name or contact cs": "请填写收款人姓名或联系客服",
     "Invalid phone number": "无效手机号码",
     "Partner Name length is not valid": "代理帐号长度无效",
-    "This phone number is already used. Please insert other phone number.": "该号码已经被使用，请使用其他手机号。",
+    "This phone number is already used. Please insert other phone number.": "该号码已注册账号，不支持重复开户。",
     "PlayerLevelUp": "升级奖励",
     "level change fail, please contact cs": "等级变更失效，请联系客服。",
     "The promoCode Type is still valid": "优惠类型还在使用中，不能被删除。",
@@ -322,8 +322,7 @@ var simplifiedChinese = {
     "IP not authorized": "此IP不被授权使用此功能",
     "Current request is expired": "已过期，请从新申请",
     "Proposal already used": "已使用过，请从新申请",
-    "Registration failed, phone number is invalid": "注册失败, 该电话无效",
-    "Sending failed, phone number is invalid": "发送失败，该电话无效"
+    "Registration failed, phone number is invalid": "注册失败, 该电话无效"
     //todo::add missing messages here
 
     /*

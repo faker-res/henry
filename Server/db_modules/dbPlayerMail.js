@@ -382,7 +382,7 @@ const dbPlayerMail = {
                         let indexNo = platformData.blackListingPhoneNumbers.findIndex(p => p == telNum);
 
                         if(indexNo != -1){
-                            return Q.reject({name: "DataError", message: localization.localization.translate("Sending failed, phone number is invalid")});
+                            return Q.reject({name: "DataError", message: localization.localization.translate("This phone number is already used. Please insert other phone number.")});
                         }
                     }
 
@@ -669,7 +669,7 @@ const dbPlayerMail = {
                     let indexNo = blackListingPhoneNumber.findIndex(p => p == player.phoneNumber);
 
                     if(indexNo != -1){
-                        return Q.reject({name: "DataError", message: localization.localization.translate("Sending failed, phone number is invalid")});
+                        return Q.reject({name: "DataError", message: localization.localization.translate("This phone number is already used. Please insert other phone number.")});
                     }
                 }
 
