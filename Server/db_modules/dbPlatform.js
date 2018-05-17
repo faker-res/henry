@@ -2528,11 +2528,11 @@ var dbPlatform = {
             }, {new: true});
     },
 
-    createClickCountLog: (platformId, device, pageName, buttonName, registerClickApp, registerClickWeb, registerClickH5, ipAddress) => {
+    createClickCountLog: (platformId, device, pageName, buttonName, registerClickApp=false, registerClickWeb=false, registerClickH5=false, ipAddress) => {
         let todayTime = dbUtility.getTodaySGTime();
-        registerClickApp = registerClickApp === 'true' ? true : registerClickApp === 'false' ? false : registerClickApp;
-        registerClickWeb = registerClickWeb === 'true' ? true : registerClickWeb === 'false' ? false : registerClickWeb;
-        registerClickH5 = registerClickH5 === 'true' ? true : registerClickH5 === 'false' ? false : registerClickH5;
+        registerClickApp = registerClickApp === 'true' ? true : registerClickApp;
+        registerClickWeb = registerClickWeb === 'true' ? true : registerClickWeb;
+        registerClickH5 = registerClickH5 === 'true' ? true : registerClickH5;
 
         return dbconfig.collection_platform.findOne({platformId: platformId}, '_id').lean().then(
             platformObj => {
