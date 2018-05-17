@@ -15778,6 +15778,7 @@ define(['js/app'], function (myApp) {
                             vm.partnerPlayerObj[v.partnerId] = v;
                         });
                         vm.advancedPartnerQueryObj = vm.advancedPartnerQueryObj || {};
+                        vm.getPartnersByAdvanceQueryDebounced();
 
                         var sendQuery = {
                             query: {
