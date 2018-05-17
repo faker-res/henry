@@ -3433,7 +3433,7 @@ var proposal = {
                 if (proposalTypeData && proposalTypeData.length) {
                     let proposalList = [];
                     for (let i = 0; i < proposalTypeData.length; i++) {
-                        proposalList.push(proposalTypeData[i]._id);
+                        proposalList.push(ObjectId(proposalTypeData[i]._id));
                     }
                     query = {
                         expirationTime: {$lt: new Date()},
