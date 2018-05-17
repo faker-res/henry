@@ -19648,10 +19648,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.refreshSPicker = () => {
-                $('.spicker').selectpicker('refresh');
-                // $timeout(function () {
-                //     $('.spicker').selectpicker('refresh');
-                // }, 0);
+                // without this timeout, 'selectpicker refresh' might done before the DOM able to refresh, which evalAsync doesn't help
+                $timeout(function () {
+                    $('.spicker').selectpicker('refresh');
+                }, 0);
             };
 
             vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
