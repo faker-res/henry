@@ -3425,12 +3425,14 @@ var proposal = {
     },
 
     checkProposalExpiration: function () {
+        console.log("debugcheckProposalExpiration")
         return dbconfig.collection_proposalType.find({
             name: constProposalType.BULK_EXPORT_PLAYERS_DATA
         }).lean().then(
             proposalTypeData => {
                 let query = {};
                 if (proposalTypeData && proposalTypeData.length) {
+                    console.log("debugproposalType",proposalTypeData)
                     let proposalList = [];
                     for (let i = 0; i < proposalTypeData.length; i++) {
                         proposalList.push(ObjectId(proposalTypeData[i]._id));
