@@ -218,6 +218,12 @@
         this.partnerService.getCommissionRate.once(callback);
     };
 
+    proto.getPartnerFeeRate = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.getPartnerFeeRate.request(data);
+        this.partnerService.getPartnerFeeRate.once(callback);
+    };
+
     proto.getCrewActiveInfo = function (callback, requestData) {
         var data = requestData || {};
         this.partnerService.getCrewActiveInfo.request(data);

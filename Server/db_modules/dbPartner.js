@@ -6397,6 +6397,153 @@ let dbPartner = {
         )
     },
 
+    getPartnerFeeRate: (platformId, partnerId) => {
+        let platformObj;
+        let partnerObj;
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    platformObj = platformData;
+                    if (partnerId) {
+                        return dbconfig.collection_partner.findOne({
+                            platform: platformObj._id,
+                            partnerId: partnerId
+                        }).lean();
+                    } else {
+                        return Promise.resolve(true);
+                    }
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
+            partnerData => {
+                if (partnerData) {
+                    partnerObj = partnerData;
+                    let partnerFeeQuery = {
+                        platform: platformObj._id,
+                        partner: {$exists: false}
+                    };
+
+                    return dbconfig.collection_partnerCommissionRateConfig.find(partnerFeeQuery)
+                        .populate({
+                            path: "rateAfterRebateGameProviderGroup.gameProviderGroupId",
+                            model: dbconfig.collection_gameProviderGroup
+                        }).lean();
+
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find partner"});
+                }
+            }
+        ).then(
+            partnerFeeData => {
+                if (partnerFeeData) {
+                    let returnData = [];
+                    function buildDefaultRateData() {
+                        for (let i = 0; i < partnerFeeData.length; i++) {
+                            let feeObj = {
+                                defaultPromoRate: partnerFeeData[i].rateAfterRebatePromo,
+                                defaultPlatformRate: partnerFeeData[i].rateAfterRebatePlatform,
+                                defaultTotalDepositRate: partnerFeeData[i].rateAfterRebateTotalDeposit,
+                                defaultTotalWithdrawalRate: partnerFeeData[i].rateAfterRebateTotalWithdrawal,
+                                list: []
+                            }
+                            for (let j = 0; j < partnerFeeData[i].rateAfterRebateGameProviderGroup.length; j++) {
+                                let providerGroupRate = partnerFeeData[i].rateAfterRebateGameProviderGroup[j];
+                                let feeObjList = {
+                                    providerGroupId: providerGroupRate.gameProviderGroupId && providerGroupRate.gameProviderGroupId.providerGroupId ? providerGroupRate.gameProviderGroupId.providerGroupId: "",
+                                    providerGroupName: providerGroupRate.name,
+                                    defaultRate: providerGroupRate.rate,
+                                }
+                                feeObj.list.push(feeObjList);
+                            }
+                            returnData.push(feeObj);
+                        }
+                    }
+                    if (partnerObj._id) {
+                        // let customFee = [];
+                        let oriFee = partnerFeeData;
+
+                        let partnerFeeQuery = {
+                            platform: platformObj._id,
+                            partner: partnerObj._id
+                        };
+                        return dbconfig.collection_partnerCommissionRateConfig.find(partnerFeeQuery).lean().then(
+                                customFeeData => {
+                                    if (customFeeData && customFeeData.length) {
+                                        for (let i = 0; i < partnerFeeData.length; i++) {
+                                            let feeObj = {
+                                                defaultPromoRate: partnerFeeData[i].rateAfterRebatePromo,
+                                                defaultPlatformRate: partnerFeeData[i].rateAfterRebatePlatform,
+                                                defaultTotalDepositRate: partnerFeeData[i].rateAfterRebateTotalDeposit,
+                                                defaultTotalWithdrawalRate: partnerFeeData[i].rateAfterRebateTotalWithdrawal,
+                                                list: []
+                                            };
+                                            for (let j = customFeeData.length - 1; j >= 0; j--) {
+                                                if (partnerFeeData[i].platform.toString() == customFeeData[j].platform.toString()) {
+                                                    if (partnerFeeData[i].rateAfterRebatePromo != customFeeData[j].rateAfterRebatePromo) {
+                                                        feeObj.customizedPromoRate = customFeeData[j].rateAfterRebatePromo;
+                                                    }
+                                                    if (partnerFeeData[i].rateAfterRebatePlatform != customFeeData[j].rateAfterRebatePlatform) {
+                                                        feeObj.customizedPlatformRate = customFeeData[j].rateAfterRebatePlatform;
+                                                    }
+                                                    if (partnerFeeData[i].rateAfterRebateTotalDeposit != customFeeData[j].rateAfterRebateTotalDeposit) {
+                                                        feeObj.customizedTotalDepositRate = customFeeData[j].rateAfterRebateTotalDeposit;
+                                                    }
+                                                    if (partnerFeeData[i].rateAfterRebateTotalWithdrawal != customFeeData[j].rateAfterRebateTotalWithdrawal) {
+                                                        feeObj.customizedTotalWithdrawalRate = customFeeData[j].rateAfterRebateTotalWithdrawal;
+                                                    }
+                                                    if (partnerFeeData[i].rateAfterRebateGameProviderGroup) {
+                                                        partnerFeeData[i].rateAfterRebateGameProviderGroup.forEach(ori => {
+                                                            let feeObjList = {
+                                                                providerGroupId: ori.gameProviderGroupId && ori.gameProviderGroupId.providerGroupId ? ori.gameProviderGroupId.providerGroupId : "",
+                                                                providerGroupName: ori.name,
+                                                                defaultRate: ori.rate,
+                                                            }
+                                                            if (customFeeData[j].rateAfterRebateGameProviderGroup) {
+                                                                customFeeData[j].rateAfterRebateGameProviderGroup.forEach(cus => {
+                                                                    if (ori.gameProviderGroupId && ori.gameProviderGroupId._id && cus.gameProviderGroupId
+                                                                        && ori.gameProviderGroupId._id.toString() == cus.gameProviderGroupId.toString()
+                                                                        && ori.rate != cus.rate) {
+                                                                        feeObjList.customizedRate = cus.rate;
+                                                                    }
+                                                                });
+                                                            }
+                                                            feeObj.list.push(feeObjList);
+                                                        });
+                                                    }
+                                                }
+                                            }
+                                            if (partnerFeeData[i].rateAfterRebateGameProviderGroup && partnerFeeData[i].rateAfterRebateGameProviderGroup.length && !feeObj.list.length) {
+                                                partnerFeeData[i].rateAfterRebateGameProviderGroup.forEach(ori => {
+                                                    let feeObjList = {
+                                                        providerGroupId: ori.gameProviderGroupId && ori.gameProviderGroupId.providerGroupId ? ori.gameProviderGroupId.providerGroupId : "",
+                                                        providerGroupName: ori.name,
+                                                        defaultRate: ori.rate,
+                                                    }
+                                                    feeObj.list.push(feeObjList);
+                                                });
+                                            }
+                                            returnData.push(feeObj);
+                                        }
+                                    } else {
+                                        buildDefaultRateData();
+                                    }
+                                    return returnData;
+                                }
+                            );
+                    } else {
+                        buildDefaultRateData();
+                        return returnData;
+                    }
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find partner fee rate"});
+                }
+            }
+        )
+    },
+
     getCrewActiveInfo: (platformId, partnerId, periodCycle, circleTimes) => {
         if (!circleTimes) {
             return {};
