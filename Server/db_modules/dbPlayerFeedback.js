@@ -565,6 +565,7 @@ var dbPlayerFeedback = {
             "10.167.11.155",
             "localhost",
             "127.0.0.1",
+            "10.168.11.155"
         ];
 
         if (!allowedIP.includes(ipAddress)) {
