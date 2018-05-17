@@ -656,7 +656,7 @@ var dbPlayerFeedback = {
                         totalDepositAmount: player.topUpSum,
                         fame: [],
                         playerValue: player.valueScore,
-                        playerLevel: player.playerLevel.name,
+                        playerLevel: player.playerLevel ? player.playerLevel.name : "",
                         totalWithdrawTimes: player.withdrawTimes,
                         totalWithdrawAmount: player.withdrawSum,
                         gameLobby: [],
