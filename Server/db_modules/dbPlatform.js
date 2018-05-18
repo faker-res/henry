@@ -2528,7 +2528,7 @@ var dbPlatform = {
             }, {new: true});
     },
 
-    createClickCountLog: (platformId, device, pageName, buttonName, registerClickApp=false, registerClickWeb=false, registerClickH5=false, ipAddress) => {
+    createClickCountLog: (platformId, device, pageName, buttonName, registerClickApp, registerClickWeb, registerClickH5, ipAddress) => {
         let todayTime = dbUtility.getTodaySGTime();
         registerClickApp = registerClickApp === 'true' ? true : registerClickApp;
         registerClickWeb = registerClickWeb === 'true' ? true : registerClickWeb;
