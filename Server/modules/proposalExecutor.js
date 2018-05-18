@@ -1128,7 +1128,7 @@ var proposalExecutor = {
                         if (proposalData.data.topUpReturnCode) {
                             let requiredData = {topUpRecordId: data._id}
                             applyTopUpReturn = dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
-                                , proposalData.data.topUpReturnCode, requiredData);
+                                , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
                         }
                         Promise.all([applyPlayerTopUpPromo, applyPromoCode, applyTopUpReturn]).then(
                             data => {
@@ -1176,7 +1176,7 @@ var proposalExecutor = {
                         if (proposalData.data.topUpReturnCode) {
                             let requiredData = {topUpRecordId: data._id}
                             applyTopUpReturn = dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
-                                , proposalData.data.topUpReturnCode, requiredData);
+                                , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
                         }
                         Promise.all([applyPlayerTopUpPromo, applyPromoCode, applyTopUpReturn]).then(
                             data => {
@@ -1251,7 +1251,7 @@ var proposalExecutor = {
                         if (proposalData.data.topUpReturnCode) {
                             let requiredData = {topUpRecordId: data._id}
                             applyTopUpReturn = dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
-                                , proposalData.data.topUpReturnCode, requiredData);
+                                , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
                         }
                         Promise.all([applyPlayerTopUpPromo, applyPromoCode, applyTopUpReturn]).then(
                             data => {
@@ -1306,7 +1306,7 @@ var proposalExecutor = {
                             if (proposalData.data.topUpReturnCode) {
                                 let requiredData = {topUpRecordId: data._id}
                                 applyTopUpReturn = dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
-                                    , proposalData.data.topUpReturnCode, requiredData);
+                                    , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
                             }
                             Promise.all([applyforTransactionReward, applyPromoCode, applyTopUpReturn]).then(
                                 data => {

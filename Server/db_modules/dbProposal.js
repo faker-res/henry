@@ -13,6 +13,7 @@ var constProposalStepStatus = require('./../const/constProposalStepStatus');
 var constProposalStatus = require('./../const/constProposalStatus');
 var constProposalMainType = require('./../const/constProposalMainType');
 var constRegistrationIntentRecordStatus = require("../const/constRegistrationIntentRecordStatus.js");
+var constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface.js");
 var dbProposalProcess = require('./../db_modules/dbProposalProcess');
 var dbProposalType = require('./../db_modules/dbProposalType');
 var dbPlatform = require('./../db_modules/dbPlatform');
@@ -3868,45 +3869,45 @@ var proposal = {
 
                 }))
 
-            // updatePlayerArr.push( dbconfig.collection_proposal.find(
-            //     Object.assign(
-            //         {},
-            //         matchObj,
-            //         {
-            //             type: {$in: updatePlayerList.map( p => ObjectId(p))}, noSteps: false, status: {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.FAIL, constProposalStatus.REJECTED]}
-            //         }),
-            // {proposalId: 1, status: 1, createTime: 1})
+            updatePlayerArr.push( dbconfig.collection_proposal.find(
+                Object.assign(
+                    {},
+                    matchObj,
+                    {
+                        type: {$in: updatePlayerList.map( p => ObjectId(p))}, noSteps: false, status: {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.FAIL, constProposalStatus.REJECTED]}
+                    }),
+            {proposalId: 1, status: 1, createTime: 1, noSteps: 1})
 
-            updatePlayerArr.push(dbconfig.collection_proposal.aggregate(
-                {$match:
-                    Object.assign({}, matchObj,{type: {$in: updatePlayerList.map( p => ObjectId(p))}} )
-                },
-                {
-                    $group: {
-                        _id: {},
-                        totalCount: {$sum: 1},
-                        successCount: {$sum: {$cond: [
-                            {$and: [
-                                {$eq: ["$noSteps", false]},
-                                {$or: [
-                                    {$eq: ["$status", constProposalStatus.SUCCESS]},
-                                    {$eq: ["$status", constProposalStatus.APPROVED]}
-                                ]}
-                            ]}, 1, 0
-                        ]}},
-                        rejectCount: {$sum: {$cond: [
-                            {$and: [
-                                {$eq: ["$noSteps", false]},
-                                {$or: [
-                                    {$eq: ["$status", constProposalStatus.FAIL]},
-                                    {$eq: ["$status", constProposalStatus.REJECTED]}
-                                ]}
-                            ]}, 1, 0
-                        ]}},
-                    }
-                }).read("secondaryPreferred").then(result => {
-                // .then(result => {
-                // console.log("CHECKING-------", result)
+            // updatePlayerArr.push(dbconfig.collection_proposal.aggregate(
+            //     {$match:
+            //         Object.assign({}, matchObj,{type: {$in: updatePlayerList.map( p => ObjectId(p))}} )
+            //     },
+            //     {
+            //         $group: {
+            //             _id: {},
+            //             totalCount: {$sum: 1},
+            //             successCount: {$sum: {$cond: [
+            //                 {$and: [
+            //                     {$eq: ["$noSteps", false]},
+            //                     {$or: [
+            //                         {$eq: ["$status", constProposalStatus.SUCCESS]},
+            //                         {$eq: ["$status", constProposalStatus.APPROVED]}
+            //                     ]}
+            //                 ]}, 1, 0
+            //             ]}},
+            //             rejectCount: {$sum: {$cond: [
+            //                 {$and: [
+            //                     {$eq: ["$noSteps", false]},
+            //                     {$or: [
+            //                         {$eq: ["$status", constProposalStatus.FAIL]},
+            //                         {$eq: ["$status", constProposalStatus.REJECTED]}
+            //                     ]}
+            //                 ]}, 1, 0
+            //             ]}},
+            //         }
+            //     }).read("secondaryPreferred").then(result => {
+                .then(result => {
+                console.log("CHECKING-------", result)
                 if (result && result.length > 0){
                     let manualCount = (result[0].successCount || 0) + (result[0].rejectCount || 0);
                     return {totalCount: result[0].totalCount || 0, successCount: result[0].successCount || 0, rejectCount: result[0].rejectCount || 0, manualCount: manualCount};
@@ -4100,6 +4101,191 @@ var proposal = {
             return [data[0], data[1], data[2], data[3], data[4], data[5]];
 
         });
+    },
+
+    getSpecificProposalTypeByName: (platform, proposalType) => {
+       return dbconfig.collection_proposalType.findOne({platformId: ObjectId(platform), name: proposalType}).lean();
+    },
+
+    getRegistrationClickCountRecords: (startDate, endDate, period, platform, proposalTypeId) => {
+
+        let registrationProm = [];
+        let clickCountProm = [];
+
+        var dayStartTime = startDate;
+        var getNextDate;
+
+        var getKey = (obj,val) => Object.keys(obj).find(key => obj[key] === val);
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+
+        for ( ; dayStartTime.getTime() < endDate.getTime(); dayStartTime = dayEndTime) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+
+            var matchObj2 = {
+                startTime: {$gte: dayStartTime},
+                endTime: {$lte: dayEndTime},
+            };
+
+            var matchObj = {
+                settleTime: {$gte: dayStartTime, $lt: dayEndTime},
+
+            };
+
+            registrationProm.push(dbconfig.collection_proposal.aggregate(
+                {
+                    $match:
+                        Object.assign({}, matchObj, {
+                            type: ObjectId(proposalTypeId),
+                            status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.NOVERIFY]},
+                            inputDevice: {
+                                $in: [constPlayerRegistrationInterface.WEB_PLAYER,
+                                    constPlayerRegistrationInterface.WEB_AGENT,
+                                    constPlayerRegistrationInterface.H5_PLAYER,
+                                    constPlayerRegistrationInterface.H5_AGENT,
+                                    constPlayerRegistrationInterface.APP_PLAYER,
+                                    constPlayerRegistrationInterface.APP_AGENT,]
+                            }
+                        })
+                },
+                {
+                    $group: {
+                        _id: {},
+                        webCount: {
+                            $sum: {
+                                $cond: [
+                                    {
+                                        $or: [
+                                            {$eq: ["$inputDevice", constPlayerRegistrationInterface.WEB_PLAYER]},
+                                            {$eq: ["$inputDevice", constPlayerRegistrationInterface.WEB_AGENT]},
+                                        ]
+                                    }, 1, 0
+                                ]
+                            }
+                        },
+                        appCount: {
+                            $sum: {
+                                $cond: [
+                                    {
+                                        $or: [
+                                            {$eq: ["$inputDevice", constPlayerRegistrationInterface.APP_PLAYER]},
+                                            {$eq: ["$inputDevice", constPlayerRegistrationInterface.APP_AGENT]},
+                                        ]
+                                    }, 1, 0
+                                ]
+                            }
+                        },
+                        H5Count: {
+                            $sum: {
+                                $cond: [
+                                    {
+                                        $or: [
+                                            {$eq: ["$inputDevice", constPlayerRegistrationInterface.H5_PLAYER]},
+                                            {$eq: ["$inputDevice", constPlayerRegistrationInterface.H5_AGENT]},
+                                        ]
+                                    }, 1, 0
+                                ]
+                            }
+                        },
+
+                    }
+                }).read("secondaryPreferred").then( data => {
+                    let webCount = 0;
+                    let appCount = 0;
+                    let H5Count = 0;
+
+                    if(data && data.length > 0){
+                        webCount = data[0].webCount;
+                        appCount = data[0].appCount;
+                        H5Count = data[0].H5Count;
+                    }
+
+                    return {webCount: webCount, appCount: appCount, H5Count: H5Count}
+
+            }))
+
+            clickCountProm.push(dbconfig.collection_clickCount.aggregate(
+                {
+                    $match:
+                        Object.assign({}, matchObj2, {
+                            platform: ObjectId(platform),
+                            $or: [{webIpAddresses: {$exists: true}}, {H5IpAddresses: {$exists: true}}, {appIpAddresses: {$exists: true}}]
+                        })
+                },
+                {
+                    $group: {
+                        _id: {},
+                        webIpAddresses: {$addToSet: "$webIpAddresses"},
+                        appIpAddresses: {$addToSet: "$appIpAddresses"},
+                        H5IpAddresses: {$addToSet: "$H5IpAddresses"},
+                    }
+                }).read("secondaryPreferred").then( data => {
+
+                    let webUniqueCount = 0;
+                    let appUniqueCount = 0;
+                    let H5UniqueCount = 0;
+
+                    if(data && data.length > 0){
+
+                        let flattenAppList = data[0].appIpAddresses.reduce((a,b) => a.concat(b),[]).filter((v,i,d) => d.indexOf(v) === i);
+                        let flattenWebList = data[0].webIpAddresses.reduce((a,b) => a.concat(b),[]).filter((v,i,d) => d.indexOf(v) === i);;
+                        let flattenH5List = data[0].H5IpAddresses.reduce((a,b) => a.concat(b),[]).filter((v,i,d) => d.indexOf(v) === i);;
+
+                        appUniqueCount = flattenAppList.length;
+                        webUniqueCount = flattenWebList.length;
+                        H5UniqueCount = flattenH5List.length;
+
+                    }
+
+                    return {webUniqueCount: webUniqueCount, appUniqueCount: appUniqueCount, H5UniqueCount: H5UniqueCount}
+            }))
+
+        }
+
+        return Promise.all([Promise.all(registrationProm), Promise.all(clickCountProm)]).then( data => {
+            if (data[0] && data[1]) {
+
+                let result = [];
+                let tempDate = startDate;
+
+                if (data[0].length == data[1].length && data[1].length){
+                    for (let i = 0; i < data[0].length; i++) {  // number of date
+                        data[0][i].date = tempDate;
+
+                        result.push({date: tempDate, webCount: data[0][i].webCount, appCount: data[0][i].appCount, H5Count: data[0][i].H5Count,
+                            webUniqueCount: data[1][i].webUniqueCount, appUniqueCount: data[1][i].appUniqueCount, H5UniqueCount: data[1][i].H5UniqueCount,
+                            frontEndCount: data[0][i].webCount + data[0][i].appCount + data[0][i].H5Count,
+                            frontEndUniqueCount: data[1][i].webUniqueCount + data[1][i].appUniqueCount + data[1][i].H5UniqueCount
+                        })
+                        tempDate = getNextDate(tempDate);
+                    }
+                }
+                else{
+                    return Q.reject({name: 'DataError', message: 'The data mismatched'})
+                }
+
+                return result;
+            }
+        })
     },
 
     getAllProposalTypeByPlatformId: (platformId) => {
