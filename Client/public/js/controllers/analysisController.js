@@ -7,6 +7,7 @@ define(['js/app'], function (myApp) {
     var analysisController = function ($scope, $filter, $location, $log, authService, socketService, CONFIG, utilService, $timeout) {
         var $translate = $filter('translate');
         let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
+        let $roundToTwoDecimalPlacesString = $filter('roundToTwoDecimalPlacesString');
         var vm = this;
 
         // For debugging:
@@ -377,7 +378,7 @@ define(['js/app'], function (myApp) {
                         vm.clickCountTimes = 1;
                         break;
                     case "MANUAL_APPROVAL_PERCENTAGE":
-                        vm.manualApprovalSort = {
+                        vm.dataSort = {
                             playerBonus: 'date',
                             updatePlayer: 'date',
                             updatePartner: 'date',
@@ -387,6 +388,16 @@ define(['js/app'], function (myApp) {
                         }
                         vm.initSearchParameter('manualApproval', 'day', 3, function () {});
                         // vm.drawManualApprovalRate();
+                        break;
+                    case "FRONT_END_REGISTRATION_ATTRITION_RATE":
+                        vm.dataSort = {
+                            web: 'date',
+                            app: 'date',
+                            H5: 'date',
+                            frontEnd: 'date'
+                        }
+                        vm.initSearchParameter('registrationAttritionRate', 'day', 3, function () {});
+                        // vm.drawFrontEndRegistrationAttritionRate();
                         break;
                 }
                 // $(".flot-tick-label.tickLabel").addClass("rotate330");
@@ -711,7 +722,29 @@ define(['js/app'], function (myApp) {
             })
 
             socketService.$plotPie(tag, pieData, {}, clickedDataClick);
-        }
+        };
+
+        vm.generatedLineDataFromCalculatedAvgValue = (dataSet, avgData, key, label, appendKey) => {
+            var graphData = [];
+            let averageData = [];
+
+            dataSet.forEach( item => {
+                graphData.push([new Date(item.date), Number.isFinite(item[key]) ? item[key] : item[key].length]);
+                averageData.push([new Date(item.date), avgData]);
+            })
+
+            if (appendKey){
+                return {lineData: [{label: appendKey + $translate(label), data: graphData},{label: $translate('average line'), data: averageData}]};
+            }
+            else{
+                return {lineData: [{label: $translate(label), data: graphData},{label: $translate('average line'), data: averageData}]};
+            }
+
+        };
+
+        vm.dataArraySort = (type , sortField) => {
+            vm.dataSort[type] = vm.dataSort[type] === sortField ? '-'+sortField : sortField;
+        };
 
         // platform overview end =================================================
 
@@ -1200,12 +1233,117 @@ define(['js/app'], function (myApp) {
             })
             socketService.$plotPie(placeholder, pieData, {}, '');
         };
-
-
-        vm.manualApprovalDataSort = (type , sortField) => {
-            vm.manualApprovalSort[type] = vm.manualApprovalSort[type] === sortField ? '-'+sortField : sortField;
-        };
         // manual approval rate end =====================================================
+
+        // font end registration attrition rate start ===================================================
+        vm.drawFrontEndRegistrationAttritionRate = function () {
+            vm.playerBonusAvgData = {};
+            vm.updatePlayerAvgData = {};
+            vm.othersAvgData = {};
+            vm.rewardAvgData = {};
+            vm.allAvgData = {};
+            vm.updatePartnerAvgData = {};
+
+            vm.isShowLoadingSpinner('#registrationAttritionRateAnalysis', true);
+            var sendData = {
+                period: vm.queryPara.registrationAttritionRate.periodText,
+                startDate: vm.queryPara.registrationAttritionRate.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.registrationAttritionRate.endTime.data('datetimepicker').getLocalDate(),
+                platform: vm.selectedPlatform._id
+            }
+
+            $scope.$socketPromise('getSpecificProposalTypeByName', {platform: vm.selectedPlatform._id, proposalType: "PlayerRegistrationIntention"}).then(
+                result => {
+                    if (result) {
+
+                        sendData.proposalTypeId = result.data._id;
+                        $scope.$socketPromise('getRegistrationClickCountRecords', sendData).then(
+                            res => {
+                                vm.webRegistration = [];
+                                vm.appRegistration = [];
+                                vm.H5Registration = [];
+                                vm.frontEndRegistration = [];
+
+                                if (res.data && res.data.length > 0) {
+                                    vm.registrationRecord = res.data;
+
+                                    vm.registrationRecord.forEach(data => {
+                                        let webAvg = data.webUniqueCount == 0 ? 0 : 1 - data.webCount / data.webUniqueCount;
+                                        let appAvg = data.appUniqueCount == 0 ? 0 : 1 - data.appCount / data.appUniqueCount;
+                                        let H5Avg = data.H5UniqueCount == 0 ? 0 : 1 - data.H5Count / data.H5UniqueCount;
+                                        let frontEndAvg = data.frontEndUniqueCount == 0 ? 0 : 1 - data.frontEndCount / data.frontEndUniqueCount;
+
+                                        data.webAttritionRate$ = $roundToTwoDecimalPlacesString(webAvg * 100);
+                                        data.webAttritionRate = $noRoundTwoDecimalPlaces(webAvg * 100);
+                                        data.appAttritionRate$ = $roundToTwoDecimalPlacesString(appAvg * 100);
+                                        data.appAttritionRate = $noRoundTwoDecimalPlaces(appAvg * 100);
+                                        data.H5AttritionRate$ = $roundToTwoDecimalPlacesString(H5Avg * 100);
+                                        data.H5AttritionRate = $noRoundTwoDecimalPlaces(H5Avg * 100);
+                                        data.frontEndAttritionRate$ = $roundToTwoDecimalPlacesString(frontEndAvg * 100);
+                                        data.frontEndAttritionRate = $noRoundTwoDecimalPlaces(frontEndAvg * 100);
+                                    })
+
+                                    // count avg value for web registration
+                                    vm.webRegistration.avgCount = vm.calculateAverageData(vm.registrationRecord, 'webCount');
+                                    vm.webRegistration.uniqueAvgCount = vm.calculateAverageData(vm.registrationRecord, 'webUniqueCount');
+                                    let webAvgVal = vm.webRegistration.uniqueAvgCount == 0 ? 0 : 1 - vm.webRegistration.avgCount / vm.webRegistration.uniqueAvgCount;
+                                    vm.webRegistration.attritionAvgRate$ = $roundToTwoDecimalPlacesString(webAvgVal * 100);
+                                    vm.webRegistration.attritionAvgRate = $noRoundTwoDecimalPlaces(webAvgVal * 100);
+
+                                    let webLineResult = vm.generatedLineDataFromCalculatedAvgValue(vm.registrationRecord, vm.webRegistration.attritionAvgRate, 'webAttritionRate', 'REGISTRATION_ATTRITION_RATE', 'WEB');
+                                    vm.plotLineByElementId("#line-webRegistrationAttritionRate", webLineResult.lineData, "WEB" + $translate("REGISTRATION_ATTRITION_RATE"), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.registrationAttritionRate.periodText.toUpperCase()));
+
+                                    // count avg value for app registration
+                                    vm.appRegistration.avgCount = vm.calculateAverageData(vm.registrationRecord, 'appCount');
+                                    vm.appRegistration.uniqueAvgCount = vm.calculateAverageData(vm.registrationRecord, 'appUniqueCount');
+                                    let appAvgVal = vm.appRegistration.uniqueAvgCount == 0 ? 0 : 1 - vm.appRegistration.avgCount / vm.appRegistration.uniqueAvgCount;
+                                    vm.appRegistration.attritionAvgRate$ = $roundToTwoDecimalPlacesString(appAvgVal * 100);
+                                    vm.appRegistration.attritionAvgRate = $noRoundTwoDecimalPlaces(appAvgVal * 100);
+
+                                    let appLineResult = vm.generatedLineDataFromCalculatedAvgValue(vm.registrationRecord, vm.appRegistration.attritionAvgRate, 'appAttritionRate', 'REGISTRATION_ATTRITION_RATE', 'APP');
+                                    vm.plotLineByElementId("#line-appRegistrationAttritionRate", appLineResult.lineData, "APP" + $translate("REGISTRATION_ATTRITION_RATE"), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.registrationAttritionRate.periodText.toUpperCase()));
+
+                                    // count avg value for H5 registration
+                                    vm.H5Registration.avgCount = vm.calculateAverageData(vm.registrationRecord, 'H5Count');
+                                    vm.H5Registration.uniqueAvgCount = vm.calculateAverageData(vm.registrationRecord, 'H5UniqueCount');
+                                    let H5AvgVal = vm.H5Registration.uniqueAvgCount == 0 ? 0 : 1 - vm.H5Registration.avgCount / vm.H5Registration.uniqueAvgCount;
+                                    vm.H5Registration.attritionAvgRate$ = $roundToTwoDecimalPlacesString(H5AvgVal * 100);
+                                    vm.H5Registration.attritionAvgRate = $noRoundTwoDecimalPlaces(H5AvgVal * 100);
+
+                                    let H5LineResult = vm.generatedLineDataFromCalculatedAvgValue(vm.registrationRecord, vm.H5Registration.attritionAvgRate, 'H5AttritionRate', 'REGISTRATION_ATTRITION_RATE', 'H5');
+                                    vm.plotLineByElementId("#line-H5RegistrationAttritionRate", H5LineResult.lineData, "H5" + $translate("REGISTRATION_ATTRITION_RATE"), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.registrationAttritionRate.periodText.toUpperCase()));
+
+
+                                    // count avg value for all font-end registation
+                                    vm.frontEndRegistration.avgCount = vm.calculateAverageData(vm.registrationRecord, 'frontEndCount');
+                                    vm.frontEndRegistration.uniqueAvgCount = vm.calculateAverageData(vm.registrationRecord, 'frontEndUniqueCount');
+                                    let frontEndAvgVal = vm.frontEndRegistration.uniqueAvgCount == 0 ? 0 : 1 - vm.frontEndRegistration.avgCount / vm.frontEndRegistration.uniqueAvgCount;
+                                    vm.frontEndRegistration.attritionAvgRate$ = $roundToTwoDecimalPlacesString(frontEndAvgVal * 100);
+                                    vm.frontEndRegistration.attritionAvgRate = $noRoundTwoDecimalPlaces(frontEndAvgVal * 100);
+
+                                    let frontEndLineResult = vm.generatedLineDataFromCalculatedAvgValue(vm.registrationRecord, vm.frontEndRegistration.attritionAvgRate, 'frontEndAttritionRate', 'FRONT_END_REGISTRATION_ATTRITION_RATE');
+                                    vm.plotLineByElementId("#line-frontEndRegistrationAttritionRate", frontEndLineResult.lineData, +$translate("FRONT_END_REGISTRATION_ATTRITION_RATE"), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.registrationAttritionRate.periodText.toUpperCase()));
+
+                                    vm.isShowLoadingSpinner('#registrationAttritionRateAnalysis', false);
+                                    $scope.safeApply();
+
+                                }
+                                else {
+                                    vm.isShowLoadingSpinner('#registrationAttritionRateAnalysis', false);
+                                    console.log("Failed to retrieve the data");
+                                }
+                            })
+                    }
+                    else{
+                        vm.isShowLoadingSpinner('#registrationAttritionRateAnalysis', false);
+                        console.log("Failed to retrieve the proposalType");
+                    }
+
+                })
+
+        };
+        // font end registration attrition rate end =====================================================
+
 
         //topup method rate start ====================================================
         vm.drawTopupMethodLine = function () {

@@ -1,0 +1,177 @@
+.section
+    .row
+        .titlePic
+            .title
+                text {{vm.showPageName | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#registrationAttritionRateAnalysis .block-query","registrationAttritionRate")')
+                        text.pull-left.margin-right-5 {{vm.optionText.registrationAttritionRate | translate}}
+    #registrationAttritionRateAnalysis
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            div
+                label {{'PERIOD' | translate}}
+                select.form-control(ng-model='vm.queryPara.registrationAttritionRate.periodText')
+                    option(value='day') {{"DAY"|translate}}
+                    option(value='week') {{"WEEK"|translate}}
+                    option(value='month') {{"MONTH"|translate}}
+            div
+                label {{"Start date"|translate}}
+                .startTime
+            div
+                label {{"End date"|translate}}
+                .endTime
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.drawFrontEndRegistrationAttritionRate();') {{'SEARCH' | translate}}
+        .row
+            .col-md-6
+                label.text-primary WEB {{"REGISTRATION_ATTRITION_RATE" | translate}} VS {{vm.queryPara.registrationAttritionRate.periodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #line-webRegistrationAttritionRate.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
+                //label.text-primary {{vm.queryPara.topUp.amountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click="vm.dataArraySort( 'web', 'date')") {{ vm.queryPara.registrationAttritionRate.periodText | translate}}
+                                th(ng-click="vm.dataArraySort('web','webCount')") WEB {{"Number Of Successful Registration"| translate}}
+                                th(ng-click="vm.dataArraySort('web','webUniqueCount')") WEB {{'Clicking Rate (Non-repeated IP)' | translate}}
+                                th(ng-click="vm.dataArraySort('web','webAttritionRate$')") WEB {{'Registration Attrition Rate' | translate}}
+                        tbody
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.webRegistration.avgCount }}
+                                td
+                                    span {{ vm.webRegistration.uniqueAvgCount }}
+                                td
+                                    span {{ vm.webRegistration.attritionAvgRate$ }} %
+                            tr(ng-repeat='(i, v) in vm.registrationRecord | orderBy: vm.dataSort.web')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.webCount }}
+                                td
+                                    span {{ v.webUniqueCount }}
+                                td
+                                    span {{ v.webAttritionRate$ }} %
+        .row
+            .col-md-6
+                label.text-primary H5 {{"REGISTRATION_ATTRITION_RATE" | translate}} VS {{vm.queryPara.registrationAttritionRate.periodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #line-H5RegistrationAttritionRate.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
+                //label.text-primary {{vm.queryPara.topUp.amountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click="vm.dataArraySort( 'H5', 'date')") {{ vm.queryPara.registrationAttritionRate.periodText | translate}}
+                                th(ng-click="vm.dataArraySort('H5','H5Count')") H5 {{"Number Of Successful Registration"| translate}}
+                                th(ng-click="vm.dataArraySort('H5','H5UniqueCount')") H5 {{'Clicking Rate (Non-repeated IP)' | translate}}
+                                th(ng-click="vm.dataArraySort('H5','H5AttritionRate$')") H5 {{'Registration Attrition Rate' | translate}}
+                        tbody
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.H5Registration.avgCount }}
+                                td
+                                    span {{ vm.H5Registration.uniqueAvgCount }}
+                                td
+                                    span {{ vm.H5Registration.attritionAvgRate$ }} %
+                            tr(ng-repeat='(i, v) in vm.registrationRecord | orderBy: vm.dataSort.H5')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.H5Count }}
+                                td
+                                    span {{ v.H5UniqueCount }}
+                                td
+                                    span {{ v.H5AttritionRate$ }} %
+
+
+        .row
+            .col-md-6
+                label.text-primary APP {{"REGISTRATION_ATTRITION_RATE" | translate}} VS {{vm.queryPara.registrationAttritionRate.periodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #line-appRegistrationAttritionRate.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
+                //label.text-primary {{vm.queryPara.topUp.amountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click="vm.dataArraySort( 'app', 'date')") {{ vm.queryPara.registrationAttritionRate.periodText | translate}}
+                                th(ng-click="vm.dataArraySort('app','appCount')") APP {{"Number Of Successful Registration"| translate}}
+                                th(ng-click="vm.dataArraySort('app','appUniqueCount')") APP {{'Clicking Rate (Non-repeated IP)' | translate}}
+                                th(ng-click="vm.dataArraySort('app','appAttritionRate$')") APP {{'Registration Attrition Rate' | translate}}
+                        tbody
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.appRegistration.avgCount }}
+                                td
+                                    span {{ vm.appRegistration.uniqueAvgCount }}
+                                td
+                                    span {{ vm.appRegistration.attritionAvgRate$ }} %
+                            tr(ng-repeat='(i, v) in vm.registrationRecord | orderBy: vm.dataSort.app')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.appCount }}
+                                td
+                                    span {{ v.appUniqueCount }}
+                                td
+                                    span {{ v.appAttritionRate$ }} %
+
+        .row
+            .col-md-6
+                label.text-primary {{"FRONT_END_REGISTRATION_ATTRITION_RATE" | translate}} VS {{vm.queryPara.registrationAttritionRate.periodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #line-frontEndRegistrationAttritionRate.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
+                //label.text-primary {{vm.queryPara.topUp.amountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click="vm.dataArraySort( 'frontEnd', 'date')") {{ vm.queryPara.registrationAttritionRate.periodText | translate}}
+                                th(ng-click="vm.dataArraySort('frontEnd','frontEndCount')")  {{"Number Of Successful Registration From Front-end Application"| translate}}
+                                th(ng-click="vm.dataArraySort('frontEnd','frontEndUniqueCount')") {{'Clicking Rate (Non-repeated IP) From Front-end Application' | translate}}
+                                th(ng-click="vm.dataArraySort('frontEnd','frontEndAttritionRate$')")  {{'Registration Attrition Rate From Front-end Application' | translate}}
+                        tbody
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.frontEndRegistration.avgCount }}
+                                td
+                                    span {{ vm.frontEndRegistration.uniqueAvgCount }}
+                                td
+                                    span {{ vm.frontEndRegistration.attritionAvgRate$ }} %
+                            tr(ng-repeat='(i, v) in vm.registrationRecord | orderBy: vm.dataSort.frontEnd')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.frontEndCount }}
+                                td
+                                    span {{ v.frontEndUniqueCount }}
+                                td
+                                    span {{ v.frontEndAttritionRate$ }} %
+
+
+
+
+p(ng-init="vm.loadPageFunc(vm.showPageName)")
