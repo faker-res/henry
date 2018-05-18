@@ -851,59 +851,117 @@ define([], function () {
             return (performTranslation) ? $trans(groupName) : groupName;
         };
 
-        // this.getProposalGroupValue = function (proposalType) {
-        //     switch (proposalType.name) {
-        //         case "UpdatePlayerInfo":
-        //         case "UpdatePlayerCredit":
-        //         case "FixPlayerCreditTransfer":
-        //         case "UpdatePlayerEmail":
-        //         case "UpdatePlayerQQ":
-        //         case "UpdatePlayerPhone":
-        //         case "UpdatePlayerBankInfo":
-        //         case "AddPlayerRewardTask":
-        //         case "UpdatePartnerBankInfo":
-        //         case "UpdatePartnerPhone":
-        //         case "UpdatePartnerEmail":
-        //         case "UpdatePartnerInfo":
-        //         case "UpdatePartnerCredit":
-        //             return $trans("Player Proposal");
-        //         case "ManualPlayerTopUp":
-        //         case "PlayerAlipayTopUp":
-        //         case "PlayerTopUp":
-        //         case "PlayerWechatTopUp":
-        //         case "PlayerQuickpayTopUp":
-        //             return $trans("Topup Proposal");
-        //         case "PlayerBonus":
-        //         case "PartnerBonus":
-        //             return $trans("Bonus Proposal");
-        //         case "PlayerLevelUp":
-        //         case "PlatformTransactionReward":
-        //         case "PlayerTopUpReturn":
-        //         case "PlayerConsumptionIncentive":
-        //         case "PartnerTopUpReturn":
-        //         case "PlayerTopUpReward":
-        //         case "PlayerReferralReward":
-        //         case "PlayerConsumptionReturn":
-        //         case "FirstTopUp":
-        //         case "PlayerRegistrationReward":
-        //         case "FullAttendance":
-        //         case "PartnerConsumptionReturn":
-        //         case "PartnerIncentiveReward":
-        //         case "PartnerReferralReward":
-        //         case "GameProviderReward":
-        //         case "PlayerDoubleTopUpReward":
-        //         case "PlayerConsecutiveLoginReward":
-        //         case "PlayerEasterEggReward":
-        //         case "PlayerTopUpPromo":
-        //         case "PlayerPacketRainReward":
-        //         case "PlayerConsecutiveConsumptionReward":
-        //             return $trans("Reward Proposal");
-        //         case "PlayerConsumptionReturnFix":
-        //             return $trans("ReturnFix Proposal");
-        //         default:
-        //             return $trans("Others");
-        //     }
-        // }
+        this.processProposalType = (typeData) => {
+            let allProposalType = typeData;
+
+            // add index to data
+            for (let x = 0; x < allProposalType.length; x++) {
+                let groupName = this.getProposalGroupValue(allProposalType[x], false);
+                switch (allProposalType[x].name) {
+                    case "AddPlayerRewardTask":
+                        allProposalType[x].seq = 3.01;
+                        break;
+                    case "PlayerLevelUp":
+                        allProposalType[x].seq = 3.02;
+                        break;
+                    case "PlayerPromoCodeReward":
+                        allProposalType[x].seq = 3.03;
+                        break;
+                    case "UpdatePlayerInfo":
+                        allProposalType[x].seq = 4.01;
+                        break;
+                    case "UpdatePlayerBankInfo":
+                        allProposalType[x].seq = 4.02;
+                        break;
+                    case "UpdatePlayerEmail":
+                        allProposalType[x].seq = 4.03;
+                        break;
+                    case "UpdatePlayerPhone":
+                        allProposalType[x].seq = 4.04;
+                        break;
+                    case "UpdatePlayerQQ":
+                        allProposalType[x].seq = 4.05;
+                        break;
+                    case "UpdatePlayerWeChat":
+                        allProposalType[x].seq = 4.06;
+                        break;
+                    case "UpdatePartnerInfo":
+                        allProposalType[x].seq = 5.01;
+                        break;
+                    case "UpdatePartnerBankInfo":
+                        allProposalType[x].seq = 5.02;
+                        break;
+                    case "UpdatePartnerEmail":
+                        allProposalType[x].seq = 5.03;
+                        break;
+                    case "UpdatePartnerPhone":
+                        allProposalType[x].seq = 5.04;
+                        break;
+                    case "UpdatePartnerQQ":
+                        allProposalType[x].seq = 5.05;
+                        break;
+                    case "UpdatePartnerWeChat":
+                        allProposalType[x].seq = 5.06;
+                        break;
+                    case "UpdatePartnerCommissionType":
+                        allProposalType[x].seq = 5.07;
+                        break;
+                    case "UpdatePlayerCredit":
+                        allProposalType[x].seq = 6.01;
+                        break;
+                    case "FixPlayerCreditTransfer":
+                        allProposalType[x].seq = 6.02;
+                        break;
+                    case "UpdatePartnerCredit":
+                        allProposalType[x].seq = 6.03;
+                        break;
+                    case "ManualUnlockPlayerReward":
+                        allProposalType[x].seq = 6.04;
+                        break;
+                    case "PlayerLevelMigration":
+                        allProposalType[x].seq = 6.05;
+                        break;
+                    case "PlayerRegistrationIntention":
+                        allProposalType[x].seq = 6.06;
+                        break;
+                    case "PlayerLimitedOfferIntention":
+                        allProposalType[x].seq = 6.07;
+                        break;
+                }
+                if (!allProposalType[x].seq) {
+                    switch (groupName) {
+                        case "Topup Proposal":
+                            allProposalType[x].seq = 1;
+                            break;
+                        case "Bonus Proposal":
+                            allProposalType[x].seq = 2;
+                            break;
+                        case "Reward Proposal":
+                            allProposalType[x].seq = 3.90;
+                            break;
+                        case "PLAYER_INFORMATION":
+                            allProposalType[x].seq = 4.90;
+                            break;
+                        case "PARTNER_INFORMATION":
+                            allProposalType[x].seq = 5.90;
+                            break;
+                        case "Others":
+                            allProposalType[x].seq = 6.90;
+                            break;
+                    }
+                }
+            }
+
+            allProposalType.sort(
+                function (a, b) {
+                    if (a.seq > b.seq) return 1;
+                    if (a.seq < b.seq) return -1;
+                    return 0;
+                }
+            );
+
+            return allProposalType;
+        }
     };
 
 

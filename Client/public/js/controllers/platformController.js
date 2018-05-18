@@ -721,15 +721,6 @@ define(['js/app'], function (myApp) {
             vm.populatePlatformData = function () {
                 vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
             };
-            vm.combinePlatformDepart = function (dpts) {
-                let dptArr = [];
-                let result = '';
-                dpts.forEach(item => {
-                    dptArr.push(item.departmentName);
-                })
-                result = dptArr.join(',')
-                return result;
-            };
 
             vm.showTopupTab = function (tabName) {
                 vm.selectedTopupTab = tabName == null ? "manual" : tabName;
@@ -791,6 +782,218 @@ define(['js/app'], function (myApp) {
                 vm.selectedPlayerAccountingDetailTab = tabName == null ? "current-credit" : tabName;
             };
 
+            //before update platform
+            function beforeUpdatePlatform () {
+                let idStr = vm.showPlatform.department;
+                vm.showPlatform.department = {_id: idStr};
+                vm.updatePlatform._id = vm.selectedPlatform.id;
+            }
+
+            function getProposalTypeByPlatformId (id) {
+                socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: id}, function (data) {
+                    $scope.$evalAsync(() => vm.allProposalType = utilService.processProposalType(data.data));
+                });
+            }
+
+            //set selected platform node
+            function selectPlatformNode (node, option)  {
+                vm.selectedPlatform = node;
+                vm.curPlatformText = node.text;
+                vm.isNotAllowEdit = true;
+                vm.isCreateNewPlatform = false;
+                $cookies.put("platform", node.text);
+
+                vm.showPlatform = commonService.convertDepartment(vm.selectedPlatform.data);
+                beforeUpdatePlatform();
+
+                // if (option && !option.loadAll) {
+                //     $scope.safeApply();
+                //     return;
+                // }
+                getProposalTypeByPlatformId(vm.selectedPlatform.id);
+                vm.getRewardList();
+                vm.getPromotionTypeList();
+                vm.getAllAlipaysByAlipayGroup();
+                vm.getAllWechatpaysByWechatpayGroup();
+                vm.getAllBankCard();
+                vm.getPlatformProvider(vm.selectedPlatform.id);
+                // check settlement buttons
+                var nowDate = new Date().toLocaleDateString();
+                var dailyDate = new Date(vm.selectedPlatform.data.lastDailySettlementTime).toLocaleDateString();
+                var weeklyDate = new Date(vm.selectedPlatform.data.lastWeeklySettlementTime).toLocaleDateString();
+                vm.showDailySettlement = nowDate != dailyDate;
+                vm.showWeeklySettlement = (nowDate != weeklyDate) && (vm.selectedPlatform.data.weeklySettlementDay == new Date().getDay());
+                vm.platformSettlement = {};
+                vm.advancedPartnerQueryObj = {limit: 10, index: 0};
+                vm.getCredibilityRemarks();
+                vm.partnerAdvanceSearchQuery = {
+                    creditsOperator: ">=",
+                    dailyActivePlayerOperator: ">=",
+                    weeklyActivePlayerOperator: ">=",
+                    monthlyActivePlayerOperator: ">=",
+                    validPlayersOperator: ">=",
+                    totalPlayerDownlineOperator: ">=",
+                    totalChildrenDepositOperator: ">=",
+                    totalChildrenBalanceOperator: ">=",
+                    totalSettledCommissionOperator: ">=",
+                };
+                vm.playerAdvanceSearchQuery = {
+                    creditOperator: ">=",
+                    playerType: 'Real Player (all)'
+                };
+                vm.advancedQueryObj = {
+                    creditOperator: ">=",
+                    playerType: 'Real Player (all)'
+                };
+
+                vm.getRewardEventsByPlatform();
+                vm.getRewardPointsEvent(vm.selectedPlatform.id);
+                vm.getAllPartnerCommSettPreview();
+
+                if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read'))
+                    vm.getAdminNameByDepartment(vm.selectedPlatform.data.department);
+
+                //load partner
+                utilService.actionAfterLoaded("#partnerTablePage", function () {
+                    vm.advancedPartnerQueryObj.pageObj = utilService.createPageForPagingTable("#partnerTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
+                        var index = (curP - 1) * pageSize;
+                        vm.advancedPartnerQueryObj.index = index;
+                        vm.advancedPartnerQueryObj.limit = pageSize;
+                        vm.commonPageChangeHandler(curP, pageSize, "advancedPartnerQueryObj", vm.getPlatformPartnersData());
+                    });
+                })
+
+                Q.all([vm.getAllGameProviders(vm.selectedPlatform.id), vm.getAllPlayerLevels(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
+                    function (data) {
+                        $scope.$evalAsync(() => {
+                            // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
+                            console.log('vm.platformPageName', vm.platformPageName);
+
+                            switch (vm.platformPageName) {
+                                case "GameGroup":
+                                    vm.loadGameGroupData();
+                                    break;
+                                case "Feedback":
+                                    vm.initPlayerFeedback();
+                                    // vm.submitPlayerFeedbackQuery();
+                                    break;
+                                case "MessageTemplates":
+                                    vm.getPlatformMessageTemplates();
+                                    break;
+                                case "FeedbackAdmin" :
+                                    initFeedbackAdmin();
+                                    break;
+                            }
+                            //     case "Player":
+                            vm.playersQueryCreated = false;
+                            vm.configTabClicked();
+                            vm.loadAlldepartment();
+                            vm.rewardTabClicked();
+                            vm.getPlatformRewardProposal();
+                            vm.getPlatformPlayersData(true, true);
+                            vm.getPlatformPartnersData();
+                            vm.getPlatformGameData();
+                            vm.loadProposalTypeData();
+                            vm.loadBankCardGroupData();
+                            vm.loadMerchantGroupData();
+                            vm.loadAlipayGroupData();
+                            vm.loadWechatPayGroupData();
+                            vm.loadQuickPayGroupData();
+                            vm.getPlatformAnnouncements();
+                            vm.promoCodeTabClicked();
+                            vm.phoneNumFilterClicked();
+                            vm.rewardPointsTabClicked();
+                            vm.onGoingLoadPlatformData = false;
+                        })
+                    },
+                    function (error) {
+                        console.log("error getting all levels", error);
+                    }
+                ).done();
+                vm.jiguang.appKey = vm.selectedPlatform.data.jiguangAppKey;
+                vm.jiguang.masterKey = vm.selectedPlatform.data.jiguangMasterKey;
+            }
+
+            //search and select platform node
+            function searchAndSelectPlatform (text, option) {
+                var findNodes = $('#platformTree').treeview('search', [text, {
+                    ignoreCase: false,
+                    exactMatch: true
+                }]);
+                if (findNodes && findNodes.length > 0) {
+                    selectPlatformNode(findNodes[0], option);
+                    $('#platformTree').treeview('selectNode', [findNodes[0], {silent: true}]);
+                }
+            }
+
+            //build platform list based on platform data from server
+            function buildPlatformList (data) {
+                vm.platformList = [];
+                for (var i = 0; i < data.length; i++) {
+                    vm.platformList.push(vm.createPlatformNode(data[i]));
+                }
+                //var platformsToDisplay = vm.platformList;
+                var searchText = (vm.platformSearchText || '').toLowerCase();
+                var platformsToDisplay = vm.platformList.filter(platformData => platformData.data.name.toLowerCase().includes(searchText));
+                $('#platformTree').treeview(
+                    {
+                        data: platformsToDisplay,
+                        highlightSearchResults: false,
+                        showImage: true,
+                        showIcon: false,
+                    }
+                );
+                $('#platformTree').on('nodeSelected', function (event, data) {
+                    selectPlatformNode(data);
+                    vm.showPlatformDropDownList = false;
+                });
+            }
+
+            //get all platform data from server
+            function loadPlatformData (option) {
+                if (vm.onGoingLoadPlatformData) {
+                    return;
+                }
+
+                if (option && option.noParallelTrigger) {
+                    vm.onGoingLoadPlatformData = true;
+                }
+
+                if ($('#platformRefresh').hasClass('fa-spin')) {
+                    return
+                }
+                $('#platformRefresh').addClass('fa-spin');
+
+                socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
+                    vm.allPlatformData = data.data;
+                    if (data.data) {
+                        buildPlatformList(data.data);
+                    }
+                    $('#platformRefresh').removeClass('fa-spin');
+
+                    $('#platformRefresh').addClass('fa-check');
+                    $('#platformRefresh').removeClass('fa-refresh');
+                    setTimeout(function () {
+                        $('#platformRefresh').removeClass('fa-check');
+                        $('#platformRefresh').addClass('fa-refresh').fadeIn(100);
+                        vm.onGoingLoadPlatformData = false;
+                    }, 1000);
+
+                    //select platform from cookies data
+                    let storedPlatform = $cookies.get("platform");
+                    if (storedPlatform) {
+                        searchAndSelectPlatform(storedPlatform, option);
+                    }
+                }, function (err) {
+                    $('#platformRefresh').removeClass('fa-spin');
+                });
+            }
+
+            $scope.$on('switchPlatform', () => {
+                initPageParam();
+                loadPlatformData({loadAll: true, noParallelTrigger: true});
+            });
+
             ////////////////Mark::Platform functions//////////////////
             vm.toggleShowPlatformList = function (flag) {
                 if (flag) {
@@ -841,62 +1044,6 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'syncPlatform', {}, function (data) {
 
                 })
-            };
-
-            $scope.$on('switchPlatform', () => {
-                initPageParam();
-                vm.loadPlatformData({loadAll: true, noParallelTrigger: true});
-            });
-
-            //get all platform data from server
-            vm.loadPlatformData = function (option) {
-                if (vm.onGoingLoadPlatformData) {
-                    return;
-                }
-
-                if (option && option.noParallelTrigger) {
-                    vm.onGoingLoadPlatformData = true;
-                }
-
-                if ($('#platformRefresh').hasClass('fa-spin')) {
-                    return
-                }
-                $('#platformRefresh').addClass('fa-spin');
-                socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
-                    console.log('all platform data', data.data);
-                    vm.allPlatformData = data.data;
-                    if (data.data) {
-                        // if (data.data.length == 1 && !authService.checkViewPermission('Platform', 'Platform', 'Create')) {
-                        //     console.log('platform', data.data);
-                        //     vm.showPlatformList = false;
-                        //     $('div#platformContent').removeClass('col-md-9');
-                        //     $('div#platformContent').addClass('col-md-12');
-                        //     $('.contractIcon').hide();
-                        //     vm.selectPlatformNode({text: data.data[0].name, data: data.data[0]}, option);
-                        //     $scope.safeApply();
-                        //
-                        // }
-                        vm.buildPlatformList(data.data);
-                    }
-                    $('#platformRefresh').removeClass('fa-spin');
-
-                    $('#platformRefresh').addClass('fa-check');
-                    $('#platformRefresh').removeClass('fa-refresh');
-                    setTimeout(function () {
-                        $('#platformRefresh').removeClass('fa-check');
-                        $('#platformRefresh').addClass('fa-refresh').fadeIn(100);
-                        vm.onGoingLoadPlatformData = false;
-                    }, 1000);
-
-                    //select platform from cookies data
-                    var storedPlatform = $cookies.get("platform");
-                    if (storedPlatform) {
-                        vm.searchAndSelectPlatform(storedPlatform, option);
-                    }
-
-                }, function (err) {
-                    $('#platformRefresh').removeClass('fa-spin');
-                });
             };
 
             vm.loadTab = (tabName) => {
@@ -971,55 +1118,8 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            //build platform list based on platform data from server
-            vm.buildPlatformList = function (data) {
-                vm.platformList = [];
-                for (var i = 0; i < data.length; i++) {
+            vm.rebuildPlatformListDebounced = $scope.debounceSearch(() => buildPlatformList(vm.allPlatformData));
 
-                    vm.platformList.push(vm.createPlatformNode(data[i]));
-                }
-                //var platformsToDisplay = vm.platformList;
-                var searchText = (vm.platformSearchText || '').toLowerCase();
-                var platformsToDisplay = vm.platformList.filter(platformData => platformData.data.name.toLowerCase().includes(searchText));
-                $('#platformTree').treeview(
-                    {
-                        data: platformsToDisplay,
-                        highlightSearchResults: false,
-                        showImage: true,
-                        showIcon: false,
-                    }
-                );
-                // vm.selectPlatformNode($('#platformTree').treeview('getNode', 0));
-                $('#platformTree').on('nodeSelected', function (event, data) {
-                    vm.selectPlatformNode(data);
-                    vm.showPlatformDropDownList = false;
-                });
-            };
-
-            vm.rebuildPlatformListDebounced = $scope.debounceSearch(() => vm.buildPlatformList(vm.allPlatformData));
-
-            //search and select platform node
-            vm.searchAndSelectPlatform = function (text, option) {
-                var findNodes = $('#platformTree').treeview('search', [text, {
-                    ignoreCase: false,
-                    exactMatch: true
-                }]);
-                if (findNodes && findNodes.length > 0) {
-                    vm.selectPlatformNode(findNodes[0], option);
-                    $('#platformTree').treeview('selectNode', [findNodes[0], {silent: true}]);
-                }
-            };
-            vm.convertDepartment = function () {
-                if (vm.showPlatform.live800CompanyId && vm.showPlatform.live800CompanyId.length > 0) {
-                    vm.showPlatform.live800CompanyIdTXT = vm.showPlatform.live800CompanyId.join(',');
-                }
-                if (vm.showPlatform.csDepartment && vm.showPlatform.csDepartment.length > 0) {
-                    vm.showPlatform.csDepartmentTXT = vm.combinePlatformDepart(vm.showPlatform.csDepartment);
-                }
-                if (vm.showPlatform.qiDepartment && vm.showPlatform.qiDepartment.length > 0) {
-                    vm.showPlatform.qiDepartmentTXT = vm.combinePlatformDepart(vm.showPlatform.qiDepartment);
-                }
-            };
             vm.prepareDemoPlayerPrefix = function () {
                 vm.alphabetArr = [];
                 let alphabet = 97; //represent alphabet a
@@ -1028,149 +1128,6 @@ define(['js/app'], function (myApp) {
                     let character = String.fromCharCode(alphabet + i);
                     vm.alphabetArr.push(character);
                 }
-            };
-            //set selected platform node
-            vm.selectPlatformNode = function (node, option) {
-                vm.selectedPlatform = node;
-                vm.curPlatformText = node.text;
-                // vm.showPlatform = $.extend({}, getLocalTime(vm.selectedPlatform.data));
-                vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
-                console.log("vm.selectedPlatform", vm.selectedPlatform);
-                vm.convertDepartment();
-                if (vm.showPlatform.csDepartment && vm.showPlatform.csDepartment.length > 0) {
-                    vm.showPlatform.csDepartmentTXT = vm.combinePlatformDepart(vm.showPlatform.csDepartment);
-                }
-                if (vm.showPlatform.qiDepartment && vm.showPlatform.qiDepartment.length > 0) {
-                    vm.showPlatform.qiDepartmentTXT = vm.combinePlatformDepart(vm.showPlatform.qiDepartment);
-                }
-
-                vm.beforeUpdatePlatform();
-                vm.isNotAllowEdit = true;
-                vm.isCreateNewPlatform = false;
-
-                $cookies.put("platform", node.text);
-                if (option && !option.loadAll) {
-                    $scope.safeApply();
-                    return;
-                }
-                vm.getProposalTypeByPlatformId(vm.selectedPlatform.id);
-                vm.getRewardList();
-                vm.getPromotionTypeList();
-                vm.getAllAlipaysByAlipayGroup();
-                vm.getAllWechatpaysByWechatpayGroup();
-                vm.getAllBankCard();
-                vm.getPlatformProvider(vm.selectedPlatform.id);
-                // check settlement buttons
-                var nowDate = new Date().toLocaleDateString();
-                var dailyDate = new Date(vm.selectedPlatform.data.lastDailySettlementTime).toLocaleDateString();
-                var weeklyDate = new Date(vm.selectedPlatform.data.lastWeeklySettlementTime).toLocaleDateString();
-                vm.showDailySettlement = nowDate != dailyDate;
-                vm.showWeeklySettlement = (nowDate != weeklyDate) && (vm.selectedPlatform.data.weeklySettlementDay == new Date().getDay());
-                vm.platformSettlement = {};
-                vm.advancedPartnerQueryObj = {limit: 10, index: 0};
-                vm.getCredibilityRemarks();
-                vm.partnerAdvanceSearchQuery = {
-                    creditsOperator: ">=",
-                    dailyActivePlayerOperator: ">=",
-                    weeklyActivePlayerOperator: ">=",
-                    monthlyActivePlayerOperator: ">=",
-                    validPlayersOperator: ">=",
-                    totalPlayerDownlineOperator: ">=",
-                    totalChildrenDepositOperator: ">=",
-                    totalChildrenBalanceOperator: ">=",
-                    totalSettledCommissionOperator: ">=",
-                };
-                vm.playerAdvanceSearchQuery = {
-                    creditOperator: ">=",
-                    playerType: 'Real Player (all)'
-                };
-                vm.advancedQueryObj = {
-                    creditOperator: ">=",
-                    playerType: 'Real Player (all)'
-                };
-
-                vm.getRewardEventsByPlatform();
-                vm.getRewardPointsEvent(vm.selectedPlatform.id);
-
-                if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read'))
-                    vm.getAdminNameByDepartment(vm.selectedPlatform.data.department);
-
-                //load partner
-                utilService.actionAfterLoaded("#partnerTablePage", function () {
-                    vm.advancedPartnerQueryObj.pageObj = utilService.createPageForPagingTable("#partnerTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
-                        var index = (curP - 1) * pageSize;
-                        vm.advancedPartnerQueryObj.index = index;
-                        vm.advancedPartnerQueryObj.limit = pageSize;
-                        vm.commonPageChangeHandler(curP, pageSize, "advancedPartnerQueryObj", vm.getPlatformPartnersData());
-                    });
-                })
-
-                Q.all([vm.getAllGameProviders(vm.selectedPlatform.id), vm.getAllPlayerLevels(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
-                    function (data) {
-                        $scope.$evalAsync(() => {
-                            // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
-                            console.log('vm.platformPageName', vm.platformPageName);
-
-                            switch (vm.platformPageName) {
-                                case "GameGroup":
-                                    vm.loadGameGroupData();
-                                    break;
-                                case "Feedback":
-                                    vm.initPlayerFeedback();
-                                    // vm.submitPlayerFeedbackQuery();
-                                    break;
-                                case "MessageTemplates":
-                                    vm.getPlatformMessageTemplates();
-                                    break;
-                                case "FeedbackAdmin" :
-                                    initFeedbackAdmin();
-                                    break;
-                            }
-                            //     case "Player":
-                            vm.playersQueryCreated = false;
-                            vm.configTabClicked();
-                            vm.loadAlldepartment();
-                            vm.rewardTabClicked();
-                            vm.getPlatformRewardProposal();
-                            vm.getPlatformPlayersData(true, true);
-                            //     break;
-                            // case "Partner":
-                            vm.getPlatformPartnersData();
-                            //     break;
-                            // case "Game":
-                            vm.getPlatformGameData();
-                            //     break;
-                            // case "Reward":
-                            //     vm.rewardTabClicked();
-                            //     break;
-                            // case "Proposal":
-                            vm.loadProposalTypeData();
-                            //     break;
-                            // case "Config":
-                            //     break;
-                            // case "bankCardGroup":
-                            vm.loadBankCardGroupData();
-                            //     break;
-                            // case "merchantGroup":
-                            vm.loadMerchantGroupData();
-                            vm.loadAlipayGroupData();
-                            vm.loadWechatPayGroupData();
-                            vm.loadQuickPayGroupData();
-                            vm.getPlatformAnnouncements();
-                            vm.promoCodeTabClicked();
-                            vm.phoneNumFilterClicked();
-                            vm.rewardPointsTabClicked();
-                            //     break;
-                            // }
-                            vm.onGoingLoadPlatformData = false;
-                        })
-                    },
-                    function (error) {
-                        console.log("error getting all levels", error);
-                    }
-                ).done();
-                vm.jiguang.appKey = vm.selectedPlatform.data.jiguangAppKey;
-                vm.jiguang.masterKey = vm.selectedPlatform.data.jiguangMasterKey;
             };
 
             vm.jiguang = {};
@@ -1300,7 +1257,7 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'createPlatform', vm.showPlatform, function (data) {
                     vm.curPlatformText = data.data.name;
-                    vm.loadPlatformData();
+                    loadPlatformData();
                     vm.syncPlatform();
                 });
             };
@@ -1310,7 +1267,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'deletePlatformById', {_ids: [vm.selectedPlatform.id]}, function (data) {
                     vm.curPlatformText = "";
                     vm.selectedPlatform = null;
-                    vm.loadPlatformData();
+                    loadPlatformData();
                     vm.syncPlatform();
                 });
             };
@@ -1418,7 +1375,7 @@ define(['js/app'], function (myApp) {
                     if (callback) {
                         callback(data);
                     }
-                    vm.loadPlatformData();
+                    loadPlatformData();
                 };
 
                 function failfunc(error) {
@@ -1441,7 +1398,7 @@ define(['js/app'], function (myApp) {
                         callback(data);
                     }
                     vm.platformSettlement.processing = false;
-                    vm.loadPlatformData();
+                    loadPlatformData();
                 };
 
                 function failfunc(error) {
@@ -2001,15 +1958,6 @@ define(['js/app'], function (myApp) {
             vm.initTransferAllPlayersCreditFromProvider = function ($event) {
                 $('#modalTransferOutAllPlayerCreditFromGameProvider').modal('show');
                 $scope.safeApply();
-            }
-
-            //before update platform
-            vm.beforeUpdatePlatform = function () {
-                let idStr = vm.showPlatform.department;
-                vm.showPlatform.department = {_id: idStr};
-                console.log('require', vm.selectedPlatform);
-                vm.updatePlatform._id = vm.selectedPlatform.id;
-                console.log('department ID', vm.showPlatform.department);
             };
 
             vm.updatePlatformConfig = function () {
@@ -2032,7 +1980,7 @@ define(['js/app'], function (myApp) {
             vm.bindSelectedPlatformData = function () {
                 if (vm.selectedPlatform && vm.selectedPlatform.data) {
                     vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
-                    vm.beforeUpdatePlatform();
+                    beforeUpdatePlatform();
                 }
             }
 
@@ -2049,7 +1997,7 @@ define(['js/app'], function (myApp) {
                     },
                     function (data) {
                         vm.curPlatformText = vm.showPlatform.name;
-                        vm.loadPlatformData({loadAll: false});
+                        loadPlatformData({loadAll: false});
                         vm.syncPlatform();
                     });
             };
@@ -3106,7 +3054,7 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, sendString, sendData, function (data) {
                     console.log(data);
-                    vm.loadPlatformData();
+                    loadPlatformData();
                     vm.getPlatformGameData();
                 })
             }
@@ -25054,7 +25002,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                             socketService.$socket($scope.AppSocket, 'updatePlatform', updateData, function (data) {
-                                vm.loadPlatformData({loadAll: false});
+                                loadPlatformData({loadAll: false});
                                 vm.configTabClicked('player');
 
                             });
@@ -25373,7 +25321,7 @@ define(['js/app'], function (myApp) {
                     isProviderGroupOn = true;
                 }
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
-                    vm.loadPlatformData({loadAll: false});
+                    loadPlatformData({loadAll: false});
                     if (isProviderGroupOn) {
                         vm.unlockPlatformProviderGroup()
                     }
@@ -25429,7 +25377,7 @@ define(['js/app'], function (myApp) {
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
-                    vm.loadPlatformData({loadAll: false});
+                    loadPlatformData({loadAll: false});
                 });
             }
 
@@ -25456,7 +25404,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'updateAutoApprovalConfig', sendData, function (data) {
                     console.log('update auto approval socket', JSON.stringify(data));
-                    vm.loadPlatformData({loadAll: false});
+                    loadPlatformData({loadAll: false});
                 });
             }
 
@@ -25473,7 +25421,7 @@ define(['js/app'], function (myApp) {
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
-                    vm.loadPlatformData({loadAll: false});
+                    loadPlatformData({loadAll: false});
                 });
             }
 
@@ -25483,7 +25431,7 @@ define(['js/app'], function (myApp) {
                     playerValueConfig: srcData
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlayerValueConfig', sendData, function (data) {
-                    vm.loadPlatformData({loadAll: false});
+                    loadPlatformData({loadAll: false});
                 });
             }
 
@@ -25551,7 +25499,7 @@ define(['js/app'], function (myApp) {
                         if (sendData.isDelete == true) {
                             // delete from the promoCodeType dB
                             socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
-                                vm.loadPlatformData({loadAll: false});
+                                loadPlatformData({loadAll: false});
                             });
                         }
 
@@ -25562,7 +25510,7 @@ define(['js/app'], function (myApp) {
                             socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
                                 // update the isDelete flag of each promoCode inherited from the deleted promoCodeType
                                 socketService.$socket($scope.AppSocket, 'updatePromoCodeIsDeletedFlag', sendData, function (data) {
-                                    vm.loadPlatformData({loadAll: false});
+                                    loadPlatformData({loadAll: false});
                                 });
                             });
                         }
@@ -25575,7 +25523,7 @@ define(['js/app'], function (myApp) {
                     };
 
                     socketService.$socket($scope.AppSocket, 'updatePromoCodeSMSContent', sendData, function (data) {
-                        vm.loadPlatformData({loadAll: false});
+                        loadPlatformData({loadAll: false});
                     });
                 }
             }
@@ -25705,7 +25653,7 @@ define(['js/app'], function (myApp) {
                                                 }
                                             }
                                             socketService.$socket($scope.AppSocket, 'updatePlatform', updateData, function (data) {
-                                                vm.loadPlatformData({loadAll: false});
+                                                loadPlatformData({loadAll: false});
                                             });
                                         }
                                     }
@@ -26903,7 +26851,7 @@ define(['js/app'], function (myApp) {
 
                         vm.getAllGameTypes();
                         vm.getAllRewardTypes();
-                        vm.loadPlatformData();
+                        loadPlatformData();
                         vm.getAllMessageTypes();
                         vm.linkProvider();
                         $.getScript("dataSource/data.js").then(
@@ -28006,122 +27954,6 @@ define(['js/app'], function (myApp) {
             vm.getProposalTypeOptionValue = function (proposalType) {
                 var result = utilService.getProposalGroupValue(proposalType);
                 return $translate(result);
-            };
-
-            vm.getProposalTypeByPlatformId = function (id) {
-                var deferred = Q.defer();
-                socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: id}, function (data) {
-                    vm.allProposalType = data.data;
-                    // add index to data
-                    for (let x = 0; x < vm.allProposalType.length; x++) {
-                        let groupName = utilService.getProposalGroupValue(vm.allProposalType[x], false);
-                        switch (vm.allProposalType[x].name) {
-                            case "AddPlayerRewardTask":
-                                vm.allProposalType[x].seq = 3.01;
-                                break;
-                            case "PlayerLevelUp":
-                                vm.allProposalType[x].seq = 3.02;
-                                break;
-                            case "PlayerPromoCodeReward":
-                                vm.allProposalType[x].seq = 3.03;
-                                break;
-                            case "UpdatePlayerInfo":
-                                vm.allProposalType[x].seq = 4.01;
-                                break;
-                            case "UpdatePlayerBankInfo":
-                                vm.allProposalType[x].seq = 4.02;
-                                break;
-                            case "UpdatePlayerEmail":
-                                vm.allProposalType[x].seq = 4.03;
-                                break;
-                            case "UpdatePlayerPhone":
-                                vm.allProposalType[x].seq = 4.04;
-                                break;
-                            case "UpdatePlayerQQ":
-                                vm.allProposalType[x].seq = 4.05;
-                                break;
-                            case "UpdatePlayerWeChat":
-                                vm.allProposalType[x].seq = 4.06;
-                                break;
-                            case "UpdatePartnerInfo":
-                                vm.allProposalType[x].seq = 5.01;
-                                break;
-                            case "UpdatePartnerBankInfo":
-                                vm.allProposalType[x].seq = 5.02;
-                                break;
-                            case "UpdatePartnerEmail":
-                                vm.allProposalType[x].seq = 5.03;
-                                break;
-                            case "UpdatePartnerPhone":
-                                vm.allProposalType[x].seq = 5.04;
-                                break;
-                            case "UpdatePartnerQQ":
-                                vm.allProposalType[x].seq = 5.05;
-                                break;
-                            case "UpdatePartnerWeChat":
-                                vm.allProposalType[x].seq = 5.06;
-                                break;
-                            case "UpdatePartnerCommissionType":
-                                vm.allProposalType[x].seq = 5.07;
-                                break;
-                            case "UpdatePlayerCredit":
-                                vm.allProposalType[x].seq = 6.01;
-                                break;
-                            case "FixPlayerCreditTransfer":
-                                vm.allProposalType[x].seq = 6.02;
-                                break;
-                            case "UpdatePartnerCredit":
-                                vm.allProposalType[x].seq = 6.03;
-                                break;
-                            case "ManualUnlockPlayerReward":
-                                vm.allProposalType[x].seq = 6.04;
-                                break;
-                            case "PlayerLevelMigration":
-                                vm.allProposalType[x].seq = 6.05;
-                                break;
-                            case "PlayerRegistrationIntention":
-                                vm.allProposalType[x].seq = 6.06;
-                                break;
-                            case "PlayerLimitedOfferIntention":
-                                vm.allProposalType[x].seq = 6.07;
-                                break;
-                        }
-                        if (!vm.allProposalType[x].seq) {
-                            switch (groupName) {
-                                case "Topup Proposal":
-                                    vm.allProposalType[x].seq = 1;
-                                    break;
-                                case "Bonus Proposal":
-                                    vm.allProposalType[x].seq = 2;
-                                    break;
-                                case "Reward Proposal":
-                                    vm.allProposalType[x].seq = 3.90;
-                                    break;
-                                case "PLAYER_INFORMATION":
-                                    vm.allProposalType[x].seq = 4.90;
-                                    break;
-                                case "PARTNER_INFORMATION":
-                                    vm.allProposalType[x].seq = 5.90;
-                                    break;
-                                case "Others":
-                                    vm.allProposalType[x].seq = 6.90;
-                                    break;
-                            }
-                        }
-                    }
-                    vm.allProposalType.sort(
-                        function (a, b) {
-                            if (a.seq > b.seq) return 1;
-                            if (a.seq < b.seq) return -1;
-                            return 0;
-                        }
-                    );
-                    $scope.safeApply();
-                    deferred.resolve(true);
-                }, function (error) {
-                    deferred.reject(error);
-                });
-                return deferred.promise;
             };
 
             vm.getRewardList = function (callback) {
