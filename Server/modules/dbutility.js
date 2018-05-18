@@ -1012,6 +1012,18 @@ var dbUtility = {
             }
         }
         return decryptedPhoneNo;
+    },
+
+    getIpAddress: (conn) => {
+        let ipAddress = conn.upgradeReq.connection.remoteAddress || '';
+        let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            if(forwardedIp[0].trim() != "undefined"){
+                ipAddress = forwardedIp[0].trim();
+            }
+        }
+
+        return ipAddress;
     }
 };
 

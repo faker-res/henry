@@ -26,6 +26,7 @@ const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const dbPartner = require('./../db_modules/dbPartner');
 const rsaCrypto = require('./../modules/rsaCrypto');
 const errorUtils = require('../modules/errorUtils');
+const localization = require("../modules/localization");
 
 const dbPlayerMail = {
 
@@ -377,6 +378,14 @@ const dbPlayerMail = {
                         }
                     }
 
+                    if(telNum && platformData.blackListingPhoneNumbers){
+                        let indexNo = platformData.blackListingPhoneNumbers.findIndex(p => p == telNum);
+
+                        if(indexNo != -1){
+                            return Q.reject({name: "DataError", message: localization.localization.translate("This phone number is already used. Please insert other phone number.")});
+                        }
+                    }
+
                     let smsChannelProm = smsAPI.channel_getChannelList({});
                     let smsVerificationLogProm = dbconfig.collection_smsVerificationLog.findOne({
                         tel: telNum,
@@ -631,13 +640,17 @@ const dbPlayerMail = {
     },
 
     sendVerificationCodeToPlayer: function (playerId, smsCode, platformId, captchaValidation, purpose, inputDevice) {
+        let blackListingPhoneNumber = [];
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platform => {
-                let platformObjId = platform._id;
-                return dbconfig.collection_players.findOne({
-                    playerId: playerId,
-                    platform: platformObjId
-                }, {similarPlayers: 0}).lean();
+                if(platform){
+                    let platformObjId = platform._id;
+                    blackListingPhoneNumber = platform.blackListingPhoneNumbers || [];
+                    return dbconfig.collection_players.findOne({
+                        playerId: playerId,
+                        platform: platformObjId
+                    }, {similarPlayers: 0}).lean();
+                }
             },
             error => {
                 return Q.reject({name: "DBError", message: "Error in getting platform data", error: error});
@@ -651,6 +664,15 @@ const dbPlayerMail = {
                         message: "Demo player cannot perform this action"
                     })
                 }
+
+                if(blackListingPhoneNumber.length > 0 && player.phoneNumber){
+                    let indexNo = blackListingPhoneNumber.findIndex(p => p == player.phoneNumber);
+
+                    if(indexNo != -1){
+                        return Q.reject({name: "DataError", message: localization.localization.translate("This phone number is already used. Please insert other phone number.")});
+                    }
+                }
+
                 return dbPlayerMail.sendVerificationCodeToNumber(player.phoneNumber, smsCode, platformId, captchaValidation, purpose, inputDevice, player.name);
             },
             error => {

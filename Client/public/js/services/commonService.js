@@ -174,6 +174,36 @@ define([], () => {
             let sixDigitRegex = /^\d{6}$/;
             return Boolean(sixDigitRegex.test(id));
         };
+
+        this.convertDepartment = (platformData) => {
+            let showPlatform = $.extend({}, platformData);
+
+            if (showPlatform.live800CompanyId && showPlatform.live800CompanyId.length > 0) {
+                showPlatform.live800CompanyIdTXT = showPlatform.live800CompanyId.join(',');
+            }
+            if (showPlatform.csDepartment && showPlatform.csDepartment.length > 0) {
+                showPlatform.csDepartmentTXT = combinePlatformDepart(showPlatform.csDepartment);
+            }
+            if (showPlatform.qiDepartment && showPlatform.qiDepartment.length > 0) {
+                showPlatform.qiDepartmentTXT = combinePlatformDepart(showPlatform.qiDepartment);
+            }
+            if (showPlatform.csDepartment && showPlatform.csDepartment.length > 0) {
+                showPlatform.csDepartmentTXT = combinePlatformDepart(showPlatform.csDepartment);
+            }
+            if (showPlatform.qiDepartment && showPlatform.qiDepartment.length > 0) {
+                showPlatform.qiDepartmentTXT = combinePlatformDepart(showPlatform.qiDepartment);
+            }
+
+            return showPlatform;
+
+            function combinePlatformDepart (dpts) {
+                let dptArr = [];
+                dpts.forEach(item => {
+                    dptArr.push(item.departmentName);
+                });
+                return dptArr.join(',');
+            };
+        };
     };
 
     let commonServiceApp = angular.module('commonService', []);

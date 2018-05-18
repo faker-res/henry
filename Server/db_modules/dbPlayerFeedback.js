@@ -565,6 +565,7 @@ var dbPlayerFeedback = {
             "10.167.11.155",
             "localhost",
             "127.0.0.1",
+            "10.168.11.155"
         ];
 
         if (!allowedIP.includes(ipAddress)) {
@@ -655,7 +656,7 @@ var dbPlayerFeedback = {
                         totalDepositAmount: player.topUpSum,
                         fame: [],
                         playerValue: player.valueScore,
-                        playerLevel: player.playerLevel.name,
+                        playerLevel: player.playerLevel ? player.playerLevel.name : "",
                         totalWithdrawTimes: player.withdrawTimes,
                         totalWithdrawAmount: player.withdrawSum,
                         gameLobby: [],

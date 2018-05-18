@@ -509,19 +509,22 @@ let dbRewardPoints = {
     // eventData and playerRewardPoints are optional parameter
         let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(playerObjId);
         let getRewardPointEventProm = dbConfig.collection_rewardPointsEvent.findOne({_id: rewardPointsEventObjId}).lean();
+        let getPlayerLevelProm = dbConfig.collection_players.findOne({_id: playerObjId})
+            .populate({path: "playerLevel", model: dbConfig.collection_playerLevel, select: 'name'}).lean();
 
-        let pointEvent, rewardPoints, progress;
+        let pointEvent, rewardPoints, progress, currentPlayerLevelName;
 
-        return Promise.all([getRewardPointsProm, getRewardPointEventProm]).then(
+        return Promise.all([getRewardPointsProm, getRewardPointEventProm, getPlayerLevelProm]).then(
             data => {
                 // let eventPeriodStartTime = getEventPeriodStartTime(relevantData);
                 // relevantEvents = events.filter(event => isRelevantLoginEventByProvider(event, provider, inputDevice, playerLevelData));
                 if (!data) {
-                    data = [{}, {}];
+                    data = [{}, {}, {}];
                 }
 
                 rewardPoints = data[0];
                 pointEvent = data[1];
+                currentPlayerLevelName = data[2] && data[2].playerLevel && data[2].playerLevel.name ? data[2].playerLevel.name : '';
                 let progressList = [];
 
                 if (!pointEvent) {
@@ -604,7 +607,7 @@ let dbRewardPoints = {
                         });
                     }
 
-                    let getLastRewardPointLogProm = getTodayLastRewardPointEventLog(rewardPoints._id);
+                    let getLastRewardPointLogProm = getTodayLastRewardPointEventLog(rewardPoints._id, currentPlayerLevelName);
 
                     let getRewardPointsLvlConfigProm = dbRewardPointsLvlConfig.getRewardPointsLvlConfig(rewardPoints.platformObjId);
 
@@ -2363,7 +2366,7 @@ function commonLoginProgressUpdate(progress, provider) {
     }
 }
 
-function getTodayLastRewardPointEventLog(pointObjId) {
+function getTodayLastRewardPointEventLog(pointObjId, currentPlayerLevelName) {
     let todayStartTime = dbUtility.getTodaySGTime().startTime;
 
     return dbConfig.collection_rewardPointsLog.find({
@@ -2375,7 +2378,8 @@ function getTodayLastRewardPointEventLog(pointObjId) {
                 constRewardPointsLogCategory.GAME_REWARD_POINTS
             ]
         },
-        createTime: {$gte: new Date(todayStartTime)}
+        createTime: {$gte: new Date(todayStartTime)},
+        playerLevelName: currentPlayerLevelName
     }).sort({createTime: -1}).limit(1).lean();
 }
 
