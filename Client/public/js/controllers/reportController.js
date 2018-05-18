@@ -4156,7 +4156,7 @@ define(['js/app'], function (myApp) {
                     if (item.data && item.data.remark) {
                         item.remark$ = item.data.remark;
                     }
-                    item.status$ = $translate(item.mainType === "PlayerBonus" || item.mainType === "PartnerBonus" ? vm.getStatusStrfromRow(item) == "Approved" ? "approved" : vm.getStatusStrfromRow(item) : vm.getStatusStrfromRow(item));
+                    item.status$ = $translate(item.type.name === "BulkExportPlayerData" || item.mainType === "PlayerBonus" || item.mainType === "PartnerBonus" ? vm.getStatusStrfromRow(item) == "Approved" ? "approved" : vm.getStatusStrfromRow(item) : vm.getStatusStrfromRow(item));
 
                     return item;
                 })
@@ -6364,7 +6364,8 @@ define(['js/app'], function (myApp) {
 
 
                     proposalDetail["MAIN_TYPE"] = $translate("BulkExportPlayerData");
-                    proposalDetail["USER_TYPE"] = $translate(vm.selectedProposal.playerType);
+                    proposalDetail["USER_TYPE"] = $translate(vm.selectedProposal.data.playerType) || " ";
+                    proposalDetail["BANNER TITLE"] = $translate(vm.selectedProposal.data.title) || " ";
                     proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName || $translate("ALL");
                     proposalDetail["CREDIBILITY"] = vm.selectedProposal.data.credibilityRemarkNames && vm.selectedProposal.data.credibilityRemarkNames.length > 0 ? vm.selectedProposal.data.credibilityRemarkNames.join(', ') : " ";
                     proposalDetail["LAST_ACCESS_TILL_NOW"] = vm.selectedProposal.data.lastAccessTimeRangeString || " ";
@@ -6375,8 +6376,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["WITHDRAWAL_TIMES"] = withdrawalTimesQueryString || " ";
                     proposalDetail["TOTAL_TOP_UP"] = topUpSumQueryString || " ";
                     proposalDetail["GAME_LOBBY"] = vm.selectedProposal.data.gameProviderNames && vm.selectedProposal.data.gameProviderNames.length > 0 ? vm.selectedProposal.data.gameProviderNames.join(', ') : " ";
-                    proposalDetail["RECIPIENTS_APLIPAY_NAME"] = vm.selectedProposal.data.alipayName || " ";
-                    proposalDetail["REGISTRATION_TIME_START"] = vm.selectedProposal.data.lastAccessTimeFrom ? $scope.timeReformat(new Date(vm.selectedProposal.data.lastAccessTimeFrom)) : " ";
+                    proposalDetail["REGISTRATION_TIME_START"] = vm.selectedProposal.data.registrationTimeFrom ? $scope.timeReformat(new Date(vm.selectedProposal.data.registrationTimeFrom)) : " ";
                     proposalDetail["REGISTRATION_TIME_END"] = vm.selectedProposal.data.registrationTimeTo ? $scope.timeReformat(new Date(vm.selectedProposal.data.registrationTimeTo)) : " ";
                     proposalDetail["EXPORT_PLAYER_COUNT"] = vm.selectedProposal.data.exportCount || " ";
                     proposalDetail["TARGET_SITE"] = vm.selectedProposal.data.targetExportPlatformName || " ";
