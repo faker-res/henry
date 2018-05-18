@@ -21054,14 +21054,6 @@ define(['js/app'], function (myApp) {
                     console.log('getRewardPointsEventByCategory', data.data);
                     vm.rewardPointsEvent = data.data;
                     $.each(vm.rewardPointsEvent, function (idx, val) {
-                        // vm.gameProviderPT = false;
-                        // if (val.target.targetDestination === vm.gameProviderPTid) {
-                        //     vm.gameProviderPT = true;
-                        //     val.target.gameProviderPT = true;
-                        // } else {
-                        //     vm.gameProviderPT = false;
-                        //     val.target.gameProviderPT = false;
-                        // }
                         vm.rewardPointsEventPeriodChange(idx, val);
                         vm.rewardPointsEventSetDisable(idx, val, true, true);
                         vm.rewardPointsEventOld.push($.extend(true, {}, val));
