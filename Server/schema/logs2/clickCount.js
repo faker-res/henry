@@ -19,6 +19,12 @@ let clickCountSchema = new Schema({
     count: {type: Number, default: 0},
     // array of ip address
     ipAddresses: [String],
+    // array of unique ip address of web
+    webIpAddresses: [String],
+    // array of unique ip address of app
+    appIpAddresses: [String],
+    // array of unique ip address of H5
+    H5IpAddresses: [String],
     // count of click using App
     registerClickAppCount: {type: Number, default: 0},
     // count of click using Web

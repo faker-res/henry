@@ -582,7 +582,8 @@ var roleChecker = {
                 DemoPlayer: ['getDemoPlayerAnalysis'],
                 ClickCount: ['getClickCountAnalysis'],
                 PlayerDomain: ['getPlayerDomainAnalysisData'],
-                ManualApproval: ['getManualApprovalRecords']
+                ManualApproval: ['getManualApprovalRecords'],
+                FrontEndRegistrationAttritionRate: ['getSpecificProposalTypeByName', 'getRegistrationClickCountRecords']
             }
         },
         Report: {
