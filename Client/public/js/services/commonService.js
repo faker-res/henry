@@ -16,6 +16,11 @@ define([], () => {
             return this;
         };
 
+        // self.getRewardList = () => {
+        //     return $scope.$socketPromise('getRewardEventsForPlatform', {platform: vm.selectedPlatform.id})
+        //         .then(data => data.data)
+        // };
+
         this.updatePageTile = ($translate, pageName, tabName) => {
             window.document.title = $translate(pageName) + "->" + $translate(tabName);
             $(document).one('shown.bs.tab', function (e) {

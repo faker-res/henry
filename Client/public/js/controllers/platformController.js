@@ -811,7 +811,7 @@ define(['js/app'], function (myApp) {
                 //     return;
                 // }
                 getProposalTypeByPlatformId(vm.selectedPlatform.id);
-                vm.getRewardList();
+                vm.rewardList = commonService.getRewardList();
                 vm.getPromotionTypeList();
                 vm.getAllAlipaysByAlipayGroup();
                 vm.getAllWechatpaysByWechatpayGroup();
@@ -27954,18 +27954,6 @@ define(['js/app'], function (myApp) {
             vm.getProposalTypeOptionValue = function (proposalType) {
                 var result = utilService.getProposalGroupValue(proposalType);
                 return $translate(result);
-            };
-
-            vm.getRewardList = function (callback) {
-                vm.rewardList = [];
-                socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform.id}, function (data) {
-                    vm.rewardList = data.data;
-                    console.log('vm.rewardList', vm.rewardList);
-                    $scope.safeApply();
-                    if (callback) {
-                        callback();
-                    }
-                });
             };
 
             vm.getPromotionTypeList = function (callback) {
