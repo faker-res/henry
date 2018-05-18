@@ -2528,8 +2528,12 @@ var dbPlatform = {
             }, {new: true});
     },
 
-    createClickCountLog: (platformId, device, pageName, buttonName, registerClickApp, registerClickWeb, registerClickH5, ipAddress) => {
+    createClickCountLog: (platformId, device, pageName, buttonName, registerClickApp=false, registerClickWeb=false, registerClickH5=false, ipAddress) => {
         let todayTime = dbUtility.getTodaySGTime();
+
+        console.log("chh11111", registerClickApp)
+        console.log("chh22222", registerClickH5)
+        console.log("chh33333", registerClickWeb)
         registerClickApp = registerClickApp === 'true' ? true : registerClickApp === 'false' ? false : registerClickApp;
         registerClickWeb = registerClickWeb === 'true' ? true : registerClickWeb === 'false' ? false : registerClickWeb;
         registerClickH5 = registerClickH5 === 'true' ? true : registerClickH5 === 'false' ? false : registerClickH5;
@@ -2546,6 +2550,7 @@ var dbPlatform = {
                 };
 
                 let countObj = {};
+                let uniqueIp = {};
 
                 switch(true) {
                     case registerClickApp:
@@ -2553,25 +2558,29 @@ var dbPlatform = {
                             count: 1,
                             registerClickAppCount: 1
                         };
+                        uniqueIp = {appIpAddresses: ipAddress};
                         break;
                     case registerClickWeb:
                         countObj = {
                             count: 1,
                             registerClickWebCount: 1
                         };
+                        uniqueIp = {webIpAddresses: ipAddress};
                         break;
                     case registerClickH5:
                         countObj = {
                             count: 1,
                             registerClickH5Count: 1
                         };
+                        uniqueIp = {H5IpAddresses: ipAddress};
                         break;
                     default:
                         countObj = {count: 1};
+                        uniqueIp = {ipAddresses: ipAddress};
                 }
 
                 dbconfig.collection_clickCount
-                    .update(clickCountObj, {$inc: countObj , $addToSet: {ipAddresses: ipAddress}}, {upsert: true})
+                    .update(clickCountObj, {$inc: countObj , $addToSet: uniqueIp}, {upsert: true})
                     .exec()
                     .catch(errorUtils.reportError);
             }
