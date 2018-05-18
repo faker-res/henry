@@ -316,7 +316,8 @@ var simplifiedChinese = {
     "This phone number has applied for max reward times in event period": "此电话已经达到了该优惠周期内的申请上限",
     "Password should be alphanumeric and within 20 characters": "密码只能为6-20位的数字和字母",
     "Player does not have permission for reward point task": "目前进行维护当中，详情请联系客服谘询，谢谢",
-    "Registration failed, phone number is invalid": "注册失败, 该电话无效"
+    "Registration failed, phone number is invalid": "注册失败, 该电话无效",
+    "Sending failed, phone number is invalid": "发送失败, 该电话无效"
     //todo::add missing messages here
 
     /*
