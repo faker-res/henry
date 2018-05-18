@@ -669,6 +669,10 @@ let dbPlayerInfo = {
     createPlayerFromTel: (inputData) => {
         let platformObj;
 
+        if (!inputData.chatRecordContent) {
+            return Promise.reject({name: "InputError", message: "Missing chat record content"})
+        }
+
         return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).lean().then(
             platformData => {
                 if (platformData) {
@@ -707,8 +711,14 @@ let dbPlayerInfo = {
                     inputData.name = inputData.name.toLowerCase();
                     delete inputData.platformId;
 
-                    return dbconfig.collection_csOfficerUrl.find({way: inputData.promoMethod})
+                    let csProm = dbconfig.collection_csOfficerUrl.find({way: inputData.promoMethod})
                         .populate({path: "admin", model: dbconfig.collection_admin}).lean();
+                    let crResultProm = dbconfig.collection_playerFeedbackResult
+                        .findOne({value: inputData.chatRecordResult}).lean();
+                    let crTitleProm = dbconfig.collection_playerFeedbackTopic
+                        .findOne({value: inputData.chatRecordTopic}).lean();
+
+                    return Promise.all([csProm, crResultProm, crTitleProm]);
                 } else {
                     return Promise.reject({
                         status: constServerCode.PHONENUMBER_ALREADY_EXIST,
@@ -718,38 +728,60 @@ let dbPlayerInfo = {
                 }
             }
         ).then(
-            methods => {
-                if (methods && methods.length > 0) {
-                    let isAdminExist = false;
+            promArr => {
+                if (promArr) {
+                    let methods = promArr[0];
+                    let fbResult = promArr[1];
+                    let fbTitle = promArr[2];
 
-                    methods.map(method => {
-                        if (method.admin.adminName === inputData.telSalesName) {
-                            isAdminExist = true;
-                            inputData.csOfficer = method.admin;
-                            inputData.promoteWay = method.way
-                        }
-                    });
-
-                    if (isAdminExist) {
-                        inputData = determineRegistrationInterface(inputData);
-
-                        return dbconfig.collection_playerCredibilityRemark.findOne({
-                            platform: platformObj._id,
-                            name: inputData.fame
-                        }).lean();
-                    } else {
+                    if (!fbResult) {
                         return Promise.reject({
-                            status: constServerCode.CS_OFFICER_NOT_FOUND,
+                            status: constServerCode.FEEDBACK_RESULT_NOT_FOUND,
                             name: "DataError",
-                            message: "CS officer not found"
+                            message: "Feedback result not found"
                         });
                     }
-                } else {
-                    return Promise.reject({
-                        status: constServerCode.PROMO_METHOD_NOT_FOUND,
-                        name: "DataError",
-                        message: "Promotion method not found"
-                    });
+
+                    if (!fbTitle) {
+                        return Promise.reject({
+                            status: constServerCode.FEEDBACK_TITLE_NOT_FOUND,
+                            name: "DataError",
+                            message: "Feedback title not found"
+                        });
+                    }
+
+                    if (methods && methods.length > 0) {
+                        let isAdminExist = false;
+
+                        methods.map(method => {
+                            if (method.admin.adminName === inputData.telSalesName) {
+                                isAdminExist = true;
+                                inputData.csOfficer = method.admin;
+                                inputData.promoteWay = method.way
+                            }
+                        });
+
+                        if (isAdminExist) {
+                            inputData = determineRegistrationInterface(inputData);
+
+                            return dbconfig.collection_playerCredibilityRemark.findOne({
+                                platform: platformObj._id,
+                                name: inputData.fame
+                            }).lean();
+                        } else {
+                            return Promise.reject({
+                                status: constServerCode.CS_OFFICER_NOT_FOUND,
+                                name: "DataError",
+                                message: "CS officer not found"
+                            });
+                        }
+                    } else {
+                        return Promise.reject({
+                            status: constServerCode.PROMO_METHOD_NOT_FOUND,
+                            name: "DataError",
+                            message: "Promotion method not found"
+                        });
+                    }
                 }
             }
         ).then(
