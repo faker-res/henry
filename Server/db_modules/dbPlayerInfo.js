@@ -768,6 +768,8 @@ let dbPlayerInfo = {
                         if (isAdminExist) {
                             inputData = determineRegistrationInterface(inputData);
 
+                            console.log('inputData', inputData);
+
                             return dbconfig.collection_playerCredibilityRemark.findOne({
                                 platform: platformObj._id,
                                 name: inputData.fame
