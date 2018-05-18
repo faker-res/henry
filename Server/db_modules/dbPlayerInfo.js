@@ -78,6 +78,7 @@ const constPlayerBillBoardMode = require('./../const/constPlayerBillBoardMode');
 let dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
 let dbPlayerConsumptionWeekSummary = require('../db_modules/dbPlayerConsumptionWeekSummary');
 let dbPlayerCreditTransfer = require('../db_modules/dbPlayerCreditTransfer');
+let dbPlayerFeedback = require('../db_modules/dbPlayerFeedback');
 let dbPlayerLevel = require('../db_modules/dbPlayerLevel');
 let dbPlayerReward = require('../db_modules/dbPlayerReward');
 let dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
@@ -667,7 +668,7 @@ let dbPlayerInfo = {
     },
 
     createPlayerFromTel: (inputData) => {
-        let platformObj;
+        let platformObj, adminObjId;
 
         if (!inputData.chatRecordContent) {
             return Promise.reject({name: "InputError", message: "Missing chat record content"})
@@ -756,8 +757,11 @@ let dbPlayerInfo = {
                         methods.map(method => {
                             if (method.admin.adminName === inputData.telSalesName) {
                                 isAdminExist = true;
+                                inputData.accAdmin = method.admin.adminName;
                                 inputData.csOfficer = method.admin;
-                                inputData.promoteWay = method.way
+                                inputData.promoteWay = method.way;
+                                inputData.csPromoteWay = method._id;
+                                adminObjId = method.admin._id;
                             }
                         });
 
@@ -804,6 +808,20 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     dbPlayerInfo.createPlayerLoginRecord(data);
+
+                    // Create feedback
+                    let feedback = {
+                        playerId: data._id,
+                        platform: data.platform,
+                        adminId: adminObjId,
+                        content: inputData.chatRecordContent,
+                        result: inputData.chatRecordResult,
+                        resultName: inputData.chatRecordResult,
+                        topic: inputData.chatRecordTopic
+                    };
+
+                    dbPlayerFeedback.createPlayerFeedback(feedback).catch(errorUtils.reportError);
+
                     //todo::temp disable similar player untill ip is correct
                     if (data.lastLoginIp && data.lastLoginIp != "undefined") {
                         dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
