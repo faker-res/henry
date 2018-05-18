@@ -10,7 +10,7 @@
                 ul.list-group.treeview(style="height: 430px; overflow-y: auto;", ng-if="vm.curPlatformText")
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "player"}', ng-click='vm.configTabClicked("player")')
                         span {{"PLAYER_LEVEL" | translate}}
-                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partner"}', ng-click='vm.configTabClicked("partner")')
+                    //li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partner"}', ng-click='vm.configTabClicked("partner")')
                         span {{"PARTNER_LEVEL" | translate}}
                     //li.list-group-item(ng-class='{active: vm.selectedConfigTab === "trust"}', ng-click='vm.configTabClicked("trust")')
                     //    span {{"TRUST_LEVEL" | translate}}
