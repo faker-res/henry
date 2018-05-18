@@ -100,9 +100,7 @@ var PlatformServiceImplement = function () {
 
     // Create player from DX system
     this.createPlayerFromTel.onRequest = (wsFunc, conn, data) => {
-        let isValidData = Boolean(data && data.playerAccount && data.password && data.platformId && data.phoneNumber
-            && data.playerType && data.telSalesName && data.promoMethod && data.fame && data.chatRecordResult
-            && data.chatRecordTitle);
+        let isValidData = Boolean(data && data.playerAccount && data.password && data.platformId && data.phoneNumber && data.playerType && data.telSalesName && data.promoMethod && data.fame);
         data.name = data.playerAccount;
         // Promise create player and partner
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerFromTel, [data], isValidData, null, null, true);
