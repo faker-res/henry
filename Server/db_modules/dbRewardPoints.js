@@ -392,15 +392,17 @@ let dbRewardPoints = {
                 let playerLevelData = data[3];
                 let gameProviders = data[4];
 
-                let gameProviderPTid = null;
-                let gameProviderPT = gameProviders.filter(provider => {
-                    if (provider.code === 'PTOTHS' && provider.providerId === '18') {
-                        gameProviderPTid = provider._id.toString();
-                        return gameProviderPTid;
+                let gameProviderManuallyInsertGameId = [];
+
+                gameProviders.forEach(provider => {
+                    if ((provider.code === 'PTOTHS' && provider.providerId === '18') || (provider.code === 'MGEBET' && provider.providerId === '41') ||
+                        (provider.code === 'DTOTHS' && provider.providerId === '45') || (provider.code === 'QTOTHS' && provider.providerId === '46') ||
+                        (provider.code === 'BYOTHS' && provider.providerId === '47') || (provider.code === 'ISBSLOTS' && provider.providerId === '57')) {
+                        return gameProviderManuallyInsertGameId.push( provider._id.toString() );
                     }
                 });
 
-                relevantEvents = events.filter(event => isRelevantGameEvent(event, consumptionRecord, playerLevelData, gameProviderPTid));
+                relevantEvents = events.filter(event => isRelevantGameEvent(event, consumptionRecord, playerLevelData, gameProviderManuallyInsertGameId));
 
                 let rewardProgressProm = [];
                 if (relevantEvents.length) {
@@ -1929,7 +1931,7 @@ function isRelevantTopupEvent(event, topupMainType, topupProposalData, playerLev
     return true;
 }
 
-function isRelevantGameEvent(event, consumptionRecord, playerLevelData, gameProviderPTid) {
+function isRelevantGameEvent(event, consumptionRecord, playerLevelData, gameProviderManuallyInsertGameId) {
     if (!event) {
         console.log('debug log #0FD403');
         return false;
@@ -1956,28 +1958,28 @@ function isRelevantGameEvent(event, consumptionRecord, playerLevelData, gameProv
         return false;
     }
 
-    // only apply for game provider PT
-    if (event.target && event.target.targetDestination && event.target.targetDestination.toString() === gameProviderPTid && event.target.gameType) {
+    // only apply for game provider that are required to manually insert game id in game reward points
+    if (event.target && event.target.targetDestination && gameProviderManuallyInsertGameId.indexOf( event.target.targetDestination.toString() ) > -1 && event.target.gameType) {
         console.log('debug log #0FD408');
         let gameTypes = event.target.gameType;
-        let gameTypePT = gameTypes.split(',').map(item => item.trim());
-        let matchGameTypePT = 0;
+        let gameTypeManual = gameTypes.split(',').map(item => item.trim());
+        let matchGameTypeManual = 0;
 
-        for (let x = 0; x < gameTypePT.length; x++) {
-            if (gameTypePT[x] === String(consumptionRecord.cpGameType)) {
+        gameTypeManual.forEach(gameType => {
+            if (String(consumptionRecord.cpGameType).indexOf(gameType) > -1) {
                 // for matching game type
-                matchGameTypePT++;
+                matchGameTypeManual++;
             }
-        }
+        });
 
         // no matching game type
-        if (matchGameTypePT === 0) {
+        if (matchGameTypeManual === 0) {
             console.log('debug log #0FD409');
             return false;
         }
     }
 
-    if (event.target && event.target.gameType && (event.target.gameType.toString() !== String(consumptionRecord.cpGameType)) && (event.target.targetDestination.toString() !== gameProviderPTid)) {
+    if (event.target && event.target.gameType && (event.target.gameType.toString() !== String(consumptionRecord.cpGameType)) && (gameProviderManuallyInsertGameId.indexOf( event.target.targetDestination.toString() ) === -1)) {
         console.log('debug log #0FD40A');
         return false;
     }
