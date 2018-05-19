@@ -3019,8 +3019,7 @@ let dbPlayerInfo = {
             ).then(data => {
                     if (data) {
                         if (data.platform) {
-                            return dbconfig.collection_platform.findOne({_id: data.platform})
-                                .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).then(
+                            return dbconfig.collection_platform.findOne({_id: data.platform}).then(
                                     platformData => {
                                         if (platformData) {
                                             if (platformData.useProviderGroup) {
@@ -3040,8 +3039,8 @@ let dbPlayerInfo = {
                         playerData = data;
 
                         var recordData = {
-                            playerId: playerData._id,
-                            platformId: playerData.platform,
+                            playerId: data._id,
+                            platformId: data.platform,
                             amount: amount,
                             topUpType: topUpType,
                             createTime: proposalData ? proposalData.createTime : new Date(),
@@ -3084,12 +3083,12 @@ let dbPlayerInfo = {
                                 type = constPlayerCreditChangeType.TOP_UP;
                                 break;
                         }
-                        var logProm = dbLogger.createCreditChangeLogWithLockedCredit(playerId, playerData.platform, amount, type, playerData.validCredit, playerData.lockedCredit, playerData.lockedCredit, null, logData);
+                        var logProm = dbLogger.createCreditChangeLogWithLockedCredit(playerId, data.platform, amount, type, data.validCredit, data.lockedCredit, data.lockedCredit, null, logData);
                         // var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform).catch(console.log);
                         let promArr;
 
                         if (useProviderGroup) {
-                            var freeAmountRewardTaskGroupProm = dbPlayerInfo.checkFreeAmountRewardTaskGroup(playerId, playerData.platform, amount);
+                            var freeAmountRewardTaskGroupProm = dbPlayerInfo.checkFreeAmountRewardTaskGroup(playerId, data.platform, amount);
                             promArr = [recordProm, logProm, freeAmountRewardTaskGroupProm];
                         } else {
                             promArr = [recordProm, logProm];
