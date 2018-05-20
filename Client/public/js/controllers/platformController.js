@@ -16003,9 +16003,11 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getTotalSettledCommission', partner, function (data) {
                     // append back total settled commission into draw table data
                     data.data.forEach( inData => {
-                        let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-                        if ( index !== -1) {
-                            partner.data[index].totalSettledCommission = inData.amount ? inData.amount : 0;
+                        if (inData && inData.partnerId) {
+                            let index =  partner.data.findIndex(p => p._id === inData.partnerId);
+                            if ( index !== -1) {
+                                partner.data[index].totalSettledCommission = inData.amount ? inData.amount : 0;
+                            }
                         }
                     });
                     vm.partnerLoadingTotalSettledCommission = false;
@@ -24484,6 +24486,11 @@ define(['js/app'], function (myApp) {
                     newConfig.commissionSetting[idx].commissionRate = oldConfig.commissionSetting[idx].commissionRate;
                     isRevert = --customCount === 0;
                 }
+
+                // Convert back commissionRate to percentage
+                newConfig.commissionSetting.forEach(e => {
+                    e.commissionRate = e.commissionRate / 100;
+                })
 
                 // Check setting has changed or not
                 if (newConfig || isRevert) {

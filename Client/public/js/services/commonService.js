@@ -117,6 +117,9 @@ define([], () => {
                                     }
                                 });
                             }
+
+                            // Change to percentage format
+                            e.commissionRate = e.commissionRate * 100;
                         });
                     }
 
