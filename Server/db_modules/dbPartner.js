@@ -6808,7 +6808,7 @@ let dbPartner = {
 
         let removeArr = [];
 
-        return dbconfig.collection_partnerCommissionLog.find(query).then(
+        return dbconfig.collection_partnerCommissionLog.find(query).lean().then(
             partnerCommissionLog => {
                 if(partnerCommissionLog){
                     partnerCommissionLog.forEach(commissionLog => {
