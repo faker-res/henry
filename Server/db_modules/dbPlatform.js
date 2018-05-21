@@ -2680,7 +2680,7 @@ var dbPlatform = {
 
     getPlatformPartnerSettLog: (platformObjId, modes) => {
         let promArr = [];
-        let returnObj = {};
+        let partnerSettDetail = {};
 
         modes.forEach(mode => {
             promArr.push(
@@ -2734,7 +2734,7 @@ var dbPlatform = {
             result => {
                 if(result){
                     let promArr = [];
-                    returnObj = result;
+                    partnerSettDetail = result;
 
                     result.map(r => {
                         if(r && r.settStartTime && r.settEndTime){
@@ -2748,19 +2748,19 @@ var dbPlatform = {
         ).then(
             checkPreviewResult => {
                 if(checkPreviewResult){
-                    returnObj.map(r => {
-                        if(r){
-                            checkPreviewResult.forEach(c => {
-                                if(c){
-                                    if(r.mode == c.commissionType && r.settStartTime == c.startTime && r.settEndTime == c.endTime){
-                                        r.isPreview = c.isPreview;
+                    partnerSettDetail.map(settDetail => {
+                        if(settDetail){
+                            checkPreviewResult.forEach(checkPreview => {
+                                if(checkPreview){
+                                    if(settDetail.mode == checkPreview.commissionType && settDetail.settStartTime == checkPreview.startTime && settDetail.settEndTime == checkPreview.endTime){
+                                        settDetail.isPreview = checkPreview.isPreview;
                                     }
                                 }
                             })
                         }
                     });
 
-                    return returnObj;
+                    return partnerSettDetail;
                 }
             }
         );
