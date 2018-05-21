@@ -254,6 +254,12 @@
         this.partnerService.getNewCrewInfo.once(callback);
     };
 
+    proto.preditCommission = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.preditCommission.request(data);
+        this.partnerService.preditCommission.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPartnerAPITest;
     } else {

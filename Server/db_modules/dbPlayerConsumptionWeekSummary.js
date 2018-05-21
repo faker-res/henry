@@ -321,8 +321,7 @@ var dbPlayerConsumptionWeekSummary = {
                                             totalNonXIMAAmt: totalNonXIMAAmt,
                                             eventDescription: eventData.description,
                                             startTime: startTime,
-                                            endTime: endTime,
-                                            isIgnoreAudit: eventData.param && Number.isInteger(eventData.param.isIgnoreAudit) && eventData.param.isIgnoreAudit >= returnAmount,
+                                            endTime: endTime
                                         }
                                     };
 
@@ -413,6 +412,7 @@ var dbPlayerConsumptionWeekSummary = {
                                                                 consumedValidAmount = doneXIMAConsumption["GameType:" + el._id].consumeValidAmount;
                                                             }
 
+                                                            let freeConsumption = el.validAmount - consumedValidAmount;
                                                             let consumpDiff = el.validAmount - curValidAmt - curNonXIMAAmt - consumedValidAmount;
                                                             let returnRatio = proposalData.data.returnDetail["GameType:" + el._id] ? proposalData.data.returnDetail["GameType:" + el._id].ratio : 0;
 
@@ -424,13 +424,29 @@ var dbPlayerConsumptionWeekSummary = {
                                                             proposalData.data.devCheckMsg +=
                                                                 "GameType: " + el._id + ", " +
                                                                 "Original: " + proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount + ", " +
-                                                                "Current: " + el.validAmount + ", ";
+                                                                "Current: " + el.validAmount + ", " +
+                                                                "Free: " + freeConsumption + ", ";
+
+                                                            // Handling for inconsistent consumption summary
+                                                            // Sometime the summary has more consumption than it should
+                                                            if (freeConsumption < curValidAmt + curNonXIMAAmt) {
+                                                                proposalData.data.rewardAmount -= proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount * returnRatio;
+                                                                proposalData.data.spendingAmount -= proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount * eventData.param.consumptionTimesRequired;
+                                                                proposalData.data.consumeValidAmount -= proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount;
+                                                                proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount = freeConsumption;
+                                                                proposalData.data.rewardAmount += freeConsumption * returnRatio;
+                                                                proposalData.data.spendingAmount += freeConsumption * eventData.param.consumptionTimesRequired;
+                                                                proposalData.data.consumeValidAmount += freeConsumption;
+
+                                                                proposalData.data.devCheckMsg +=
+                                                                    "Negative Offset: " + freeConsumption + "<" + curValidAmt + "+" + curNonXIMAAmt + "; "
+                                                            }
 
                                                             // Offset if it matters
-                                                            if (proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount + consumpDiff >= 0) {
+                                                            else if (proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount + consumpDiff >= 0) {
                                                                 proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount += consumpDiff;
                                                                 proposalData.data.rewardAmount += consumpDiff * returnRatio;
-                                                                proposalData.data.spendingAmount += consumpDiff * returnRatio;
+                                                                proposalData.data.spendingAmount += consumpDiff * eventData.param.consumptionTimesRequired;
                                                                 proposalData.data.consumeValidAmount += consumpDiff;
 
                                                                 proposalData.data.devCheckMsg +=
@@ -439,6 +455,11 @@ var dbPlayerConsumptionWeekSummary = {
                                                         }
                                                     });
                                                 }
+
+                                                // Check whether ignore audit
+                                                proposalData.data.isIgnoreAudit = eventData.param
+                                                    && Number.isInteger(eventData.param.isIgnoreAudit)
+                                                    && eventData.param.isIgnoreAudit >= proposalData.data.rewardAmount;
 
                                                 return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
                                             }

@@ -796,7 +796,7 @@ define(['js/app'], function (myApp) {
             }
 
             //set selected platform node
-            function selectPlatformNode (node, option)  {
+            async function selectPlatformNode (node, option)  {
                 vm.selectedPlatform = node;
                 vm.curPlatformText = node.text;
                 vm.isNotAllowEdit = true;
@@ -811,8 +811,8 @@ define(['js/app'], function (myApp) {
                 //     return;
                 // }
                 getProposalTypeByPlatformId(vm.selectedPlatform.id);
-                vm.getRewardList();
-                vm.getPromotionTypeList();
+                vm.rewardList = await commonService.getRewardList($scope, vm.selectedPlatform.id);
+                vm.promoTypeList = await commonService.getPromotionTypeList($scope, vm.selectedPlatform.id);
                 vm.getAllAlipaysByAlipayGroup();
                 vm.getAllWechatpaysByWechatpayGroup();
                 vm.getAllBankCard();
@@ -1479,7 +1479,6 @@ define(['js/app'], function (myApp) {
                     logs => {
                         $scope.$evalAsync(() => {
                             vm.partnerCommissionSettlement.data = logs.data;
-
                             $('#partnerCommissionSettlementModal').modal('show');
                         })
                     }
@@ -1495,7 +1494,6 @@ define(['js/app'], function (myApp) {
                     startTime: modeObj.settStartTime,
                     endTime: modeObj.settEndTime
                 }).then(vm.startPlatformPartnerCommissionSettlement());
-
             };
 
             vm.skipNextPartnerCommissionPeriod = (modeObj, toLatest = false, isConfirm = false) => {
@@ -1647,6 +1645,29 @@ define(['js/app'], function (myApp) {
                 if (!vm.partnerCommVar.checkedRemark){
                     vm.partnerSettlementSubmitted[vm.partnerCommVar.settMode] = true;
                     vm.bulkApplyPartnerCommission(applyPartnerCommSettlementArray);
+                }
+            };
+
+            /* Cancel preview */
+            vm.cancelPreview = (isConfirm = false) => {
+                if (!isConfirm) {
+                    vm.modalYesNo = {};
+                    vm.modalYesNo.modalTitle = $translate("CANCEL PREVIEW");
+                    vm.modalYesNo.modalText = $translate("Are you sure");
+                    vm.modalYesNo.actionYes = () => vm.cancelPreview(true);
+                    $('#modalYesNo').modal();
+                }
+                else {
+                    let sendData = [];
+                    vm.partnerCommissionLog.forEach( partner => {
+                        if (partner) {
+                            sendData.push(partner._id);
+                        }
+                    });
+
+                    socketService.$socket($scope.AppSocket, 'cancelPartnerCommissionPreview', sendData, function (data) {
+                        vm.loadTab('Partner');
+                    });
                 }
             };
 
@@ -2325,9 +2346,10 @@ define(['js/app'], function (myApp) {
                     ],
                     columns: [
                         {'title': $translate('PLAYER_NAME'), data: 'name'},
-                        {'title': $translate('PLAYERID'), data: 'playerId'},
+                        // {'title': $translate('PLAYERID'), data: 'playerId'},
                         {'title': $translate('realName'), sClass: "wordWrap realNameCell", data: 'realName'},
                         {'title': $translate('playerLevel'), data: 'playerLevel.name'},
+                        {'title': $translate('LOGIN_TIMES'), data: 'loginTimes'},
                         {'title': $translate('topUpTimes'), data: 'topUpTimes', bSortable: true},
                         {'title': $translate('lastAccessTime'), data: 'lastAccessTime$'},
                         {'title': $translate('registrationTime'), data: 'registrationTime$'},
@@ -27969,32 +27991,6 @@ define(['js/app'], function (myApp) {
             vm.getProposalTypeOptionValue = function (proposalType) {
                 var result = utilService.getProposalGroupValue(proposalType);
                 return $translate(result);
-            };
-
-            vm.getRewardList = function (callback) {
-                vm.rewardList = [];
-                socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform.id}, function (data) {
-                    vm.rewardList = data.data;
-                    console.log('vm.rewardList', vm.rewardList);
-                    $scope.safeApply();
-                    if (callback) {
-                        callback();
-                    }
-                });
-            };
-
-            vm.getPromotionTypeList = function (callback) {
-                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {
-                    platformObjId: vm.selectedPlatform.id,
-                    deleteFlag: false
-                }, function (data) {
-                    console.log('getPromoCodeTypes', data);
-                    vm.promoTypeList = data.data;
-                    $scope.safeApply();
-                    if (callback) {
-                        callback();
-                    }
-                });
             };
 
             //Player advertisement

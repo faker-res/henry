@@ -2680,6 +2680,7 @@ var dbPlatform = {
 
     getPlatformPartnerSettLog: (platformObjId, modes) => {
         let promArr = [];
+        let partnerSettDetail = {};
 
         modes.forEach(mode => {
             promArr.push(
@@ -2722,14 +2723,78 @@ var dbPlatform = {
                             lastSettDate: lastSettDate,
                             nextSettDate: nextSettDate,
                             settStartTime: nextDate.startTime,
-                            settEndTime: nextDate.endTime
+                            settEndTime: nextDate.endTime,
                         }
                     }
                 )
             )
         });
 
-        return Promise.all(promArr);
+        return Promise.all(promArr).then(
+            result => {
+                if(result){
+                    let promArr = [];
+                    partnerSettDetail = result;
+
+                    result.map(r => {
+                        if(r && r.settStartTime && r.settEndTime){
+                            promArr.push(dbPlatform.isPreview(r.settStartTime, r.settEndTime, platformObjId, r.mode));
+                        }
+                    });
+
+                    return Promise.all(promArr);
+                }
+            }
+        ).then(
+            checkPreviewResult => {
+                if(checkPreviewResult){
+                    partnerSettDetail.map(settDetail => {
+                        if(settDetail){
+                            checkPreviewResult.forEach(checkPreview => {
+                                if(checkPreview){
+                                    if(settDetail.mode == checkPreview.settMode && settDetail.settStartTime == checkPreview.startTime && settDetail.settEndTime == checkPreview.endTime){
+                                        settDetail.isPreview = checkPreview.isPreview;
+                                    }
+                                }
+                            })
+                        }
+                    });
+
+                    return partnerSettDetail;
+                }
+            }
+        );
+    },
+
+    isPreview: (startTime, endTime, platformObjId, settMode) => {
+        let query = {
+            platform: platformObjId,
+            startTime: startTime,
+            endTime: endTime,
+            settMode: settMode,
+            isSettled: false,
+            isSkipped: false
+        }
+
+        return dbconfig.collection_partnerCommSettLog.findOne(query).then(
+            result => {
+                if(result){
+                    return {
+                        settMode: settMode,
+                        startTime: startTime,
+                        endTime: endTime,
+                        isPreview: true
+                    }
+                }else{
+                    return {
+                        settMode: settMode,
+                        startTime: startTime,
+                        endTime: endTime,
+                        isPreview: false
+                    }
+                }
+            }
+        )
     },
 
     generatePartnerCommSettPreview: (platformObjId, settMode, startTime, endTime, isSkip = false, toLatest = false) => {

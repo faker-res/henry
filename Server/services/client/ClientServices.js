@@ -420,6 +420,7 @@
                 "getCrewWithdrawInfo",
                 "getCrewBetInfo",
                 "getNewCrewInfo",
+                "preditCommission",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

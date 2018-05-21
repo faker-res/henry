@@ -449,6 +449,11 @@ var PartnerServiceImplement = function () {
         let isValidData = Boolean(data.platformId && data.partnerId && data.period && data.circleTimes);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getNewCrewInfo, [data.platformId, data.partnerId, data.period, data.circleTimes], isValidData, false, false, true);
     };
+
+    this.preditCommission.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data.platformId && data.partnerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.preditCommission, [data.platformId, data.partnerId], isValidData, false, false, true);
+    };
 };
 var proto = PartnerServiceImplement.prototype = Object.create(PartnerService.prototype);
 proto.constructor = PartnerServiceImplement;

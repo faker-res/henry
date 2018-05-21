@@ -63,8 +63,8 @@
                     a.fa.fa-times.text-danger.margin-left-5(ng-show="vm.toPhoneNumber", ng-click='vm.toPhoneNumber=null')
                 .pull-right(ng-show="checkViewPermission('Platform', 'groupMessage', 'SMSSendLog')")
                     button.btn.btn-primary.btn-sm(data-toggle="modal", ng-click='vm.initSMSLog("multi")', data-target='#modalSMSLog') {{'SMS Send Log' | translate}}
-            .tableRow(ng-show='vm.sendMultiMessage.messageType==="mail"')
-                .tableCell(style='width:10%;')
+            .tableRow(ng-hide="vm.sendMultiMessage.messageType==='sms'")
+                .tableCell(style='width:15%;')
                     label {{"TITLE" | translate}}:
                 .tableCell(style='min-width:60%')
                     input.form-control(style='width:100%;resize:none', type='text', ng-model='vm.sendMultiMessage.messageTitle', placeholder='{{"Please Type Your Title" | translate}}')
@@ -93,9 +93,9 @@
                 .tableCell(style='width:20%;', ng-show='!vm.toPhoneNumber')
                     //label {{"SENDMESSAGENOTE" | translate}}
                     div
-                        label SMS
+                        label {{"SMS" | translate}}
                         input(type="radio" name="messageType" ng-model="vm.sendMultiMessage.messageType" value="sms")
-                        label Mail
+                        label {{"Mail" | translate}}
                         input(type="radio" name="messageType" ng-model="vm.sendMultiMessage.messageType" value="mail")
                     div
                         label {{'Recipient' | translate}} : {{vm.sendMultiMessage.numRecipient}}
@@ -124,7 +124,7 @@
                         button.btn.btn-primary.btn-sm(ng-click="vm.sendSingleMessages()", ng-disabled="vm.sendMultiMessage.singleSendDisable") {{vm.sendMultiMessage.singleBtnText | translate}}
                         label.margin-left-5.text-danger(ng-show='vm.sendMultiMessage.singleSendResultText') {{vm.sendMultiMessage.singleSendResultText | translate}}
 
-            .tableRow
+            .tableRow(style="margin-top:20px" ng-show="vm.sendMultiMessage.messageType==='sms'")
                 .tableCell(style='width:15%;')
                     label {{"SMS Templates" | translate}}:
                 .tableCell(style='min-width:75%;text-align:left')
