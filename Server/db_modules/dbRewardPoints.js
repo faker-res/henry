@@ -2624,6 +2624,7 @@ function checkGameRewardPointDetail(playerObjId, rewardPointEventObjId) {
         }
     ).then(
         appliedLog => {
+            console.log('rewardPointEvent.level', rewardPointEvent.level)
             let output = {
                 id: rewardPointEventObjId,
                 refreshPeriod: getIntervalPeriodString(rewardPointEvent.period),
@@ -2631,8 +2632,12 @@ function checkGameRewardPointDetail(playerObjId, rewardPointEventObjId) {
                 betDetail: rewardPointEvent.target && rewardPointEvent.target.betType ? rewardPointEvent.target.betType : "",
                 title: rewardPointEvent.rewardTitle,
                 content: rewardPointEvent.rewardContent,
-                gradeLimit: rewardPointEvent.level && rewardPointEvent.level.value,
-                gradeName: rewardPointEvent.level && rewardPointEvent.level.name,
+                gradeLimit: rewardPointEvent.level && rewardPointEvent.level.value || "",
+                gradeName: rewardPointEvent.level && rewardPointEvent.level.name || "",
+                device: constRewardPointsUserAgent[rewardPointEvent.userAgent ? rewardPointEvent.userAgent.toString() : ""],
+                dailyRequestBetCountsAndAmount: [0, 0],
+                dailyBetConsumption: 0,
+                dailyWinBetCounts: 0,
                 point: rewardPointEvent.rewardPoints,
                 status: 0, // not-applicable
                 providerId: getTargetDestinationProviderIds(rewardPointEvent, gameProviders),
