@@ -1479,7 +1479,6 @@ define(['js/app'], function (myApp) {
                     logs => {
                         $scope.$evalAsync(() => {
                             vm.partnerCommissionSettlement.data = logs.data;
-
                             $('#partnerCommissionSettlementModal').modal('show');
                         })
                     }
@@ -1495,7 +1494,6 @@ define(['js/app'], function (myApp) {
                     startTime: modeObj.settStartTime,
                     endTime: modeObj.settEndTime
                 }).then(vm.startPlatformPartnerCommissionSettlement());
-
             };
 
             vm.skipNextPartnerCommissionPeriod = (modeObj, toLatest = false, isConfirm = false) => {
