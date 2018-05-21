@@ -429,13 +429,17 @@ var dbPlayerConsumptionWeekSummary = {
 
                                                             // Handling for inconsistent consumption summary
                                                             // Sometime the summary has more consumption than it should
-                                                            // Zeroize this game type
                                                             if (freeConsumption < curValidAmt + curNonXIMAAmt) {
                                                                 proposalData.data.rewardAmount -= proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount * returnRatio;
                                                                 proposalData.data.spendingAmount -= proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount * eventData.param.consumptionTimesRequired;
                                                                 proposalData.data.consumeValidAmount -= proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount;
-                                                                proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount = 0;
+                                                                proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount = freeConsumption;
+                                                                proposalData.data.rewardAmount += freeConsumption * returnRatio;
+                                                                proposalData.data.spendingAmount += freeConsumption * eventData.param.consumptionTimesRequired;
+                                                                proposalData.data.consumeValidAmount += freeConsumption;
 
+                                                                proposalData.data.devCheckMsg +=
+                                                                    "Negative Offset: " + freeConsumption + "<" + curValidAmt + "+" + curNonXIMAAmt + "; "
                                                             }
 
                                                             // Offset if it matters
