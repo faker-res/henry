@@ -2675,6 +2675,7 @@ var dbPlatform = {
 
     getPlatformPartnerSettLog: (platformObjId, modes) => {
         let promArr = [];
+        let returnObj = {};
 
         modes.forEach(mode => {
             promArr.push(
@@ -2717,14 +2718,77 @@ var dbPlatform = {
                             lastSettDate: lastSettDate,
                             nextSettDate: nextSettDate,
                             settStartTime: nextDate.startTime,
-                            settEndTime: nextDate.endTime
+                            settEndTime: nextDate.endTime,
                         }
                     }
                 )
             )
         });
 
-        return Promise.all(promArr);
+        return Promise.all(promArr).then(
+            result => {
+                if(result){
+                    let promArr = [];
+                    returnObj = result;
+
+                    result.map(r => {
+                        if(r && r.settStartTime && r.settEndTime){
+                            promArr.push(dbPlatform.isPreview(r.settStartTime, r.settEndTime, platformObjId, r.mode));
+                        }
+                    });
+
+                    return Promise.all(promArr);
+                }
+            }
+        ).then(
+            checkPreviewResult => {
+                if(checkPreviewResult){
+                    returnObj.map(r => {
+                        if(r){
+                            checkPreviewResult.forEach(c => {
+                                if(c){
+                                    if(r.mode == c.commissionType && r.settStartTime == c.startTime && r.settEndTime == c.endTime){
+                                        r.isPreview = c.isPreview;
+                                    }
+                                }
+                            })
+                        }
+                    });
+
+                    return returnObj;
+                }
+            }
+        );
+    },
+
+    isPreview: (startTime, endTime, platformObjId, commissionType) => {
+        let query = {
+            platform: platformObjId,
+            startTime: startTime,
+            endTime: endTime,
+            commissionType: commissionType,
+            status: 0
+        }
+
+        return dbconfig.collection_partnerCommissionLog.findOne(query).then(
+            result => {
+                if(result){
+                    return {
+                        commissionType: commissionType,
+                        startTime: startTime,
+                        endTime: endTime,
+                        isPreview: true
+                    }
+                }else{
+                    return {
+                        commissionType: commissionType,
+                        startTime: startTime,
+                        endTime: endTime,
+                        isPreview: false
+                    }
+                }
+            }
+        )
     },
 
     generatePartnerCommSettPreview: (platformObjId, settMode, startTime, endTime, isSkip = false, toLatest = false) => {
