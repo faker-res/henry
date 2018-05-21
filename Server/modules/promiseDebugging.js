@@ -48,6 +48,7 @@ function reportLongStackTraces (config) {
 
             const wrappedPromiseInstance = originalPromiseInstance.catch(err => {
                 try {
+                    err = err || {};
                     err.stack = err.stack || "";
                     const linesInStack = (err.stack.match(/\n/) || []).length;
                     if (linesInStack < longStackHistoryLimit) {

@@ -7,12 +7,14 @@ let rewardPointsLog = new Schema({
     pointLogId: {type: String, index: true},
     // reward point Id
     rewardPointsObjId: {type: Schema.ObjectId, ref: 'rewardPoints', index: true},
+    // reward point event (only available for category 1, 2, 3)
+    rewardPointsEventObjId: {type: Schema.ObjectId, ref: 'rewardPointsEvent', index: true},
     // only available for point-to-credit transition
     rewardPointsTaskObjId: {type: Schema.ObjectId, ref: 'rewardTask'},
     // only available for point-to-credit transition
     proposalId: {type: String},
 
-    playerName: {type: String},
+    playerName: {type: String, index: true},
     // player level name
     playerLevelName: {type: String},
     // category of reward, base on constRewardPointsLogCategory
