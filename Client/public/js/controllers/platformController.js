@@ -796,7 +796,7 @@ define(['js/app'], function (myApp) {
             }
 
             //set selected platform node
-            function selectPlatformNode (node, option)  {
+            async function selectPlatformNode (node, option)  {
                 vm.selectedPlatform = node;
                 vm.curPlatformText = node.text;
                 vm.isNotAllowEdit = true;
@@ -811,8 +811,8 @@ define(['js/app'], function (myApp) {
                 //     return;
                 // }
                 getProposalTypeByPlatformId(vm.selectedPlatform.id);
-                vm.getRewardList();
-                vm.getPromotionTypeList();
+                vm.rewardList = await commonService.getRewardList($scope, vm.selectedPlatform.id);
+                vm.promoTypeList = await commonService.getPromotionTypeList($scope, vm.selectedPlatform.id);
                 vm.getAllAlipaysByAlipayGroup();
                 vm.getAllWechatpaysByWechatpayGroup();
                 vm.getAllBankCard();
@@ -1479,7 +1479,6 @@ define(['js/app'], function (myApp) {
                     logs => {
                         $scope.$evalAsync(() => {
                             vm.partnerCommissionSettlement.data = logs.data;
-
                             $('#partnerCommissionSettlementModal').modal('show');
                         })
                     }
@@ -1495,7 +1494,6 @@ define(['js/app'], function (myApp) {
                     startTime: modeObj.settStartTime,
                     endTime: modeObj.settEndTime
                 }).then(vm.startPlatformPartnerCommissionSettlement());
-
             };
 
             vm.skipNextPartnerCommissionPeriod = (modeObj, toLatest = false, isConfirm = false) => {
@@ -10468,6 +10466,14 @@ define(['js/app'], function (myApp) {
                     eventCode: "manualReward"
                 };
 
+                if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.manualRewardSkipAuditAmount) {
+                    if (vm.playerAddRewardTask && vm.playerAddRewardTask.currentAmount) {
+                        if (vm.playerAddRewardTask.currentAmount <= vm.selectedPlatform.data.manualRewardSkipAuditAmount) {
+                            sendObj.isIgnoreAudit = true;
+                        }
+                    }
+                }
+
                 if (!vm.selectedPlatform.data.useProviderGroup) {
                     sendObj.targetProviders = providerArr;
                 } else {
@@ -15793,10 +15799,11 @@ define(['js/app'], function (myApp) {
                                 platform: vm.selectedPlatform.id,
                                 partner: {$in: partnersObjId}
                             }
-                        }
+                        };
 
                         socketService.$socket($scope.AppSocket, 'getCustomizeCommissionConfigPartner', sendQuery, function (customCommissionConfig) {
                             if (customCommissionConfig && customCommissionConfig.data && customCommissionConfig.data.length > 0) {
+                                vm.customCommissionConfig = customCommissionConfig.data;
                                 customCommissionConfig.data.forEach(customSetting => {
                                     if (data && data.data && data.data.data) {
                                         data.data.data.map(data => {
@@ -15808,6 +15815,8 @@ define(['js/app'], function (myApp) {
                                         });
                                     }
                                 });
+                            } else {
+                                vm.customCommissionConfig = [];
                             }
                             vm.drawPartnerTable(data.data);
                         });
@@ -15835,6 +15844,17 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPartnersByAdvancedQuery', apiQuery, function (reply) {
                     console.log('partnerData', reply);
                     let size = reply.data.size || 0;
+                    vm.customCommissionConfig.forEach(customSetting => {
+                        if (reply && reply.data && reply.data.data) {
+                            reply.data.data.map(data => {
+                                if(data._id
+                                    && customSetting.partner
+                                    && (data._id.toString() == customSetting.partner.toString())) {
+                                    data.isCustomizeSettingExist = true;
+                                }
+                            });
+                        }
+                    });
                     setPartnerTableData(reply.data.data);
                     vm.searchPartnerCount = reply.data.size;
                     vm.advancedPartnerQueryObj.pageObj.init({maxCount: size}, true);
@@ -24774,6 +24794,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.blackListingPhoneNumbers$ = "";
                 vm.platformBasic.playerForbidApplyBonusNeedCsApproval = vm.selectedPlatform.data.playerForbidApplyBonusNeedCsApproval;
                 vm.platformBasic.unreadMailMaxDuration = vm.selectedPlatform.data.unreadMailMaxDuration;
+                vm.platformBasic.manualRewardSkipAuditAmount = vm.selectedPlatform.data.manualRewardSkipAuditAmount || 0;
 
                 if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
                     let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
@@ -25374,7 +25395,8 @@ define(['js/app'], function (myApp) {
                         usePointSystem: srcData.usePointSystem,
                         usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification,
                         playerForbidApplyBonusNeedCsApproval: srcData.playerForbidApplyBonusNeedCsApproval,
-                        unreadMailMaxDuration: srcData.unreadMailMaxDuration
+                        unreadMailMaxDuration: srcData.unreadMailMaxDuration,
+                        manualRewardSkipAuditAmount: srcData.manualRewardSkipAuditAmount,
                     }
                 };
                 let isProviderGroupOn = false;
@@ -28015,32 +28037,6 @@ define(['js/app'], function (myApp) {
             vm.getProposalTypeOptionValue = function (proposalType) {
                 var result = utilService.getProposalGroupValue(proposalType);
                 return $translate(result);
-            };
-
-            vm.getRewardList = function (callback) {
-                vm.rewardList = [];
-                socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform.id}, function (data) {
-                    vm.rewardList = data.data;
-                    console.log('vm.rewardList', vm.rewardList);
-                    $scope.safeApply();
-                    if (callback) {
-                        callback();
-                    }
-                });
-            };
-
-            vm.getPromotionTypeList = function (callback) {
-                socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {
-                    platformObjId: vm.selectedPlatform.id,
-                    deleteFlag: false
-                }, function (data) {
-                    console.log('getPromoCodeTypes', data);
-                    vm.promoTypeList = data.data;
-                    $scope.safeApply();
-                    if (callback) {
-                        callback();
-                    }
-                });
             };
 
             //Player advertisement
