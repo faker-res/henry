@@ -10432,6 +10432,14 @@ define(['js/app'], function (myApp) {
                     eventCode: "manualReward"
                 };
 
+                if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.manualRewardSkipAuditAmount) {
+                    if (vm.playerAddRewardTask && vm.playerAddRewardTask.currentAmount) {
+                        if (vm.playerAddRewardTask.currentAmount <= vm.selectedPlatform.data.manualRewardSkipAuditAmount) {
+                            sendObj.isIgnoreAudit = true;
+                        }
+                    }
+                }
+
                 if (!vm.selectedPlatform.data.useProviderGroup) {
                     sendObj.targetProviders = providerArr;
                 } else {
@@ -24738,6 +24746,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.blackListingPhoneNumbers$ = "";
                 vm.platformBasic.playerForbidApplyBonusNeedCsApproval = vm.selectedPlatform.data.playerForbidApplyBonusNeedCsApproval;
                 vm.platformBasic.unreadMailMaxDuration = vm.selectedPlatform.data.unreadMailMaxDuration;
+                vm.platformBasic.manualRewardSkipAuditAmount = vm.selectedPlatform.data.manualRewardSkipAuditAmount || 0;
 
                 if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
                     let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
@@ -25338,7 +25347,8 @@ define(['js/app'], function (myApp) {
                         usePointSystem: srcData.usePointSystem,
                         usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification,
                         playerForbidApplyBonusNeedCsApproval: srcData.playerForbidApplyBonusNeedCsApproval,
-                        unreadMailMaxDuration: srcData.unreadMailMaxDuration
+                        unreadMailMaxDuration: srcData.unreadMailMaxDuration,
+                        manualRewardSkipAuditAmount: srcData.manualRewardSkipAuditAmount,
                     }
                 };
                 let isProviderGroupOn = false;
