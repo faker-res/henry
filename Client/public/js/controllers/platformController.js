@@ -2348,9 +2348,10 @@ define(['js/app'], function (myApp) {
                     ],
                     columns: [
                         {'title': $translate('PLAYER_NAME'), data: 'name'},
-                        {'title': $translate('PLAYERID'), data: 'playerId'},
+                        // {'title': $translate('PLAYERID'), data: 'playerId'},
                         {'title': $translate('realName'), sClass: "wordWrap realNameCell", data: 'realName'},
                         {'title': $translate('playerLevel'), data: 'playerLevel.name'},
+                        {'title': $translate('LOGIN_TIMES'), data: 'loginTimes'},
                         {'title': $translate('topUpTimes'), data: 'topUpTimes', bSortable: true},
                         {'title': $translate('lastAccessTime'), data: 'lastAccessTime$'},
                         {'title': $translate('registrationTime'), data: 'registrationTime$'},
@@ -16026,9 +16027,11 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getTotalSettledCommission', partner, function (data) {
                     // append back total settled commission into draw table data
                     data.data.forEach( inData => {
-                        let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-                        if ( index !== -1) {
-                            partner.data[index].totalSettledCommission = inData.amount ? inData.amount : 0;
+                        if (inData && inData.partnerId) {
+                            let index =  partner.data.findIndex(p => p._id === inData.partnerId);
+                            if ( index !== -1) {
+                                partner.data[index].totalSettledCommission = inData.amount ? inData.amount : 0;
+                            }
                         }
                     });
                     vm.partnerLoadingTotalSettledCommission = false;
@@ -20481,7 +20484,7 @@ define(['js/app'], function (myApp) {
                         //Todo get all game type
                         //Todo get all game bet type
                         vm.getAllGameProviders(vm.selectedPlatform.id);
-                        vm.getGameProviderPTid();
+                        vm.getGameProviderToManuallyInsertGameId();
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.GAME_REWARD_POINTS);
                         break;
                     case 'rewardPointsRanking':
@@ -21053,16 +21056,18 @@ define(['js/app'], function (myApp) {
                 vm.endLoadWeekDay();
             };
 
-            // get id for game provider PT
-            vm.getGameProviderPTid = () => {
+            // get id for game provider that are required to manually insert game id in game reward points
+            vm.getGameProviderToManuallyInsertGameId = () => {
                 let gameProviders = vm.allGameProviders;
-                vm.gameProviderPTid = null;
+                vm.gameProviderManuallyInsertGameId = [];
 
-                for (let x = 0; x < gameProviders.length; x++) {
-                    if (gameProviders[x].code === 'PTOTHS' && gameProviders[x].providerId === '18') {
-                        vm.gameProviderPTid = gameProviders[x]._id;
+                gameProviders.forEach(provider => {
+                    if ((provider.code === 'PTOTHS' && provider.providerId === '18') || (provider.code === 'MGEBET' && provider.providerId === '41') ||
+                        (provider.code === 'DTOTHS' && provider.providerId === '45') || (provider.code === 'QTOTHS' && provider.providerId === '46') ||
+                        (provider.code === 'BYOTHS' && provider.providerId === '47') || (provider.code === 'ISBSLOTS' && provider.providerId === '57')) {
+                        vm.gameProviderManuallyInsertGameId.push(provider._id);
                     }
-                }
+                });
             };
 
             vm.getRewardPointsEventByCategory = (category) => {
@@ -21075,14 +21080,6 @@ define(['js/app'], function (myApp) {
                     console.log('getRewardPointsEventByCategory', data.data);
                     vm.rewardPointsEvent = data.data;
                     $.each(vm.rewardPointsEvent, function (idx, val) {
-                        vm.gameProviderPT = false;
-                        if (val.target.targetDestination === vm.gameProviderPTid) {
-                            vm.gameProviderPT = true;
-                            val.target.gameProviderPT = true;
-                        } else {
-                            vm.gameProviderPT = false;
-                            val.target.gameProviderPT = false;
-                        }
                         vm.rewardPointsEventPeriodChange(idx, val);
                         vm.rewardPointsEventSetDisable(idx, val, true, true);
                         vm.rewardPointsEventOld.push($.extend(true, {}, val));
@@ -24513,6 +24510,11 @@ define(['js/app'], function (myApp) {
                     newConfig.commissionSetting[idx].commissionRate = oldConfig.commissionSetting[idx].commissionRate;
                     isRevert = --customCount === 0;
                 }
+
+                // Convert back commissionRate to percentage
+                newConfig.commissionSetting.forEach(e => {
+                    e.commissionRate = e.commissionRate / 100;
+                })
 
                 // Check setting has changed or not
                 if (newConfig || isRevert) {

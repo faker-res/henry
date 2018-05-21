@@ -45,6 +45,7 @@ let dbOperation = require("../db_common/dbOperations");
 
 let dbConsumptionReturnWithdraw = require("../db_modules/dbConsumptionReturnWithdraw");
 const constManualTopupOperationType = require("../const/constManualTopupOperationType");
+var cpmsAPI = require("../externalAPI/cpmsAPI");
 
 const moment = require('moment-timezone');
 const ObjectId = mongoose.Types.ObjectId;
@@ -1128,7 +1129,7 @@ var proposalExecutor = {
                         if (proposalData.data.topUpReturnCode) {
                             let requiredData = {topUpRecordId: data._id}
                             applyTopUpReturn = dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
-                                , proposalData.data.topUpReturnCode, requiredData);
+                                , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
                         }
                         Promise.all([applyPlayerTopUpPromo, applyPromoCode, applyTopUpReturn]).then(
                             data => {
@@ -1176,7 +1177,7 @@ var proposalExecutor = {
                         if (proposalData.data.topUpReturnCode) {
                             let requiredData = {topUpRecordId: data._id}
                             applyTopUpReturn = dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
-                                , proposalData.data.topUpReturnCode, requiredData);
+                                , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
                         }
                         Promise.all([applyPlayerTopUpPromo, applyPromoCode, applyTopUpReturn]).then(
                             data => {
@@ -1251,7 +1252,7 @@ var proposalExecutor = {
                         if (proposalData.data.topUpReturnCode) {
                             let requiredData = {topUpRecordId: data._id}
                             applyTopUpReturn = dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
-                                , proposalData.data.topUpReturnCode, requiredData);
+                                , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
                         }
                         Promise.all([applyPlayerTopUpPromo, applyPromoCode, applyTopUpReturn]).then(
                             data => {
@@ -1306,7 +1307,7 @@ var proposalExecutor = {
                             if (proposalData.data.topUpReturnCode) {
                                 let requiredData = {topUpRecordId: data._id}
                                 applyTopUpReturn = dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
-                                    , proposalData.data.topUpReturnCode, requiredData);
+                                    , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
                             }
                             Promise.all([applyforTransactionReward, applyPromoCode, applyTopUpReturn]).then(
                                 data => {
@@ -3534,156 +3535,219 @@ function changePlayerCredit(playerObjId, platformId, updateAmount, reasonType, d
  * @param [resolveValue] - Optional.  Without this, resolves with the newly created reward task.
  */
 function createRewardTaskForProposal(proposalData, taskData, deferred, rewardType, resolveValue) {
-    let rewardTask, platform, gameProviderGroup;
+    let rewardTask, platform, gameProviderGroup, playerRecord, providerCredit = 0, totalCredit = 0, isHitAutoUnlockThreshold = false, rewardTaskGroup = {};
     //check if player object id is in the proposal data
     if (!(proposalData && proposalData.data && proposalData.data.playerObjId)) {
         deferred.reject({name: "DBError", message: "Invalid reward proposal data"});
         return;
     }
 
-    let platformObjId = proposalData && proposalData.data && proposalData.data.platformId ? proposalData.data.platformId : 0;
+    // Add proposalId in reward data
+    taskData.proposalId = proposalData.proposalId;
 
-    return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
-        platformData => {
-            if (platformData && platformData.autoApproveLostThreshold && platformData.autoUnlockWhenInitAmtLessThanLostThreshold) {
-                if (proposalData && proposalData.data && proposalData.data.playerObjId) {
-                    return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: proposalData.data.playerObjId})
+    let gameProviderGroupProm = Promise.resolve(false);
+    let platformProm = dbconfig.collection_platform.findOne({_id: proposalData.data.platformId})
+        .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean();
+    let playerProm = dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean();
+
+    // Check whether game provider group exist
+    if (proposalData.data.providerGroup && proposalData.data.providerGroup.toString().length === 24) {
+        gameProviderGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: proposalData.data.providerGroup})
+            .populate({path: "providers", model: dbconfig.collection_gameProvider}).lean();
+    }
+
+    Promise.all([gameProviderGroupProm, platformProm, playerProm]).then(
+        res => {
+            gameProviderGroup = res[0];
+            platform = res[1];
+            playerRecord = res[2];
+
+            let promArr = [];
+            if (gameProviderGroup && gameProviderGroup.providers && gameProviderGroup.providers.length > 0) {
+                gameProviderGroup.providers.forEach(provider => {
+                    if(provider) {
+                        promArr.push(
+                            cpmsAPI.player_queryCredit(
+                                {
+                                    username: playerRecord.name,
+                                    platformId: platform.platformId,
+                                    providerId: provider.providerId
+                                }
+                            ).then(
+                                data => data,
+                                error => {
+                                    return {credit: 0};
+                                }
+                            )
+                        );
+                    }
+                })
+            } else {
+                if (platform && platform.gameProviders && platform.gameProviders.length > 0) {
+                    platform.gameProviders.forEach(provider => {
+                        if(provider) {
+                            promArr.push(
+                                cpmsAPI.player_queryCredit(
+                                    {
+                                        username: playerRecord.name,
+                                        platformId: platform.platformId,
+                                        providerId: provider.providerId
+                                    }
+                                ).then(
+                                    data => data,
+                                    error => {
+                                        return {credit: 0};
+                                    }
+                                )
+                            );
+                        }
+                    })
+                }
+            }
+
+            return Promise.all(promArr)
+                .then(providerCreditData => {
+                    providerCreditData.forEach(provider => {
+                        if(provider && provider.hasOwnProperty("credit")) {
+                            providerCredit += !isNaN(provider.credit) ? parseFloat(provider.credit) : 0;
+                        }
+                    });
+                })
+                .then(() => {
+                    return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: playerRecord._id})
                         .then(rtgData => {
                             if (rtgData && rtgData.length) {
                                 rtgData.forEach(rtg => {
-                                    if (proposalData.data && proposalData.data.providerGroup && rtg.providerGroup && rtg.providerGroup._id
-                                        && (proposalData.data.providerGroup.toString() == rtg.providerGroup._id.toString()) ) {
-                                        if (rtg.initAmt && (rtg.initAmt < platformData.autoApproveLostThreshold)) {
-                                            return dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg.providerGroup);
-                                        }
-                                    } else if (!proposalData.data.providerGroup && !rtg.providerGroup) {
-                                        if (rtg.initAmt && (rtg.initAmt < platformData.autoApproveLostThreshold)) {
-                                            return dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg.providerGroup);
-                                        }
+                                    if (gameProviderGroup && gameProviderGroup._id && rtg.providerGroup && rtg.providerGroup._id
+                                        && (gameProviderGroup._id.toString() == rtg.providerGroup._id.toString()) ) {
+                                        let rewardAmount = rtg && rtg.rewardAmt ? rtg.rewardAmt : 0;
+                                        totalCredit = providerCredit + rewardAmount;
+                                        rewardTaskGroup = rtg;
+
+                                    } else if (!gameProviderGroup && !rtg.providerGroup) {
+                                        let validCredit = playerRecord && playerRecord.validCredit ? playerRecord.validCredit : 0;
+                                        totalCredit = providerCredit + validCredit;
+                                        rewardTaskGroup = rtg;
                                     }
                                 });
                             }
                         });
-                }
-            }
+                })
+                .then(() => {
+                    if (platform && platform.autoUnlockWhenInitAmtLessThanLostThreshold && platform.autoApproveLostThreshold) {
+                        if (totalCredit < platform.autoApproveLostThreshold) {
+                            isHitAutoUnlockThreshold = true;
+                        }
+                    }
+
+                    if (isHitAutoUnlockThreshold) {
+                        if (rewardTaskGroup && rewardTaskGroup._id) {
+                            let unlockProm = dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rewardTaskGroup);
+
+                            return Promise.all([unlockProm]);
+                        }
+                    }
+                });
         }
     ).then(() => {
-
-        // Add proposalId in reward data
-        taskData.proposalId = proposalData.proposalId;
-
-        let gameProviderGroupProm = Promise.resolve(false);
-        let platformProm = dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).lean();
-
-        // Check whether game provider group exist
-        if (proposalData.data.providerGroup && proposalData.data.providerGroup.toString().length === 24) {
-            gameProviderGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: proposalData.data.providerGroup}).lean();
-        }
-
-        Promise.all([gameProviderGroupProm, platformProm]).then(
-            res => {
-                gameProviderGroup = res[0];
-                platform = res[1];
-
-                // Create different process flow for lock provider group reward
-                if (platform.useProviderGroup) {
-                    if (proposalData.data.providerGroup && gameProviderGroup) {
-                        dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).then(() =>{
-                            dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
-                        }).catch(
-                            error => Q.reject({
-                                name: "DBError",
-                                message: "Error creating reward task with provider group",
-                                error: error
-                            })
-                        );
-                        sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
-                        if (proposalData.data.isDynamicRewardAmount || (proposalData.data.promoCode && proposalData.data.promoCodeTypeValue && proposalData.data.promoCodeTypeValue == 3)
-                            || proposalData.data.limitedOfferObjId) {
-                            dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).then(() =>{
-                                dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
-                            }).catch(
-                                error => Q.reject({
-                                    name: "DBError",
-                                    message: "Error deduct target consumption from free amount provider group",
-                                    error: error
-                                })
-                            );
-                        }
-                    } else {
-                        dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardType).then(
-                            data => {
-                                rewardTask = data;
-                                dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
-                                return sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
-                            }
-                        ).catch(
-                            error => errorUtils.reportError(error)
-                            //    Q.reject({
-                            //    name: "DBError",
-                            //    message: "Error adding consumption value into free amount provider group",
-                            //    error: error
-                            // })
-                        );
-                    }
-                } else {
-                    //check if player has reward task and if player's platform support multi reward
-                    dbconfig.collection_rewardTask.findOne(
-                        {
-                            playerId: proposalData.data.playerObjId,
-                            status: constRewardTaskStatus.STARTED,
-                            useLockedCredit: true
-                        }
-                    ).populate(
-                        {path: "platformId", model: dbconfig.collection_platform}
-                    ).lean().then(
-                        curTask => {
-                            if (!curTask || (curTask && curTask.platformId && curTask.platformId.canMultiReward)) {
-                                return;
-                            }
-                            else {
-                                return Q.reject({name: "DBError", message: "Player already has reward task ongoing"});
-                            }
-                        }
-                    ).then(
-                        () => dbRewardTask.createRewardTask(taskData).then(
-                            data => rewardTask = data
-                        ).catch(
-                            error => Q.reject({
-                                name: "DBError",
-                                message: "Error creating reward task for " + rewardType,
-                                error: error
-                            })
-                        )
-                    ).then(
-                        () => {
-                            if (!taskData.useLockedCredit) {
-                                return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
-                                    playerData => {
-                                        dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, proposalData.data.rewardAmount, rewardType, proposalData);
-                                    }
-                                );
-                            }
-                        }
-                    ).then(
-                        //() => createRewardLogForProposal(taskData.rewardType, proposalData)
-                        () => {
-                            sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
-                        }
-                    ).then(
-                        function () {
-                            dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
-                            deferred.resolve(resolveValue || rewardTask);
-                        },
-                        function (error) {
-                            deferred.reject(error);
-                        }
+        // Create different process flow for lock provider group reward
+        if (platform.useProviderGroup) {
+            if (proposalData.data.providerGroup && gameProviderGroup) {
+                dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).then(() =>{
+                    dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
+                }).catch(
+                    error => Q.reject({
+                        name: "DBError",
+                        message: "Error creating reward task with provider group",
+                        error: error
+                    })
+                );
+                sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
+                if (proposalData.data.isDynamicRewardAmount || (proposalData.data.promoCode && proposalData.data.promoCodeTypeValue && proposalData.data.promoCodeTypeValue == 3)
+                    || proposalData.data.limitedOfferObjId) {
+                    dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).then(() =>{
+                        dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
+                    }).catch(
+                        error => Q.reject({
+                            name: "DBError",
+                            message: "Error deduct target consumption from free amount provider group",
+                            error: error
+                        })
                     );
                 }
-
-                return deferred.resolve(resolveValue);
+            } else {
+                dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardType).then(
+                    data => {
+                        rewardTask = data;
+                        dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
+                        return sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
+                    }
+                ).catch(
+                    error => errorUtils.reportError(error)
+                    //    Q.reject({
+                    //    name: "DBError",
+                    //    message: "Error adding consumption value into free amount provider group",
+                    //    error: error
+                    // })
+                );
             }
-        );
+        } else {
+            //check if player has reward task and if player's platform support multi reward
+            dbconfig.collection_rewardTask.findOne(
+                {
+                    playerId: proposalData.data.playerObjId,
+                    status: constRewardTaskStatus.STARTED,
+                    useLockedCredit: true
+                }
+            ).populate(
+                {path: "platformId", model: dbconfig.collection_platform}
+            ).lean().then(
+                curTask => {
+                    if (!curTask || (curTask && curTask.platformId && curTask.platformId.canMultiReward)) {
+                        return;
+                    }
+                    else {
+                        return Q.reject({name: "DBError", message: "Player already has reward task ongoing"});
+                    }
+                }
+            ).then(
+                () => dbRewardTask.createRewardTask(taskData).then(
+                    data => rewardTask = data
+                ).catch(
+                    error => Q.reject({
+                        name: "DBError",
+                        message: "Error creating reward task for " + rewardType,
+                        error: error
+                    })
+                )
+            ).then(
+                () => {
+                    if (!taskData.useLockedCredit) {
+                        return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
+                            playerData => {
+                                dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, proposalData.data.rewardAmount, rewardType, proposalData);
+                            }
+                        );
+                    }
+                }
+            ).then(
+                //() => createRewardLogForProposal(taskData.rewardType, proposalData)
+                () => {
+                    sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
+                }
+            ).then(
+                function () {
+                    dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
+                    deferred.resolve(resolveValue || rewardTask);
+                },
+                function (error) {
+                    deferred.reject(error);
+                }
+            );
+        }
+
+        return deferred.resolve(resolveValue);
+
     });
 }
 

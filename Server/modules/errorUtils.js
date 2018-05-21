@@ -37,6 +37,10 @@ var errorUtils = {
         function logErrorDetails(error) {
             // Mongoose validation failure reasons are hidden in here
             // ( Alternatively they can be seen from log(''+error) but curiously not from log(error) or log(error.message) )
+            if (!error) {
+                return;
+            }
+
             if (error.errors) {
                 console.error(error.errors);
             }

@@ -560,6 +560,20 @@ function socketActionProposal(socketIO, socket) {
             socketUtil.emitter(self.socket, dbProposal.getManualApprovalRecords, [startTime, endTime, data.period, data.playerBonus, data.updatePlayerList, data.updatePartnerList, data.reward, data.others, data.all], actionName, isValidData);
         },
 
+        getSpecificProposalTypeByName: function getSpecificProposalTypeByName(data){
+            let actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform && data.proposalType);
+            socketUtil.emitter(self.socket, dbProposal.getSpecificProposalTypeByName, [data.platform, data.proposalType], actionName, isValidData);
+        },
+
+        getRegistrationClickCountRecords: function getRegistrationClickCountRecords(data) {
+            let actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.startDate && data.endDate && data.period && data.platform && data.proposalTypeId);
+            var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
+            var endTime = data.endDate ? new Date(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbProposal.getRegistrationClickCountRecords, [startTime, endTime, data.period, data.platform, data.proposalTypeId], actionName, isValidData);
+        },
+
         getAllProposalTypeByPlatformId: function getAllProposalTypeByPlatformId(data) {
             let actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId);
