@@ -15733,10 +15733,11 @@ define(['js/app'], function (myApp) {
                                 platform: vm.selectedPlatform.id,
                                 partner: {$in: partnersObjId}
                             }
-                        }
+                        };
 
                         socketService.$socket($scope.AppSocket, 'getCustomizeCommissionConfigPartner', sendQuery, function (customCommissionConfig) {
                             if (customCommissionConfig && customCommissionConfig.data && customCommissionConfig.data.length > 0) {
+                                vm.customCommissionConfig = customCommissionConfig.data;
                                 customCommissionConfig.data.forEach(customSetting => {
                                     if (data && data.data && data.data.data) {
                                         data.data.data.map(data => {
@@ -15748,6 +15749,8 @@ define(['js/app'], function (myApp) {
                                         });
                                     }
                                 });
+                            } else {
+                                vm.customCommissionConfig = [];
                             }
                             vm.drawPartnerTable(data.data);
                         });
@@ -15775,6 +15778,17 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPartnersByAdvancedQuery', apiQuery, function (reply) {
                     console.log('partnerData', reply);
                     let size = reply.data.size || 0;
+                    vm.customCommissionConfig.forEach(customSetting => {
+                        if (reply && reply.data && reply.data.data) {
+                            reply.data.data.map(data => {
+                                if(data._id
+                                    && customSetting.partner
+                                    && (data._id.toString() == customSetting.partner.toString())) {
+                                    data.isCustomizeSettingExist = true;
+                                }
+                            });
+                        }
+                    });
                     setPartnerTableData(reply.data.data);
                     vm.searchPartnerCount = reply.data.size;
                     vm.advancedPartnerQueryObj.pageObj.init({maxCount: size}, true);
