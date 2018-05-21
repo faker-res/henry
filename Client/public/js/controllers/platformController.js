@@ -1650,6 +1650,29 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            /* Cancel preview */
+            vm.cancelPreview = (isConfirm = false) => {
+                if (!isConfirm) {
+                    vm.modalYesNo = {};
+                    vm.modalYesNo.modalTitle = $translate("CANCEL PREVIEW");
+                    vm.modalYesNo.modalText = $translate("Are you sure");
+                    vm.modalYesNo.actionYes = () => vm.cancelPreview(true);
+                    $('#modalYesNo').modal();
+                }
+                else {
+                    let sendData = [];
+                    vm.partnerCommissionLog.forEach( partner => {
+                        if (partner) {
+                            sendData.push(partner._id);
+                        }
+                    });
+
+                    socketService.$socket($scope.AppSocket, 'cancelPartnerCommissionPreview', sendData, function (data) {
+                        vm.loadTab('Partner');
+                    });
+                }
+            };
+
             /* Apply bulk partner commission settlement */
             vm.bulkApplyPartnerCommission = function (applyPartnerCommSettlementArray) {
                 let sendData = {

@@ -537,6 +537,12 @@ function socketActionPartner(socketIO, socket) {
             let isValidData = Boolean(data && data.platform && data.partnerId);
             socketUtil.emitter(self.socket, dbPartner.getChildrenDetails, [data.platform, data.partnerId], actionName, isValidData);
         },
+
+        cancelPartnerCommissionPreview: function cancelPartnerCommissionPreview (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPartner.cancelPartnerCommissionPreview, [data], actionName, isValidData);
+        },
     };
 
     socketActionPartner.actions = this.actions;
