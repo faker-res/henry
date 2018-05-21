@@ -574,6 +574,13 @@ function socketActionProposal(socketIO, socket) {
             socketUtil.emitter(self.socket, dbProposal.getRegistrationClickCountRecords, [startTime, endTime, data.period, data.platform, data.proposalTypeId], actionName, isValidData);
         },
 
+        getSpecificTypeOfManualApprovalRecords: function getSpecificTypeOfManualApprovalRecords(data) {
+            let actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.startDate && data.period && data.typeList && data.status);
+            var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
+            socketUtil.emitter(self.socket, dbProposal.getSpecificTypeOfManualApprovalRecords, [startTime, data.period, data.typeList, data.status], actionName, isValidData);
+        },
+
         getAllProposalTypeByPlatformId: function getAllProposalTypeByPlatformId(data) {
             let actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId);
