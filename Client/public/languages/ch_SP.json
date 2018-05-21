@@ -1519,6 +1519,7 @@
   "PAGE_NAME": "页面",
   "TOTAL_CLICK_COUNT": "总点击次数",
   "Click Count (Total)": "次数（总计）",
+  "Mail": "站内信",
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
@@ -3167,6 +3168,15 @@
   "eventRefreshPeriod": "任务刷新周期",
   "Reward already hit maximum number of apply. Please contact cs.": "已经达到申请上限次数，详情请联系客服",
   "event name": "优惠名称",
+  "FRONT_END_REGISTRATION_ATTRITION_RATE": "前端注册流失率",
+  "FrontEndRegistrationAttritionRate": "前端注册流失率",
+  "REGISTRATION_ATTRITION_RATE": "注册流失率",
+  "Number Of Successful Registration": "注册成功人数",
+  "Number Of Successful Registration From Front-end Application": "前端注册成功人数",
+  "Clicking Rate (Non-repeated IP)": "点击次数（IP不重复）",
+  "Clicking Rate (Non-repeated IP) From Front-end Application": "前端点击次数（IP不重复）",
+  "Registration Attrition Rate": "注册流失率",
+  "Registration Attrition Rate From Front-end Application": "前端注册流失率",
   "topup proposal id": "存款提案号",
   "originalPrice": "原价",
   "Player's top up amount does not meet condition in period": "玩家的周期内的累积存款金额不足",
@@ -3399,7 +3409,7 @@
   "queryByAppealStatus": "按申诉状态查询",
   "Please select Year - Month": "请选择 年，月份",
   "CsApproveProposal": "客服审核",
-  "Player forbid apply bonus, apply bonus proposal need cs approval": "客服优先审批禁用提款",
+  "Player forbid apply bonus, apply bonus proposal need cs approval": "客服优先审批禁用提款（跳过审核部）",
   "FIRST_WITHDRAWAL_MANUAL_AUDIT": "首次提款转人工审核（不论金额）",
   "MANUAL_AUDIT_AFTER_BANK_CHANGED": "银行改之后第一次提款转人工审核（不论金额）",
   "MANUAL_AUDIT_BAN_WITHDRAWAL": "禁用提款转人工审核（不论金额）",
@@ -3731,6 +3741,8 @@
   "Platform Fee" : "平台费",
   "SKIP" : "跳过",
   "Totalsum": "总计",
-  "Resummarize": "重新收录"
+  "Resummarize": "重新收录",
+  "CANCEL PREVIEW": "取消本期预览",
+  "In Preview": "预览中"
 
 }

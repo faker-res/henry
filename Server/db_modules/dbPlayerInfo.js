@@ -78,6 +78,7 @@ const constPlayerBillBoardMode = require('./../const/constPlayerBillBoardMode');
 let dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
 let dbPlayerConsumptionWeekSummary = require('../db_modules/dbPlayerConsumptionWeekSummary');
 let dbPlayerCreditTransfer = require('../db_modules/dbPlayerCreditTransfer');
+let dbPlayerFeedback = require('../db_modules/dbPlayerFeedback');
 let dbPlayerLevel = require('../db_modules/dbPlayerLevel');
 let dbPlayerReward = require('../db_modules/dbPlayerReward');
 let dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
@@ -667,7 +668,11 @@ let dbPlayerInfo = {
     },
 
     createPlayerFromTel: (inputData) => {
-        let platformObj;
+        let platformObj, adminObjId;
+
+        if (!inputData.chatRecordContent) {
+            return Promise.reject({name: "InputError", message: "Missing chat record content"})
+        }
 
         return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).lean().then(
             platformData => {
@@ -707,8 +712,14 @@ let dbPlayerInfo = {
                     inputData.name = inputData.name.toLowerCase();
                     delete inputData.platformId;
 
-                    return dbconfig.collection_csOfficerUrl.find({way: inputData.promoMethod})
+                    let csProm = dbconfig.collection_csOfficerUrl.find({way: inputData.promoMethod})
                         .populate({path: "admin", model: dbconfig.collection_admin}).lean();
+                    let crResultProm = dbconfig.collection_playerFeedbackResult
+                        .findOne({value: inputData.chatRecordResult}).lean();
+                    let crTitleProm = dbconfig.collection_playerFeedbackTopic
+                        .findOne({value: inputData.chatRecordTopic}).lean();
+
+                    return Promise.all([csProm, crResultProm, crTitleProm]);
                 } else {
                     return Promise.reject({
                         status: constServerCode.PHONENUMBER_ALREADY_EXIST,
@@ -718,38 +729,63 @@ let dbPlayerInfo = {
                 }
             }
         ).then(
-            methods => {
-                if (methods && methods.length > 0) {
-                    let isAdminExist = false;
+            promArr => {
+                if (promArr) {
+                    let methods = promArr[0];
+                    let fbResult = promArr[1];
+                    let fbTitle = promArr[2];
 
-                    methods.map(method => {
-                        if (method.admin.adminName === inputData.telSalesName) {
-                            isAdminExist = true;
-                            inputData.csOfficer = method.admin;
-                            inputData.promoteWay = method.way
-                        }
-                    });
-
-                    if (isAdminExist) {
-                        inputData = determineRegistrationInterface(inputData);
-
-                        return dbconfig.collection_playerCredibilityRemark.findOne({
-                            platform: platformObj._id,
-                            name: inputData.fame
-                        }).lean();
-                    } else {
+                    if (!fbResult) {
                         return Promise.reject({
-                            status: constServerCode.CS_OFFICER_NOT_FOUND,
+                            status: constServerCode.FEEDBACK_RESULT_NOT_FOUND,
                             name: "DataError",
-                            message: "CS officer not found"
+                            message: "Feedback result not found"
                         });
                     }
-                } else {
-                    return Promise.reject({
-                        status: constServerCode.PROMO_METHOD_NOT_FOUND,
-                        name: "DataError",
-                        message: "Promotion method not found"
-                    });
+
+                    if (!fbTitle) {
+                        return Promise.reject({
+                            status: constServerCode.FEEDBACK_TITLE_NOT_FOUND,
+                            name: "DataError",
+                            message: "Feedback title not found"
+                        });
+                    }
+
+                    if (methods && methods.length > 0) {
+                        let isAdminExist = false;
+
+                        methods.map(method => {
+                            if (method.admin.adminName === inputData.telSalesName) {
+                                isAdminExist = true;
+                                inputData.accAdmin = method.admin.adminName;
+                                inputData.csOfficer = method.admin;
+                                inputData.promoteWay = method.way;
+                                inputData.csPromoteWay = method._id;
+                                adminObjId = method.admin._id;
+                            }
+                        });
+
+                        if (isAdminExist) {
+                            inputData = determineRegistrationInterface(inputData);
+
+                            return dbconfig.collection_playerCredibilityRemark.findOne({
+                                platform: platformObj._id,
+                                name: inputData.fame
+                            }).lean();
+                        } else {
+                            return Promise.reject({
+                                status: constServerCode.CS_OFFICER_NOT_FOUND,
+                                name: "DataError",
+                                message: "CS officer not found"
+                            });
+                        }
+                    } else {
+                        return Promise.reject({
+                            status: constServerCode.PROMO_METHOD_NOT_FOUND,
+                            name: "DataError",
+                            message: "Promotion method not found"
+                        });
+                    }
                 }
             }
         ).then(
@@ -772,6 +808,20 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     dbPlayerInfo.createPlayerLoginRecord(data);
+
+                    // Create feedback
+                    let feedback = {
+                        playerId: data._id,
+                        platform: data.platform,
+                        adminId: adminObjId,
+                        content: inputData.chatRecordContent,
+                        result: inputData.chatRecordResult,
+                        resultName: inputData.chatRecordResult,
+                        topic: inputData.chatRecordTopic
+                    };
+
+                    dbPlayerFeedback.createPlayerFeedback(feedback).catch(errorUtils.reportError);
+
                     //todo::temp disable similar player untill ip is correct
                     if (data.lastLoginIp && data.lastLoginIp != "undefined") {
                         dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
@@ -2871,33 +2921,85 @@ let dbPlayerInfo = {
         var deferred = Q.defer();
         let playerData;
         let useProviderGroup = false;
-        let platformObjId = proposalData && proposalData.data && proposalData.data.platformId ? proposalData.data.platformId : 0;
+        let platform, providerCredit = 0, totalCredit = 0, isHitAutoUnlockThreshold = false, rewardTaskGroup = {};
 
-        return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
-            platformData => {
-                if (platformData && platformData.autoApproveLostThreshold && platformData.autoUnlockWhenInitAmtLessThanLostThreshold) {
-                    if (proposalData && proposalData.data && proposalData.data.playerId) {
-                        return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({playerId: proposalData.data.playerId})
-                            .then(rtgData => {
-                                if (rtgData && rtgData.length) {
-                                    rtgData.forEach(rtg => {
-                                        if (proposalData.data && proposalData.data.providerGroup && rtg.providerGroup && rtg.providerGroup._id
-                                            && (proposalData.data.providerGroup.toString() == rtg.providerGroup._id.toString()) ) {
-                                            if (rtg.initAmt && (rtg.initAmt < platformData.autoApproveLostThreshold)) {
-                                                return dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg.providerGroup);
+        let playerProm = dbconfig.collection_players.findOne({_id: playerId}).lean();
+
+        Promise.all([playerProm]).then(playerData => {
+            let player = playerData && playerData[0] ? playerData[0] : [];
+            if (player && player.platform) {
+                let platformProm = dbconfig.collection_platform.findOne({_id: player.platform})
+                    .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean();
+
+                return Promise.all([platformProm]).then(platformData => {
+                    if (platformData && platformData[0]) {
+                        platform = platformData[0];
+                        let promArr = [];
+
+                        if (platform && platform.gameProviders && platform.gameProviders.length > 0) {
+                            platform.gameProviders.forEach(provider => {
+                                if (provider) {
+                                    promArr.push(
+                                        cpmsAPI.player_queryCredit(
+                                            {
+                                                username: player.name,
+                                                platformId: platform.platformId,
+                                                providerId: provider.providerId
                                             }
-                                        } else if (!proposalData.data.providerGroup && !rtg.providerGroup) {
-                                            if (rtg.initAmt && (rtg.initAmt < platformData.autoApproveLostThreshold)) {
-                                                return dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg.providerGroup);
+                                        ).then(
+                                            data => data,
+                                            error => {
+                                                return {credit: 0};
                                             }
+                                        )
+                                    );
+                                }
+                            })
+                        }
+
+                        return Promise.all(promArr)
+                            .then(providerCreditData => {
+                                providerCreditData.forEach(provider => {
+                                    if (provider && provider.hasOwnProperty("credit")) {
+                                        providerCredit += !isNaN(provider.credit) ? parseFloat(provider.credit) : 0;
+                                    }
+                                });
+                            })
+                            .then(() => {
+                                return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: player._id})
+                                    .then(rtgData => {
+                                        if (rtgData && rtgData.length) {
+                                            rtgData.forEach(rtg => {
+                                                if (!rtg.providerGroup) {
+                                                    let validCredit = player && player.validCredit ? player.validCredit : 0;
+                                                    totalCredit = providerCredit + validCredit;
+                                                    rewardTaskGroup = rtg;
+                                                }
+                                            });
                                         }
                                     });
+                            })
+                            .then(() => {
+                                if (platform && platform.autoUnlockWhenInitAmtLessThanLostThreshold && platform.autoApproveLostThreshold) {
+
+                                    if (totalCredit <= platform.autoApproveLostThreshold) {
+                                        isHitAutoUnlockThreshold = true;
+                                    }
+                                }
+
+                                if (isHitAutoUnlockThreshold) {
+                                    if (rewardTaskGroup && rewardTaskGroup._id) {
+                                        let unlockProm = dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rewardTaskGroup);
+
+                                        return Promise.all([unlockProm]);
+                                    }
                                 }
                             });
                     }
-                }
+                });
+
             }
-        ).then(() => {
+        }).then(() => {
 
             dbUtility.findOneAndUpdateForShard(
                 dbconfig.collection_players,
@@ -2918,15 +3020,16 @@ let dbPlayerInfo = {
                     if (data) {
                         if (data.platform) {
                             return dbconfig.collection_platform.findOne({_id: data.platform}).then(
-                                platformData => {
-                                    if (platformData && platformData.useProviderGroup) {
-                                        useProviderGroup = platformData.useProviderGroup;
+                                    platformData => {
+                                        if (platformData) {
+                                            if (platformData.useProviderGroup) {
+                                                useProviderGroup = platformData.useProviderGroup;
+                                            }
+                                        }
 
+                                        return data;
                                     }
-
-                                    return data;
-                                }
-                            )
+                                )
                         }
                     }
                 }
@@ -3020,9 +3123,9 @@ let dbPlayerInfo = {
                     deferred.reject({name: "DBError", message: "Error creating top up record", error: error});
                 }
             );
-
-            return deferred.promise;
         });
+
+        return deferred.promise;
     },
 
     /*
@@ -9300,6 +9403,7 @@ let dbPlayerInfo = {
                                             if (!player.permission.applyBonus && player.platform.playerForbidApplyBonusNeedCsApproval) {
                                                 proposalData.remark = "禁用提款";
                                                 proposalData.needCsApproved = true;
+                                                proposalData.isIgnoreAudit = true;
                                             }
                                             var newProposal = {
                                                 creator: proposalData.creator,

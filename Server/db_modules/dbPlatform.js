@@ -272,10 +272,6 @@ var dbPlatform = {
             delete updateData.whiteListingPhoneNumbers;
         }
 
-        if (!updateData.blackListingPhoneNumbers || (updateData.blackListingPhoneNumbers instanceof Array && updateData.blackListingPhoneNumbers.length === 0)) {
-            delete updateData.blackListingPhoneNumbers;
-        }
-
         if (!updateData.gameProviderNickNames) {
             delete updateData.gameProviderNickNames;
         }
@@ -2546,6 +2542,7 @@ var dbPlatform = {
                 };
 
                 let countObj = {};
+                let uniqueIp = {};
 
                 switch(true) {
                     case registerClickApp:
@@ -2553,25 +2550,29 @@ var dbPlatform = {
                             count: 1,
                             registerClickAppCount: 1
                         };
+                        uniqueIp = {appIpAddresses: ipAddress};
                         break;
                     case registerClickWeb:
                         countObj = {
                             count: 1,
                             registerClickWebCount: 1
                         };
+                        uniqueIp = {webIpAddresses: ipAddress};
                         break;
                     case registerClickH5:
                         countObj = {
                             count: 1,
                             registerClickH5Count: 1
                         };
+                        uniqueIp = {H5IpAddresses: ipAddress};
                         break;
                     default:
                         countObj = {count: 1};
+                        uniqueIp = {ipAddresses: ipAddress};
                 }
 
                 dbconfig.collection_clickCount
-                    .update(clickCountObj, {$inc: countObj , $addToSet: {ipAddresses: ipAddress}}, {upsert: true})
+                    .update(clickCountObj, {$inc: countObj , $addToSet: uniqueIp}, {upsert: true})
                     .exec()
                     .catch(errorUtils.reportError);
             }
@@ -2679,6 +2680,7 @@ var dbPlatform = {
 
     getPlatformPartnerSettLog: (platformObjId, modes) => {
         let promArr = [];
+        let partnerSettDetail = {};
 
         modes.forEach(mode => {
             promArr.push(
@@ -2721,14 +2723,78 @@ var dbPlatform = {
                             lastSettDate: lastSettDate,
                             nextSettDate: nextSettDate,
                             settStartTime: nextDate.startTime,
-                            settEndTime: nextDate.endTime
+                            settEndTime: nextDate.endTime,
                         }
                     }
                 )
             )
         });
 
-        return Promise.all(promArr);
+        return Promise.all(promArr).then(
+            result => {
+                if(result){
+                    let promArr = [];
+                    partnerSettDetail = result;
+
+                    result.map(r => {
+                        if(r && r.settStartTime && r.settEndTime){
+                            promArr.push(dbPlatform.isPreview(r.settStartTime, r.settEndTime, platformObjId, r.mode));
+                        }
+                    });
+
+                    return Promise.all(promArr);
+                }
+            }
+        ).then(
+            checkPreviewResult => {
+                if(checkPreviewResult){
+                    partnerSettDetail.map(settDetail => {
+                        if(settDetail){
+                            checkPreviewResult.forEach(checkPreview => {
+                                if(checkPreview){
+                                    if(settDetail.mode == checkPreview.settMode && settDetail.settStartTime == checkPreview.startTime && settDetail.settEndTime == checkPreview.endTime){
+                                        settDetail.isPreview = checkPreview.isPreview;
+                                    }
+                                }
+                            })
+                        }
+                    });
+
+                    return partnerSettDetail;
+                }
+            }
+        );
+    },
+
+    isPreview: (startTime, endTime, platformObjId, settMode) => {
+        let query = {
+            platform: platformObjId,
+            startTime: startTime,
+            endTime: endTime,
+            settMode: settMode,
+            isSettled: false,
+            isSkipped: false
+        }
+
+        return dbconfig.collection_partnerCommSettLog.findOne(query).then(
+            result => {
+                if(result){
+                    return {
+                        settMode: settMode,
+                        startTime: startTime,
+                        endTime: endTime,
+                        isPreview: true
+                    }
+                }else{
+                    return {
+                        settMode: settMode,
+                        startTime: startTime,
+                        endTime: endTime,
+                        isPreview: false
+                    }
+                }
+            }
+        )
     },
 
     generatePartnerCommSettPreview: (platformObjId, settMode, startTime, endTime, isSkip = false, toLatest = false) => {
