@@ -2325,9 +2325,10 @@ define(['js/app'], function (myApp) {
                     ],
                     columns: [
                         {'title': $translate('PLAYER_NAME'), data: 'name'},
-                        {'title': $translate('PLAYERID'), data: 'playerId'},
+                        // {'title': $translate('PLAYERID'), data: 'playerId'},
                         {'title': $translate('realName'), sClass: "wordWrap realNameCell", data: 'realName'},
                         {'title': $translate('playerLevel'), data: 'playerLevel.name'},
+                        {'title': $translate('LOGIN_TIMES'), data: 'loginTimes'},
                         {'title': $translate('topUpTimes'), data: 'topUpTimes', bSortable: true},
                         {'title': $translate('lastAccessTime'), data: 'lastAccessTime$'},
                         {'title': $translate('registrationTime'), data: 'registrationTime$'},
