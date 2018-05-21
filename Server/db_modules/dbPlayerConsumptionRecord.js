@@ -177,6 +177,7 @@ var dbPlayerConsumptionRecord = {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortCol = sortCol || {createTime: -1};
 
+        let gameSearch;
         var matchObj = {
             createTime: {
                 $gte: startTime,
@@ -191,6 +192,18 @@ var dbPlayerConsumptionRecord = {
             matchObj.platformId = platformId;
         }
 
+        if (data.roundNoOrPlayNo) {
+            matchObj.$or = [{roundNo: data.roundNoOrPlayNo}, {playNo: data.roundNoOrPlayNo}];
+        }
+
+        if(data.gameName){
+            gameSearch = dbconfig.collection_game.find({name: new RegExp('.*' + data.gameName + '.*', 'i')}).lean();
+        }
+        else{
+            gameSearch = false;
+        }
+
+
         let playerProm;
 
         if (playerName) {
@@ -200,37 +213,59 @@ var dbPlayerConsumptionRecord = {
             playerProm = Promise.resolve('noData');
         }
 
-        return playerProm.then(
-            playerData => {
-                if (playerData !== 'noData') {
-                    if (playerData) {
-                        matchObj.playerId = playerData._id;
-                    }
-                    else {
-                        return Promise.all([[], 0, []]);
-                    }
-                }
+        return Promise.all([playerProm,gameSearch]).then(
+            resData => {
 
-                var a = dbconfig.collection_playerConsumptionRecord.find(matchObj)
-                    .populate({path: "playerId", model: dbconfig.collection_players})
-                    .populate({path: "gameId", model: dbconfig.collection_game})
-                    .populate({path: "platformId", model: dbconfig.collection_platform})
-                    .populate({path: "providerId", model: dbconfig.collection_gameProvider})
-                    .sort(sortCol).skip(index).limit(limit);
+                if (resData && resData.length == 2){
+                    let playerData = resData[0];
+                    let gameData = resData[1];
 
-                var b = dbconfig.collection_playerConsumptionRecord.find(matchObj).count();
-                var c = dbconfig.collection_playerConsumptionRecord.aggregate({
-                        $match: matchObj
-                    },
-                    {
-                        $group: {
-                            _id: null,
-                            validAmount: {$sum: "$validAmount"},
-                            bonusAmount: {$sum: "$bonusAmount"},
-                            amount: {$sum: "$amount"},
+                    let gamesId = [];
+
+
+                    if (playerData !== 'noData') {
+                        if (playerData) {
+                            matchObj.playerId = playerData._id;
                         }
-                    });
-                return Q.all([a, b, c]);
+                        else {
+                            return Promise.all([[], 0, []]);
+                        }
+                    }
+
+                    if (gameData){
+                        for (let i = 0; i < gameData.length; i++) {
+                            gamesId.push(gameData[i]._id);
+                        }
+
+                        if (gamesId && gamesId.length > 0) {
+                            matchObj.gameId = {
+                                $in: gamesId
+                            }
+                        }
+                    }
+
+                    var a = dbconfig.collection_playerConsumptionRecord.find(matchObj)
+                        .populate({path: "playerId", model: dbconfig.collection_players})
+                        .populate({path: "gameId", model: dbconfig.collection_game})
+                        .populate({path: "platformId", model: dbconfig.collection_platform})
+                        .populate({path: "providerId", model: dbconfig.collection_gameProvider})
+                        .sort(sortCol).skip(index).limit(limit);
+
+                    var b = dbconfig.collection_playerConsumptionRecord.find(matchObj).count();
+                    var c = dbconfig.collection_playerConsumptionRecord.aggregate({
+                            $match: matchObj
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                validAmount: {$sum: "$validAmount"},
+                                bonusAmount: {$sum: "$bonusAmount"},
+                                amount: {$sum: "$amount"},
+                            }
+                        });
+                    return Q.all([a, b, c]);
+
+                }
             }
         ).then(result => {
             return {data: result[0], count: result[1], summary: result[2] ? result[2][0] : {}}
