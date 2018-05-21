@@ -1471,19 +1471,19 @@ define(['js/app'], function (myApp) {
                     4 : false,
                     5 : false
                 };
-
-                $scope.$socketPromise("getPlatformPartnerSettLog", {
-                    platformObjId: vm.selectedPlatform.id,
-                    modes: modes
-                }).then(
-                    logs => {
-                        $scope.$evalAsync(() => {
-                            vm.partnerCommissionSettlement.data = logs.data;
-
-                            $('#partnerCommissionSettlementModal').modal('show');
-                        })
-                    }
-                )
+                setTimeout(function () {
+                    $scope.$socketPromise("getPlatformPartnerSettLog", {
+                        platformObjId: vm.selectedPlatform.id,
+                        modes: modes
+                    }).then(
+                        logs => {
+                            $scope.$evalAsync(() => {
+                                vm.partnerCommissionSettlement.data = logs.data;
+                                $('#partnerCommissionSettlementModal').modal('show');
+                            })
+                        }
+                    )
+                }, 500);
 
                 vm.getAllPartnerCommSettPreview();
             };
@@ -1495,7 +1495,6 @@ define(['js/app'], function (myApp) {
                     startTime: modeObj.settStartTime,
                     endTime: modeObj.settEndTime
                 }).then(vm.startPlatformPartnerCommissionSettlement());
-
             };
 
             vm.skipNextPartnerCommissionPeriod = (modeObj, toLatest = false, isConfirm = false) => {
