@@ -2624,7 +2624,6 @@ function checkGameRewardPointDetail(playerObjId, rewardPointEventObjId) {
         }
     ).then(
         appliedLog => {
-            console.log('rewardPointEvent.level', rewardPointEvent.level)
             let output = {
                 id: rewardPointEventObjId,
                 refreshPeriod: getIntervalPeriodString(rewardPointEvent.period),
