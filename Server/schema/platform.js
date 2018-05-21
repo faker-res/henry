@@ -257,6 +257,8 @@ var platformSchema = new Schema({
     manualAuditAfterBankChanged: {type: Boolean, default: true},
     // manual audit if player's applyBonus permission banned
     manualAuditBanWithdrawal: {type: Boolean, default: true},
+    // manual reward below xx amount, skip audit process
+    manualRewardSkipAuditAmount: {type: Number, min: 0, default: 0},
     // checks that if the balance is lower than the winning or losing limit, it will be unlocked immediately (after re-locking)
     autoUnlockWhenInitAmtLessThanLostThreshold: {type: Boolean, default: false},
     // set the maximum duration for the unread mail to be showing up
