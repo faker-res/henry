@@ -2752,7 +2752,7 @@ var dbPlatform = {
                         if(settDetail){
                             checkPreviewResult.forEach(checkPreview => {
                                 if(checkPreview){
-                                    if(settDetail.mode == checkPreview.commissionType && settDetail.settStartTime == checkPreview.startTime && settDetail.settEndTime == checkPreview.endTime){
+                                    if(settDetail.mode == checkPreview.settMode && settDetail.settStartTime == checkPreview.startTime && settDetail.settEndTime == checkPreview.endTime){
                                         settDetail.isPreview = checkPreview.isPreview;
                                     }
                                 }
@@ -2766,27 +2766,28 @@ var dbPlatform = {
         );
     },
 
-    isPreview: (startTime, endTime, platformObjId, commissionType) => {
+    isPreview: (startTime, endTime, platformObjId, settMode) => {
         let query = {
             platform: platformObjId,
             startTime: startTime,
             endTime: endTime,
-            commissionType: commissionType,
-            status: 0
+            settMode: settMode,
+            isSettled: false,
+            isSkipped: false
         }
 
-        return dbconfig.collection_partnerCommissionLog.findOne(query).then(
+        return dbconfig.collection_partnerCommSettLog.findOne(query).then(
             result => {
                 if(result){
                     return {
-                        commissionType: commissionType,
+                        settMode: settMode,
                         startTime: startTime,
                         endTime: endTime,
                         isPreview: true
                     }
                 }else{
                     return {
-                        commissionType: commissionType,
+                        settMode: settMode,
                         startTime: startTime,
                         endTime: endTime,
                         isPreview: false
