@@ -6866,6 +6866,39 @@ let dbPartner = {
             }
         )
     },
+  
+    cancelPartnerCommissionPreview: (partnerCommissionLogId) => {
+        let query = {
+            _id: {$in: partnerCommissionLogId}
+        }
+
+        let removeArr = [];
+
+        return dbconfig.collection_partnerCommissionLog.find(query).then(
+            partnerCommissionLog => {
+                if(partnerCommissionLog){
+                    partnerCommissionLog.forEach(commissionLog => {
+                        if(commissionLog){
+                            let removeQuery = {
+                                platform: commissionLog.platform,
+                                settMode: commissionLog.commissionType,
+                                startTime: commissionLog.startTime,
+                                endTime: commissionLog.endTime,
+                            }
+
+                            removeArr.push(dbconfig.collection_partnerCommSettLog.remove(removeQuery));
+                        }
+                    });
+
+                    return Promise.all(removeArr);
+                }
+            }
+        ).then(
+            () => {
+                return dbconfig.collection_partnerCommissionLog.remove(query);
+            }
+        );
+    },
 };
 
 

@@ -1650,6 +1650,29 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            /* Cancel preview */
+            vm.cancelPreview = (isConfirm = false) => {
+                if (!isConfirm) {
+                    vm.modalYesNo = {};
+                    vm.modalYesNo.modalTitle = $translate("CANCEL PREVIEW");
+                    vm.modalYesNo.modalText = $translate("Are you sure");
+                    vm.modalYesNo.actionYes = () => vm.cancelPreview(true);
+                    $('#modalYesNo').modal();
+                }
+                else {
+                    let sendData = [];
+                    vm.partnerCommissionLog.forEach( partner => {
+                        if (partner) {
+                            sendData.push(partner._id);
+                        }
+                    });
+
+                    socketService.$socket($scope.AppSocket, 'cancelPartnerCommissionPreview', sendData, function (data) {
+                        vm.loadTab('Partner');
+                    });
+                }
+            };
+
             /* Apply bulk partner commission settlement */
             vm.bulkApplyPartnerCommission = function (applyPartnerCommSettlementArray) {
                 let sendData = {
@@ -2325,9 +2348,10 @@ define(['js/app'], function (myApp) {
                     ],
                     columns: [
                         {'title': $translate('PLAYER_NAME'), data: 'name'},
-                        {'title': $translate('PLAYERID'), data: 'playerId'},
+                        // {'title': $translate('PLAYERID'), data: 'playerId'},
                         {'title': $translate('realName'), sClass: "wordWrap realNameCell", data: 'realName'},
                         {'title': $translate('playerLevel'), data: 'playerLevel.name'},
+                        {'title': $translate('LOGIN_TIMES'), data: 'loginTimes'},
                         {'title': $translate('topUpTimes'), data: 'topUpTimes', bSortable: true},
                         {'title': $translate('lastAccessTime'), data: 'lastAccessTime$'},
                         {'title': $translate('registrationTime'), data: 'registrationTime$'},
