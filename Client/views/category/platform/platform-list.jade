@@ -339,10 +339,12 @@
                             td {{modeObj.lastSettDate}}
                             td {{modeObj.nextSettDate}}
                             td
-                                div(ng-if="modeObj.nextSettDate !== '-'")
+                                div(ng-if="modeObj.nextSettDate !== '-' && !modeObj.isPreview")
                                     a(ng-click="vm.generatePartnerCommSettPreview(modeObj);") {{"PREVIEW" | translate}}/
                                     a(ng-click="vm.skipNextPartnerCommissionPeriod(modeObj);") {{"Skip next settlement" | translate}}/
                                     a(ng-click="vm.skipNextPartnerCommissionPeriod(modeObj, true);") {{"Back to previous settlement" | translate}}
+                                div(ng-if="modeObj.nextSettDate !== '-' && modeObj.isPreview")
+                                    text(style="color: red") ( {{"In Preview" | translate}} )
                                 div(ng-if="modeObj.nextSettDate === '-'")
                                     text -
             //.modal-body
