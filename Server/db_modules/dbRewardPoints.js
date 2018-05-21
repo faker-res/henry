@@ -381,7 +381,7 @@ let dbRewardPoints = {
             configData => {
                 rewardPointsConfig = configData;
 
-                if (!rewardPointsConfig || !Number(rewardPointsConfig.applyMethod) === 2) {
+                if (!rewardPointsConfig || Number(rewardPointsConfig.applyMethod) !== 2) {
                     return Promise.resolve();
                 }
 
@@ -2589,7 +2589,7 @@ function checkGameRewardPointDetail(playerObjId, rewardPointEventObjId) {
             platform = playerData.platform;
             playerLevel = playerData.playerLevel;
 
-            let getRewardPointEventProm = dbConfig.collection_rewardPointsEvent.findOne({_id: rewardPointEventObjId}).populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
+            let getRewardPointEventProm = dbConfig.collection_rewardPointsEvent.findOne({_id: rewardPointEventObjId}).populate({path: "level", model: dbConfig.collection_playerLevel}).lean();
             let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(player._id);
             let getRewardPointsLvlConfigProm = dbRewardPointsLvlConfig.getRewardPointsLvlConfig(platform._id);
             let getGameProvidersProm = dbGameProvider.getGameProviders({_id: {$in: platform.gameProviders}});
