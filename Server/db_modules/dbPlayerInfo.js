@@ -2982,7 +2982,7 @@ let dbPlayerInfo = {
                             .then(() => {
                                 if (platform && platform.autoUnlockWhenInitAmtLessThanLostThreshold && platform.autoApproveLostThreshold) {
 
-                                    if (totalCredit < platform.autoApproveLostThreshold) {
+                                    if (totalCredit <= platform.autoApproveLostThreshold) {
                                         isHitAutoUnlockThreshold = true;
                                     }
                                 }
