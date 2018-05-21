@@ -381,7 +381,7 @@ let dbRewardPoints = {
             configData => {
                 rewardPointsConfig = configData;
 
-                if (!rewardPointsConfig || !Number(rewardPointsConfig.applyMethod) === 2) {
+                if (!rewardPointsConfig || Number(rewardPointsConfig.applyMethod) !== 2) {
                     return Promise.resolve();
                 }
 
@@ -2589,7 +2589,7 @@ function checkGameRewardPointDetail(playerObjId, rewardPointEventObjId) {
             platform = playerData.platform;
             playerLevel = playerData.playerLevel;
 
-            let getRewardPointEventProm = dbConfig.collection_rewardPointsEvent.findOne({_id: rewardPointEventObjId}).populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
+            let getRewardPointEventProm = dbConfig.collection_rewardPointsEvent.findOne({_id: rewardPointEventObjId}).populate({path: "level", model: dbConfig.collection_playerLevel}).lean();
             let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(player._id);
             let getRewardPointsLvlConfigProm = dbRewardPointsLvlConfig.getRewardPointsLvlConfig(platform._id);
             let getGameProvidersProm = dbGameProvider.getGameProviders({_id: {$in: platform.gameProviders}});
@@ -2631,8 +2631,12 @@ function checkGameRewardPointDetail(playerObjId, rewardPointEventObjId) {
                 betDetail: rewardPointEvent.target && rewardPointEvent.target.betType ? rewardPointEvent.target.betType : "",
                 title: rewardPointEvent.rewardTitle,
                 content: rewardPointEvent.rewardContent,
-                gradeLimit: rewardPointEvent.level && rewardPointEvent.level.value,
-                gradeName: rewardPointEvent.level && rewardPointEvent.level.name,
+                gradeLimit: rewardPointEvent.level && rewardPointEvent.level.value || "",
+                gradeName: rewardPointEvent.level && rewardPointEvent.level.name || "",
+                device: constRewardPointsUserAgent[rewardPointEvent.userAgent ? rewardPointEvent.userAgent.toString() : ""],
+                dailyRequestBetCountsAndAmount: [0, 0],
+                dailyBetConsumption: 0,
+                dailyWinBetCounts: 0,
                 point: rewardPointEvent.rewardPoints,
                 status: 0, // not-applicable
                 providerId: getTargetDestinationProviderIds(rewardPointEvent, gameProviders),
