@@ -381,7 +381,7 @@ let dbRewardPoints = {
             configData => {
                 rewardPointsConfig = configData;
 
-                if (!rewardPointsConfig || !Number(rewardPointsConfig.applyMethod) === 2) {
+                if (!rewardPointsConfig || Number(rewardPointsConfig.applyMethod) !== 2) {
                     return Promise.resolve();
                 }
 

@@ -2,11 +2,11 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var rewardPointsLvlConfigSchema = new Schema({
-    //platform
+    // platform
     platformObjId: {type: Schema.ObjectId, ref: 'platform', index: true},
-    //reward points interval period
+    // reward points interval period
     intervalPeriod: {type: Number, required: true},
-    //reward points apply method
+    // reward points apply method (1 - manual, 2 - auto)
     applyMethod: {type: Number, required: true},
     // start time - only use when intervalPeriod is 'custom'
     customPeriodStartTime: {type: Date},
