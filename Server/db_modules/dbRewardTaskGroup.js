@@ -281,34 +281,17 @@ let dbRewardTaskGroup = {
         );
     },
 
-    unlockRewardTaskGroupByObjId: (gameProviderGroupObjId) => {
-        return dbconfig.collection_rewardTaskGroup.find({
-            providerGroup: {$in: gameProviderGroupObjId},
-            status: constRewardTaskStatus.STARTED
-        }).then(
-            rewardTaskGroups => {
-                let proms = [];
+    unlockRewardTaskGroupByObjId: (rewardTaskGroup) => {
+        let updObj = {
+            status: constRewardTaskStatus.SYSTEM_UNLOCK,
+            unlockTime: new Date()
+        };
 
-                if (rewardTaskGroups && rewardTaskGroups.length > 0) {
-                    rewardTaskGroups.forEach(grp => {
-                        let updObj = {
-                            status: constRewardTaskStatus.SYSTEM_UNLOCK,
-                            unlockTime: new Date()
-                        };
-
-                        proms.push(
-                            dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
-                                _id: grp._id
-                            }, updObj).then(
-                                () => dbRewardTask.completeRewardTaskGroup(grp, constRewardTaskStatus.SYSTEM_UNLOCK)
-                            )
-                        );
-                    });
-                }
-
-                return Promise.all(proms);
-            }
-        )
+        return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
+            _id: rewardTaskGroup._id
+        }, updObj).then(
+            () => dbRewardTask.completeRewardTaskGroup(rewardTaskGroup, constRewardTaskStatus.SYSTEM_UNLOCK)
+        );
     },
 
     getPrevious10PlayerRTG: (platformId, playerId) => {

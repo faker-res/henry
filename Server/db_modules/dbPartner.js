@@ -5965,6 +5965,7 @@ let dbPartner = {
 
                     rawCommissions.push({
                         groupName: groupRate.groupName,
+                        groupId: groupRate.groupId,
                         amount: rawCommission,
                         totalConsumption: totalConsumption,
                         commissionRate: commissionRates[groupRate.groupName].commissionRate,
@@ -6800,6 +6801,104 @@ let dbPartner = {
             }
         );
     },
+
+    preditCommission: (platformId, partnerId) => {
+        let platform = {};
+        let partner = {};
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({
+                        code: constServerCode.INVALID_PLATFORM,
+                        name: "DataError",
+                        message: "Cannot find platform"
+                    });
+                }
+
+                platform = platformData;
+
+                return dbconfig.collection_partner.findOne({platform: platform._id, partnerId: partnerId}).lean();
+            }
+        ).then(
+            partnerData => {
+                if (!partnerData) {
+                    return Promise.reject({
+                        code: constServerCode.PARTNER_NAME_INVALID,
+                        name: "DataError",
+                        message: "Cannot find partner"
+                    });
+                }
+
+                partner = partnerData;
+                let period = getCurrentCommissionPeriod(partner.commissionType);
+
+                return dbPartner.calculatePartnerCommissionDetail(partner._id, partner.commissionType, new Date(period.startTime), new Date(period.endTime));
+            }
+        ).then(
+            commissionDetail => {
+                if (!commissionDetail) {
+                    return false;
+                }
+
+                let output = {};
+
+                output.activeCrewNumbers = commissionDetail.activeDownLines;
+                output.totalDepositFee = commissionDetail.totalTopUpFee;
+                output.totalWithdrawalFee = commissionDetail.totalWithdrawalFee;
+                output.totalBonusFee = commissionDetail.totalRewardFee;
+                output.totalProviderFee = commissionDetail.totalPlatformFee;
+                output.totalCommission = commissionDetail.nettCommission;
+                output.list = [];
+
+                if (commissionDetail.rawCommissions && commissionDetail.rawCommissions.length) {
+                    commissionDetail.rawCommissions.map(providerCommission => {
+                        output.list.push({
+                            providerGroupId: providerCommission.groupId,
+                            providerGroupName: providerCommission.groupName,
+                            providerGroupCommission: providerCommission.amount,
+                            providerGroupFee: providerCommission.platformFee,
+                        })
+                    })
+                }
+
+                return output;
+            }
+        )
+    },
+  
+    cancelPartnerCommissionPreview: (partnerCommissionLogId) => {
+        let query = {
+            _id: {$in: partnerCommissionLogId}
+        }
+
+        let removeArr = [];
+
+        return dbconfig.collection_partnerCommissionLog.find(query).lean().then(
+            partnerCommissionLog => {
+                if(partnerCommissionLog){
+                    partnerCommissionLog.forEach(commissionLog => {
+                        if(commissionLog){
+                            let removeQuery = {
+                                platform: commissionLog.platform,
+                                settMode: commissionLog.commissionType,
+                                startTime: commissionLog.startTime,
+                                endTime: commissionLog.endTime,
+                            }
+
+                            removeArr.push(dbconfig.collection_partnerCommSettLog.remove(removeQuery));
+                        }
+                    });
+
+                    return Promise.all(removeArr);
+                }
+            }
+        ).then(
+            () => {
+                return dbconfig.collection_partnerCommissionLog.remove(query);
+            }
+        );
+    },
 };
 
 
@@ -6888,6 +6987,7 @@ function getAllCommissionRateTable (platformObjId, commissionType, partnerObjId,
             let prom = getCommissionRateTable(platformObjId, commissionType, partnerObjId, group._id).then(
                 rateTable => {
                     return {
+                        groupId: group.providerGroupId,
                         groupName: group.name,
                         rateTable: rateTable
                     }
@@ -6900,6 +7000,7 @@ function getAllCommissionRateTable (platformObjId, commissionType, partnerObjId,
         let prom = getCommissionRateTable(platformObjId, commissionType, partnerObjId).then(
             rateTable => {
                 return {
+                    groupId: "",
                     groupName: "noGroup",
                     rateTable: rateTable
                 }

@@ -272,10 +272,6 @@ var dbPlatform = {
             delete updateData.whiteListingPhoneNumbers;
         }
 
-        if (!updateData.blackListingPhoneNumbers || (updateData.blackListingPhoneNumbers instanceof Array && updateData.blackListingPhoneNumbers.length === 0)) {
-            delete updateData.blackListingPhoneNumbers;
-        }
-
         if (!updateData.gameProviderNickNames) {
             delete updateData.gameProviderNickNames;
         }
@@ -2684,6 +2680,7 @@ var dbPlatform = {
 
     getPlatformPartnerSettLog: (platformObjId, modes) => {
         let promArr = [];
+        let partnerSettDetail = {};
 
         modes.forEach(mode => {
             promArr.push(
@@ -2726,14 +2723,77 @@ var dbPlatform = {
                             lastSettDate: lastSettDate,
                             nextSettDate: nextSettDate,
                             settStartTime: nextDate.startTime,
-                            settEndTime: nextDate.endTime
+                            settEndTime: nextDate.endTime,
                         }
                     }
                 )
             )
         });
 
-        return Promise.all(promArr);
+        return Promise.all(promArr).then(
+            result => {
+                if(result){
+                    let promArr = [];
+                    partnerSettDetail = result;
+
+                    result.map(r => {
+                        if(r && r.settStartTime && r.settEndTime){
+                            promArr.push(dbPlatform.isPreview(r.settStartTime, r.settEndTime, platformObjId, r.mode));
+                        }
+                    });
+
+                    return Promise.all(promArr);
+                }
+            }
+        ).then(
+            checkPreviewResult => {
+                if(checkPreviewResult){
+                    partnerSettDetail.map(settDetail => {
+                        if(settDetail){
+                            checkPreviewResult.forEach(checkPreview => {
+                                if(checkPreview){
+                                    if(settDetail.mode == checkPreview.commissionType && settDetail.settStartTime == checkPreview.startTime && settDetail.settEndTime == checkPreview.endTime){
+                                        settDetail.isPreview = checkPreview.isPreview;
+                                    }
+                                }
+                            })
+                        }
+                    });
+
+                    return partnerSettDetail;
+                }
+            }
+        );
+    },
+
+    isPreview: (startTime, endTime, platformObjId, commissionType) => {
+        let query = {
+            platform: platformObjId,
+            startTime: startTime,
+            endTime: endTime,
+            commissionType: commissionType,
+            status: 0
+        }
+
+        return dbconfig.collection_partnerCommissionLog.findOne(query).then(
+            result => {
+                if(result){
+                    return {
+                        commissionType: commissionType,
+                        startTime: startTime,
+                        endTime: endTime,
+                        isPreview: true
+                    }
+                }else{
+                    return {
+                        commissionType: commissionType,
+                        startTime: startTime,
+                        endTime: endTime,
+                        isPreview: false
+                    }
+                }
+            }
+        )
     },
 
     generatePartnerCommSettPreview: (platformObjId, settMode, startTime, endTime, isSkip = false, toLatest = false) => {
