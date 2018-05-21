@@ -569,7 +569,7 @@
                         .tab-content
                             div(ng-if='vm.proposalDialog == "proposalTopUp" || vm.proposalDialog == "proposal"')
                                 #ProposalDetail.tab-pane.fade.in.active
-                                    include .././proposal-detail
+                                    include ../../report/proposal-detail
                             #Workflow.tab-pane.fade(mouse-capture, style="max-height:600px;overflow-y:auto")
                                 flow-chart#flowChart(style='width: 100%; height: 550px;overflow:auto;', chart='vm.chartViewModel')
             .modal-footer
