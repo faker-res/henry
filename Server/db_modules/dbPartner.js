@@ -6868,6 +6868,10 @@ let dbPartner = {
     },
   
     cancelPartnerCommissionPreview: (commSettLog, partnerCommissionLogId) => {
+        if(!commSettLog){
+            return;
+        }
+
         let query = {
             _id: {$in: partnerCommissionLogId}
         }
