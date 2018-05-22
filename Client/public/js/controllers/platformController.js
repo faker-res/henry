@@ -802,10 +802,10 @@ define(['js/app'], function (myApp) {
                 getProposalTypeByPlatformId(vm.selectedPlatform.id);
                 vm.rewardList = await commonService.getRewardList($scope, vm.selectedPlatform.id);
                 vm.promoTypeList = await commonService.getPromotionTypeList($scope, vm.selectedPlatform.id);
-                vm.allAlipaysAcc = await commonService.getAllAlipaysByAlipayGroup($scope, vm.selectedPlatform.id);
-                vm.allWechatpaysAcc = await commonService.getAllWechatpaysByWechatpayGroup($scope, vm.selectedPlatform.id);
+                vm.allAlipaysAcc = await commonService.getAllAlipaysByAlipayGroup($scope, vm.selectedPlatform.data.platformId);
+                vm.allWechatpaysAcc = await commonService.getAllWechatpaysByWechatpayGroup($scope, vm.selectedPlatform.data.platformId);
                 vm.allBankTypeList = await commonService.getBankTypeList($scope);
-                vm.bankCards = await commonService.getAllBankCard($scope, $translate, vm.selectedPlatform.id, vm.allBankTypeList);
+                vm.bankCards = await commonService.getAllBankCard($scope, $translate, vm.selectedPlatform.data.platformId, vm.allBankTypeList);
                 vm.allProviders = await commonService.getPlatformProvider($scope, vm.selectedPlatform.id);
                 // check settlement buttons
                 let nowDate = new Date().toLocaleDateString();
