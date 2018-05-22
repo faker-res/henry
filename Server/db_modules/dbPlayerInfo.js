@@ -4054,6 +4054,10 @@ let dbPlayerInfo = {
         let advancedQuery = {};
         let isProviderGroup = false;
 
+        if (data && data.playerType && data.playerType == 'Partner') {
+            return dbPartner.getPartnerDomainReport(platformId, data, index, limit, sortObj);
+        }
+
         //todo encrytion ?
         if (data && data.phoneNumber) {
             data.phoneNumber = {$in: [rsaCrypto.encrypt(data.phoneNumber), data.phoneNumber]};

@@ -9,10 +9,12 @@
             #sendMultiMessageQuery.block-query.col-md-12.form-control-sm
                 .inlineBlk
                     label {{"USER TYPE" | translate}}
-                    select.form-control(ng-model='vm.sendMultiMessage.isTestPlayer', required)
-                        option(value='') {{'ALL' | translate}}
-                        option(value=true) {{"Test Player" | translate}}
-                        option(value=false) {{"Real Player" | translate}}
+                    select.form-control(ng-model="vm.sendMultiMessage.playerType", required)
+                        option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
+                        option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
+                        option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
+                        option(value='Test Player') {{'TEST_PLAYER' | translate}}
+                        option(value='Partner') {{'partner' | translate}}
                 .inlineBlk
                     label {{"PlayerLevel" | translate}}
                     select.form-control(ng-model='vm.sendMultiMessage.playerLevel', required)
