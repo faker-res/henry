@@ -2039,7 +2039,6 @@ define(['js/app'], function (myApp) {
                     totalCount: 0,
                     playerType: 'Real Player (all)',
                     playerLevel: '',
-                    trustLevel: '',
                     topUpTimesValue: null,
                     topUpTimesValueTwo: null,
                     topUpTimesOperator: '>=',
@@ -2057,6 +2056,10 @@ define(['js/app'], function (myApp) {
                 $scope.getChannelList(function () {
                     vm.sendMultiMessage.channel = $scope.channelList ? $scope.channelList[0] : null;
                 });
+                setTimeout(
+                    () => {
+                        vm.setupRemarksMultiInputMultiMsg();
+                    },0);
                 utilService.actionAfterLoaded('#mutilplePlayerTablePage', function () {
                     vm.sendMultiMessage.accStartTime = utilService.createDatePicker('#sendMultiMessageQuery .accStart');
                     vm.sendMultiMessage.accEndTime = utilService.createDatePicker('#sendMultiMessageQuery .accEnd');
@@ -2125,8 +2128,8 @@ define(['js/app'], function (myApp) {
                         $lt: vm.sendMultiMessage.accEndTime.data('datetimepicker').getLocalDate() || new Date(),
                     }
                 };
-                if (vm.sendMultiMessage.trustLevel) {
-                    playerQuery.trustLevel = vm.sendMultiMessage.trustLevel;
+                if (vm.sendMultiMessage.credibilityRemarks) {
+                    playerQuery.credibilityRemarks = vm.sendMultiMessage.credibilityRemarks;
                 }
                 if (vm.sendMultiMessage.playerLevel) {
                     playerQuery.playerLevel = vm.sendMultiMessage.playerLevel;
@@ -27328,6 +27331,20 @@ define(['js/app'], function (myApp) {
                     function (err) {
                         console.log(err);
                     });
+            };
+            vm.setupRemarksMultiInputMultiMsg = function () {
+                let remarkSelect = $('select#selectCredibilityRemarkMultiMsg');
+                if (remarkSelect.css('display') && remarkSelect.css('display').toLowerCase() === "none") {
+                    return;
+                }
+                remarkSelect.multipleSelect({
+                    showCheckbox: true,
+                    allSelected: $translate("All Selected"),
+                    selectAllText: $translate("Select All"),
+                    displayValues: false,
+                    countSelected: $translate('# of % selected')
+                });
+                $scope.safeApply();
             };
 
             vm.setupRemarksMultiInput = function () {
