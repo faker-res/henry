@@ -540,8 +540,8 @@ function socketActionPartner(socketIO, socket) {
 
         cancelPartnerCommissionPreview: function cancelPartnerCommissionPreview (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data);
-            socketUtil.emitter(self.socket, dbPartner.cancelPartnerCommissionPreview, [data], actionName, isValidData);
+            let isValidData = Boolean(data, data.commSettLog, data.partnerCommLogId);
+            socketUtil.emitter(self.socket, dbPartner.cancelPartnerCommissionPreview, [data.commSettLog,data.partnerCommLogId], actionName, isValidData);
         },
     };
 

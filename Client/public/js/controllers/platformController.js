@@ -1483,7 +1483,14 @@ define(['js/app'], function (myApp) {
                     settMode: modeObj.mode,
                     startTime: modeObj.settStartTime,
                     endTime: modeObj.settEndTime
-                }).then(vm.startPlatformPartnerCommissionSettlement());
+                }).then(
+                    () => {
+                        vm.startPlatformPartnerCommissionSettlement()
+                    },
+                    error => {
+                        socketService.showErrorMessage($translate(error.error.error));
+                    }
+                );
             };
 
             vm.skipNextPartnerCommissionPeriod = (modeObj, toLatest = false, isConfirm = false) => {
@@ -1506,7 +1513,14 @@ define(['js/app'], function (myApp) {
                         startTime: modeObj.settStartTime,
                         endTime: modeObj.settEndTime,
                         toLatest: toLatest
-                    }).then(vm.startPlatformPartnerCommissionSettlement());
+                    }).then(
+                        () => {
+                            vm.startPlatformPartnerCommissionSettlement();
+                        },
+                        error => {
+                            socketService.showErrorMessage($translate(error.error.error));
+                        }
+                    )
                 }
             };
 
@@ -1648,12 +1662,18 @@ define(['js/app'], function (myApp) {
                     $('#modalYesNo').modal();
                 }
                 else {
-                    let sendData = [];
-                    vm.partnerCommissionLog.forEach( partner => {
-                        if (partner) {
-                            sendData.push(partner._id);
+                    let sendData = {
+                        commSettLog: vm.selectedSettlePartnerCommPrev,
+                    };
+                    let partnerCommLogIdArr = [];
+                    
+                    vm.partnerCommissionLog.forEach( partnerCommLog => {
+                        if (partnerCommLog) {
+                            partnerCommLogIdArr.push(partnerCommLog._id);
                         }
                     });
+
+                    sendData.partnerCommLogId = partnerCommLogIdArr;
 
                     socketService.$socket($scope.AppSocket, 'cancelPartnerCommissionPreview', sendData, function (data) {
                         vm.loadTab('Partner');
@@ -2017,13 +2037,14 @@ define(['js/app'], function (myApp) {
                 vm.getSMSTemplate();
                 vm.sendMultiMessage = {
                     totalCount: 0,
-                    isTestPlayer: '',
+                    playerType: 'Real Player (all)',
                     playerLevel: '',
                     trustLevel: '',
                     minTopupTimes: null,
                     maxTopupTimes: null,
                     channelMaxChar: 100,
                     wordCount: 0,
+                    phoneCount: 0,
                     numUsedMessage: 0,
                     checkAllRow: false,
                     numReceived: 0,
@@ -2109,8 +2130,8 @@ define(['js/app'], function (myApp) {
                 if (vm.sendMultiMessage.playerLevel) {
                     playerQuery.playerLevel = vm.sendMultiMessage.playerLevel;
                 }
-                if (vm.sendMultiMessage.isTestPlayer != null) {
-                    playerQuery.isTestPlayer = vm.sendMultiMessage.isTestPlayer;
+                if (vm.sendMultiMessage.playerType) {
+                    playerQuery.playerType = vm.sendMultiMessage.playerType
                 }
                 if (vm.sendMultiMessage.minTopupTimes != null) {
                     playerQuery.topUpTimes = {"$gte": vm.sendMultiMessage.minTopupTimes};
@@ -2138,6 +2159,9 @@ define(['js/app'], function (myApp) {
                     var size = data.data.size || 0;
                     var result = data.data.data || [];
                     vm.drawSendMessagesTable(result.map(item => {
+                        if (!item.name && item.partnerName) {
+                            item.name = item.partnerName;
+                        }
                         item.lastAccessTime$ = vm.dateReformat(item.lastAccessTime);
                         item.registrationTime$ = vm.dateReformat(item.registrationTime);
                         return item;
@@ -2410,10 +2434,13 @@ define(['js/app'], function (myApp) {
                 vm.sendMultiMessage.wordCount = vm.sendMultiMessage.messageContent.length;
                 vm.sendMultiMessage.numUsedMessage = Math.ceil(vm.sendMultiMessage.wordCount / vm.sendMultiMessage.channelMaxChar);
                 resetMultiMessageStatus();
-            }
+            };
+            vm.phonesChange = function () {
+                vm.sendMultiMessage.phoneCount = (vm.toPhoneNumber).split(/\r\n|\r|\n/).length;
+            };
             vm.sentMailToAllPlayers = function () {
                 resetAllSelection();
-            }
+            };
             vm.sendMessages = function () {
                 // console.log(vm.sendMultiMessage.tableObj.rows('.selected').data());
                 vm.sendMultiMessage.sendInitiated = true;
@@ -2492,29 +2519,61 @@ define(['js/app'], function (myApp) {
             vm.sendSingleMessages = function () {
                 vm.sendMultiMessage.singleBtnText = $translate("Sending");
                 vm.sendMultiMessage.singleSendDisable = true;
-                socketService.$socket($scope.AppSocket, 'sendSMStoNumber', {
-                    phoneNumber: vm.toPhoneNumber,
-                    platformId: vm.selectedPlatform.data.platformId,
-                    channel: vm.sendMultiMessage.channel,
-                    message: vm.sendMultiMessage.messageContent
-                }, function (data) {
-                    vm.sendMultiMessage.sendCompleted = true;
-                    vm.sendMultiMessage.singleSendResultText = $translate("SUCCESS");
-                    vm.sendMultiMessage.singleBtnText = $translate("SEND");
-                    // vm.toPhoneNumber = null
-                    updateMultiMessageButton();
+
+                if (vm.toPhoneNumber && vm.sendMultiMessage.phoneCount && vm.sendMultiMessage.phoneCount > 1) {
+                    let phoneList = (vm.toPhoneNumber).split(/\r\n|\r|\n/);
+
+                    phoneList.forEach(phoneNumber => {
+                        let sendData = {
+                            phoneNumber: phoneNumber,
+                            platformId: vm.selectedPlatform.data.platformId,
+                            channel: vm.sendMultiMessage.channel,
+                            message: vm.sendMultiMessage.messageContent
+                        };
+
+                        socketService.$socket($scope.AppSocket, 'sendSMStoNumber', sendData, function (data) {
+                            vm.sendMultiMessage.sendCompleted = true;
+                            vm.sendMultiMessage.singleSendResultText = $translate("SUCCESS");
+                            vm.sendMultiMessage.singleBtnText = $translate("SEND");
+                            updateMultiMessageButton();
+                        }, function (err) {
+                            vm.sendMultiMessage.singleBtnText = $translate("SEND");
+                            vm.sendMultiMessage.singleSendResultText = $translate("FAIL");
+                            updateMultiMessageButton();
+                        });
+                    });
+                    vm.toPhoneNumber = null;
+                    vm.sendMultiMessage.messageContent = "";
+                    vm.sendMultiMessage.phoneCount = 0;
                     $scope.safeApply();
-                }, function (err) {
-                    vm.sendMultiMessage.singleBtnText = $translate("SEND");
-                    vm.sendMultiMessage.singleSendResultText = $translate("FAIL");
-                    // vm.toPhoneNumber = null
-                    updateMultiMessageButton();
+                } else {
+                    let sendData = {
+                        phoneNumber: vm.toPhoneNumber,
+                        platformId: vm.selectedPlatform.data.platformId,
+                        channel: vm.sendMultiMessage.channel,
+                        message: vm.sendMultiMessage.messageContent
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'sendSMStoNumber', sendData, function (data) {
+                        vm.sendMultiMessage.sendCompleted = true;
+                        vm.sendMultiMessage.singleSendResultText = $translate("SUCCESS");
+                        vm.sendMultiMessage.singleBtnText = $translate("SEND");
+                        // vm.toPhoneNumber = null
+                        updateMultiMessageButton();
+                        $scope.safeApply();
+                    }, function (err) {
+                        vm.sendMultiMessage.singleBtnText = $translate("SEND");
+                        vm.sendMultiMessage.singleSendResultText = $translate("FAIL");
+                        // vm.toPhoneNumber = null
+                        updateMultiMessageButton();
+                        $scope.safeApply();
+                    });
+                    vm.toPhoneNumber = null;
+                    vm.sendMultiMessage.messageContent = "";
+                    vm.sendMultiMessage.phoneCount = 0;
                     $scope.safeApply();
-                })
-                vm.toPhoneNumber = null;
-                vm.sendMultiMessage.messageContent = "";
-                $scope.safeApply();
-            }
+                }
+            };
 
             function updateMultiMessageButton() {
                 vm.sendMultiMessage.sendBtnText =
@@ -5092,6 +5151,13 @@ define(['js/app'], function (myApp) {
                     index: newSearch ? 0 : vm.expenseQuery.index,
                     limit: newSearch ? 10 : vm.expenseQuery.limit,
                     sortCol: newSearch ? null : vm.expenseQuery.sortCol,
+                }
+
+                if (vm.roundNoOrPlayNo) {
+                    queryData.roundNoOrPlayNo = vm.roundNoOrPlayNo;
+                }
+                if (vm.gameName) {
+                    queryData.gameName = vm.gameName;
                 }
                 vm.providerExpenseTableLoading = true;
                 $scope.safeApply();
@@ -10420,6 +10486,14 @@ define(['js/app'], function (myApp) {
                     eventCode: "manualReward"
                 };
 
+                if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.manualRewardSkipAuditAmount) {
+                    if (vm.playerAddRewardTask && vm.playerAddRewardTask.currentAmount) {
+                        if (vm.playerAddRewardTask.currentAmount <= vm.selectedPlatform.data.manualRewardSkipAuditAmount) {
+                            sendObj.isIgnoreAudit = true;
+                        }
+                    }
+                }
+
                 if (!vm.selectedPlatform.data.useProviderGroup) {
                     sendObj.targetProviders = providerArr;
                 } else {
@@ -15704,10 +15778,11 @@ define(['js/app'], function (myApp) {
                                 platform: vm.selectedPlatform.id,
                                 partner: {$in: partnersObjId}
                             }
-                        }
+                        };
 
                         socketService.$socket($scope.AppSocket, 'getCustomizeCommissionConfigPartner', sendQuery, function (customCommissionConfig) {
                             if (customCommissionConfig && customCommissionConfig.data && customCommissionConfig.data.length > 0) {
+                                vm.customCommissionConfig = customCommissionConfig.data;
                                 customCommissionConfig.data.forEach(customSetting => {
                                     if (data && data.data && data.data.data) {
                                         data.data.data.map(data => {
@@ -15719,6 +15794,8 @@ define(['js/app'], function (myApp) {
                                         });
                                     }
                                 });
+                            } else {
+                                vm.customCommissionConfig = [];
                             }
                             vm.drawPartnerTable(data.data);
                         });
@@ -15746,6 +15823,17 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPartnersByAdvancedQuery', apiQuery, function (reply) {
                     console.log('partnerData', reply);
                     let size = reply.data.size || 0;
+                    vm.customCommissionConfig.forEach(customSetting => {
+                        if (reply && reply.data && reply.data.data) {
+                            reply.data.data.map(data => {
+                                if(data._id
+                                    && customSetting.partner
+                                    && (data._id.toString() == customSetting.partner.toString())) {
+                                    data.isCustomizeSettingExist = true;
+                                }
+                            });
+                        }
+                    });
                     setPartnerTableData(reply.data.data);
                     vm.searchPartnerCount = reply.data.size;
                     vm.advancedPartnerQueryObj.pageObj.init({maxCount: size}, true);
@@ -24554,6 +24642,7 @@ define(['js/app'], function (myApp) {
                 vm.rateAfterRebateTotalDeposit = null;
                 vm.rateAfterRebateTotalWithdrawal = null;
                 vm.custCommissionRateConfig = [];
+                vm.srcCommissionRateConfig = {};
 
                 let sendData = {
                     query: { platform: vm.selectedPlatform.id }
@@ -24685,6 +24774,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.blackListingPhoneNumbers$ = "";
                 vm.platformBasic.playerForbidApplyBonusNeedCsApproval = vm.selectedPlatform.data.playerForbidApplyBonusNeedCsApproval;
                 vm.platformBasic.unreadMailMaxDuration = vm.selectedPlatform.data.unreadMailMaxDuration;
+                vm.platformBasic.manualRewardSkipAuditAmount = vm.selectedPlatform.data.manualRewardSkipAuditAmount || 0;
 
                 if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
                     let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
@@ -25285,7 +25375,8 @@ define(['js/app'], function (myApp) {
                         usePointSystem: srcData.usePointSystem,
                         usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification,
                         playerForbidApplyBonusNeedCsApproval: srcData.playerForbidApplyBonusNeedCsApproval,
-                        unreadMailMaxDuration: srcData.unreadMailMaxDuration
+                        unreadMailMaxDuration: srcData.unreadMailMaxDuration,
+                        manualRewardSkipAuditAmount: srcData.manualRewardSkipAuditAmount,
                     }
                 };
                 let isProviderGroupOn = false;

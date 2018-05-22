@@ -59,14 +59,61 @@
                                     span {{ v.date | date:"yyyy-MM-dd" }}
                                 td
                                     span {{ v.totalCount }}
-                                td
-                                    span {{ v.successCount }}
-                                td
-                                    span {{ v.rejectCount }}
+                                td(ng-click="vm.setAnchor('playerBonusDetailTable'); vm.clickForDetail(v.date, 'manualSuccess', vm.queryPara.manualApproval.periodText, 'playerBonus', 'Success'); vm.playerBonusDetailTableIsHide = false; vm.updatePlayerDetailTableIsHide = true; vm.updatePartnerDetailTableIsHide = true; vm.rewardDetailTableIsHide = true; vm.othersDetailTableIsHide = true; vm.allDetailTableIsHide = true;")
+                                    a {{ v.successCount }}
+                                td(ng-click="vm.setAnchor('playerBonusDetailTable'); vm.clickForDetail(v.date, 'manualSuccess', vm.queryPara.manualApproval.periodText, 'playerBonus', 'Fail'); vm.playerBonusDetailTableIsHide = false; vm.updatePlayerDetailTableIsHide = true; vm.updatePartnerDetailTableIsHide = true; vm.rewardDetailTableIsHide = true; vm.othersDetailTableIsHide = true; vm.allDetailTableIsHide = true;")
+                                    a {{ v.rejectCount }}
                                 td
                                     span {{ v.manualCount}}
 
-        .row
+        #playerBonusDetailTable
+        .row(ng-if='vm.dataToDraw.length > 0 && !vm.playerBonusDetailTableIsHide')
+            .col-md-12
+                button.btn.btn-primary.common-button.pull-right(style="margin-bottom: 0px;", ng-click='vm.playerBonusDetailTableIsHide = !vm.playerBonusDetailTableIsHide') {{ vm.playerBonusDetailTableIsHide ? "expand" : "collapse" | translate}}
+            .col-md-12
+                table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                    thead
+                        tr
+                            th {{ 'PROPOSAL ID' | translate}}
+                            th {{ 'CREATOR' | translate}}
+                            th {{ 'INPUT_DEVICE' | translate}}
+                            th {{ 'PROPOSAL TYPE' | translate}}
+                            th {{ 'PROPOSAL_SUB_TYPE' | translate}}
+                            th {{ 'Proposal Status' | translate}}
+                            th {{ 'INVOLVED_ACC' | translate}}
+                            th {{ 'Amount Involved' | translate}}
+                            th {{ 'START_TIME' | translate}}
+                            th {{ 'Player Level' | translate}}
+                            th {{ 'REMARKS' | translate}}
+
+                    tbody
+                        tr(ng-repeat='(i, v) in vm.dataToDraw')
+                            td(ng-click="vm.showProposalModalNew(v.proposalId)")
+                                a {{ v.proposalId }}
+                            td
+                                span {{ v.creator$ }}
+                            td
+                                span {{ v.inputDevice$ }}
+                            td
+                                span {{ v.mainType$ }}
+                            td
+                                span {{ v.typeName$}}
+                            td
+                                span {{ v.status$}}
+                            td
+                                span {{ v.involvedAcc$}}
+                            td
+                                span {{ v.involveAmount$}}
+                            td
+                                span {{ v.createTime$}}
+                            td
+                                span {{ v.data.proposalPlayerLevel}}
+                            td
+                                span {{ v.remark$}}
+
+
+
+        .row(style="margin-top:50px")
             .col-md-6
                 label.text-primary {{"UPDATE_PLAYER_MANUAL_APPROVAL_RATE" | translate}} VS {{vm.queryPara.manualApproval.periodText | translate}}
                 .graph
@@ -101,14 +148,59 @@
                                     span {{ v.date | date:"yyyy-MM-dd" }}
                                 td
                                     span {{ v.totalCount }}
-                                td
-                                    span {{ v.successCount }}
-                                td
-                                    span {{ v.rejectCount }}
+                                td(ng-click="vm.setAnchor('updatePlayerDetailTable'); vm.clickForDetail(v.date, 'manualSuccess', vm.queryPara.manualApproval.periodText, 'updatePlayer', 'Success'); vm.updatePlayerDetailTableIsHide = false; vm.playerBonusDetailTableIsHide = true; vm.updatePartnerDetailTableIsHide = true; vm.rewardDetailTableIsHide = true; vm.othersDetailTableIsHide = true; vm.allDetailTableIsHide = true;")
+                                    a {{ v.successCount }}
+                                td(ng-click="vm.setAnchor('updatePlayerDetailTable'); vm.clickForDetail(v.date, 'manualSuccess', vm.queryPara.manualApproval.periodText, 'updatePlayer', 'Fail'); vm.updatePlayerDetailTableIsHide = false; vm.playerBonusDetailTableIsHide = true; vm.updatePartnerDetailTableIsHide = true; vm.rewardDetailTableIsHide = true; vm.othersDetailTableIsHide = true; vm.allDetailTableIsHide = true;")
+                                    a {{ v.rejectCount }}
                                 td
                                     span {{ v.manualCount}}
 
-        .row
+        #updatePlayerDetailTable
+        .row(ng-if='vm.dataToDraw.length > 0 && !vm.updatePlayerDetailTableIsHide')
+            .col-md-12
+                button.btn.btn-primary.common-button.pull-right(style="margin-bottom: 0px;", ng-click='vm.updatePlayerDetailTableIsHide = !vm.updatePlayerDetailTableIsHide') {{ vm.updatePlayerDetailTableIsHide ? "expand" : "collapse" | translate}}
+            .col-md-12
+                table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                    thead
+                        tr
+                            th {{ 'PROPOSAL ID' | translate}}
+                            th {{ 'CREATOR' | translate}}
+                            th {{ 'INPUT_DEVICE' | translate}}
+                            th {{ 'PROPOSAL TYPE' | translate}}
+                            th {{ 'PROPOSAL_SUB_TYPE' | translate}}
+                            th {{ 'Proposal Status' | translate}}
+                            th {{ 'INVOLVED_ACC' | translate}}
+                            th {{ 'Amount Involved' | translate}}
+                            th {{ 'START_TIME' | translate}}
+                            th {{ 'Player Level' | translate}}
+                            th {{ 'REMARKS' | translate}}
+
+                    tbody
+                        tr(ng-repeat='(i, v) in vm.dataToDraw')
+                            td(ng-click="vm.showProposalModalNew(v.proposalId)")
+                                a {{ v.proposalId }}
+                            td
+                                span {{ v.creator$ }}
+                            td
+                                span {{ v.inputDevice$ }}
+                            td
+                                span {{ v.mainType$ }}
+                            td
+                                span {{ v.typeName$}}
+                            td
+                                span {{ v.status$}}
+                            td
+                                span {{ v.involvedAcc$}}
+                            td
+                                span {{ v.involveAmount$}}
+                            td
+                                span {{ v.createTime$}}
+                            td
+                                span {{ v.data.proposalPlayerLevel}}
+                            td
+                                span {{ v.remark$}}
+
+        .row(style="margin-top:50px")
             .col-md-6
                 label.text-primary {{"UPDATE_PARTNER_MANUAL_APPROVAL_RATE" | translate}} VS {{vm.queryPara.manualApproval.periodText | translate}}
                 .graph
@@ -143,14 +235,59 @@
                                     span {{ v.date | date:"yyyy-MM-dd" }}
                                 td
                                     span {{ v.totalCount }}
-                                td
-                                    span {{ v.successCount }}
-                                td
-                                    span {{ v.rejectCount }}
+                                td(ng-click="vm.setAnchor('updatePartnerDetailTable'); vm.clickForDetail(v.date, 'manualSuccess', vm.queryPara.manualApproval.periodText, 'updatePartner', 'Success'); vm.updatePlayerDetailTableIsHide = true; vm.playerBonusDetailTableIsHide = true; vm.updatePartnerDetailTableIsHide = false; vm.rewardDetailTableIsHide = true; vm.othersDetailTableIsHide = true; vm.allDetailTableIsHide = true;")
+                                    a {{ v.successCount }}
+                                td(ng-click="vm.setAnchor('updatePartnerDetailTable'); vm.clickForDetail(v.date, 'manualSuccess', vm.queryPara.manualApproval.periodText, 'updatePartner', 'Fail'); vm.updatePlayerDetailTableIsHide = true; vm.playerBonusDetailTableIsHide = true; vm.updatePartnerDetailTableIsHide = false; vm.rewardDetailTableIsHide = true; vm.othersDetailTableIsHide = true; vm.allDetailTableIsHide = true;")
+                                    a {{ v.rejectCount }}
                                 td
                                     span {{ v.manualCount}}
 
-        .row
+        #updatePartnerDetailTable
+        .row(ng-if='vm.dataToDraw.length > 0 && !vm.updatePartnerDetailTableIsHide')
+            .col-md-12
+                button.btn.btn-primary.common-button.pull-right(style="margin-bottom: 0px;", ng-click='vm.updatePartnerDetailTableIsHide = !vm.updatePartnerDetailTableIsHide') {{ vm.updatePartnerDetailTableIsHide ? "expand" : "collapse" | translate}}
+            .col-md-12
+                table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                    thead
+                        tr
+                            th {{ 'PROPOSAL ID' | translate}}
+                            th {{ 'CREATOR' | translate}}
+                            th {{ 'INPUT_DEVICE' | translate}}
+                            th {{ 'PROPOSAL TYPE' | translate}}
+                            th {{ 'PROPOSAL_SUB_TYPE' | translate}}
+                            th {{ 'Proposal Status' | translate}}
+                            th {{ 'INVOLVED_ACC' | translate}}
+                            th {{ 'Amount Involved' | translate}}
+                            th {{ 'START_TIME' | translate}}
+                            th {{ 'Player Level' | translate}}
+                            th {{ 'REMARKS' | translate}}
+
+                    tbody
+                        tr(ng-repeat='(i, v) in vm.dataToDraw')
+                            td(ng-click="vm.showProposalModalNew(v.proposalId)")
+                                a {{ v.proposalId }}
+                            td
+                                span {{ v.creator$ }}
+                            td
+                                span {{ v.inputDevice$ }}
+                            td
+                                span {{ v.mainType$ }}
+                            td
+                                span {{ v.typeName$}}
+                            td
+                                span {{ v.status$}}
+                            td
+                                span {{ v.involvedAcc$}}
+                            td
+                                span {{ v.involveAmount$}}
+                            td
+                                span {{ v.createTime$}}
+                            td
+                                span {{ v.data.proposalPlayerLevel}}
+                            td
+                                span {{ v.remark$}}
+
+        .row(style="margin-top:50px")
             .col-md-6
                 label.text-primary {{"ALL_REWARD_MANUAL_APPROVAL_RATE" | translate}} VS {{vm.queryPara.manualApproval.periodText | translate}}
                 .graph
@@ -185,14 +322,58 @@
                                     span {{ v.date | date:"yyyy-MM-dd" }}
                                 td
                                     span {{ v.totalCount }}
-                                td
-                                    span {{ v.successCount }}
-                                td
-                                    span {{ v.rejectCount }}
+                                td(ng-click="vm.setAnchor('rewardDetailTable'); vm.clickForDetail(v.date, 'manualSuccess', vm.queryPara.manualApproval.periodText, 'reward', 'Success'); vm.updatePlayerDetailTableIsHide = true; vm.playerBonusDetailTableIsHide = true; vm.updatePartnerDetailTableIsHide = true; vm.rewardDetailTableIsHide = false; vm.othersDetailTableIsHide = true; vm.allDetailTableIsHide = true;")
+                                    a {{ v.successCount }}
+                                td(ng-click="vm.setAnchor('rewardDetailTable'); vm.clickForDetail(v.date, 'manualSuccess', vm.queryPara.manualApproval.periodText, 'reward', 'Fail'); vm.updatePlayerDetailTableIsHide = true; vm.playerBonusDetailTableIsHide = true; vm.updatePartnerDetailTableIsHide = true; vm.rewardDetailTableIsHide = false; vm.othersDetailTableIsHide = true; vm.allDetailTableIsHide = true;")
+                                    a {{ v.rejectCount }}
                                 td
                                     span {{ v.manualCount}}
+        #rewardDetailTable
+        .row(ng-if='vm.dataToDraw.length > 0 && !vm.rewardDetailTableIsHide')
+            .col-md-12
+                button.btn.btn-primary.common-button.pull-right(style="margin-bottom: 0px;", ng-click='vm.rewardDetailTableIsHide = !vm.rewardDetailTableIsHide') {{ vm.rewardDetailTableIsHide ? "expand" : "collapse" | translate}}
+            .col-md-12
+                table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                    thead
+                        tr
+                            th {{ 'PROPOSAL ID' | translate}}
+                            th {{ 'CREATOR' | translate}}
+                            th {{ 'INPUT_DEVICE' | translate}}
+                            th {{ 'PROPOSAL TYPE' | translate}}
+                            th {{ 'PROPOSAL_SUB_TYPE' | translate}}
+                            th {{ 'Proposal Status' | translate}}
+                            th {{ 'INVOLVED_ACC' | translate}}
+                            th {{ 'Amount Involved' | translate}}
+                            th {{ 'START_TIME' | translate}}
+                            th {{ 'Player Level' | translate}}
+                            th {{ 'REMARKS' | translate}}
 
-        .row
+                    tbody
+                        tr(ng-repeat='(i, v) in vm.dataToDraw')
+                            td(ng-click="vm.showProposalModalNew(v.proposalId)")
+                                a {{ v.proposalId }}
+                            td
+                                span {{ v.creator$ }}
+                            td
+                                span {{ v.inputDevice$ }}
+                            td
+                                span {{ v.mainType$ }}
+                            td
+                                span {{ v.typeName$}}
+                            td
+                                span {{ v.status$}}
+                            td
+                                span {{ v.involvedAcc$}}
+                            td
+                                span {{ v.involveAmount$}}
+                            td
+                                span {{ v.createTime$}}
+                            td
+                                span {{ v.data.proposalPlayerLevel}}
+                            td
+                                span {{ v.remark$}}
+
+        .row(style="margin-top:50px")
             .col-md-6
                 label.text-primary {{"MISCELLANEOUS_MANUAL_APPROVAL_RATE" | translate}} VS {{vm.queryPara.manualApproval.periodText | translate}}
                 .graph
@@ -227,14 +408,58 @@
                                     span {{ v.date | date:"yyyy-MM-dd" }}
                                 td
                                     span {{ v.totalCount }}
-                                td
-                                    span {{ v.successCount }}
-                                td
-                                    span {{ v.rejectCount }}
+                                td(ng-click="vm.setAnchor('othersDetailTable'); vm.clickForDetail(v.date, 'manualSuccess', vm.queryPara.manualApproval.periodText, 'others', 'Success'); vm.updatePlayerDetailTableIsHide = true; vm.playerBonusDetailTableIsHide = true; vm.updatePartnerDetailTableIsHide = true; vm.rewardDetailTableIsHide = true; vm.othersDetailTableIsHide = false; vm.allDetailTableIsHide = true;")
+                                    a {{ v.successCount }}
+                                td(ng-click="vm.setAnchor('othersDetailTable'); vm.clickForDetail(v.date, 'manualSuccess', vm.queryPara.manualApproval.periodText, 'others', 'Fail'); vm.updatePlayerDetailTableIsHide = true; vm.playerBonusDetailTableIsHide = true; vm.updatePartnerDetailTableIsHide = true; vm.rewardDetailTableIsHide = true; vm.othersDetailTableIsHide = false; vm.allDetailTableIsHide = true;")
+                                    a {{ v.rejectCount }}
                                 td
                                     span {{ v.manualCount}}
+        #othersDetailTable
+        .row(ng-if='vm.dataToDraw.length > 0 && !vm.othersDetailTableIsHide')
+            .col-md-12
+                button.btn.btn-primary.common-button.pull-right(style="margin-bottom: 0px;", ng-click='vm.othersDetailTableIsHide = !vm.othersDetailTableIsHide') {{ vm.othersDetailTableIsHide ? "expand" : "collapse" | translate}}
+            .col-md-12
+                table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                    thead
+                        tr
+                            th {{ 'PROPOSAL ID' | translate}}
+                            th {{ 'CREATOR' | translate}}
+                            th {{ 'INPUT_DEVICE' | translate}}
+                            th {{ 'PROPOSAL TYPE' | translate}}
+                            th {{ 'PROPOSAL_SUB_TYPE' | translate}}
+                            th {{ 'Proposal Status' | translate}}
+                            th {{ 'INVOLVED_ACC' | translate}}
+                            th {{ 'Amount Involved' | translate}}
+                            th {{ 'START_TIME' | translate}}
+                            th {{ 'Player Level' | translate}}
+                            th {{ 'REMARKS' | translate}}
 
-        .row
+                    tbody
+                        tr(ng-repeat='(i, v) in vm.dataToDraw')
+                            td(ng-click="vm.showProposalModalNew(v.proposalId)")
+                                a {{ v.proposalId }}
+                            td
+                                span {{ v.creator$ }}
+                            td
+                                span {{ v.inputDevice$ }}
+                            td
+                                span {{ v.mainType$ }}
+                            td
+                                span {{ v.typeName$}}
+                            td
+                                span {{ v.status$}}
+                            td
+                                span {{ v.involvedAcc$}}
+                            td
+                                span {{ v.involveAmount$}}
+                            td
+                                span {{ v.createTime$}}
+                            td
+                                span {{ v.data.proposalPlayerLevel}}
+                            td
+                                span {{ v.remark$}}
+                                
+        .row(style="margin-top:50px")
             .col-md-6
                 label.text-primary {{"ALL_PROPOSAL_MANUAL_APPROVAL_RATE" | translate}} VS {{vm.queryPara.manualApproval.periodText | translate}}
                 .graph
@@ -268,12 +493,102 @@
                                     span {{ v.date | date:"yyyy-MM-dd" }}
                                 td
                                     span {{ v.totalCount }}
-                                td
-                                    span {{ v.successCount }}
-                                td
-                                    span {{ v.rejectCount }}
+                                td(ng-click="vm.setAnchor('allDetailTable'); vm.clickForDetail(v.date, 'manualSuccess', vm.queryPara.manualApproval.periodText, 'all', 'Success'); vm.updatePlayerDetailTableIsHide = true; vm.playerBonusDetailTableIsHide = true; vm.updatePartnerDetailTableIsHide = true; vm.rewardDetailTableIsHide = true; vm.othersDetailTableIsHide = true; vm.allDetailTableIsHide = false;")
+                                    a {{ v.successCount }}
+                                td(ng-click="vm.setAnchor('allDetailTable'); vm.clickForDetail(v.date, 'manualSuccess', vm.queryPara.manualApproval.periodText, 'all', 'Fail'); vm.updatePlayerDetailTableIsHide = true; vm.playerBonusDetailTableIsHide = true; vm.updatePartnerDetailTableIsHide = true; vm.rewardDetailTableIsHide = true; vm.othersDetailTableIsHide = true; vm.allDetailTableIsHide = false;")
+                                    a {{ v.rejectCount }}
                                 td
                                     span {{ v.manualCount}}
+        #allDetailTable
+        .row(ng-if='vm.dataToDraw.length > 0 && !vm.allDetailTableIsHide')
+            .col-md-12
+                button.btn.btn-primary.common-button.pull-right(style="margin-bottom: 0px;", ng-click='vm.allDetailTableIsHide = !vm.allDetailTableIsHide') {{ vm.allDetailTableIsHide ? "expand" : "collapse" | translate}}
+            .col-md-12
+                table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                    thead
+                        tr
+                            th {{ 'PROPOSAL ID' | translate}}
+                            th {{ 'CREATOR' | translate}}
+                            th {{ 'INPUT_DEVICE' | translate}}
+                            th {{ 'PROPOSAL TYPE' | translate}}
+                            th {{ 'PROPOSAL_SUB_TYPE' | translate}}
+                            th {{ 'Proposal Status' | translate}}
+                            th {{ 'INVOLVED_ACC' | translate}}
+                            th {{ 'Amount Involved' | translate}}
+                            th {{ 'START_TIME' | translate}}
+                            th {{ 'Player Level' | translate}}
+                            th {{ 'REMARKS' | translate}}
+
+                    tbody
+                        tr(ng-repeat='(i, v) in vm.dataToDraw')
+                            td(ng-click="vm.showProposalModalNew(v.proposalId)")
+                                a {{ v.proposalId }}
+                            td
+                                span {{ v.creator$ }}
+                            td
+                                span {{ v.inputDevice$ }}
+                            td
+                                span {{ v.mainType$ }}
+                            td
+                                span {{ v.typeName$}}
+                            td
+                                span {{ v.status$}}
+                            td
+                                span {{ v.involvedAcc$}}
+                            td
+                                span {{ v.involveAmount$}}
+                            td
+                                span {{ v.createTime$}}
+                            td
+                                span {{ v.data.proposalPlayerLevel}}
+                            td
+                                span {{ v.remark$}}
+
+
+#modalProposalDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                span
+                    ul.nav.nav-tabs
+                        li
+                            label {{vm.selectedProposal.type.name | translate}}
+                        li.active
+                            a(data-toggle="tab", href="#ProposalDetail", ng-click="")
+                                .fa.fa-user
+                                | {{ 'DETAIL' | translate }}
+                        li(ng-if='vm.chartData')
+                            a(data-toggle="tab", href="#Workflow", ng-click="")
+                                .fa.fa-user
+                                | {{ 'WORKFLOW' | translate }}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .tab-content
+                            div(ng-if='vm.proposalDialog == "proposalTopUp" || vm.proposalDialog == "proposal"')
+                                #ProposalDetail.tab-pane.fade.in.active
+                                    include ../../report/proposal-detail
+                            #Workflow.tab-pane.fade(mouse-capture, style="max-height:600px;overflow-y:auto")
+                                flow-chart#flowChart(style='width: 100%; height: 550px;overflow:auto;', chart='vm.chartViewModel')
+            .modal-footer
+                .inlineBlk(ng-show='vm.selectedProposal.isLocked && !vm.selectedProposal.showUnlockBtn')
+                    label.form-control {{'Lock Status' | translate}} : {{vm.selectedProposal.isLocked.adminName}}
+                .inlineBlk(ng-show='!vm.selectedProposal.isLocked || vm.selectedProposal.showUnlockBtn')
+                    button.btn.btn-success.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","ApproveProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, true)") {{"APPROVE" | translate}}
+                    button.btn.btn-danger.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","RejectProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, false)") {{"REJECT" | translate}}
+                button.btn.btn-warning.common-button(ng-if='vm.selectedProposal.showCancel', ng-click="vm.submitCancelProposal(vm.selectedProposal)") {{"Cancel Proposal" | translate}}
+                .inlineBlk(ng-if='vm.selectedProposal.cancelling')
+                    label {{'Cancelling Proposal' | translate}}
+                    i.fa.fa-spin.fa-2x.fa-spinner
+                label.inlineBlk(ng-if='vm.selectedProposal.cancelled') {{"Cancel" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
+                button.btn.btn-primary.common-button(ng-if='vm.selectedProposal.status==="AutoAudit" && !vm.changeStatusToPendingFromAutoAuditMessage && !vm.selectedProposal.cancelling && !vm.selectedProposal.cancelled', ng-click='vm.changeStatusToPendingFromAutoAudit()') {{"Manual" | translate}}
+                button.btn.btn-success.common-button(ng-if="vm.showCopyProposal()" ng-click="vm.copyTopUpProposal()") {{"COPY_TO_CLIPBOARD" | translate}}
+                label.inlineBlk.wordWrap(ng-if='vm.changeStatusToPendingFromAutoAuditMessage') {{vm.changeStatusToPendingFromAutoAuditMessage}}
+                .inlineBlk.pull-left(ng-show='vm.rightPanelTitle == "APPROVAL_PROPOSAL"')
+                    label.inlineBlk {{'remark' | translate}}
+                    input#proposalRemark.inlineBlk.proposalRemark.form-control(style='width:400px;')
 
 
 p(ng-init="vm.loadPageFunc(vm.showPageName)")

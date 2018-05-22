@@ -1123,7 +1123,7 @@ var proposalExecutor = {
                         let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData);
                         let applyPromoCode = null;
                         if (proposalData.data.bonusCode) {
-                            applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
+                            applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
                         }
                         let applyTopUpReturn = null;
                         if (proposalData.data.topUpReturnCode) {
@@ -1171,7 +1171,7 @@ var proposalExecutor = {
                         let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'aliPay');
                         let applyPromoCode = null;
                         if (proposalData.data.bonusCode) {
-                            applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
+                            applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
                         }
                         let applyTopUpReturn = null;
                         if (proposalData.data.topUpReturnCode) {
@@ -1246,7 +1246,7 @@ var proposalExecutor = {
                         let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'weChat');
                         let applyPromoCode = null;
                         if (proposalData.data.bonusCode) {
-                            applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
+                            applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
                         }
                         let applyTopUpReturn = null;
                         if (proposalData.data.topUpReturnCode) {
@@ -1298,10 +1298,11 @@ var proposalExecutor = {
                             console.log('applyForPlatformTransactionReward - Start', proposalData.proposalId);
                             dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.MANUAL);
                             // return dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount, proposalData.data.playerLevel, proposalData.data.bankCardType);
-                            let applyforTransactionReward = dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount, proposalData.data.playerLevel, proposalData.data.bankCardType);
+                            let applyforTransactionReward = dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount,
+                                proposalData.data.playerLevel, proposalData.data.bankCardType).catch(errorUtils.reportError);
                             let applyPromoCode = null;
                             if (proposalData.data.bonusCode) {
-                                applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
+                                applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
                             }
                             let applyTopUpReturn = null;
                             if (proposalData.data.topUpReturnCode) {
@@ -3535,7 +3536,7 @@ function changePlayerCredit(playerObjId, platformId, updateAmount, reasonType, d
  * @param [resolveValue] - Optional.  Without this, resolves with the newly created reward task.
  */
 function createRewardTaskForProposal(proposalData, taskData, deferred, rewardType, resolveValue) {
-    let rewardTask, platform, gameProviderGroup, playerRecord, providerCredit = 0, totalCredit = 0, isHitAutoUnlockThreshold = false, rewardTaskGroup = {};
+    let rewardTask, platform, gameProviderGroup, playerRecord;
     //check if player object id is in the proposal data
     if (!(proposalData && proposalData.data && proposalData.data.playerObjId)) {
         deferred.reject({name: "DBError", message: "Invalid reward proposal data"});
@@ -3562,90 +3563,48 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             platform = res[1];
             playerRecord = res[2];
 
-            let promArr = [];
-            if (gameProviderGroup && gameProviderGroup.providers && gameProviderGroup.providers.length > 0) {
-                gameProviderGroup.providers.forEach(provider => {
-                    if(provider) {
-                        promArr.push(
-                            cpmsAPI.player_queryCredit(
-                                {
-                                    username: playerRecord.name,
-                                    platformId: platform.platformId,
-                                    providerId: provider.providerId
-                                }
-                            ).then(
-                                data => data,
-                                error => {
-                                    return {credit: 0};
-                                }
-                            )
-                        );
-                    }
-                })
-            } else {
-                if (platform && platform.gameProviders && platform.gameProviders.length > 0) {
-                    platform.gameProviders.forEach(provider => {
-                        if(provider) {
-                            promArr.push(
-                                cpmsAPI.player_queryCredit(
-                                    {
-                                        username: playerRecord.name,
-                                        platformId: platform.platformId,
-                                        providerId: provider.providerId
-                                    }
-                                ).then(
-                                    data => data,
-                                    error => {
-                                        return {credit: 0};
-                                    }
-                                )
-                            );
-                        }
-                    })
-                }
-            }
+            return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: playerRecord._id})
+                .then(rtgData => {
+                    if (rtgData && rtgData.length) {
+                        let rtgArr = [];
+                        rtgData.forEach(rtg => {
+                            let totalCredit = 0;
+                            let providerCredit = 0
+                            let isHitAutoUnlockThreshold = false;
+                            if (rtg.providerGroup && rtg.providerGroup._id) {
+                                let rewardAmount = rtg && rtg.rewardAmt ? rtg.rewardAmt : 0;
+                                let gameProviderGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: rtg.providerGroup._id})
+                                    .populate({path: "providers", model: dbconfig.collection_gameProvider}).lean();
 
-            return Promise.all(promArr)
-                .then(providerCreditData => {
-                    providerCreditData.forEach(provider => {
-                        if(provider && provider.hasOwnProperty("credit")) {
-                            providerCredit += !isNaN(provider.credit) ? parseFloat(provider.credit) : 0;
-                        }
-                    });
-                })
-                .then(() => {
-                    return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: playerRecord._id})
-                        .then(rtgData => {
-                            if (rtgData && rtgData.length) {
-                                rtgData.forEach(rtg => {
-                                    if (gameProviderGroup && gameProviderGroup._id && rtg.providerGroup && rtg.providerGroup._id
-                                        && (gameProviderGroup._id.toString() == rtg.providerGroup._id.toString()) ) {
-                                        let rewardAmount = rtg && rtg.rewardAmt ? rtg.rewardAmt : 0;
-                                        totalCredit = providerCredit + rewardAmount;
-                                        rewardTaskGroup = rtg;
-
-                                    } else if (!gameProviderGroup && !rtg.providerGroup) {
-                                        let validCredit = playerRecord && playerRecord.validCredit ? playerRecord.validCredit : 0;
-                                        totalCredit = providerCredit + validCredit;
-                                        rewardTaskGroup = rtg;
+                                Promise.all([gameProviderGroupProm]).then(providerGroup => {
+                                    if (providerGroup && providerGroup[0] && providerGroup[0].providers && providerGroup[0].providers.length) {
+                                        providerCredit = getProviderCredit(providerGroup[0].providers, playerRecord.name, platform.platformId);
                                     }
                                 });
+
+                                totalCredit = providerCredit + rewardAmount;
+
+                            } else if (!rtg.providerGroup) {
+                                let validCredit = playerRecord && playerRecord.validCredit ? playerRecord.validCredit : 0;
+                                providerCredit = getProviderCredit(platform.gameProviders, playerRecord.name, platform.platformId);
+                                totalCredit = providerCredit + validCredit;
+
+                            }
+
+                            if (platform && platform.autoUnlockWhenInitAmtLessThanLostThreshold && platform.autoApproveLostThreshold) {
+                                if (totalCredit <= platform.autoApproveLostThreshold) {
+                                    isHitAutoUnlockThreshold = true;
+                                }
+                            }
+
+                            if (isHitAutoUnlockThreshold) {
+                                if (rtg && rtg._id) {
+                                    rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
+
+                                }
                             }
                         });
-                })
-                .then(() => {
-                    if (platform && platform.autoUnlockWhenInitAmtLessThanLostThreshold && platform.autoApproveLostThreshold) {
-                        if (totalCredit <= platform.autoApproveLostThreshold) {
-                            isHitAutoUnlockThreshold = true;
-                        }
-                    }
-
-                    if (isHitAutoUnlockThreshold) {
-                        if (rewardTaskGroup && rewardTaskGroup._id) {
-                            let unlockProm = dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rewardTaskGroup);
-
-                            return Promise.all([unlockProm]);
-                        }
+                        return Promise.all(rtgArr);
                     }
                 });
         }
@@ -4243,6 +4202,41 @@ function updatePartnerCommRateConfig (proposalData) {
 
         return dbconfig.collection_partnerCommissionRateConfig.findOneAndUpdate(qObj, proposalData.data.newRate, {new: true, upsert: true});
     }
+}
+
+function getProviderCredit(providers, playerName, platformId) {
+    let promArr = [];
+    let providerCredit = 0;
+
+    providers.forEach(provider => {
+        if (provider) {
+            promArr.push(
+                cpmsAPI.player_queryCredit(
+                    {
+                        username: playerName,
+                        platformId: platformId,
+                        providerId: provider.providerId
+                    }
+                ).then(
+                    data => data,
+                    error => {
+                        return {credit: 0};
+                    }
+                )
+            );
+        }
+    });
+
+    Promise.all(promArr)
+        .then(providerCreditData => {
+            providerCreditData.forEach(provider => {
+                if (provider && provider.hasOwnProperty("credit")) {
+                    providerCredit += !isNaN(provider.credit) ? parseFloat(provider.credit) : 0;
+                }
+            });
+        });
+
+    return providerCredit;
 }
 
 var proto = proposalExecutorFunc.prototype;

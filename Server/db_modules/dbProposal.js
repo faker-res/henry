@@ -3869,45 +3869,45 @@ var proposal = {
 
                 }))
 
-            updatePlayerArr.push( dbconfig.collection_proposal.find(
-                Object.assign(
-                    {},
-                    matchObj,
-                    {
-                        type: {$in: updatePlayerList.map( p => ObjectId(p))}, noSteps: false, status: {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.FAIL, constProposalStatus.REJECTED]}
-                    }),
-            {proposalId: 1, status: 1, createTime: 1, noSteps: 1})
+            // updatePlayerArr.push( dbconfig.collection_proposal.find(
+            //     Object.assign(
+            //         {},
+            //         matchObj,
+            //         {
+            //             type: {$in: updatePlayerList.map( p => ObjectId(p))}, noSteps: false, status: {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED, constProposalStatus.FAIL, constProposalStatus.REJECTED]}
+            //         }),
+            // {proposalId: 1, status: 1, createTime: 1, noSteps: 1})
 
-            // updatePlayerArr.push(dbconfig.collection_proposal.aggregate(
-            //     {$match:
-            //         Object.assign({}, matchObj,{type: {$in: updatePlayerList.map( p => ObjectId(p))}} )
-            //     },
-            //     {
-            //         $group: {
-            //             _id: {},
-            //             totalCount: {$sum: 1},
-            //             successCount: {$sum: {$cond: [
-            //                 {$and: [
-            //                     {$eq: ["$noSteps", false]},
-            //                     {$or: [
-            //                         {$eq: ["$status", constProposalStatus.SUCCESS]},
-            //                         {$eq: ["$status", constProposalStatus.APPROVED]}
-            //                     ]}
-            //                 ]}, 1, 0
-            //             ]}},
-            //             rejectCount: {$sum: {$cond: [
-            //                 {$and: [
-            //                     {$eq: ["$noSteps", false]},
-            //                     {$or: [
-            //                         {$eq: ["$status", constProposalStatus.FAIL]},
-            //                         {$eq: ["$status", constProposalStatus.REJECTED]}
-            //                     ]}
-            //                 ]}, 1, 0
-            //             ]}},
-            //         }
-            //     }).read("secondaryPreferred").then(result => {
-                .then(result => {
-                console.log("CHECKING-------", result)
+            updatePlayerArr.push(dbconfig.collection_proposal.aggregate(
+                {$match:
+                    Object.assign({}, matchObj,{type: {$in: updatePlayerList.map( p => ObjectId(p))}} )
+                },
+                {
+                    $group: {
+                        _id: {},
+                        totalCount: {$sum: 1},
+                        successCount: {$sum: {$cond: [
+                            {$and: [
+                                {$eq: ["$noSteps", false]},
+                                {$or: [
+                                    {$eq: ["$status", constProposalStatus.SUCCESS]},
+                                    {$eq: ["$status", constProposalStatus.APPROVED]}
+                                ]}
+                            ]}, 1, 0
+                        ]}},
+                        rejectCount: {$sum: {$cond: [
+                            {$and: [
+                                {$eq: ["$noSteps", false]},
+                                {$or: [
+                                    {$eq: ["$status", constProposalStatus.FAIL]},
+                                    {$eq: ["$status", constProposalStatus.REJECTED]}
+                                ]}
+                            ]}, 1, 0
+                        ]}},
+                    }
+                }).read("secondaryPreferred").then(result => {
+                // .then(result => {
+                // console.log("CHECKING-------", result)
                 if (result && result.length > 0){
                     let manualCount = (result[0].successCount || 0) + (result[0].rejectCount || 0);
                     return {totalCount: result[0].totalCount || 0, successCount: result[0].successCount || 0, rejectCount: result[0].rejectCount || 0, manualCount: manualCount};
@@ -4286,6 +4286,56 @@ var proposal = {
                 return result;
             }
         })
+    },
+
+    getSpecificTypeOfManualApprovalRecords: (startDate, period, typeList, status) => {
+
+        let typeArr = [];
+
+        var dayStartTime = startDate;
+        var getNextDate;
+
+        var getKey = (obj,val) => Object.keys(obj).find(key => obj[key] === val);
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+
+        var dayEndTime = getNextDate.call(this, dayStartTime);
+        let matchObj = {
+            createTime: {$gte: dayStartTime, $lt: dayEndTime},
+            noSteps: false,
+            type: {$in: typeList.map( p => ObjectId(p))}
+        };
+
+        if (status == 'Success'){
+            matchObj.status = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+        }
+
+        if (status == 'Fail'){
+            matchObj.status = {$in: [constProposalStatus.FAIL, constProposalStatus.REJECTED]}
+        }
+
+        return dbconfig.collection_proposal.find(matchObj).populate({path: "type", model: dbconfig.collection_proposalType})
+            .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean();
+
     },
 
     getAllProposalTypeByPlatformId: (platformId) => {
