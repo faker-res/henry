@@ -2086,6 +2086,12 @@ include modalGameCreditLog
                                 .control-label {{"MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
                                 input.input-sm.form-control(ng-model="vm.playerName")
                             .inlineBlk
+                                .control-label {{'ROUND_NUMBER OR PLAY_NUMBER' | translate}}
+                                input.input-sm.form-control(ng-model='vm.roundNoOrPlayNo')
+                            .inlineBlk
+                                .control-label {{'GAME_TYPE (FUZZY SEARCH)' | translate}}
+                                input.input-sm.form-control(ng-model='vm.gameName')
+                            .inlineBlk
                                 button.btn.btn-primary.common-button(ng-click="vm.getProviderExpense(true)") {{"SEARCH" | translate}}
                             br
                         div(ng-if="checkViewPermission('Platform', 'Player', 'Read')")

@@ -5109,6 +5109,13 @@ define(['js/app'], function (myApp) {
                     limit: newSearch ? 10 : vm.expenseQuery.limit,
                     sortCol: newSearch ? null : vm.expenseQuery.sortCol,
                 }
+
+                if (vm.roundNoOrPlayNo) {
+                    queryData.roundNoOrPlayNo = vm.roundNoOrPlayNo;
+                }
+                if (vm.gameName) {
+                    queryData.gameName = vm.gameName;
+                }
                 vm.providerExpenseTableLoading = true;
                 $scope.safeApply();
                 socketService.$socket($scope.AppSocket, 'getConsumptionRecordByGameProvider', queryData, function (data) {
