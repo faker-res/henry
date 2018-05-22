@@ -2026,7 +2026,18 @@ var dbPlayerConsumptionRecord = {
                 if(gameProviderDetail && gameProviderDetail.length > 0){
                     gameProviderDetail.map(gameProvider => {
                         if(gameProvider){
-                            let playerConsumptionRecordData = dbconfig.collection_playerConsumptionRecord.findOne({providerId: gameProvider._id, platformId: platformObjId}).sort({createTime: -1}).limit(1).lean().then(
+                            let endTime = new Date();
+                            let startTime = dbUtility.getNdaylaterFromSpecificStartTime(-30,endTime);
+                            let query = {
+                                providerId: gameProvider._id,
+                                platformId: platformObjId,
+                                createTime: {
+                                    $gte: startTime,
+                                    $lt: endTime
+                                }
+                            }
+                            
+                            let playerConsumptionRecordData = dbconfig.collection_playerConsumptionRecord.findOne(query).sort({createTime: -1}).limit(1).lean().then(
                                 playerConsumption => {
                                     if(playerConsumption){
                                         return {gameProviderName: gameProvider.name || "", data: playerConsumption};
