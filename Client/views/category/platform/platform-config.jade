@@ -743,7 +743,7 @@
                                                                         input.form-control(style='text-align: right' type='text', ng-if='!commissionSetting.activePlayerValueTo && !commissionSetting.isEditing && !commissionSetting.isCreateNew', value='-', disabled)
                                                                     td
                                                                         span.percentage
-                                                                            input(type='number', percentage, style="display: inline-block", ng-model='commissionSetting.commissionRate' ng-disabled='!commissionSetting.isEditing')
+                                                                            input(type='number', step='0.01' style="display: inline-block", ng-model='commissionSetting.commissionRate' ng-disabled='!commissionSetting.isEditing')
                                                                     td
                                                                         a(href="" ng-if="!commissionSetting.isEditing && !commissionSetting.isCreateNew" ng-click="vm.commissionSettingEditRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'Edit' | translate}}
                                                                         a(href="" ng-if="commissionSetting.isEditing && !commissionSetting.isCreateNew" ng-click="vm.commissionSettingCancelRow($index, gpg.showConfig.commissionSetting, gpg.srcConfig.commissionSetting)", style="cursor:pointer") {{'CANCEL' | translate}}

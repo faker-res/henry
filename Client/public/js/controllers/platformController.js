@@ -24278,6 +24278,17 @@ define(['js/app'], function (myApp) {
                             }
                         }
 
+                        if (vm.partnerCommission.gameProviderGroup && vm.partnerCommission.gameProviderGroup.length > 0) {
+                            vm.partnerCommission.gameProviderGroup.forEach(grp => {
+                                if (grp.showConfig && grp.showConfig.commissionSetting && grp.showConfig.commissionSetting.length > 0) {
+                                    grp.showConfig.commissionSetting.forEach(e => {
+                                        // Change to percentage format
+                                        e.commissionRate = parseFloat((e.commissionRate * 100).toFixed(2));
+                                    });
+                                }
+                            });
+                        }
+
                         if (partnerObjId) {
                             vm.partnerCommission = commonService.applyPartnerCustomRate(partnerObjId, vm.partnerCommission, vm.customPartnerCommission);
                         }
@@ -24497,6 +24508,11 @@ define(['js/app'], function (myApp) {
                             if (JSON.stringify(gameProviderGroup.showConfig) != JSON.stringify(gameProviderGroup.srcConfig)) {
                                 let tempShowConfig = gameProviderGroup.showConfig;
 
+                                // Convert back commissionRate to percentage
+                                tempShowConfig.commissionSetting.forEach(e => {
+                                    e.commissionRate = parseFloat(e.commissionRate / 100).toFixed(4);
+                                });
+
                                 if(tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
                                     for (let i = 0; i < tempShowConfig.commissionSetting.length; i++) {
                                         if ((tempShowConfig.commissionSetting[i].playerConsumptionAmountFrom == '' || tempShowConfig.commissionSetting[i].playerConsumptionAmountFrom == null) &&
@@ -24589,8 +24605,8 @@ define(['js/app'], function (myApp) {
 
                 // Convert back commissionRate to percentage
                 newConfig.commissionSetting.forEach(e => {
-                    e.commissionRate = e.commissionRate / 100;
-                })
+                    e.commissionRate = parseFloat(e.commissionRate / 100).toFixed(4);
+                });
 
                 // Check setting has changed or not
                 if (newConfig || isRevert) {
