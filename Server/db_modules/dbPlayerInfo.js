@@ -5127,6 +5127,8 @@ let dbPlayerInfo = {
                     // Second log - failed processing before calling cpmsAPI
                     dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, platformObjId, platformId, "transferIn",
                         "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, err, constPlayerCreditTransferStatus.FAIL);
+                    // Set BState back to false
+                    dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
                 }
                 deferred.reject(err);
             }
