@@ -922,6 +922,11 @@
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.unreadMailMaxDuration}}
                                     input(type='number', ng-show='vm.configTableEdit', min=1, ng-model='vm.platformBasic.unreadMailMaxDuration')
+                            tr
+                                td {{'manualRewardSkipAuditAmount' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.manualRewardSkipAuditAmount}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.manualRewardSkipAuditAmount')
                             br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}

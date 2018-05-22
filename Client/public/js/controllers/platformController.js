@@ -10436,6 +10436,14 @@ define(['js/app'], function (myApp) {
                     eventCode: "manualReward"
                 };
 
+                if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.manualRewardSkipAuditAmount) {
+                    if (vm.playerAddRewardTask && vm.playerAddRewardTask.currentAmount) {
+                        if (vm.playerAddRewardTask.currentAmount <= vm.selectedPlatform.data.manualRewardSkipAuditAmount) {
+                            sendObj.isIgnoreAudit = true;
+                        }
+                    }
+                }
+
                 if (!vm.selectedPlatform.data.useProviderGroup) {
                     sendObj.targetProviders = providerArr;
                 } else {
@@ -15761,10 +15769,11 @@ define(['js/app'], function (myApp) {
                                 platform: vm.selectedPlatform.id,
                                 partner: {$in: partnersObjId}
                             }
-                        }
+                        };
 
                         socketService.$socket($scope.AppSocket, 'getCustomizeCommissionConfigPartner', sendQuery, function (customCommissionConfig) {
                             if (customCommissionConfig && customCommissionConfig.data && customCommissionConfig.data.length > 0) {
+                                vm.customCommissionConfig = customCommissionConfig.data;
                                 customCommissionConfig.data.forEach(customSetting => {
                                     if (data && data.data && data.data.data) {
                                         data.data.data.map(data => {
@@ -15776,6 +15785,8 @@ define(['js/app'], function (myApp) {
                                         });
                                     }
                                 });
+                            } else {
+                                vm.customCommissionConfig = [];
                             }
                             vm.drawPartnerTable(data.data);
                         });
@@ -15803,6 +15814,17 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPartnersByAdvancedQuery', apiQuery, function (reply) {
                     console.log('partnerData', reply);
                     let size = reply.data.size || 0;
+                    vm.customCommissionConfig.forEach(customSetting => {
+                        if (reply && reply.data && reply.data.data) {
+                            reply.data.data.map(data => {
+                                if(data._id
+                                    && customSetting.partner
+                                    && (data._id.toString() == customSetting.partner.toString())) {
+                                    data.isCustomizeSettingExist = true;
+                                }
+                            });
+                        }
+                    });
                     setPartnerTableData(reply.data.data);
                     vm.searchPartnerCount = reply.data.size;
                     vm.advancedPartnerQueryObj.pageObj.init({maxCount: size}, true);
@@ -24742,6 +24764,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.blackListingPhoneNumbers$ = "";
                 vm.platformBasic.playerForbidApplyBonusNeedCsApproval = vm.selectedPlatform.data.playerForbidApplyBonusNeedCsApproval;
                 vm.platformBasic.unreadMailMaxDuration = vm.selectedPlatform.data.unreadMailMaxDuration;
+                vm.platformBasic.manualRewardSkipAuditAmount = vm.selectedPlatform.data.manualRewardSkipAuditAmount || 0;
 
                 if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
                     let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
@@ -25342,7 +25365,8 @@ define(['js/app'], function (myApp) {
                         usePointSystem: srcData.usePointSystem,
                         usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification,
                         playerForbidApplyBonusNeedCsApproval: srcData.playerForbidApplyBonusNeedCsApproval,
-                        unreadMailMaxDuration: srcData.unreadMailMaxDuration
+                        unreadMailMaxDuration: srcData.unreadMailMaxDuration,
+                        manualRewardSkipAuditAmount: srcData.manualRewardSkipAuditAmount,
                     }
                 };
                 let isProviderGroupOn = false;

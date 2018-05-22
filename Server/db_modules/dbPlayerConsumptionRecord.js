@@ -858,7 +858,9 @@ var dbPlayerConsumptionRecord = {
                     recordData.gameType = data[1].type;
                     recordData.providerId = data[2]._id;
                     recordData.updateTime = new Date();
-                    recordData.winRatio = recordData.bonusAmount / recordData.validAmount;
+                    if(recordData.bonusAmount && recordData.validAmount){
+                        recordData.winRatio = recordData.bonusAmount / recordData.validAmount;
+                    }
 
                     let consumptionRecordQuery = {
                         _id: oldData._id,
