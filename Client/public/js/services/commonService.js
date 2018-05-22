@@ -16,6 +16,14 @@ define([], () => {
             return this;
         };
 
+        function getBankCardTypeTextbyId (allBankTypeList, id) {
+            if (!allBankTypeList) {
+                return id;
+            } else {
+                return allBankTypeList[id];
+            }
+        }
+
         self.getRewardList = ($scope, platformObjId) => {
             return $scope.$socketPromise('getRewardEventsForPlatform', {platform: platformObjId})
                 .then(data => data.data)
@@ -26,6 +34,60 @@ define([], () => {
                 platformObjId: platformObjId,
                 deleteFlag: false
             }).then(data => data.data)
+        };
+
+        self.getAllAlipaysByAlipayGroup = ($scope, platformObjId) => {
+            return $scope.$socketPromise('getAllAlipaysByAlipayGroup', {platform: platformObjId})
+                .then(data => data && data.data && data.data.data ? data.data.data : false)
+        };
+
+        self.getAllWechatpaysByWechatpayGroup = ($scope, platformObjId) => {
+            return $scope.$socketPromise('getAllWechatpaysByWechatpayGroup', {platform: platformObjId})
+                .then(data => data && data.data && data.data.data ? data.data.data : false)
+        };
+
+        self.getAllBankCard = ($scope, $translate, platformObjId, allBankTypeList) => {
+            return $scope.$socketPromise('getAllBankCard', {platform: platformObjId}).then(
+                data => {
+                    let bankCards = data && data.data && data.data.data ? data.data.data : false;
+
+                    bankCards.forEach(bank => {
+                        let bankStatus = $translate(bank.status);
+                        bank.displayText = getBankCardTypeTextbyId(allBankTypeList, bank.bankTypeId) + ' - ' + bank.name
+                            + ' ('+bank.accountNumber+') - ' + bankStatus;
+                    });
+
+                    bankCards.sort(function (a, b) {
+                        return a.bankTypeId - b.bankTypeId;
+                    });
+
+                    return bankCards
+                }
+            )
+        };
+
+        self.getPlatformProvider = function ($scope, id) {
+            if (!id) return;
+
+            return $scope.$socketPromise('getPlatform', {_id: id}).then(data => data.data.gameProviders)
+        };
+
+        self.getBankTypeList = ($scope) => {
+            return $scope.$socketPromise('getBankTypeList', {}).then(
+                data => {
+                    if (data && data.data && data.data.data) {
+                        let allBankTypeList = {};
+
+                        data.data.data.forEach(item => {
+                            if (item && item.bankTypeId) {
+                                allBankTypeList[item.id] = item.name + ' (' + item.id + ')';
+                            }
+                        });
+
+                        return allBankTypeList;
+                    }
+                }
+            )
         };
 
         this.updatePageTile = ($translate, pageName, tabName) => {

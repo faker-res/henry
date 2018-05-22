@@ -9,26 +9,31 @@
             #sendMultiMessageQuery.block-query.col-md-12.form-control-sm
                 .inlineBlk
                     label {{"USER TYPE" | translate}}
-                    select.form-control(ng-model='vm.sendMultiMessage.isTestPlayer', required)
-                        option(value='') {{'ALL' | translate}}
-                        option(value=true) {{"Test Player" | translate}}
-                        option(value=false) {{"Real Player" | translate}}
+                    select.form-control(ng-model="vm.sendMultiMessage.playerType", required)
+                        option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
+                        option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
+                        option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
+                        option(value='Test Player') {{'TEST_PLAYER' | translate}}
+                        option(value='Partner') {{'partner' | translate}}
                 .inlineBlk
                     label {{"PlayerLevel" | translate}}
                     select.form-control(ng-model='vm.sendMultiMessage.playerLevel', required)
                         option(value='') {{'ALL' | translate}}
                         option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
                 .inlineBlk
-                    label {{"TrustLevel" | translate}}
-                    select.form-control(ng-model='vm.sendMultiMessage.trustLevel', required)
-                        option(value='') {{'ALL' | translate}}
-                        option(ng-repeat='(i,v) in vm.allPlayerTrustLvl', value='{{v.value}}') {{v.name | translate}}
+                    label(style='min-width:130px')  {{"CREDIBILITY"|translate}}
+                    select.form-control#selectCredibilityRemarkMultiMsg(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name for remark in vm.credibilityRemarks', ng-model='vm.sendMultiMessage.credibilityRemarks')
                 .inlineBlk
-                    label {{"Qty_Min" | translate}} {{"topUpTimes" | translate}}
-                    input.form-control(type='number', ng-model='vm.sendMultiMessage.minTopupTimes', style='width: 80px;')
-                .inlineBlk
-                    label {{"Qty_Max" | translate}} {{"topUpTimes" | translate}}
-                    input.form-control(type='number', ng-model='vm.sendMultiMessage.maxTopupTimes', style='width: 80px;')
+                    label {{"TOP_UP_TIMES"|translate}}
+                    select.form-control(ng-model="vm.sendMultiMessage.topUpTimesOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.sendMultiMessage.topUpTimesValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.sendMultiMessage.topUpTimesOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.sendMultiMessage.topUpTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.sendMultiMessage.topUpTimesOperator === 'range'")
                 .inlineBlk
                     label {{"LAST_ACCESS_TIME_START" | translate}}
                     .accStart
