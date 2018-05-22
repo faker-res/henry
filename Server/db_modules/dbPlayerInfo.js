@@ -717,7 +717,7 @@ let dbPlayerInfo = {
                     let crResultProm = dbconfig.collection_playerFeedbackResult
                         .findOne({key: inputData.chatRecordResult}).lean();
                     let crTitleProm = dbconfig.collection_playerFeedbackTopic
-                        .findOne({value: inputData.chatRecordTopic}).lean();
+                        .findOne({value: inputData.chatRecordTitle}).lean();
 
                     return Promise.all([csProm, crResultProm, crTitleProm]);
                 } else {
