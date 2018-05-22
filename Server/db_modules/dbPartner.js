@@ -4663,6 +4663,7 @@ let dbPartner = {
         para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i') : null;
         para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i') : null;
         para.registrationInterface ? query.registrationInterface = para.registrationInterface : null;
+        para.loginTimes ? query.loginTimes = para.loginTimes : null;
 
         let count = dbconfig.collection_partner.find(query).count();
         let detail = dbconfig.collection_partner.find(query).sort(sortCol).skip(index).limit(limit)

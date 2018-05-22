@@ -2042,6 +2042,9 @@ define(['js/app'], function (myApp) {
                     topUpTimesValue: null,
                     topUpTimesValueTwo: null,
                     topUpTimesOperator: '>=',
+                    loginTimesValue: null,
+                    loginTimesValueTwo: null,
+                    loginTimesOperator: '>=',
                     channelMaxChar: 100,
                     wordCount: 0,
                     phoneCount: 0,
@@ -2161,6 +2164,28 @@ define(['js/app'], function (myApp) {
                 }
                 if (vm.sendMultiMessage.bankAccount) {
                     playerQuery.bankAccount = vm.sendMultiMessage.bankAccount;
+                }
+                if (vm.sendMultiMessage && vm.sendMultiMessage.loginTimesValue != null && vm.sendMultiMessage.loginTimesOperator) {
+                    let loginTimesValue = vm.sendMultiMessage.loginTimesValue;
+                    let loginTimesValueTwo = vm.sendMultiMessage.loginTimesValueTwo;
+                    let loginTimesOperator = vm.sendMultiMessage.loginTimesOperator;
+
+                    switch (loginTimesOperator) {
+                        case '<=':
+                            playerQuery.loginTimes = {$lte: loginTimesValue};
+                            break;
+                        case '>=':
+                            playerQuery.loginTimes = {$gte: loginTimesValue};
+                            break;
+                        case '=':
+                            playerQuery.loginTimes = loginTimesValue;
+                            break;
+                        case 'range':
+                            if (loginTimesValueTwo != null) {
+                                playerQuery.loginTimes = {$gte: loginTimesValue, $lte: loginTimesValueTwo};
+                            }
+                            break;
+                    }
                 }
                 var sendQuery = {
                     platformId: vm.selectedPlatform.id,
