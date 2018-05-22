@@ -3744,6 +3744,7 @@
   "Totalsum": "总计",
   "Resummarize": "重新收录",
   "CANCEL PREVIEW": "取消本期预览",
-  "In Preview": "预览中"
+  "In Preview": "预览中",
+  "Cannot preview, setting is incomplete": "无法提交预览， 尚未完成代理提成设置"
 
 }
