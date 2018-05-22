@@ -9,10 +9,12 @@
             #sendMultiMessageQuery.block-query.col-md-12.form-control-sm
                 .inlineBlk
                     label {{"USER TYPE" | translate}}
-                    select.form-control(ng-model='vm.sendMultiMessage.isTestPlayer', required)
-                        option(value='') {{'ALL' | translate}}
-                        option(value=true) {{"Test Player" | translate}}
-                        option(value=false) {{"Real Player" | translate}}
+                    select.form-control(ng-model="vm.sendMultiMessage.playerType", required)
+                        option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
+                        option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
+                        option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
+                        option(value='Test Player') {{'TEST_PLAYER' | translate}}
+                        option(value='Partner') {{'partner' | translate}}
                 .inlineBlk
                     label {{"PlayerLevel" | translate}}
                     select.form-control(ng-model='vm.sendMultiMessage.playerLevel', required)
@@ -59,8 +61,13 @@
             .inlinkBlk
                 .single.col-md-10(style='opacity:{{vm.toPhoneNumber ? "1" : "0.3"}};width:inherit')
                     label {{"Send single message" | translate}}
-                    input.margin-left-5(type='text',ng-model='vm.toPhoneNumber', style='width:100px', ng-change="vm.sendMultiMessage.singleBtnText = 'SEND';vm.sendMultiMessage.singleSendResultText = ''")
+                    textarea.margin-left-5(type='text',ng-model='vm.toPhoneNumber', style='width:130px; height:100px;',
+                        ng-change="vm.phonesChange(); vm.sendMultiMessage.singleBtnText = 'SEND'; vm.sendMultiMessage.singleSendResultText = ''",
+                        placeholder='{{"Please Type Your Phone Numbers" | translate}}')
                     a.fa.fa-times.text-danger.margin-left-5(ng-show="vm.toPhoneNumber", ng-click='vm.toPhoneNumber=null')
+                    text.text-danger &nbsp;({{"toPhoneNumber_text_1" | translate}}
+                    text.text-danger &nbsp;{{vm.toPhoneNumber === "" ? 0 : vm.sendMultiMessage.phoneCount}}
+                    text.text-danger &nbsp;{{"toPhoneNumber_text_2" | translate}})
                 .pull-right(ng-show="checkViewPermission('Platform', 'groupMessage', 'SMSSendLog')")
                     button.btn.btn-primary.btn-sm(data-toggle="modal", ng-click='vm.initSMSLog("multi")', data-target='#modalSMSLog') {{'SMS Send Log' | translate}}
             .tableRow(ng-hide="vm.sendMultiMessage.messageType==='sms'")

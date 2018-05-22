@@ -1520,6 +1520,8 @@
   "TOTAL_CLICK_COUNT": "总点击次数",
   "Click Count (Total)": "次数（总计）",
   "Mail": "站内信",
+  "toPhoneNumber_text_1": "共",
+  "toPhoneNumber_text_2": "笔",
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
@@ -2756,6 +2758,7 @@
   "Recover": "恢复在处理",
   "Max reward amount per day": "单日最高优惠额",
   "Please Type Your Title": "请输入标题",
+  "Please Type Your Phone Numbers": "请输入电话号码",
   "SHARE_WITH_XIMA": "共享洗码",
   "Please Type Your Message": "请填入内容",
   "Sent to all Players": "发送至所有用户",
@@ -3746,6 +3749,7 @@
   "Totalsum": "总计",
   "Resummarize": "重新收录",
   "CANCEL PREVIEW": "取消本期预览",
-  "In Preview": "预览中"
+  "In Preview": "预览中",
+  "Cannot preview, setting is incomplete": "无法提交预览， 尚未完成代理提成设置"
 
 }

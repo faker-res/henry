@@ -235,7 +235,9 @@ function checkRewardTaskGroup(proposal, platformObj) {
             if (bNoBonusPermission && platformObj.manualAuditBanWithdrawal !== false) {
                 checkMsg += " Denied: Not allowed;";
                 checkMsgChinese += " 失败：禁提;";
-                canApprove = false;
+                if (!proposal.data.needCsApproved) {
+                    canApprove = false;
+                }
             }
 
             if (bFirstWithdraw && platformObj.manualAuditFirstWithdrawal !== false) {

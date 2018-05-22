@@ -2807,20 +2807,28 @@ var dbPlatform = {
             endTime = previousCycle.endTime;
         }
 
-        calculatePartnerCommissionInfo(platformObjId, settMode, startTime, endTime, isSkip).catch(errorUtils.reportError);
+        return dbconfig.collection_partner.find({platform: platformObjId, commissionType: settMode}).count().then(
+            partnerCount => {
+                if(partnerCount && partnerCount > 0){
+                    calculatePartnerCommissionInfo(platformObjId, settMode, startTime, endTime, isSkip).catch(errorUtils.reportError);
 
-        return dbconfig.collection_partnerCommSettLog.update({
-            platform: platformObjId,
-            settMode: settMode,
-            startTime: startTime,
-            endTime: endTime
-        }, {
-            isSettled: isSkip,
-            isSkipped: isSkip
-        }, {
-            upsert: true,
-            new: true
-        });
+                    return dbconfig.collection_partnerCommSettLog.update({
+                        platform: platformObjId,
+                        settMode: settMode,
+                        startTime: startTime,
+                        endTime: endTime
+                    }, {
+                        isSettled: isSkip,
+                        isSkipped: isSkip
+                    }, {
+                        upsert: true,
+                        new: true
+                    });
+                }else{
+                    return Q.reject({name: "DBError", error: "Cannot preview, setting is incomplete"});
+                }
+            }
+        );
     },
 
     getAllPartnerCommSettPreview: (platformObjId) => {

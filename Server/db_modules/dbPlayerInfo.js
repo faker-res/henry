@@ -4054,6 +4054,10 @@ let dbPlayerInfo = {
         let advancedQuery = {};
         let isProviderGroup = false;
 
+        if (data && data.playerType && data.playerType == 'Partner') {
+            return dbPartner.getPartnerDomainReport(platformId, data, index, limit, sortObj);
+        }
+
         //todo encrytion ?
         if (data && data.phoneNumber) {
             data.phoneNumber = {$in: [rsaCrypto.encrypt(data.phoneNumber), data.phoneNumber]};
@@ -9387,7 +9391,6 @@ let dbPlayerInfo = {
                                             if (!player.permission.applyBonus && player.platform.playerForbidApplyBonusNeedCsApproval) {
                                                 proposalData.remark = "禁用提款";
                                                 proposalData.needCsApproved = true;
-                                                proposalData.isIgnoreAudit = true;
                                             }
                                             var newProposal = {
                                                 creator: proposalData.creator,

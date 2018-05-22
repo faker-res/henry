@@ -151,6 +151,9 @@ var encrypt = {
         if (referral !== '') {
             query["referral"] = referral;
         }
+        if (playerType !== '' && playerType == 'Partner') {
+            query["playerType"] = playerType;
+        }
 
         if (validCredit !== '') {
             // We can accept the following forms for validCredit parameter:
