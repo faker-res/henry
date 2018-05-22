@@ -2036,8 +2036,9 @@ define(['js/app'], function (myApp) {
                     playerType: 'Real Player (all)',
                     playerLevel: '',
                     trustLevel: '',
-                    minTopupTimes: null,
-                    maxTopupTimes: null,
+                    topUpTimesValue: null,
+                    topUpTimesValueTwo: null,
+                    topUpTimesOperator: '>=',
                     channelMaxChar: 100,
                     wordCount: 0,
                     phoneCount: 0,
@@ -2129,14 +2130,26 @@ define(['js/app'], function (myApp) {
                 if (vm.sendMultiMessage.playerType) {
                     playerQuery.playerType = vm.sendMultiMessage.playerType
                 }
-                if (vm.sendMultiMessage.minTopupTimes != null) {
-                    playerQuery.topUpTimes = {"$gte": vm.sendMultiMessage.minTopupTimes};
-                }
-                if (vm.sendMultiMessage.maxTopupTimes != null) {
-                    if (playerQuery.topUpTimes && playerQuery.topUpTimes["$gte"]) {
-                        playerQuery.topUpTimes["$lt"] = vm.sendMultiMessage.maxTopupTimes
-                    } else {
-                        playerQuery.topUpTimes = {"$lt": vm.sendMultiMessage.maxTopupTimes};
+                if (vm.sendMultiMessage && vm.sendMultiMessage.topUpTimesValue != null && vm.sendMultiMessage.topUpTimesOperator) {
+                    let topUpTimesValue = vm.sendMultiMessage.topUpTimesValue;
+                    let topUpTimesValueTwo = vm.sendMultiMessage.topUpTimesValueTwo;
+                    let topUpTimesOperator = vm.sendMultiMessage.topUpTimesOperator;
+
+                    switch (topUpTimesOperator) {
+                        case '<=':
+                            playerQuery.topUpTimes = {$lte: topUpTimesValue};
+                            break;
+                        case '>=':
+                            playerQuery.topUpTimes = {$gte: topUpTimesValue};
+                            break;
+                        case '=':
+                            playerQuery.topUpTimes = topUpTimesValue;
+                            break;
+                        case 'range':
+                            if (topUpTimesValueTwo != null) {
+                                playerQuery.topUpTimes = {$gte: topUpTimesValue, $lte: topUpTimesValueTwo};
+                            }
+                            break;
                     }
                 }
                 if (vm.sendMultiMessage.bankAccount) {
