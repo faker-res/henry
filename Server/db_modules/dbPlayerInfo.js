@@ -9387,7 +9387,6 @@ let dbPlayerInfo = {
                                             if (!player.permission.applyBonus && player.platform.playerForbidApplyBonusNeedCsApproval) {
                                                 proposalData.remark = "禁用提款";
                                                 proposalData.needCsApproved = true;
-                                                proposalData.isIgnoreAudit = true;
                                             }
                                             var newProposal = {
                                                 creator: proposalData.creator,
