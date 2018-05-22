@@ -6867,35 +6867,25 @@ let dbPartner = {
         )
     },
   
-    cancelPartnerCommissionPreview: (partnerCommissionLogId) => {
+    cancelPartnerCommissionPreview: (commSettLog, partnerCommissionLogId) => {
+        if(!commSettLog){
+            return;
+        }
+
         let query = {
             _id: {$in: partnerCommissionLogId}
         }
 
-        let removeArr = [];
-
-        return dbconfig.collection_partnerCommissionLog.find(query).lean().then(
-            partnerCommissionLog => {
-                if(partnerCommissionLog){
-                    partnerCommissionLog.forEach(commissionLog => {
-                        if(commissionLog){
-                            let removeQuery = {
-                                platform: commissionLog.platform,
-                                settMode: commissionLog.commissionType,
-                                startTime: commissionLog.startTime,
-                                endTime: commissionLog.endTime,
-                            }
-
-                            removeArr.push(dbconfig.collection_partnerCommSettLog.remove(removeQuery));
-                        }
-                    });
-
-                    return Promise.all(removeArr);
-                }
-            }
-        ).then(
+        return dbconfig.collection_partnerCommissionLog.remove(query).then(
             () => {
-                return dbconfig.collection_partnerCommissionLog.remove(query);
+                return dbconfig.collection_partnerCommSettLog.remove({_id: commSettLog._id});
+            },
+            error => {
+                return Q.reject({name: "DBError", message: error});
+            }
+        ).catch(
+            function (error) {
+                return Q.reject({name: "DBError", error: error});
             }
         );
     },

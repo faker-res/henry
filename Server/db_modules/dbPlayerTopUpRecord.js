@@ -1234,7 +1234,7 @@ var dbPlayerTopUpRecord = {
                         userName: player.name,
                         realName: inputData.realName || player.realName || "",
                         amount: inputData.amount,
-                        ip: player.lastLoginIp,
+                        ip: player.lastLoginIp || "127.0.0.1",
                         depositMethod: depositMethod,
                         bankTypeId: inputData.bankTypeId,
                         bankCardNo: inputData.lastBankcardNo || "",
