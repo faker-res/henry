@@ -2047,7 +2047,7 @@ define(['js/app'], function (myApp) {
                 vm.getSMSTemplate();
                 vm.sendMultiMessage = {
                     totalCount: 0,
-                    isTestPlayer: '',
+                    playerType: 'Real Player (all)',
                     playerLevel: '',
                     trustLevel: '',
                     minTopupTimes: null,
@@ -2140,8 +2140,8 @@ define(['js/app'], function (myApp) {
                 if (vm.sendMultiMessage.playerLevel) {
                     playerQuery.playerLevel = vm.sendMultiMessage.playerLevel;
                 }
-                if (vm.sendMultiMessage.isTestPlayer != null) {
-                    playerQuery.isTestPlayer = vm.sendMultiMessage.isTestPlayer;
+                if (vm.sendMultiMessage.playerType) {
+                    playerQuery.playerType = vm.sendMultiMessage.playerType
                 }
                 if (vm.sendMultiMessage.minTopupTimes != null) {
                     playerQuery.topUpTimes = {"$gte": vm.sendMultiMessage.minTopupTimes};
@@ -2169,6 +2169,9 @@ define(['js/app'], function (myApp) {
                     var size = data.data.size || 0;
                     var result = data.data.data || [];
                     vm.drawSendMessagesTable(result.map(item => {
+                        if (!item.name && item.partnerName) {
+                            item.name = item.partnerName;
+                        }
                         item.lastAccessTime$ = vm.dateReformat(item.lastAccessTime);
                         item.registrationTime$ = vm.dateReformat(item.registrationTime);
                         return item;
