@@ -2039,10 +2039,12 @@ define(['js/app'], function (myApp) {
                     totalCount: 0,
                     playerType: 'Real Player (all)',
                     playerLevel: '',
-                    trustLevel: '',
                     topUpTimesValue: null,
                     topUpTimesValueTwo: null,
                     topUpTimesOperator: '>=',
+                    loginTimesValue: null,
+                    loginTimesValueTwo: null,
+                    loginTimesOperator: '>=',
                     channelMaxChar: 100,
                     wordCount: 0,
                     phoneCount: 0,
@@ -2057,6 +2059,10 @@ define(['js/app'], function (myApp) {
                 $scope.getChannelList(function () {
                     vm.sendMultiMessage.channel = $scope.channelList ? $scope.channelList[0] : null;
                 });
+                setTimeout(
+                    () => {
+                        vm.setupRemarksMultiInputMultiMsg();
+                    },0);
                 utilService.actionAfterLoaded('#mutilplePlayerTablePage', function () {
                     vm.sendMultiMessage.accStartTime = utilService.createDatePicker('#sendMultiMessageQuery .accStart');
                     vm.sendMultiMessage.accEndTime = utilService.createDatePicker('#sendMultiMessageQuery .accEnd');
@@ -2125,8 +2131,8 @@ define(['js/app'], function (myApp) {
                         $lt: vm.sendMultiMessage.accEndTime.data('datetimepicker').getLocalDate() || new Date(),
                     }
                 };
-                if (vm.sendMultiMessage.trustLevel) {
-                    playerQuery.trustLevel = vm.sendMultiMessage.trustLevel;
+                if (vm.sendMultiMessage.credibilityRemarks) {
+                    playerQuery.credibilityRemarks = vm.sendMultiMessage.credibilityRemarks;
                 }
                 if (vm.sendMultiMessage.playerLevel) {
                     playerQuery.playerLevel = vm.sendMultiMessage.playerLevel;
@@ -2158,6 +2164,28 @@ define(['js/app'], function (myApp) {
                 }
                 if (vm.sendMultiMessage.bankAccount) {
                     playerQuery.bankAccount = vm.sendMultiMessage.bankAccount;
+                }
+                if (vm.sendMultiMessage && vm.sendMultiMessage.loginTimesValue != null && vm.sendMultiMessage.loginTimesOperator) {
+                    let loginTimesValue = vm.sendMultiMessage.loginTimesValue;
+                    let loginTimesValueTwo = vm.sendMultiMessage.loginTimesValueTwo;
+                    let loginTimesOperator = vm.sendMultiMessage.loginTimesOperator;
+
+                    switch (loginTimesOperator) {
+                        case '<=':
+                            playerQuery.loginTimes = {$lte: loginTimesValue};
+                            break;
+                        case '>=':
+                            playerQuery.loginTimes = {$gte: loginTimesValue};
+                            break;
+                        case '=':
+                            playerQuery.loginTimes = loginTimesValue;
+                            break;
+                        case 'range':
+                            if (loginTimesValueTwo != null) {
+                                playerQuery.loginTimes = {$gte: loginTimesValue, $lte: loginTimesValueTwo};
+                            }
+                            break;
+                    }
                 }
                 var sendQuery = {
                     platformId: vm.selectedPlatform.id,
@@ -24250,6 +24278,17 @@ define(['js/app'], function (myApp) {
                             }
                         }
 
+                        if (vm.partnerCommission.gameProviderGroup && vm.partnerCommission.gameProviderGroup.length > 0) {
+                            vm.partnerCommission.gameProviderGroup.forEach(grp => {
+                                if (grp.showConfig && grp.showConfig.commissionSetting && grp.showConfig.commissionSetting.length > 0) {
+                                    grp.showConfig.commissionSetting.forEach(e => {
+                                        // Change to percentage format
+                                        e.commissionRate = parseFloat((e.commissionRate * 100).toFixed(2));
+                                    });
+                                }
+                            });
+                        }
+
                         if (partnerObjId) {
                             vm.partnerCommission = commonService.applyPartnerCustomRate(partnerObjId, vm.partnerCommission, vm.customPartnerCommission);
                         }
@@ -24469,6 +24508,11 @@ define(['js/app'], function (myApp) {
                             if (JSON.stringify(gameProviderGroup.showConfig) != JSON.stringify(gameProviderGroup.srcConfig)) {
                                 let tempShowConfig = gameProviderGroup.showConfig;
 
+                                // Convert back commissionRate to percentage
+                                tempShowConfig.commissionSetting.forEach(e => {
+                                    e.commissionRate = parseFloat(e.commissionRate / 100).toFixed(4);
+                                });
+
                                 if(tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
                                     for (let i = 0; i < tempShowConfig.commissionSetting.length; i++) {
                                         if ((tempShowConfig.commissionSetting[i].playerConsumptionAmountFrom == '' || tempShowConfig.commissionSetting[i].playerConsumptionAmountFrom == null) &&
@@ -24561,8 +24605,8 @@ define(['js/app'], function (myApp) {
 
                 // Convert back commissionRate to percentage
                 newConfig.commissionSetting.forEach(e => {
-                    e.commissionRate = e.commissionRate / 100;
-                })
+                    e.commissionRate = parseFloat(e.commissionRate / 100).toFixed(4);
+                });
 
                 // Check setting has changed or not
                 if (newConfig || isRevert) {
@@ -27328,6 +27372,20 @@ define(['js/app'], function (myApp) {
                     function (err) {
                         console.log(err);
                     });
+            };
+            vm.setupRemarksMultiInputMultiMsg = function () {
+                let remarkSelect = $('select#selectCredibilityRemarkMultiMsg');
+                if (remarkSelect.css('display') && remarkSelect.css('display').toLowerCase() === "none") {
+                    return;
+                }
+                remarkSelect.multipleSelect({
+                    showCheckbox: true,
+                    allSelected: $translate("All Selected"),
+                    selectAllText: $translate("Select All"),
+                    displayValues: false,
+                    countSelected: $translate('# of % selected')
+                });
+                $scope.safeApply();
             };
 
             vm.setupRemarksMultiInput = function () {
