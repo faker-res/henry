@@ -425,6 +425,11 @@ var PartnerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPartnerFeeRate, [data.platformId, data.partnerId], isValidData, false, false, true);
     };
 
+    this.getPartnerBillBoard.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && (data.platformId || data.partnerId) && data.periodCheck && data.periodCheck && data.mode);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPartnerBillBoard, [data.platformId, data.periodCheck, data.recordCount, data.partnerId, data.mode], isValidData, false, false, true);
+    };
+
     this.getCrewActiveInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data.platformId && data.partnerId && data.period && data.circleTimes);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewActiveInfo, [data.platformId, data.partnerId, data.period, data.circleTimes], isValidData, false, false, true);

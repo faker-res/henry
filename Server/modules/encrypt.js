@@ -71,6 +71,7 @@ var encrypt = {
         var creditAmountOne = data.hasOwnProperty('creditAmountOne') ? data.creditAmountOne : "";
         var creditAmountTwo = data.hasOwnProperty('creditAmountTwo') ? data.creditAmountTwo : "";
         let referral = data.hasOwnProperty('referral') ? data.referral : "";
+        let loginTimes = data.hasOwnProperty('loginTimes') ? data.loginTimes : "";
 
 
         var query = {};
@@ -150,6 +151,12 @@ var encrypt = {
         }
         if (referral !== '') {
             query["referral"] = referral;
+        }
+        if (playerType !== '' && playerType == 'Partner') {
+            query["playerType"] = playerType;
+        }
+        if (loginTimes !== '') {
+            query["loginTimes"] = loginTimes;
         }
 
         if (validCredit !== '') {

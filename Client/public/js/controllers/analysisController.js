@@ -1698,9 +1698,7 @@ define(['js/app'], function (myApp) {
                             }
                         })
 
-                        res.data.forEach( inData => {
-                            vm.allProposalTypeList.push(inData._id);
-                        })
+                        vm.allProposalTypeList = vm.playerBonusProposalTypeList.concat( vm.updatePlayerProposalTypeList,  vm.updatePartnerProposalTypeList, vm.rewardProposalTypeList, vm.othersProposalTypeList);
 
                         sendData.playerBonus = vm.playerBonusProposalTypeList;
                         sendData.updatePlayerList = vm.updatePlayerProposalTypeList;
