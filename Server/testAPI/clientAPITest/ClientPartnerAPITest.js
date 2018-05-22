@@ -224,6 +224,12 @@
         this.partnerService.getPartnerFeeRate.once(callback);
     };
 
+    proto.getPartnerBillBoard = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.getPartnerBillBoard.request(data);
+        this.partnerService.getPartnerBillBoard.once(callback);
+    };
+
     proto.getCrewActiveInfo = function (callback, requestData) {
         var data = requestData || {};
         this.partnerService.getCrewActiveInfo.request(data);

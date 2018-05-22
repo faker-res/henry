@@ -415,6 +415,7 @@
                 "updatePartnerEmail",
                 "getCommissionRate",
                 "getPartnerFeeRate",
+                "getPartnerBillBoard",
                 "getCrewActiveInfo",
                 "getCrewDepositInfo",
                 "getCrewWithdrawInfo",

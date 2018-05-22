@@ -26,6 +26,8 @@
                 "playerTopUpDaySummary_calculatePlatformDaySummaryForActiveValidPlayer",
                 "playerTopUpWeekSummary_calculatePlatformWeekSummaryForPlayers",
                 "checkPlatformFullAttendanceForPlayers",
+                "settlePartnersBillBoard",
+                "settlePartnersActivePlayer",
                 "calculateProviderPlayersDaySummaryForTimeFrame",
                 "calculatePartnerWeekSummaryForPartners",
                 "calculatePartnerChildWeekSummaryForPartners",

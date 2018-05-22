@@ -532,17 +532,6 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.getPlatformProvider = function (id) {
-                if (!id) return;
-                socketService.$socket($scope.AppSocket, 'getPlatform', {_id: id}, function (data) {
-                    vm.allProviders = data.data.gameProviders;
-                    console.log('vm.allProviders', vm.allProviders);
-                    $scope.safeApply();
-                }, function (data) {
-                    console.log("create not", data);
-                });
-            };
-
             vm.toggleShowPlatformDropDownList = function () {
                 vm.showPlatformDropDownList = !vm.showPlatformDropDownList;
 
@@ -813,14 +802,15 @@ define(['js/app'], function (myApp) {
                 getProposalTypeByPlatformId(vm.selectedPlatform.id);
                 vm.rewardList = await commonService.getRewardList($scope, vm.selectedPlatform.id);
                 vm.promoTypeList = await commonService.getPromotionTypeList($scope, vm.selectedPlatform.id);
-                vm.getAllAlipaysByAlipayGroup();
-                vm.getAllWechatpaysByWechatpayGroup();
-                vm.getAllBankCard();
-                vm.getPlatformProvider(vm.selectedPlatform.id);
+                vm.allAlipaysAcc = await commonService.getAllAlipaysByAlipayGroup($scope, vm.selectedPlatform.id);
+                vm.allWechatpaysAcc = await commonService.getAllWechatpaysByWechatpayGroup($scope, vm.selectedPlatform.id);
+                vm.allBankTypeList = await commonService.getBankTypeList($scope);
+                vm.bankCards = await commonService.getAllBankCard($scope, $translate, vm.selectedPlatform.id, vm.allBankTypeList);
+                vm.allProviders = await commonService.getPlatformProvider($scope, vm.selectedPlatform.id);
                 // check settlement buttons
-                var nowDate = new Date().toLocaleDateString();
-                var dailyDate = new Date(vm.selectedPlatform.data.lastDailySettlementTime).toLocaleDateString();
-                var weeklyDate = new Date(vm.selectedPlatform.data.lastWeeklySettlementTime).toLocaleDateString();
+                let nowDate = new Date().toLocaleDateString();
+                let dailyDate = new Date(vm.selectedPlatform.data.lastDailySettlementTime).toLocaleDateString();
+                let weeklyDate = new Date(vm.selectedPlatform.data.lastWeeklySettlementTime).toLocaleDateString();
                 vm.showDailySettlement = nowDate != dailyDate;
                 vm.showWeeklySettlement = (nowDate != weeklyDate) && (vm.selectedPlatform.data.weeklySettlementDay == new Date().getDay());
                 vm.platformSettlement = {};
@@ -2050,8 +2040,9 @@ define(['js/app'], function (myApp) {
                     playerType: 'Real Player (all)',
                     playerLevel: '',
                     trustLevel: '',
-                    minTopupTimes: null,
-                    maxTopupTimes: null,
+                    topUpTimesValue: null,
+                    topUpTimesValueTwo: null,
+                    topUpTimesOperator: '>=',
                     channelMaxChar: 100,
                     wordCount: 0,
                     phoneCount: 0,
@@ -2143,14 +2134,26 @@ define(['js/app'], function (myApp) {
                 if (vm.sendMultiMessage.playerType) {
                     playerQuery.playerType = vm.sendMultiMessage.playerType
                 }
-                if (vm.sendMultiMessage.minTopupTimes != null) {
-                    playerQuery.topUpTimes = {"$gte": vm.sendMultiMessage.minTopupTimes};
-                }
-                if (vm.sendMultiMessage.maxTopupTimes != null) {
-                    if (playerQuery.topUpTimes && playerQuery.topUpTimes["$gte"]) {
-                        playerQuery.topUpTimes["$lt"] = vm.sendMultiMessage.maxTopupTimes
-                    } else {
-                        playerQuery.topUpTimes = {"$lt": vm.sendMultiMessage.maxTopupTimes};
+                if (vm.sendMultiMessage && vm.sendMultiMessage.topUpTimesValue != null && vm.sendMultiMessage.topUpTimesOperator) {
+                    let topUpTimesValue = vm.sendMultiMessage.topUpTimesValue;
+                    let topUpTimesValueTwo = vm.sendMultiMessage.topUpTimesValueTwo;
+                    let topUpTimesOperator = vm.sendMultiMessage.topUpTimesOperator;
+
+                    switch (topUpTimesOperator) {
+                        case '<=':
+                            playerQuery.topUpTimes = {$lte: topUpTimesValue};
+                            break;
+                        case '>=':
+                            playerQuery.topUpTimes = {$gte: topUpTimesValue};
+                            break;
+                        case '=':
+                            playerQuery.topUpTimes = topUpTimesValue;
+                            break;
+                        case 'range':
+                            if (topUpTimesValueTwo != null) {
+                                playerQuery.topUpTimes = {$gte: topUpTimesValue, $lte: topUpTimesValueTwo};
+                            }
+                            break;
                     }
                 }
                 if (vm.sendMultiMessage.bankAccount) {
@@ -14130,31 +14133,6 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
-            vm.getAllBankCard = function () {
-                socketService.$socket($scope.AppSocket, 'getAllBankCard', {platform: vm.selectedPlatform.data.platformId},
-                    data => {
-                        var data = data.data;
-                        vm.bankCards = data.data ? data.data : false;
-
-                        vm.bankCards.forEach(bank=>{
-                            let bankStatus = $translate(bank.status);
-                            bank.displayText = vm.getBankCardTypeTextbyId(bank.bankTypeId)+' - '+bank.name+' ('+bank.accountNumber+') - ' + bankStatus;
-                        })
-
-                        vm.bankCards.sort(function (a, b) {
-                          return a.bankTypeId - b.bankTypeId;
-                        });
-                    });
-            }
-
-            vm.getBankCardTypeTextbyId = function (id) {
-                if (!vm.allBankTypeList) {
-                    return id;
-                } else {
-                    return vm.allBankTypeList[id];
-                }
-            }
-
             // Player alipay topup
             vm.initPlayerAlipayTopUp = function () {
                 vm.playerAlipayTopUp = {submitted: false};
@@ -14227,14 +14205,6 @@ define(['js/app'], function (myApp) {
                 );
             };
 
-            vm.getAllAlipaysByAlipayGroup = function () {
-                socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroup', {platform: vm.selectedPlatform.data.platformId},
-                    data => {
-                        var data = data.data;
-                        vm.allAlipaysAcc = data.data ? data.data : false;
-                    });
-            }
-
             // Player WechatPay TopUp
             vm.initPlayerWechatPayTopUp = function () {
                 vm.playerWechatPayTopUp = {submitted: false, notUseQR: "true"};
@@ -14306,14 +14276,6 @@ define(['js/app'], function (myApp) {
                     }
                 );
             };
-
-            vm.getAllWechatpaysByWechatpayGroup = function () {
-                socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroup', {platform: vm.selectedPlatform.data.platformId},
-                    data => {
-                        var data = data.data;
-                        vm.allWechatpaysAcc = data.data ? data.data : false;
-                    });
-            }
 
             vm.cancelPlayerManualTop = function () {
                 if (!vm.existingManualTopup) {
@@ -27009,22 +26971,6 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }
                 });
-
-
-                // Get bank list from pmsAPI
-                socketService.$socket($scope.AppSocket, 'getBankTypeList', {},
-                    data => {
-                        if (data && data.data && data.data.data) {
-                            vm.allBankTypeList = {};
-                            console.log('banktype', data.data.data);
-                            data.data.data.forEach(item => {
-                                if (item && item.bankTypeId) {
-                                    vm.allBankTypeList[item.id] = item.name + ' (' + item.id + ')';
-                                }
-                            })
-                        }
-                        $scope.safeApply();
-                    });
 
                 socketService.$socket($scope.AppSocket, 'getRewardTypesConfig', {}, function (data) {
                     console.log('rewardType', data);
