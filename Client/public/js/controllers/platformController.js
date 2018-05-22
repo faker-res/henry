@@ -2040,6 +2040,7 @@ define(['js/app'], function (myApp) {
                     maxTopupTimes: null,
                     channelMaxChar: 100,
                     wordCount: 0,
+                    phoneCount: 0,
                     numUsedMessage: 0,
                     checkAllRow: false,
                     numReceived: 0,
@@ -2426,10 +2427,13 @@ define(['js/app'], function (myApp) {
                 vm.sendMultiMessage.wordCount = vm.sendMultiMessage.messageContent.length;
                 vm.sendMultiMessage.numUsedMessage = Math.ceil(vm.sendMultiMessage.wordCount / vm.sendMultiMessage.channelMaxChar);
                 resetMultiMessageStatus();
-            }
+            };
+            vm.phonesChange = function () {
+                vm.sendMultiMessage.phoneCount = (vm.toPhoneNumber).split(/\r\n|\r|\n/).length;
+            };
             vm.sentMailToAllPlayers = function () {
                 resetAllSelection();
-            }
+            };
             vm.sendMessages = function () {
                 // console.log(vm.sendMultiMessage.tableObj.rows('.selected').data());
                 vm.sendMultiMessage.sendInitiated = true;
@@ -2508,29 +2512,61 @@ define(['js/app'], function (myApp) {
             vm.sendSingleMessages = function () {
                 vm.sendMultiMessage.singleBtnText = $translate("Sending");
                 vm.sendMultiMessage.singleSendDisable = true;
-                socketService.$socket($scope.AppSocket, 'sendSMStoNumber', {
-                    phoneNumber: vm.toPhoneNumber,
-                    platformId: vm.selectedPlatform.data.platformId,
-                    channel: vm.sendMultiMessage.channel,
-                    message: vm.sendMultiMessage.messageContent
-                }, function (data) {
-                    vm.sendMultiMessage.sendCompleted = true;
-                    vm.sendMultiMessage.singleSendResultText = $translate("SUCCESS");
-                    vm.sendMultiMessage.singleBtnText = $translate("SEND");
-                    // vm.toPhoneNumber = null
-                    updateMultiMessageButton();
+
+                if (vm.toPhoneNumber && vm.sendMultiMessage.phoneCount && vm.sendMultiMessage.phoneCount > 1) {
+                    let phoneList = (vm.toPhoneNumber).split(/\r\n|\r|\n/);
+
+                    phoneList.forEach(phoneNumber => {
+                        let sendData = {
+                            phoneNumber: phoneNumber,
+                            platformId: vm.selectedPlatform.data.platformId,
+                            channel: vm.sendMultiMessage.channel,
+                            message: vm.sendMultiMessage.messageContent
+                        };
+
+                        socketService.$socket($scope.AppSocket, 'sendSMStoNumber', sendData, function (data) {
+                            vm.sendMultiMessage.sendCompleted = true;
+                            vm.sendMultiMessage.singleSendResultText = $translate("SUCCESS");
+                            vm.sendMultiMessage.singleBtnText = $translate("SEND");
+                            updateMultiMessageButton();
+                        }, function (err) {
+                            vm.sendMultiMessage.singleBtnText = $translate("SEND");
+                            vm.sendMultiMessage.singleSendResultText = $translate("FAIL");
+                            updateMultiMessageButton();
+                        });
+                    });
+                    vm.toPhoneNumber = null;
+                    vm.sendMultiMessage.messageContent = "";
+                    vm.sendMultiMessage.phoneCount = 0;
                     $scope.safeApply();
-                }, function (err) {
-                    vm.sendMultiMessage.singleBtnText = $translate("SEND");
-                    vm.sendMultiMessage.singleSendResultText = $translate("FAIL");
-                    // vm.toPhoneNumber = null
-                    updateMultiMessageButton();
+                } else {
+                    let sendData = {
+                        phoneNumber: vm.toPhoneNumber,
+                        platformId: vm.selectedPlatform.data.platformId,
+                        channel: vm.sendMultiMessage.channel,
+                        message: vm.sendMultiMessage.messageContent
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'sendSMStoNumber', sendData, function (data) {
+                        vm.sendMultiMessage.sendCompleted = true;
+                        vm.sendMultiMessage.singleSendResultText = $translate("SUCCESS");
+                        vm.sendMultiMessage.singleBtnText = $translate("SEND");
+                        // vm.toPhoneNumber = null
+                        updateMultiMessageButton();
+                        $scope.safeApply();
+                    }, function (err) {
+                        vm.sendMultiMessage.singleBtnText = $translate("SEND");
+                        vm.sendMultiMessage.singleSendResultText = $translate("FAIL");
+                        // vm.toPhoneNumber = null
+                        updateMultiMessageButton();
+                        $scope.safeApply();
+                    });
+                    vm.toPhoneNumber = null;
+                    vm.sendMultiMessage.messageContent = "";
+                    vm.sendMultiMessage.phoneCount = 0;
                     $scope.safeApply();
-                })
-                vm.toPhoneNumber = null;
-                vm.sendMultiMessage.messageContent = "";
-                $scope.safeApply();
-            }
+                }
+            };
 
             function updateMultiMessageButton() {
                 vm.sendMultiMessage.sendBtnText =
