@@ -7008,7 +7008,6 @@ let dbPartner = {
                                 return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
                             }
                         }
-                        //here
                     );
                 } else {
                     return Promise.reject({name: "DataError", message: "Invalid ranking mode"});
