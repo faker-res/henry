@@ -21,10 +21,8 @@
                         option(value='') {{'ALL' | translate}}
                         option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
                 .inlineBlk
-                    label {{"TrustLevel" | translate}}
-                    select.form-control(ng-model='vm.sendMultiMessage.trustLevel', required)
-                        option(value='') {{'ALL' | translate}}
-                        option(ng-repeat='(i,v) in vm.allPlayerTrustLvl', value='{{v.value}}') {{v.name | translate}}
+                    label(style='min-width:130px')  {{"CREDIBILITY"|translate}}
+                    select.form-control#selectCredibilityRemarkMultiMsg(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name for remark in vm.credibilityRemarks', ng-model='vm.sendMultiMessage.credibilityRemarks')
                 .inlineBlk
                     label {{"TOP_UP_TIMES"|translate}}
                     select.form-control(ng-model="vm.sendMultiMessage.topUpTimesOperator" style="width:75px;display:inline-block")
