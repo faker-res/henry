@@ -3441,15 +3441,15 @@ var proposal = {
                         type: {$in: proposalList},
                         status: constProposalStatus.APPROVED
                     }
-                }
 
-                return dbconfig.collection_proposal.update(
-                    query,
-                    {
-                        status: constProposalStatus.EXPIRED
-                    },
-                    {multi: true}
-                );
+                    return dbconfig.collection_proposal.update(
+                        query,
+                        {
+                            status: constProposalStatus.EXPIRED
+                        },
+                        {multi: true}
+                    );
+                }
             }
         );
     },
