@@ -24627,6 +24627,7 @@ define(['js/app'], function (myApp) {
                 vm.rateAfterRebateTotalDeposit = null;
                 vm.rateAfterRebateTotalWithdrawal = null;
                 vm.custCommissionRateConfig = [];
+                vm.srcCommissionRateConfig = {};
 
                 let sendData = {
                     query: { platform: vm.selectedPlatform.id }
