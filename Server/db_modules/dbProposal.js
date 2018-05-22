@@ -3438,14 +3438,11 @@ var proposal = {
                     }
                     query = {
                         expirationTime: {$lt: new Date()},
-                        $or: [{'status': constProposalStatus.PENDING}, {$and: [{'type':{$in: proposalList}}, {'status': constProposalStatus.APPROVED}]}]
-                    }
-                } else {
-                    query = {
-                        status: constProposalStatus.PENDING,
-                        expirationTime: {$lt: new Date()}
+                        type: {$in: proposalList},
+                        status: constProposalStatus.APPROVED
                     }
                 }
+
                 return dbconfig.collection_proposal.update(
                     query,
                     {
