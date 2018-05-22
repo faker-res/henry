@@ -1658,12 +1658,18 @@ define(['js/app'], function (myApp) {
                     $('#modalYesNo').modal();
                 }
                 else {
-                    let sendData = [];
-                    vm.partnerCommissionLog.forEach( partner => {
-                        if (partner) {
-                            sendData.push(partner._id);
+                    let sendData = {
+                        commSettLog: vm.selectedSettlePartnerCommPrev,
+                    };
+                    let partnerCommLogIdArr = [];
+                    
+                    vm.partnerCommissionLog.forEach( partnerCommLog => {
+                        if (partnerCommLog) {
+                            partnerCommLogIdArr.push(partnerCommLog._id);
                         }
                     });
+
+                    sendData.partnerCommLogId = partnerCommLogIdArr;
 
                     socketService.$socket($scope.AppSocket, 'cancelPartnerCommissionPreview', sendData, function (data) {
                         vm.loadTab('Partner');
@@ -5138,6 +5144,13 @@ define(['js/app'], function (myApp) {
                     index: newSearch ? 0 : vm.expenseQuery.index,
                     limit: newSearch ? 10 : vm.expenseQuery.limit,
                     sortCol: newSearch ? null : vm.expenseQuery.sortCol,
+                }
+
+                if (vm.roundNoOrPlayNo) {
+                    queryData.roundNoOrPlayNo = vm.roundNoOrPlayNo;
+                }
+                if (vm.gameName) {
+                    queryData.gameName = vm.gameName;
                 }
                 vm.providerExpenseTableLoading = true;
                 $scope.safeApply();
@@ -24663,6 +24676,7 @@ define(['js/app'], function (myApp) {
                 vm.rateAfterRebateTotalDeposit = null;
                 vm.rateAfterRebateTotalWithdrawal = null;
                 vm.custCommissionRateConfig = [];
+                vm.srcCommissionRateConfig = {};
 
                 let sendData = {
                     query: { platform: vm.selectedPlatform.id }

@@ -2631,7 +2631,7 @@ function checkGameRewardPointDetail(playerObjId, rewardPointEventObjId) {
                 betDetail: rewardPointEvent.target && rewardPointEvent.target.betType ? rewardPointEvent.target.betType : "",
                 title: rewardPointEvent.rewardTitle,
                 content: rewardPointEvent.rewardContent,
-                gradeLimit: rewardPointEvent.level && rewardPointEvent.level.value || "",
+                gradeLimit: rewardPointEvent.level && rewardPointEvent.level.value || 0,
                 gradeName: rewardPointEvent.level && rewardPointEvent.level.name || "",
                 device: constRewardPointsUserAgent[rewardPointEvent.userAgent ? rewardPointEvent.userAgent.toString() : ""],
                 dailyRequestBetCountsAndAmount: [0, 0],
