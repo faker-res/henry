@@ -1658,12 +1658,18 @@ define(['js/app'], function (myApp) {
                     $('#modalYesNo').modal();
                 }
                 else {
-                    let sendData = [];
-                    vm.partnerCommissionLog.forEach( partner => {
-                        if (partner) {
-                            sendData.push(partner._id);
+                    let sendData = {
+                        commSettLog: vm.selectedSettlePartnerCommPrev,
+                    };
+                    let partnerCommLogIdArr = [];
+                    
+                    vm.partnerCommissionLog.forEach( partnerCommLog => {
+                        if (partnerCommLog) {
+                            partnerCommLogIdArr.push(partnerCommLog._id);
                         }
                     });
+
+                    sendData.partnerCommLogId = partnerCommLogIdArr;
 
                     socketService.$socket($scope.AppSocket, 'cancelPartnerCommissionPreview', sendData, function (data) {
                         vm.loadTab('Partner');
