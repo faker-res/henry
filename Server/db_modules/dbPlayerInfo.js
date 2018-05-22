@@ -715,7 +715,7 @@ let dbPlayerInfo = {
                     let csProm = dbconfig.collection_csOfficerUrl.find({way: inputData.promoMethod})
                         .populate({path: "admin", model: dbconfig.collection_admin}).lean();
                     let crResultProm = dbconfig.collection_playerFeedbackResult
-                        .findOne({value: inputData.chatRecordResult}).lean();
+                        .findOne({key: inputData.chatRecordResult}).lean();
                     let crTitleProm = dbconfig.collection_playerFeedbackTopic
                         .findOne({value: inputData.chatRecordTopic}).lean();
 
