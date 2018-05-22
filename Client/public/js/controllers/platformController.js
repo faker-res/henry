@@ -2059,7 +2059,7 @@ define(['js/app'], function (myApp) {
                 setTimeout(
                     () => {
                         vm.setupRemarksMultiInputMultiMsg();
-                    });
+                    },0);
                 utilService.actionAfterLoaded('#mutilplePlayerTablePage', function () {
                     vm.sendMultiMessage.accStartTime = utilService.createDatePicker('#sendMultiMessageQuery .accStart');
                     vm.sendMultiMessage.accEndTime = utilService.createDatePicker('#sendMultiMessageQuery .accEnd');
