@@ -197,6 +197,8 @@ var dbPlayerConsumptionRecord = {
         }
 
         if(data.gameName){
+            console.log("CHECKING---1", data.gameName)
+            console.log("CHECKING---2", {name: new RegExp('.*' + data.gameName + '.*', 'i')})
             gameSearch = dbconfig.collection_game.find({name: new RegExp('.*' + data.gameName + '.*', 'i')}).lean();
         }
         else{
@@ -234,8 +236,10 @@ var dbPlayerConsumptionRecord = {
 
                     if (gameData){
                         for (let i = 0; i < gameData.length; i++) {
-                            gamesId.push(gameData[i]._id);
+                            gamesId.push(ObjectId(gameData[i]._id));
                         }
+
+                        console.log("CHECKING---3", gamesId)
 
                         if (gamesId && gamesId.length > 0) {
                             matchObj.gameId = {
@@ -265,6 +269,9 @@ var dbPlayerConsumptionRecord = {
                         });
                     return Q.all([a, b, c]);
 
+                }
+                else{
+                    return [[], 0, []];
                 }
             }
         ).then(result => {
