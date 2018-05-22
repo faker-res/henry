@@ -1493,7 +1493,14 @@ define(['js/app'], function (myApp) {
                     settMode: modeObj.mode,
                     startTime: modeObj.settStartTime,
                     endTime: modeObj.settEndTime
-                }).then(vm.startPlatformPartnerCommissionSettlement());
+                }).then(
+                    () => {
+                        vm.startPlatformPartnerCommissionSettlement()
+                    },
+                    error => {
+                        socketService.showErrorMessage($translate(error.error.error));
+                    }
+                );
             };
 
             vm.skipNextPartnerCommissionPeriod = (modeObj, toLatest = false, isConfirm = false) => {
@@ -1516,7 +1523,14 @@ define(['js/app'], function (myApp) {
                         startTime: modeObj.settStartTime,
                         endTime: modeObj.settEndTime,
                         toLatest: toLatest
-                    }).then(vm.startPlatformPartnerCommissionSettlement());
+                    }).then(
+                        () => {
+                            vm.startPlatformPartnerCommissionSettlement();
+                        },
+                        error => {
+                            socketService.showErrorMessage($translate(error.error.error));
+                        }
+                    )
                 }
             };
 
