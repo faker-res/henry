@@ -817,7 +817,7 @@ let dbPlayerInfo = {
                         content: inputData.chatRecordContent,
                         result: inputData.chatRecordResult,
                         resultName: inputData.chatRecordResult,
-                        topic: inputData.chatRecordTopic
+                        topic: inputData.chatRecordTitle
                     };
 
                     dbPlayerFeedback.createPlayerFeedback(feedback).catch(errorUtils.reportError);
