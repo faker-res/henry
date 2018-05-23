@@ -670,6 +670,7 @@ let dbPlayerInfo = {
 
     createPlayerFromTel: (inputData) => {
         let platformObj, adminObjId;
+        let fbResult = {};
 
         if (!inputData.chatRecordContent) {
             return Promise.reject({name: "InputError", message: "Missing chat record content"})
@@ -733,7 +734,7 @@ let dbPlayerInfo = {
             promArr => {
                 if (promArr) {
                     let methods = promArr[0];
-                    let fbResult = promArr[1];
+                    fbResult = promArr[1];
                     let fbTitle = promArr[2];
 
                     if (!fbResult) {
@@ -816,8 +817,8 @@ let dbPlayerInfo = {
                         platform: data.platform,
                         adminId: adminObjId,
                         content: inputData.chatRecordContent,
-                        result: inputData.chatRecordResult,
-                        resultName: inputData.chatRecordResult,
+                        result: fbResult.key,
+                        resultName: fbResult.value,
                         topic: inputData.chatRecordTitle
                     };
 
