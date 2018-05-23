@@ -3754,6 +3754,7 @@
   "Login to main site": "登入主站",
   "LOGIN": "登入",
   "Player Name (Can be empty)": "会员帐号（可不输入）",
-  "Cannot preview, setting is incomplete": "无法提交预览， 尚未完成代理提成设置"
+  "Cannot preview, setting is incomplete": "无法提交预览， 尚未完成代理提成设置",
+  "PlayerApiLog": "玩家事件记录"
 
 }

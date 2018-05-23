@@ -129,7 +129,7 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ClearProposalLimit')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalClearProposalLimit', ng-click='vm.prepareClearPlayerProposalLimit()')
             text {{"ClearProposalLimit" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlayerAPILog')",ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalPlayerApiLog', ng-click='vm.selectedSinglePlayer = null; vm.initPlayerApiLog()')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlayerApiLog')",ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalPlayerApiLog', ng-click='vm.selectedSinglePlayer = null; vm.initPlayerApiLog()')
             text {{"Player API Log" | translate}}
             img.img-edit
     hr.margin-top-bottom-small
