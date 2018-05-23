@@ -3438,21 +3438,18 @@ var proposal = {
                     }
                     query = {
                         expirationTime: {$lt: new Date()},
-                        $or: [{'status': constProposalStatus.PENDING}, {$and: [{'type':{$in: proposalList}}, {'status': constProposalStatus.APPROVED}]}]
+                        type: {$in: proposalList},
+                        status: constProposalStatus.APPROVED
                     }
-                } else {
-                    query = {
-                        status: constProposalStatus.PENDING,
-                        expirationTime: {$lt: new Date()}
-                    }
+
+                    return dbconfig.collection_proposal.update(
+                        query,
+                        {
+                            status: constProposalStatus.EXPIRED
+                        },
+                        {multi: true}
+                    );
                 }
-                return dbconfig.collection_proposal.update(
-                    query,
-                    {
-                        status: constProposalStatus.EXPIRED
-                    },
-                    {multi: true}
-                );
             }
         );
     },

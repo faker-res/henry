@@ -6,6 +6,8 @@ let playerBStateSchema = new Schema({
     player: {type: Schema.Types.ObjectId, ref: 'player', required: true, index: true, unique: true},
     // Apply reward event state
     applyRewardEvent: {type: Boolean, default: false},
+    // Transfer to provider
+    transferToProvider: {type: Boolean, default: false}
 });
 
 module.exports = playerBStateSchema;

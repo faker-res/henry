@@ -280,6 +280,18 @@ var SettlementServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.settlePartnersCommission, args, isValidData);
     };
 
+    this.settlePartnersBillBoard.onRequest = (wsFunc, conn, data) => {
+        let isValidData = Boolean(data && data.playerObjIds && data.type && data.startTime && data.endTime);
+        let args = [data.playerObjIds, data.type, data.startTime, data.endTime];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.settlePartnersBillBoard, args, isValidData);
+    };
+
+    this.settlePartnersActivePlayer.onRequest = (wsFunc, conn, data) => {
+        let isValidData = Boolean(data && data.players && data.platformId && data.startTime && data.endTime && data.periodCheck);
+        let args = [data.players, data.platformId, data.startTime, data.endTime, data.periodCheck];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.settlePartnersActivePlayer, args, isValidData);
+    };
+
     this.getCurrentPartnersCommission.onRequest = (wsFunc, conn, data) => {
         let isValidData = Boolean(data && data.partnerObjIdArr && data.commissionType);
         let args = [data.partnerObjIdArr, data.commissionType];
