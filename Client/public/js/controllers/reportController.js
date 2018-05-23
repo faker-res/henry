@@ -64,7 +64,8 @@ define(['js/app'], function (myApp) {
             2: 'ATM',
             3: 'Counter',
             4: 'AliPayTransfer',
-            5: 'weChatPayTransfer'
+            5: 'weChatPayTransfer',
+            6: 'CloudFlashPay'
         };
 
         vm.topUpField = {
