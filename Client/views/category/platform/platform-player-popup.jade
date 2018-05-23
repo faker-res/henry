@@ -1485,7 +1485,7 @@
                                 tr
                                     td {{vm.selectedSinglePlayer.validCredit | number:2}}
                                     td
-                                        input.text-success(type='number', ng-model='vm.creditChange.updateAmount', ng-change="vm.creditChange.finalValidAmount=vm.selectedSinglePlayer.validCredit+vm.creditChange.updateAmount")
+                                        input.text-success(type='number', ng-model='vm.creditChange.updateAmount', ng-change="vm.getFinalValidAmount();")
                                     td
                                         label.text-danger {{vm.creditChange.finalValidAmount || 0 | number:2}}
                                         .text-danger(ng-show='vm.creditChange.finalValidAmount<0') {{'Player credit cannot be less than 0' | translate}}
