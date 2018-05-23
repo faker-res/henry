@@ -3745,6 +3745,10 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.getFinalValidAmount = function () {
+                vm.creditChange.finalValidAmount= Number(parseFloat(vm.selectedSinglePlayer.validCredit).toFixed(2)) + vm.creditChange.updateAmount;
+            };
+
             vm.newPlayerList = function () {
                 vm.newPlayerRecords = {totalCount: 0};
                 vm.initQueryTimeFilter('newPlayerRecords', function () {

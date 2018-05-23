@@ -12887,7 +12887,7 @@ let dbPlayerInfo = {
             () => dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).select('validCredit')
         ).then(
             player => {
-                if (player.validCredit < updateAmount) {
+                if (Number(parseFloat(player.validCredit).toFixed(2)) < updateAmount) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                         name: "DataError",
@@ -12899,7 +12899,7 @@ let dbPlayerInfo = {
             () => dbPlayerInfo.changePlayerCredit(playerObjId, platformObjId, -updateAmount, reasonType, data)
         ).then(
             player => {
-                if (player.validCredit < 0) {
+                if (Number(parseFloat(player.validCredit).toFixed(2)) < 0) {
                     // First reset the deduction, then report the problem
                     return Q.resolve().then(
                         () => dbPlayerInfo.refundPlayerCredit(playerObjId, platformObjId, +updateAmount, constPlayerCreditChangeType.DEDUCT_BELOW_ZERO_REFUND, data)
