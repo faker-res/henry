@@ -13952,7 +13952,7 @@ define(['js/app'], function (myApp) {
 
             vm.initPlayerApiLog = function () {
                 vm.playerApiLog = {totalCount: 0, limit: 10, index: 0};
-                vm.playerApiLog.apiAction = "login";
+                vm.playerApiLog.apiAction = "";
                 utilService.actionAfterLoaded('#modalPlayerApiLog.in #playerApiLogQuery .endTime', function () {
                     vm.playerApiLog.startDate = utilService.createDatePicker('#playerApiLogQuery .startTime');
                     vm.playerApiLog.endDate = utilService.createDatePicker('#playerApiLogQuery .endTime');
@@ -13974,6 +13974,7 @@ define(['js/app'], function (myApp) {
                     playerObjId: vm.selectedSinglePlayer._id,
                     startDate: vm.playerApiLog.startDate.data('datetimepicker').getLocalDate(),
                     endDate: vm.playerApiLog.endDate.data('datetimepicker').getLocalDate(),
+                    ipAddress: vm.playerApiLog.ipAddress,
                     index: newSearch ? 0 : vm.playerApiLog.index,
                     limit: newSearch ? 10 : vm.playerApiLog.limit,
                     sortCol: vm.playerApiLog.sortCol || null
@@ -13982,11 +13983,27 @@ define(['js/app'], function (myApp) {
                 if (vm.playerApiLog.apiAction) {
                     sendQuery.action = vm.playerApiLog.apiAction;
                 }
-                socketService.$socket($scope.AppSocket, 'getPlayerApiLog', sendQuery, function (data) {
+                socketService.$socket($scope.AppSocket, 'getPlayerActionLog', sendQuery, function (data) {
                     console.log("getPlayerApiLog", data);
                     let tblData = data && data.data ? data.data.data.map(item => {
                         item.operationTime$ = vm.dateReformat(item.operationTime);
-                        item.action$ = $translate(item.action);
+                        if(item.providerId && item.providerId.name){
+                            item.action$ = $translate(item.action) + item.providerId.name;
+                        }else{
+                            item.action$ = $translate("Login to main site");
+                        }
+                        item.device = item.userAgent[0] && item.userAgent[0].device ? item.userAgent[0].device : "";
+                        item.os = item.userAgent[0] && item.userAgent[0].os ? item.userAgent[0].os : "";
+                        item.browser = item.userAgent[0] && item.userAgent[0].browser ? item.userAgent[0].browser : "";
+                        item.ipArea$ = item.ipArea && item.ipArea.province && item.ipArea.city ? item.ipArea.province + "," + item.ipArea.city : "";
+                        if(item.domain){
+                            var filteredDomain = item.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
+                            let indexNo = filteredDomain.indexOf("/")
+                            if (indexNo != -1) {
+                                filteredDomain = filteredDomain.substring(0,indexNo);
+                            }
+                            item.domain$ = filteredDomain;
+                        }
                         return item;
                     }) : [];
                     let total = data.data ? data.data.total : 0;
@@ -14004,7 +14021,12 @@ define(['js/app'], function (myApp) {
                     columns: [
                         {title: $translate('Incident'), data: "action$"},
                         {title: $translate('Operation Time'), data: "operationTime$"},
-                        {title: $translate('IP_ADDRESS'), data: "ipAddress"}
+                        {title: $translate('Device'), data: "device"},
+                        {title: $translate('IP_ADDRESS'), data: "ipAddress"},
+                        {title: $translate('IP_AREA'), data: "ipArea$"},
+                        {title: $translate('OS'), data: "os"},
+                        {title: $translate('Browser'), data: "browser"},
+                        {title: $translate('Domain Name'), data: "domain$"}
                     ],
                     "paging": false,
                 });
