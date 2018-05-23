@@ -15202,8 +15202,6 @@ define(['js/app'], function (myApp) {
                         vm.queryRoles = vm.queryRoles.concat(e.roles);
                     }
                 });
-
-                // endLoadMultipleSelect('.spicker');
                 vm.refreshSPicker();
                 $scope.safeApply();
             };
@@ -15216,8 +15214,6 @@ define(['js/app'], function (myApp) {
                         vm.queryAdmins = vm.queryAdmins.concat(e.users);
                     }
                 });
-
-                // endLoadMultipleSelect('.spicker');
                 vm.refreshSPicker();
                 $scope.safeApply();
             };
