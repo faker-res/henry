@@ -619,13 +619,19 @@
                                 .inlineBlk
                                     label {{'END_DATE' | translate}}
                                     .endTime
-                                .inlineBlk
-                                    label {{'Game' | translate}}
-                                    input.form-control(ng-model='vm.queryPara.playerExpense.gameName')
+                                //.inlineBlk
+                                //    label {{'Game' | translate}}
+                                //    input.form-control(ng-model='vm.queryPara.playerExpense.gameName')
                                 .inlineBlk
                                     label {{'GAME_PROVIDER' | translate}}
                                     select.form-control(ng-model='vm.queryPara.playerExpense.providerId', ng-options='a._id as a.name for (i,a) in vm.platformProviderList')
                                         option(value='') {{'any' | translate}}
+                                .inlineBlk
+                                    label {{'ROUND_NUMBER OR PLAY_NUMBER' | translate}}
+                                    input.form-control(ng-model='vm.queryPara.playerExpense.roundNoOrPlayNo')
+                                .inlineBlk
+                                    label {{'GAME_TYPE (FUZZY SEARCH)' | translate}}
+                                    input.form-control(ng-model='vm.queryPara.playerExpense.cpGameType')
                                 //.inlineBlk
                                 //    label {{'CONSUMPTION_RETURN_ABILITY' | translate}}
                                 //    select.form-control.limit(ng-model='vm.queryPara.playerExpense.dirty', required)
