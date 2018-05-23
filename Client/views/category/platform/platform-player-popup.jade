@@ -619,13 +619,19 @@
                                 .inlineBlk
                                     label {{'END_DATE' | translate}}
                                     .endTime
-                                .inlineBlk
-                                    label {{'Game' | translate}}
-                                    input.form-control(ng-model='vm.queryPara.playerExpense.gameName')
+                                //.inlineBlk
+                                //    label {{'Game' | translate}}
+                                //    input.form-control(ng-model='vm.queryPara.playerExpense.gameName')
                                 .inlineBlk
                                     label {{'GAME_PROVIDER' | translate}}
                                     select.form-control(ng-model='vm.queryPara.playerExpense.providerId', ng-options='a._id as a.name for (i,a) in vm.platformProviderList')
                                         option(value='') {{'any' | translate}}
+                                .inlineBlk
+                                    label {{'ROUND_NUMBER OR PLAY_NUMBER' | translate}}
+                                    input.form-control(ng-model='vm.queryPara.playerExpense.roundNoOrPlayNo')
+                                .inlineBlk
+                                    label {{'GAME_TYPE (FUZZY SEARCH)' | translate}}
+                                    input.form-control(ng-model='vm.queryPara.playerExpense.cpGameType')
                                 //.inlineBlk
                                 //    label {{'CONSUMPTION_RETURN_ABILITY' | translate}}
                                 //    select.form-control.limit(ng-model='vm.queryPara.playerExpense.dirty', required)
@@ -790,26 +796,15 @@
                     .inlineBlk
                         label {{"API Action" | translate}}
                         select.form-control.apiAction(ng-model='vm.playerApiLog.apiAction')
-                            option(value='') {{'ALL' | translate}}
-                            option(value="player - create") {{"玩家开户" | translate}}
-                            option(value="login") {{"login" | translate}}
-                            option(value="createPlayerPartner") {{"玩家+代理开户" | translate}}
-                            option(value="loginPlayerPartner") {{"玩家+代理登录" | translate}}
-                            option(value="updatePaymentInfo") {{"修改玩家的支付信息" | translate}}
-                            option(value="updatePlayerPartnerPaymentInfo") {{"修改玩家+代理的支付信息" | translate}}
-                            option(value="updatePassword") {{"修改玩家登录密码" | translate}}
-                            option(value="updatePasswordPlayerPartner") {{"修改玩家+代理登录密码" | translate}}
-                            option(value="updateSmsSetting") {{"设置短信通知" | translate}}
-                            option(value="player - update") {{"修改玩家信息" | translate}}
-                            option(value="updatePhotoUrl") {{"修改玩家头像" | translate}}
-                            option(value="getLoginURL") {{"登陆游戏" | translate}}
-                            option(value="modifyGamePassword") {{"修改游戏密码" | translate}}
-                            option(value="topUpIntention - add") {{"添加充值意向" | translate}}
-                            option(value="topUpIntention - update") {{"修改充值意向" | translate}}
-                            option(value="requestConsumeRebate") {{"申请结算消费返点" | translate}}
-                            option(value="createFirstTopUpRewardProposal") {{"创建首冲奖励提案" | translate}}
-                            option(value="applyProviderReward") {{"申请游戏提供商奖励" | translate}}
-                            option(value="applyRewardEvent") {{"申请奖励活动" | translate}}
+                            option(value="") {{'all' | translate}}
+                            option(value="main site") {{'Login to main site' | translate}}
+                            option(ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}') {{"LOGIN" | translate}}{{v.name | translate}}
+                    .inlineBlk
+                        label {{"IP_ADDRESS" | translate}}
+                        input.form-control(ng-model='vm.playerApiLog.ipAddress')
+                    .inlineBlk(ng-if="vm.selectedSinglePlayer == null")
+                        label {{"Player Name (Can be empty)" | translate}}
+                        input.form-control(ng-model='vm.playerApiLog.playerName')
                     button.btn.btn-primary.common-button(ng-click='vm.getPlayerApiLogData(true)', style='vertical-align: bottom') {{"SEARCH" | translate}}
                 div
                     label {{"Total" | translate}} {{vm.playerApiLog.totalCount}} {{"records" | translate}}
@@ -1499,7 +1494,7 @@
                                 tr
                                     td {{vm.selectedSinglePlayer.validCredit | number:2}}
                                     td
-                                        input.text-success(type='number', ng-model='vm.creditChange.updateAmount', ng-change="vm.creditChange.finalValidAmount=vm.selectedSinglePlayer.validCredit+vm.creditChange.updateAmount")
+                                        input.text-success(type='number', ng-model='vm.creditChange.updateAmount', ng-change="vm.getFinalValidAmount();")
                                     td
                                         label.text-danger {{vm.creditChange.finalValidAmount || 0 | number:2}}
                                         .text-danger(ng-show='vm.creditChange.finalValidAmount<0') {{'Player credit cannot be less than 0' | translate}}

@@ -3745,6 +3745,10 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.getFinalValidAmount = function () {
+                vm.creditChange.finalValidAmount= Number(parseFloat(vm.selectedSinglePlayer.validCredit).toFixed(2)) + vm.creditChange.updateAmount;
+            };
+
             vm.newPlayerList = function () {
                 vm.newPlayerRecords = {totalCount: 0};
                 vm.initQueryTimeFilter('newPlayerRecords', function () {
@@ -5188,7 +5192,7 @@ define(['js/app'], function (myApp) {
                     endTime: vm.expenseQuery.endTime.data('datetimepicker').getLocalDate(),
                     platformId: vm.selectedPlatform.id,
                     providerObjId: vm.selectedProviderID,
-                    playerName: vm.playerName,
+                    playerName: vm.playerName || null,
                     index: newSearch ? 0 : vm.expenseQuery.index,
                     limit: newSearch ? 10 : vm.expenseQuery.limit,
                     sortCol: newSearch ? null : vm.expenseQuery.sortCol,
@@ -5197,8 +5201,8 @@ define(['js/app'], function (myApp) {
                 if (vm.roundNoOrPlayNo) {
                     queryData.roundNoOrPlayNo = vm.roundNoOrPlayNo;
                 }
-                if (vm.gameName) {
-                    queryData.gameName = vm.gameName;
+                if (vm.cpGameType) {
+                    queryData.cpGameType = vm.cpGameType;
                 }
                 vm.providerExpenseTableLoading = true;
                 $scope.safeApply();
@@ -10953,6 +10957,12 @@ define(['js/app'], function (myApp) {
                 if (vm.queryPara.playerExpense.gameName) {
                     sendData.gameName = vm.queryPara.playerExpense.gameName;
                 }
+                if (vm.queryPara.playerExpense.roundNoOrPlayNo) {
+                    sendData.roundNoOrPlayNo = vm.queryPara.playerExpense.roundNoOrPlayNo;
+                }
+                if (vm.queryPara.playerExpense.cpGameType) {
+                    sendData.cpGameType = vm.queryPara.playerExpense.cpGameType;
+                }
                 vm.playerExpenseLog.loading = true;
                 console.log("Query", sendData);
                 vm.prepareShowPlayerExpenseRecords(sendData, newSearch);
@@ -13952,7 +13962,7 @@ define(['js/app'], function (myApp) {
 
             vm.initPlayerApiLog = function () {
                 vm.playerApiLog = {totalCount: 0, limit: 10, index: 0};
-                vm.playerApiLog.apiAction = "login";
+                vm.playerApiLog.apiAction = "";
                 utilService.actionAfterLoaded('#modalPlayerApiLog.in #playerApiLogQuery .endTime', function () {
                     vm.playerApiLog.startDate = utilService.createDatePicker('#playerApiLogQuery .startTime');
                     vm.playerApiLog.endDate = utilService.createDatePicker('#playerApiLogQuery .endTime');
@@ -13971,9 +13981,11 @@ define(['js/app'], function (myApp) {
                 }
 
                 let sendQuery = {
-                    playerObjId: vm.selectedSinglePlayer._id,
+                    playerObjId: vm.selectedSinglePlayer && vm.selectedSinglePlayer._id || "",
+                    playerName: vm.playerApiLog.playerName || "",
                     startDate: vm.playerApiLog.startDate.data('datetimepicker').getLocalDate(),
                     endDate: vm.playerApiLog.endDate.data('datetimepicker').getLocalDate(),
+                    ipAddress: vm.playerApiLog.ipAddress,
                     index: newSearch ? 0 : vm.playerApiLog.index,
                     limit: newSearch ? 10 : vm.playerApiLog.limit,
                     sortCol: vm.playerApiLog.sortCol || null
@@ -13982,11 +13994,33 @@ define(['js/app'], function (myApp) {
                 if (vm.playerApiLog.apiAction) {
                     sendQuery.action = vm.playerApiLog.apiAction;
                 }
-                socketService.$socket($scope.AppSocket, 'getPlayerApiLog', sendQuery, function (data) {
+                socketService.$socket($scope.AppSocket, 'getPlayerActionLog', sendQuery, function (data) {
                     console.log("getPlayerApiLog", data);
                     let tblData = data && data.data ? data.data.data.map(item => {
                         item.operationTime$ = vm.dateReformat(item.operationTime);
-                        item.action$ = $translate(item.action);
+
+                        if(item.providerId && item.providerId.name){
+                            item.action$ = $translate(item.action) + item.providerId.name;
+                        }else{
+                            item.action$ = $translate("Login to main site");
+                        }
+
+                        if(item.player && item.player.name){
+                            item.playerName = item.player.name;
+                        }
+
+                        item.device = item.userAgent[0] && item.userAgent[0].device ? item.userAgent[0].device : "";
+                        item.os = item.userAgent[0] && item.userAgent[0].os ? item.userAgent[0].os : "";
+                        item.browser = item.userAgent[0] && item.userAgent[0].browser ? item.userAgent[0].browser : "";
+                        item.ipArea$ = item.ipArea && item.ipArea.province && item.ipArea.city ? item.ipArea.province + "," + item.ipArea.city : "";
+                        if(item.domain){
+                            var filteredDomain = item.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
+                            let indexNo = filteredDomain.indexOf("/")
+                            if (indexNo != -1) {
+                                filteredDomain = filteredDomain.substring(0,indexNo);
+                            }
+                            item.domain$ = filteredDomain;
+                        }
                         return item;
                     }) : [];
                     let total = data.data ? data.data.total : 0;
@@ -14003,8 +14037,14 @@ define(['js/app'], function (myApp) {
                     ],
                     columns: [
                         {title: $translate('Incident'), data: "action$"},
+                        {title: $translate('PLAYER_NAME'), data: "playerName"},
                         {title: $translate('Operation Time'), data: "operationTime$"},
-                        {title: $translate('IP_ADDRESS'), data: "ipAddress"}
+                        {title: $translate('Device'), data: "device"},
+                        {title: $translate('IP_ADDRESS'), data: "ipAddress"},
+                        {title: $translate('IP_AREA'), data: "ipArea$"},
+                        {title: $translate('OS'), data: "os"},
+                        {title: $translate('Browser'), data: "browser"},
+                        {title: $translate('Domain Name'), data: "domain$"}
                     ],
                     "paging": false,
                 });
@@ -24278,6 +24318,10 @@ define(['js/app'], function (myApp) {
                             }
                         }
 
+                        if (partnerObjId) {
+                            vm.partnerCommission = commonService.applyPartnerCustomRate(partnerObjId, vm.partnerCommission, vm.customPartnerCommission);
+                        }
+
                         if (vm.partnerCommission.gameProviderGroup && vm.partnerCommission.gameProviderGroup.length > 0) {
                             vm.partnerCommission.gameProviderGroup.forEach(grp => {
                                 if (grp.showConfig && grp.showConfig.commissionSetting && grp.showConfig.commissionSetting.length > 0) {
@@ -24287,10 +24331,6 @@ define(['js/app'], function (myApp) {
                                     });
                                 }
                             });
-                        }
-
-                        if (partnerObjId) {
-                            vm.partnerCommission = commonService.applyPartnerCustomRate(partnerObjId, vm.partnerCommission, vm.customPartnerCommission);
                         }
                     })
                 });
@@ -24510,7 +24550,7 @@ define(['js/app'], function (myApp) {
 
                                 // Convert back commissionRate to percentage
                                 tempShowConfig.commissionSetting.forEach(e => {
-                                    e.commissionRate = parseFloat(e.commissionRate / 100).toFixed(4);
+                                    e.commissionRate = parseFloat((e.commissionRate / 100).toFixed(4));
                                 });
 
                                 if(tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
@@ -24605,7 +24645,7 @@ define(['js/app'], function (myApp) {
 
                 // Convert back commissionRate to percentage
                 newConfig.commissionSetting.forEach(e => {
-                    e.commissionRate = parseFloat(e.commissionRate / 100).toFixed(4);
+                    e.commissionRate = parseFloat((e.commissionRate / 100).toFixed(4));
                 });
 
                 // Check setting has changed or not

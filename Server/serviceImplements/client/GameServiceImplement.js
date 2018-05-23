@@ -17,6 +17,8 @@ var constServerCode = require("./../../const/constServerCode");
 var constSystemParam = require('./../../const/constSystemParam');
 
 var cpmsAPI = require("../../externalAPI/cpmsAPI");
+var uaParser = require('ua-parser-js');
+var mobileDetect = require('mobile-detect');
 
 
 var GameServiceImplement = function () {
@@ -188,7 +190,17 @@ var GameServiceImplement = function () {
                 ip = forwardedIp[0].trim();
             }
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLoginURL, [conn.playerId, data.gameId, ip, data.lang, data.clientDomainName, data.clientType, inputDevice], isValidData);
+
+        var uaString = conn.upgradeReq.headers['user-agent'];
+        var ua = uaParser(uaString);
+        var md = new mobileDetect(uaString);
+        let userAgent = [{
+            browser: ua.browser.name || '',
+            device: ua.device.name || (md && md.mobile()) ? md.mobile() : 'PC',
+            os: ua.os.name || ''
+        }];
+
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLoginURL, [conn.playerId, data.gameId, ip, data.lang, data.clientDomainName, data.clientType, inputDevice, userAgent], isValidData);
     };
 
     this.getTestLoginURL.expectsData = 'gameId: String, clientDomainName: String';

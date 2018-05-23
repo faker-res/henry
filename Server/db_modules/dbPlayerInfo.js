@@ -97,6 +97,7 @@ let dbSmsGroup = require('../db_modules/dbSmsGroup');
 let PLATFORM_PREFIX_SEPARATOR = '';
 let dbAutoProposal = require('../db_modules/dbAutoProposal');
 let dbDemoPlayer = require('../db_modules/dbDemoPlayer');
+let dbApiLog = require("../db_modules/dbApiLog");
 
 let dbPlayerInfo = {
 
@@ -669,6 +670,7 @@ let dbPlayerInfo = {
 
     createPlayerFromTel: (inputData) => {
         let platformObj, adminObjId;
+        let fbResult = {};
 
         if (!inputData.chatRecordContent) {
             return Promise.reject({name: "InputError", message: "Missing chat record content"})
@@ -732,7 +734,7 @@ let dbPlayerInfo = {
             promArr => {
                 if (promArr) {
                     let methods = promArr[0];
-                    let fbResult = promArr[1];
+                    fbResult = promArr[1];
                     let fbTitle = promArr[2];
 
                     if (!fbResult) {
@@ -815,8 +817,8 @@ let dbPlayerInfo = {
                         platform: data.platform,
                         adminId: adminObjId,
                         content: inputData.chatRecordContent,
-                        result: inputData.chatRecordResult,
-                        resultName: inputData.chatRecordResult,
+                        result: fbResult.key,
+                        resultName: fbResult.value,
                         topic: inputData.chatRecordTitle
                     };
 
@@ -2685,27 +2687,27 @@ let dbPlayerInfo = {
         index = index || 0;
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortCol = sortCol || {createTime: -1}
-        let bGameSearch = false;
-        let gameSearch;
+        // let bGameSearch = false;
+        // let gameSearch;
 
-        if (query.gameName) {
-            bGameSearch = true;
-            gameSearch = dbconfig.collection_game.find({name: new RegExp('.*' + query.gameName + '.*', 'i')}).lean();
-        } else {
-            gameSearch = false;
-        }
-
-        return Promise.all([gameSearch]).then(
-            function (data) {
-                let games;
-                let gamesId = [];
-                if (bGameSearch && data && data[0]) {
-                    games = data[0];
-                    for (let i = 0; i < games.length; i++) {
-                        let game = games[i];
-                        gamesId.push(game._id);
-                    }
-                }
+        // if (query.gameName) {
+        //     bGameSearch = true;
+        //     gameSearch = dbconfig.collection_game.find({name: new RegExp('.*' + query.gameName + '.*', 'i')}).lean();
+        // } else {
+        //     gameSearch = false;
+        // }
+        //
+        // return Promise.all([gameSearch]).then(
+        //     function (data) {
+        //         let games;
+        //         let gamesId = [];
+        //         if (bGameSearch && data && data[0]) {
+        //             games = data[0];
+        //             for (let i = 0; i < games.length; i++) {
+        //                 let game = games[i];
+        //                 gamesId.push(game._id);
+        //             }
+        //         }
 
                 if (query.playerId) {
                     queryObject.playerId = ObjectId(query.playerId);
@@ -2719,15 +2721,21 @@ let dbPlayerInfo = {
                 if (query.dirty != null) {
                     queryObject.bDirty = query.dirty;
                 }
-                if (query.gameName && !games) {
-                    queryObject.cpGameType = query.gameName;
-                }
-                if (bGameSearch) {
-                    queryObject.gameId = {
-                        $in: gamesId
-                    }
+                // if (query.gameName && !games) {
+                //     queryObject.cpGameType = query.gameName;
+                // }
+                // if (bGameSearch) {
+                //     queryObject.gameId = {
+                //         $in: gamesId
+                //     }
+                // }
+                if (query.roundNoOrPlayNo){
+                    queryObject.$or = [{roundNo: query.roundNoOrPlayNo}, {playNo: query.roundNoOrPlayNo}];
                 }
 
+                if (query.cpGameType){
+                    queryObject.cpGameType = new RegExp('.*' + query.cpGameType + '.*', 'i');
+                }
 
                 var a = dbconfig.collection_playerConsumptionRecord
                     .find(queryObject).sort(sortCol).skip(index).limit(limit)
@@ -2752,8 +2760,8 @@ let dbPlayerInfo = {
                 return Q.all([a, b, c]).then(result => {
                     return {data: result[0], size: result[1], summary: result[2] ? result[2][0] : {}};
                 })
-            }
-        )
+        //     }
+        // )
 
 
     },
@@ -10099,7 +10107,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice) {
+    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice, userAgent) {
         let providerData = null;
         let playerData = null;
         let platform = null;
@@ -10369,6 +10377,8 @@ let dbPlayerInfo = {
                 if (playerData.isTestPlayer) {
                     return loginData;
                 }
+
+                dbApiLog.createProviderLoginActionLog(playerData._id, providerData._id, ip, clientDomainName, userAgent);
                 dbPlayerInfo.updatePlayerPlayedProvider(playerData._id, providerData._id).catch(errorUtils.reportError);
                 return {gameURL: loginData.gameURL};
             }
@@ -10419,7 +10429,7 @@ let dbPlayerInfo = {
                         clientType: clientType || 1
                     };
                     //var isHttp = providerData.interfaceType == 1 ? true : false;
-                    return cpmsAPI.player_getTestLoginURL(sendData);
+                   return cpmsAPI.player_getTestLoginURL(sendData);
                 } else {
                     return Q.reject({name: "DataError", message: "Cannot find game"})
                 }
@@ -12877,7 +12887,7 @@ let dbPlayerInfo = {
             () => dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).select('validCredit')
         ).then(
             player => {
-                if (player.validCredit < updateAmount) {
+                if (Number(parseFloat(player.validCredit).toFixed(2)) < updateAmount) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                         name: "DataError",
@@ -12889,7 +12899,7 @@ let dbPlayerInfo = {
             () => dbPlayerInfo.changePlayerCredit(playerObjId, platformObjId, -updateAmount, reasonType, data)
         ).then(
             player => {
-                if (player.validCredit < 0) {
+                if (Number(parseFloat(player.validCredit).toFixed(2)) < 0) {
                     // First reset the deduction, then report the problem
                     return Q.resolve().then(
                         () => dbPlayerInfo.refundPlayerCredit(playerObjId, platformObjId, +updateAmount, constPlayerCreditChangeType.DEDUCT_BELOW_ZERO_REFUND, data)
