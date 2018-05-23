@@ -19452,12 +19452,26 @@ define(['js/app'], function (myApp) {
                 if (model && model.name === "topupType") {
                     if (model.value.indexOf("2") === -1) {
                         vm.rewardDisabledParam.indexOf("onlineTopUpType") === -1 ? vm.rewardDisabledParam.push("onlineTopUpType") : null;
+                        for (let i = 0; i < Object.keys(vm.rewardMainCondition).length; i++) {
+                            if (vm.rewardMainCondition[Object.keys(vm.rewardMainCondition)[i]].name == "onlineTopUpType") {
+                                vm.rewardMainCondition[Object.keys(vm.rewardMainCondition)[i]].value = [];
+                                vm.refreshSPicker();
+                                break;
+                            }
+                        }
                     } else {
                         vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "onlineTopUpType");
                     }
 
                     if (model.value.indexOf("1") === -1) {
                         vm.rewardDisabledParam.indexOf("bankCardType") === -1 ? vm.rewardDisabledParam.push("bankCardType") : null;
+                        for (let i = 0; i < Object.keys(vm.rewardMainCondition).length; i++) {
+                            if (vm.rewardMainCondition[Object.keys(vm.rewardMainCondition)[i]].name == "bankCardType") {
+                                vm.rewardMainCondition[Object.keys(vm.rewardMainCondition)[i]].value = [];
+                                vm.refreshSPicker();
+                                break;
+                            }
+                        }
                     } else {
                         vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "bankCardType");
                     }
