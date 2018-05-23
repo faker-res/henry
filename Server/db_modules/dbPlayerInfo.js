@@ -97,6 +97,7 @@ let dbSmsGroup = require('../db_modules/dbSmsGroup');
 let PLATFORM_PREFIX_SEPARATOR = '';
 let dbAutoProposal = require('../db_modules/dbAutoProposal');
 let dbDemoPlayer = require('../db_modules/dbDemoPlayer');
+let dbApiLog = require("../db_modules/dbApiLog");
 
 let dbPlayerInfo = {
 
@@ -10068,7 +10069,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice) {
+    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice, userAgent) {
         let providerData = null;
         let playerData = null;
         let platform = null;
@@ -10338,6 +10339,8 @@ let dbPlayerInfo = {
                 if (playerData.isTestPlayer) {
                     return loginData;
                 }
+
+                dbApiLog.createProviderLoginActionLog(playerData._id, providerData._id, ip, clientDomainName, userAgent);
                 dbPlayerInfo.updatePlayerPlayedProvider(playerData._id, providerData._id).catch(errorUtils.reportError);
                 return {gameURL: loginData.gameURL};
             }
@@ -10388,7 +10391,7 @@ let dbPlayerInfo = {
                         clientType: clientType || 1
                     };
                     //var isHttp = providerData.interfaceType == 1 ? true : false;
-                    return cpmsAPI.player_getTestLoginURL(sendData);
+                   return cpmsAPI.player_getTestLoginURL(sendData);
                 } else {
                     return Q.reject({name: "DataError", message: "Cannot find game"})
                 }

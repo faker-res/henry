@@ -130,7 +130,7 @@ var WebSocketUtility = {
                     //dblog.createSystemLog(logData);
 
                     if ((['login','create'].includes(wsFunc.name) &&  wsFunc._service.name === 'player') || conn.playerId && wsFunc.name !== 'getCredit') {
-                        dbApiLog.createApiLog(conn, wsFunc, result);
+                        dbApiLog.createApiLog(conn, wsFunc, result, reqData);
                     }
                 },
                 function (err) {

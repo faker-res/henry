@@ -336,6 +336,9 @@ let partnerCommSettLogModel = dbLogs2.model('partnerCommSettLog', partnerCommSet
 let dxPhoneSchema = require('./../schema/logs2/dxPhone');
 let dxPhoneModel = dbLogs2.model('dxPhone', dxPhoneSchema, 'dxPhone');
 
+let actionLogSchema = require('./../schema/logs2/actionLog');
+let actionLogModel = dbLogs2.model('actionLog', actionLogSchema, 'actionLog');
+
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
 
@@ -466,6 +469,8 @@ var dbProperties = {
 
     collection_dxMission: dxMissionModel,
     collection_dxPhone: dxPhoneModel,
+
+    collection_actionLog: actionLogModel,
 
     collection_csOfficer: csOfficerModel,
     collection_csOfficerUrl: csOfficerUrlModel,

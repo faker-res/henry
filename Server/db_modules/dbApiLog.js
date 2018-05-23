@@ -3,10 +3,14 @@ let constServerCode = require('./../const/constServerCode');
 let errorUtils = require("./../modules/errorUtils");
 let dbPlayerInfo = require("./../db_modules/dbPlayerInfo");
 const constSystemParam = require("../const/constSystemParam.js");
+const uaParser = require('ua-parser-js');
+const dbUtility = require('./../modules/dbutility');
+const mobileDetect = require('mobile-detect');
 
 let dbApiLog = {
-    createApiLog: function (conn, wsFunc, actionResult) {
+    createApiLog: function (conn, wsFunc, actionResult, reqData) {
         let playerObjId, actionName, ipAddress;
+        let geoIpProm = Promise.resolve();
 
         let actionToLog = [
             "player - create",
@@ -62,18 +66,132 @@ let dbApiLog = {
             ipAddress: ipAddress
         };
 
-        if (playerObjId) {
-            let apiLog = new dbConfig.collection_apiLog(logData);
-            apiLog.save().then().catch(errorUtils.reportError);
+        var uaString = conn.upgradeReq.headers['user-agent'];
+        var ua = uaParser(uaString);
+        var md = new mobileDetect(uaString);
+        logData.userAgent = [{
+            browser: ua.browser.name || '',
+            device: ua.device.name || (md && md.mobile()) ? md.mobile() : 'PC',
+            os: ua.os.name || ''
+        }];
+
+        if(reqData && reqData.clientDomain){
+            logData.domain = reqData.clientDomain;
         }
-        else {
-            console.error('There are item that should be logged but playerObjId not found.');
-            console.error('actionName', actionName);
-            console.error('actionResult',JSON.stringify(actionResult, null, 2));
+
+        if(ipAddress && ipAddress != "undefined"){
+            geoIpProm = dbUtility.getGeoIp(ipAddress).then(
+                ipData=>{
+                    let ipArea = {};
+                    if(ipData){
+                        ipArea = ipData;
+                    }else{
+                        ipArea.province = '';
+                        ipArea.city = '';
+                    }
+
+                    return ipArea;
+                })
         }
+
+        return Promise.all([geoIpProm]).then(
+            result => {
+                if(result && result[0]){
+                    logData.ipArea = result[0];
+                }else{
+                    logData.ipArea = {province: '', city: ''};
+                }
+
+                if (playerObjId) {
+                    let apiLog = new dbConfig.collection_apiLog(logData);
+                    apiLog.save().then().catch(errorUtils.reportError);
+
+                    if(actionName == "login"){
+                        let actionLog = new dbConfig.collection_actionLog(logData);
+                        actionLog.save().then().catch(errorUtils.reportError);
+                    }
+                }
+                else {
+                    console.error('There are item that should be logged but playerObjId not found.');
+                    console.error('actionName', actionName);
+                    console.error('actionResult',JSON.stringify(actionResult, null, 2));
+                }
+            }
+        )
+
     },
 
-    getPlayerApiLog: function (playerObjId, startDate, endDate, action, index, limit, sortCol) {
+    createProviderLoginActionLog: function (playerObjId, providerId, ipAddress, domain, userAgent) {
+        let geoIpProm = Promise.resolve();
+
+        let logData = {
+            player: playerObjId,
+            action: "login",
+            operationTime: new Date(),
+            providerId: providerId,
+            ipAddress: ipAddress,
+            userAgent: userAgent,
+            domain: domain
+        };
+
+
+        if(ipAddress && ipAddress != "undefined"){
+            geoIpProm = dbUtility.getGeoIp(ipAddress).then(
+                ipData=>{
+                    let ipArea = {};
+                    if(ipData){
+                        ipArea = ipData;
+                    }else{
+                        ipArea.province = '';
+                        ipArea.city = '';
+                    }
+
+                    return ipArea;
+                })
+        }
+
+        return Promise.all([geoIpProm]).then(
+            result => {
+                if(result && result[0]){
+                    logData.ipArea = result[0];
+                }else{
+                    logData.ipArea = {province: '', city: ''};
+                }
+
+                if (playerObjId) {
+                    let actionLog = new dbConfig.collection_actionLog(logData);
+                    actionLog.save().then().catch(errorUtils.reportError);
+                }
+                else {
+                    console.error('There are item that should be logged but playerObjId not found.');
+                    console.error('actionName', actionName);
+                    console.error('actionResult',JSON.stringify(actionResult, null, 2));
+                }
+            }
+        )
+    },
+
+    getPlayerApiLog: function (playerObjId, startDate, endDate, ipAddress, action, index, limit, sortCol) {
+        index = index || 0;
+        let count = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
+        sortCol = sortCol || {operationTime: -1};
+
+        let query = {
+            player: playerObjId,
+            operationTime: {
+                $gte: new Date(startDate),
+                $lt: new Date(endDate)
+            }
+        };
+
+        let a = dbConfig.collection_apiLog.find(query).count();
+        let b = dbConfig.collection_apiLog.find(query).sort(sortCol).skip(index).limit(count).lean();
+        return Promise.all([a, b]).then(data => {
+            return({total: data[0], data: data[1]});
+        });
+    },
+
+    getPlayerActionLog: function (playerObjId, startDate, endDate, ipAddress, action, index, limit, sortCol) {
         index = index || 0;
         let count = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortCol = sortCol || {operationTime: -1};
@@ -86,11 +204,22 @@ let dbApiLog = {
             }
         };
         if (action) {
-            query.action = action;
+            if(action == "main site") {
+                query.providerId = {$exists: false};
+            }else{
+                query.providerId = action;
+            }
         }
 
-        let a = dbConfig.collection_apiLog.find(query).count();
-        let b = dbConfig.collection_apiLog.find(query).sort(sortCol).skip(index).limit(count).lean();
+        if(ipAddress){
+            query.ipAddress = ipAddress;
+        }
+
+        let a = dbConfig.collection_actionLog.find(query).count();
+        let b = dbConfig.collection_actionLog.find(query).populate({
+            path: "providerId",
+            model: dbConfig.collection_gameProvider
+        }).sort(sortCol).skip(index).limit(count).lean();
         return Promise.all([a, b]).then(data => {
             return({total: data[0], data: data[1]});
         });
