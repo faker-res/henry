@@ -13981,7 +13981,8 @@ define(['js/app'], function (myApp) {
                 }
 
                 let sendQuery = {
-                    playerObjId: vm.selectedSinglePlayer._id,
+                    playerObjId: vm.selectedSinglePlayer && vm.selectedSinglePlayer._id || "",
+                    playerName: vm.playerApiLog.playerName || "",
                     startDate: vm.playerApiLog.startDate.data('datetimepicker').getLocalDate(),
                     endDate: vm.playerApiLog.endDate.data('datetimepicker').getLocalDate(),
                     ipAddress: vm.playerApiLog.ipAddress,
@@ -13997,11 +13998,17 @@ define(['js/app'], function (myApp) {
                     console.log("getPlayerApiLog", data);
                     let tblData = data && data.data ? data.data.data.map(item => {
                         item.operationTime$ = vm.dateReformat(item.operationTime);
+
                         if(item.providerId && item.providerId.name){
                             item.action$ = $translate(item.action) + item.providerId.name;
                         }else{
                             item.action$ = $translate("Login to main site");
                         }
+
+                        if(item.player && item.player.name){
+                            item.playerName = item.player.name;
+                        }
+
                         item.device = item.userAgent[0] && item.userAgent[0].device ? item.userAgent[0].device : "";
                         item.os = item.userAgent[0] && item.userAgent[0].os ? item.userAgent[0].os : "";
                         item.browser = item.userAgent[0] && item.userAgent[0].browser ? item.userAgent[0].browser : "";
@@ -14030,6 +14037,7 @@ define(['js/app'], function (myApp) {
                     ],
                     columns: [
                         {title: $translate('Incident'), data: "action$"},
+                        {title: $translate('PLAYER_NAME'), data: "playerName"},
                         {title: $translate('Operation Time'), data: "operationTime$"},
                         {title: $translate('Device'), data: "device"},
                         {title: $translate('IP_ADDRESS'), data: "ipAddress"},
