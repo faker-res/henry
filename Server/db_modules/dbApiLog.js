@@ -184,6 +184,10 @@ let dbApiLog = {
             }
         };
 
+        if(action) {
+            query.action = action;
+        }
+
         let a = dbConfig.collection_apiLog.find(query).count();
         let b = dbConfig.collection_apiLog.find(query).sort(sortCol).skip(index).limit(count).lean();
         return Promise.all([a, b]).then(data => {
