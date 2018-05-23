@@ -90,6 +90,18 @@ define([], () => {
             )
         };
 
+        self.getRewardEventsByPlatform = ($scope, platformObjId) => {
+            return $scope.$socketPromise('getRewardEventsForPlatform', {platform: platformObjId}).then(data => data.data)
+        };
+
+        self.getRewardPointsEvent = ($scope, platformObjId) => {
+            return $scope.$socketPromise('getRewardPointsEvent', {platformObjId: platformObjId}).then(data => data.data)
+        };
+
+        self.getAllPartnerCommSettPreview = ($scope, platformObjId) => {
+            return $scope.$socketPromise("getAllPartnerCommSettPreview", {platformObjId: platformObjId}).then(data => data.data)
+        };
+
         this.updatePageTile = ($translate, pageName, tabName) => {
             window.document.title = $translate(pageName) + "->" + $translate(tabName);
             $(document).one('shown.bs.tab', function (e) {
