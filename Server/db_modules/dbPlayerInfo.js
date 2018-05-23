@@ -5047,6 +5047,19 @@ let dbPlayerInfo = {
                 if (data && data[0] && data[1]) {
                     playerData = data[0];
                     providerData = data[1];
+                    let platformData = playerData.platform;
+
+                    if (providerData.status != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(providerData._id)] && platformData.gameProviderInfo[String(providerData._id)].isEnable === false) {
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Provider is not available"
+                        });
+
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Provider is not available"
+                        });
+                    }
 
                     return dbRewardTaskGroup.getPlayerRewardTaskGroup(playerData.platform._id, providerData._id, playerData._id, new Date());
                 } else {
@@ -5572,6 +5585,20 @@ let dbPlayerInfo = {
                 if (data && data[0] && data[1]) {
                     playerObj = data[0];
                     gameProvider = data[1];
+                    let platformData = playerObj.platform;
+
+                    if (gameProvider.status != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(gameProvider._id)] && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false) {
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Provider is not available"
+                        });
+
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Provider is not available"
+                        });
+                    }
+
                     return dbPlayerUtil.setPlayerState(playerObj._id, "TransferFromProvider").then(
                         playerState => {
                             if (playerState) {
