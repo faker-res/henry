@@ -2687,27 +2687,27 @@ let dbPlayerInfo = {
         index = index || 0;
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortCol = sortCol || {createTime: -1}
-        let bGameSearch = false;
-        let gameSearch;
+        // let bGameSearch = false;
+        // let gameSearch;
 
-        if (query.gameName) {
-            bGameSearch = true;
-            gameSearch = dbconfig.collection_game.find({name: new RegExp('.*' + query.gameName + '.*', 'i')}).lean();
-        } else {
-            gameSearch = false;
-        }
-
-        return Promise.all([gameSearch]).then(
-            function (data) {
-                let games;
-                let gamesId = [];
-                if (bGameSearch && data && data[0]) {
-                    games = data[0];
-                    for (let i = 0; i < games.length; i++) {
-                        let game = games[i];
-                        gamesId.push(game._id);
-                    }
-                }
+        // if (query.gameName) {
+        //     bGameSearch = true;
+        //     gameSearch = dbconfig.collection_game.find({name: new RegExp('.*' + query.gameName + '.*', 'i')}).lean();
+        // } else {
+        //     gameSearch = false;
+        // }
+        //
+        // return Promise.all([gameSearch]).then(
+        //     function (data) {
+        //         let games;
+        //         let gamesId = [];
+        //         if (bGameSearch && data && data[0]) {
+        //             games = data[0];
+        //             for (let i = 0; i < games.length; i++) {
+        //                 let game = games[i];
+        //                 gamesId.push(game._id);
+        //             }
+        //         }
 
                 if (query.playerId) {
                     queryObject.playerId = ObjectId(query.playerId);
@@ -2721,15 +2721,21 @@ let dbPlayerInfo = {
                 if (query.dirty != null) {
                     queryObject.bDirty = query.dirty;
                 }
-                if (query.gameName && !games) {
-                    queryObject.cpGameType = query.gameName;
-                }
-                if (bGameSearch) {
-                    queryObject.gameId = {
-                        $in: gamesId
-                    }
+                // if (query.gameName && !games) {
+                //     queryObject.cpGameType = query.gameName;
+                // }
+                // if (bGameSearch) {
+                //     queryObject.gameId = {
+                //         $in: gamesId
+                //     }
+                // }
+                if (query.roundNoOrPlayNo){
+                    queryObject.$or = [{roundNo: query.roundNoOrPlayNo}, {playNo: query.roundNoOrPlayNo}];
                 }
 
+                if (query.cpGameType){
+                    queryObject.cpGameType = new RegExp('.*' + query.cpGameType + '.*', 'i');
+                }
 
                 var a = dbconfig.collection_playerConsumptionRecord
                     .find(queryObject).sort(sortCol).skip(index).limit(limit)
@@ -2754,8 +2760,8 @@ let dbPlayerInfo = {
                 return Q.all([a, b, c]).then(result => {
                     return {data: result[0], size: result[1], summary: result[2] ? result[2][0] : {}};
                 })
-            }
-        )
+        //     }
+        // )
 
 
     },
@@ -5041,6 +5047,19 @@ let dbPlayerInfo = {
                 if (data && data[0] && data[1]) {
                     playerData = data[0];
                     providerData = data[1];
+                    let platformData = playerData.platform;
+
+                    if (providerData.status != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(providerData._id)] && platformData.gameProviderInfo[String(providerData._id)].isEnable === false) {
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Provider is not available"
+                        });
+
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Provider is not available"
+                        });
+                    }
 
                     return dbRewardTaskGroup.getPlayerRewardTaskGroup(playerData.platform._id, providerData._id, playerData._id, new Date());
                 } else {
@@ -5566,6 +5585,20 @@ let dbPlayerInfo = {
                 if (data && data[0] && data[1]) {
                     playerObj = data[0];
                     gameProvider = data[1];
+                    let platformData = playerObj.platform;
+
+                    if (gameProvider.status != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(gameProvider._id)] && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false) {
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Provider is not available"
+                        });
+
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Provider is not available"
+                        });
+                    }
+
                     return dbPlayerUtil.setPlayerState(playerObj._id, "TransferFromProvider").then(
                         playerState => {
                             if (playerState) {
@@ -12881,7 +12914,7 @@ let dbPlayerInfo = {
             () => dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).select('validCredit')
         ).then(
             player => {
-                if (player.validCredit < updateAmount) {
+                if (Number(parseFloat(player.validCredit).toFixed(2)) < updateAmount) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                         name: "DataError",
@@ -12893,7 +12926,7 @@ let dbPlayerInfo = {
             () => dbPlayerInfo.changePlayerCredit(playerObjId, platformObjId, -updateAmount, reasonType, data)
         ).then(
             player => {
-                if (player.validCredit < 0) {
+                if (Number(parseFloat(player.validCredit).toFixed(2)) < 0) {
                     // First reset the deduction, then report the problem
                     return Q.resolve().then(
                         () => dbPlayerInfo.refundPlayerCredit(playerObjId, platformObjId, +updateAmount, constPlayerCreditChangeType.DEDUCT_BELOW_ZERO_REFUND, data)

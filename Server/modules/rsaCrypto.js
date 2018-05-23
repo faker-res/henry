@@ -1,4 +1,6 @@
 'use strict';
+let http = require('http');
+let env = require('./../config/sslEnv').config();
 
 var fs = require('fs')
     , ursa = require('ursa')
@@ -9,6 +11,57 @@ var fs = require('fs')
 
 key = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
 crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
+
+// Ready for splitting ssl server
+// function getPrivateKey () {
+//     return new Promise((resolve) => {
+//         let url = "http://" + env.redisUrl + ":" + env.redisPort + "/playerPhone.key.pem";
+//
+//         http.get(url, response => {
+//             // handle http errors
+//             if (response.statusCode < 200 || response.statusCode > 299) {
+//                 reject(new Error('Failed to load page, status code: ' + response.statusCode));
+//             }
+//             // temporary data holder
+//             const body = [];
+//             // on every content chunk, push it to the data array
+//             response.on('data', (chunk) => body.push(chunk));
+//             // we are done, resolve promise with those joined chunks
+//             response.on('end', () => resolve(body.join('')));
+//         })
+//     });
+// }
+//
+// function getPublicKey () {
+//     return new Promise((resolve) => {
+//         let url = "http://" + env.redisUrl + ":" + env.redisPort + "/playerPhone.pub";
+//
+//         http.get(url, response => {
+//             // handle http errors
+//             if (response.statusCode < 200 || response.statusCode > 299) {
+//                 reject(new Error('Failed to load page, status code: ' + response.statusCode));
+//             }
+//             // temporary data holder
+//             const body = [];
+//             // on every content chunk, push it to the data array
+//             response.on('data', (chunk) => body.push(chunk));
+//             // we are done, resolve promise with those joined chunks
+//             response.on('end', () => resolve(body.join('')));
+//         })
+//     });
+// }
+//
+// if (!key) {
+//     getPrivateKey().then(data => {
+//         key = ursa.createPrivateKey(data)
+//     })
+// }
+//
+// if (!crt) {
+//     getPublicKey().then(data => {
+//         crt = ursa.createPublicKey(data)
+//     })
+// }
 
 module.exports = {
     encrypt: (msg) => key.privateEncrypt(msg, 'utf8', 'base64'),

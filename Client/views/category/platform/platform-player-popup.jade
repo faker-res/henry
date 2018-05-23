@@ -619,13 +619,19 @@
                                 .inlineBlk
                                     label {{'END_DATE' | translate}}
                                     .endTime
-                                .inlineBlk
-                                    label {{'Game' | translate}}
-                                    input.form-control(ng-model='vm.queryPara.playerExpense.gameName')
+                                //.inlineBlk
+                                //    label {{'Game' | translate}}
+                                //    input.form-control(ng-model='vm.queryPara.playerExpense.gameName')
                                 .inlineBlk
                                     label {{'GAME_PROVIDER' | translate}}
                                     select.form-control(ng-model='vm.queryPara.playerExpense.providerId', ng-options='a._id as a.name for (i,a) in vm.platformProviderList')
                                         option(value='') {{'any' | translate}}
+                                .inlineBlk
+                                    label {{'ROUND_NUMBER OR PLAY_NUMBER' | translate}}
+                                    input.form-control(ng-model='vm.queryPara.playerExpense.roundNoOrPlayNo')
+                                .inlineBlk
+                                    label {{'GAME_TYPE (FUZZY SEARCH)' | translate}}
+                                    input.form-control(ng-model='vm.queryPara.playerExpense.cpGameType')
                                 //.inlineBlk
                                 //    label {{'CONSUMPTION_RETURN_ABILITY' | translate}}
                                 //    select.form-control.limit(ng-model='vm.queryPara.playerExpense.dirty', required)
@@ -1488,7 +1494,7 @@
                                 tr
                                     td {{vm.selectedSinglePlayer.validCredit | number:2}}
                                     td
-                                        input.text-success(type='number', ng-model='vm.creditChange.updateAmount', ng-change="vm.creditChange.finalValidAmount=vm.selectedSinglePlayer.validCredit+vm.creditChange.updateAmount")
+                                        input.text-success(type='number', ng-model='vm.creditChange.updateAmount', ng-change="vm.getFinalValidAmount();")
                                     td
                                         label.text-danger {{vm.creditChange.finalValidAmount || 0 | number:2}}
                                         .text-danger(ng-show='vm.creditChange.finalValidAmount<0') {{'Player credit cannot be less than 0' | translate}}

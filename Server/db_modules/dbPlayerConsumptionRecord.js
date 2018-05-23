@@ -196,15 +196,9 @@ var dbPlayerConsumptionRecord = {
             matchObj.$or = [{roundNo: data.roundNoOrPlayNo}, {playNo: data.roundNoOrPlayNo}];
         }
 
-        if(data.gameName){
-            console.log("CHECKING---1", data.gameName)
-            console.log("CHECKING---2", {name: new RegExp('.*' + data.gameName + '.*', 'i')})
-            gameSearch = dbconfig.collection_game.find({name: new RegExp('.*' + data.gameName + '.*', 'i')}).lean();
+        if(data.cpGameType){
+            matchObj.cpGameType = new RegExp('.*' + data.cpGameType + '.*', 'i');
         }
-        else{
-            gameSearch = false;
-        }
-
 
         let playerProm;
 
@@ -215,15 +209,10 @@ var dbPlayerConsumptionRecord = {
             playerProm = Promise.resolve('noData');
         }
 
-        return Promise.all([playerProm,gameSearch]).then(
-            resData => {
+        return playerProm.then(
+            playerData => {
 
-                if (resData && resData.length == 2){
-                    let playerData = resData[0];
-                    let gameData = resData[1];
-
-                    let gamesId = [];
-
+                if (playerData){
 
                     if (playerData !== 'noData') {
                         if (playerData) {
@@ -231,20 +220,6 @@ var dbPlayerConsumptionRecord = {
                         }
                         else {
                             return Promise.all([[], 0, []]);
-                        }
-                    }
-
-                    if (gameData){
-                        for (let i = 0; i < gameData.length; i++) {
-                            gamesId.push(ObjectId(gameData[i]._id));
-                        }
-
-                        console.log("CHECKING---3", gamesId)
-
-                        if (gamesId && gamesId.length > 0) {
-                            matchObj.gameId = {
-                                $in: gamesId
-                            }
                         }
                     }
 
