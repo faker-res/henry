@@ -5188,7 +5188,7 @@ define(['js/app'], function (myApp) {
                     endTime: vm.expenseQuery.endTime.data('datetimepicker').getLocalDate(),
                     platformId: vm.selectedPlatform.id,
                     providerObjId: vm.selectedProviderID,
-                    playerName: vm.playerName,
+                    playerName: vm.playerName || null,
                     index: newSearch ? 0 : vm.expenseQuery.index,
                     limit: newSearch ? 10 : vm.expenseQuery.limit,
                     sortCol: newSearch ? null : vm.expenseQuery.sortCol,
@@ -5197,8 +5197,8 @@ define(['js/app'], function (myApp) {
                 if (vm.roundNoOrPlayNo) {
                     queryData.roundNoOrPlayNo = vm.roundNoOrPlayNo;
                 }
-                if (vm.gameName) {
-                    queryData.gameName = vm.gameName;
+                if (vm.cpGameType) {
+                    queryData.cpGameType = vm.cpGameType;
                 }
                 vm.providerExpenseTableLoading = true;
                 $scope.safeApply();
@@ -10952,6 +10952,12 @@ define(['js/app'], function (myApp) {
                 }
                 if (vm.queryPara.playerExpense.gameName) {
                     sendData.gameName = vm.queryPara.playerExpense.gameName;
+                }
+                if (vm.queryPara.playerExpense.roundNoOrPlayNo) {
+                    sendData.roundNoOrPlayNo = vm.queryPara.playerExpense.roundNoOrPlayNo;
+                }
+                if (vm.queryPara.playerExpense.cpGameType) {
+                    sendData.cpGameType = vm.queryPara.playerExpense.cpGameType;
                 }
                 vm.playerExpenseLog.loading = true;
                 console.log("Query", sendData);
