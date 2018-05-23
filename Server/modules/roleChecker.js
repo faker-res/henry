@@ -295,6 +295,7 @@ var roleChecker = {
                 NewPlayerList: ['getQueryProposalsForAdminId', 'getPlayerProposalsForAdminId'],
                 ModifyGamePassword: ['modifyGamePassword'],
                 ClearProposalLimit: ['requestClearProposalLimit'],
+                PlayerApiLog: ['getPlayerActionLog'],
                 TriggerAutoProposal: ['triggerAutoProposal'],
                 playerDailyCreditLog :['playerCreditDailyLog'],
                 playerApiLog: ['getPlayerApiLog'],

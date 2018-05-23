@@ -195,18 +195,23 @@ let dbApiLog = {
         });
     },
 
-    getPlayerActionLog: function (playerObjId, startDate, endDate, ipAddress, action, index, limit, sortCol) {
+    getPlayerActionLog: function (playerObjId, playerName, startDate, endDate, ipAddress, action, index, limit, sortCol) {
         index = index || 0;
         let count = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortCol = sortCol || {operationTime: -1};
 
         let query = {
-            player: playerObjId,
             operationTime: {
                 $gte: new Date(startDate),
                 $lt: new Date(endDate)
             }
         };
+        let playerProm = Promise.resolve();
+
+        if(playerObjId){
+            query.player = playerObjId;
+        }
+
         if (action) {
             if(action == "main site") {
                 query.providerId = {$exists: false};
@@ -219,14 +224,29 @@ let dbApiLog = {
             query.ipAddress = ipAddress;
         }
 
-        let a = dbConfig.collection_actionLog.find(query).count();
-        let b = dbConfig.collection_actionLog.find(query).populate({
-            path: "providerId",
-            model: dbConfig.collection_gameProvider
-        }).sort(sortCol).skip(index).limit(count).lean();
-        return Promise.all([a, b]).then(data => {
-            return({total: data[0], data: data[1]});
-        });
+        if(playerName){
+            playerProm = dbConfig.collection_players.findOne({name: playerName});
+        }
+
+        return Promise.all([playerProm]).then(
+            playerDetail => {
+                if(playerDetail[0] && playerDetail[0]._id){
+                    query.player = playerDetail[0]._id;
+                }
+
+                let a = dbConfig.collection_actionLog.find(query).count();
+                let b = dbConfig.collection_actionLog.find(query).populate({
+                    path: "player",
+                    model: dbConfig.collection_players
+                }).populate({
+                    path: "providerId",
+                    model: dbConfig.collection_gameProvider
+                }).sort(sortCol).skip(index).limit(count).lean();
+                return Promise.all([a, b]).then(data => {
+                    return({total: data[0], data: data[1]});
+                });
+            }
+        )
     },
 
     getPartnerApiLog: function (partnerObjId, startDate, endDate, index, limit, sortCol) {

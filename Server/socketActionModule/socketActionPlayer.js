@@ -1029,8 +1029,8 @@ function socketActionPlayer(socketIO, socket) {
 
         getPlayerActionLog: function getPlayerActionLog(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.playerObjId && data.startDate && data.endDate);
-            socketUtil.emitter(self.socket, dbApiLog.getPlayerActionLog, [data.playerObjId, data.startDate, data.endDate, data.ipAddress, data.action, data.index, data.limit, data.sortCol], actionName, isValidData);
+            let isValidData = Boolean(data && data.startDate && data.endDate);
+            socketUtil.emitter(self.socket, dbApiLog.getPlayerActionLog, [data.playerObjId, data.playerName, data.startDate, data.endDate, data.ipAddress, data.action, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
 
         getPlayerRewardPointsLog: function getPlayerRewardPointsLog(data) {

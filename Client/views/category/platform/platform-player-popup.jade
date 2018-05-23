@@ -796,6 +796,9 @@
                     .inlineBlk
                         label {{"IP_ADDRESS" | translate}}
                         input.form-control(ng-model='vm.playerApiLog.ipAddress')
+                    .inlineBlk(ng-if="vm.selectedSinglePlayer == null")
+                        label {{"Player Name (Can be empty)" | translate}}
+                        input.form-control(ng-model='vm.playerApiLog.playerName')
                     button.btn.btn-primary.common-button(ng-click='vm.getPlayerApiLogData(true)', style='vertical-align: bottom') {{"SEARCH" | translate}}
                 div
                     label {{"Total" | translate}} {{vm.playerApiLog.totalCount}} {{"records" | translate}}
