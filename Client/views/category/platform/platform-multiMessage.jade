@@ -49,6 +49,17 @@
                 .inlineBlk
                     label {{"bankAccount" | translate}}
                     input.form-control(ng-model='vm.sendMultiMessage.bankAccount', style='width: 180px;')
+                .inlineBlk
+                    label {{"LOGIN_TIMES"|translate}}
+                    select.form-control(ng-model="vm.sendMultiMessage.loginTimesOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.sendMultiMessage.loginTimesValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.sendMultiMessage.loginTimesOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.sendMultiMessage.loginTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.sendMultiMessage.loginTimesOperator === 'range'")
                 //.inlineBlk
                     label {{"Length Per Page" | translate}}
                     input.form-control(type='number',ng-model='vm.sendMultiMessage.pageNumber', style='width:70px')

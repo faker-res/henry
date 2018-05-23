@@ -1690,7 +1690,7 @@ var dbQualityInspection = {
                         "operatorId": "$live800Acc.id",
                         "operatorName": "$live800Acc.name",
                     },
-                    "totalOvertimeRate": {$sum: "$totalOvertimeRate"},
+                    "totalOvertimeRate": {$sum: "$totalTimeoutRate"},
                     "totalInspectionRate": {$sum:"$totalInspectionRate"},
                 }
             }
@@ -1729,7 +1729,7 @@ var dbQualityInspection = {
                         "operatorId": "$live800Acc.id",
                         "operatorName": "$live800Acc.name",
                     },
-                    "totalOvertimeRate": {$sum: "$totalOvertimeRate"},
+                    "totalOvertimeRate": {$sum: "$totalTimeoutRate"},
                     "totalInspectionRate": {$sum:"$totalInspectionRate"},
 
                 }
@@ -1999,7 +1999,7 @@ var dbQualityInspection = {
                             "operatorId": "$live800Acc.id",
                             "operatorName": "$live800Acc.name",
                         },
-                        "totalOvertimeRate": {$sum: "$totalOvertimeRate"},
+                        "totalOvertimeRate": {$sum: "$totalTimeoutRate"},
                         "totalInspectionRate": {$sum:"$totalInspectionRate"},
                     }
                 }

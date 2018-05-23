@@ -97,6 +97,7 @@ let dbSmsGroup = require('../db_modules/dbSmsGroup');
 let PLATFORM_PREFIX_SEPARATOR = '';
 let dbAutoProposal = require('../db_modules/dbAutoProposal');
 let dbDemoPlayer = require('../db_modules/dbDemoPlayer');
+let dbApiLog = require("../db_modules/dbApiLog");
 
 let dbPlayerInfo = {
 
@@ -669,6 +670,7 @@ let dbPlayerInfo = {
 
     createPlayerFromTel: (inputData) => {
         let platformObj, adminObjId;
+        let fbResult = {};
 
         if (!inputData.chatRecordContent) {
             return Promise.reject({name: "InputError", message: "Missing chat record content"})
@@ -715,9 +717,9 @@ let dbPlayerInfo = {
                     let csProm = dbconfig.collection_csOfficerUrl.find({way: inputData.promoMethod})
                         .populate({path: "admin", model: dbconfig.collection_admin}).lean();
                     let crResultProm = dbconfig.collection_playerFeedbackResult
-                        .findOne({value: inputData.chatRecordResult}).lean();
+                        .findOne({key: inputData.chatRecordResult}).lean();
                     let crTitleProm = dbconfig.collection_playerFeedbackTopic
-                        .findOne({value: inputData.chatRecordTopic}).lean();
+                        .findOne({value: inputData.chatRecordTitle}).lean();
 
                     return Promise.all([csProm, crResultProm, crTitleProm]);
                 } else {
@@ -732,7 +734,7 @@ let dbPlayerInfo = {
             promArr => {
                 if (promArr) {
                     let methods = promArr[0];
-                    let fbResult = promArr[1];
+                    fbResult = promArr[1];
                     let fbTitle = promArr[2];
 
                     if (!fbResult) {
@@ -815,9 +817,9 @@ let dbPlayerInfo = {
                         platform: data.platform,
                         adminId: adminObjId,
                         content: inputData.chatRecordContent,
-                        result: inputData.chatRecordResult,
-                        resultName: inputData.chatRecordResult,
-                        topic: inputData.chatRecordTopic
+                        result: fbResult.key,
+                        resultName: fbResult.value,
+                        topic: inputData.chatRecordTitle
                     };
 
                     dbPlayerFeedback.createPlayerFeedback(feedback).catch(errorUtils.reportError);
@@ -10099,7 +10101,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice) {
+    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice, userAgent) {
         let providerData = null;
         let playerData = null;
         let platform = null;
@@ -10369,6 +10371,8 @@ let dbPlayerInfo = {
                 if (playerData.isTestPlayer) {
                     return loginData;
                 }
+
+                dbApiLog.createProviderLoginActionLog(playerData._id, providerData._id, ip, clientDomainName, userAgent);
                 dbPlayerInfo.updatePlayerPlayedProvider(playerData._id, providerData._id).catch(errorUtils.reportError);
                 return {gameURL: loginData.gameURL};
             }
@@ -10419,7 +10423,7 @@ let dbPlayerInfo = {
                         clientType: clientType || 1
                     };
                     //var isHttp = providerData.interfaceType == 1 ? true : false;
-                    return cpmsAPI.player_getTestLoginURL(sendData);
+                   return cpmsAPI.player_getTestLoginURL(sendData);
                 } else {
                     return Q.reject({name: "DataError", message: "Cannot find game"})
                 }
