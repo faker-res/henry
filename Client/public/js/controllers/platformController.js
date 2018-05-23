@@ -14847,6 +14847,24 @@ define(['js/app'], function (myApp) {
                     sendQuery.registrationTime = {$gte: startTime, $lt: endTime};
                 }
 
+                let admins = [];
+
+                if (vm.playerFeedbackQuery.departments) {
+                    if (vm.playerFeedbackQuery.roles) {
+                        vm.queryRoles.map(e => {
+                            if (vm.playerFeedbackQuery.roles.indexOf(e._id) >= 0) {
+                                e.users.map(f => admins.push(f._id))
+                            }
+                        })
+                    } else {
+                        vm.queryRoles.map(e => e.users.map(f => admins.push(f._id)))
+                    }
+                }
+
+                if ( (vm.playerFeedbackQuery.admins && vm.playerFeedbackQuery.admins.length > 0) || admins.length) {
+                    sendQuery.csOfficer = vm.playerFeedbackQuery.admins && vm.playerFeedbackQuery.admins.length > 0 ? vm.playerFeedbackQuery.admins : admins;
+                }
+
                 $('#platformFeedbackSpin').show();
                 console.log('sendQuery', sendQuery);
                 vm.exportQuery = sendQuery;
@@ -15251,6 +15269,29 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.setQueryRole = (modal) => {
+                vm.queryRoles = [];
+
+                vm.queryDepartments.map(e => {
+                    if (modal.departments.indexOf(e._id) >= 0) {
+                        vm.queryRoles = vm.queryRoles.concat(e.roles);
+                    }
+                });
+                vm.refreshSPicker();
+                $scope.safeApply();
+            };
+
+            vm.setQueryAdmins = (modal) => {
+                vm.queryAdmins = [];
+
+                vm.queryRoles.map(e => {
+                    if (modal.roles.indexOf(e._id) >= 0) {
+                        vm.queryAdmins = vm.queryAdmins.concat(e.users);
+                    }
+                });
+                vm.refreshSPicker();
+                $scope.safeApply();
+            };
 
             vm.initPlayerFeedback = function () {
                 console.log("initPlayerFeedback");
@@ -15263,6 +15304,22 @@ define(['js/app'], function (myApp) {
                 vm.playerFeedbackQuery.lastAccess = "15-28";
                 setTimeout(
                     () => {
+                        let parentId;
+                        vm.queryDepartments = [];
+                        vm.queryRoles = [];
+
+                        vm.departments.map(e => {
+                            if (e.departmentName == vm.selectedPlatform.data.name) {
+                                vm.queryDepartments.push(e);
+                                parentId = e._id;
+                            }
+                        });
+
+                        vm.departments.map(e => {
+                            if (String(parentId) == String(e.parent)) {
+                                vm.queryDepartments.push(e);
+                            }
+                        });
                         vm.setupRemarksMultiInputFeedback();
                         vm.setupGameProviderMultiInputFeedback();
                     });
