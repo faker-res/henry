@@ -16256,14 +16256,14 @@ define(['js/app'], function (myApp) {
                                             'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
                                             'ng-click="vm.onClickPartnerCheck(\'' + row._id + '\', vm.openEditPartnerDialog, \'commissionInfo\');"></a>')
                                             .attr('data-row', JSON.stringify(row))
-                                            .text($translate(vm.commissionType[data]))
+                                            .text($translate(vm.commissionType[data]) || "-")
                                             .prop('outerHTML');
                                     } else {
                                         return $('<a style="z-index: auto" data-toggle="modal" data-container="body" ' +
                                             'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
                                             'ng-click="vm.onClickPartnerCheck(\'' + row._id + '\', vm.openEditPartnerDialog, \'commissionInfo\');"></a>')
                                             .attr('data-row', JSON.stringify(row))
-                                            .text($translate(vm.commissionType[data]))
+                                            .text($translate(vm.commissionType[data]) || "-")
                                             .prop('outerHTML');
                                     }
                                 } else {
