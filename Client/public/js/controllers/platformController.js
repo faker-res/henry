@@ -24300,6 +24300,10 @@ define(['js/app'], function (myApp) {
                             }
                         }
 
+                        if (partnerObjId) {
+                            vm.partnerCommission = commonService.applyPartnerCustomRate(partnerObjId, vm.partnerCommission, vm.customPartnerCommission);
+                        }
+
                         if (vm.partnerCommission.gameProviderGroup && vm.partnerCommission.gameProviderGroup.length > 0) {
                             vm.partnerCommission.gameProviderGroup.forEach(grp => {
                                 if (grp.showConfig && grp.showConfig.commissionSetting && grp.showConfig.commissionSetting.length > 0) {
@@ -24309,10 +24313,6 @@ define(['js/app'], function (myApp) {
                                     });
                                 }
                             });
-                        }
-
-                        if (partnerObjId) {
-                            vm.partnerCommission = commonService.applyPartnerCustomRate(partnerObjId, vm.partnerCommission, vm.customPartnerCommission);
                         }
                     })
                 });
@@ -24532,7 +24532,7 @@ define(['js/app'], function (myApp) {
 
                                 // Convert back commissionRate to percentage
                                 tempShowConfig.commissionSetting.forEach(e => {
-                                    e.commissionRate = parseFloat(e.commissionRate / 100).toFixed(4);
+                                    e.commissionRate = parseFloat((e.commissionRate / 100).toFixed(4));
                                 });
 
                                 if(tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
@@ -24627,7 +24627,7 @@ define(['js/app'], function (myApp) {
 
                 // Convert back commissionRate to percentage
                 newConfig.commissionSetting.forEach(e => {
-                    e.commissionRate = parseFloat(e.commissionRate / 100).toFixed(4);
+                    e.commissionRate = parseFloat((e.commissionRate / 100).toFixed(4));
                 });
 
                 // Check setting has changed or not

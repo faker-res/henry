@@ -193,7 +193,7 @@ define([], () => {
                             }
 
                             // Change to percentage format
-                            e.commissionRate = parseFloat((e.commissionRate * 100).toFixed(2));
+                            // e.commissionRate = parseFloat((e.commissionRate * 100).toFixed(2));
                         });
                     }
 
