@@ -196,12 +196,12 @@ var dbPlayerConsumptionRecord = {
             matchObj.$or = [{roundNo: data.roundNoOrPlayNo}, {playNo: data.roundNoOrPlayNo}];
         }
 
-        if(data.gameName){
-            matchObj.cpGameType = new RegExp('.*' + data.gameName + '.*', 'i');
+        if(data.cpGameType){
+            matchObj.cpGameType = new RegExp('.*' + data.cpGameType + '.*', 'i');
         }
 
         let playerProm;
-        
+
         if (playerName) {
             playerProm = dbconfig.collection_players.findOne({name: playerName}, {_id: 1}).lean();
         }

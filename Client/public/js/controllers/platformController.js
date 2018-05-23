@@ -5197,8 +5197,8 @@ define(['js/app'], function (myApp) {
                 if (vm.roundNoOrPlayNo) {
                     queryData.roundNoOrPlayNo = vm.roundNoOrPlayNo;
                 }
-                if (vm.gameName) {
-                    queryData.gameName = vm.gameName;
+                if (vm.cpGameType) {
+                    queryData.cpGameType = vm.cpGameType;
                 }
                 vm.providerExpenseTableLoading = true;
                 $scope.safeApply();
