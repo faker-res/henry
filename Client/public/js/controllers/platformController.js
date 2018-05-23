@@ -800,13 +800,37 @@ define(['js/app'], function (myApp) {
                 //     return;
                 // }
                 getProposalTypeByPlatformId(vm.selectedPlatform.id);
-                vm.rewardList = await commonService.getRewardList($scope, vm.selectedPlatform.id);
-                vm.promoTypeList = await commonService.getPromotionTypeList($scope, vm.selectedPlatform.id);
-                vm.allAlipaysAcc = await commonService.getAllAlipaysByAlipayGroup($scope, vm.selectedPlatform.data.platformId);
-                vm.allWechatpaysAcc = await commonService.getAllWechatpaysByWechatpayGroup($scope, vm.selectedPlatform.data.platformId);
-                vm.allBankTypeList = await commonService.getBankTypeList($scope);
-                vm.bankCards = await commonService.getAllBankCard($scope, $translate, vm.selectedPlatform.data.platformId, vm.allBankTypeList);
-                vm.allProviders = await commonService.getPlatformProvider($scope, vm.selectedPlatform.id);
+
+                // Zero dependencies variable
+                const preValue0 = await Promise.all([
+                    commonService.getRewardList($scope, vm.selectedPlatform.id),
+                    commonService.getPromotionTypeList($scope, vm.selectedPlatform.id),
+                    commonService.getAllAlipaysByAlipayGroup($scope, vm.selectedPlatform.data.platformId),
+                    commonService.getAllWechatpaysByWechatpayGroup($scope, vm.selectedPlatform.data.platformId),
+                    commonService.getBankTypeList($scope),
+                    commonService.getPlatformProvider($scope, vm.selectedPlatform.id),
+                    commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id),
+                    commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id),
+                    commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id)
+                ]);
+
+                vm.rewardList = preValue0[0];
+                vm.promoTypeList = preValue0[1];
+                vm.allAlipaysAcc = preValue0[2];
+                vm.allWechatpaysAcc = preValue0[3];
+                vm.allBankTypeList = preValue0[4];
+                vm.allProviders = preValue0[5];
+                vm.allRewardEvent = preValue0[6];
+                vm.rewardPointsAllEvent = preValue0[7];
+                vm.allPartnerCommSettPreview = preValue0[8];
+
+                // 1st dependencies variable
+                const preValue1 = await Promise.all([
+                    commonService.getAllBankCard($scope, $translate, vm.selectedPlatform.data.platformId, vm.allBankTypeList),
+                ]);
+
+                vm.bankCards = preValue1[0];
+
                 // check settlement buttons
                 let nowDate = new Date().toLocaleDateString();
                 let dailyDate = new Date(vm.selectedPlatform.data.lastDailySettlementTime).toLocaleDateString();
@@ -835,10 +859,6 @@ define(['js/app'], function (myApp) {
                     creditOperator: ">=",
                     playerType: 'Real Player (all)'
                 };
-
-                vm.getRewardEventsByPlatform();
-                vm.getRewardPointsEvent(vm.selectedPlatform.id);
-                vm.getAllPartnerCommSettPreview();
 
                 if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read'))
                     vm.getAdminNameByDepartment(vm.selectedPlatform.data.department);
@@ -1522,16 +1542,6 @@ define(['js/app'], function (myApp) {
                         }
                     )
                 }
-            };
-
-            vm.getAllPartnerCommSettPreview = () => {
-                $scope.$socketPromise("getAllPartnerCommSettPreview", {
-                    platformObjId: vm.selectedPlatform.id
-                }).then(
-                    previews => {
-                        $scope.$evalAsync(() => vm.allPartnerCommSettPreview = previews.data);
-                    }
-                );
             };
 
             vm.initSettlePartnerComm = (prev) => {
@@ -18811,14 +18821,6 @@ define(['js/app'], function (myApp) {
                 vm.getPlatformProviderGroup();
             };
 
-
-            vm.getRewardEventsByPlatform = function () {
-                socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform.id}, function (data) {
-                    vm.allRewardEvent = data.data;
-                    console.log("vm.allRewardEvent", data.data);
-                });
-            };
-
             vm.rewardEventClicked = function (i, v) {
                 if (!v) {
                     vm.platformRewardPageName = 'showReward';
@@ -21217,14 +21219,6 @@ define(['js/app'], function (myApp) {
                     });
                     $scope.safeApply();
                     vm.endLoadWeekDay();
-                });
-            };
-
-            vm.getRewardPointsEvent = (platformId) => {
-                return $scope.$socketPromise('getRewardPointsEvent', {platformObjId: platformId}).then((data) => {
-                    console.log('getRewardPointsEvent', data.data);
-                    vm.rewardPointsAllEvent = data.data;
-                    $scope.safeApply();
                 });
             };
 
