@@ -246,7 +246,7 @@ var dbPlayerConsumptionRecord = {
 
                 }
                 else{
-                    return Promise.all([[], 0, []]);
+                    return [[], 0, []];
                 }
             }
         ).then(result => {
