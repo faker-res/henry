@@ -32,7 +32,7 @@ var ConsumptionServiceImplement = function () {
         var isValidData = Boolean(data && data.userName && data.hasOwnProperty("platformId") && data.hasOwnProperty("providerId") && data.hasOwnProperty("gameId")
             && typeof data.amount === 'number' && data.amount >= 0 && typeof data.validAmount === 'number' && data.validAmount >= 0);
 
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionRecord.createExternalPlayerConsumptionRecord, [data], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionRecord.addMissingConsumption, [data], isValidData);
 
         // for (let i = 0; i < 100; i++) {
         //     WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionRecord.createExternalPlayerConsumptionRecord, [data], isValidData);
