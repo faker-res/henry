@@ -192,12 +192,11 @@ var dbPlayerConsumptionRecord = {
             matchObj.platformId = platformId;
         }
 
-        if (data.roundNoOrPlayNo) {
-            matchObj.$or = [{roundNo: data.roundNoOrPlayNo}, {playNo: data.roundNoOrPlayNo}];
-        }
 
-        if(data.cpGameType){
-            matchObj.cpGameType = new RegExp('.*' + data.cpGameType + '.*', 'i');
+        if (data.cpGameType) {
+            gameSearch = dbconfig.collection_game.find({name: new RegExp('.*' + data.cpGameType + '.*', 'i')}, {_id:1}).lean();
+        } else {
+            gameSearch = false;
         }
 
         let playerProm;
@@ -209,10 +208,13 @@ var dbPlayerConsumptionRecord = {
             playerProm = Promise.resolve('noData');
         }
 
-        return playerProm.then(
-            playerData => {
+        return Promise.all([playerProm, gameSearch]).then(
+            resData => {
 
-                if (playerData){
+                if (resData){
+
+                    let playerData = resData[0];
+                    let gameDataId = resData[1];
 
                     if (playerData !== 'noData') {
                         if (playerData) {
@@ -220,6 +222,31 @@ var dbPlayerConsumptionRecord = {
                         }
                         else {
                             return Promise.all([[], 0, []]);
+                        }
+                    }
+
+                    if (gameDataId){
+                        if(gameDataId.length == 0 && data.roundNoOrPlayNo) {
+                            matchObj.cpGameType = new RegExp('.*' + data.cpGameType + '.*', 'i');
+                            matchObj.$or = [{roundNo: data.roundNoOrPlayNo}, {playNo: data.roundNoOrPlayNo}];
+                        }
+                        else if(gameDataId.length > 0 && data.roundNoOrPlayNo){
+                            matchObj.$and = [{$or: [ {cpGameType: new RegExp('.*' + data.cpGameType + '.*', 'i')}, {gameId: {$in: gameDataId} }]},
+                                                {$or: [{roundNo: data.roundNoOrPlayNo}, {playNo: data.roundNoOrPlayNo}]}];
+                        }
+                        else if(gameDataId.length > 0 && !data.roundNoOrPlayNo) {
+                            matchObj.$or = [{cpGameType: new RegExp('.*' + data.cpGameType + '.*', 'i')}, {gameId: {$in: gameDataId}}]
+                        }
+                        else if(gameDataId.length == 0 && !data.roundNoOrPlayNo) {
+                            matchObj.cpGameType = new RegExp('.*' + data.cpGameType + '.*', 'i');
+                        }
+                        else{
+
+                        }
+                    }
+                    else{
+                        if(data.roundNoOrPlayNo){
+                            matchObj.$or = [{roundNo: data.roundNoOrPlayNo}, {playNo: data.roundNoOrPlayNo}];
                         }
                     }
 
