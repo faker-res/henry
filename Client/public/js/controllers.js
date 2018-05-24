@@ -522,7 +522,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         Counter: 3,
         AliPayTransfer: 4,
         weChatPayTransfer: 5,
-        CloudFlashPay: 6,
+        CloudFlashPay: 6
     };
 
     $scope.merchantTargetDeviceJson = {
