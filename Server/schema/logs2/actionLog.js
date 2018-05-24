@@ -3,6 +3,8 @@ var Schema = mongoose.Schema;
 
 // action log 会员登录记录
 var actionLogSchema = new Schema({
+    //platform
+    platform: {type: Schema.ObjectId, ref: 'platform', index: true},
     // playerId
     player: {type: Schema.ObjectId, ref: 'player', required: true, index: true},
     // action
@@ -23,7 +25,9 @@ var actionLogSchema = new Schema({
         device: {type: String},
     }],
     //domain name
-    domain: String
+    domain: String,
+    //input device that trigger this action log
+    inputDevice: Number
 
 });
 
