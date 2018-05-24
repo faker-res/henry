@@ -803,15 +803,15 @@ define(['js/app'], function (myApp) {
 
                 // Zero dependencies variable
                 const preValue0 = await Promise.all([
-                    commonService.getRewardList($scope, vm.selectedPlatform.id),
-                    commonService.getPromotionTypeList($scope, vm.selectedPlatform.id),
-                    commonService.getAllAlipaysByAlipayGroup($scope, vm.selectedPlatform.data.platformId),
-                    commonService.getAllWechatpaysByWechatpayGroup($scope, vm.selectedPlatform.data.platformId),
-                    commonService.getBankTypeList($scope),
-                    commonService.getPlatformProvider($scope, vm.selectedPlatform.id),
-                    commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id),
-                    commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id),
-                    commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id)
+                    commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getAllAlipaysByAlipayGroup($scope, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
+                    commonService.getAllWechatpaysByWechatpayGroup($scope, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
+                    commonService.getBankTypeList($scope).catch(err => Promise.resolve({})),
+                    commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
                 ]);
 
                 vm.rewardList = preValue0[0];
@@ -826,7 +826,7 @@ define(['js/app'], function (myApp) {
 
                 // 1st dependencies variable
                 const preValue1 = await Promise.all([
-                    commonService.getAllBankCard($scope, $translate, vm.selectedPlatform.data.platformId, vm.allBankTypeList),
+                    commonService.getAllBankCard($scope, $translate, vm.selectedPlatform.data.platformId, vm.allBankTypeList).catch(err => Promise.resolve([])),
                 ]);
 
                 vm.bankCards = preValue1[0];

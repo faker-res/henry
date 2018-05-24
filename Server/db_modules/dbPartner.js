@@ -26,6 +26,7 @@ let rsaCrypto = require("../modules/rsaCrypto");
 let dbutility = require("./../modules/dbutility");
 let dbPlayerMail = require("../db_modules/dbPlayerMail");
 var localization = require("../modules/localization");
+var serverInstance = require("../modules/serverInstance");
 let ObjectId = mongoose.Types.ObjectId;
 
 let env = require('../config/env').config();
@@ -566,13 +567,62 @@ let dbPartner = {
      * @param {String} query - Query string
      */
     getPartner: function (query) {
-        return dbconfig.collection_partner.findOne(query).populate({
+        var deferred = Q.defer();
+        var apiData = null;
+        dbconfig.collection_partner.findOne(query).populate({
             path: "level",
             model: dbconfig.collection_partnerLevel
         }).populate({
             path: "player",
             model: dbconfig.collection_players
-        }).lean();
+        }).lean().then(
+            function (data) {
+                if (data) {
+                    data.fullPhoneNumber = data.phoneNumber;
+                    data.phoneNumber = dbUtil.encodePhoneNum(data.phoneNumber);
+                    data.email = dbUtil.encodeEmail(data.email);
+                    if (data.bankAccount) {
+                        data.bankAccount = dbUtil.encodeBankAcc(data.bankAccount);
+                    }
+                    apiData = data;
+
+                    var a, b, c;
+
+                    a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({
+                        provinceId: apiData.bankAccountProvince,
+                        queryId: serverInstance.getQueryId()
+                    }) : true;
+                    b = apiData.bankAccountCity ? pmsAPI.foundation_getCity({
+                        cityId: apiData.bankAccountCity,
+                        queryId: serverInstance.getQueryId()
+                    }) : true;
+                    c = apiData.bankAccountDistrict ? pmsAPI.foundation_getDistrict({
+                        districtId: apiData.bankAccountDistrict,
+                        queryId: serverInstance.getQueryId()
+                    }) : true;
+
+                    return Q.all([a, b, c]);
+                }
+            }, function (err) {
+                deferred.reject({name: "DBError", message: "Error in getting partner data", error: err})
+            }
+        ).then(
+            zoneData => {
+                apiData.bankAccountProvinceId = apiData.bankAccountProvince;
+                apiData.bankAccountCityId = apiData.bankAccountCity;
+                apiData.bankAccountDistrictId = apiData.bankAccountDistrict;
+                if (zoneData && zoneData[0]) {
+                    apiData.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : apiData.bankAccountProvince;
+                    apiData.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : apiData.bankAccountCity;
+                    apiData.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : apiData.bankAccountDistrict;
+                }
+                deferred.resolve(apiData);
+            },
+            zoneError => {
+                deferred.resolve(apiData);
+            }
+        );
+        return deferred.promise;
     },
 
     /**
