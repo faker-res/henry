@@ -249,6 +249,12 @@ var partnerPostFindUpdate = function (result, bOne) {
             result.email = emailParts.join('@');
         }
 
+        if (!bOne && result && result.bankAccount) {
+            // var startIndex = Math.max(Math.floor((result.bankAccount.length - 4) / 2), 0);
+            // result.bankAccount = result.bankAccount.substr(0, startIndex) + "****" + result.bankAccount.substr(startIndex + 4);
+            result.bankAccount = dbUtil.encodeBankAcc(result.bankAccount);
+        }
+
         //hide last 4 digits for qq
         if (result && result.qq) {
             let qqIndex = Math.max(Math.floor((result.qq.length - 4) / 2), 0);
