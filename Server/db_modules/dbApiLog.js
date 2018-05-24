@@ -9,9 +9,8 @@ const mobileDetect = require('mobile-detect');
 
 let dbApiLog = {
     createApiLog: function (conn, wsFunc, actionResult, reqData) {
-        let playerObjId, actionName, ipAddress;
+        let playerObjId, actionName, ipAddress, platform;
         let geoIpProm = Promise.resolve();
-
         let actionToLog = [
             "player - create",
             "login",
@@ -36,6 +35,7 @@ let dbApiLog = {
 
         if (['login','create'].includes(wsFunc.name) &&  wsFunc._service.name === 'player') {
             playerObjId = actionResult._id;
+            platform = actionResult.platform;
         } else {
             playerObjId = conn.playerObjId;
         }
@@ -60,11 +60,13 @@ let dbApiLog = {
         }
 
         let logData = {
+            platform: platform,
             player: playerObjId,
             action: actionName,
             operationTime: new Date(),
             ipAddress: ipAddress
         };
+        logData.inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
 
         var uaString = conn.upgradeReq.headers['user-agent'];
         var ua = uaParser(uaString);
@@ -93,7 +95,7 @@ let dbApiLog = {
                     return ipArea;
                 })
         }
-
+        
         return Promise.all([geoIpProm]).then(
             result => {
                 if(result && result[0]){
@@ -117,23 +119,24 @@ let dbApiLog = {
                     console.error('actionResult',JSON.stringify(actionResult, null, 2));
                 }
             }
-        )
+        );
 
     },
 
-    createProviderLoginActionLog: function (playerObjId, providerId, ipAddress, domain, userAgent) {
+    createProviderLoginActionLog: function (platform, playerObjId, providerId, ipAddress, domain, userAgent, inputDevice) {
         let geoIpProm = Promise.resolve();
 
         let logData = {
+            platform: platform,
             player: playerObjId,
             action: "login",
             operationTime: new Date(),
             providerId: providerId,
             ipAddress: ipAddress,
             userAgent: userAgent,
-            domain: domain
+            domain: domain,
+            inputDevice: inputDevice
         };
-
 
         if(ipAddress && ipAddress != "undefined"){
             geoIpProm = dbUtility.getGeoIp(ipAddress).then(
@@ -195,12 +198,13 @@ let dbApiLog = {
         });
     },
 
-    getPlayerActionLog: function (playerObjId, playerName, startDate, endDate, ipAddress, action, index, limit, sortCol) {
+    getPlayerActionLog: function (platform, playerObjId, playerName, startDate, endDate, ipAddress, action, index, limit, sortCol) {
         index = index || 0;
         let count = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortCol = sortCol || {operationTime: -1};
 
         let query = {
+            platform: platform,
             operationTime: {
                 $gte: new Date(startDate),
                 $lt: new Date(endDate)
