@@ -1064,6 +1064,7 @@ let dbPlayerCreditTransfer = {
 
         return creditQuery.then(
             res => {
+                console.log("cpmsAPI.player_queryCredit return res",res);
                 if (res) {
                     providerPlayerObj = {gameCredit: res.credit ? parseFloat(res.credit) : 0};
 
@@ -1124,6 +1125,7 @@ let dbPlayerCreditTransfer = {
         let updateObj = {};
         return checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync).then(
             res => {
+                console.log("checkProviderGroupCredit return res",res);
                 if (res && res[0] && res[1]) {
                     amount = res[0];
                     updateObj = res[1];

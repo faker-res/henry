@@ -13994,6 +13994,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 let sendQuery = {
+                    platform: vm.selectedPlatform.id,
                     playerObjId: vm.selectedSinglePlayer && vm.selectedSinglePlayer._id || "",
                     playerName: vm.playerApiLog.playerName || "",
                     startDate: vm.playerApiLog.startDate.data('datetimepicker').getLocalDate(),
@@ -14022,7 +14023,6 @@ define(['js/app'], function (myApp) {
                             item.playerName = item.player.name;
                         }
 
-                        item.device = item.userAgent[0] && item.userAgent[0].device ? item.userAgent[0].device : "";
                         item.os = item.userAgent[0] && item.userAgent[0].os ? item.userAgent[0].os : "";
                         item.browser = item.userAgent[0] && item.userAgent[0].browser ? item.userAgent[0].browser : "";
                         item.ipArea$ = item.ipArea && item.ipArea.province && item.ipArea.city ? item.ipArea.province + "," + item.ipArea.city : "";
@@ -14052,7 +14052,17 @@ define(['js/app'], function (myApp) {
                         {title: $translate('Incident'), data: "action$"},
                         {title: $translate('PLAYER_NAME'), data: "playerName"},
                         {title: $translate('Operation Time'), data: "operationTime$"},
-                        {title: $translate('Device'), data: "device"},
+                        {
+                            title: $translate('Device'),
+                            data: "inputDevice",
+                            render: function (data, type, row) {
+                                for (let i = 0; i < Object.keys(vm.inputDevice).length; i++) {
+                                    if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == data) {
+                                        return $translate(Object.keys(vm.inputDevice)[i]);
+                                    }
+                                }
+                            }
+                        },
                         {title: $translate('IP_ADDRESS'), data: "ipAddress"},
                         {title: $translate('IP_AREA'), data: "ipArea$"},
                         {title: $translate('OS'), data: "os"},

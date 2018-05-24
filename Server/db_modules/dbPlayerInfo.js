@@ -10420,7 +10420,7 @@ let dbPlayerInfo = {
                     return loginData;
                 }
 
-                dbApiLog.createProviderLoginActionLog(playerData._id, providerData._id, ip, clientDomainName, userAgent);
+                dbApiLog.createProviderLoginActionLog(playerData.platform._id, playerData._id, providerData._id, ip, clientDomainName, userAgent, inputDevice);
                 dbPlayerInfo.updatePlayerPlayedProvider(playerData._id, providerData._id).catch(errorUtils.reportError);
                 return {gameURL: loginData.gameURL};
             }
