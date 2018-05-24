@@ -1071,7 +1071,6 @@ define(['js/app'], function (myApp) {
                         break;
                     case "Partner":
                         vm.partnerCommission = {};
-                        vm.getAllPartnerCommSettPreview();
                         vm.getCommissionRateGameProviderGroup();
                         vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
 
@@ -1494,7 +1493,11 @@ define(['js/app'], function (myApp) {
                     }
                 )
 
-                vm.getAllPartnerCommSettPreview();
+                commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id).then(
+                    previewData => {
+                        vm.allPartnerCommSettPreview = previewData;
+                    }
+                );
             };
 
             vm.generatePartnerCommSettPreview = (modeObj) => {
@@ -17533,7 +17536,7 @@ define(['js/app'], function (myApp) {
                         $scope.constPartnerCommissionSettlementType[vm.editPartner.commissionType],
                         selectedPartner._id
                     );
-                    vm.commissionRateConfig = JSON.parse(JSON.stringify(vm.srcCommissionRateConfig));
+                    vm.commissionRateConfig = jQuery.extend(true, {}, vm.srcCommissionRateConfig);
                     vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
 
                     let option = {

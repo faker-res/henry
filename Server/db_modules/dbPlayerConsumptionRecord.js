@@ -834,6 +834,7 @@ var dbPlayerConsumptionRecord = {
             function (error) {
                 console.error("updateExternalPlayerConsumptionRecord", error);
                 return resolveError ? Q.resolve(null) : Q.reject({
+                    code: error.code,
                     name: "DBError",
                     message: "Error in updating player consumption record",
                     error: error
@@ -900,7 +901,9 @@ var dbPlayerConsumptionRecord = {
                     );
                 } else {
                     const missingList = [];
+                    let code = constServerCode.COMMON_ERROR;
                     if (!data[0]) {
+                        code = constServerCode.NO_USER_FOUND;
                         missingList.push("playerId");
                     }
                     if (!data[1]) {
@@ -911,6 +914,7 @@ var dbPlayerConsumptionRecord = {
                     }
                     console.error("updateExternalPlayerConsumptionRecordData", "Could not find documents matching");
                     return resolveError ? Q.resolve(null) : Q.reject({
+                        code: code,
                         name: "DataError",
                         message: "Could not find documents matching: " + missingList.join(', '),
                         data: updateData
@@ -921,6 +925,7 @@ var dbPlayerConsumptionRecord = {
             function (error) {
                 console.error("updateExternalPlayerConsumptionRecordData", error);
                 return resolveError ? Q.resolve(null) : Q.reject({
+                    code: error.code,
                     name: "DBError",
                     message: "Error in updating player consumption record",
                     error: error,

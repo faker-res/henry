@@ -10342,7 +10342,7 @@ let dbPlayerInfo = {
 
                                                 return retData;
                                             }
-                                        ).then(transferCreditToProvider);
+                                        ).then(transferCreditToProvider, errorUtils.reportError);
                                     }
                                     //if it's ipm, don't use async here
                                     if (isFirstTransfer && (providerData && providerData.providerId != "51" && providerData.providerId != "57" && providerData.providerId != "70")) {
@@ -10354,7 +10354,7 @@ let dbPlayerInfo = {
                                     }
                                 } else {
                                     if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
-                                        return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true).then(transferCreditToProvider);
+                                        return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true).then(transferCreditToProvider, errorUtils.reportError);
                                     }
                                     else {
                                         return transferCreditToProvider({
