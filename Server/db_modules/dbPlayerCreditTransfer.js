@@ -1175,21 +1175,22 @@ let dbPlayerCreditTransfer = {
                             inProvider: false
                         }, {
                             new: true
-                        }).then(
-                            updatedRewardGroup => {
-                                // Check whether provider group has undergo operation
-                                if (updatedRewardGroup.status != constRewardTaskStatus.STARTED) {
-                                    // SYSTEM DEBUG LOG - RTG became no credit after credit change
-                                    if (updatedRewardGroup.status == constRewardTaskStatus.NO_CREDIT) {
-                                        console.log("ERROR - No credit after RTG credit change", playerObjId);
-                                    }
-
-                                    return dbRewardTask.completeRewardTaskGroup(updatedRewardGroup, updatedRewardGroup.status);
-                                }
-
-                                return true;
-                            }
-                        )
+                        })
+                        //     .then(
+                        //     updatedRewardGroup => {
+                        //         // Check whether provider group has undergo operation
+                        //         if (updatedRewardGroup.status != constRewardTaskStatus.STARTED) {
+                        //             // SYSTEM DEBUG LOG - RTG became no credit after credit change
+                        //             if (updatedRewardGroup.status == constRewardTaskStatus.NO_CREDIT) {
+                        //                 console.log("ERROR - No credit after RTG credit change", playerObjId);
+                        //             }
+                        //
+                        //             return dbRewardTask.completeRewardTaskGroup(updatedRewardGroup, updatedRewardGroup.status);
+                        //         }
+                        //
+                        //         return true;
+                        //     }
+                        // )
                     } else {
                         return true;
                     }
@@ -1394,7 +1395,7 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                     platformId: platform,
                     playerId: playerObjId,
                     providerGroup: gameProviderGroup._id,
-                    status: {$in: [constRewardTaskStatus.STARTED, constRewardTaskStatus.SYSTEM_UNLOCK]}
+                    status: {$in: [constRewardTaskStatus.STARTED]}
                 }).lean();
 
                 if (forSync) {
