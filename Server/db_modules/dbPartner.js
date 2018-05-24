@@ -1288,6 +1288,7 @@ let dbPartner = {
         var platformObjId = null;
         var partnerObj = null;
         let requireLogInCaptcha = null;
+        let retObj = {};
         return dbconfig.collection_platform.findOne({platformId: partnerData.platformId}).then(
             platformData => {
                 if (platformData) {
@@ -1426,6 +1427,35 @@ let dbPartner = {
                                 () => {
                                     data.platform.partnerRequireLogInCaptcha = requireLogInCaptcha;
                                     return data;
+                                }
+                            ).then(
+                                () => {
+                                    return dbconfig.collection_partner.findOne({_id: partnerObj._id}).populate({
+                                        path: "level",
+                                        model: dbconfig.collection_partnerLevel
+                                    }).populate({
+                                        path: "player",
+                                        model: dbconfig.collection_players
+                                    }).lean().then(
+                                        res => {
+                                            retObj = res;
+                                            let a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
+                                            let b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
+                                            let c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
+                                            return Q.all([a, b, c]);
+                                        }
+                                    ).then(
+                                        zoneData => {
+                                            retObj.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
+                                            retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
+                                            retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
+                                            retObj.platform.partnerRequireLogInCaptcha = requireLogInCaptcha;
+                                            return Q.resolve(retObj);
+                                        },
+                                        errorZone => {
+                                            return Q.resolve(retObj);
+                                        }
+                                    );
                                 }
                             );
                         },
