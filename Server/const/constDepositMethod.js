@@ -3,7 +3,8 @@ const constDepositMethod = {
     ATM: 2, //"Maintenance" //
     Counter: 3, //"Disable", //2
     AliPayTransfer: 4,
-    weChatPayTransfer: 5
+    weChatPayTransfer: 5,
+    CloudFlashPay: 6
 };
 
 module.exports = constDepositMethod;

@@ -30,7 +30,10 @@ define(['js/app'], function (myApp) {
         vm.getDepositMethodbyId = {
             1: 'Online',
             2: 'ATM',
-            3: 'Counter'
+            3: 'Counter',
+            4: 'AliPayTransfer',
+            5: 'weChatPayTransfer',
+            6: 'CloudFlashPay'
         };
 
         vm.seleDataType = {};
