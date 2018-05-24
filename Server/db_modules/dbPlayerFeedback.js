@@ -467,6 +467,16 @@ var dbPlayerFeedback = {
         if ("playerType" in query) {
             delete query.playerType;
         }
+
+        if (query.csOfficer && query.csOfficer.length) {
+            query.csOfficer.forEach(item => {
+                item = ObjectId(item);
+            });
+            query.csOfficer = {
+                $in: query.csOfficer
+            }
+        }
+
         let playerResult;
         let player = dbconfig.collection_players.find(query).skip(index).limit(1)
             .populate({path: "partner", model: dbconfig.collection_partner})
@@ -522,6 +532,16 @@ var dbPlayerFeedback = {
         if ("playerType" in query) {
             delete query.playerType;
         }
+
+        if (query.csOfficer && query.csOfficer.length) {
+            query.csOfficer.forEach(item => {
+                item = ObjectId(item);
+            });
+            query.csOfficer = {
+                $in: query.csOfficer
+            }
+        }
+
         let players = dbconfig.collection_players.find(query).skip(index).limit(limit)
             .populate({path: "partner", model: dbconfig.collection_partner})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})

@@ -189,6 +189,18 @@
                     span.add-on
                         i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
             .inlineBlk
+                label {{"REGISTRATION_DEPARTMENT"|translate}}
+                select.spicker.form-control(ng-model='vm.playerFeedbackQuery.departments', multiple, data-actions-box='true' ng-change="vm.setQueryRole(vm.playerFeedbackQuery)")
+                    option(ng-repeat='(i,v) in vm.queryDepartments', value='{{v._id}}' ng-init='$last && vm.refreshSPicker()') {{v.departmentName}}
+            .inlineBlk
+                label {{"REGISTRATION_ROLE"|translate}}
+                select.spicker.form-control(ng-model='vm.playerFeedbackQuery.roles', multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.playerFeedbackQuery)")
+                    option(ng-repeat='(i,v) in vm.queryRoles', value='{{v._id}}' ng-init='$last && vm.refreshSPicker()') {{v.roleName}}
+            .inlineBlk
+                label {{"REGISTRATION_ADMIN"|translate}}
+                select.spicker.form-control(ng-model='vm.playerFeedbackQuery.admins', multiple, data-actions-box='true')
+                    option(ng-repeat='(i,v) in vm.queryAdmins', value='{{v._id}}' ng-init='$last && vm.refreshSPicker()') {{v.adminName}}
+            .inlineBlk
                 button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="one";vm.submitPlayerFeedbackQuery(true);') {{"SEARCH_SINGLE" | translate}}
             .inlineBlk
                 button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="many";vm.submitPlayerFeedbackQuery(true);') {{"SEARCH_LIST" | translate}}

@@ -196,15 +196,9 @@ var dbPlayerConsumptionRecord = {
             matchObj.$or = [{roundNo: data.roundNoOrPlayNo}, {playNo: data.roundNoOrPlayNo}];
         }
 
-        if(data.gameName){
-            console.log("CHECKING---1", data.gameName)
-            console.log("CHECKING---2", {name: new RegExp('.*' + data.gameName + '.*', 'i')})
-            gameSearch = dbconfig.collection_game.find({name: new RegExp('.*' + data.gameName + '.*', 'i')}).lean();
+        if(data.cpGameType){
+            matchObj.cpGameType = new RegExp('.*' + data.cpGameType + '.*', 'i');
         }
-        else{
-            gameSearch = false;
-        }
-
 
         let playerProm;
 
@@ -215,15 +209,10 @@ var dbPlayerConsumptionRecord = {
             playerProm = Promise.resolve('noData');
         }
 
-        return Promise.all([playerProm,gameSearch]).then(
-            resData => {
+        return playerProm.then(
+            playerData => {
 
-                if (resData && resData.length == 2){
-                    let playerData = resData[0];
-                    let gameData = resData[1];
-
-                    let gamesId = [];
-
+                if (playerData){
 
                     if (playerData !== 'noData') {
                         if (playerData) {
@@ -231,20 +220,6 @@ var dbPlayerConsumptionRecord = {
                         }
                         else {
                             return Promise.all([[], 0, []]);
-                        }
-                    }
-
-                    if (gameData){
-                        for (let i = 0; i < gameData.length; i++) {
-                            gamesId.push(ObjectId(gameData[i]._id));
-                        }
-
-                        console.log("CHECKING---3", gamesId)
-
-                        if (gamesId && gamesId.length > 0) {
-                            matchObj.gameId = {
-                                $in: gamesId
-                            }
                         }
                     }
 
@@ -859,6 +834,7 @@ var dbPlayerConsumptionRecord = {
             function (error) {
                 console.error("updateExternalPlayerConsumptionRecord", error);
                 return resolveError ? Q.resolve(null) : Q.reject({
+                    code: error.code,
                     name: "DBError",
                     message: "Error in updating player consumption record",
                     error: error
@@ -925,7 +901,9 @@ var dbPlayerConsumptionRecord = {
                     );
                 } else {
                     const missingList = [];
+                    let code = constServerCode.COMMON_ERROR;
                     if (!data[0]) {
+                        code = constServerCode.NO_USER_FOUND;
                         missingList.push("playerId");
                     }
                     if (!data[1]) {
@@ -936,6 +914,7 @@ var dbPlayerConsumptionRecord = {
                     }
                     console.error("updateExternalPlayerConsumptionRecordData", "Could not find documents matching");
                     return resolveError ? Q.resolve(null) : Q.reject({
+                        code: code,
                         name: "DataError",
                         message: "Could not find documents matching: " + missingList.join(', '),
                         data: updateData
@@ -946,6 +925,7 @@ var dbPlayerConsumptionRecord = {
             function (error) {
                 console.error("updateExternalPlayerConsumptionRecordData", error);
                 return resolveError ? Q.resolve(null) : Q.reject({
+                    code: error.code,
                     name: "DBError",
                     message: "Error in updating player consumption record",
                     error: error,

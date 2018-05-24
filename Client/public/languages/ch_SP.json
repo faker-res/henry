@@ -181,6 +181,7 @@
   "alipayTransaction": "个人支付宝",
   "AliPayTransfer": "支付宝转账",
   "weChatPayTransfer": "微信转帐",
+  "CloudFlashPay": "云闪付",
   "CREATE_GROUP": "创建组",
   "SAVE_AS_NEW_GROUP": "另存为新组",
   "UPDATE_GROUP": "更新组",
@@ -740,6 +741,7 @@
   "TOPUP_MONEY": "充值货币",
   "FINISH_TIME": "完成时间",
   "IP_ADDRESS": "IP地址",
+  "IP_AREA": "IP对应区域",
   "CLOSE_FILTER_CONTENT": "关闭过滤内容",
   "Confirm Partner Level Change": "确认代理级别变化",
   "The level of": "这个代理 ",
@@ -3750,6 +3752,10 @@
   "Resummarize": "重新收录",
   "CANCEL PREVIEW": "取消本期预览",
   "In Preview": "预览中",
-  "Cannot preview, setting is incomplete": "无法提交预览， 尚未完成代理提成设置"
+  "Login to main site": "登入主站",
+  "LOGIN": "登入",
+  "Player Name (Can be empty)": "会员帐号（可不输入）",
+  "Cannot preview, setting is incomplete": "无法提交预览， 尚未完成代理提成设置",
+  "PlayerApiLog": "玩家事件记录"
 
 }

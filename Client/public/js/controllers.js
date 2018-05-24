@@ -336,9 +336,12 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
             //select platform from cookies data
             // let storedPlatform = $cookies.get("platform");
-            let storedPlatform = $cookies.get(authService.cookiePlatformKey);
+            let storedPlatform = $cookies.get('platform');
             if (storedPlatform) {
                 $scope.searchAndSelectPlatform(storedPlatform, option);
+            } else {
+                $cookies.put('platform', $scope.allPlatformData[0].name);
+                $scope.searchAndSelectPlatform($scope.allPlatformData[0].name, option);
             }
 
         }, function (err) {
