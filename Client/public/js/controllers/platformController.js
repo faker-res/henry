@@ -1071,7 +1071,6 @@ define(['js/app'], function (myApp) {
                         break;
                     case "Partner":
                         vm.partnerCommission = {};
-                        vm.getAllPartnerCommSettPreview();
                         vm.getCommissionRateGameProviderGroup();
                         vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
 
@@ -1494,7 +1493,11 @@ define(['js/app'], function (myApp) {
                     }
                 )
 
-                vm.getAllPartnerCommSettPreview();
+                commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id).then(
+                    previewData => {
+                        vm.allPartnerCommSettPreview = previewData;
+                    }
+                );
             };
 
             vm.generatePartnerCommSettPreview = (modeObj) => {
