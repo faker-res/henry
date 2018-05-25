@@ -157,6 +157,13 @@ var PartnerServiceImplement = function () {
                 conn.noOfAttempt = 0;
                 var profile = {name: partnerData.name, password: partnerData.password};
                 var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+                partnerData.phoneNumber = dbUtility.encodePhoneNum(partnerData.phoneNumber);
+                partnerData.email = dbUtility.encodeEmail(partnerData.email);
+                if (partnerData.bankAccount) {
+                    partnerData.bankAccount = dbUtility.encodeBankAcc(partnerData.bankAccount);
+                }
+
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
                     data: partnerData,

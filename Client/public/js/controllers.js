@@ -513,7 +513,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         2: "自动取款机(ATM)",
         3: "银行柜台(Counter)",
         4: "支付宝转账(AliPay Transfer)",
-        5: "微信转帐(WeChatPay Transfer)"
+        5: "微信转帐(WeChatPay Transfer)",
+        6: "云闪付(CloudFlashPay)"
     };
 
     $scope.depositMethodList = {
