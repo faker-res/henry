@@ -9,6 +9,8 @@ var fs = require('fs')
     , msg
     ;
 
+let oldKey, oldCert;
+
 function getPrivateKey () {
     return new Promise((resolve) => {
         let url = "http://" + env.redisUrl + ":" + env.redisPort + "/playerPhone.key.pem";
@@ -47,9 +49,12 @@ function getPublicKey () {
     });
 }
 
+oldKey = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
+oldCert = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
+
 if (env.mode === "local") {
-    key = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
-    crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
+    key = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/newKey.key.pem'));
+    crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/newKey.pub'));
 } else {
     // Ready for splitting ssl server
     if (!key) {
@@ -67,7 +72,9 @@ if (env.mode === "local") {
 
 module.exports = {
     encrypt: (msg) => key.privateEncrypt(msg, 'utf8', 'base64'),
-    decrypt: (msg) => crt.publicDecrypt(msg, 'base64', 'utf8')
+    decrypt: (msg) => crt.publicDecrypt(msg, 'base64', 'utf8'),
+    oldEncrypt: (msg) => oldKey.privateEncrypt(msg, 'utf8', 'base64'),
+    oldDecrypt: (msg) => oldCert.publicDecrypt(msg, 'base64', 'utf8')
 };
 
 // test code
