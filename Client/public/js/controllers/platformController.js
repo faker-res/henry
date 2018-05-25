@@ -24751,7 +24751,7 @@ define(['js/app'], function (myApp) {
             vm.customizeCommissionRate = (idx, setting, newConfig, oldConfig, isRevert = false) => {
                 if (isRevert) {
                     let customCount = newConfig.commissionSetting.filter(e => e.isCustomized).length;
-                    newConfig.commissionSetting[idx].commissionRate = oldConfig.commissionSetting[idx].commissionRate;
+                    newConfig.commissionSetting[idx].commissionRate = parseFloat((oldConfig.commissionSetting[idx].commissionRate * 100).toFixed(2));
                     isRevert = --customCount === 0;
                 }
 
