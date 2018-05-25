@@ -7394,7 +7394,8 @@ let dbPartner = {
                 output.totalWithdrawalFee = commissionDetail.totalWithdrawalFee;
                 output.totalBonusFee = commissionDetail.totalRewardFee;
                 output.totalProviderFee = commissionDetail.totalPlatformFee;
-                output.totalCommission = commissionDetail.nettCommission;
+                // output.totalCommission = commissionDetail.nettCommission;
+                output.totalCommission = 0;
                 output.list = [];
 
                 if (commissionDetail.rawCommissions && commissionDetail.rawCommissions.length) {
@@ -7405,6 +7406,9 @@ let dbPartner = {
                             providerGroupCommission: providerCommission.amount,
                             providerGroupFee: providerCommission.platformFee,
                         })
+                        if (providerCommission.amount) {
+                            output.totalCommission += providerCommission.amount;
+                        }
                     })
                 }
 
