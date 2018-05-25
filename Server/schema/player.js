@@ -13,7 +13,7 @@ var playerSchema = new Schema({
     //player id
     playerId: {type: String, index: true},
     //player display name
-    name: {type: String, required: true},
+    name: {type: String, required: true, index: true},
     //player nick name
     nickName: {type: String},
     //player email
@@ -173,7 +173,7 @@ var playerSchema = new Schema({
     //current credit balance
     creditBalance: {type: Number, min: 0, default: 0},
     //valid credit
-    validCredit: {type: Number, min: 0, default: 0},
+    validCredit: {type: Number, min: 0, default: 0, index: true},
     //locked credit
     lockedCredit: {type: Number, min: 0, default: 0},
     //daily top up sum for level up check
@@ -249,13 +249,13 @@ var playerSchema = new Schema({
     //internet banking
     internetBanking: {type: String},
     //bank card group
-    bankCardGroup: {type: Schema.ObjectId, ref: 'platformBankCardGroup'},
+    bankCardGroup: {type: Schema.ObjectId, ref: 'platformBankCardGroup', index: true},
     //merchant group
-    merchantGroup: {type: Schema.ObjectId, ref: 'platformMerchantGroup'},
+    merchantGroup: {type: Schema.ObjectId, ref: 'platformMerchantGroup', index: true},
     //ali pay group
-    alipayGroup: {type: Schema.ObjectId, ref: 'platformAlipayGroup'},
+    alipayGroup: {type: Schema.ObjectId, ref: 'platformAlipayGroup', index: true},
     //wechat pay group
-    wechatPayGroup: {type: Schema.ObjectId, ref: 'platformWechatPayGroup'},
+    wechatPayGroup: {type: Schema.ObjectId, ref: 'platformWechatPayGroup', index: true},
     //quickPay group
     quickPayGroup: {type: Schema.ObjectId, ref: 'platformQuickPayGroup'},
     //forbid top up types
