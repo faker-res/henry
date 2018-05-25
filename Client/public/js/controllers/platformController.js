@@ -16001,6 +16001,14 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.refreshPartnerBankInfo = function () {
+                if (vm.selectedSinglePartner && vm.selectedSinglePartner._id) {
+                    vm.getProvince(vm.currentProvince.province);
+                    vm.getCity(vm.currentCity.city);
+                    vm.getDistrict(vm.currentDistrict.district);
+                }
+            }
+
             vm.getPartnersByAdvanceQueryDebounced = $scope.debounceSearch(function (partnerQuery) {
                 utilService.hideAllPopoversExcept();
                 vm.advancedPartnerQueryObj = $.extend({}, vm.advancedPartnerQueryObj, partnerQuery);
@@ -17239,10 +17247,10 @@ define(['js/app'], function (myApp) {
                 $('#modalActivePartnerInfo').modal().show();
             };
 
-            vm.getProvince = function () {
+            vm.getProvince = function (curProvince) {
                 vm.showProvinceStr = '';
-                let province = vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountProvince ? vm.selectedSinglePartner.bankAccountProvince : '';
-                $scope.getProvinceStr(vm.selectedSinglePartner.bankAccountProvince).then(data => {
+                let province = curProvince ? curProvince : vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountProvince ? vm.selectedSinglePartner.bankAccountProvince : '';
+                $scope.getProvinceStr(province).then(data => {
                     vm.showProvinceStr = data.data.province ? data.data.province.name : province;
                     $scope.safeApply();
                 }, err => {
@@ -17251,9 +17259,9 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.getCity = function () {
+            vm.getCity = function (curCity) {
                 vm.showCityStr = '';
-                let city = vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountCity ? vm.selectedSinglePartner.bankAccountCity : '';
+                let city = curCity ? curCity : vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountCity ? vm.selectedSinglePartner.bankAccountCity : '';
                 $scope.getCityStr(city).then(data => {
                     vm.showCityStr = data.data.city ? data.data.city.name : city;
                     $scope.safeApply();
@@ -17263,9 +17271,9 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.getDistrict = function () {
+            vm.getDistrict = function (curDistrict) {
                 vm.showDistrictStr = '';
-                let district = vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountDistrict ? vm.selectedSinglePartner.bankAccountDistrict : '';
+                let district = curDistrict ? curDistrict : vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountDistrict ? vm.selectedSinglePartner.bankAccountDistrict : '';
                 $scope.getDistrictStr(district).then(data => {
                     vm.showDistrictStr = data.data.district ? data.data.district.name : district;
                     $scope.safeApply();
@@ -17676,7 +17684,7 @@ define(['js/app'], function (myApp) {
                     vm.isEditingPartnerPaymentShowVerify = false;
                     vm.partnerPayment = utilService.assignObjKeys(vm.isOneSelectedPartner(), vm.partnerPaymentKeys);
                     vm.partnerPayment.bankAccountName = (vm.partnerPayment.bankAccountName) ? vm.partnerPayment.bankAccountName : vm.isOneSelectedPartner().realName;
-                    vm.partnerPayment.newBankAccount = vm.partnerPayment.bankAccount;
+                    vm.partnerPayment.newBankAccount = vm.partnerPayment.encodedBankAccount;
                     vm.partnerPayment.showNewAccountNo = false;
                     vm.filteredBankTypeList = $.extend({}, vm.allBankTypeList);
                     vm.filterBankName = '';
@@ -17813,6 +17821,24 @@ define(['js/app'], function (myApp) {
             };
 
             vm.updatePartnerPayment = function () {
+                if (vm.currentDistrict && Object.keys(vm.currentDistrict).length) {
+                    if (vm.partnerPayment && vm.partnerPayment.bankAccountDistrict) {
+                        vm.partnerPayment.bankAccountDistrict = vm.currentDistrict.district;
+                    }
+                }
+
+                if (vm.currentCity && Object.keys(vm.currentCity).length) {
+                    if (vm.partnerPayment && vm.partnerPayment.bankAccountCity) {
+                        vm.partnerPayment.bankAccountCity = vm.currentCity.city;
+                    }
+                }
+
+                if (vm.currentProvince && Object.keys(vm.currentProvince).length) {
+                    if (vm.partnerPayment && vm.partnerPayment.bankAccountProvince) {
+                        vm.partnerPayment.bankAccountProvince = vm.currentProvince.province;
+                    }
+                }
+
                 console.log('before after', vm.selectedSinglePartner, vm.partnerPayment);
 
                 delete vm.partnerPayment.verifyBankAccount;
@@ -17827,20 +17853,32 @@ define(['js/app'], function (myApp) {
                         partnerName: vm.selectedSinglePartner.partnerName,
                         _id: vm.selectedSinglePartner._id,
                         partnerId: vm.selectedSinglePartner.partnerId,
+                        bankAccount: vm.partnerPayment.bankAccount,
+                        bankAccountName: vm.partnerPayment.bankAccountName,
+                        bankName: vm.partnerPayment.bankName,
+                        bankAccountType: vm.partnerPayment.bankAccountType,
                         bankAccountProvince: vm.currentProvince.province,
                         bankAccountCity: vm.currentCity.city,
                         bankAccountDistrict: vm.currentDistrict.district,
-                        bankAddress: vm.selectedSinglePartner.bankAddress,
-                        bankAccountName: vm.selectedSinglePartner.bankAddress,
-                        bankName: vm.selectedSinglePartner.bankName,
+                        bankAddress: vm.partnerPayment.bankAddress,
                         curData: result.before,
                         updateData: result.after
                     }
                 }
 
-                if (sendData.data && sendData.data.updateData && sendData.data.updateData.newBankAccount) {
+                if (sendData.data && sendData.data.updateData && sendData.data.updateData.newBankAccount && vm.selectedSinglePartner && vm.selectedSinglePartner.encodedBankAccount
+                    && (sendData.data.updateData.newBankAccount != vm.selectedSinglePartner.encodedBankAccount)) {
+                    sendData.data.bankAccount = sendData.data.updateData.newBankAccount;
+                    sendData.data.updateData.bankAccount = sendData.data.updateData.newBankAccount;
+                    sendData.data.curData.bankAccount = vm.selectedSinglePartner.bankAccount;
+                } else if (!vm.selectedSinglePartner.encodedBankAccount) {
                     sendData.data.bankAccount = sendData.data.updateData.newBankAccount;
                 }
+
+                delete sendData.data.curData.newBankAccount;
+                delete sendData.data.curData.showNewAccountNo;
+                delete sendData.data.updateData.newBankAccount;
+                delete sendData.data.updateData.showNewAccountNo;
 
                 console.log('sendData', sendData);
 
@@ -17850,6 +17888,7 @@ define(['js/app'], function (myApp) {
                         socketService.showProposalStepInfo(data.data.stepInfo, $translate);
                     }
                     vm.getPlatformPartnersData();
+                    vm.refreshPartnerBankInfo();
                     $scope.safeApply();
                 });
             };
