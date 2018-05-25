@@ -9,10 +9,6 @@ var fs = require('fs')
     , msg
     ;
 
-// key = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
-// crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
-
-// Ready for splitting ssl server
 function getPrivateKey () {
     return new Promise((resolve) => {
         let url = "http://" + env.redisUrl + ":" + env.redisPort + "/playerPhone.key.pem";
@@ -51,16 +47,22 @@ function getPublicKey () {
     });
 }
 
-if (!key) {
-    getPrivateKey().then(data => {
-        key = ursa.createPrivateKey(data)
-    })
-}
+if (env.mode === "local") {
+    key = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
+    crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
+} else {
+    // Ready for splitting ssl server
+    if (!key) {
+        getPrivateKey().then(data => {
+            key = ursa.createPrivateKey(data)
+        })
+    }
 
-if (!crt) {
-    getPublicKey().then(data => {
-        crt = ursa.createPublicKey(data)
-    })
+    if (!crt) {
+        getPublicKey().then(data => {
+            crt = ursa.createPublicKey(data)
+        })
+    }
 }
 
 module.exports = {
