@@ -441,7 +441,8 @@ define(['js/app'], function (myApp) {
                 2: 'ATM',
                 3: 'Counter',
                 4: 'AliPayTransfer',
-                5: 'weChatPayTransfer'
+                5: 'weChatPayTransfer',
+                6: 'CloudFlashPay'
             };
 
             vm.commissionType = {
@@ -2416,6 +2417,39 @@ define(['js/app'], function (myApp) {
                         {'title': $translate('PLAYER_NAME'), data: 'name'},
                         // {'title': $translate('PLAYERID'), data: 'playerId'},
                         {'title': $translate('realName'), sClass: "wordWrap realNameCell", data: 'realName'},
+                        {
+                            title: $translate("CREDIBILITY"),
+                            data: "credibilityRemarks",
+                            advSearch: false,
+                            orderable: false,
+                            sClass: "remarkCol",
+                            render: (data, type, row) => {
+                                let emptyOutput = "-";
+                                if (!data || data.length === 0) {
+                                    return emptyOutput;
+                                }
+
+                                let output = "";
+                                let remarkMatches = false;
+                                data.map(function (remarkId) {
+                                    for (let i = 0; i < vm.credibilityRemarks.length; i++) {
+                                        if (vm.credibilityRemarks[i]._id === remarkId) {
+                                            if (output) {
+                                                output += "<br>";
+                                            }
+                                            output += vm.credibilityRemarks[i].name;
+                                            remarkMatches = true;
+                                        }
+                                    }
+                                });
+
+                                if (remarkMatches) {
+                                    return output;
+                                } else {
+                                    return emptyOutput;
+                                }
+                            }
+                        },
                         {'title': $translate('playerLevel'), data: 'playerLevel.name'},
                         {'title': $translate('LOGIN_TIMES'), data: 'loginTimes'},
                         {'title': $translate('topUpTimes'), data: 'topUpTimes', bSortable: true},

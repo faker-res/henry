@@ -946,6 +946,7 @@ define(['js/app'], function (myApp) {
                     }
                 ],
                 sScrollY: false,
+                searching: false,
                 "destroy": true,
                 "paging": false,
             });
@@ -1035,9 +1036,10 @@ define(['js/app'], function (myApp) {
             }
             socketService.$socket($scope.AppSocket, 'addPlayersToBankCardGroup', sendData, function (data) {
                 vm.getPlatformPlayersData();
+                vm.playerToGroupFilter(false, false, vm.curPlayerTableId);
                 $scope.safeApply();
             });
-        }
+        };
 
         vm.submitAddAllPlayersToBankCardGroup = function () {
             let sendData = {
@@ -1408,10 +1410,10 @@ define(['js/app'], function (myApp) {
                 playerObjIds: playerArr
             }
             socketService.$socket($scope.AppSocket, 'addPlayersToMerchantGroup', sendData, function (data) {
-                // vm.getPlatformPlayersData();
+                vm.playerToGroupFilter(false, false, vm.curPlayerTableId);
                 $scope.safeApply();
             });
-        }
+        };
 
         vm.submitAddAllPlayersToMerchantGroup = function () {
             let sendData = {
@@ -1740,9 +1742,10 @@ define(['js/app'], function (myApp) {
             }
             socketService.$socket($scope.AppSocket, 'addPlayersToAlipayGroup', sendData, function (data) {
                 // vm.getPlatformPlayersData();
+                vm.playerToGroupFilter(false, false, vm.curPlayerTableId);
                 $scope.safeApply();
             });
-        }
+        };
         vm.submitAddAllPlayersToAlipayGroup = function () {
             let sendData = {
                 bankAlipayGroupObjId: vm.SelectedAlipayGroupNode._id,
@@ -2253,6 +2256,7 @@ define(['js/app'], function (myApp) {
             };
 
             socketService.$socket($scope.AppSocket, 'addPlayersToWechatPayGroup', sendData, function (data) {
+                vm.playerToGroupFilter(false, false, vm.curPlayerTableId);
                 $scope.safeApply();
             });
         };
