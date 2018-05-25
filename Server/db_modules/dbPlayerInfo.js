@@ -2769,6 +2769,7 @@ let dbPlayerInfo = {
                         }
                     ]
 
+                    delete queryObject.$or;
                 }  else {
                     queryObject.$or = [
                         {isDuplicate: {$exists: false}},
