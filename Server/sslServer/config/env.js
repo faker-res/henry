@@ -15,7 +15,7 @@ var devConfig = {
 //for release production
 var prodConfig = {
     mode: "production",
-    redisUrl : 'key.fpms8.me',
+    redisUrl : 'testkey.fpms8.me',
     redisPort : '1703',
 };
 
