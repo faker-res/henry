@@ -2751,6 +2751,35 @@ let dbPlayerInfo = {
                 if (query.dirty != null) {
                     queryObject.bDirty = query.dirty;
                 }
+
+                if (queryObject && queryObject.$or) {
+                    queryObject.$and = [{
+                        $or: [
+                            {isDuplicate: {$exists: false}},
+                            {
+                                $and: [
+                                    {isDuplicate: {$exists: true}},
+                                    {isDuplicate: false}
+                                ]
+                            }
+                        ]
+                    },
+                        {
+                            $or: queryObject.$or
+                        }
+                    ]
+
+                }  else {
+                    queryObject.$or = [
+                        {isDuplicate: {$exists: false}},
+                        {
+                            $and: [
+                                {isDuplicate: {$exists: true}},
+                                {isDuplicate: false}
+                            ]
+                        }
+                    ]
+                }
                 
                 var a = dbconfig.collection_playerConsumptionRecord
                     .find(queryObject).sort(sortCol).skip(index).limit(limit)
@@ -13650,7 +13679,16 @@ let dbPlayerInfo = {
                 createTime: {
                     $gte: new Date(startTime),
                     $lte: new Date(endTime)
-                }
+                },
+                $or: [
+                    {isDuplicate: {$exists: false}},
+                    {
+                        $and: [
+                            {isDuplicate: {$exists: true}},
+                            {isDuplicate: false}
+                        ]
+                    }
+                ]
             };
 
             query.providerId ? consumptionPromMatchObj.providerId = ObjectId(query.providerId) : false;
