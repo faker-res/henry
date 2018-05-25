@@ -6,7 +6,6 @@ const rsaCrypto = require("../modules/rsaCrypto");
 dbconfig.collection_platform.findOne({name: "EU8"}).lean().then(
     platformData => {
         if (platformData) {
-            console.log('start re-encrypt', platformData.name);
             const cursor = dbconfig.collection_players.find({platform: platformData._id}).cursor();
             var i = 0;
             cursor.eachAsync(
