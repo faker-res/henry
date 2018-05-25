@@ -76,8 +76,8 @@ crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'
 module.exports = {
     encrypt: (msg) => key.privateEncrypt(msg, 'utf8', 'base64'),
     decrypt: (msg) => crt.publicDecrypt(msg, 'base64', 'utf8'),
-    oldEncrypt: (msg) => oldKey.privateEncrypt(msg, 'utf8', 'base64'),
-    oldDecrypt: (msg) => oldCert.publicDecrypt(msg, 'base64', 'utf8')
+    // oldEncrypt: (msg) => oldKey.privateEncrypt(msg, 'utf8', 'base64'),
+    // oldDecrypt: (msg) => oldCert.publicDecrypt(msg, 'base64', 'utf8')
 };
 
 // test code
