@@ -11,8 +11,9 @@ var fs = require('fs')
 
 key = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
 crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
-
-// Ready for splitting ssl server
+//
+// let oldKey, oldCert;
+//
 // function getPrivateKey () {
 //     return new Promise((resolve) => {
 //         let url = "http://" + env.redisUrl + ":" + env.redisPort + "/playerPhone.key.pem";
@@ -51,21 +52,34 @@ crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'
 //     });
 // }
 //
-// if (!key) {
-//     getPrivateKey().then(data => {
-//         key = ursa.createPrivateKey(data)
-//     })
+// oldKey = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
+// oldCert = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
+//
+// if (env.mode === "local") {
+//     key = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
+//     crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
+// } else {
+//     // Ready for splitting ssl server
+//     if (!key) {
+//         getPrivateKey().then(data => {
+//             console.log('getPrivateKey data', data);
+//             key = ursa.createPrivateKey(data)
+//         })
+//     }
+//
+//     if (!crt) {
+//         getPublicKey().then(data => {
+//             console.log('getPublicKey data', data);
+//             crt = ursa.createPublicKey(data)
+//         })
+//     }
 // }
 //
-// if (!crt) {
-//     getPublicKey().then(data => {
-//         crt = ursa.createPublicKey(data)
-//     })
-// }
-
 module.exports = {
     encrypt: (msg) => key.privateEncrypt(msg, 'utf8', 'base64'),
-    decrypt: (msg) => crt.publicDecrypt(msg, 'base64', 'utf8')
+    decrypt: (msg) => crt.publicDecrypt(msg, 'base64', 'utf8'),
+    // oldEncrypt: (msg) => oldKey.privateEncrypt(msg, 'utf8', 'base64'),
+    // oldDecrypt: (msg) => oldCert.publicDecrypt(msg, 'base64', 'utf8')
 };
 
 // test code
