@@ -62,12 +62,14 @@ if (env.mode === "local") {
     // Ready for splitting ssl server
     if (!key) {
         getPrivateKey().then(data => {
+            console.log('getPrivateKey data', data);
             key = ursa.createPrivateKey(data)
         })
     }
 
     if (!crt) {
         getPublicKey().then(data => {
+            console.log('getPublicKey data', data);
             crt = ursa.createPublicKey(data)
         })
     }
