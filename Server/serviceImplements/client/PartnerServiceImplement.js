@@ -126,7 +126,9 @@ var PartnerServiceImplement = function () {
         data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            data.lastLoginIp = forwardedIp[0].trim();
+            if(forwardedIp[0].trim() !== "undefined"){
+                data.lastLoginIp = forwardedIp[0].trim();
+            }
         }
         var uaString = conn.upgradeReq.headers['user-agent'];
         var ua = uaParser(uaString);
