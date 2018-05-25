@@ -53,8 +53,8 @@ oldKey = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.
 oldCert = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
 
 if (env.mode === "local") {
-    key = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/newKey.key.pem'));
-    crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/newKey.pub'));
+    key = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
+    crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
 } else {
     // Ready for splitting ssl server
     if (!key) {
