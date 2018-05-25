@@ -339,7 +339,7 @@ let dbPlayerReward = {
                     isTopUpTypeValid = false;
                 }
 
-                if (!event.condition.allowConsumptionAfterTopUp && lastConsumptionRecord && lastTopUp.createTime < lastConsumptionRecord.createTime) {
+                if (!event.condition.allowConsumptionAfterTopUp && lastConsumptionRecord && lastTopUp.settlementTime < lastConsumptionRecord.createTime) {
                     isTopUpTypeValid = false;
                 }
 
