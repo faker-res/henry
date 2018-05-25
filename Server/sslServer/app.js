@@ -3,7 +3,7 @@ const url = require('url');
 const fs = require('fs');
 const path = require('path');
 const env = require("./config/env").config();
-const port = env.redisPort || 1702;
+const port = env.redisPort || 1703;
 
 http.createServer(function (req, res) {
     console.log(`${req.method} ${req.url}`);

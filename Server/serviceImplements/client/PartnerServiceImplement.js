@@ -113,7 +113,9 @@ var PartnerServiceImplement = function () {
         var partnerIp = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            partnerIp = forwardedIp[0].trim();
+            if(forwardedIp[0].trim() !== "undefined"){
+                partnerIp = forwardedIp[0].trim();
+            }
         }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.authenticate, [data.partnerId, data.token, partnerIp, conn], true, false, false, true);
     };

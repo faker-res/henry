@@ -21763,6 +21763,7 @@ define(['js/app'], function (myApp) {
             vm.generatePromoCode = function (col, index, data, type) {
                 if (data && data.playerName) {
                     let sendData = Object.assign({}, data);
+                    col[index].error = false;
 
                     if (sendData.playerName.match(/\n/g)) {
                         col.splice(index, 1);
@@ -21849,6 +21850,10 @@ define(['js/app'], function (myApp) {
                                         }).then(ret => {
                                             col[index].code = ret.data;
                                             $scope.safeApply();
+                                        }).catch(err=>{
+                                            $scope.$evalAsync(()=>{
+                                                col[index].error = true;
+                                            })
                                         });
                                     }
                                 });
@@ -21864,7 +21869,7 @@ define(['js/app'], function (myApp) {
                 col.forEach((elem, index, arr) => {
                     if (!elem.code) {
                         p = p.then(function () {
-                            if (skipCheck) {
+                            if (skipCheck && !elem.error) {
                                 elem.skipCheck = true;
                             }
                             return vm.generatePromoCode(col, index, elem, type);

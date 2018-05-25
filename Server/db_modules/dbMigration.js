@@ -2008,7 +2008,7 @@ var dbMigration = {
         // );
     },
 
-    loginBIPlayer: function (platformId, name, password, loginIp, userAgent) {
+    loginBIPlayer: function (platformId, name, password, loginIp, userAgent, inputData) {
         let playerObj = null;
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
@@ -2086,7 +2086,7 @@ var dbMigration = {
                                 player: playerData._id,
                                 platform: playerData.platform,
                                 loginIP: playerData.lastLoginIp,
-                                clientDomain: playerData.clientDomain ? playerData.clientDomain : "",
+                                clientDomain: inputData.clientDomain || playerData.clientDomain || "",
                                 userAgent: uaObj,
                                 isRealPlayer: playerData.isRealPlayer,
                                 isTestPlayer: playerData.isTestPlayer,
