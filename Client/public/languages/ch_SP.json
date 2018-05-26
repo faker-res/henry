@@ -1509,7 +1509,7 @@
   "ACCOUNT_STATUS": "开户状态",
   "CREATED_ACCOUNT": "已开户",
   "NOT_YET_CREATE_ACCOUNT": "未开户",
-  "Demo player cannot perform this action": "试玩帐号无法进行此动作",
+  "Demo player cannot perform this action": "试玩帐号无法进行此操作",
 
   "PLAYER_TOP_UP_RETURN_GROUP_REPORT": "存送金(组)优惠报表",
   "PLAYER_CONSECUTIVE_REWARD_GROUP_REPORT": "签到全勤（组）优惠报表",
