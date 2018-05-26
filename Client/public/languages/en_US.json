@@ -1163,6 +1163,7 @@
   "date": "Date",
   "toPhoneNumber_text_1": "Total",
   "toPhoneNumber_text_2": "phone numbers",
+  "RESET_ALL_COMMISSION_RATE": "Reset all commission rate",
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
   "SMS_VERIFICATION": "SMS Verification",
