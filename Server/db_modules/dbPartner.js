@@ -5834,16 +5834,12 @@ let dbPartner = {
                             customConfig.forEach(cConfig => {
                                 if (cConfig && cConfig.commissionSetting && cConfig.commissionSetting.length > 0) {
                                     if (dConfig.provider.toString() === cConfig.provider.toString()) {
-                                        //custom config will be reset to default config
-                                        cConfig.commissionSetting = dConfig.commissionSetting;
-
-                                        dbconfig.collection_partnerCommissionConfig.findOneAndUpdate({
+                                        //custom config will be removed
+                                        dbconfig.collection_partnerCommissionConfig.remove({
                                             partner: partnerObjId,
                                             platform: platformObjId,
                                             commissionType: commissionType,
                                             provider: cConfig.provider,
-                                        }, {
-                                            commissionSetting: cConfig.commissionSetting
                                         }).exec();
                                     }
                                 }
