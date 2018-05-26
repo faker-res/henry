@@ -21942,6 +21942,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPromoCodeHistory = function (isNewSearch, type) {
+                vm.selectedPromoCodes = [];
+                vm.selectedPromoCode = null;
                 vm.promoCodeQuery.platformId = vm.selectedPlatform.id;
                 $('#promoCodeHistoryTableSpin').show();
 
@@ -22908,14 +22910,25 @@ define(['js/app'], function (myApp) {
                     if ($(this).hasClass('selected')) {
                         $(this).removeClass('selected');
                         vm.selectedPromoCode = null;
+                        vm.selectedPromoCodes.forEach(item=>{
+                            if(item._id == promoCodeTable.row(this).data()._id) {
+                                vm.selectedPromoCodes.splice(vm.selectedPromoCodes.indexOf(item), 1);
+                            }
+                        })
                     } else {
-                        promoCodeTable.$('tr.selected').removeClass('selected');
                         $(this).addClass('selected');
                         vm.selectedPromoCode = promoCodeTable.row(this).data();
+                        vm.selectedPromoCodes.push(promoCodeTable.row(this).data());
                     }
 
                     $scope.safeApply();
                 });
+            };
+
+            vm.promoCodeSelectAll = function () {
+                $('#promoCodeTable tbody tr').removeClass('selected');
+                $('#promoCodeTable tbody tr').addClass('selected');
+                vm.selectedPromoCodes = vm.promoCodeQuery.result;
             };
 
             vm.promoCodeHistoryTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
@@ -23043,6 +23056,27 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'disablePromoCode', sendData, function (data) {
                     console.log('disablePromoCode', data);
+                    vm.getPromoCodeHistory(true);
+                });
+            };
+
+            vm.disablePromoCodes = function () {
+                let playerIds = [];
+                let promoCodes = [];
+                vm.selectedPromoCodes.forEach(item=>{
+                    if(item.status == 1) {
+                        playerIds.push(item.playerObjId.playerId);
+                        promoCodes.push(item.code);
+                    }
+                });
+                let sendData = {
+                    playerIds: playerIds,
+                    promoCodes: promoCodes
+                };
+
+                console.log('disablePromoCodes sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'disablePromoCodes', sendData, function (data) {
+                    console.log('disablePromoCodes', data);
                     vm.getPromoCodeHistory(true);
                 });
             };
