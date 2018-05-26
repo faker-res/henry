@@ -17619,6 +17619,7 @@ define(['js/app'], function (myApp) {
                             commissionSettingCancelRow: vm.commissionSettingCancelRow,
                             selectedCommissionTab: vm.selectedCommissionTab,
                             customizeCommissionRate: vm.customizeCommissionRate,
+                            resetAllCustomizedCommissionRate: vm.resetAllCustomizedCommissionRate,
                             customizePartnerRate: vm.customizePartnerRate,
                             commissionRateEditRow: vm.commissionRateEditRow,
                             currentProvince: vm.currentProvince,
@@ -24857,6 +24858,21 @@ define(['js/app'], function (myApp) {
                         });
                     });
                 }
+            };
+
+            vm.resetAllCustomizedCommissionRate = function () {
+                let sendData = {
+                    partnerObjId: vm.selectedSinglePartner._id,
+                    platformObjId: vm.selectedPlatform.id,
+                    commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab]
+                };
+
+                socketService.$socket($scope.AppSocket, 'resetAllCustomizedCommissionRate', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id);
+                        vm.getPlatformPartnersData();
+                    });
+                });
             };
 
             vm.customizePartnerRate = (config, field, isRevert = false) => {
