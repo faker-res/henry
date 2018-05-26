@@ -29907,6 +29907,20 @@ define(['js/app'], function (myApp) {
                     vm.submitAdminPlayerFeedbackQuery(true);
                 })
             }
+
+            vm.createCallOutMission = function () {
+                // todo :: add implementation
+                // send adminData, search filter and platform id
+                // on backend,
+                // - search result (return error if empty)
+                // - add cti mission and phone numbers
+                // - once success, add callOutMission and callOutMissionCallee
+                // - return callOutMission and callOutMissionCallee, while start the mission on cti
+
+                // note :: every 10 sec check cti for status if there is any mission on going
+            };
+
+
         };
 
         let injectParams = [

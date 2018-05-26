@@ -3682,6 +3682,7 @@
   "BulkExportPlayerData": "玩家资料导出（批量）",
   "TARGET_SITE": "目标网站",
   "EXPORT_PLAYER_COUNT": "转移玩家总数",
+  "BULK_CALL": "批量拨出",
 
   "Please Enter Task Name": "请输入该任务 名称",
   "Please Enter Task Description": "请输入该任务 备注",
