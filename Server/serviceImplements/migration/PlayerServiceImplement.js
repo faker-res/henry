@@ -178,7 +178,7 @@ var PlayerServiceImplement = function () {
     this.loginBIPlayer.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.name && data.platformId && data.password);
         var uaString = conn.upgradeReq.headers['user-agent'];
-        WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.loginBIPlayer, [data.platformId, data.name, data.password, data.loginIp, uaString], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.loginBIPlayer, [data.platformId, data.name, data.password, data.loginIp, uaString, data], isValidData);
     };
 
 };
