@@ -1526,6 +1526,7 @@
   "Mail": "站内信",
   "toPhoneNumber_text_1": "共",
   "toPhoneNumber_text_2": "笔",
+  "RESET_ALL_COMMISSION_RATE": "恢复所有佣金比例",
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
