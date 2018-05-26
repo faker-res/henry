@@ -5810,6 +5810,48 @@ let dbPartner = {
         );
     },
 
+    resetAllCustomizedCommissionRate: (partnerObjId, platformObjId, commissionType) => {
+        let customConfigProm = dbconfig.collection_partnerCommissionConfig.find({
+            partner: partnerObjId,
+            platform: platformObjId,
+            commissionType: commissionType
+        }).lean();
+
+        let defaultConfigProm = dbconfig.collection_partnerCommissionConfig.find({
+            partner: { "$exists" : false },
+            platform: platformObjId,
+            commissionType: commissionType
+        }).lean();
+
+        return Promise.all([customConfigProm, defaultConfigProm]).then(
+            data => {
+                let customConfig = data[0];
+                let defaultConfig = data[1];
+
+                if (defaultConfig && customConfig && defaultConfig.length > 0 && customConfig.length > 0) {
+                    defaultConfig.forEach(dConfig => {
+                        if (dConfig && dConfig.commissionSetting && dConfig.commissionSetting.length > 0) {
+                            customConfig.forEach(cConfig => {
+                                if (cConfig && cConfig.commissionSetting && cConfig.commissionSetting.length > 0) {
+                                    if (dConfig.provider.toString() === cConfig.provider.toString()) {
+                                        //custom config will be removed
+                                        dbconfig.collection_partnerCommissionConfig.remove({
+                                            partner: partnerObjId,
+                                            platform: platformObjId,
+                                            commissionType: commissionType,
+                                            provider: cConfig.provider,
+                                        }).exec();
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+                return data;
+            }
+        );
+    },
+
     settlePartnersCommission: function (partnerObjIdArr, commissionType, startTime, endTime, isSkip) {
         let proms = [];
         partnerObjIdArr.map(partnerObjId => {
@@ -7394,7 +7436,8 @@ let dbPartner = {
                 output.totalWithdrawalFee = commissionDetail.totalWithdrawalFee;
                 output.totalBonusFee = commissionDetail.totalRewardFee;
                 output.totalProviderFee = commissionDetail.totalPlatformFee;
-                output.totalCommission = commissionDetail.nettCommission;
+                // output.totalCommission = commissionDetail.nettCommission;
+                output.totalCommission = 0;
                 output.list = [];
 
                 if (commissionDetail.rawCommissions && commissionDetail.rawCommissions.length) {
@@ -7405,6 +7448,9 @@ let dbPartner = {
                             providerGroupCommission: providerCommission.amount,
                             providerGroupFee: providerCommission.platformFee,
                         })
+                        if (providerCommission.amount) {
+                            output.totalCommission += providerCommission.amount;
+                        }
                     })
                 }
 

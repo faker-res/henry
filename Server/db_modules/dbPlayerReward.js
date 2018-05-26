@@ -255,6 +255,8 @@ let dbPlayerReward = {
             let numberOfTopUpWithinPeriod = data[2];
             let lastConsumptionRecord = data[3][0];
             let lastWithdrawalProposal = data[4][0];
+            // check is last top up used
+            let isTopUpUsed = checkTopupRecordIsDirtyForReward(event, {selectedTopup: lastTopUp});
 
             // big big null check
             if (!event || !event.param || !event.param.rewardParam || !event.param.rewardParam[0] || !event.param.rewardParam[0].value || !event.param.rewardParam[0].value[0] || !event.condition) {
@@ -318,7 +320,7 @@ let dbPlayerReward = {
                     isTopUpTypeValid = false;
                 }
 
-                if (!event.condition.allowConsumptionAfterTopUp && lastConsumptionRecord && lastTopUp.createTime < lastConsumptionRecord.createTime) {
+                if (!event.condition.allowConsumptionAfterTopUp && lastConsumptionRecord && lastTopUp.settlementTime < lastConsumptionRecord.createTime) {
                     isTopUpTypeValid = false;
                 }
 
@@ -327,7 +329,7 @@ let dbPlayerReward = {
                 }
             }
 
-            let isApplicableRewardCondition = isTopUpTypeValid && isTopUpCountValid && !isReachCountLimit;
+            let isApplicableRewardCondition = isTopUpTypeValid && isTopUpCountValid && !isReachCountLimit && !isTopUpUsed;
 
             let paramOfLevel = event.param.rewardParam[0].value;
 

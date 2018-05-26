@@ -76,6 +76,35 @@ let dbPromoCode = {
             }
         );
     },
+
+    disablePromoCodes: function (playerIds, promoCodes) {
+        return dbconfig.collection_players.find({playerId: {$in:playerIds}}).lean().then(
+            players => {
+                if (players && players.length > 0) {
+                    let query = [];
+                    players.forEach(player => {
+                        if(playerIds.indexOf(player.playerId) > -1) {
+                            query.push({
+                                playerObjId: player._id,
+                                code: promoCodes[playerIds.indexOf(player.playerId)]
+                            })
+                        }
+                    });
+                    return dbconfig.collection_promoCode.find({$or: query}).lean();
+                }
+            }
+        ).then(
+            promoCodes => {
+                if (promoCodes && promoCodes.length > 0) {
+                    let promoCodeObjIds = [];
+                    promoCodes.forEach(promoCode=>{
+                        promoCodeObjIds.push(promoCode._id);
+                    });
+                    return dbconfig.collection_promoCode.update({_id: {$in: promoCodeObjIds}}, {status: constPromoCodeStatus.DISABLE}, {multi: true}).lean();
+                }
+            }
+        );
+    },
 };
 
 module.exports = dbPromoCode;
