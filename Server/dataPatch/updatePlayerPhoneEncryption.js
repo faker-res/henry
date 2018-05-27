@@ -3,7 +3,7 @@ const env = require("../config/env").config();
 const dbconfig = require("../modules/dbproperties");
 const rsaCrypto = require("../modules/rsaCrypto");
 
-dbconfig.collection_platform.findOne({name: "Yunyou1"}).lean().then(
+dbconfig.collection_platform.findOne({name: "BYL"}).lean().then(
     platformData => {
         if (platformData) {
             console.log('start re-encrypt', platformData.name);
