@@ -14,6 +14,7 @@ dbconfig.collection_platform.findOne({name: "BYL"}).lean().then(
                     if (playerData && playerData.phoneNumber && playerData.phoneNumber.length > 20) {
                         //encrypt player phone number
                         let decPhoneNumber = rsaCrypto.oldDecrypt(playerData.phoneNumber);
+                        console.log('ori hex', playerData.phoneNumber);
                         console.log('decPhoneNumber', decPhoneNumber);
                         let reEncPhoneNumber = rsaCrypto.encrypt(decPhoneNumber);
                         console.log('reEncPhoneNumber', reEncPhoneNumber);
