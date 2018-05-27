@@ -72,24 +72,24 @@ if (env.mode === "local") {
     // Ready for splitting ssl server
     if (!key) {
         getPrivateKey().then(data => {
-            key = ursa.createPrivateKey(data)
-        });
+            key = ursa.createPrivateKey(data);
 
-        // Fallback method
-        if (!key) {
-            key = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
-        }
+            // Fallback method
+            if (!key) {
+                key = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
+            }
+        });
     }
 
     if (!crt) {
         getPublicKey().then(data => {
-            crt = ursa.createPublicKey(data)
-        })
+            crt = ursa.createPublicKey(data);
 
-        // Fallback method
-        if (!crt) {
-            crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
-        }
+            // Fallback method
+            if (!crt) {
+                crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
+            }
+        })
     }
 }
 
