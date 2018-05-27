@@ -9,14 +9,14 @@ var localConfig = {
 var devConfig = {
     mode: "development",
     redisUrl : 'testkey.fpms8.me',
-    redisPort : '1703',
+    redisPort : '',
 };
 
 //for release production
 var prodConfig = {
     mode: "production",
     redisUrl : 'testkey.fpms8.me',
-    redisPort : '1703',
+    redisPort : '',
 };
 
 //env parameters
