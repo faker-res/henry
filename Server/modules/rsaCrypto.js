@@ -24,8 +24,6 @@ if (env.redisPort) {
     host += ":" + env.redisPort;
 }
 
-console.log('env', env);
-
 function getPrivateKey () {
     return new Promise((resolve, reject) => {
         let url = host + "/playerPhone.key.pem";
@@ -74,20 +72,31 @@ if (env.mode === "local") {
     // Ready for splitting ssl server
     if (!key) {
         getPrivateKey().then(data => {
-            key = ursa.createPrivateKey(data)
-        })
+            key = ursa.createPrivateKey(data);
+        });
     }
 
     if (!crt) {
         getPublicKey().then(data => {
-            crt = ursa.createPublicKey(data)
+            crt = ursa.createPublicKey(data);
         })
     }
 }
 
 module.exports = {
     encrypt: (msg) => key.privateEncrypt(msg, 'utf8', 'base64'),
-    decrypt: (msg) => crt.publicDecrypt(msg, 'base64', 'utf8'),
+    decrypt: (msg) => {
+        let decrypted;
+
+        try {
+            decrypted = crt.publicDecrypt(msg, 'base64', 'utf8')
+        } catch (e) {
+            console.log('catching decrypt...');
+            decrypted = oldCert.publicDecrypt(msg, 'base64', 'utf8');
+        }
+
+        return decrypted;
+    },
     oldEncrypt: (msg) => oldKey.privateEncrypt(msg, 'utf8', 'base64'),
     oldDecrypt: (msg) => oldCert.publicDecrypt(msg, 'base64', 'utf8')
 };
