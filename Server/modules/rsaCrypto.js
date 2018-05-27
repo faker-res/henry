@@ -24,9 +24,13 @@ if (env.redisPort) {
     host += ":" + env.redisPort;
 }
 
+console.log('env', env);
+
 function getPrivateKey () {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         let url = host + "/playerPhone.key.pem";
+
+        console.log('url', url);
 
         http.get(url, response => {
             // handle http errors
@@ -44,8 +48,10 @@ function getPrivateKey () {
 }
 
 function getPublicKey () {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         let url = host + "/playerPhone.pub";
+
+        console.log('url', url);
 
         http.get(url, response => {
             // handle http errors
