@@ -30,8 +30,6 @@ function getPrivateKey () {
     return new Promise((resolve, reject) => {
         let url = host + "/playerPhone.key.pem";
 
-        console.log('url', url);
-
         http.get(url, response => {
             // handle http errors
             if (response.statusCode < 200 || response.statusCode > 299) {
@@ -50,8 +48,6 @@ function getPrivateKey () {
 function getPublicKey () {
     return new Promise((resolve, reject) => {
         let url = host + "/playerPhone.pub";
-
-        console.log('url', url);
 
         http.get(url, response => {
             // handle http errors
