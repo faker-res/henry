@@ -73,29 +73,31 @@ if (env.mode === "local") {
     if (!key) {
         getPrivateKey().then(data => {
             key = ursa.createPrivateKey(data);
-
-            // Fallback method
-            if (!key) {
-                key = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
-            }
         });
     }
 
     if (!crt) {
         getPublicKey().then(data => {
             crt = ursa.createPublicKey(data);
-
-            // Fallback method
-            if (!crt) {
-                crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
-            }
         })
     }
 }
 
 module.exports = {
     encrypt: (msg) => key.privateEncrypt(msg, 'utf8', 'base64'),
-    decrypt: (msg) => crt.publicDecrypt(msg, 'base64', 'utf8'),
+    decrypt: (msg) => {
+        let decrypted;
+
+        try {
+            decrypted = crt.publicDecrypt(msg, 'base64', 'utf8')
+        } catch (e) {
+            console.log('catching decrypt...');
+            crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
+            decrypted = crt.publicDecrypt(msg, 'base64', 'utf8');
+        }
+
+        return decrypted;
+    },
     oldEncrypt: (msg) => oldKey.privateEncrypt(msg, 'utf8', 'base64'),
     oldDecrypt: (msg) => oldCert.publicDecrypt(msg, 'base64', 'utf8')
 };
