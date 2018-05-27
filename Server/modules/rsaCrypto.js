@@ -24,8 +24,6 @@ if (env.redisPort) {
     host += ":" + env.redisPort;
 }
 
-console.log('env', env);
-
 function getPrivateKey () {
     return new Promise((resolve, reject) => {
         let url = host + "/playerPhone.key.pem";
@@ -75,13 +73,23 @@ if (env.mode === "local") {
     if (!key) {
         getPrivateKey().then(data => {
             key = ursa.createPrivateKey(data)
-        }).catch(() => key = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem')))
+        });
+
+        // Fallback method
+        if (!key) {
+            key = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
+        }
     }
 
     if (!crt) {
         getPublicKey().then(data => {
             crt = ursa.createPublicKey(data)
-        }).catch(() => crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub')))
+        })
+
+        // Fallback method
+        if (!crt) {
+            crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
+        }
     }
 }
 
