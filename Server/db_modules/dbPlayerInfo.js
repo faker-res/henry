@@ -13679,7 +13679,7 @@ let dbPlayerInfo = {
                 playerId: playerObjId,
                 createTime: {
                     $gte: new Date(startTime),
-                    $lte: new Date(endTime)
+                    $lt: new Date(endTime)
                 },
                 $or: [
                     {isDuplicate: {$exists: false}},
