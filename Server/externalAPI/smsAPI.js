@@ -79,7 +79,7 @@ const smsAPI = {
     //sending service
     sending_sendMessage: function (data) {
         if (data && data.tel) {
-            data.tel = data.tel.trim();
+            data.tel = String(data.tel).trim();
         }
 
         return callSMSAPI("sending", "sendMessage", data);
