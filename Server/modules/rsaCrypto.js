@@ -91,7 +91,6 @@ module.exports = {
         try {
             decrypted = crt.publicDecrypt(msg, 'base64', 'utf8')
         } catch (e) {
-            console.log('catching decrypt...');
             decrypted = oldCert.publicDecrypt(msg, 'base64', 'utf8');
         }
 
