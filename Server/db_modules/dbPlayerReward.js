@@ -255,27 +255,8 @@ let dbPlayerReward = {
             let numberOfTopUpWithinPeriod = data[2];
             let lastConsumptionRecord = data[3][0];
             let lastWithdrawalProposal = data[4][0];
-
             // check is last top up used
-            if (lastTopUp && lastTopUp.bDirty) {
-                if (event.condition && event.condition.ignoreTopUpDirtyCheckForReward && event.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
-                    let isIgnore =  false;
-                    if (lastTopUp.usedEvent && lastTopUp.usedEvent.length) {
-                        for (let i = 0; i < lastTopUp.usedEvent.length; i++) {
-                            if (event.condition.ignoreTopUpDirtyCheckForReward.indexOf(lastTopUp.usedEvent[i].toString()) >= 0) {
-                                isIgnore = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!isIgnore) {
-                        lastTopUp = {};
-                    }
-                } else {
-                    lastTopUp = {};
-                }
-            }
-
+            let isTopUpUsed = checkTopupRecordIsDirtyForReward(event, {selectedTopup: lastTopUp});
 
             // big big null check
             if (!event || !event.param || !event.param.rewardParam || !event.param.rewardParam[0] || !event.param.rewardParam[0].value || !event.param.rewardParam[0].value[0] || !event.condition) {
@@ -348,7 +329,7 @@ let dbPlayerReward = {
                 }
             }
 
-            let isApplicableRewardCondition = isTopUpTypeValid && isTopUpCountValid && !isReachCountLimit;
+            let isApplicableRewardCondition = isTopUpTypeValid && isTopUpCountValid && !isReachCountLimit && !isTopUpUsed;
 
             let paramOfLevel = event.param.rewardParam[0].value;
 
@@ -3955,7 +3936,7 @@ let dbPlayerReward = {
         }
 
         if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
-            if (eventData.condition.rewardAppearPeriod) {
+            if (eventData.condition.rewardAppearPeriod && eventData.condition.rewardAppearPeriod[0] && eventData.condition.rewardAppearPeriod[0].startTime) {
                 let isValid = false;
                 let todayWeekOfDay = moment(new Date()).tz('Asia/Singapore').day();
                 let dayOfHour = moment(new Date()).tz('Asia/Singapore').hours();
@@ -4820,7 +4801,7 @@ let dbPlayerReward = {
                                     return Q.reject({
                                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                         name: "DataError",
-                                        message: "Player does not have enough top up or consumption"
+                                        message: "Player does not have enough top up or consumption amount"
                                     });
                                 }
                                 //Only use one of the condition, reset another
