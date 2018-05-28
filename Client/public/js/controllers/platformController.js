@@ -22070,7 +22070,7 @@ define(['js/app'], function (myApp) {
                     } else {
                         let searchQ = {
                             platformObjId: vm.selectedPlatform.id,
-                            playerName: data.playerName,
+                            playerName: data.playerName.trim(),
                             status: 1
                         };
 
@@ -22111,6 +22111,7 @@ define(['js/app'], function (myApp) {
                                         sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
                                         let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProvider;
 
+                                        sendData.playerName = sendData.playerName.trim();
                                         sendData.expirationTime = vm.dateReformat(sendData.expirationTime.data('datetimepicker').getLocalDate());
                                         sendData.promoCodeTypeObjId = sendData.promoCodeType._id;
                                         sendData.platformObjId = vm.selectedPlatform.id;
