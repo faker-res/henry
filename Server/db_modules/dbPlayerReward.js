@@ -4801,7 +4801,7 @@ let dbPlayerReward = {
                                     return Q.reject({
                                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                         name: "DataError",
-                                        message: "Player does not have enough top up or consumption"
+                                        message: "Player does not have enough top up or consumption amount"
                                     });
                                 }
                                 //Only use one of the condition, reset another
