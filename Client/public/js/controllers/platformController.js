@@ -14087,7 +14087,7 @@ define(['js/app'], function (myApp) {
                         {title: $translate('PLAYER_NAME'), data: "playerName"},
                         {title: $translate('Operation Time'), data: "operationTime$"},
                         {
-                            title: $translate('Device'),
+                            title: $translate('DEVICE'),
                             data: "inputDevice",
                             render: function (data, type, row) {
                                 for (let i = 0; i < Object.keys(vm.inputDevice).length; i++) {
@@ -14673,6 +14673,244 @@ define(['js/app'], function (myApp) {
                     socketService.showErrorMessage(err);
                 });
             }
+
+            vm.getPlayerFeedbackQuery = () => {
+                let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
+                let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
+                let sendQuery = {platform: vm.selectedPlatform.id};
+                let sendQueryOr = [];
+
+                if (vm.playerFeedbackQuery.playerType && vm.playerFeedbackQuery.playerType != null) {
+                    sendQuery.playerType = vm.playerFeedbackQuery.playerType;
+                }
+
+                if (vm.playerFeedbackQuery.playerLevel !== "all") {
+                    sendQuery.playerLevel = vm.playerFeedbackQuery.playerLevel;
+                }
+
+                if (vm.playerFeedbackQuery.credibilityRemarks && vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
+                    sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
+                }
+
+                if (vm.playerFeedbackQuery.lastAccess === "range") {
+                    sendQuery.lastAccessTime = {
+                        $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.lastAccessFormal)),
+                        $gte: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.lastAccessLatter)),
+                    };
+                } else {
+                    let range = vm.playerFeedbackQuery.lastAccess.split("-");
+                    sendQuery.lastAccessTime = {
+                        $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), parseInt(range[0])))
+                    };
+                    if (range[1]) {
+                        sendQuery.lastAccessTime["$gte"] = utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), parseInt(range[1])));
+                    }
+                }
+
+                if (vm.playerFeedbackQuery.filterFeedback) {
+                    let lastFeedbackTimeExist = {
+                        lastFeedbackTime: null
+                    };
+                    let lastFeedbackTime = {
+                        lastFeedbackTime: {
+                            $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
+                        }
+                    };
+                    sendQueryOr.push(lastFeedbackTimeExist);
+                    sendQueryOr.push(lastFeedbackTime);
+                    sendQuery["$or"] = sendQueryOr;
+                }
+
+                if (vm.playerFeedbackQuery.depositCountOperator && vm.playerFeedbackQuery.depositCountFormal != null) {
+                    switch (vm.playerFeedbackQuery.depositCountOperator) {
+                        case ">=":
+                            sendQuery.topUpTimes = {
+                                $gte: vm.playerFeedbackQuery.depositCountFormal
+                            };
+                            break;
+                        case "=":
+                            sendQuery.topUpTimes = vm.playerFeedbackQuery.depositCountFormal;
+                            break;
+                        case "<=":
+                            sendQuery.topUpTimes = {
+                                $lte: vm.playerFeedbackQuery.depositCountFormal
+                            };
+                            break;
+                        case "range":
+                            if (vm.playerFeedbackQuery.depositCountLatter != null) {
+                                sendQuery.topUpTimes = {
+                                    $lte: vm.playerFeedbackQuery.depositCountLatter,
+                                    $gte: vm.playerFeedbackQuery.depositCountFormal
+                                };
+                            }
+                            break;
+                    }
+                }
+
+
+                if (vm.playerFeedbackQuery.playerValueOperator && vm.playerFeedbackQuery.playerValueFormal != null) {
+                    switch (vm.playerFeedbackQuery.playerValueOperator) {
+                        case ">=":
+                            sendQuery.valueScore = {
+                                $gte: vm.playerFeedbackQuery.playerValueFormal
+                            };
+                            break;
+                        case "=":
+                            sendQuery.valueScore = vm.playerFeedbackQuery.playerValueFormal;
+                            break;
+                        case "<=":
+                            sendQuery.valueScore = {
+                                $lte: vm.playerFeedbackQuery.playerValueFormal
+                            };
+                            break;
+                        case "range":
+                            if (vm.playerFeedbackQuery.playerValueLatter != null) {
+                                sendQuery.valueScore = {
+                                    $lte: vm.playerFeedbackQuery.playerValueLatter,
+                                    $gte: vm.playerFeedbackQuery.playerValueFormal
+                                };
+                            }
+                            break;
+                    }
+                }
+
+                if (vm.playerFeedbackQuery.consumptionTimesOperator && vm.playerFeedbackQuery.consumptionTimesFormal != null) {
+                    switch (vm.playerFeedbackQuery.consumptionTimesOperator) {
+                        case ">=":
+                            sendQuery.consumptionTimes = {
+                                $gte: vm.playerFeedbackQuery.consumptionTimesFormal
+                            };
+                            break;
+                        case "=":
+                            sendQuery.consumptionTimes = vm.playerFeedbackQuery.consumptionTimesFormal;
+                            break;
+                        case "<=":
+                            sendQuery.consumptionTimes = {
+                                $lte: vm.playerFeedbackQuery.consumptionTimesFormal
+                            };
+                            break;
+                        case "range":
+                            if (vm.playerFeedbackQuery.consumptionTimesLatter != null) {
+                                sendQuery.consumptionTimes = {
+                                    $lte: vm.playerFeedbackQuery.consumptionTimesLatter,
+                                    $gte: vm.playerFeedbackQuery.consumptionTimesFormal
+                                };
+                            }
+                            break;
+                    }
+                }
+
+                if (vm.playerFeedbackQuery.bonusAmountOperator && vm.playerFeedbackQuery.bonusAmountFormal != null) {
+                    switch (vm.playerFeedbackQuery.bonusAmountOperator) {
+                        case ">=":
+                            sendQuery.bonusAmountSum = {
+                                $gte: vm.playerFeedbackQuery.bonusAmountFormal
+                            };
+                            break;
+                        case "=":
+                            sendQuery.bonusAmountSum = vm.playerFeedbackQuery.bonusAmountFormal;
+                            break;
+                        case "<=":
+                            sendQuery.bonusAmountSum = {
+                                $lte: vm.playerFeedbackQuery.bonusAmountFormal
+                            };
+                            break;
+                        case "range":
+                            if (vm.playerFeedbackQuery.bonusAmountLatter != null) {
+                                sendQuery.bonusAmountSum = {
+                                    $lte: vm.playerFeedbackQuery.bonusAmountLatter,
+                                    $gte: vm.playerFeedbackQuery.bonusAmountFormal
+                                };
+                            }
+                            break;
+                    }
+                }
+
+                if (vm.playerFeedbackQuery.withdrawTimesOperator && vm.playerFeedbackQuery.withdrawTimesFormal != null) {
+                    switch (vm.playerFeedbackQuery.withdrawTimesOperator) {
+                        case ">=":
+                            sendQuery.withdrawTimes = {
+                                $gte: vm.playerFeedbackQuery.withdrawTimesFormal
+                            };
+                            break;
+                        case "=":
+                            sendQuery.withdrawTimes = vm.playerFeedbackQuery.withdrawTimesFormal;
+                            break;
+                        case "<=":
+                            sendQuery.withdrawTimes = {
+                                $lte: vm.playerFeedbackQuery.withdrawTimesFormal
+                            };
+                            break;
+                        case "range":
+                            if (vm.playerFeedbackQuery.withdrawTimesLatter != null) {
+                                sendQuery.withdrawTimes = {
+                                    $lte: vm.playerFeedbackQuery.withdrawTimesLatter,
+                                    $gte: vm.playerFeedbackQuery.withdrawTimesFormal
+                                };
+                            }
+                            break;
+                    }
+                }
+
+                if (vm.playerFeedbackQuery.topUpSumOperator && vm.playerFeedbackQuery.topUpSumFormal != null) {
+                    switch (vm.playerFeedbackQuery.topUpSumOperator) {
+                        case ">=":
+                            sendQuery.topUpSum = {
+                                $gte: vm.playerFeedbackQuery.topUpSumFormal
+                            };
+                            break;
+                        case "=":
+                            sendQuery.topUpSum = vm.playerFeedbackQuery.topUpSumFormal;
+                            break;
+                        case "<=":
+                            sendQuery.topUpSum = {
+                                $lte: vm.playerFeedbackQuery.topUpSumFormal
+                            };
+                            break;
+                        case "range":
+                            if (vm.playerFeedbackQuery.topUpSumLatter != null) {
+                                sendQuery.topUpSum = {
+                                    $lte: vm.playerFeedbackQuery.topUpSumLatter,
+                                    $gte: vm.playerFeedbackQuery.topUpSumFormal
+                                };
+                            }
+                            break;
+                    }
+                }
+
+                if (vm.playerFeedbackQuery.gameProviderId && vm.playerFeedbackQuery.gameProviderId.length > 0) {
+                    sendQuery.gameProviderPlayed = {$in: vm.playerFeedbackQuery.gameProviderId};
+                }
+
+                if (vm.playerFeedbackQuery.isNewSystem === "old") {
+                    sendQuery.isNewSystem = {$ne: true};
+                } else if (vm.playerFeedbackQuery.isNewSystem === "new") {
+                    sendQuery.isNewSystem = true;
+                }
+                if (startTime && endTime) {
+                    sendQuery.registrationTime = {$gte: startTime, $lt: endTime};
+                }
+
+                let admins = [];
+
+                if (vm.playerFeedbackQuery.departments) {
+                    if (vm.playerFeedbackQuery.roles) {
+                        vm.queryRoles.map(e => {
+                            if (vm.playerFeedbackQuery.roles.indexOf(e._id) >= 0) {
+                                e.users.map(f => admins.push(f._id))
+                            }
+                        })
+                    } else {
+                        vm.queryRoles.map(e => e.users.map(f => admins.push(f._id)))
+                    }
+                }
+
+                if ( (vm.playerFeedbackQuery.admins && vm.playerFeedbackQuery.admins.length > 0) || admins.length) {
+                    sendQuery.csOfficer = vm.playerFeedbackQuery.admins && vm.playerFeedbackQuery.admins.length > 0 ? vm.playerFeedbackQuery.admins : admins;
+                }
+
+                return sendQuery;
+            };
 
             vm.submitPlayerFeedbackQuery = function (isNewSearch) {
                 if (!vm.selectedPlatform) return;
@@ -30001,6 +30239,30 @@ define(['js/app'], function (myApp) {
                     vm.submitAdminPlayerFeedbackQuery(true);
                 })
             }
+
+            vm.createCallOutMission = function () {
+                let sendQuery = {};
+
+                sendQuery.platformObjId = vm.selectedPlatform.id;
+                sendQuery.adminObjId = authService.adminId;
+                sendQuery.searchFilter = vm.playerFeedbackQuery;
+                sendQuery.searchQuery = vm.getPlayerFeedbackQuery();
+                sendQuery.sortCol = VM.playerFeedbackQuery.sortCol || {registrationTime: -1};
+
+                $scope.$socketPromise("createCallOutMission", sendQuery);
+
+                // todo :: add implementation
+                // send adminData, search filter and platform id
+                // on backend,
+                // - search result (return error if empty)
+                // - add cti mission and phone numbers
+                // - once success, add callOutMission and callOutMissionCallee
+                // - return callOutMission and callOutMissionCallee, while start the mission on cti
+
+                // note :: every 10 sec check cti for status if there is any mission on going
+            };
+
+
         };
 
         let injectParams = [

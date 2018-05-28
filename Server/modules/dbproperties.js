@@ -310,6 +310,12 @@ let rewardPointsProgressModel = dbLogs2.model('rewardPointsProgress', rewardPoin
 let partnerCommissionLogSchema = require('./../schema/logs2/partnerCommissionLog');
 let partnerCommissionLogModel = dbLogs2.model('partnerCommissionLog', partnerCommissionLogSchema, 'partnerCommissionLog');
 
+let callOutMissionSchema = require('./../schema/logs2/callOutMission');
+let callOutMissionModel = dbLogs2.model('callOutMission', callOutMissionSchema, 'callOutMission');
+
+let callOutMissionCalleeSchema = require('./../schema/logs2/callOutMissionCallee');
+let callOutMissionCalleeModel = dbLogs2.model('callOutMissionCallee', callOutMissionCalleeSchema, 'callOutMissionCallee');
+
 let smsLogSchema = require('./../schema/logs/smsLog');
 let smsLogModel = dbLogs.model('smsLog', smsLogSchema, 'smsLog');
 let smsVerificationLogSchema = require('./../schema/logs/smsVerificationLog');
@@ -549,6 +555,8 @@ var dbProperties = {
     collection_playerBState: playerBStateModel,
     collection_partnerCommSettLog: partnerCommSettLogModel,
     collection_partnerCommissionLog: partnerCommissionLogModel,
+    collection_callOutMission: callOutMissionModel,
+    collection_callOutMissionCallee: callOutMissionCalleeModel,
 
     collection_qualityInspection: qualityInspectionModel,
     collection_live800RecordDaySummary: live800RecordDaySummaryModel,

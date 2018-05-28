@@ -259,6 +259,9 @@ var roleChecker = {
                 CreateTrial: ['createTestPlayerForPlatform'],
                 // Delete: ['deletePlayersById'],
                 ForbidTopupTypes: [],
+                ForbidRewards: [],
+                ForbidProviders: [],
+                ForbidRewardPointsEvent: [],
                 AddFeedback: [],
                 FeedbackHistory: ['getPlayerFeedbackReport'],
                 Edit: ['createUpdatePlayerInfoProposal', 'updatePlayer', 'updatePlayerStatus', 'checkPlayerNameValidity', 'updatePlayerReferral','createUpdateTopUpGroupLog'],
@@ -308,6 +311,7 @@ var roleChecker = {
                 Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],
                 Export: [],
                 Create: ['createPlayerFeedback'],
+                BulkCall: [],
                 ModifyFeedbackResult: ['createPlayerFeedbackResult', 'deletePlayerFeedbackResult'],
                 ModifyFeedbackTopic: ['createPlayerFeedbackTopic', 'deletePlayerFeedbackTopic']
             },

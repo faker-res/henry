@@ -44,6 +44,7 @@ var socketActionModules = [
     require('../socketActionModule/socketActionRewardPointsRanking'),
     require('./../socketActionModule/socketActionRewardPointsEvent'),
     require('./../socketActionModule/socketActionQualityInspection'),
+    require('./../socketActionModule/socketActionCallOutMission'),
     require('./../socketActionModule/socketActionDXMission')
 ];
 
