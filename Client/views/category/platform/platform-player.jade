@@ -707,8 +707,8 @@ include modalGameCreditLog
                         span(id="{{'c-'+i}}")
                 .textareaDetail.margin-top-bottom-small
                     textarea.forbidRewardRemark(ng-model='vm.forbidTopUpRemark', placeholder='{{"Please add remark." | translate}}')
-                button.common-button.margin-right-5.btn.btn-success.forbidTopUpConfirm(ng-show="vm.platformPageName!='batchPermit'",ng-disabled='vm.forbidTopUpDisable') {{'CONFIRM' | translate}}
-                button.common-button.margin-right-5.btn.btn-success.forbidBatchTopUpConfirm(ng-show="vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidTopUpConfirm(ng-show="checkViewPermission('Platform', 'Player','ForbidTopupTypes') && vm.platformPageName!='batchPermit'",ng-disabled='vm.forbidTopUpDisable') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidBatchTopUpConfirm(ng-show="checkViewPermission('Platform', 'Player','ForbidTopupTypes') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning.forbidTopUpCancel {{'CANCEL' | translate}}
                 button.common-button.margin-right-5.btn.btn-primary.showForbidTopUp(data-toggle="modal", data-target="#modalForbidTopUpLog", ng-click="vm.getForbidTopUp();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
 
