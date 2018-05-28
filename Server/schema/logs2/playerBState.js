@@ -7,7 +7,9 @@ let playerBStateSchema = new Schema({
     // Apply reward event state
     applyRewardEvent: {type: Boolean, default: false},
     // Transfer to provider
-    transferToProvider: {type: Boolean, default: false}
+    transferToProvider: {type: Boolean, default: false},
+    // Player Level
+    playerLevelMigration: {type: Boolean, default: false}
 });
 
 module.exports = playerBStateSchema;
