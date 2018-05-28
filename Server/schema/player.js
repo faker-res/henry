@@ -394,11 +394,13 @@ playerSchema.methods.comparePassword = function (candidatePassword, cb) {
 var playerPostFindUpdate = function (result, bOne) {
     if (result && result.phoneNumber) {
         if (result.phoneNumber.length > 20) {
+            let phoneNumber = result.phoneNumber;
             try {
                 result.phoneNumber = rsaCrypto.decrypt(result.phoneNumber);
             }
             catch (err) {
-                console.log(err);
+                console.log(err, phoneNumber);
+                result.phoneNumber = phoneNumber;
             }
         }
         if (!bOne) {
