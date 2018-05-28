@@ -6981,26 +6981,13 @@ let dbPlayerInfo = {
                 let levelDownLevel;
 
                 function createProposal(proposal, inputDevice, index) {
-                    return dbconfig.collection_proposalType.findOne({
-                        platformId: playerObj.platform,
-                        name: constProposalType.PLAYER_LEVEL_MIGRATION
-                    }).lean().then(
-                        proposalTypeDetail => {
-                            if (!proposalTypeDetail) {
-                                return promise.reject({
-                                    name: "DBError",
-                                    message: "Cannot find proposal type"
-                                });
-                            }
-                            return dbconfig.collection_proposal.findOne({
-                                'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
-                                'data.platformObjId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]},
-                                'data.levelObjId': proposal.levelObjId,
-                                type: proposalTypeDetail._id,
-                                status: constProposalStatus.PENDING
-                            }).lean();
-                        }
-                    ).then(
+                    let levelProposalQuery = {
+                        'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
+                        'data.platformObjId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]},
+                        'data.levelObjId': proposal.levelObjId,
+                        status: constProposalStatus.PENDING
+                    }
+                    return dbPropUtil.getOneProposalDataOfType(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, levelProposalQuery).then(
                         proposalDetail => {
                             if (proposalDetail && proposalDetail._id) {
                                 return Promise.reject({
