@@ -6981,11 +6981,42 @@ let dbPlayerInfo = {
                 let levelDownLevel;
 
                 function createProposal(proposal, inputDevice, index) {
-                    return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, {
-                        creator: {type: "player", name: playerObj.name, id: playerObj.playerId},
-                        data: proposal,
-                        inputDevice: inputDevice
-                    }).then(
+                    return dbconfig.collection_proposalType.findOne({
+                        platformId: playerObj.platform,
+                        name: constProposalType.PLAYER_LEVEL_MIGRATION
+                    }).lean().then(
+                        proposalTypeDetail => {
+                            if (!proposalTypeDetail) {
+                                return promise.reject({
+                                    name: "DBError",
+                                    message: "Cannot find proposal type"
+                                });
+                            }
+                            return dbconfig.collection_proposal.findOne({
+                                'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
+                                'data.platformObjId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]},
+                                'data.levelObjId': proposal.levelObjId,
+                                type: proposalTypeDetail._id,
+                                status: constProposalStatus.PENDING
+                            }).lean();
+                        }
+                    ).then(
+                        proposalDetail => {
+                            if (proposalDetail && proposalDetail._id) {
+                                return Promise.reject({
+                                    status: constServerCode.PLAYER_PENDING_PROPOSAL,
+                                    name: "DBError",
+                                    message: "level change fail, please contact cs"
+                                })
+                            } else {
+                                return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, {
+                                    creator: {type: "player", name: playerObj.name, id: playerObj.playerId},
+                                    data: proposal,
+                                    inputDevice: inputDevice
+                                })
+                            }
+                        }
+                    ).then(
                         createdMigrationProposal => {
                             if (!checkLevelUp) {
                                 return Promise.resolve();
@@ -7423,38 +7454,39 @@ let dbPlayerInfo = {
                                             let inputDevice = dbUtility.getInputDevice(userAgent, false);
                                             let promResolve = Promise.resolve();
 
-                                            return dbconfig.collection_playerState.findOne({player: playerObj._id}).lean().then(
-                                                stateRec => {
-                                                    if (!stateRec) {
-                                                        return new dbconfig.collection_playerState({
-                                                            player: playerObj._id,
-                                                            lastApplyLevelUpReward: Date.now()
-                                                        }).save();
-                                                    } else {
-                                                        // State exist
-                                                        if (stateRec.lastApplyLevelUpReward) {
-                                                            // update rec
-                                                            return dbconfig.collection_playerState.findOneAndUpdate({
-                                                                player: playerObj._id,
-                                                                lastApplyLevelUpReward: {$lt: new Date() - 1000}
-                                                            }, {
-                                                                $currentDate: {lastApplyLevelUpReward: true}
-                                                            }, {
-                                                                new: true
-                                                            });
-                                                        } else {
-                                                            // update rec with new field
-                                                            return dbconfig.collection_playerState.findOneAndUpdate({
-                                                                player: playerObj._id,
-                                                            }, {
-                                                                $currentDate: {lastApplyLevelUpReward: true}
-                                                            }, {
-                                                                new: true
-                                                            });
-                                                        }
-                                                    }
-                                                }
-                                            ).then(
+                                            // return dbconfig.collection_playerState.findOne({player: playerObj._id}).lean().then(
+                                            //     stateRec => {
+                                            //         if (!stateRec) {
+                                            //             return new dbconfig.collection_playerState({
+                                            //                 player: playerObj._id,
+                                            //                 lastApplyLevelUpReward: Date.now()
+                                            //             }).save();
+                                            //         } else {
+                                            //             // State exist
+                                            //             if (stateRec.lastApplyLevelUpReward) {
+                                            //                 // update rec
+                                            //                 return dbconfig.collection_playerState.findOneAndUpdate({
+                                            //                     player: playerObj._id,
+                                            //                     lastApplyLevelUpReward: {$lt: new Date() - 1000}
+                                            //                 }, {
+                                            //                     $currentDate: {lastApplyLevelUpReward: true}
+                                            //                 }, {
+                                            //                     new: true
+                                            //                 });
+                                            //             } else {
+                                            //                 // update rec with new field
+                                            //                 return dbconfig.collection_playerState.findOneAndUpdate({
+                                            //                     player: playerObj._id,
+                                            //                 }, {
+                                            //                     $currentDate: {lastApplyLevelUpReward: true}
+                                            //                 }, {
+                                            //                     new: true
+                                            //                 });
+                                            //             }
+                                            //         }
+                                            //     }
+                                            // )
+                                            return dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", true).then(
                                                 playerState => {
                                                     if (playerState) {
                                                         if (checkLevelUp) {
@@ -7469,7 +7501,7 @@ let dbPlayerInfo = {
                                                                     tempProposal.levelObjId = levelUpObjId[i];
                                                                     let proposalProm = function () {
                                                                         return createProposal(tempProposal, inputDevice, i);
-                                                                    }
+                                                                    };
                                                                     promResolve = promResolve.then(proposalProm);
                                                                 }
                                                             }
@@ -7481,16 +7513,30 @@ let dbPlayerInfo = {
                                                             tempProposal.levelObjId = levelObjId;
                                                             let proposalProm = function () {
                                                                 return createProposal(tempProposal, inputDevice);
-                                                            }
+                                                            };
                                                             promResolve = promResolve.then(proposalProm);
                                                         }
                                                         return promResolve;
                                                     } else {
                                                         return Promise.reject({
+                                                            status: constServerCode.CONCURRENT_DETECTED,
                                                             name: "DBError",
                                                             message: "level change fail, please contact cs"
                                                         })
                                                     }
+                                                }
+                                            ).then(
+                                                function (data) {
+                                                    dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", false).catch(errorUtils.reportError);
+                                                    return data;
+                                                },
+                                                function (err) {
+                                                    if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                                                        // Ignore concurrent request for now
+                                                    } else {
+                                                        dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", false).catch(errorUtils.reportError);
+                                                    }
+                                                    return Promise.reject(err)
                                                 }
                                             );
                                         } else {
