@@ -223,7 +223,14 @@ var partnerPostFindUpdate = function (result, bOne) {
     if (result) {
         if (result.phoneNumber && result.phoneNumber.length > 0) {
             if (result.phoneNumber.length > 20) {
-                result.phoneNumber = rsaCrypto.decrypt(result.phoneNumber);
+                let phoneNumber = result.phoneNumber;
+                try {
+                    result.phoneNumber = rsaCrypto.decrypt(result.phoneNumber);
+                }
+                catch (err) {
+                    console.log(err, phoneNumber);
+                    result.phoneNumber = phoneNumber;
+                }
             }
             if (!bOne) {
                 result.phoneNumber = dbUtil.encodePhoneNum(result.phoneNumber);
