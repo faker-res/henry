@@ -1062,6 +1062,8 @@
   "TOPUPWECHAT_HEADCOUNT": "Wechat Top Up Head Count",
   "TOPUPWECHAT_SUCCESSRATE": "Wechat Top Up Success Rate",
 
+  "BULK_CALL": "Create Call Mission",
+
   "EFFECTIVE_CONVERSATION_DEFINITION": "Effective Conversation Definition",
   "OVERTIME_CONVERSATION_SETTING": "Overtime Conversation Setting",
   "MANUAL_SUMMARIZE_LIVE800RECORD": "Manual Summarize LIVE 800 Record",

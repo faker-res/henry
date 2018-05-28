@@ -308,6 +308,7 @@ var roleChecker = {
                 Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],
                 Export: [],
                 Create: ['createPlayerFeedback'],
+                BulkCall: [],
                 ModifyFeedbackResult: ['createPlayerFeedbackResult', 'deletePlayerFeedbackResult'],
                 ModifyFeedbackTopic: ['createPlayerFeedbackTopic', 'deletePlayerFeedbackTopic']
             },
