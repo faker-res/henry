@@ -151,6 +151,12 @@ function socketActionPromoCode(socketIO, socket) {
             let isValidData = Boolean(data && data.playerId && data.promoCode);
             socketUtil.emitter(self.socket, dbPromoCode.disablePromoCode, [data.playerId, data.promoCode], actionName, isValidData);
         },
+
+        disablePromoCodes: function disablePromoCodes(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerIds && data.promoCodes);
+            socketUtil.emitter(self.socket, dbPromoCode.disablePromoCodes, [data.playerIds, data.promoCodes], actionName, isValidData);
+        },
     };
     socketActionPromoCode.actions = this.actions;
 }

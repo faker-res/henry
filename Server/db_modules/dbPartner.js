@@ -26,6 +26,7 @@ let rsaCrypto = require("../modules/rsaCrypto");
 let dbutility = require("./../modules/dbutility");
 let dbPlayerMail = require("../db_modules/dbPlayerMail");
 var localization = require("../modules/localization");
+var serverInstance = require("../modules/serverInstance");
 let ObjectId = mongoose.Types.ObjectId;
 
 let env = require('../config/env').config();
@@ -566,13 +567,62 @@ let dbPartner = {
      * @param {String} query - Query string
      */
     getPartner: function (query) {
-        return dbconfig.collection_partner.findOne(query).populate({
+        var deferred = Q.defer();
+        var apiData = null;
+        dbconfig.collection_partner.findOne(query).populate({
             path: "level",
             model: dbconfig.collection_partnerLevel
         }).populate({
             path: "player",
             model: dbconfig.collection_players
-        }).lean();
+        }).lean().then(
+            function (data) {
+                if (data) {
+                    data.fullPhoneNumber = data.phoneNumber;
+                    data.phoneNumber = dbUtil.encodePhoneNum(data.phoneNumber);
+                    data.email = dbUtil.encodeEmail(data.email);
+                    if (data.bankAccount) {
+                        data.bankAccount = dbUtil.encodeBankAcc(data.bankAccount);
+                    }
+                    apiData = data;
+
+                    var a, b, c;
+
+                    a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({
+                        provinceId: apiData.bankAccountProvince,
+                        queryId: serverInstance.getQueryId()
+                    }) : true;
+                    b = apiData.bankAccountCity ? pmsAPI.foundation_getCity({
+                        cityId: apiData.bankAccountCity,
+                        queryId: serverInstance.getQueryId()
+                    }) : true;
+                    c = apiData.bankAccountDistrict ? pmsAPI.foundation_getDistrict({
+                        districtId: apiData.bankAccountDistrict,
+                        queryId: serverInstance.getQueryId()
+                    }) : true;
+
+                    return Q.all([a, b, c]);
+                }
+            }, function (err) {
+                deferred.reject({name: "DBError", message: "Error in getting partner data", error: err})
+            }
+        ).then(
+            zoneData => {
+                apiData.bankAccountProvinceId = apiData.bankAccountProvince;
+                apiData.bankAccountCityId = apiData.bankAccountCity;
+                apiData.bankAccountDistrictId = apiData.bankAccountDistrict;
+                if (zoneData && zoneData[0]) {
+                    apiData.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : apiData.bankAccountProvince;
+                    apiData.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : apiData.bankAccountCity;
+                    apiData.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : apiData.bankAccountDistrict;
+                }
+                deferred.resolve(apiData);
+            },
+            zoneError => {
+                deferred.resolve(apiData);
+            }
+        );
+        return deferred.promise;
     },
 
     /**
@@ -1238,6 +1288,7 @@ let dbPartner = {
         var platformObjId = null;
         var partnerObj = null;
         let requireLogInCaptcha = null;
+        let retObj = {};
         return dbconfig.collection_platform.findOne({platformId: partnerData.platformId}).then(
             platformData => {
                 if (platformData) {
@@ -1376,6 +1427,35 @@ let dbPartner = {
                                 () => {
                                     data.platform.partnerRequireLogInCaptcha = requireLogInCaptcha;
                                     return data;
+                                }
+                            ).then(
+                                () => {
+                                    return dbconfig.collection_partner.findOne({_id: partnerObj._id}).populate({
+                                        path: "level",
+                                        model: dbconfig.collection_partnerLevel
+                                    }).populate({
+                                        path: "player",
+                                        model: dbconfig.collection_players
+                                    }).lean().then(
+                                        res => {
+                                            retObj = res;
+                                            let a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
+                                            let b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
+                                            let c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
+                                            return Q.all([a, b, c]);
+                                        }
+                                    ).then(
+                                        zoneData => {
+                                            retObj.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
+                                            retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
+                                            retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
+                                            retObj.platform.partnerRequireLogInCaptcha = requireLogInCaptcha;
+                                            return Q.resolve(retObj);
+                                        },
+                                        errorZone => {
+                                            return Q.resolve(retObj);
+                                        }
+                                    );
                                 }
                             );
                         },
@@ -5730,6 +5810,48 @@ let dbPartner = {
         );
     },
 
+    resetAllCustomizedCommissionRate: (partnerObjId, platformObjId, commissionType) => {
+        let customConfigProm = dbconfig.collection_partnerCommissionConfig.find({
+            partner: partnerObjId,
+            platform: platformObjId,
+            commissionType: commissionType
+        }).lean();
+
+        let defaultConfigProm = dbconfig.collection_partnerCommissionConfig.find({
+            partner: { "$exists" : false },
+            platform: platformObjId,
+            commissionType: commissionType
+        }).lean();
+
+        return Promise.all([customConfigProm, defaultConfigProm]).then(
+            data => {
+                let customConfig = data[0];
+                let defaultConfig = data[1];
+
+                if (defaultConfig && customConfig && defaultConfig.length > 0 && customConfig.length > 0) {
+                    defaultConfig.forEach(dConfig => {
+                        if (dConfig && dConfig.commissionSetting && dConfig.commissionSetting.length > 0) {
+                            customConfig.forEach(cConfig => {
+                                if (cConfig && cConfig.commissionSetting && cConfig.commissionSetting.length > 0) {
+                                    if (dConfig.provider.toString() === cConfig.provider.toString()) {
+                                        //custom config will be removed
+                                        dbconfig.collection_partnerCommissionConfig.remove({
+                                            partner: partnerObjId,
+                                            platform: platformObjId,
+                                            commissionType: commissionType,
+                                            provider: cConfig.provider,
+                                        }).exec();
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+                return data;
+            }
+        );
+    },
+
     settlePartnersCommission: function (partnerObjIdArr, commissionType, startTime, endTime, isSkip) {
         let proms = [];
         partnerObjIdArr.map(partnerObjId => {
@@ -7314,7 +7436,8 @@ let dbPartner = {
                 output.totalWithdrawalFee = commissionDetail.totalWithdrawalFee;
                 output.totalBonusFee = commissionDetail.totalRewardFee;
                 output.totalProviderFee = commissionDetail.totalPlatformFee;
-                output.totalCommission = commissionDetail.nettCommission;
+                // output.totalCommission = commissionDetail.nettCommission;
+                output.totalCommission = 0;
                 output.list = [];
 
                 if (commissionDetail.rawCommissions && commissionDetail.rawCommissions.length) {
@@ -7325,6 +7448,9 @@ let dbPartner = {
                             providerGroupCommission: providerCommission.amount,
                             providerGroupFee: providerCommission.platformFee,
                         })
+                        if (providerCommission.amount) {
+                            output.totalCommission += providerCommission.amount;
+                        }
                     })
                 }
 

@@ -441,7 +441,8 @@ define(['js/app'], function (myApp) {
                 2: 'ATM',
                 3: 'Counter',
                 4: 'AliPayTransfer',
-                5: 'weChatPayTransfer'
+                5: 'weChatPayTransfer',
+                6: 'CloudFlashPay'
             };
 
             vm.commissionType = {
@@ -803,15 +804,15 @@ define(['js/app'], function (myApp) {
 
                 // Zero dependencies variable
                 const preValue0 = await Promise.all([
-                    commonService.getRewardList($scope, vm.selectedPlatform.id),
-                    commonService.getPromotionTypeList($scope, vm.selectedPlatform.id),
-                    commonService.getAllAlipaysByAlipayGroup($scope, vm.selectedPlatform.data.platformId),
-                    commonService.getAllWechatpaysByWechatpayGroup($scope, vm.selectedPlatform.data.platformId),
-                    commonService.getBankTypeList($scope),
-                    commonService.getPlatformProvider($scope, vm.selectedPlatform.id),
-                    commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id),
-                    commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id),
-                    commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id)
+                    commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getAllAlipaysByAlipayGroup($scope, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
+                    commonService.getAllWechatpaysByWechatpayGroup($scope, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
+                    commonService.getBankTypeList($scope).catch(err => Promise.resolve({})),
+                    commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
                 ]);
 
                 vm.rewardList = preValue0[0];
@@ -826,7 +827,7 @@ define(['js/app'], function (myApp) {
 
                 // 1st dependencies variable
                 const preValue1 = await Promise.all([
-                    commonService.getAllBankCard($scope, $translate, vm.selectedPlatform.data.platformId, vm.allBankTypeList),
+                    commonService.getAllBankCard($scope, $translate, vm.selectedPlatform.data.platformId, vm.allBankTypeList).catch(err => Promise.resolve([])),
                 ]);
 
                 vm.bankCards = preValue1[0];
@@ -2416,6 +2417,39 @@ define(['js/app'], function (myApp) {
                         {'title': $translate('PLAYER_NAME'), data: 'name'},
                         // {'title': $translate('PLAYERID'), data: 'playerId'},
                         {'title': $translate('realName'), sClass: "wordWrap realNameCell", data: 'realName'},
+                        {
+                            title: $translate("CREDIBILITY"),
+                            data: "credibilityRemarks",
+                            advSearch: false,
+                            orderable: false,
+                            sClass: "remarkCol",
+                            render: (data, type, row) => {
+                                let emptyOutput = "-";
+                                if (!data || data.length === 0) {
+                                    return emptyOutput;
+                                }
+
+                                let output = "";
+                                let remarkMatches = false;
+                                data.map(function (remarkId) {
+                                    for (let i = 0; i < vm.credibilityRemarks.length; i++) {
+                                        if (vm.credibilityRemarks[i]._id === remarkId) {
+                                            if (output) {
+                                                output += "<br>";
+                                            }
+                                            output += vm.credibilityRemarks[i].name;
+                                            remarkMatches = true;
+                                        }
+                                    }
+                                });
+
+                                if (remarkMatches) {
+                                    return output;
+                                } else {
+                                    return emptyOutput;
+                                }
+                            }
+                        },
                         {'title': $translate('playerLevel'), data: 'playerLevel.name'},
                         {'title': $translate('LOGIN_TIMES'), data: 'loginTimes'},
                         {'title': $translate('topUpTimes'), data: 'topUpTimes', bSortable: true},
@@ -15967,6 +16001,14 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.refreshPartnerBankInfo = function () {
+                if (vm.selectedSinglePartner && vm.selectedSinglePartner._id) {
+                    vm.getProvince(vm.currentProvince.province);
+                    vm.getCity(vm.currentCity.city);
+                    vm.getDistrict(vm.currentDistrict.district);
+                }
+            }
+
             vm.getPartnersByAdvanceQueryDebounced = $scope.debounceSearch(function (partnerQuery) {
                 utilService.hideAllPopoversExcept();
                 vm.advancedPartnerQueryObj = $.extend({}, vm.advancedPartnerQueryObj, partnerQuery);
@@ -17205,10 +17247,10 @@ define(['js/app'], function (myApp) {
                 $('#modalActivePartnerInfo').modal().show();
             };
 
-            vm.getProvince = function () {
+            vm.getProvince = function (curProvince) {
                 vm.showProvinceStr = '';
-                let province = vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountProvince ? vm.selectedSinglePartner.bankAccountProvince : '';
-                $scope.getProvinceStr(vm.selectedSinglePartner.bankAccountProvince).then(data => {
+                let province = curProvince ? curProvince : vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountProvince ? vm.selectedSinglePartner.bankAccountProvince : '';
+                $scope.getProvinceStr(province).then(data => {
                     vm.showProvinceStr = data.data.province ? data.data.province.name : province;
                     $scope.safeApply();
                 }, err => {
@@ -17217,9 +17259,9 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.getCity = function () {
+            vm.getCity = function (curCity) {
                 vm.showCityStr = '';
-                let city = vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountCity ? vm.selectedSinglePartner.bankAccountCity : '';
+                let city = curCity ? curCity : vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountCity ? vm.selectedSinglePartner.bankAccountCity : '';
                 $scope.getCityStr(city).then(data => {
                     vm.showCityStr = data.data.city ? data.data.city.name : city;
                     $scope.safeApply();
@@ -17229,9 +17271,9 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.getDistrict = function () {
+            vm.getDistrict = function (curDistrict) {
                 vm.showDistrictStr = '';
-                let district = vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountDistrict ? vm.selectedSinglePartner.bankAccountDistrict : '';
+                let district = curDistrict ? curDistrict : vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountDistrict ? vm.selectedSinglePartner.bankAccountDistrict : '';
                 $scope.getDistrictStr(district).then(data => {
                     vm.showDistrictStr = data.data.district ? data.data.district.name : district;
                     $scope.safeApply();
@@ -17577,6 +17619,7 @@ define(['js/app'], function (myApp) {
                             commissionSettingCancelRow: vm.commissionSettingCancelRow,
                             selectedCommissionTab: vm.selectedCommissionTab,
                             customizeCommissionRate: vm.customizeCommissionRate,
+                            resetAllCustomizedCommissionRate: vm.resetAllCustomizedCommissionRate,
                             customizePartnerRate: vm.customizePartnerRate,
                             commissionRateEditRow: vm.commissionRateEditRow,
                             currentProvince: vm.currentProvince,
@@ -17642,7 +17685,7 @@ define(['js/app'], function (myApp) {
                     vm.isEditingPartnerPaymentShowVerify = false;
                     vm.partnerPayment = utilService.assignObjKeys(vm.isOneSelectedPartner(), vm.partnerPaymentKeys);
                     vm.partnerPayment.bankAccountName = (vm.partnerPayment.bankAccountName) ? vm.partnerPayment.bankAccountName : vm.isOneSelectedPartner().realName;
-                    vm.partnerPayment.newBankAccount = vm.partnerPayment.bankAccount;
+                    vm.partnerPayment.newBankAccount = vm.partnerPayment.encodedBankAccount;
                     vm.partnerPayment.showNewAccountNo = false;
                     vm.filteredBankTypeList = $.extend({}, vm.allBankTypeList);
                     vm.filterBankName = '';
@@ -17779,6 +17822,24 @@ define(['js/app'], function (myApp) {
             };
 
             vm.updatePartnerPayment = function () {
+                if (vm.currentDistrict && Object.keys(vm.currentDistrict).length) {
+                    if (vm.partnerPayment && vm.partnerPayment.bankAccountDistrict) {
+                        vm.partnerPayment.bankAccountDistrict = vm.currentDistrict.district;
+                    }
+                }
+
+                if (vm.currentCity && Object.keys(vm.currentCity).length) {
+                    if (vm.partnerPayment && vm.partnerPayment.bankAccountCity) {
+                        vm.partnerPayment.bankAccountCity = vm.currentCity.city;
+                    }
+                }
+
+                if (vm.currentProvince && Object.keys(vm.currentProvince).length) {
+                    if (vm.partnerPayment && vm.partnerPayment.bankAccountProvince) {
+                        vm.partnerPayment.bankAccountProvince = vm.currentProvince.province;
+                    }
+                }
+
                 console.log('before after', vm.selectedSinglePartner, vm.partnerPayment);
 
                 delete vm.partnerPayment.verifyBankAccount;
@@ -17793,20 +17854,32 @@ define(['js/app'], function (myApp) {
                         partnerName: vm.selectedSinglePartner.partnerName,
                         _id: vm.selectedSinglePartner._id,
                         partnerId: vm.selectedSinglePartner.partnerId,
+                        bankAccount: vm.partnerPayment.bankAccount,
+                        bankAccountName: vm.partnerPayment.bankAccountName,
+                        bankName: vm.partnerPayment.bankName,
+                        bankAccountType: vm.partnerPayment.bankAccountType,
                         bankAccountProvince: vm.currentProvince.province,
                         bankAccountCity: vm.currentCity.city,
                         bankAccountDistrict: vm.currentDistrict.district,
-                        bankAddress: vm.selectedSinglePartner.bankAddress,
-                        bankAccountName: vm.selectedSinglePartner.bankAddress,
-                        bankName: vm.selectedSinglePartner.bankName,
+                        bankAddress: vm.partnerPayment.bankAddress,
                         curData: result.before,
                         updateData: result.after
                     }
                 }
 
-                if (sendData.data && sendData.data.updateData && sendData.data.updateData.newBankAccount) {
+                if (sendData.data && sendData.data.updateData && sendData.data.updateData.newBankAccount && vm.selectedSinglePartner && vm.selectedSinglePartner.encodedBankAccount
+                    && (sendData.data.updateData.newBankAccount != vm.selectedSinglePartner.encodedBankAccount)) {
+                    sendData.data.bankAccount = sendData.data.updateData.newBankAccount;
+                    sendData.data.updateData.bankAccount = sendData.data.updateData.newBankAccount;
+                    sendData.data.curData.bankAccount = vm.selectedSinglePartner.bankAccount;
+                } else if (!vm.selectedSinglePartner.encodedBankAccount) {
                     sendData.data.bankAccount = sendData.data.updateData.newBankAccount;
                 }
+
+                delete sendData.data.curData.newBankAccount;
+                delete sendData.data.curData.showNewAccountNo;
+                delete sendData.data.updateData.newBankAccount;
+                delete sendData.data.updateData.showNewAccountNo;
 
                 console.log('sendData', sendData);
 
@@ -17816,6 +17889,7 @@ define(['js/app'], function (myApp) {
                         socketService.showProposalStepInfo(data.data.stepInfo, $translate);
                     }
                     vm.getPlatformPartnersData();
+                    vm.refreshPartnerBankInfo();
                     $scope.safeApply();
                 });
             };
@@ -21729,6 +21803,7 @@ define(['js/app'], function (myApp) {
             vm.generatePromoCode = function (col, index, data, type) {
                 if (data && data.playerName) {
                     let sendData = Object.assign({}, data);
+                    col[index].error = false;
 
                     if (sendData.playerName.match(/\n/g)) {
                         col.splice(index, 1);
@@ -21815,6 +21890,10 @@ define(['js/app'], function (myApp) {
                                         }).then(ret => {
                                             col[index].code = ret.data;
                                             $scope.safeApply();
+                                        }).catch(err=>{
+                                            $scope.$evalAsync(()=>{
+                                                col[index].error = true;
+                                            })
                                         });
                                     }
                                 });
@@ -21830,7 +21909,7 @@ define(['js/app'], function (myApp) {
                 col.forEach((elem, index, arr) => {
                     if (!elem.code) {
                         p = p.then(function () {
-                            if (skipCheck) {
+                            if (skipCheck && !elem.error) {
                                 elem.skipCheck = true;
                             }
                             return vm.generatePromoCode(col, index, elem, type);
@@ -21864,6 +21943,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPromoCodeHistory = function (isNewSearch, type) {
+                vm.selectedPromoCodes = [];
+                vm.selectedPromoCode = null;
                 vm.promoCodeQuery.platformId = vm.selectedPlatform.id;
                 $('#promoCodeHistoryTableSpin').show();
 
@@ -22830,14 +22911,25 @@ define(['js/app'], function (myApp) {
                     if ($(this).hasClass('selected')) {
                         $(this).removeClass('selected');
                         vm.selectedPromoCode = null;
+                        vm.selectedPromoCodes.forEach(item=>{
+                            if(item._id == promoCodeTable.row(this).data()._id) {
+                                vm.selectedPromoCodes.splice(vm.selectedPromoCodes.indexOf(item), 1);
+                            }
+                        })
                     } else {
-                        promoCodeTable.$('tr.selected').removeClass('selected');
                         $(this).addClass('selected');
                         vm.selectedPromoCode = promoCodeTable.row(this).data();
+                        vm.selectedPromoCodes.push(promoCodeTable.row(this).data());
                     }
 
                     $scope.safeApply();
                 });
+            };
+
+            vm.promoCodeSelectAll = function () {
+                $('#promoCodeTable tbody tr').removeClass('selected');
+                $('#promoCodeTable tbody tr').addClass('selected');
+                vm.selectedPromoCodes = vm.promoCodeQuery.result;
             };
 
             vm.promoCodeHistoryTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
@@ -22965,6 +23057,27 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'disablePromoCode', sendData, function (data) {
                     console.log('disablePromoCode', data);
+                    vm.getPromoCodeHistory(true);
+                });
+            };
+
+            vm.disablePromoCodes = function () {
+                let playerIds = [];
+                let promoCodes = [];
+                vm.selectedPromoCodes.forEach(item=>{
+                    if(item.status == 1) {
+                        playerIds.push(item.playerObjId.playerId);
+                        promoCodes.push(item.code);
+                    }
+                });
+                let sendData = {
+                    playerIds: playerIds,
+                    promoCodes: promoCodes
+                };
+
+                console.log('disablePromoCodes sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'disablePromoCodes', sendData, function (data) {
+                    console.log('disablePromoCodes', data);
                     vm.getPromoCodeHistory(true);
                 });
             };
@@ -24717,7 +24830,7 @@ define(['js/app'], function (myApp) {
             vm.customizeCommissionRate = (idx, setting, newConfig, oldConfig, isRevert = false) => {
                 if (isRevert) {
                     let customCount = newConfig.commissionSetting.filter(e => e.isCustomized).length;
-                    newConfig.commissionSetting[idx].commissionRate = oldConfig.commissionSetting[idx].commissionRate;
+                    newConfig.commissionSetting[idx].commissionRate = parseFloat((oldConfig.commissionSetting[idx].commissionRate * 100).toFixed(2));
                     isRevert = --customCount === 0;
                 }
 
@@ -24745,6 +24858,21 @@ define(['js/app'], function (myApp) {
                         });
                     });
                 }
+            };
+
+            vm.resetAllCustomizedCommissionRate = function () {
+                let sendData = {
+                    partnerObjId: vm.selectedSinglePartner._id,
+                    platformObjId: vm.selectedPlatform.id,
+                    commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab]
+                };
+
+                socketService.$socket($scope.AppSocket, 'resetAllCustomizedCommissionRate', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id);
+                        vm.getPlatformPartnersData();
+                    });
+                });
             };
 
             vm.customizePartnerRate = (config, field, isRevert = false) => {

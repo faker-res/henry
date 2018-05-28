@@ -105,6 +105,7 @@ form(name="form_edit_partner_commission_type", novalidate)
                     .pull-right
                         button.btn.btn-primary.common-button(ng-if="!vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing" ng-click='vm.createUpdatePartnerCommissionConfig()') {{'SUBMIT' | translate}}
                         button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded" ng-click='vm.submitPartnerCommissionConfigWithGameProviderGroup()') {{'SUBMIT' | translate}}
+                        button.btn.btn-primary.common-button(ng-click='resetAllCustomizedCommissionRate()') {{'RESET_ALL_COMMISSION_RATE' | translate}}
 
         .col-md-12.panel.panel-body.panel-primary.common-right-panel-body(style="min-height: 450px;")
             div

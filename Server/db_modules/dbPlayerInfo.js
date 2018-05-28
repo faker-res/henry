@@ -2688,26 +2688,56 @@ let dbPlayerInfo = {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortCol = sortCol || {createTime: -1}
         // let bGameSearch = false;
-        // let gameSearch;
+        let gameSearch;
 
-        // if (query.gameName) {
-        //     bGameSearch = true;
-        //     gameSearch = dbconfig.collection_game.find({name: new RegExp('.*' + query.gameName + '.*', 'i')}).lean();
-        // } else {
-        //     gameSearch = false;
-        // }
-        //
-        // return Promise.all([gameSearch]).then(
-        //     function (data) {
-        //         let games;
-        //         let gamesId = [];
-        //         if (bGameSearch && data && data[0]) {
-        //             games = data[0];
-        //             for (let i = 0; i < games.length; i++) {
-        //                 let game = games[i];
-        //                 gamesId.push(game._id);
-        //             }
-        //         }
+        if (query.cpGameType) {
+            // bGameSearch = true;
+            gameSearch = dbconfig.collection_game.find({name: new RegExp('.*' + query.cpGameType + '.*', 'i')}).lean();
+        } else {
+            gameSearch = false;
+        }
+
+        return Promise.all([gameSearch]).then(
+            function (data) {
+
+                let games;
+                let gamesId = [];
+                if (data && data[0]) {
+                    games = data[0];
+                    for (let i = 0; i < games.length; i++) {
+                        let game = games[i];
+                        gamesId.push(game._id);
+                    }
+
+                    if (gamesId){
+                        if(gamesId.length == 0 && query.roundNoOrPlayNo) {
+                            queryObject.cpGameType = new RegExp('.*' + query.cpGameType + '.*', 'i');
+                            queryObject.$or = [{roundNo: query.roundNoOrPlayNo}, {playNo: query.roundNoOrPlayNo}];
+                        }
+                        else if(gamesId.length > 0 && query.roundNoOrPlayNo){
+                            queryObject.$and = [{$or: [ {cpGameType: new RegExp('.*' + query.cpGameType + '.*', 'i')}, {gameId: {$in: gamesId} }]},
+                                {$or: [{roundNo: query.roundNoOrPlayNo}, {playNo: query.roundNoOrPlayNo}]}];
+                        }
+                        else if(gamesId.length > 0 && !query.roundNoOrPlayNo) {
+                            queryObject.$or = [{cpGameType: new RegExp('.*' + query.cpGameType + '.*', 'i')}, {gameId: {$in: gamesId}}]
+                        }
+                        else if(gamesId.length == 0 && !query.roundNoOrPlayNo) {
+                            queryObject.cpGameType = new RegExp('.*' + query.cpGameType + '.*', 'i');
+                        }
+                        else{
+
+                        }
+                    }
+                }
+                else{
+
+                    if (query.roundNoOrPlayNo){
+                        queryObject.$or = [{roundNo: query.roundNoOrPlayNo}, {playNo: query.roundNoOrPlayNo}];
+                    }
+                    // if (query.cpGameType){
+                    //         queryObject.cpGameType = new RegExp('.*' + query.cpGameType + '.*', 'i');
+                    // }
+                }
 
                 if (query.playerId) {
                     queryObject.playerId = ObjectId(query.playerId);
@@ -2721,22 +2751,37 @@ let dbPlayerInfo = {
                 if (query.dirty != null) {
                     queryObject.bDirty = query.dirty;
                 }
-                // if (query.gameName && !games) {
-                //     queryObject.cpGameType = query.gameName;
-                // }
-                // if (bGameSearch) {
-                //     queryObject.gameId = {
-                //         $in: gamesId
-                //     }
-                // }
-                if (query.roundNoOrPlayNo){
-                    queryObject.$or = [{roundNo: query.roundNoOrPlayNo}, {playNo: query.roundNoOrPlayNo}];
-                }
 
-                if (query.cpGameType){
-                    queryObject.cpGameType = new RegExp('.*' + query.cpGameType + '.*', 'i');
-                }
+                if (queryObject && queryObject.$or) {
+                    queryObject.$and = [{
+                        $or: [
+                            {isDuplicate: {$exists: false}},
+                            {
+                                $and: [
+                                    {isDuplicate: {$exists: true}},
+                                    {isDuplicate: false}
+                                ]
+                            }
+                        ]
+                    },
+                        {
+                            $or: queryObject.$or
+                        }
+                    ]
 
+                    delete queryObject.$or;
+                }  else {
+                    queryObject.$or = [
+                        {isDuplicate: {$exists: false}},
+                        {
+                            $and: [
+                                {isDuplicate: {$exists: true}},
+                                {isDuplicate: false}
+                            ]
+                        }
+                    ]
+                }
+                
                 var a = dbconfig.collection_playerConsumptionRecord
                     .find(queryObject).sort(sortCol).skip(index).limit(limit)
                     .populate({
@@ -2760,8 +2805,8 @@ let dbPlayerInfo = {
                 return Q.all([a, b, c]).then(result => {
                     return {data: result[0], size: result[1], summary: result[2] ? result[2][0] : {}};
                 })
-        //     }
-        // )
+            }
+        )
 
 
     },
@@ -11888,12 +11933,12 @@ let dbPlayerInfo = {
                         timeCheckData => {
                             rewardData.selectedTopup = timeCheckData[0];
 
-                            //special handling for eu大爆炸 reward
+                            //special handling for eu大爆炸, random reward group reward
                             if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime
                                 && (rewardEvent.type.name != constRewardType.PLAYER_TOP_UP_RETURN || (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN
                                     && (rewardEvent.validStartTime || rewardEvent.validEndTime)))) {
                                 // There is consumption after top up
-                                if (rewardEvent.type.isGrouped && rewardEvent.condition.allowConsumptionAfterTopUp) {
+                                if ((rewardEvent.type.isGrouped && rewardEvent.condition.allowConsumptionAfterTopUp) || isRandomRewardConsumption(rewardEvent)) {
                                     // Bypass this checking
                                 } else {
                                     return Q.reject({
@@ -13635,7 +13680,16 @@ let dbPlayerInfo = {
                 createTime: {
                     $gte: new Date(startTime),
                     $lte: new Date(endTime)
-                }
+                },
+                $or: [
+                    {isDuplicate: {$exists: false}},
+                    {
+                        $and: [
+                            {isDuplicate: {$exists: true}},
+                            {isDuplicate: false}
+                        ]
+                    }
+                ]
             };
 
             query.providerId ? consumptionPromMatchObj.providerId = ObjectId(query.providerId) : false;
@@ -16570,6 +16624,12 @@ function getProviderCredit(providers, playerName, platformId) {
         });
 
     return providerCredit;
+}
+
+function isRandomRewardConsumption (rewardEvent) {
+    return rewardEvent.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP && rewardEvent.param.rewardParam
+        && rewardEvent.param.rewardParam[0] && rewardEvent.param.rewardParam[0].value
+        && rewardEvent.param.rewardParam[0].value[0] && rewardEvent.param.rewardParam[0].value[0].requiredUnlockAmount
 }
 
 

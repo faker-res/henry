@@ -16,7 +16,7 @@ form(name='form_partnerPaymentInfo').well
                 label {{'BANK_ACCOUNT' | translate}}
                 text.margin-left-5.small ({{'Min length 16, all digits' | translate}})
             div
-                input.form-control.inlineBlk(ng-model='partnerPayment.bankAccount', style='width:calc(100% - 100px)', ng-if='!isEditingPartnerPayment', disabled)
+                input.form-control.inlineBlk(ng-model='partnerPayment.encodedBankAccount', style='width:calc(100% - 100px)', ng-if='!isEditingPartnerPayment', disabled)
                 input.form-control.inlineBlk(ng-model='partnerPayment.newBankAccount', ng-change='partnerPayment.showNewAccountNo=true;', style='width:calc(100% - 100px)', ng-if='isEditingPartnerPayment && !partnerPayment.showNewAccountNo')
                 input.form-control.inlineBlk(focus-me="partnerPayment.showNewAccountNo" ng-model='partnerPayment.newBankAccount', pattern= "[0-9]{16,19}", style='width:calc(100% - 100px)', ng-if='isEditingPartnerPayment && partnerPayment.showNewAccountNo')
                 button.btn.btn-info.pull-right(style='width:80px', ng-click='isEditingPartnerPaymentShowVerify=!isEditingPartnerPaymentShowVerify')
