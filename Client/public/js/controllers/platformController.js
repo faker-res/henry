@@ -23165,10 +23165,16 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.promoCodeSelectAll = function () {
-                $('#promoCodeTable tbody tr').removeClass('selected');
-                $('#promoCodeTable tbody tr').addClass('selected');
-                vm.selectedPromoCodes = vm.promoCodeQuery.result;
+            vm.promoCodeSelectAllToggle = function () {
+                if(vm.selectedPromoCodes.length != vm.promoCodeQuery.result.length) {
+                    $('#promoCodeTable tbody tr').removeClass('selected');
+                    $('#promoCodeTable tbody tr').addClass('selected');
+                    vm.selectedPromoCodes = $.extend(true, [], vm.promoCodeQuery.result);
+                } else {
+                    $('#promoCodeTable tbody tr').removeClass('selected');
+                    vm.selectedPromoCodes = [];
+                    vm.selectedPromoCode = null;
+                }
             };
 
             vm.promoCodeHistoryTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
