@@ -11933,12 +11933,12 @@ let dbPlayerInfo = {
                         timeCheckData => {
                             rewardData.selectedTopup = timeCheckData[0];
 
-                            //special handling for eu大爆炸 reward
+                            //special handling for eu大爆炸, random reward group reward
                             if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime
                                 && (rewardEvent.type.name != constRewardType.PLAYER_TOP_UP_RETURN || (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN
                                     && (rewardEvent.validStartTime || rewardEvent.validEndTime)))) {
                                 // There is consumption after top up
-                                if (rewardEvent.type.isGrouped && rewardEvent.condition.allowConsumptionAfterTopUp) {
+                                if ((rewardEvent.type.isGrouped && rewardEvent.condition.allowConsumptionAfterTopUp) || isRandomRewardConsumption(rewardEvent)) {
                                     // Bypass this checking
                                 } else {
                                     return Q.reject({
@@ -16624,6 +16624,12 @@ function getProviderCredit(providers, playerName, platformId) {
         });
 
     return providerCredit;
+}
+
+function isRandomRewardConsumption (rewardEvent) {
+    return rewardEvent.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP && rewardEvent.param.rewardParam
+        && rewardEvent.param.rewardParam[0] && rewardEvent.param.rewardParam[0].value
+        && rewardEvent.param.rewardParam[0].value[0] && rewardEvent.param.rewardParam[0].value[0].requiredUnlockAmount
 }
 
 
