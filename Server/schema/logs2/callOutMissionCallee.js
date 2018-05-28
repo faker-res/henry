@@ -5,8 +5,10 @@ let Schema = mongoose.Schema;
 let callOutMissionCalleeSchema = new Schema({
     // platform
     platform:  {type: Schema.ObjectId, required: true, index: true},
+    // adminObjId
+    admin: {type: Schema.Types.ObjectId, ref: 'adminInfo', index: true},
     // missionObjId
-    mission: {type: Schema.Types.ObjectId, index: true},
+    mission: {type: Schema.Types.ObjectId, ref: 'callOutMission', index: true},
     // mission name
     missionName: {type: String, required: true, index: true, unique: true},
     // index number (sorting of player on call)
@@ -20,7 +22,9 @@ let callOutMissionCalleeSchema = new Schema({
     // calling time
     callingTime: {type: Date},
     // status - refer to constCallOutMissionCalleeStatus
-    status: {type: Number},
+    status: {type: Number, default: 0},
+    // is the player added feedback record
+    isAddedFeedbackRecord: {type: Boolean, default: false},
     // other data
     data: {},
 });

@@ -3327,6 +3327,7 @@
   "replyingSentence": "客服回覆句数",
   "ConversationInterval": "对话间隔秒数（含或以下)",
   "presetMark": "超时预设评分（+/-)",
+  "BulkCall": "批量播出",
   "AND": "且",
   "COLOR_MARK": "标记颜色",
   "ADD_CONFIGURATION_DETAIL": "增加配置细节",
