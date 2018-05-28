@@ -83,11 +83,13 @@ let dbPromoCode = {
                 if (players && players.length > 0) {
                     let query = [];
                     players.forEach(player => {
-                        if(playerIds.indexOf(player.playerId) > -1) {
-                            query.push({
-                                playerObjId: player._id,
-                                code: promoCodes[playerIds.indexOf(player.playerId)]
-                            })
+                        for(let x = 0; x < playerIds.length; x++) {
+                            if (playerIds[x] == player.playerId) {
+                                query.push({
+                                    playerObjId: player._id,
+                                    code: promoCodes[x]
+                                })
+                            }
                         }
                     });
                     return dbconfig.collection_promoCode.find({$or: query}).lean();
