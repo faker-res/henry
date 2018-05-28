@@ -353,7 +353,7 @@ let dbPlayerPartner = {
         ).then(
             userData => {
                 // block action if it is Demo player
-                if (userData && !userData.isRealPlayer) {
+                if (userData && !userData.isRealPlayer && targetType === '2') {
                     return Q.reject({
                         name: "DataError",
                         message: "Demo player cannot perform this action"
