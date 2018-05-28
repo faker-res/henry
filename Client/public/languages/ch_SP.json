@@ -3195,6 +3195,7 @@
   "Player does not have enough consumption": "玩家没有足够的投注额",
   "Player does not have enough top up or consumption": "玩家没有足够的存款或投注额",
   "The period of the reward has not yet opened": "本周期的场次尚未开放",
+  "Consumption amount is not enough": "投注额不足",
   "GAME LOBBY / REWARD TASK GROUP":"游戏大厅 /锁定组",
   "bankType": "收款银行类型",
   "merchantTopupType": "在线充值方式",
