@@ -1685,17 +1685,17 @@ var proposalExecutor = {
                             });
                         }
 
-                        var decryptedPhoneNo = player.phoneNumber;
-
-                        if (player.phoneNumber && player.phoneNumber.length > 20) {
-                            try {
-                                decryptedPhoneNo = rsaCrypto.decrypt(player.phoneNumber);
-                            }
-                            catch (err) {
-                                console.log(err);
-                                decryptedPhoneNo = "";
-                            }
-                        }
+                        // var decryptedPhoneNo = player.phoneNumber;
+                        //
+                        // if (player.phoneNumber && player.phoneNumber.length > 20) {
+                        //     try {
+                        //         decryptedPhoneNo = rsaCrypto.decrypt(player.phoneNumber);
+                        //     }
+                        //     catch (err) {
+                        //         console.log(err);
+                        //         decryptedPhoneNo = "";
+                        //     }
+                        // }
                         let cTime = proposalData && proposalData.createTime ? new Date(proposalData.createTime) : new Date();
                         let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
                         var message = {
@@ -1711,7 +1711,7 @@ var proposalExecutor = {
                             accountNo: player.bankAccount || "",
                             bankAddress: player.bankAddress || "",
                             bankName: player.bankName || "",
-                            phone: decryptedPhoneNo || "",
+                            phone: "",
                             email: player.email || "",
                             loginName: player.name || "",
                             applyTime: cTimeString
@@ -2756,13 +2756,19 @@ var proposalExecutor = {
             },
 
             executeCustomizePartnerCommRate: function (proposalData, deferred) {
-                if (proposalData && proposalData.data && proposalData.data.partnerObjId && proposalData.data.settingObjId) {
+                if (proposalData && proposalData.data && proposalData.data.partnerObjId) {
                     let prom = Promise.resolve(true);
 
-                    if (proposalData.data.isPlatformRate) {
-                        prom = updatePartnerCommRateConfig(proposalData);
-                    } else {
-                        prom = updatePartnerCommissionConfig(proposalData);
+                    if (proposalData.data.settingObjId) {
+                        if (proposalData.data.isPlatformRate) {
+                            prom = updatePartnerCommRateConfig(proposalData);
+                        } else {
+                            prom = updatePartnerCommissionConfig(proposalData);
+                        }
+                    }
+
+                    if (proposalData.data.isResetAll) {
+                        prom = resetAllCustomizedCommissionRate(proposalData);
                     }
 
                     prom.then(
@@ -4202,6 +4208,51 @@ function updatePartnerCommRateConfig (proposalData) {
 
         return dbconfig.collection_partnerCommissionRateConfig.findOneAndUpdate(qObj, proposalData.data.newRate, {new: true, upsert: true});
     }
+}
+
+function resetAllCustomizedCommissionRate (proposalData) {
+    let customConfigProm = dbconfig.collection_partnerCommissionConfig.find({
+        partner: proposalData.data.partnerObjId,
+        platform: proposalData.data.platformObjId,
+        commissionType: proposalData.data.commissionType
+    }).lean();
+
+    let defaultConfigProm = dbconfig.collection_partnerCommissionConfig.find({
+        partner: { "$exists" : false },
+        platform: proposalData.data.platformObjId,
+        commissionType: proposalData.data.commissionType
+    }).lean();
+
+    return Promise.all([customConfigProm, defaultConfigProm]).then(
+        data => {
+            let customConfig = data[0];
+            let defaultConfig = data[1];
+
+            if (defaultConfig && customConfig && defaultConfig.length > 0 && customConfig.length > 0) {
+                defaultConfig.forEach(dConfig => {
+                    if (dConfig && dConfig.commissionSetting && dConfig.commissionSetting.length > 0) {
+                        customConfig.forEach(cConfig => {
+                            if (cConfig && cConfig.commissionSetting && cConfig.commissionSetting.length > 0) {
+                                if (dConfig.provider.toString() === cConfig.provider.toString()) {
+                                    //custom config will be removed
+                                    dbconfig.collection_partnerCommissionConfig.remove({
+                                        partner: proposalData.data.partnerObjId,
+                                        platform: proposalData.data.platformObjId,
+                                        commissionType: proposalData.data.commissionType,
+                                        provider: cConfig.provider,
+                                    }).exec();
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+            return data;
+        },
+        error => {
+            return error;
+        }
+    );
 }
 
 function getProviderCredit(providers, playerName, platformId) {

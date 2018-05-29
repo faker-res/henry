@@ -5810,44 +5810,32 @@ let dbPartner = {
         );
     },
 
-    resetAllCustomizedCommissionRate: (partnerObjId, platformObjId, commissionType) => {
-        let customConfigProm = dbconfig.collection_partnerCommissionConfig.find({
-            partner: partnerObjId,
-            platform: platformObjId,
-            commissionType: commissionType
-        }).lean();
+    resetAllCustomizedCommissionRate: (partnerObjId, field, isResetAll, commissionType, adminInfo) => {
+        return dbconfig.collection_partner.findById(partnerObjId).lean().then(
+            partnerObj => {
+                if (partnerObj) {
+                    let creatorData = adminInfo || {
+                        type: 'partner',
+                        name: partnerObj.partnerName,
+                        id: partnerObj._id
+                    };
 
-        let defaultConfigProm = dbconfig.collection_partnerCommissionConfig.find({
-            partner: { "$exists" : false },
-            platform: platformObjId,
-            commissionType: commissionType
-        }).lean();
+                    let proposalData = {
+                        creator: adminInfo || {
+                            type: 'partner',
+                            name: partnerObj.partnerName,
+                            id: partnerObj._id
+                        },
+                        platformObjId: partnerObj.platform,
+                        partnerObjId: partnerObjId,
+                        partnerName: partnerObj.partnerName,
+                        remark: localization.localization.translate(field),
+                        isResetAll: isResetAll,
+                        commissionType: commissionType
+                    };
 
-        return Promise.all([customConfigProm, defaultConfigProm]).then(
-            data => {
-                let customConfig = data[0];
-                let defaultConfig = data[1];
-
-                if (defaultConfig && customConfig && defaultConfig.length > 0 && customConfig.length > 0) {
-                    defaultConfig.forEach(dConfig => {
-                        if (dConfig && dConfig.commissionSetting && dConfig.commissionSetting.length > 0) {
-                            customConfig.forEach(cConfig => {
-                                if (cConfig && cConfig.commissionSetting && cConfig.commissionSetting.length > 0) {
-                                    if (dConfig.provider.toString() === cConfig.provider.toString()) {
-                                        //custom config will be removed
-                                        dbconfig.collection_partnerCommissionConfig.remove({
-                                            partner: partnerObjId,
-                                            platform: platformObjId,
-                                            commissionType: commissionType,
-                                            provider: cConfig.provider,
-                                        }).exec();
-                                    }
-                                }
-                            });
-                        }
-                    });
+                    return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {creator: creatorData, data: proposalData});
                 }
-                return data;
             }
         );
     },
