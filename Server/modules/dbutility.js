@@ -1232,6 +1232,17 @@ var dbUtility = {
         return temp.toLowerCase();
     },
 
+    getDateYMDStringFormat: (date) => {
+        date = new Date(date);
+        var y = date.getFullYear().toString();
+        var m = (date.getMonth() + 1).toString();
+        var d = date.getDate().toString();
+        (d.length == 1) && (d = '0' + d);
+        (m.length == 1) && (m = '0' + m);
+        var yyyymmdd = y + m + d;
+        return yyyymmdd;
+    },
+
     getIpAddress: (conn) => {
         let ipAddress = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
