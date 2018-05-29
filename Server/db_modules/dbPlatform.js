@@ -1727,7 +1727,6 @@ var dbPlatform = {
                         },
                         {
                             phoneStatus: 1
-                            // $unset: {phoneStatus: ''}
                         }
                     ).exec();
 
@@ -1742,7 +1741,6 @@ var dbPlatform = {
                         },
                         {
                             phoneStatus: 2
-                            // $unset: {phoneStatus: ''}
                         }
                     ).exec();
                     //no match found, return without encode
