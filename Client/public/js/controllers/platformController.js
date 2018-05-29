@@ -1021,7 +1021,7 @@ define(['js/app'], function (myApp) {
             }
             //search platform by name
             vm.getAllDepartmentData = function (callback) {
-                if (!authService.checkViewPermission('Platform', 'Platform', 'Create')) {
+                if (!authService.checkViewPermission('Platform', 'Platform', 'Read')) {
                     return;
                 }
                 socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
@@ -30290,7 +30290,7 @@ define(['js/app'], function (myApp) {
 
                 sendQuery.platformObjId = vm.selectedPlatform.id;
                 sendQuery.adminObjId = authService.adminId;
-                sendQuery.searchFilter = vm.playerFeedbackQuery;
+                sendQuery.searchFilter = JSON.stringify(vm.playerFeedbackQuery);
                 sendQuery.searchQuery = vm.getPlayerFeedbackQuery();
                 sendQuery.sortCol = VM.playerFeedbackQuery.sortCol || {registrationTime: -1};
 

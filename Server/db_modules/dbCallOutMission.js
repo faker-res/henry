@@ -1,10 +1,11 @@
 const dbconfig = require('./../modules/dbproperties');
 const dbutility = require('./../modules/dbutility');
 
+const constCallOutMissionStatus = require('./../const/constCallOutMissionStatus');
+
 const request = require('request');
 const rsaCrypto = require('./../modules/rsaCrypto');
 const errorUtils = require("./../modules/errorUtils");
-const constServerCode = require('./../const/constServerCode');
 
 let dbCallOutMission = {
     createCallOutMission: (platformObjId, adminObjId, searchFilter, searchQuery, sortCol) => {
@@ -35,16 +36,17 @@ let dbCallOutMission = {
 
                 calleeList = calleeData;
 
-                return addMissionToCti();
+                return addMissionToCti(platform, admin, calleeList);
             }
         ).then(
-            () => {
+            missionName => {
                 let callOutMissionData = {
                     platform: platform._id,
                     admin: admin._id,
                     adminName: admin.adminName,
-                    missionName: " ", // todo :: add when mission API resolved
+                    missionName: missionName,
                     searchFields: searchFilter,
+                    status: constCallOutMissionStatus.ON_GOING,
                 };
 
                 // todo :: might want to change to upsert if necessary
@@ -80,61 +82,70 @@ let dbCallOutMission = {
             }
         );
     },
-    //
-    // testApi: () => {
-    //     // todo :: get url properly later for actual function
-    //     let url = "http://jinbailicro.tel400.me/cti/";
-    //
-    //     let token = getCtiToken("POLYLINK_MESSAGE_TOKEN");
-    //
-    //     // add mission phone number
-    //     // let path = "callOutTaskAddPhonenum.do";
-    //     // let phones = [
-    //     //     {
-    //     //         phoneNum: "18390571077",
-    //     //         name: "testRealPhone",
-    //     //         customerForeignId: "testRealPhone",
-    //     //         remark: "str"
-    //     //     },
-    //     //     // {
-    //     //     //     phoneNum: "13999999998",
-    //     //     //     name: "testCalleeB",
-    //     //     //     customerForeignId: "testCalleeB",
-    //     //     //     remark: "str"
-    //     //     // },
-    //     // ];
-    //     // let param = {
-    //     //     token: token,
-    //     //     taskName: "testtask0001",
-    //     //     phones: JSON.stringify(phones)
-    //     // };
-    //
-    //     // setting task status
-    //     let path = "settingTaskStatus.do";
-    //     let param = {
-    //         token: token,
-    //         taskName: "testtask0001",
-    //         operation: 2
-    //     };
-    //
-    //     let link = url + path;
-    //
-    //     return new Promise((resolve, reject) => {
-    //         try {
-    //             request.post(link, {form: param}, (err, resp, body) => {
-    //                 if (err) {
-    //                     reject(err);
-    //                 }
-    //
-    //                 console.log('body', body);
-    //                 resolve(JSON.parse(body));
-    //             })
-    //         } catch (e) {
-    //             return reject(e);
-    //         }
-    //     });
-    // },
 
+    toggleCallOutMissionStatus: (platformObjId, missionName) => {
+        let platform = {};
+        let mission = {};
+        let operation;
+        return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
+            platformData => {
+                platform = platformData;
+
+                return dbconfig.collection_callOutMission.findOne({missionName: missionName}).lean();
+            }
+        ).then(
+            missionData => {
+                if (!missionData) {
+                    return Promise.reject({message: "Call out mission not found."});
+                }
+                mission = missionData;
+
+                if (mission.status == constCallOutMissionStatus.ON_GOING) {
+                    operation = constCallOutMissionStatus.PAUSED;
+                } else if (mission.status == constCallOutMissionStatus.PAUSED) {
+                    operation = constCallOutMissionStatus.ON_GOING;
+                } else {
+                    return Promise.reject({message: "This mission is finished."})
+                }
+
+                return updateCtiMissionStatus(platform, missionName, operation);
+            }
+        ).then(
+            () => {
+                return dbconfig.collection_callOutMission.findOneAndUpdate({_id: mission._id}, {status: operation}, {new: true}).lean();
+            }
+        );
+    },
+
+    stopCallOutMission: (platformObjId, missionName) => {
+        let platform = {};
+        let mission = {};
+        let operation;
+        return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
+            platformData => {
+                platform = platformData;
+
+                return dbconfig.collection_callOutMission.findOne({missionName: missionName}).lean();
+            }
+        ).then(
+            missionData => {
+                if (!missionData) {
+                    return Promise.reject({message: "Call out mission not found."});
+                }
+                mission = missionData;
+
+                if (mission.status != constCallOutMissionStatus.ON_GOING && mission.status != constCallOutMissionStatus.PAUSED) {
+                    return Promise.reject({message: "This mission is finished."})
+                }
+
+                return deleteCtiMission(platform, missionName);
+            }
+        ).then(
+            () => {
+                return dbconfig.collection_callOutMission.findOneAndUpdate({_id: mission._id}, {status: constCallOutMissionStatus.CANCELLED}, {new: true}).lean();
+            }
+        );
+    },
 };
 
 module.exports = dbCallOutMission;
@@ -160,19 +171,36 @@ function getCalleeList (query, sortCol) {
     }
 
     if (query.csOfficer && query.csOfficer.length) {
-        query.csOfficer.forEach(item => {
-            item = ObjectId(item);
+        query.csOfficer.map(item => {
+            return ObjectId(item);
         });
         query.csOfficer = {
             $in: query.csOfficer
         }
     }
 
-    return dbconfig.collection_players.find(query).sort(sortCol).lean().then(
-        players => {
-            if (!players || !players.length) {
+    let players;
+    return dbconfig.collection_players.find(query, {_id: 1}).sort(sortCol).lean().then(
+        playerData => {
+            if (!playerData || !playerData.length) {
                 return [];
             }
+
+            let proms = [];
+            playerData.map(playerIdObj => {
+                // to get phone number, findOne is necessary as find is encoded
+                let prom = dbconfig.collection_players.findOne({_id: playerIdObj._id}, {name: 1, phoneNumber: 1}).lean()
+                proms.push(prom);
+            });
+
+            return Promise.all(proms);
+        }
+    ).then(
+        playerData => {
+            if (!playerData || !playerData.length) {
+                return [];
+            }
+            players = playerData;
 
             return players.map(player => {
                 let phoneNumber = player.phoneNumber;
@@ -242,24 +270,129 @@ function getCtiToken(str) {
 }
 
 function addMissionToCti (platform, admin, calleeList) {
-    let urls = getCtiUrls(platform.platformId);
     let token = getCtiToken("POLYLINK_MESSAGE_TOKEN");
 
+    let missionName = admin.adminName + String(new Date().valueOf());
     let param = {token};
-    param.taskName = admin.adminName + String(new Date().valueOf());
+    param.taskName = missionName;
     param.startMode = 1;
     param.transferType = 2;
     param.queuenum = admin.callerQueue || "9994";
-    param.calloutType = 0;
+    param.calloutType = '0';
     param.calledNumber = platform.callNumberPrefix || "879997";
-    // param.
-    // todo :: unfinished funcion
+    param.maxRingTime = platform.maxRingTime || 30;
+    param.redialTimes = platform.redialTimes || 3;
+    param.minRedialInterval = platform.minRedialInterval || 10;
+    param.idleAgentMultiple = platform.idleAgentMultiple ? Number(platform.idleAgentMultiple).toFixed(1) : "2.0";
+
+    return callCtiApiWithRetry(platform.platformId, "createCallOutTask.do", param).then(
+        apiOutput => {
+            if (!apiOutput) {
+                console.error("createCallOutTask.do Did not receive result");
+                return Promise.reject({message: "Did not receive result"});
+            }
+
+            if (apiOutput.result != 1) {
+                console.error("CTI API createCallOutTask.do output:", apiOutput);
+                return Promise.reject({message: "CTI API return error"});
+            }
+
+            return addPhoneNumToMission (platform, missionName, calleeList);
+        }
+    ).then(
+        () => {
+            return updateCtiMissionStatus (platform, missionName, 1);
+        }
+    ).then(
+        () => {
+            return missionName;
+        }
+    );
+}
+
+function addPhoneNumToMission (platform, missionName, calleeList) {
+    let token = getCtiToken("POLYLINK_MESSAGE_TOKEN");
+
+    let param = {token};
+    param.taskName = missionName;
+
+    let phones = calleeList.map(callee => {
+        return {
+            phoneNum: callee.phoneNumber,
+            name: callee.playerName,
+            customerForeignId: callee.player,
+            remark: ""
+        }
+    });
+
+    param.phones = JSON.stringify(phones);
+
+    return callCtiApiWithRetry(platform.platformId, "callOutTaskAddPhonenum.do", param).then(
+        apiOutput => {
+            if (!apiOutput) {
+                console.error("callOutTaskAddPhonenum.do Did not receive result");
+                return Promise.reject({message: "Did not receive result"});
+            }
+
+            if (apiOutput.result != 1) {
+                console.error("CTI API callOutTaskAddPhonenum.do output:", apiOutput);
+                return Promise.reject({message: "CTI API return error"});
+            }
+            return apiOutput;
+        }
+    );
+}
+
+// operation: 1 - Active/Start, 2 - Pause, 3 - Stop/Give up
+function updateCtiMissionStatus (platform, missionName, operation) {
+    let token = getCtiToken("POLYLINK_MESSAGE_TOKEN");
+
+    let param = {token};
+    param.taskName = missionName;
+    param.operation = operation;
+
+    return callCtiApiWithRetry(platform.platformId, "settingTaskStatus.do", param).then(
+        apiOutput => {
+            if (!apiOutput) {
+                console.error("settingTaskStatus.do Did not receive result");
+                return Promise.reject({message: "Did not receive result"});
+            }
+
+            if (apiOutput.result != 1) {
+                console.error("CTI API settingTaskStatus.do output:", apiOutput);
+                return Promise.reject({message: "CTI API return error"});
+            }
+            return true;
+        }
+    );
+}
+
+function deleteCtiMission (platform, missionName) {
+    let token = getCtiToken("POLYLINK_MESSAGE_TOKEN");
+
+    let param = {token};
+    param.taskName = missionName;
+
+    return callCtiApiWithRetry(platform.platformId, "deleteCallOutTask.do", param).then(
+        apiOutput => {
+            if (!apiOutput) {
+                console.error("deleteCallOutTask.do Did not receive result");
+                return Promise.reject({message: "Did not receive result"});
+            }
+
+            if (apiOutput.result != 1) {
+                console.error("CTI API deleteCallOutTask.do output:", apiOutput);
+                return Promise.reject({message: "CTI API return error"});
+            }
+            return true;
+        }
+    );
 }
 
 function callCtiApiWithRetry (platformId, path, param) {
     let urls = getCtiUrls(platformId);
 
-    tryCallCtiApi();
+    return tryCallCtiApi();
 
     function tryCallCtiApi (triedTimes) {
         triedTimes = triedTimes || 0;
@@ -288,6 +421,5 @@ function callCtiApiWithRetry (platformId, path, param) {
             }
         });
     }
-
 }
 
