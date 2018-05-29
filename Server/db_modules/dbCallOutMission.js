@@ -1,6 +1,8 @@
 const dbconfig = require('./../modules/dbproperties');
 const dbutility = require('./../modules/dbutility');
 
+const constCallOutMissionStatus = require('./../const/constCallOutMissionStatus');
+
 const request = require('request');
 const rsaCrypto = require('./../modules/rsaCrypto');
 const errorUtils = require("./../modules/errorUtils");
@@ -44,6 +46,7 @@ let dbCallOutMission = {
                     adminName: admin.adminName,
                     missionName: missionName,
                     searchFields: searchFilter,
+                    status: constCallOutMissionStatus.ON_GOING,
                 };
 
                 // todo :: might want to change to upsert if necessary
@@ -80,6 +83,69 @@ let dbCallOutMission = {
         );
     },
 
+    toggleCallOutMissionStatus: (platformObjId, missionName) => {
+        let platform = {};
+        let mission = {};
+        let operation;
+        return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
+            platformData => {
+                platform = platformData;
+
+                return dbconfig.collection_callOutMission.findOne({missionName: missionName}).lean();
+            }
+        ).then(
+            missionData => {
+                if (!missionData) {
+                    return Promise.reject({message: "Call out mission not found."});
+                }
+                mission = missionData;
+
+                if (mission.status == constCallOutMissionStatus.ON_GOING) {
+                    operation = constCallOutMissionStatus.PAUSED;
+                } else if (mission.status == constCallOutMissionStatus.PAUSED) {
+                    operation = constCallOutMissionStatus.ON_GOING;
+                } else {
+                    return Promise.reject({message: "This mission is finished."})
+                }
+
+                return updateCtiMissionStatus(platform, missionName, operation);
+            }
+        ).then(
+            () => {
+                return dbconfig.collection_callOutMission.findOneAndUpdate({_id: mission._id}, {status: operation}, {new: true}).lean();
+            }
+        );
+    },
+
+    stopCallOutMission: (platformObjId, missionName) => {
+        let platform = {};
+        let mission = {};
+        let operation;
+        return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
+            platformData => {
+                platform = platformData;
+
+                return dbconfig.collection_callOutMission.findOne({missionName: missionName}).lean();
+            }
+        ).then(
+            missionData => {
+                if (!missionData) {
+                    return Promise.reject({message: "Call out mission not found."});
+                }
+                mission = missionData;
+
+                if (mission.status != constCallOutMissionStatus.ON_GOING && mission.status != constCallOutMissionStatus.PAUSED) {
+                    return Promise.reject({message: "This mission is finished."})
+                }
+
+                return deleteCtiMission(platform, missionName);
+            }
+        ).then(
+            () => {
+                return dbconfig.collection_callOutMission.findOneAndUpdate({_id: mission._id}, {status: constCallOutMissionStatus.CANCELLED}, {new: true}).lean();
+            }
+        );
+    },
 };
 
 module.exports = dbCallOutMission;
@@ -294,6 +360,28 @@ function updateCtiMissionStatus (platform, missionName, operation) {
 
             if (apiOutput.result != 1) {
                 console.error("CTI API settingTaskStatus.do output:", apiOutput);
+                return Promise.reject({message: "CTI API return error"});
+            }
+            return true;
+        }
+    );
+}
+
+function deleteCtiMission (platform, missionName) {
+    let token = getCtiToken("POLYLINK_MESSAGE_TOKEN");
+
+    let param = {token};
+    param.taskName = missionName;
+
+    return callCtiApiWithRetry(platform.platformId, "deleteCallOutTask.do", param).then(
+        apiOutput => {
+            if (!apiOutput) {
+                console.error("deleteCallOutTask.do Did not receive result");
+                return Promise.reject({message: "Did not receive result"});
+            }
+
+            if (apiOutput.result != 1) {
+                console.error("CTI API deleteCallOutTask.do output:", apiOutput);
                 return Promise.reject({message: "CTI API return error"});
             }
             return true;

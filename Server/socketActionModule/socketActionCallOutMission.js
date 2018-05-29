@@ -14,9 +14,16 @@ function socketActionBankCardGroup(socketIO, socket) {
             socketUtil.emitter(self.socket, dbCallOutMission.createCallOutMission, [data.platformObjId, data.adminObjId, data.searchFilter, data.searchQuery, data.sortCol], actionName, isValidData);
         },
 
-        testCtiApiCall: function testCtiApiCall(data) {
+        toggleCallOutMissionStatus: function toggleCallOutMissionStatus(data) {
             let actionName = arguments.callee.name;
-            socketUtil.emitter(self.socket, dbCallOutMission.testApi, [], actionName, true);
+            let isValidData = Boolean(data && data.platformObjId && data.missionName);
+            socketUtil.emitter(self.socket, dbCallOutMission.toggleCallOutMissionStatus, [data.platformObjId, data.missionName], actionName, isValidData);
+        },
+
+        stopCallOutMission: function stopCallOutMission(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.missionName);
+            socketUtil.emitter(self.socket, dbCallOutMission.stopCallOutMission, [data.platformObjId, data.missionName], actionName, isValidData);
         },
 
     };
