@@ -1743,9 +1743,11 @@ let dbPartner = {
                 }
             ).then(
                 isVerified => {
-                    console.log(isVerified);
                     if (isVerified) {
                         // Update partner data
+                        if(!partnerData.bankAccountName){
+                            updateData.bankAccountName = partnerData.realName ? partnerData.realName : '';
+                        }
                         let partnerProm = dbutility.findOneAndUpdateForShard(dbconfig.collection_partner, partnerQuery, updateData, constShardKeys.collection_partner);
                         return Promise.all([partnerProm]);
                     }
