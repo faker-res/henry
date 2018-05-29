@@ -2223,7 +2223,7 @@ let dbPartner = {
                     //     });
                     // }
                     if (partnerData.bankName == null || !partnerData.bankAccountName || !partnerData.bankAccountType || !partnerData.bankAccountCity
-                        || !partnerData.bankAccount || !partnerData.bankAddress) {
+                        || !partnerData.bankAccount || !partnerData.bankAccountProvince) {
                         return Q.reject({
                             status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
                             name: "DataError",
