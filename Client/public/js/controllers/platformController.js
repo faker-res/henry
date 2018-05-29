@@ -25145,7 +25145,8 @@ define(['js/app'], function (myApp) {
             vm.resetAllCustomizedCommissionRate = function () {
                 let sendData = {
                     partnerObjId: vm.selectedSinglePartner._id,
-                    platformObjId: vm.selectedPlatform.id,
+                    field: "Reset all commission rate",
+                    isResetAll: true,
                     commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab]
                 };
 
