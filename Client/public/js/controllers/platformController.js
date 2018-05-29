@@ -2404,7 +2404,7 @@ define(['js/app'], function (myApp) {
                     aoColumnDefs: [
                         {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [4]},
                         {
-                            targets: [7],
+                            targets: [8],
                             title: '<input type="checkbox" class="toggleCheckAll">',
                             orderable: false,
                             render: function (data, type, row) {
@@ -25145,7 +25145,8 @@ define(['js/app'], function (myApp) {
             vm.resetAllCustomizedCommissionRate = function () {
                 let sendData = {
                     partnerObjId: vm.selectedSinglePartner._id,
-                    platformObjId: vm.selectedPlatform.id,
+                    field: "Reset all commission rate",
+                    isResetAll: true,
                     commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab]
                 };
 

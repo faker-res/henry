@@ -528,6 +528,25 @@ let dbPlayerInfo = {
                                 }
                             );
                             proms.push(partnerProm);
+                        } else if (inputData.partnerId) {
+                            delete inputData.referral;
+                            let partnerProm = dbconfig.collection_partner.findOne({
+                                partnerId: inputData.partnerId,
+                                platform: platformObjId
+                            }).then(
+                                data => {
+                                    if (data) {
+                                        inputData.partner = data._id;
+                                        inputData.partnerId = data.partnerId;
+                                        return inputData;
+                                    }
+                                    else {
+                                        delete inputData.partnerId;
+                                        return inputData;
+                                    }
+                                }
+                            );
+                            proms.push(partnerProm);
                         }
 
                         //check partnerId when create player account manually
@@ -16662,7 +16681,7 @@ function getProviderCredit(providers, playerName, platformId) {
 function isRandomRewardConsumption (rewardEvent) {
     return rewardEvent.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP && rewardEvent.param.rewardParam
         && rewardEvent.param.rewardParam[0] && rewardEvent.param.rewardParam[0].value
-        && rewardEvent.param.rewardParam[0].value[0] && rewardEvent.param.rewardParam[0].value[0].requiredUnlockAmount
+        && rewardEvent.param.rewardParam[0].value[0] && rewardEvent.param.rewardParam[0].value[0].requiredConsumptionAmount
 }
 
 
