@@ -1603,13 +1603,25 @@ var dbPlatform = {
                 if (smsLogsWithCount.length > 0) {
                     let promises =  smsLogsWithCount.map(function (sms) {
                         if (sms.tel) {
-                            //check phone number with real player
-                            return dbPlatform.checkPhoneNumWithRealPlayer(sms.tel, data.platformObjId, sms).then(
-                                smsTel => {
-                                    sms.tel = smsTel;
-                                    return sms;
-                                }
-                            );
+                            if(sms.purpose == constSMSPurpose.PARTNER_REGISTRATION || sms.purpose == constSMSPurpose.PARTNER_OLD_PHONE_NUMBER || sms.purpose == constSMSPurpose.PARTNER_NEW_PHONE_NUMBER
+                            || sms.purpose == constSMSPurpose.PARTNER_UPDATE_PASSWORD || sms.purpose == constSMSPurpose.PARTNER_UPDATE_BANK_INFO_FIRST || sms.purpose == constSMSPurpose.PARTNER_UPDATE_BANK_INFO){
+                                //check phone number with partner
+                                return dbPlatform.checkPhoneNumWithPartner(sms.tel, data.platformObjId, sms).then(
+                                    smsTel => {
+                                        sms.tel = smsTel;
+                                        return sms;
+                                    }
+                                );
+                            }else{
+                                //check phone number with real player
+                                return dbPlatform.checkPhoneNumWithRealPlayer(sms.tel, data.platformObjId, sms).then(
+                                    smsTel => {
+                                        sms.tel = smsTel;
+                                        return sms;
+                                    }
+                                );
+                            }
+
                         } else {
                             return sms;
                         }
@@ -1688,6 +1700,47 @@ var dbPlatform = {
                         {
                             phoneStatus: 2
                             // $unset: {phoneStatus: ''}
+                        }
+                    ).exec();
+                    //no match found, return without encode
+                    return sms.tel;
+                }
+            }
+        );
+    },
+
+    checkPhoneNumWithPartner: (phone, platformObjId, sms) => {
+        let encryptPhone = rsaCrypto.encrypt(phone);
+
+        return dbconfig.collection_partner.find(
+            {
+                phoneNumber: encryptPhone,
+                platform: platformObjId,
+            }
+        ).count().then(
+            count => {
+                if (count > 0) {
+                    // if phone number already exist in partner, update phone status to 1
+                    dbconfig.collection_smsLog.findOneAndUpdate(
+                        {
+                            _id: sms._id
+                        },
+                        {
+                            phoneStatus: 1
+                        }
+                    ).exec();
+
+                    //got matching phone number in db, thus need encode
+                    sms.tel = dbUtility.encodePhoneNum(sms.tel);
+                    return sms.tel;
+                } else {
+                    // if phone number did not exist in real player, update phone status to 2
+                    dbconfig.collection_smsLog.findOneAndUpdate(
+                        {
+                            _id: sms._id
+                        },
+                        {
+                            phoneStatus: 2
                         }
                     ).exec();
                     //no match found, return without encode
