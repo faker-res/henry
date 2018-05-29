@@ -14087,7 +14087,7 @@ define(['js/app'], function (myApp) {
                         {title: $translate('PLAYER_NAME'), data: "playerName"},
                         {title: $translate('Operation Time'), data: "operationTime$"},
                         {
-                            title: $translate('Device'),
+                            title: $translate('DEVICE'),
                             data: "inputDevice",
                             render: function (data, type, row) {
                                 for (let i = 0; i < Object.keys(vm.inputDevice).length; i++) {

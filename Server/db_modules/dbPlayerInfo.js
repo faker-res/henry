@@ -6981,11 +6981,29 @@ let dbPlayerInfo = {
                 let levelDownLevel;
 
                 function createProposal(proposal, inputDevice, index) {
-                    return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, {
-                        creator: {type: "player", name: playerObj.name, id: playerObj.playerId},
-                        data: proposal,
-                        inputDevice: inputDevice
-                    }).then(
+                    let levelProposalQuery = {
+                        'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
+                        'data.platformObjId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]},
+                        'data.levelObjId': proposal.levelObjId,
+                        status: constProposalStatus.PENDING
+                    }
+                    return dbPropUtil.getOneProposalDataOfType(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, levelProposalQuery).then(
+                        proposalDetail => {
+                            if (proposalDetail && proposalDetail._id) {
+                                return Promise.reject({
+                                    status: constServerCode.PLAYER_PENDING_PROPOSAL,
+                                    name: "DBError",
+                                    message: "level change fail, please contact cs"
+                                })
+                            } else {
+                                return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, {
+                                    creator: {type: "player", name: playerObj.name, id: playerObj.playerId},
+                                    data: proposal,
+                                    inputDevice: inputDevice
+                                })
+                            }
+                        }
+                    ).then(
                         createdMigrationProposal => {
                             if (!checkLevelUp) {
                                 return Promise.resolve();
@@ -7423,38 +7441,39 @@ let dbPlayerInfo = {
                                             let inputDevice = dbUtility.getInputDevice(userAgent, false);
                                             let promResolve = Promise.resolve();
 
-                                            return dbconfig.collection_playerState.findOne({player: playerObj._id}).lean().then(
-                                                stateRec => {
-                                                    if (!stateRec) {
-                                                        return new dbconfig.collection_playerState({
-                                                            player: playerObj._id,
-                                                            lastApplyLevelUpReward: Date.now()
-                                                        }).save();
-                                                    } else {
-                                                        // State exist
-                                                        if (stateRec.lastApplyLevelUpReward) {
-                                                            // update rec
-                                                            return dbconfig.collection_playerState.findOneAndUpdate({
-                                                                player: playerObj._id,
-                                                                lastApplyLevelUpReward: {$lt: new Date() - 1000}
-                                                            }, {
-                                                                $currentDate: {lastApplyLevelUpReward: true}
-                                                            }, {
-                                                                new: true
-                                                            });
-                                                        } else {
-                                                            // update rec with new field
-                                                            return dbconfig.collection_playerState.findOneAndUpdate({
-                                                                player: playerObj._id,
-                                                            }, {
-                                                                $currentDate: {lastApplyLevelUpReward: true}
-                                                            }, {
-                                                                new: true
-                                                            });
-                                                        }
-                                                    }
-                                                }
-                                            ).then(
+                                            // return dbconfig.collection_playerState.findOne({player: playerObj._id}).lean().then(
+                                            //     stateRec => {
+                                            //         if (!stateRec) {
+                                            //             return new dbconfig.collection_playerState({
+                                            //                 player: playerObj._id,
+                                            //                 lastApplyLevelUpReward: Date.now()
+                                            //             }).save();
+                                            //         } else {
+                                            //             // State exist
+                                            //             if (stateRec.lastApplyLevelUpReward) {
+                                            //                 // update rec
+                                            //                 return dbconfig.collection_playerState.findOneAndUpdate({
+                                            //                     player: playerObj._id,
+                                            //                     lastApplyLevelUpReward: {$lt: new Date() - 1000}
+                                            //                 }, {
+                                            //                     $currentDate: {lastApplyLevelUpReward: true}
+                                            //                 }, {
+                                            //                     new: true
+                                            //                 });
+                                            //             } else {
+                                            //                 // update rec with new field
+                                            //                 return dbconfig.collection_playerState.findOneAndUpdate({
+                                            //                     player: playerObj._id,
+                                            //                 }, {
+                                            //                     $currentDate: {lastApplyLevelUpReward: true}
+                                            //                 }, {
+                                            //                     new: true
+                                            //                 });
+                                            //             }
+                                            //         }
+                                            //     }
+                                            // )
+                                            return dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", true).then(
                                                 playerState => {
                                                     if (playerState) {
                                                         if (checkLevelUp) {
@@ -7469,7 +7488,7 @@ let dbPlayerInfo = {
                                                                     tempProposal.levelObjId = levelUpObjId[i];
                                                                     let proposalProm = function () {
                                                                         return createProposal(tempProposal, inputDevice, i);
-                                                                    }
+                                                                    };
                                                                     promResolve = promResolve.then(proposalProm);
                                                                 }
                                                             }
@@ -7481,16 +7500,30 @@ let dbPlayerInfo = {
                                                             tempProposal.levelObjId = levelObjId;
                                                             let proposalProm = function () {
                                                                 return createProposal(tempProposal, inputDevice);
-                                                            }
+                                                            };
                                                             promResolve = promResolve.then(proposalProm);
                                                         }
                                                         return promResolve;
                                                     } else {
                                                         return Promise.reject({
+                                                            status: constServerCode.CONCURRENT_DETECTED,
                                                             name: "DBError",
                                                             message: "level change fail, please contact cs"
                                                         })
                                                     }
+                                                }
+                                            ).then(
+                                                function (data) {
+                                                    dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", false).catch(errorUtils.reportError);
+                                                    return data;
+                                                },
+                                                function (err) {
+                                                    if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                                                        // Ignore concurrent request for now
+                                                    } else {
+                                                        dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", false).catch(errorUtils.reportError);
+                                                    }
+                                                    return Promise.reject(err)
                                                 }
                                             );
                                         } else {
@@ -11933,12 +11966,12 @@ let dbPlayerInfo = {
                         timeCheckData => {
                             rewardData.selectedTopup = timeCheckData[0];
 
-                            //special handling for eu大爆炸 reward
+                            //special handling for eu大爆炸, random reward group reward
                             if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime
                                 && (rewardEvent.type.name != constRewardType.PLAYER_TOP_UP_RETURN || (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN
                                     && (rewardEvent.validStartTime || rewardEvent.validEndTime)))) {
                                 // There is consumption after top up
-                                if (rewardEvent.type.isGrouped && rewardEvent.condition.allowConsumptionAfterTopUp) {
+                                if ((rewardEvent.type.isGrouped && rewardEvent.condition.allowConsumptionAfterTopUp) || isRandomRewardConsumption(rewardEvent)) {
                                     // Bypass this checking
                                 } else {
                                     return Q.reject({
@@ -13679,7 +13712,7 @@ let dbPlayerInfo = {
                 playerId: playerObjId,
                 createTime: {
                     $gte: new Date(startTime),
-                    $lte: new Date(endTime)
+                    $lt: new Date(endTime)
                 },
                 $or: [
                     {isDuplicate: {$exists: false}},
@@ -16624,6 +16657,12 @@ function getProviderCredit(providers, playerName, platformId) {
         });
 
     return providerCredit;
+}
+
+function isRandomRewardConsumption (rewardEvent) {
+    return rewardEvent.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP && rewardEvent.param.rewardParam
+        && rewardEvent.param.rewardParam[0] && rewardEvent.param.rewardParam[0].value
+        && rewardEvent.param.rewardParam[0].value[0] && rewardEvent.param.rewardParam[0].value[0].requiredUnlockAmount
 }
 
 
