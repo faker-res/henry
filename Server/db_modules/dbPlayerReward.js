@@ -4751,7 +4751,7 @@ let dbPlayerReward = {
 
                         if (selectedRewardParam.numberParticipation && applyRewardTimes < selectedRewardParam.numberParticipation) {
                             let meetTopUpCondition = false, meetConsumptionCondition = false;
-                            if (topUpAmount >= selectedRewardParam.requiredTopUpAmount) {
+                            if (topUpAmount >= selectedRewardParam.requiredTopUpAmount? selectedRewardParam.requiredTopUpAmount: 0) {
                                 let useTopupRecordAmount = 0;
                                 //For set topup bDirty Use
                                 topUpRecords.forEach((topUpRecord) => {
