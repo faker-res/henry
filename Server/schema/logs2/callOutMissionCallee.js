@@ -10,7 +10,7 @@ let callOutMissionCalleeSchema = new Schema({
     // missionObjId
     mission: {type: Schema.Types.ObjectId, ref: 'callOutMission', index: true},
     // mission name
-    missionName: {type: String, required: true, index: true, unique: true},
+    missionName: {type: String, required: true, index: true},
     // index number (sorting of player on call)
     indexNo: {type: Number},
     // playerObjId
