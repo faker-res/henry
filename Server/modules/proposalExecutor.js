@@ -2757,29 +2757,24 @@ var proposalExecutor = {
 
             executeCustomizePartnerCommRate: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.partnerObjId) {
-                    if (proposalData.data.settingObjId) {
-                        let prom = Promise.resolve(true);
+                    let prom = Promise.resolve(true);
 
+                    if (proposalData.data.settingObjId) {
                         if (proposalData.data.isPlatformRate) {
                             prom = updatePartnerCommRateConfig(proposalData);
                         } else {
                             prom = updatePartnerCommissionConfig(proposalData);
                         }
-
-                        prom.then(
-                            data => deferred.resolve(data),
-                            error => deferred.reject(error)
-                        )
                     }
 
                     if (proposalData.data.isResetAll) {
                         prom = resetAllCustomizedCommissionRate(proposalData);
-
-                        prom.then(
-                            data => deferred.resolve(data),
-                            error => deferred.reject(error)
-                        )
                     }
+
+                    prom.then(
+                        data => deferred.resolve(data),
+                        error => deferred.reject(error)
+                    )
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect customize partner commission rate data"});
