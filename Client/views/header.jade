@@ -72,27 +72,27 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
             //        | {{'API TEST PAGE' | translate }}
 
         ul.navbar-right()
-            li(style="min-width:300px !important;font-size:0.8em;color:#ffffff;")
+            li(style="min-width:330px !important;font-size:0.8em;color:#ffffff;")
                 .row.margin-top-bottom-small(style='margin-left:0;margin-right:0')
                     table.pull-right(style='width:100%;')
                         thead
                             tr
-                                th(colspan=4) {{ 'TotalIncome_ThisMonth' | translate }}: {{ netProfitDetailIncome }}
+                                th(colspan=4) {{ 'Total Monthly Revenue' | translate }}: {{ netProfitDetailIncome }}
                         tbody(style='text-align: right')
                             tr
-                                td {{ 'ConsumptionAmount_Date' | translate }}:
+                                td {{ 'Consumption Amount (Day)' | translate }}:
                                 td {{ profitDetailConsumptionAmount }}
-                                td {{ 'NewRegister_Date' | translate }}:
+                                td {{ 'Number of New Player (Day)' | translate }}:
                                 td {{ profitDetailNewPlayer }}
                             tr
-                                td {{ 'TopUp_Date' | translate }}:
+                                td {{ 'Top Up Amount (Day)' | translate }}:
                                 td {{ profitDetailTopUpAmount }}
-                                td {{ 'ConsumptionPlayer_Date' | translate}}:
+                                td {{ 'Number of Consumer (Day)' | translate}}:
                                 td {{ profitDetailConsumptionPlayer }}
                             tr
-                                td {{ 'Withdraw_Date' | translate }}:
+                                td {{ 'Withdrawal Amount (Day)' | translate }}:
                                 td -{{ profitDetailBonusAmount }}
-                                td {{ 'Income_Date' | translate }}:
+                                td {{ 'Revenue (Day)' | translate }}:
                                 td {{ profitDetailIncome }}
             //li(style='min-width:150px !important; font-size:0.7em; color:#ffffff;')
             //    label.control-label {{"Server" | translate}}
