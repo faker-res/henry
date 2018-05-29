@@ -30245,7 +30245,7 @@ define(['js/app'], function (myApp) {
 
                 sendQuery.platformObjId = vm.selectedPlatform.id;
                 sendQuery.adminObjId = authService.adminId;
-                sendQuery.searchFilter = vm.playerFeedbackQuery;
+                sendQuery.searchFilter = JSON.stringify(vm.playerFeedbackQuery);
                 sendQuery.searchQuery = vm.getPlayerFeedbackQuery();
                 sendQuery.sortCol = VM.playerFeedbackQuery.sortCol || {registrationTime: -1};
 

@@ -14,7 +14,10 @@ function socketActionBankCardGroup(socketIO, socket) {
             socketUtil.emitter(self.socket, dbCallOutMission.createCallOutMission, [data.platformObjId, data.adminObjId, data.searchFilter, data.searchQuery, data.sortCol], actionName, isValidData);
         },
 
-
+        testCtiApiCall: function testCtiApiCall(data) {
+            let actionName = arguments.callee.name;
+            socketUtil.emitter(self.socket, dbCallOutMission.testApi, [], actionName, true);
+        },
 
     };
     socketActionBankCardGroup.actions = this.actions;
