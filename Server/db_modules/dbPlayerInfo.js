@@ -528,6 +528,25 @@ let dbPlayerInfo = {
                                 }
                             );
                             proms.push(partnerProm);
+                        } else if (inputData.partnerId) {
+                            delete inputData.referral;
+                            let partnerProm = dbconfig.collection_partner.findOne({
+                                partnerId: inputData.partnerId,
+                                platform: platformObjId
+                            }).lean().then(
+                                data => {
+                                    if (data) {
+                                        inputData.partner = data._id;
+                                        inputData.partnerId = data.partnerId;
+                                        return inputData;
+                                    }
+                                    else {
+                                        delete inputData.partnerId;
+                                        return inputData;
+                                    }
+                                }
+                            );
+                            proms.push(partnerProm);
                         }
 
                         //check partnerId when create player account manually

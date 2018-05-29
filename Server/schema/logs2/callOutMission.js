@@ -11,8 +11,8 @@ let callOutMissionSchema = new Schema({
     adminName: {type: String},
     // mission name
     missionName: {type: String, required: true, index: true, unique: true},
-    // search fields
-    searchFields: {type: JSON, default: {}},
+    // search fields (JSON string)
+    searchFields: {type: String},
     // createTime
     createTime: {type: Date, default: Date.now, index: true},
     // status - refer to constCallOutMissionStatus
