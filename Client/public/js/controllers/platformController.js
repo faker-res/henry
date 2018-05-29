@@ -2404,7 +2404,7 @@ define(['js/app'], function (myApp) {
                     aoColumnDefs: [
                         {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [4]},
                         {
-                            targets: [7],
+                            targets: [8],
                             title: '<input type="checkbox" class="toggleCheckAll">',
                             orderable: false,
                             render: function (data, type, row) {
