@@ -263,6 +263,16 @@ var platformSchema = new Schema({
     autoUnlockWhenInitAmtLessThanLostThreshold: {type: Boolean, default: false},
     // set the maximum duration for the unread mail to be showing up
     unreadMailMaxDuration: {type: Number, min: 0},
+    // calling number prefix
+    callNumberPrefix: {type: String},
+    // call out mission max ring times
+    maxRingTime: {type: Number},
+    // call out mission redial times
+    redialTimes: {type: Number},
+    // call out mission minimum redial interval,
+    minRedialInterval: {type: Number},
+    // call out mission number of call in parallel happen per idle agent
+    idleAgentMultiple: {type: Number},
     //client type
     clientData: {type: String}
 });
