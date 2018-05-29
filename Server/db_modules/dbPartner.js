@@ -745,7 +745,7 @@ let dbPartner = {
             );
         }else{
             //if there is not sorting parameter
-            var detail = dbconfig.collection_partner.aggregate([  
+            var detail = dbconfig.collection_partner.aggregate([
                 {$match: query},
                 {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1, "player":1}},
                 {$skip:data.index},
@@ -771,7 +771,7 @@ let dbPartner = {
                     Q.reject({name: "DBError", message: "Error finding partners.", error: error});
                 }
             );
-            
+
         }
         return Q.all([count, detail]).then( function(data){
             return {size:data[0],data:data[1]}
@@ -791,7 +791,7 @@ let dbPartner = {
         if (query && query.phoneNumber) {
             query.phoneNumber = {$in: [rsaCrypto.encrypt(query.phoneNumber), query.phoneNumber]};
         }
-        
+
         if (query && query.registrationTime) {
             if (query.registrationTime["$gte"]) {
                 query.registrationTime["$gte"] = new Date(query.registrationTime["$gte"]);
@@ -1717,13 +1717,17 @@ let dbPartner = {
             }
         );
     },
-
-    updatePartnerBankInfo: function (userAgent, partnerId, bankData) {
+    updatePartnerBankInfo: function (userAgent, partnerId, updateData) {
         let partnerData;
+        let partnerQuery = null;
         return dbconfig.collection_partner.findOne({partnerId: partnerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .then(
                 partnerResult => {
+                    partnerQuery = {
+                        _id: partnerResult._id,
+                        platform: partnerResult.platform
+                    }
                     partnerData = partnerResult;
                     if (partnerData && partnerData.platform) {
                         // Check if partner sms verification is required
@@ -1731,37 +1735,22 @@ let dbPartner = {
                             // SMS verification not required
                             return Q.resolve(true);
                         } else {
-                            return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, partnerData.platform, bankData.smsCode, null, true);
+                            return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, partnerData.platform, updateData.smsCode, null, true);
                         }
                     } else {
                         return Q.reject({name: "DataError", message: "Cannot find partner"});
                     }
                 }
             ).then(
-                () => {
-                if (partnerData.bankName || partnerData.bankAccount || partnerData.bankAccountName || partnerData.bankAccountType || partnerData.bankAccountCity || partnerData.bankAddress) {
-                    // bankData.partnerName = partnerData.partnerName;
-                    // bankData.parternId = partnerData.partnerId;
-                    let inputDevice = dbutility.getInputDevice(userAgent,true);
-                    return dbProposal.createProposalWithTypeNameWithProcessInfo(partnerData.platform._id, constProposalType.UPDATE_PARTNER_BANK_INFO, {
-                        creator: {type: "partner", name: partnerData.partnerName, id: partnerData._id},
-                        data: {
-                            _id: partnerData._id || "",
-                            partnerName: partnerData.partnerName,
-                            parternId: partnerData.partnerId,
-                            updateData: bankData
-                        },
-                        inputDevice: inputDevice? inputDevice: 0
-                    });
+                isVerified => {
+                    console.log(isVerified);
+                    if (isVerified) {
+                        // Update partner data
+                        let partnerProm = dbutility.findOneAndUpdateForShard(dbconfig.collection_partner, partnerQuery, updateData, constShardKeys.collection_partner);
+                        return Promise.all([partnerProm]);
+                    }
                 }
-                else {
-                    return dbconfig.collection_partner.update(
-                        {_id: partnerData._id, platform: partnerData.platform._id},
-                        bankData
-                    );
-                }
-            }
-        );
+            )
     },
 
     updatePartnerCommissionType: function (userAgent, partnerId, data) {
@@ -7458,7 +7447,7 @@ let dbPartner = {
             }
         )
     },
-  
+
     cancelPartnerCommissionPreview: (commSettLog, partnerCommissionLogId) => {
         if(!commSettLog){
             return;
