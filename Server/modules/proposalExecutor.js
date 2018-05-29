@@ -1685,17 +1685,17 @@ var proposalExecutor = {
                             });
                         }
 
-                        var decryptedPhoneNo = player.phoneNumber;
-
-                        if (player.phoneNumber && player.phoneNumber.length > 20) {
-                            try {
-                                decryptedPhoneNo = rsaCrypto.decrypt(player.phoneNumber);
-                            }
-                            catch (err) {
-                                console.log(err);
-                                decryptedPhoneNo = "";
-                            }
-                        }
+                        // var decryptedPhoneNo = player.phoneNumber;
+                        //
+                        // if (player.phoneNumber && player.phoneNumber.length > 20) {
+                        //     try {
+                        //         decryptedPhoneNo = rsaCrypto.decrypt(player.phoneNumber);
+                        //     }
+                        //     catch (err) {
+                        //         console.log(err);
+                        //         decryptedPhoneNo = "";
+                        //     }
+                        // }
                         let cTime = proposalData && proposalData.createTime ? new Date(proposalData.createTime) : new Date();
                         let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
                         var message = {
@@ -1711,7 +1711,7 @@ var proposalExecutor = {
                             accountNo: player.bankAccount || "",
                             bankAddress: player.bankAddress || "",
                             bankName: player.bankName || "",
-                            phone: decryptedPhoneNo || "",
+                            phone: "",
                             email: player.email || "",
                             loginName: player.name || "",
                             applyTime: cTimeString
