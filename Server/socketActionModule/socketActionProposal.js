@@ -50,7 +50,7 @@ function socketActionProposal(socketIO, socket) {
             var isValidData = Boolean(
                 data && data.platformId && data.data &&
                 data.data.playerObjId && data.data.hasOwnProperty("updateAmount") &&
-                data.data.hasOwnProperty("curAmount") && data.data.hasOwnProperty("realName")
+                data.data.hasOwnProperty("curAmount")
             );
             socketUtil.emitter(self.socket, dbProposal.checkUpdateCreditProposal, [data.platformId, constProposalType.UPDATE_PLAYER_CREDIT, data], actionName, isValidData);
         },
@@ -226,7 +226,7 @@ function socketActionProposal(socketIO, socket) {
             var isValidData = Boolean(
                 data && data.platformId && data.data &&
                 data.data.partnerObjId && data.data.hasOwnProperty("updateAmount") &&
-                data.data.hasOwnProperty("curAmount") && data.data.hasOwnProperty("realName")
+                data.data.hasOwnProperty("curAmount")
             );
             socketUtil.emitter(self.socket, dbProposal.checkUpdateCreditProposal, [data.platformId, constProposalType.UPDATE_PARTNER_CREDIT, data], actionName, isValidData);
         },
