@@ -16662,7 +16662,7 @@ function getProviderCredit(providers, playerName, platformId) {
 function isRandomRewardConsumption (rewardEvent) {
     return rewardEvent.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP && rewardEvent.param.rewardParam
         && rewardEvent.param.rewardParam[0] && rewardEvent.param.rewardParam[0].value
-        && rewardEvent.param.rewardParam[0].value[0] && rewardEvent.param.rewardParam[0].value[0].requiredUnlockAmount
+        && rewardEvent.param.rewardParam[0].value[0] && rewardEvent.param.rewardParam[0].value[0].requiredConsumptionAmount
 }
 
 
