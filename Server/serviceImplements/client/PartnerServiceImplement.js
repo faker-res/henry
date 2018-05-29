@@ -392,7 +392,10 @@ var PartnerServiceImplement = function () {
         conn.captchaCode = null;
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent'], true);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, null, null, true], isValidData, false, false, true);
+        if (conn.isAuth && conn.partnerObjId && !data.name) {
+            data.name = conn.partnerObjId;
+        }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, null, true], isValidData, false, false, true);
     };
 
     this.updatePhoneNumberWithSMS.expectsData = 'partnerId: String, phoneNumber: Number';
