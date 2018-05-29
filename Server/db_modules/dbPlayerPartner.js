@@ -590,7 +590,7 @@ let dbPlayerPartner = {
                         partnerUpdateData = {
                             isPlayerInit: true,
                             partnerObjId: partner._id,
-                            partnerName: partner.name,
+                            partnerName: partner.partnerName,
                             updateData: {
                                 phoneNumber: updatePhoneNumber
                             }
@@ -616,7 +616,7 @@ let dbPlayerPartner = {
                         partnerUpdateData = {
                             isPlayerInit: true,
                             partnerObjId: partner._id,
-                            partnerName: partner.name,
+                            partnerName: partner.partnerName,
                             updateData: {
                                 phoneNumber: updatePhoneNumber
                             }
