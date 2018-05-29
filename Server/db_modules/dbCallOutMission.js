@@ -1,6 +1,7 @@
 const dbconfig = require('./../modules/dbproperties');
 const dbutility = require('./../modules/dbutility');
 
+const request = require('request');
 const rsaCrypto = require('./../modules/rsaCrypto');
 const errorUtils = require("./../modules/errorUtils");
 const constServerCode = require('./../const/constServerCode');
@@ -79,6 +80,60 @@ let dbCallOutMission = {
             }
         );
     },
+    //
+    // testApi: () => {
+    //     // todo :: get url properly later for actual function
+    //     let url = "http://jinbailicro.tel400.me/cti/";
+    //
+    //     let token = getCtiToken("POLYLINK_MESSAGE_TOKEN");
+    //
+    //     // add mission phone number
+    //     // let path = "callOutTaskAddPhonenum.do";
+    //     // let phones = [
+    //     //     {
+    //     //         phoneNum: "18390571077",
+    //     //         name: "testRealPhone",
+    //     //         customerForeignId: "testRealPhone",
+    //     //         remark: "str"
+    //     //     },
+    //     //     // {
+    //     //     //     phoneNum: "13999999998",
+    //     //     //     name: "testCalleeB",
+    //     //     //     customerForeignId: "testCalleeB",
+    //     //     //     remark: "str"
+    //     //     // },
+    //     // ];
+    //     // let param = {
+    //     //     token: token,
+    //     //     taskName: "testtask0001",
+    //     //     phones: JSON.stringify(phones)
+    //     // };
+    //
+    //     // setting task status
+    //     let path = "settingTaskStatus.do";
+    //     let param = {
+    //         token: token,
+    //         taskName: "testtask0001",
+    //         operation: 2
+    //     };
+    //
+    //     let link = url + path;
+    //
+    //     return new Promise((resolve, reject) => {
+    //         try {
+    //             request.post(link, {form: param}, (err, resp, body) => {
+    //                 if (err) {
+    //                     reject(err);
+    //                 }
+    //
+    //                 console.log('body', body);
+    //                 resolve(JSON.parse(body));
+    //             })
+    //         } catch (e) {
+    //             return reject(e);
+    //         }
+    //     });
+    // },
 
 };
 
@@ -179,8 +234,60 @@ function getCtiUrls (platformId) {
     return urls;
 }
 
-function addMissionToCti () {
-    // dummy function
-    // todo :: add implementation
+function getCtiToken(str) {
+    let now = new Date();
+    let formattedNow = dbutility.getDateYMDStringFormat(now);
+    let firstLevelMd5 = dbutility.convertToMD5(str + "");
+    return dbutility.convertToMD5(firstLevelMd5 + formattedNow);
+}
+
+function addMissionToCti (platform, admin, calleeList) {
+    let urls = getCtiUrls(platform.platformId);
+    let token = getCtiToken("POLYLINK_MESSAGE_TOKEN");
+
+    let param = {token};
+    param.taskName = admin.adminName + String(new Date().valueOf());
+    param.startMode = 1;
+    param.transferType = 2;
+    param.queuenum = admin.callerQueue || "9994";
+    param.calloutType = 0;
+    param.calledNumber = platform.callNumberPrefix || "879997";
+    // param.
+    // todo :: unfinished funcion
+}
+
+function callCtiApiWithRetry (platformId, path, param) {
+    let urls = getCtiUrls(platformId);
+
+    tryCallCtiApi();
+
+    function tryCallCtiApi (triedTimes) {
+        triedTimes = triedTimes || 0;
+        if (triedTimes >= urls.length) {
+            return Promise.reject({message: "Fail To Connect CTI API."});
+        }
+
+        let nextTriedTimes = triedTimes + 1;
+        let url = urls[triedTimes];
+
+        let link = url + path;
+
+        return new Promise((resolve) => {
+            try {
+                request.post(link, {form: param}, (err, resp, body) => {
+                    if (err) {
+                        console.error(err);
+                        resolve(tryCallCtiApi(nextTriedTimes));
+                    }
+
+                    resolve(JSON.parse(body));
+                })
+            } catch (err) {
+                console.error(err);
+                resolve(tryCallCtiApi(nextTriedTimes));
+            }
+        });
+    }
+
 }
 

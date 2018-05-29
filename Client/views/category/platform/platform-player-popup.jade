@@ -939,7 +939,7 @@
                                 input.form-control(type='number', min=0, ng-model='vm.playerManualTopUp.amount', required)
                             .form-group-col-md-6
                                 label.control-label(style='width:100%') {{'Bankcard' | translate}}
-                                select.form-control.spicker(ng-options='a.displayText for a in vm.bankCards track by a.displayText', ng-model='vm.chosenBankAcc', ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)', bsp, data-live-search="true")
+                                select.form-control.spicker(ng-options='a.displayText for a in vm.bankCards', ng-model='vm.chosenBankAcc', ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)', bsp, data-live-search="true")
                                     option(value='')
                             .form-group-col-md-6
                                 label.control-label {{'DEPOSIT_METHOD' | translate}}

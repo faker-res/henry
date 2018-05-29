@@ -747,7 +747,7 @@ let dbPartner = {
             );
         }else{
             //if there is not sorting parameter
-            var detail = dbconfig.collection_partner.aggregate([  
+            var detail = dbconfig.collection_partner.aggregate([
                 {$match: query},
                 {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1, "player":1}},
                 {$skip:data.index},
@@ -773,7 +773,7 @@ let dbPartner = {
                     Q.reject({name: "DBError", message: "Error finding partners.", error: error});
                 }
             );
-            
+
         }
         return Q.all([count, detail]).then( function(data){
             return {size:data[0],data:data[1]}
@@ -793,7 +793,7 @@ let dbPartner = {
         if (query && query.phoneNumber) {
             query.phoneNumber = {$in: [rsaCrypto.encrypt(query.phoneNumber), query.phoneNumber]};
         }
-        
+
         if (query && query.registrationTime) {
             if (query.registrationTime["$gte"]) {
                 query.registrationTime["$gte"] = new Date(query.registrationTime["$gte"]);
@@ -1719,13 +1719,17 @@ let dbPartner = {
             }
         );
     },
-
-    updatePartnerBankInfo: function (userAgent, partnerId, bankData) {
+    updatePartnerBankInfo: function (userAgent, partnerId, updateData) {
         let partnerData;
+        let partnerQuery = null;
         return dbconfig.collection_partner.findOne({partnerId: partnerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .then(
                 partnerResult => {
+                    partnerQuery = {
+                        _id: partnerResult._id,
+                        platform: partnerResult.platform
+                    }
                     partnerData = partnerResult;
                     if (partnerData && partnerData.platform) {
                         // Check if partner sms verification is required
@@ -1733,37 +1737,24 @@ let dbPartner = {
                             // SMS verification not required
                             return Q.resolve(true);
                         } else {
-                            return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, partnerData.platform, bankData.smsCode, null, true);
+                            return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, partnerData.platform, updateData.smsCode, null, true);
                         }
                     } else {
                         return Q.reject({name: "DataError", message: "Cannot find partner"});
                     }
                 }
             ).then(
-                () => {
-                if (partnerData.bankName || partnerData.bankAccount || partnerData.bankAccountName || partnerData.bankAccountType || partnerData.bankAccountCity || partnerData.bankAddress) {
-                    // bankData.partnerName = partnerData.partnerName;
-                    // bankData.parternId = partnerData.partnerId;
-                    let inputDevice = dbutility.getInputDevice(userAgent,true);
-                    return dbProposal.createProposalWithTypeNameWithProcessInfo(partnerData.platform._id, constProposalType.UPDATE_PARTNER_BANK_INFO, {
-                        creator: {type: "partner", name: partnerData.partnerName, id: partnerData._id},
-                        data: {
-                            _id: partnerData._id || "",
-                            partnerName: partnerData.partnerName,
-                            parternId: partnerData.partnerId,
-                            updateData: bankData
-                        },
-                        inputDevice: inputDevice? inputDevice: 0
-                    });
+                isVerified => {
+                    if (isVerified) {
+                        // Update partner data
+                        if(!partnerData.bankAccountName){
+                            updateData.bankAccountName = partnerData.realName ? partnerData.realName : '';
+                        }
+                        let partnerProm = dbutility.findOneAndUpdateForShard(dbconfig.collection_partner, partnerQuery, updateData, constShardKeys.collection_partner);
+                        return Promise.all([partnerProm]);
+                    }
                 }
-                else {
-                    return dbconfig.collection_partner.update(
-                        {_id: partnerData._id, platform: partnerData.platform._id},
-                        bankData
-                    );
-                }
-            }
-        );
+            )
     },
 
     updatePartnerCommissionType: function (userAgent, partnerId, data) {
@@ -2182,15 +2173,23 @@ let dbPartner = {
             ).then(
                 partnerData => {
                     if (partnerData) {
+                    // if (!partnerData.permission || !partnerData.permission.applyBonus) {
+                    //     return Q.reject({
+                    //         status: constServerCode.PLAYER_NO_PERMISSION,
+                    //         name: "DataError",
+                    //         errorMessage: "Player does not have this permission"
+                    //     });
+                    // }
                         partner = partnerData;
-
-                        if (!partnerData.bankName || !partnerData.bankAccountName || !partnerData.bankAccount) {
+                        if (partnerData.bankName == null || !partnerData.bankAccountName || !partnerData.bankAccountType || !partnerData.bankAccountCity
+                            || !partnerData.bankAccount || !partnerData.bankAccountProvince) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
                                 name: "DataError",
-                                errorMessage: "Player does not have valid payment information"
+                                errorMessage: "Partner does not have valid payment information"
                             });
                         }
+
                         if (partnerData.permission && !partnerData.permission.applyBonus) {
                             return Q.reject({
                                 status: constServerCode.PARTNER_NO_PERMISSION,
@@ -2299,14 +2298,11 @@ let dbPartner = {
                                     return dbProposal.createProposalWithTypeName(partner.platform._id, constProposalType.PARTNER_BONUS, newProposal);
                                 }
                             })
-
-
                     }
                     else {
                         return Promise.reject({name: "DataError", errorMessage: "Cannot find partner"});
                     }
                 }
-
             ).then(
                 proposal => {
                     if (proposal) {
@@ -6015,44 +6011,32 @@ let dbPartner = {
         );
     },
 
-    resetAllCustomizedCommissionRate: (partnerObjId, platformObjId, commissionType) => {
-        let customConfigProm = dbconfig.collection_partnerCommissionConfig.find({
-            partner: partnerObjId,
-            platform: platformObjId,
-            commissionType: commissionType
-        }).lean();
+    resetAllCustomizedCommissionRate: (partnerObjId, field, isResetAll, commissionType, adminInfo) => {
+        return dbconfig.collection_partner.findById(partnerObjId).lean().then(
+            partnerObj => {
+                if (partnerObj) {
+                    let creatorData = adminInfo || {
+                        type: 'partner',
+                        name: partnerObj.partnerName,
+                        id: partnerObj._id
+                    };
 
-        let defaultConfigProm = dbconfig.collection_partnerCommissionConfig.find({
-            partner: { "$exists" : false },
-            platform: platformObjId,
-            commissionType: commissionType
-        }).lean();
+                    let proposalData = {
+                        creator: adminInfo || {
+                            type: 'partner',
+                            name: partnerObj.partnerName,
+                            id: partnerObj._id
+                        },
+                        platformObjId: partnerObj.platform,
+                        partnerObjId: partnerObjId,
+                        partnerName: partnerObj.partnerName,
+                        remark: localization.localization.translate(field),
+                        isResetAll: isResetAll,
+                        commissionType: commissionType
+                    };
 
-        return Promise.all([customConfigProm, defaultConfigProm]).then(
-            data => {
-                let customConfig = data[0];
-                let defaultConfig = data[1];
-
-                if (defaultConfig && customConfig && defaultConfig.length > 0 && customConfig.length > 0) {
-                    defaultConfig.forEach(dConfig => {
-                        if (dConfig && dConfig.commissionSetting && dConfig.commissionSetting.length > 0) {
-                            customConfig.forEach(cConfig => {
-                                if (cConfig && cConfig.commissionSetting && cConfig.commissionSetting.length > 0) {
-                                    if (dConfig.provider.toString() === cConfig.provider.toString()) {
-                                        //custom config will be removed
-                                        dbconfig.collection_partnerCommissionConfig.remove({
-                                            partner: partnerObjId,
-                                            platform: platformObjId,
-                                            commissionType: commissionType,
-                                            provider: cConfig.provider,
-                                        }).exec();
-                                    }
-                                }
-                            });
-                        }
-                    });
+                    return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {creator: creatorData, data: proposalData});
                 }
-                return data;
             }
         );
     },
@@ -7663,7 +7647,7 @@ let dbPartner = {
             }
         )
     },
-  
+
     cancelPartnerCommissionPreview: (commSettLog, partnerCommissionLogId) => {
         if(!commSettLog){
             return;
