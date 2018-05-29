@@ -533,7 +533,7 @@ let dbPlayerInfo = {
                             let partnerProm = dbconfig.collection_partner.findOne({
                                 partnerId: inputData.partnerId,
                                 platform: platformObjId
-                            }).then(
+                            }).lean().then(
                                 data => {
                                     if (data) {
                                         inputData.partner = data._id;
