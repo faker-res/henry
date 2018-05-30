@@ -7494,6 +7494,7 @@ let dbPartner = {
                 for (let i = 0; i < proposalData.length; i++) {
                     let commissionPeriod;
                     let totalProviderFee = 0;
+                    let totalCommission = 0;
                     if (proposalData[i].data) {
                         if (proposalData[i].data.startTime && proposalData[i].data.endTime) {
                             proposalData[i].data.endTime = new Date(proposalData[i].data.endTime.setSeconds(proposalData[i].data.endTime.getSeconds() - 1));
@@ -7505,7 +7506,6 @@ let dbPartner = {
                         status: proposalData[i].status? proposalData[i].status: "",
                         proposalAmount: proposalData[i].data && proposalData[i].data.amount? proposalData[i].data.amount: 0,
                         createTime: proposalData[i].createTime? proposalData[i].createTime: "",
-                        // successTime
                         commissionPeriod: commissionPeriod? commissionPeriod: "",
                         activeCrewNumbers: proposalData[i].data && proposalData[i].data.activeCount? proposalData[i].data.activeCount: 0,
                         totalDepositFee: proposalData[i].data && proposalData[i].data.totalTopUpFee? proposalData[i].data.totalTopUpFee: 0,
@@ -7529,10 +7529,12 @@ let dbPartner = {
                                 providerGroupFee:proposalData[i].data.rawCommissions[j].platformFee? proposalData[i].data.rawCommissions[j].platformFee: 0
                             }
                             totalProviderFee += returnListObj.providerGroupFee;
+                            totalCommission += returnListObj.providerGroupCommission;
                             returnObj.list.push(returnListObj);
                         }
                     }
                     returnObj.totalProviderFee = totalProviderFee;
+                    returnObj.totalCommission = totalCommission;
                     returnData.push(returnObj);
                 }
                 return returnData;
