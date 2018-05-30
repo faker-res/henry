@@ -592,8 +592,6 @@ let dbPartner = {
                     }
                     apiData = data;
 
-                    console.log("CHECKING1111111111",data.bankAccountName)
-
                     var a, b, c;
 
                     a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({
@@ -616,7 +614,6 @@ let dbPartner = {
             }
         ).then(
             zoneData => {
-                console.log("CHECKING--",zoneData)
                 apiData.bankAccountProvinceId = apiData.bankAccountProvince;
                 apiData.bankAccountCityId = apiData.bankAccountCity;
                 apiData.bankAccountDistrictId = apiData.bankAccountDistrict;
