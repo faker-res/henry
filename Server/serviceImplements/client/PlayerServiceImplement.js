@@ -351,7 +351,7 @@ let PlayerServiceImplement = function () {
             data.phoneCity = queryRes.city;
             data.phoneType = queryRes.type;
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.userAgent, data.platformId, data.playerId, data.phoneNumber.toString(), data.smsCode, 0], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.userAgent, data.platformId, data.playerId, data.newPhoneNumber.toString(), data.smsCode, 0], isValidData);
     };
 
     this.updatePlayerPartnerPhoneNumberWithSMS.expectsData = 'playerId: String, phoneNumber: Number';
@@ -946,9 +946,9 @@ let PlayerServiceImplement = function () {
 
         data.remarks = data.partnerName ? localization.translate("PARTNER", conn.lang, conn.platformId) + ": " + data.partnerName : "";
 
-        if(data.phoneNumber && data.phoneNumber.length == 11){
+        if(data.phoneNumber && data.phoneNumber.toString().length === 11) {
             WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, data], isValidData, false, false, true);
-        }else {
+        } else {
             conn.captchaCode = null;
             wsFunc.response(conn, {
                 status: constServerCode.INVALID_PHONE_NUMBER,
