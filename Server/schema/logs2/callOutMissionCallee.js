@@ -16,7 +16,7 @@ let callOutMissionCalleeSchema = new Schema({
     // playerObjId
     player: {type: Schema.ObjectId, ref: 'player'},
     // player name
-    playerName: {type: String},
+    playerName: {type: String, index: true},
     // phone number
     phoneNumber: {type: String},
     // calling time
