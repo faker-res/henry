@@ -67,7 +67,7 @@ let dbPartner = {
                     if (!platformData.partnerRequireSMSVerification) {
                         return true;
                     }
-                    return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, platformData, partnerData.smsCode, null, true);
+                    return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, platformData, partnerData.smsCode, partnerData.partnerName, true);
                 } else {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
                 }
@@ -1666,7 +1666,7 @@ let dbPartner = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
-                        return dbPlayerMail.verifySMSValidationCode(partnerObj.phoneNumber, platformData, smsCode, null, true);
+                        return dbPlayerMail.verifySMSValidationCode(partnerObj.phoneNumber, platformData, smsCode, partnerObj.partnerName, true);
                     }
                 } else {
                     return Q.reject({
@@ -1737,7 +1737,7 @@ let dbPartner = {
                             // SMS verification not required
                             return Q.resolve(true);
                         } else {
-                            return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, partnerData.platform, updateData.smsCode, null, true);
+                            return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, partnerData.platform, updateData.smsCode, partnerData.partnerName, true);
                         }
                     } else {
                         return Q.reject({name: "DataError", message: "Cannot find partner"});
@@ -1747,6 +1747,12 @@ let dbPartner = {
                 isVerified => {
                     if (isVerified) {
                         // Update partner data
+                        if (updateData.bankAccountName && updateData.bankAccountName != partnerData.realName) {
+                            if (updateData.bankAccountName.indexOf('*') > -1)
+                                delete updateData.bankAccountName;
+                            else
+                                updateData.realName = updateData.bankAccountName;
+                        }
                         if(!partnerData.bankAccountName){
                             updateData.bankAccountName = partnerData.realName ? partnerData.realName : '';
                         }

@@ -1021,7 +1021,7 @@ define(['js/app'], function (myApp) {
             }
             //search platform by name
             vm.getAllDepartmentData = function (callback) {
-                if (!authService.checkViewPermission('Platform', 'Platform', 'Create')) {
+                if (!authService.checkViewPermission('Platform', 'Platform', 'Read')) {
                     return;
                 }
                 socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
@@ -15547,6 +15547,20 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.toggleCallOutMissionStatus = function() {
+                socketService.$socket($scope.AppSocket, 'toggleCallOutMissionStatus', {
+                    platformObjId: vm.selectedPlatform.id,
+                    missionName: vm.ctiData.missionName
+                }, function (data) {});
+            };
+
+            vm.stopCallOutMission = function() {
+                socketService.$socket($scope.AppSocket, 'stopCallOutMission', {
+                    platformObjId: vm.selectedPlatform.id,
+                    missionName: vm.ctiData.missionName
+                }, function (data) {});
+            };
+            
             vm.getPlayerCreditinFeedbackInfo = function () {
                 vm.curFeedbackPlayer.gameCredit = {};
                 for (var i in vm.platformProviderList) {
@@ -27431,6 +27445,7 @@ define(['js/app'], function (myApp) {
                 vm.credibilityRemarks = [];
                 vm.gameStatus = {};
                 vm.gameSmallShow = {};
+                vm.ctiData = {};
                 vm.gameGroupClickable = {
                     inGameLoaded: true,
                     outGameLoaded: true,
@@ -30291,7 +30306,7 @@ define(['js/app'], function (myApp) {
 
                 sendQuery.platformObjId = vm.selectedPlatform.id;
                 sendQuery.adminObjId = authService.adminId;
-                sendQuery.searchFilter = vm.playerFeedbackQuery;
+                sendQuery.searchFilter = JSON.stringify(vm.playerFeedbackQuery);
                 sendQuery.searchQuery = vm.getPlayerFeedbackQuery();
                 sendQuery.sortCol = VM.playerFeedbackQuery.sortCol || {registrationTime: -1};
 

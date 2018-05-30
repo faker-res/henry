@@ -149,6 +149,11 @@
                 span#platformFeedbackSpin.collapse
                     i.fa.fa-spinner.fa-spin
                 span.margin-left-5
+            .inlineBlk
+                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','BulkCall')",ng-click='vm.toggleCallOutMissionStatus') {{"Pause/Resume Mission" | translate}}
+            .inlineBlk
+                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','BulkCall')",ng-click='vm.stopCallOutMission') {{"Stop Mission" | translate}}
+
 
 .row.margin-top-bottom-small(ng-show='!vm.selectedPlatform')
     .text-center.text-danger
