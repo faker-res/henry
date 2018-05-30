@@ -124,6 +124,7 @@ var simplifiedChinese = {
     "Player is forbidden to login": "玩家被禁止登录",
     "Partner is forbidden to login": "代理被禁止登录",
     "Player does not have enough credit.": "玩家额度不够",
+    "Partner does not have enough credit.": "代理额度不够",
     "Player does not have valid payment information": "玩家支付信息无效",
     "Player does not have enough Expenses.": "玩家投注额度不够",
     "Player does not have this permission": "玩家无此权限",

@@ -396,7 +396,7 @@ let dbPlayerPartner = {
                             curPhoneNumber = partnerData.phoneNumber;
                             promises.push(Promise.all([partnerProm]));
                             if (!newPhoneNumber) {
-                                let smsLogProm = dbConfig.collection_smsLog.find({recipientName: partnerData.partnerName, purpose: constSMSPurpose.NEW_PHONE_NUMBER}).sort({_id:-1}).limit(1).lean();
+                                let smsLogProm = dbConfig.collection_smsLog.find({recipientName: partnerData.partnerName, purpose: constSMSPurpose.PARTNER_NEW_PHONE_NUMBER}).sort({_id:-1}).limit(1).lean();
                                 promises.push(smsLogProm);
                             }
                             break;
@@ -558,8 +558,9 @@ let dbPlayerPartner = {
             result => {
                 // data.data.playerObjId && data.data.playerName && data.data.curData &&
                 // data.data.updateData && data.data.updateData.phoneNumber
-                let player, partner, playerUpdateData, partnerUpdateData;
+                let player, partner, playerUpdateData, partnerUpdateData, creator;
                 let updatePhoneNumber = newPhoneNumber;
+                updatePhoneNumber = updatePhoneNumber.toString();
                 let inputDevice = 0;
                 switch (targetType) {
                     case 0:
@@ -589,14 +590,15 @@ let dbPlayerPartner = {
                         partnerUpdateData = {
                             isPlayerInit: true,
                             partnerObjId: partner._id,
-                            partnerName: partner.name,
+                            partnerName: partner.partnerName,
                             updateData: {
                                 phoneNumber: updatePhoneNumber
                             }
 
                         };
+                        creator = {type: "partner", name: partner.partnerName, id: partner._id};
                         // result.isPlayerInit = true;
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData, inputDevice: inputDevice}).catch(errorUtils.reportError);
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData, inputDevice: inputDevice, creator: creator}).catch(errorUtils.reportError);
                         break;
                     case 2:
                         let inputDevicePlayer = dbUtility.getInputDevice(userAgent,false);
@@ -615,7 +617,7 @@ let dbPlayerPartner = {
                         partnerUpdateData = {
                             isPlayerInit: true,
                             partnerObjId: partner._id,
-                            partnerName: partner.name,
+                            partnerName: partner.partnerName,
                             updateData: {
                                 phoneNumber: updatePhoneNumber
                             }

@@ -3258,10 +3258,11 @@ var proposalExecutor = {
              * reject function for player bonus
              */
             rejectPartnerBonus: function (proposalData, deferred) {
-                if (proposalData && proposalData.data && proposalData.data.partnerObjId && proposalData.data.platformId && proposalData.data.amount && proposalData.data.bonusCredit) {
+                if (proposalData && proposalData.data && proposalData.data.partnerObjId && proposalData.data.platformId && proposalData.data.amount) {
                     return dbconfig.collection_partner.findOneAndUpdate(
                         {_id: proposalData.data.partnerObjId, platform: proposalData.data.platformId},
-                        {$inc: {credits: proposalData.data.amount * proposalData.data.bonusCredit}},
+                        {$inc: {credits: proposalData.data.amount }},
+                        // {$inc: {credits: proposalData.data.amount * proposalData.data.bonusCredit}},
                         {new: true}
                     ).then(
                         function (res) {

@@ -886,9 +886,16 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
             // let url = "http://eu.tel400.me/cti/previewcallout.action";//http://101.78.133.213/cti/previewcallout.action";
 
-            let urls = ["http://eu.tel400.me/cti/previewcallout.action", "http://jinbailitw.tel400.me/cti/previewcallout.action", "http://jinbailicro.tel400.me/cti/previewcallout.action",
-                "http://b8a.tel400.me/cti/previewcallout.action", "http://bbet8.tel400.me/cti/previewcallout.action", "http://xindelitz.tel400.me/cti/previewcallout.action",
-                "http://buyuhuang.tel400.me/cti/previewcallout.action"];
+            let urls = [
+                "http://eu.tel400.me/cti/previewcallout.action",
+                "http://jinbailitw.tel400.me/cti/previewcallout.action",
+                "http://jinbailicro.tel400.me/cti/previewcallout.action",
+                "http://b8a.tel400.me/cti/previewcallout.action",
+                "http://bbet8.tel400.me/cti/previewcallout.action",
+                "http://xindelitz.tel400.me/cti/previewcallout.action",
+                "http://buyuhuang.tel400.me/cti/previewcallout.action",
+                "http://hm.tel400.me/cti/previewcallout.action"
+            ];
 
             if (platformId == '6') {
                 let jblUrl = urls[2];
@@ -909,6 +916,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 let jshUrl = urls[6];
                 urls[6] = urls[0];
                 urls[0] = jshUrl;
+            } else if (platformId == '5') {
+                let bylUrl = urls[7];
+                urls[7] = urls[0];
+                urls[0] = bylUrl;
             }
 
             performPhoneCall();

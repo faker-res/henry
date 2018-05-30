@@ -226,6 +226,7 @@ let dbPlayerInfo = {
      * Update player's reward points and create log
      */
     updatePlayerRewardPointsRecord: function (playerObjId, platformObjId, updateAmount, remark, adminName, adminId, playerName, userDevice) {
+
         updateAmount = isNaN(updateAmount) ? 0 : parseInt(updateAmount);
         let category = updateAmount >= 0 ? constRewardPointsLogCategory.POINT_INCREMENT : constRewardPointsLogCategory.POINT_REDUCTION;
         let userAgent = userDevice? userDevice: constPlayerRegistrationInterface.BACKSTAGE;
@@ -251,31 +252,50 @@ let dbPlayerInfo = {
             proposalData.inputDevice = userDevice;
         }
 
-
-        //if its add RP, get reward points for creation of proposal, RP log created along with proposal creation.
-        if (proposalType === constProposalType.PLAYER_ADD_REWARD_POINTS) {
-            dbRewardPoints.getPlayerRewardPoints(ObjectId(playerObjId)).then(
-                rewardPoints => {
-                    if (rewardPoints) {
-                        proposalData.data.playerRewardPointsObjId = rewardPoints._id;
-                        proposalData.data.beforeRewardPoints = rewardPoints.points;
-                        proposalData.data.afterRewardPoints = rewardPoints.points + updateAmount;
+        // check the current reward points is sufficient to be deducted
+        return dbRewardPoints.getPlayerRewardPoints(ObjectId(playerObjId)).then( rewardPoints => {
+            if (rewardPoints){
+                if (rewardPoints.points + updateAmount >= 0){
+                    //if its add RP, get reward points for creation of proposal, RP log created along with proposal creation.
+                    if (proposalType === constProposalType.PLAYER_ADD_REWARD_POINTS) {
+                        // dbRewardPoints.getPlayerRewardPoints(ObjectId(playerObjId)).then(
+                        //     rewardPoints => {
+                        //         if (rewardPoints) {
+                                    proposalData.data.playerRewardPointsObjId = rewardPoints._id;
+                                    proposalData.data.beforeRewardPoints = rewardPoints.points;
+                                    proposalData.data.afterRewardPoints = rewardPoints.points + updateAmount;
+                                // }
+                        //     }
+                        // );
                     }
+                    return dbProposal.createProposalWithTypeName(platformObjId, proposalType, proposalData).then(
+                        data => {
+                            //if its minus RP, call dbPlayerRewardPoints.changePlayerRewardPoint() to minus RP first, RP log created within the function.
+                            if (proposalType === constProposalType.PLAYER_MINUS_REWARD_POINTS) {
+                                //status is here to ensure reward points log status is set to PROCESSED, if proposal is auto approved.
+                                let status = data.status === constProposalStatus.APPROVED ? constRewardPointsLogStatus.PROCESSED : constRewardPointsLogStatus.PENDING;
+                                remark = remark ? remark + " Proposal No: " + data.proposalId : "Proposal No: " + data.proposalId;
+                                dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, userAgent,
+                                    adminName, status, null, null, null, data.proposalId);
+                            }
+                        }
+                    );
                 }
-            );
-        }
-        return dbProposal.createProposalWithTypeName(platformObjId, proposalType, proposalData).then(
-            data => {
-                //if its minus RP, call dbPlayerRewardPoints.changePlayerRewardPoint() to minus RP first, RP log created within the function.
-                if (proposalType === constProposalType.PLAYER_MINUS_REWARD_POINTS) {
-                    //status is here to ensure reward points log status is set to PROCESSED, if proposal is auto approved.
-                    let status = data.status === constProposalStatus.APPROVED ? constRewardPointsLogStatus.PROCESSED : constRewardPointsLogStatus.PENDING;
-                    remark = remark ? remark + " Proposal No: " + data.proposalId : "Proposal No: " + data.proposalId;
-                    dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, userAgent,
-                        adminName, status, null, null, null, data.proposalId);
+                else{
+                    return Promise.reject({
+                        status: constServerCode.PLAYER_NOT_ENOUGH_REWARD_POINTS,
+                        name: "DBError",
+                        message: localization.localization.translate("Player does not have enough reward points")});
                 }
+
             }
-        );
+            else{
+                return Promise.reject({
+                    name: "DataError",
+                    message: localization.localization.translate("Cannot find the reward points")});
+            }
+
+        })
     },
 
     /**
@@ -523,6 +543,25 @@ let dbPlayerInfo = {
                                     }
                                     else {
                                         delete inputData.partnerName;
+                                        return inputData;
+                                    }
+                                }
+                            );
+                            proms.push(partnerProm);
+                        } else if (inputData.partnerId) {
+                            delete inputData.referral;
+                            let partnerProm = dbconfig.collection_partner.findOne({
+                                partnerId: inputData.partnerId,
+                                platform: platformObjId
+                            }).lean().then(
+                                data => {
+                                    if (data) {
+                                        inputData.partner = data._id;
+                                        inputData.partnerId = data.partnerId;
+                                        return inputData;
+                                    }
+                                    else {
+                                        delete inputData.partnerId;
                                         return inputData;
                                     }
                                 }

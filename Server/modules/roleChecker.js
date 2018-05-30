@@ -285,7 +285,7 @@ var roleChecker = {
                 applyReward: ['applyPreviousConsecutiveLoginReward'],
                 RewardHistory: ['queryRewardProposal', 'getPlatformRewardProposal'],
                 PlayerPermission: ['updatePlayerPermission'],
-                CallPlayer: [],
+                CallPlayer: ['getPlayerPhoneNumber'],
                 PermissionHistory: ['getPlayerPermissionLog'],
                 mailLog: ['searchMailLog'],
                 smsLog: ['searchSMSLog'],
