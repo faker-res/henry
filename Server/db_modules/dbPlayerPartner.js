@@ -560,6 +560,7 @@ let dbPlayerPartner = {
                 // data.data.updateData && data.data.updateData.phoneNumber
                 let player, partner, playerUpdateData, partnerUpdateData;
                 let updatePhoneNumber = newPhoneNumber;
+                updatePhoneNumber = updatePhoneNumber.toString();
                 let inputDevice = 0;
                 switch (targetType) {
                     case 0:
@@ -589,7 +590,7 @@ let dbPlayerPartner = {
                         partnerUpdateData = {
                             isPlayerInit: true,
                             partnerObjId: partner._id,
-                            partnerName: partner.name,
+                            partnerName: partner.partnerName,
                             updateData: {
                                 phoneNumber: updatePhoneNumber
                             }
@@ -615,7 +616,7 @@ let dbPlayerPartner = {
                         partnerUpdateData = {
                             isPlayerInit: true,
                             partnerObjId: partner._id,
-                            partnerName: partner.name,
+                            partnerName: partner.partnerName,
                             updateData: {
                                 phoneNumber: updatePhoneNumber
                             }
