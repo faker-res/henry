@@ -579,6 +579,7 @@ var dbPlayerFeedback = {
 
     getExportedData: function (proposalId, ipAddress) {
         let proposal = {};
+        let players, originPlatform, targetPlatform;
         let allowedIP = [
             "122.146.88.32",
             "101.78.133.210",
@@ -649,11 +650,27 @@ var dbPlayerFeedback = {
             }
         ).then(
             data => {
-                let players = data[0];
-                let originPlatform = data[1];
-                let targetPlatform = data[2];
+                players = data[0];
+                originPlatform = data[1];
+                targetPlatform = data[2];
 
                 players = players || [];
+
+                let proms = [];
+
+                // use findOne to search again to get non encoded phone number
+                players.map(player => {
+                    let prom = dbconfig.collection_players.findOne({_id: player._id}).lean();
+                    proms.push(prom);
+                });
+
+                return Promise.all(proms);
+            }
+        ).then(
+            playersData => {
+                players = playersData;
+                players = players || [];
+
                 let originPlatformId = originPlatform && originPlatform.platformId ? originPlatform.platformId : '';
                 let targetPlatformId = targetPlatform && targetPlatform.platformId ? targetPlatform.platformId : '';
 
@@ -704,7 +721,7 @@ var dbPlayerFeedback = {
                     sourcePlatformId: originPlatformId,
                     targetPlatformId: targetPlatformId,
                     players: formattedPlayersData
-                }
+                };
             }
         );
     }
