@@ -2002,6 +2002,7 @@
   "Retrieving phone number from server...": "正在提取电话号码。。。",
   "INVALID_DATA": "数据无效",
   "Invalid Data": "数据无效",
+  "This transaction does not have valid transfer ID": "此转账含有无效转入/出ID",
   "Authentication Fails": "验证失败, 请先登录",
   "Verification code invalid": "无效验证码",
   "Please input verification code": "请输入验证码",
