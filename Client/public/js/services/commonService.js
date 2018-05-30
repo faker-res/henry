@@ -51,7 +51,7 @@ define([], () => {
                 data => {
                     let bankCards = data && data.data && data.data.data ? data.data.data : false;
 
-                    bankCards.forEach(bank => { console.log('bank status checked::', bank.status);
+                    bankCards.forEach(bank => {
                         let bankStatus = $translate(bank.status == 'DISABLED' ? 'DISABLE' : bank.status);
                         bank.displayText = getBankCardTypeTextbyId(allBankTypeList, bank.bankTypeId) + ' - ' + bank.name
                             + ' ('+bank.accountNumber+') - ' + bankStatus;
