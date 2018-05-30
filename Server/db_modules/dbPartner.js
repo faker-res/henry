@@ -1747,6 +1747,12 @@ let dbPartner = {
                 isVerified => {
                     if (isVerified) {
                         // Update partner data
+                        if (updateData.bankAccountName && updateData.bankAccountName != partnerData.realName) {
+                            if (updateData.bankAccountName.indexOf('*') > -1)
+                                delete updateData.bankAccountName;
+                            else
+                                updateData.realName = updateData.bankAccountName;
+                        }
                         if(!partnerData.bankAccountName){
                             updateData.bankAccountName = partnerData.realName ? partnerData.realName : '';
                         }
