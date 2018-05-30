@@ -82,7 +82,7 @@ var playerSchema = new Schema({
     //last access time
     lastAccessTime: {type: Date, default: Date.now, index: true}, //logout and login
     //if player has login
-    isLogin: {type: Boolean, default: false},
+    isLogin: {type: Boolean, default: false, index: true},
     // Last Login Ip
     lastLoginIp: {type: String, default: "", index: true}, //login
     //login ip records
