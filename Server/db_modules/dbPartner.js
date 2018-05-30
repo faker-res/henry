@@ -7438,6 +7438,108 @@ let dbPartner = {
         )
     },
 
+    getCommissionProposalList : (platformId, partnerId, startTime, endTime, status)=> {
+        let platformObj;
+        let partnerObj;
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({
+                        code: constServerCode.INVALID_PLATFORM,
+                        name: "DataError",
+                        message: "Cannot find platform"
+                    });
+                }
+
+                platformObj = platformData;
+
+                return dbconfig.collection_partner.findOne({platform: platformObj._id, partnerId: partnerId}).lean();
+            }
+        ).then(
+            partnerData => {
+                if (!partnerData) {
+                    return Promise.reject({
+                        code: constServerCode.PARTNER_NAME_INVALID,
+                        name: "DataError",
+                        message: "Cannot find partner"
+                    });
+                }
+
+                partnerObj = partnerData;
+
+                let proposalQuery = {
+                    "data.platformId": platformObj._id,
+                    "data.partnerObjId": partnerObj._id,
+                    "createTime": {
+                        $gte: new Date(startTime),
+                        $lt: new Date(endTime)
+                    }
+                }
+                if (status) {
+                    if (status == constProposalStatus.SUCCESS || status == constProposalStatus.APPROVED) {
+                        proposalQuery.status = {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
+                    } else {
+                        proposalQuery.status = status;
+                    }
+                }
+
+                return dbconfig.collection_proposal.find(proposalQuery).lean();
+            }
+        ).then(
+            proposalData => {
+                if (!(proposalData && proposalData.length)) {
+                    return Promise.reject({name: "DBError", message: 'Cannot find proposal'});
+                }
+                let returnData = [];
+                for (let i = 0; i < proposalData.length; i++) {
+                    let commissionPeriod;
+                    let totalProviderFee = 0;
+                    if (proposalData[i].data) {
+                        if (proposalData[i].data.startTime && proposalData[i].data.endTime) {
+                            proposalData[i].data.endTime = new Date(proposalData[i].data.endTime.setSeconds(proposalData[i].data.endTime.getSeconds() - 1));
+                            commissionPeriod = proposalData[i].data.startTime.toISOString() + " ~ " + proposalData[i].data.endTime.toISOString();
+                        }
+                    }
+                    let returnObj = {
+                        proposalId: proposalData[i].proposalId? proposalData[i].proposalId: "",
+                        status: proposalData[i].status? proposalData[i].status: "",
+                        proposalAmount: proposalData[i].data && proposalData[i].data.amount? proposalData[i].data.amount: 0,
+                        createTime: proposalData[i].createTime? proposalData[i].createTime: "",
+                        // successTime
+                        commissionPeriod: commissionPeriod? commissionPeriod: "",
+                        activeCrewNumbers: proposalData[i].data && proposalData[i].data.activeCount? proposalData[i].data.activeCount: 0,
+                        totalDepositFee: proposalData[i].data && proposalData[i].data.totalTopUpFee? proposalData[i].data.totalTopUpFee: 0,
+                        totalWithdrawFee: proposalData[i].data && proposalData[i].data.totalWithdrawalFee? proposalData[i].data.totalWithdrawalFee: 0,
+                        totalBonusFee: proposalData[i].data && proposalData[i].data.totalRewardFee? proposalData[i].data.totalRewardFee: 0,
+                        list: []
+                    };
+
+                    if (proposalData[i].status == constProposalStatus.SUCCESS || proposalData[i].status == constProposalStatus.APPROVED) {
+                        returnObj.successTime = proposalData[i].settleTime? proposalData[i].settleTime: "";
+                    } else if (proposalData[i].status == constProposalStatus.CANCEL) {
+                        returnObj.cancelTime = proposalData[i].settleTime? proposalData[i].settleTime: "";
+                    }
+
+                    if (proposalData[i].data && proposalData[i].data.rawCommissions && proposalData[i].data.rawCommissions.length) {
+                        for (let j = 0; j < proposalData[i].data.rawCommissions.length; j++) {
+                            let returnListObj = {
+                                providerGroupId:proposalData[i].data.rawCommissions[j].groupId? proposalData[i].data.rawCommissions[j].groupId: "",
+                                providerGroupName: proposalData[i].data.rawCommissions[j].groupName? proposalData[i].data.rawCommissions[j].groupName: "",
+                                providerGroupCommission: proposalData[i].data.rawCommissions[j].amount? proposalData[i].data.rawCommissions[j].amount: 0,
+                                providerGroupFee:proposalData[i].data.rawCommissions[j].platformFee? proposalData[i].data.rawCommissions[j].platformFee: 0
+                            }
+                            totalProviderFee += returnListObj.providerGroupFee;
+                            returnObj.list.push(returnListObj);
+                        }
+                    }
+                    returnObj.totalProviderFee = totalProviderFee;
+                    returnData.push(returnObj);
+                }
+                return returnData;
+            }
+        )
+    },
+
     cancelPartnerCommissionPreview: (commSettLog, partnerCommissionLogId) => {
         if(!commSettLog){
             return;

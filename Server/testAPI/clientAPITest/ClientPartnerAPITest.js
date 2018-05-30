@@ -266,6 +266,12 @@
         this.partnerService.preditCommission.once(callback);
     };
 
+    proto.getCommissionProposalList = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.getCommissionProposalList.request(data);
+        this.partnerService.getCommissionProposalList.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPartnerAPITest;
     } else {
