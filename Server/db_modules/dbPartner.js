@@ -588,6 +588,8 @@ let dbPartner = {
                     }
                     apiData = data;
 
+                    console.log("CHECKING1111111111",data.bankAccountName)
+
                     var a, b, c;
 
                     a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({
@@ -610,6 +612,7 @@ let dbPartner = {
             }
         ).then(
             zoneData => {
+                console.log("CHECKING--",zoneData)
                 apiData.bankAccountProvinceId = apiData.bankAccountProvince;
                 apiData.bankAccountCityId = apiData.bankAccountCity;
                 apiData.bankAccountDistrictId = apiData.bankAccountDistrict;
@@ -1753,9 +1756,30 @@ let dbPartner = {
                             else
                                 updateData.realName = updateData.bankAccountName;
                         }
-                        if(!partnerData.bankAccountName){
-                            updateData.bankAccountName = partnerData.realName ? partnerData.realName : '';
+                        
+                        if (!updateData.bankAccountName && !partnerData.realName) {
+                            return Q.reject({
+                                name: "DataError",
+                                code: constServerCode.INVALID_DATA,
+                                message: "Please enter bank account name or contact cs"
+                            });
                         }
+
+                        if (updateData.bankAccountType) {
+                            let tempBankAccountType = updateData.bankAccountType;
+                            let isValidBankType = Number.isInteger(Number(tempBankAccountType));
+                            if (!isValidBankType) {
+                                return Q.reject({
+                                    name: "DataError",
+                                    code: constServerCode.INVALID_DATA,
+                                    message: "Invalid bank account type"
+                                });
+                            }
+                        }
+
+                        // if(!partnerData.bankAccountName){
+                        //     updateData.bankAccountName = partnerData.realName ? partnerData.realName : '';
+                        // }
                         let partnerProm = dbutility.findOneAndUpdateForShard(dbconfig.collection_partner, partnerQuery, updateData, constShardKeys.collection_partner);
                         return Promise.all([partnerProm]);
                     }
