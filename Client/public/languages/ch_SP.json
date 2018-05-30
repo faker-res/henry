@@ -3664,6 +3664,7 @@
   "REQUIRED_PLATFORM_FEES_DEDUCTION": "需扣除的平台费",
   "REQUIRED_DEPOSIT_FEES_DEDUCTION": "需扣除的总存款手续费",
   "REQUIRED_WITHDRAWAL_FEES_DEDUCTION": "需扣除的总取款手续费",
+  "CTI_QUEUE_NUM": "CTI队列号码",
   "Calender legend": "日历说明",
   "Gray (strikethrough) indicates skipped settlement": "灰色（带杠）表示跳过结算",
   "Green indicates executed settlement": "绿色表示已经结算",

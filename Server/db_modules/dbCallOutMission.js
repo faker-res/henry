@@ -381,7 +381,7 @@ function addMissionToCti (platform, admin, calleeList) {
     param.transferType = 2;
     param.queuenum = admin.callerQueue || "9994";
     param.calloutType = '0';
-    param.calledNumber = platform.callNumberPrefix || "879997";
+    param.calledNumber = admin.did || "879997";
     param.maxRingTime = platform.maxRingTime || 30;
     param.redialTimes = platform.redialTimes || 3;
     param.minRedialInterval = platform.minRedialInterval || 10;
