@@ -1681,7 +1681,6 @@ var dbPlayerTopUpRecord = {
     getTopUpTotalAmountForAllPlatform: function (startTime, endTime, platform) {
         let matchObj = {
             createTime: {$gte: startTime, $lt: endTime},
-            platformId: platform
         };
 
         if (platform !== 'all') {
