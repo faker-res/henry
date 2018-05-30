@@ -2,6 +2,7 @@ const dbconfig = require('./../modules/dbproperties');
 const dbutility = require('./../modules/dbutility');
 
 const constCallOutMissionStatus = require('./../const/constCallOutMissionStatus');
+const constCallOutMissionCalleeStatus = require('./../const/constCallOutMissionCalleeStatus');
 
 const request = require('request');
 const rsaCrypto = require('./../modules/rsaCrypto');
@@ -120,7 +121,7 @@ let dbCallOutMission = {
     stopCallOutMission: (platformObjId, missionName) => {
         let platform = {};
         let mission = {};
-        let operation;
+
         return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
             platformData => {
                 platform = platformData;
@@ -146,9 +147,110 @@ let dbCallOutMission = {
             }
         );
     },
+
+    getUpdatedAdminMissionStatusFromCti: (platformObjId, adminObjId) => {
+        let platform, admin;
+
+        let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
+        let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
+
+        return Promise.all([platformProm, adminProm]).then(
+            data => {
+                ([platform, admin] = data);
+
+                if (!platform ) {
+                    return Promise.reject({name: "DataError", message: "Platform not found."});
+                }
+
+                if (!admin) {
+                    return Promise.reject({name: "DataError", message: "No admin acc"});
+                }
+
+                return dbconfig.collection_callOutMission.findOne({
+                    platform: platform._id,
+                    admin: admin._id,
+                    status: {
+                        $in: [
+                            constCallOutMissionStatus.CREATED,
+                            constCallOutMissionStatus.ON_GOING,
+                            constCallOutMissionStatus.PAUSED
+                        ]
+                    }
+                }).lean();
+            }
+        ).then(
+            callOutMissionData => {
+                if (!callOutMissionData) {
+                    return {hasOnGoingMission: false};
+                }
+
+                return getUpdatedMissionDetail(platform, admin, callOutMissionData);
+            }
+        )
+    },
 };
 
 module.exports = dbCallOutMission;
+
+function getUpdatedMissionDetail (platform, admin, mission) {
+    let apiOutput, ctiMissionStatus;
+
+    return getCtiCallOutMissionDetail(platform, mission.missionName).then(
+        apiOutputData => {
+            apiOutput = apiOutputData;
+
+            ctiMissionStatus = apiOutput.status;
+
+            let updateMissionStatusProm = Promise.resolve(mission);
+            if (ctiMissionStatus == constCallOutMissionStatus.FINISHED) {
+                updateMissionStatusProm = dbconfig.collection_callOutMission.findOneAndUpdate({_id: mission._id}, {status: constCallOutMissionStatus.FINISHED}, {new: true}).lean();
+            }
+
+            return updateMissionStatusProm;
+        }
+    ).then(
+        missionData => {
+            if (missionData) {
+                mission = missionData;
+            }
+
+            if (!apiOutput.cust || !apiOutput.cust.length) {
+                return [];
+            }
+
+            let proms = [];
+
+            apiOutput.cust.map(calleeDetail => {
+                if (Number(calleeDetail.callCount) > 0) {
+                    let status = 0;
+                    if (calleeDetail.callResult == 0) {
+                        status = constCallOutMissionCalleeStatus.FAILED;
+                    } else {
+                        status = constCallOutMissionCalleeStatus.SUCCEEDED;
+                    }
+
+                    let prom = dbconfig.collection_callOutMissionCallee.update({platform: platform._id, admin: admin._id, mission: mission._id, playerName: calleeDetail.custName}, {status: status, callingTime: calleeDetail.lastCallTime}).catch(errorUtils.reportError);
+                    proms.push(prom);
+                }
+            });
+
+            return Promise.all(proms);
+        }
+    ).then(
+        () => {
+            return dbconfig.collection_callOutMissionCallee.find({platform: platform._id, admin: admin._id, mission: mission._id}).lean();
+        }
+    ).then(
+        calleeList => {
+            let outputData = {};
+            outputData.hasOnGoingMission = Boolean(ctiMissionStatus != constCallOutMissionStatus.FINISHED);
+            outputData = Object.assign({}, outputData, mission);
+            outputData.callee = calleeList;
+
+            return outputData;
+        }
+    );
+}
 
 function getCalleeList (query, sortCol) {
     switch (query.playerType) {
@@ -189,7 +291,7 @@ function getCalleeList (query, sortCol) {
             let proms = [];
             playerData.map(playerIdObj => {
                 // to get phone number, findOne is necessary as find is encoded
-                let prom = dbconfig.collection_players.findOne({_id: playerIdObj._id}, {name: 1, phoneNumber: 1}).lean()
+                let prom = dbconfig.collection_players.findOne({_id: playerIdObj._id}, {name: 1, phoneNumber: 1}).lean();
                 proms.push(prom);
             });
 
@@ -385,6 +487,28 @@ function deleteCtiMission (platform, missionName) {
                 return Promise.reject({message: "CTI API return error"});
             }
             return true;
+        }
+    );
+}
+
+function getCtiCallOutMissionDetail (platform, missionName) {
+    let token = getCtiToken("POLYLINK_MESSAGE_TOKEN");
+
+    let param = {token};
+    param.taskName = missionName;
+
+    return callCtiApiWithRetry(platform.platformId, "getCallOutTaskStatus.do", param).then(
+        apiOutput => {
+            if (!apiOutput) {
+                console.error("getCallOutTaskStatus.do Did not receive result");
+                return Promise.reject({message: "Did not receive result"});
+            }
+
+            if (apiOutput.result != 1) {
+                console.error("CTI API getCallOutTaskStatus.do output:", apiOutput);
+                return Promise.reject({message: "CTI API return error"});
+            }
+            return apiOutput;
         }
     );
 }
