@@ -51,7 +51,7 @@ const constPartnerCommissionLogStatus = require("../const/constPartnerCommission
 
 let dbPartner = {
 
-    createPartnerAPI: function (partnerData) {
+    createPartnerAPI: function (partnerData, bypassSMSVerify) {
         let platformData;
         return dbconfig.collection_platform.findOne({platformId: partnerData.platformId}).then(
             platformDataResult => {
@@ -64,7 +64,7 @@ let dbPartner = {
                         }
                     }
 
-                    if (!platformData.partnerRequireSMSVerification) {
+                    if (!platformData.partnerRequireSMSVerification || bypassSMSVerify) {
                         return true;
                     }
                     return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, platformData, partnerData.smsCode, partnerData.partnerName, true);
@@ -108,6 +108,10 @@ let dbPartner = {
         ).then(
             (data) => {
                 if (data.isPhoneNumberValid) {
+                    if(platformData.partnerDefaultCommissionGroup != constPartnerCommissionType.OPTIONAL_REGISTRATION && partnerData.commissionType){
+                        delete partnerData.commissionType;
+                    }
+
                     if (partnerData.parent) {
                         return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
                             parentData => {

@@ -54,9 +54,10 @@ var PartnerServiceImplement = function () {
                     data.phoneType = queryRes.type;
                 }
             }
+            let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
             conn.captchaCode = null;
             data.partnerName = data.name;
-            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.createPartnerAPI, [data], isValidData, true, false, true).then(
+            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.createPartnerAPI, [data, byPassSMSCode], isValidData, true, false, true).then(
                 partnerData => {
                     conn.partnerId = partnerData.partnerId;
                     conn.partnerObjId = partnerData._id;
