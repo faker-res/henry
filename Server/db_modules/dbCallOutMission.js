@@ -238,7 +238,7 @@ function getUpdatedMissionDetail (platform, admin, mission) {
         }
     ).then(
         () => {
-            return dbconfig.collection_callOutMissionCallee.find({platform: platform._id, admin: admin._id, mission: mission._id}).lean();
+            return dbconfig.collection_callOutMissionCallee.find({platform: platform._id, admin: admin._id, mission: mission._id}).populate({path: "player", model: dbconfig.collection_players}).lean();
         }
     ).then(
         calleeList => {
