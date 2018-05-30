@@ -46,8 +46,9 @@ let dbRewardPoints = {
     deductPointManually: (playerObjId, updateAmount, remark, userDevice) => {
         return dbConfig.collection_players.findOne({_id: ObjectId(playerObjId)}).lean().then(
             playerData => {
+                console.log("CHECKING----", playerData)
                 if (playerData) {
-                    dbPlayerInfo.updatePlayerRewardPointsRecord(playerObjId, playerData.platform, updateAmount, remark, null, null, playerData.name, userDevice).catch(errorUtils.reportError);
+                    return dbPlayerInfo.updatePlayerRewardPointsRecord(playerObjId, playerData.platform, updateAmount, remark, null, null, playerData.name, userDevice);
                 } else {
                     return Promise.reject({name: "DataError", message: "Cannot find player"});
                 }
