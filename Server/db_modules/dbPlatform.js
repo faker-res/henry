@@ -1602,10 +1602,12 @@ var dbPlatform = {
             smsLogsWithCount => {
                 if (smsLogsWithCount.length > 0) {
                     let promises =  smsLogsWithCount.map(function (sms) {
+                        console.log("LH Check SMSLog 1 ---------------",sms);
                         if (sms.tel) {
                             if(sms.purpose == constSMSPurpose.PARTNER_REGISTRATION || sms.purpose == constSMSPurpose.PARTNER_OLD_PHONE_NUMBER || sms.purpose == constSMSPurpose.PARTNER_NEW_PHONE_NUMBER
                             || sms.purpose == constSMSPurpose.PARTNER_UPDATE_PASSWORD || sms.purpose == constSMSPurpose.PARTNER_UPDATE_BANK_INFO_FIRST || sms.purpose == constSMSPurpose.PARTNER_UPDATE_BANK_INFO){
                                 //check phone number with partner
+                                console.log("LH Check SMSLog 2 ---------------",data.platformObjId);
                                 return dbPlatform.checkPhoneNumWithPartner(sms.tel, data.platformObjId, sms).then(
                                     smsTel => {
                                         sms.tel = smsTel;
@@ -1712,6 +1714,7 @@ var dbPlatform = {
     checkPhoneNumWithPartner: (phone, platformObjId, sms) => {
         let encryptPhone = rsaCrypto.encrypt(phone);
 
+        console.log("LH Check SMSLog 3 ---------------",encryptPhone);
         return dbconfig.collection_partner.find(
             {
                 phoneNumber: encryptPhone,
@@ -1719,6 +1722,7 @@ var dbPlatform = {
             }
         ).count().then(
             count => {
+                console.log("LH Check SMSLog 4 ---------------",count);
                 if (count > 0) {
                     // if phone number already exist in partner, update phone status to 1
                     dbconfig.collection_smsLog.findOneAndUpdate(
@@ -1731,7 +1735,9 @@ var dbPlatform = {
                     ).exec();
 
                     //got matching phone number in db, thus need encode
+                    console.log("LH Check SMSLog 5 ---------------",sms.tel);
                     sms.tel = dbUtility.encodePhoneNum(sms.tel);
+                    console.log("LH Check SMSLog 6 ---------------",sms.tel);
                     return sms.tel;
                 } else {
                     // if phone number did not exist in real player, update phone status to 2
