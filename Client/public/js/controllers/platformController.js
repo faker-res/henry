@@ -15550,14 +15550,14 @@ define(['js/app'], function (myApp) {
             vm.toggleCallOutMissionStatus = function() {
                 socketService.$socket($scope.AppSocket, 'toggleCallOutMissionStatus', {
                     platformObjId: vm.selectedPlatform.id,
-                    missionName: vm.CtiData.missionName
+                    missionName: vm.ctiData.missionName
                 }, function (data) {});
             };
 
             vm.stopCallOutMission = function() {
                 socketService.$socket($scope.AppSocket, 'stopCallOutMission', {
                     platformObjId: vm.selectedPlatform.id,
-                    missionName: vm.CtiData.missionName
+                    missionName: vm.ctiData.missionName
                 }, function (data) {});
             };
             
@@ -27445,7 +27445,7 @@ define(['js/app'], function (myApp) {
                 vm.credibilityRemarks = [];
                 vm.gameStatus = {};
                 vm.gameSmallShow = {};
-                vm.CtiData = {};
+                vm.ctiData = {};
                 vm.gameGroupClickable = {
                     inGameLoaded: true,
                     outGameLoaded: true,
