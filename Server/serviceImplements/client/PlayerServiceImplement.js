@@ -92,7 +92,7 @@ let PlayerServiceImplement = function () {
                 data.email = data.qq + "@qq.com";
             }
 
-            data.partnerId = "";
+            // data.partnerId = "";
             //for partner player registration
             let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
             conn.captchaCode = null;
@@ -173,11 +173,20 @@ let PlayerServiceImplement = function () {
             ).catch(WebSocketUtil.errorHandler)
                 .done();
         }
-        else {
+        else if (!data.smsCode && data.captcha){
+            // if player key in captcha and not matching to existing captcha
             conn.captchaCode = null;
             wsFunc.response(conn, {
                 status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
                 errorMessage: localization.translate("Invalid image captcha", conn.lang, conn.platformId),
+                data: null
+            }, data);
+        }
+        else if(!data.smsCode && !data.captcha) {
+            // if player didn't key anything
+            wsFunc.response(conn, {
+                status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
+                errorMessage: localization.translate("Incorrect SMS Validation Code", conn.lang, conn.platformId),
                 data: null
             }, data);
         }
