@@ -732,6 +732,14 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         5: "WEEKLY_CONSUMPTION"
     };
 
+    $scope.constCallOutMissionStatus = {
+        0: "CREATED",
+        1: "ON_GOING",
+        2: "PAUSED",
+        3: "FINISHED",
+        4: "CANCELLED"
+    };
+
     // $scope.consumptionRecordProviderName = {
     //     1: "AGOTHS",
     //     2: "PT",

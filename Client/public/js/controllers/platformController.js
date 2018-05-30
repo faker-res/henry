@@ -15560,6 +15560,19 @@ define(['js/app'], function (myApp) {
                     missionName: vm.ctiData.missionName
                 }, function (data) {});
             };
+
+            vm.getCtiData = function() {
+                socketService.$socket($scope.AppSocket, 'getUpdatedAdminMissionStatusFromCti', {
+                    platformObjId: vm.selectedPlatform.id
+                }, function (data) {
+                    console.log("getCtiData ret",data);
+                    vm.ctiData = data.data;
+
+                    setTableData(vm.playerFeedbackTable, vm.ctiData.callee);
+                    vm.feedbackPlayersPara.total = vm.ctiData.callee.length;
+                    // vm.callOutMissionStatus = vm.ctiData.adminName + ':' + $scope.constCallOutMissionStatus[vm.ctiData.status] + '/' + "Completed" | translate}} : ( {{vm.ctiData}} / {{vm.ctiData}} );
+                });
+            };
             
             vm.getPlayerCreditinFeedbackInfo = function () {
                 vm.curFeedbackPlayer.gameCredit = {};
