@@ -337,6 +337,7 @@ const dbPlayerMail = {
         let lastMinuteHistory = null;
         let platform;
         let isFailedSms = false;
+        let partner = null;
         let getPlatform = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
         let seletedDb = dbPlayerInfo;
         let sameTelPermission = "allowSamePhoneNumberToRegister";
@@ -418,7 +419,13 @@ const dbPlayerMail = {
                         }
                     }
 
-                    return Promise.all([smsChannelProm, smsVerificationLogProm, messageTemplateProm, validPhoneNumberProm]);
+                    let getPartnerProm = [];
+                    if (isPartner && purpose != constSMSPurpose.PARTNER_REGISTRATION) {
+                        getPartnerProm = dbconfig.collection_partner.findOne({_id: playerName}).lean();
+                    }
+
+
+                    return Promise.all([smsChannelProm, smsVerificationLogProm, messageTemplateProm, validPhoneNumberProm, getPartnerProm]);
                 } else {
                     return Q.reject({
                         name: "DataError",
@@ -433,6 +440,13 @@ const dbPlayerMail = {
                     lastMinuteHistory = data[1];
                     template = data[2];
                     phoneValidation = data[3];
+                    partner = data[4] ? data[4] : null;
+
+                    if (isPartner) {
+                        if (partner && partner.partnerName) {
+                            playerName = partner.partnerName;
+                        }
+                    }
 
                     if (!phoneValidation || !phoneValidation.isPhoneNumberValid) {
                         return Promise.reject({

@@ -27,7 +27,9 @@ let dbutility = require("./../modules/dbutility");
 let dbPlayerMail = require("../db_modules/dbPlayerMail");
 var localization = require("../modules/localization");
 var serverInstance = require("../modules/serverInstance");
-let ObjectId = mongoose.Types.ObjectId;
+var ObjectId = mongoose.Types.ObjectId;
+// db_common
+const dbPropUtil = require("../db_common/dbProposalUtility");
 
 let env = require('../config/env').config();
 
@@ -65,7 +67,7 @@ let dbPartner = {
                     if (!platformData.partnerRequireSMSVerification) {
                         return true;
                     }
-                    return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, platformData, partnerData.smsCode, null, true);
+                    return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, platformData, partnerData.smsCode, partnerData.partnerName, true);
                 } else {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
                 }
@@ -1664,7 +1666,7 @@ let dbPartner = {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
-                        return dbPlayerMail.verifySMSValidationCode(partnerObj.phoneNumber, platformData, smsCode, null, true);
+                        return dbPlayerMail.verifySMSValidationCode(partnerObj.phoneNumber, platformData, smsCode, partnerObj.partnerName, true);
                     }
                 } else {
                     return Q.reject({
@@ -1735,7 +1737,7 @@ let dbPartner = {
                             // SMS verification not required
                             return Q.resolve(true);
                         } else {
-                            return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, partnerData.platform, updateData.smsCode, null, true);
+                            return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, partnerData.platform, updateData.smsCode, partnerData.partnerName, true);
                         }
                     } else {
                         return Q.reject({name: "DataError", message: "Cannot find partner"});
@@ -1745,6 +1747,12 @@ let dbPartner = {
                 isVerified => {
                     if (isVerified) {
                         // Update partner data
+                        if (updateData.bankAccountName && updateData.bankAccountName != partnerData.realName) {
+                            if (updateData.bankAccountName.indexOf('*') > -1)
+                                delete updateData.bankAccountName;
+                            else
+                                updateData.realName = updateData.bankAccountName;
+                        }
                         if(!partnerData.bankAccountName){
                             updateData.bankAccountName = partnerData.realName ? partnerData.realName : '';
                         }
@@ -2097,16 +2105,23 @@ let dbPartner = {
      * Apply bonus
      */
     applyBonus: function (userAgent, partnerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
+
+
         let partner = null;
-        let bonusDetail = null;
-        let bUpdateCredit = false;;
+        // let bonusDetail = null;
+        let bUpdateCredit = false;
         let resetCredit = function (partnerObjId, platformObjId, credit, error) {
             //reset partner credit if credit is incorrect
-            return dbconfig.collection_partner.findOneAndUpdate({
-                _id: partnerObjId,
-                platform: platformObjId
-            }, {$inc: {credits: credit}}).then(
+            return dbconfig.collection_partner.findOneAndUpdate(
+                {
+                    _id: partnerObjId,
+                    platform: platformObjId
+                },
+                {$inc: {credits: credit}},
+                {new: true}
+            ).then(
                 resetPartner => {
+                    // dbLogger.createCreditChangeLog(playerObjId, platformObjId, credit, constPlayerCreditChangeType.PLAYER_BONUS_RESET_CREDIT, resetPlayer.validCredit, null, error);
                     if (error) {
                         return Q.reject(error);
                     }
@@ -2118,94 +2133,52 @@ let dbPartner = {
         };
         bonusId = parseInt(bonusId);
         amount = parseInt(amount);
-        return pmsAPI.bonus_getBonusList({}).then(
-            bonusData => {
-                if (bonusData && bonusData.bonuses && bonusData.bonuses.length > 0) {
-                    let bValid = false;
-                    bonusData.bonuses.forEach(
-                        bonus => {
-                            if (bonus.bonus_id == bonusId) {
-                                bValid = true;
-                                bonusDetail = bonus;
-                            }
-                        }
-                    );
-                    if (bValid) {
-                        return dbconfig.collection_partner.findOne({partnerId: partnerId})
-                            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
-                                partnerData => {
-                                    //check if partner has pending proposal to update bank info
-                                    if (partnerData) {
-                                        return dbconfig.collection_proposalType.findOne({
-                                            platformId: partnerData.platform._id,
-                                            name: constProposalType.UPDATE_PARTNER_BANK_INFO
-                                        }).then(
-                                            proposalType => {
-                                                if (proposalType) {
-                                                    return dbconfig.collection_proposal.find({
-                                                        type: proposalType._id,
-                                                        "data.partnerName": partnerData.partnerName
-                                                    }).populate(
-                                                        {path: "process", model: dbconfig.collection_proposalProcess}
-                                                    ).lean();
-                                                }
-                                                else {
-                                                    return Q.reject({
-                                                        name: "DataError",
-                                                        errorMessage: "Cannot find proposal type"
-                                                    });
-                                                }
+
+        return dbconfig.collection_partner.findOne({partnerId: partnerId})
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+                partnerData => {
+                    //check if partner has pending proposal to update bank info
+                    if (partnerData) {
+
+                        let propQ = {
+                            "data._id": String(partnerData._id)
+                        };
+
+                        return dbPropUtil.getProposalDataOfType(partnerData.platform._id, constProposalType.UPDATE_PARTNER_BANK_INFO, propQ).then(
+                            proposals => {
+                                if (proposals && proposals.length > 0) {
+                                    let bExist = false;
+                                    proposals.forEach(
+                                        proposal => {
+                                            if (proposal.status == constProposalStatus.PENDING ||
+                                                (proposal.process && proposal.process.status == constProposalStatus.PENDING)) {
+                                                bExist = true;
                                             }
-                                        ).then(
-                                            proposals => {
-                                                if (proposals && proposals.length > 0) {
-                                                    let bExist = false;
-                                                    proposals.forEach(
-                                                        proposal => {
-                                                            if (proposal.status == constProposalStatus.PENDING ||
-                                                                ( proposal.process && proposal.process.status == constProposalStatus.PENDING)) {
-                                                                bExist = true;
-                                                            }
-                                                        }
-                                                    );
-                                                    if (!bExist || bForce) {
-                                                        return partnerData;
-                                                    }
-                                                    else {
-                                                        return Q.reject({
-                                                            status: constServerCode.PLAYER_PENDING_PROPOSAL,
-                                                            name: "DataError",
-                                                            errorMessage: "Partner is updating bank info"
-                                                        });
-                                                    }
-                                                }
-                                                else {
-                                                    return partnerData;
-                                                }
-                                            }
-                                        );
+                                        }
+                                    );
+                                    if (!bExist || bForce) {
+                                        return partnerData;
                                     }
                                     else {
-                                        return Q.reject({name: "DataError", errorMessage: "Cannot find partner"});
+                                        return Promise.reject({
+                                            name: "DataError",
+                                            errorMessage: "partner is updating bank info"
+                                        });
                                     }
                                 }
-                            );
+                                else {
+                                    return partnerData;
+                                }
+                            }
+                        );
                     }
                     else {
-                        return Q.reject({
-                            status: constServerCode.INVALID_PARAM,
-                            name: "DataError",
-                            errorMessage: "Invalid bonus id"
-                        });
+                        return Promise.reject({name: "DataError", errorMessage: "Cannot find partner"});
                     }
                 }
-                else {
-                    return Q.reject({name: "DataError", errorMessage: "Cannot find bonus"});
-                }
-            }
-        ).then(
-            partnerData => {
-                if (partnerData) {
+            ).then(
+                partnerData => {
+                    if (partnerData) {
                     // if (!partnerData.permission || !partnerData.permission.applyBonus) {
                     //     return Q.reject({
                     //         status: constServerCode.PLAYER_NO_PERMISSION,
@@ -2213,120 +2186,363 @@ let dbPartner = {
                     //         errorMessage: "Player does not have this permission"
                     //     });
                     // }
-                    if (partnerData.bankName == null || !partnerData.bankAccountName || !partnerData.bankAccountType || !partnerData.bankAccountCity
-                        || !partnerData.bankAccount || !partnerData.bankAccountProvince) {
-                        return Q.reject({
-                            status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
-                            name: "DataError",
-                            errorMessage: "Partner does not have valid payment information"
-                        });
-                    }
-
-                    if (partnerData.permission && !partnerData.permission.applyBonus) {
-                        return Q.reject({
-                            status: constServerCode.PARTNER_NO_PERMISSION,
-                            name: "DataError",
-                            errorMessage: "Partner is forbidden to apply bonus"
-                        });
-                    }
-
-                    //check if partner has enough credit
-                    partner = partnerData;
-                    if (partnerData.credits < bonusDetail.credit * amount) {
-                        return Q.reject({
-                            status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                            name: "DataError",
-                            errorMessage: "Partner does not have enough credit."
-                        });
-                    }
-                    //check if player credit balance.
-                    // if (playerData.creditBalance > 0) {
-                    //     return Q.reject({
-                    //         status: constServerCode.PLAYER_CREDIT_BALANCE_NOT_ENOUGH,
-                    //         name: "DataError",
-                    //         errorMessage: "Player does not have enough Expenses."
-                    //     });
-                    // }
-                    return dbconfig.collection_partner.findOneAndUpdate(
-                        {
-                            _id: partner._id,
-                            platform: partner.platform._id
-                        },
-                        {$inc: {credits: -amount * bonusDetail.credit}},
-                        {new: true}
-                    ).then(
-                        newPartnerData => {
-                            if (newPartnerData) {
-                                bUpdateCredit = true;
-
-                                if (newPartnerData.credits < 0) {
-                                    //credit will be reset below
-                                    return Q.reject({
-                                        status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                                        name: "DataError",
-                                        errorMessage: "Partner does not have enough credit.",
-                                        data: '(detected after withdrawl)'
-                                    });
-                                }
-
-                                partner.validCredit = newPartnerData.validCredit;
-                                //create proposal
-                                let proposalData = {
-                                    creator: adminInfo || {
-                                        type: 'partner',
-                                        name: partner.partnerName,
-                                        id: partnerId
-                                    },
-                                    partnerId: partnerId,
-                                    partnerObjId: partner._id,
-                                    partnerName: partner.partnerName,
-                                    bonusId: bonusId,
-                                    platformId: partner.platform._id,
-                                    platform: partner.platform.platformId,
-                                    amount: amount,
-                                    bonusCredit: bonusDetail.credit,
-                                    curAmount: partner.credits,
-                                    requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
-                                };
-                                let newProposal = {
-                                    creator: proposalData.creator,
-                                    data: proposalData,
-                                    entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
-                                    userType: constProposalUserType.PARTNERS,
-                                };
-                                newProposal.inputDevice = dbutility.getInputDevice(userAgent,true);
-                                return dbProposal.createProposalWithTypeName(partner.platform._id, constProposalType.PARTNER_BONUS, newProposal);
-                            }
+                        partner = partnerData;
+                        if (partnerData.bankName == null || !partnerData.bankAccountName || !partnerData.bankAccountType || !partnerData.bankAccountCity
+                            || !partnerData.bankAccount || !partnerData.bankAccountProvince) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
+                                name: "DataError",
+                                errorMessage: "Partner does not have valid payment information"
+                            });
                         }
-                    );
-                } else {
-                    return Q.reject({name: "DataError", errorMessage: "Cannot find partner"});
-                }
-            }
-        ).then(
-            proposal => {
-                if (proposal) {
-                    if (bUpdateCredit) {
-                        //todo::partner credit change log???
-                        //dbLogger.createCreditChangeLog(player._id, player.platform._id, -amount * bonusDetail.credit, constProposalType.PLAYER_BONUS, player.validCredit, null, message);
+
+                        if (partnerData.permission && !partnerData.permission.applyBonus) {
+                            return Q.reject({
+                                status: constServerCode.PARTNER_NO_PERMISSION,
+                                name: "DataError",
+                                errorMessage: "Partner is forbidden to apply bonus"
+                            });
+                        }
+
+                        if ((parseFloat(partnerData.credits).toFixed(2)) < parseFloat(amount)) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                name: "DataError",
+                                errorMessage: "Partner does not have enough credit."
+                            });
+                        }
+
+                        let changeCredit = -amount;
+                        let finalAmount = amount;
+                        let creditCharge = 0;
+                        let amountAfterUpdate = partner.credits - amount;
+
+                        return dbconfig.collection_partner.findOneAndUpdate(
+                            {
+                                _id: partner._id,
+                                platform: partner.platform._id
+                            },
+                            {$inc: {credits: changeCredit}},
+                            {new: true}
+                        ).then(
+                            //check if player's credit is correct after update
+                            updateRes => dbconfig.collection_partner.findOne({_id: partner._id})
+                        ).then(
+                            newPartnerData => {
+                                if (newPartnerData) {
+                                    bUpdateCredit = true;
+                                    //to fix float problem...
+                                    if (newPartnerData.credits < -0.02) {
+                                        //credit will be reset below
+                                        return Q.reject({
+                                            status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                            name: "DataError",
+                                            errorMessage: "Partner does not have enough credit.",
+                                            data: '(detected after withdrawl)'
+                                        });
+                                    }
+
+
+                                    //check if player's credit is correct after update
+                                    if (amountAfterUpdate != newPartnerData.credits) {
+                                        console.log("PartnerBonus: Update partner credit failed", amountAfterUpdate, newPartnerData.credits);
+                                        return Q.reject({
+                                            status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                            name: "DataError",
+                                            errorMessage: "Update partner credit failed",
+                                            data: '(detected after withdrawl)'
+                                        });
+                                    }
+                                    //fix player negative credit
+                                    if (newPartnerData.credits < 0 && newPartnerData.credits > -0.02) {
+                                        newPartnerData.credits = 0;
+                                        dbconfig.collection_partner.findOneAndUpdate(
+                                            {_id: newPartnerData._id, platform: newPartnerData.platform},
+                                            {credits: 0}
+                                        ).then();
+                                    }
+                                    partner.credits = newPartnerData.credits;
+                                    //create proposal
+                                    var proposalData = {
+                                        creator: adminInfo || {
+                                            type: 'partner',
+                                            name: partner.partnerName,
+                                            id: partnerId
+                                        },
+                                        partnerId: partnerId,
+                                        partnerObjId: partner._id,
+                                        partnerName: partner.partnerName,
+                                        bonusId: bonusId,
+                                        platformId: partner.platform._id,
+                                        platform: partner.platform.platformId,
+                                        bankTypeId: partner.bankName,
+                                        amount: finalAmount,
+                                        // bonusCredit: bonusDetail.credit,
+                                        curAmount: partner.credits,
+                                        remark: partner.remarks || "",
+                                        lastSettleTime: new Date(),
+                                        honoreeDetail: honoreeDetail || "",
+                                        creditCharge: creditCharge,
+                                       // ximaWithdrawUsed: ximaWithdrawUsed,
+                                       // isAutoApproval: partner.platform.enableAutoApplyBonus
+                                        //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
+                                    };
+                                    if (!partner.permission.applyBonus && partner.platform.playerForbidApplyBonusNeedCsApproval) {
+                                        proposalData.remark = "禁用提款";
+                                        proposalData.needCsApproved = true;
+                                    }
+                                    var newProposal = {
+                                        creator: proposalData.creator,
+                                        data: proposalData,
+                                        entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                                        userType: constProposalUserType.PARTNERS,
+                                        isPartner: true
+
+                                    };
+                                    newProposal.inputDevice = dbUtil.getInputDevice(userAgent, false);
+
+                                    return dbProposal.createProposalWithTypeName(partner.platform._id, constProposalType.PARTNER_BONUS, newProposal);
+                                }
+                            })
                     }
-                    return proposal;
+                    else {
+                        return Promise.reject({name: "DataError", errorMessage: "Cannot find partner"});
+                    }
                 }
-                else {
-                    return Q.reject({name: "DataError", errorMessage: "Cannot create bonus proposal"});
+            ).then(
+                proposal => {
+                    if (proposal) {
+                        if (bUpdateCredit) {
+                            //todo::partner credit change log???
+                            //dbLogger.createCreditChangeLog(player._id, player.platform._id, -amount * bonusDetail.credit, constProposalType.PLAYER_BONUS, player.validCredit, null, message);
+                        }
+                        return proposal;
+                    }
+                    else {
+                        return Q.reject({name: "DataError", errorMessage: "Cannot create bonus proposal"});
+                    }
                 }
-            }
-        ).then(
-            data => data,
-            error => {
-                if (bUpdateCredit) {
-                    return resetCredit(partner._id, partner.platform._id, amount * bonusDetail.credit, error);
+            ).then(
+                data => data,
+                error => {
+                    if (bUpdateCredit) {
+                        return resetCredit(partner._id, partner.platform._id, amount, error);
+                    }
+                    else {
+                        return Q.reject(error);
+                    }
                 }
-                else {
-                    return Q.reject(error);
-                }
-            }
-        );
+            );
+
+        // return pmsAPI.bonus_getBonusList({}).then(
+        //     bonusData => {
+        //         if (bonusData && bonusData.bonuses && bonusData.bonuses.length > 0) {
+        //             let bValid = false;
+        //             bonusData.bonuses.forEach(
+        //                 bonus => {
+        //                     if (bonus.bonus_id == bonusId) {
+        //                         bValid = true;
+        //                         bonusDetail = bonus;
+        //                     }
+        //                 }
+        //             );
+        //             if (bValid) {
+        //                 return dbconfig.collection_partner.findOne({partnerId: partnerId})
+        //                     .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+        //                         partnerData => {
+        //                             //check if partner has pending proposal to update bank info
+        //                             if (partnerData) {
+        //                                 return dbconfig.collection_proposalType.findOne({
+        //                                     platformId: partnerData.platform._id,
+        //                                     name: constProposalType.UPDATE_PARTNER_BANK_INFO
+        //                                 }).then(
+        //                                     proposalType => {
+        //                                         if (proposalType) {
+        //                                             return dbconfig.collection_proposal.find({
+        //                                                 type: proposalType._id,
+        //                                                 "data.partnerName": partnerData.partnerName
+        //                                             }).populate(
+        //                                                 {path: "process", model: dbconfig.collection_proposalProcess}
+        //                                             ).lean();
+        //                                         }
+        //                                         else {
+        //                                             return Q.reject({
+        //                                                 name: "DataError",
+        //                                                 errorMessage: "Cannot find proposal type"
+        //                                             });
+        //                                         }
+        //                                     }
+        //                                 ).then(
+        //                                     proposals => {
+        //                                         if (proposals && proposals.length > 0) {
+        //                                             let bExist = false;
+        //                                             proposals.forEach(
+        //                                                 proposal => {
+        //                                                     if (proposal.status == constProposalStatus.PENDING ||
+        //                                                         ( proposal.process && proposal.process.status == constProposalStatus.PENDING)) {
+        //                                                         bExist = true;
+        //                                                     }
+        //                                                 }
+        //                                             );
+        //                                             if (!bExist || bForce) {
+        //                                                 return partnerData;
+        //                                             }
+        //                                             else {
+        //                                                 return Q.reject({
+        //                                                     status: constServerCode.PLAYER_PENDING_PROPOSAL,
+        //                                                     name: "DataError",
+        //                                                     errorMessage: "Partner is updating bank info"
+        //                                                 });
+        //                                             }
+        //                                         }
+        //                                         else {
+        //                                             return partnerData;
+        //                                         }
+        //                                     }
+        //                                 );
+        //                             }
+        //                             else {
+        //                                 return Q.reject({name: "DataError", errorMessage: "Cannot find partner"});
+        //                             }
+        //                         }
+        //                     );
+        //             }
+        //             else {
+        //                 return Q.reject({
+        //                     status: constServerCode.INVALID_PARAM,
+        //                     name: "DataError",
+        //                     errorMessage: "Invalid bonus id"
+        //                 });
+        //             }
+        //         }
+        //         else {
+        //             return Q.reject({name: "DataError", errorMessage: "Cannot find bonus"});
+        //         }
+        //     }
+        // ).then(
+        //     partnerData => {
+        //         if (partnerData) {
+        //             // if (!partnerData.permission || !partnerData.permission.applyBonus) {
+        //             //     return Q.reject({
+        //             //         status: constServerCode.PLAYER_NO_PERMISSION,
+        //             //         name: "DataError",
+        //             //         errorMessage: "Player does not have this permission"
+        //             //     });
+        //             // }
+        //             if (partnerData.bankName == null || !partnerData.bankAccountName || !partnerData.bankAccountType || !partnerData.bankAccountCity
+        //                 || !partnerData.bankAccount || !partnerData.bankAddress) {
+        //                 return Q.reject({
+        //                     status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
+        //                     name: "DataError",
+        //                     errorMessage: "Partner does not have valid payment information"
+        //                 });
+        //             }
+        //
+        //             if (partnerData.permission && !partnerData.permission.applyBonus) {
+        //                 return Q.reject({
+        //                     status: constServerCode.PARTNER_NO_PERMISSION,
+        //                     name: "DataError",
+        //                     errorMessage: "Partner is forbidden to apply bonus"
+        //                 });
+        //             }
+        //
+        //             //check if partner has enough credit
+        //             partner = partnerData;
+        //             if (partnerData.credits < bonusDetail.credit * amount) {
+        //                 return Q.reject({
+        //                     status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+        //                     name: "DataError",
+        //                     errorMessage: "Partner does not have enough credit."
+        //                 });
+        //             }
+        //             //check if player credit balance.
+        //             // if (playerData.creditBalance > 0) {
+        //             //     return Q.reject({
+        //             //         status: constServerCode.PLAYER_CREDIT_BALANCE_NOT_ENOUGH,
+        //             //         name: "DataError",
+        //             //         errorMessage: "Player does not have enough Expenses."
+        //             //     });
+        //             // }
+        //             return dbconfig.collection_partner.findOneAndUpdate(
+        //                 {
+        //                     _id: partner._id,
+        //                     platform: partner.platform._id
+        //                 },
+        //                 {$inc: {credits: -amount * bonusDetail.credit}},
+        //                 {new: true}
+        //             ).then(
+        //                 newPartnerData => {
+        //                     if (newPartnerData) {
+        //                         bUpdateCredit = true;
+        //
+        //                         if (newPartnerData.credits < 0) {
+        //                             //credit will be reset below
+        //                             return Q.reject({
+        //                                 status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+        //                                 name: "DataError",
+        //                                 errorMessage: "Partner does not have enough credit.",
+        //                                 data: '(detected after withdrawl)'
+        //                             });
+        //                         }
+        //
+        //                         partner.validCredit = newPartnerData.validCredit;
+        //                         //create proposal
+        //                         let proposalData = {
+        //                             creator: adminInfo || {
+        //                                 type: 'partner',
+        //                                 name: partner.partnerName,
+        //                                 id: partnerId
+        //                             },
+        //                             partnerId: partnerId,
+        //                             partnerObjId: partner._id,
+        //                             partnerName: partner.partnerName,
+        //                             bonusId: bonusId,
+        //                             platformId: partner.platform._id,
+        //                             platform: partner.platform.platformId,
+        //                             amount: amount,
+        //                             bonusCredit: bonusDetail.credit,
+        //                             curAmount: partner.credits,
+        //                             requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
+        //                         };
+        //                         let newProposal = {
+        //                             creator: proposalData.creator,
+        //                             data: proposalData,
+        //                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+        //                             userType: constProposalUserType.PARTNERS,
+        //                         };
+        //                         newProposal.inputDevice = dbutility.getInputDevice(userAgent,true);
+        //                         return dbProposal.createProposalWithTypeName(partner.platform._id, constProposalType.PARTNER_BONUS, newProposal);
+        //                     }
+        //                 }
+        //             );
+        //         } else {
+        //             return Q.reject({name: "DataError", errorMessage: "Cannot find partner"});
+        //         }
+        //     }
+        // ).then(
+        //     proposal => {
+        //         if (proposal) {
+        //             if (bUpdateCredit) {
+        //                 //todo::partner credit change log???
+        //                 //dbLogger.createCreditChangeLog(player._id, player.platform._id, -amount * bonusDetail.credit, constProposalType.PLAYER_BONUS, player.validCredit, null, message);
+        //             }
+        //             return proposal;
+        //         }
+        //         else {
+        //             return Q.reject({name: "DataError", errorMessage: "Cannot create bonus proposal"});
+        //         }
+        //     }
+        // ).then(
+        //     data => data,
+        //     error => {
+        //         if (bUpdateCredit) {
+        //             return resetCredit(partner._id, partner.platform._id, amount, error);
+        //         }
+        //         else {
+        //             return Q.reject(error);
+        //         }
+        //     }
+        // );
     },
 
     getPartnerChildrenReport: function (partnerId, startTime, endTime, startIndex, requestCount, sort) {

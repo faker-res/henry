@@ -25,7 +25,7 @@ var PartnerServiceImplement = function () {
     this.register.expectsData = 'name: String, realName: String, platformId: String, password: String';
     this.register.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data.name && data.realName && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH));
-        if (conn.captchaCode && (conn.captchaCode == data.captcha)) {
+        if (data.smsCode || (conn.captchaCode && (conn.captchaCode == data.captcha))) {
             data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
             var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
             if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
@@ -392,7 +392,10 @@ var PartnerServiceImplement = function () {
         conn.captchaCode = null;
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent'], true);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, null, null, true], isValidData, false, false, true);
+        if (conn.isAuth && conn.partnerObjId && !data.name) {
+            data.name = conn.partnerObjId;
+        }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, null, true], isValidData, false, false, true);
     };
 
     this.updatePhoneNumberWithSMS.expectsData = 'partnerId: String, phoneNumber: Number';

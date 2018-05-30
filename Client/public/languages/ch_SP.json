@@ -2093,6 +2093,7 @@
   "This top up record has been used": "该充值记录已被使用",
   "Player is not enable": "玩家被禁用",
   "Player does not have enough credit.": "玩家额度不够",
+  "Partner does not have enough credit.": "代理额度不够",
   "Player does not have valid payment information": "玩家支付信息无效",
   "Player does not have enough Expenses.": "玩家投注额度不够",
   "Player does not have this permission": "玩家无此权限",
@@ -3258,13 +3259,13 @@
   "AlipayTopupSuccess": "个人支付宝（成功）",
   "WechatTopupSuccess": "个人微信（成功）",
   "WithdrawSuccess": "提款（成功）",
-  "Withdraw_Date": "提款（日）",
-  "TopUp_Date": "存款（日）",
-  "ConsumptionAmount_Date": "投注额（日）",
-  "NewRegister_Date": "新注册（日）",
-  "ConsumptionPlayer_Date": "投注人数（日）",
-  "Income_Date": "收入（日）",
-  "TotalIncome_ThisMonth": "本月总收入 ",
+  "Withdrawal Amount (Day)": "提款（日）",
+  "Top Up Amount (Day)": "存款（日）",
+  "Consumption Amount (Day)": "投注额（日）",
+  "Number of New Player (Day)": "新注册（日）",
+  "Number of Consumer (Day)": "投注人数（日）",
+  "Revenue (Day)": "收入（日）",
+  "Total Monthly Revenue": "本月总收入 ",
   "WithdrawCancel": "提款（取消）",
   "PlayerLimitedOfferRewardSuccess": "秒杀礼包（成功）",
   "UpdateBankInfoSuccess": "编辑玩家银行资料（成功）",
@@ -3768,6 +3769,8 @@
   "LOGIN": "登入",
   "Player Name (Can be empty)": "会员帐号（可不输入）",
   "Cannot preview, setting is incomplete": "无法提交预览， 尚未完成代理提成设置",
-  "PlayerApiLog": "玩家事件记录"
+  "PlayerApiLog": "玩家事件记录",
+  "Pause/Resume Mission": "暂停 / 继续任务",
+  "Stop Mission": "放弃任务"
 
 }
