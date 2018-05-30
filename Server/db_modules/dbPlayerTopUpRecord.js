@@ -1731,9 +1731,7 @@ var dbPlayerTopUpRecord = {
                                 queryObj.name = constProposalType.PLAYER_TOP_UP;
                                 break;
                             case constPlayerTopUpType.MANUAL:
-                                queryObj.name = {
-                                    $in: [constProposalType.PLAYER_MANUAL_TOP_UP, constProposalType.PLAYER_ALIPAY_TOP_UP, constProposalType.PLAYER_WECHAT_TOP_UP]
-                                };
+                                queryObj.name = constProposalType.PLAYER_MANUAL_TOP_UP;
                                 break;
                             case constPlayerTopUpType.ALIPAY:
                                 queryObj.name = constProposalType.PLAYER_ALIPAY_TOP_UP;
