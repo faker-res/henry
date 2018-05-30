@@ -569,31 +569,6 @@ let dbPlayerInfo = {
                             proms.push(partnerProm);
                         }
 
-                        //check partnerId when create player account manually
-                        if (inputData.partner) {
-                            delete inputData.referral;
-                            let partnerObjId = ObjectId(inputData.partner);
-                            let partnerProm = dbconfig.collection_partner.findOne({
-                                _id: partnerObjId,
-                                platform: platformObjId
-                            }).then(
-                                data => {
-                                    if (data) {
-                                        if (data.partnerId) {
-                                            inputData.partnerId = data.partnerId;
-                                        }
-                                        if (data.partnerName) {
-                                            inputData.partnerName = data.partnerName;
-                                        }
-
-                                        return inputData;
-                                    } else {
-                                        delete inputData.partner;
-                                        return inputData;
-                                    }
-                                }
-                            )
-                        }
                         //check if player's domain matches any partner
                         if (inputData.domain) {
                             delete inputData.referral;
