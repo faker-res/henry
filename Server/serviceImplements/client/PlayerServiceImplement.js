@@ -92,7 +92,7 @@ let PlayerServiceImplement = function () {
                 data.email = data.qq + "@qq.com";
             }
 
-            data.partnerId = "";
+            // data.partnerId = "";
             //for partner player registration
             let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
             conn.captchaCode = null;
