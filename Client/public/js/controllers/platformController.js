@@ -18855,6 +18855,7 @@ define(['js/app'], function (myApp) {
                     resMsg: '',
                     showSubmit: true,
                     notSent: true,
+                    bonusId: 1
                 };
             };
 
