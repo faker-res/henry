@@ -399,15 +399,15 @@ const dbPlayerMail = {
                     }).lean();
 
                     let validPhoneNumberProm = Promise.resolve({isPhoneNumberValid: true});
-                    if (purpose === constSMSPurpose.REGISTRATION || purpose === constSMSPurpose.NEW_PHONE_NUMBER) {
+                    if (purpose === constSMSPurpose.REGISTRATION || purpose === constSMSPurpose.PARTNER_REGISTRATION) {
                         if (!(platform[whiteListPhone]
                             && platform[whiteListPhone].length > 0
                             && platform[whiteListPhone].indexOf(telNum) > -1)) {
                             let query = {
-                                phoneNumber: rsaCrypto.encrypt(telNum),
+                                phoneNumber: rsaCrypto.encrypt(telNum.toString()),
                                 platform: platformObjId,
                                 isRealPlayer: true
-                            }
+                            };
                             if (isPartner) {
                                 delete query.isRealPlayer;
                             }
