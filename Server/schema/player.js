@@ -319,7 +319,7 @@ var playerSchema = new Schema({
     // xima withdrawal check bypass
     ximaWithdraw: {type: Number, default: 0},
     // dian xiao mission related player
-    dxMission: {type: Schema.ObjectId, ref: 'dxMission'},
+    dxMission: {type: Schema.ObjectId, ref: 'dxMission', index: true},
     //client data
     clientData: {type: String}
 });
