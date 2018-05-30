@@ -108,10 +108,8 @@ let dbPartner = {
         ).then(
             (data) => {
                 if (data.isPhoneNumberValid) {
-                    if(platformData.partnerDefaultCommissionGroup != constPartnerCommissionType.OPTIONAL_REGISTRATION){
-                        if(partnerData.commissionType){
-                            delete partnerData.commissionType;
-                        }
+                    if(platformData.partnerDefaultCommissionGroup != constPartnerCommissionType.OPTIONAL_REGISTRATION && partnerData.commissionType){
+                        delete partnerData.commissionType;
                     }
 
                     if (partnerData.parent) {
