@@ -11896,7 +11896,7 @@ let dbPlayerInfo = {
                     }
                     return dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true).then(
                         playerState => {
-                            if (playerState) {
+                            if (playerState || data.isClearConcurrent) {
                                 //check if player's reward task is no credit now
                                 return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
                                     taskStatus => {
