@@ -733,11 +733,17 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     };
 
     $scope.constCallOutMissionStatus = {
-        0: "CREATED",
-        1: "ON_GOING",
-        2: "PAUSED",
-        3: "FINISHED",
-        4: "CANCELLED"
+        CREATED: 0,
+        ON_GOING: 1,
+        PAUSED: 2,
+        FINISHED: 3,
+        CANCELLED: 4
+    };
+
+    $scope.constCallOutMissionCalleeStatus = {
+        CREATED: 0,
+        SUCCEEDED: 1,
+        FAILED: 2
     };
 
     // $scope.consumptionRecordProviderName = {
