@@ -3,7 +3,7 @@ var Schema = mongoose.Schema;
 
 var playerInfoFromExternalSource = new Schema({
     // platform
-    platformId: {type: String},
+    platformId: {type: String, index: true},
     //contact number
     phoneNumber: {type: String, index: true},
     //player display name
