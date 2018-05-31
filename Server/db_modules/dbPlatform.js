@@ -3095,7 +3095,7 @@ var dbPlatform = {
             })
         }
 
-        return Promise.all([Promise.all(prom)]);
+        return Promise.all(prom);
 
         function checkAndInsertRecord (platformId, phoneNumber, name){
             return dbconfig.collection_playerDataFromExternalSource.findOne({
