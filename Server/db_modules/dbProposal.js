@@ -162,6 +162,13 @@ var proposal = {
     },
 
     applyRepairCreditTransfer: function (platformId, proposalData) {
+        if (proposalData.data && (!proposalData.data.transferId || (proposalData.data.transferId && proposalData.data.transferId == "unknown"))) {
+            return Promise.reject({
+                name: "DBError",
+                message: "This transaction does not have valid transfer ID"
+            });
+        }
+
         function isRepairableTransfer(transferId) {
             return dbconfig.collection_playerCreditTransferLog.find({
                 transferId,
@@ -346,6 +353,11 @@ var proposal = {
                     }
 
                     if (proposalTypeData.name == constProposalType.PLAYER_BONUS && proposalData.data.needCsApproved) {
+                        bExecute = false;
+                        proposalData.status = constProposalStatus.CSPENDING;
+                    }
+
+                    if (proposalTypeData.name == constProposalType.PARTNER_BONUS && proposalData.data.needCsApproved) {
                         bExecute = false;
                         proposalData.status = constProposalStatus.CSPENDING;
                     }
@@ -818,7 +830,7 @@ var proposal = {
             //update process info
             function (data) {
                 if (data) {
-                    var status = bApprove ? constProposalStatus.APPROVED : constProposalStatus.REJECTED;
+                    var status = bApprove ? constProposalStatus.APPROVED : constProposalStatus.REJECTED;                
                     if (nextStepId) {
                         return dbconfig.collection_proposalProcess.findOneAndUpdate(
                             {_id: proposalData.process._id, createTime: proposalData.process.createTime},
@@ -833,14 +845,14 @@ var proposal = {
                         return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, bApprove, proposalData, true)
                             .then(
                                 data => dbconfig.collection_proposalProcess.findOneAndUpdate(
-                                    {_id: proposalData.process._id, createTime: proposalData.process.createTime},
-                                    {
-                                        currentStep: null,
-                                        status: status,
-                                        isLocked: null
-                                    },
-                                    {new: true}
-                                )
+                                        {_id: proposalData.process._id, createTime: proposalData.process.createTime},
+                                        {
+                                            currentStep: null,
+                                            status: status,
+                                            isLocked: null
+                                        },
+                                        {new: true}
+                                    )                              
                             ).then(
                                 () => {
                                     let updateData = {status: status, isLocked: null};

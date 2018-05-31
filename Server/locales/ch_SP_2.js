@@ -124,6 +124,7 @@ var simplifiedChinese = {
     "Player is forbidden to login": "玩家被禁止登录",
     "Partner is forbidden to login": "代理被禁止登录",
     "Player does not have enough credit.": "玩家额度不够",
+    "Partner does not have enough credit.": "代理额度不够",
     "Player does not have valid payment information": "玩家支付信息无效",
     "Player does not have enough Expenses.": "玩家投注额度不够",
     "Player does not have this permission": "玩家无此权限",
@@ -320,7 +321,8 @@ var simplifiedChinese = {
     "Password should be alphanumeric and within 20 characters": "密码只能为6-20位的数字和字母",
     "Player does not have permission for reward point task": "目前进行维护当中，详情请联系客服谘询，谢谢",
     "Registration failed, phone number is invalid": "注册失败, 该电话无效",
-    "Sending failed, phone number is invalid": "发送失败, 该电话无效"
+    "Sending failed, phone number is invalid": "发送失败, 该电话无效",
+    "Reset all commission rate": "恢复所有佣金比例",
     //todo::add missing messages here
 
     /*

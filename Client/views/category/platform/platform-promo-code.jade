@@ -132,7 +132,7 @@
                                 th(style="width:20px")
                                     i.fa.fa-plus
                         tbody
-                            tr(ng-repeat='promoCode in vm.newPromoCode2')
+                            tr(ng-repeat='promoCode in vm.newPromoCode2', ng-style="{ 'background-color': promoCode.error == true ? 'red' : '' }")
                                 td
                                     textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable2', $index)", ng-disabled="promoCode.code || promoCode.cancel")
                                 td
@@ -218,7 +218,7 @@
                                 th(style="width:20px")
                                     i.fa.fa-plus
                         tbody
-                            tr(ng-repeat='promoCode in vm.newPromoCode3')
+                            tr(ng-repeat='promoCode in vm.newPromoCode3', ng-style="{ 'background-color': promoCode.error == true ? 'red' : '' }")
                                 td
                                     textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable3', $index)", ng-disabled="promoCode.code || promoCode.cancel")
                                 td
@@ -348,7 +348,7 @@
                             button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'applyPromoCode')", ng-disabled="vm.selectedPromoCode.status != 1 && vm.selectedPromoCodes.length < 1", ng-click="vm.disablePromoCodes()")
                                 text {{"DELETE" | translate}}
                                 img.img-edit
-                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'applyPromoCode')", ng-disabled="!vm.promoCodeQuery.hasOwnProperty('result') || (vm.promoCodeQuery.result && vm.promoCodeQuery.result.length < 1)", ng-click="vm.promoCodeSelectAll()")
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'applyPromoCode')", ng-disabled="!vm.promoCodeQuery.hasOwnProperty('result') || (vm.promoCodeQuery.result && vm.promoCodeQuery.result.length < 1)", ng-click="vm.promoCodeSelectAllToggle()")
                                 text {{"Select All" | translate}}
                                 img.img-edit
 
