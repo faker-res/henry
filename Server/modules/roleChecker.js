@@ -407,6 +407,7 @@ var roleChecker = {
                 Credibility: ['updateCredibilityRemarksInBulk'],
                 providerGroup: ['deletePlatformProviderGroup'],
                 smsGroup: [],
+                BulkCall: [],
                 DownloadTranslationCSV: ['downloadTranslationCSV']
             },
             "Announcement": {

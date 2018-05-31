@@ -1610,13 +1610,13 @@ let dbPartner = {
                 dbconfig.collection_partner.findOne({partnerId: partnerId}).then(
                     partnerData => {
                         if (partnerData) {
-                            if (partnerData.lastLoginIp == partnerIp) {
+                            if (decoded && decoded.name == partnerData.name) {
                                 conn.isAuth = true;
                                 conn.partnerId = partnerId;
                                 deferred.resolve(true);
                             }
                             else {
-                                deferred.reject({name: "DataError", message: "Player ip doesn't match!"});
+                                deferred.reject({name: "DataError", message: "Patner name doesn't match!"});
                             }
                         }
                         else {
