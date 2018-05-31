@@ -803,7 +803,11 @@ define(['js/app'], function (myApp) {
                 getProposalTypeByPlatformId(vm.selectedPlatform.id);
 
                 // Zero dependencies variable
-                const preValue0 = await Promise.all([
+                [vm.rewardList, vm.promoTypeList, vm.allAlipaysAcc, vm.allWechatpaysAcc, vm.allBankTypeList,
+                    vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
+                    vm.allPlayerFeedbackResults, vm.allPlayerFeedbackTopics, vm.allPartnerFeedbackResults,
+                    vm.allPartnerFeedbackTopics, [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes
+                ] = await Promise.all([
                     commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getAllAlipaysByAlipayGroup($scope, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
@@ -812,18 +816,14 @@ define(['js/app'], function (myApp) {
                     commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
-                    commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
+                    commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([])),
+                    commonService.getAllPlayerFeedbackTopics($scope).catch(err => Promise.resolve([])),
+                    commonService.getAllPartnerFeedbackResults($scope).catch(err => Promise.resolve([])),
+                    commonService.getAllPartnerFeedbackTopics($scope).catch(err => Promise.resolve([])),
+                    commonService.getAllGameTypes($scope).catch(err => Promise.resolve([[], []])),
+                    commonService.getAllRewardTypes($scope).catch(err => Promise.resolve([])),
                 ]);
-
-                vm.rewardList = preValue0[0];
-                vm.promoTypeList = preValue0[1];
-                vm.allAlipaysAcc = preValue0[2];
-                vm.allWechatpaysAcc = preValue0[3];
-                vm.allBankTypeList = preValue0[4];
-                vm.allProviders = preValue0[5];
-                vm.allRewardEvent = preValue0[6];
-                vm.rewardPointsAllEvent = preValue0[7];
-                vm.allPartnerCommSettPreview = preValue0[8];
 
                 // 1st dependencies variable
                 const preValue1 = await Promise.all([
@@ -14556,7 +14556,7 @@ define(['js/app'], function (myApp) {
                     vm.playerFeedbackQuery.lastFeedbackTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 });
                 vm.playerLastLoginRange = '';
-                $scope.safeApply();
+                // $scope.safeApply();
             };
 
             vm.setLastAccessTimeRange = function () {
@@ -15676,66 +15676,6 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
-            vm.getAllPlayerFeedbackResults = function () {
-                return $scope.$socketPromise('getAllPlayerFeedbackResults').then(
-                    function (data) {
-                        vm.allPlayerFeedbackResults = data.data;
-                        console.log("vm.allPlayerFeedbackResults", data.data);
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        console.log("vm.allPlayerFeedbackResults", err);
-                    }
-                ).catch(function (err) {
-                    console.log("vm.allPlayerFeedbackResults", err)
-                });
-            };
-
-            vm.getAllPartnerFeedbackResults = function () {
-                return $scope.$socketPromise('getAllPartnerFeedbackResults').then(
-                    function (data) {
-                        vm.allPartnerFeedbackResults = data.data;
-                        console.log("vm.allPartnerFeedbackResults", data.data);
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        console.log("vm.allPartnerFeedbackResults", err);
-                    }
-                ).catch(function (err) {
-                    console.log("vm.allPartnerFeedbackResults", err)
-                });
-            };
-
-            vm.getAllPlayerFeedbackTopics = function () {
-                return $scope.$socketPromise('getAllPlayerFeedbackTopics').then(
-                    function (data) {
-                        vm.allPlayerFeedbackTopics = data.data;
-                        console.log("vm.allPlayerFeedbackTopics", data.data);
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        console.log("vm.allPlayerFeedbackTopics", err);
-                    }
-                ).catch(function (err) {
-                    console.log("vm.allPlayerFeedbackTopics", err)
-                });
-            };
-
-            vm.getAllPartnerFeedbackTopics = function () {
-                return $scope.$socketPromise('getAllPartnerFeedbackTopics').then(
-                    function (data) {
-                        vm.allPartnerFeedbackTopics = data.data;
-                        console.log("vm.allPartnerFeedbackTopics", data.data);
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        console.log("vm.allPartnerFeedbackTopics", err);
-                    }
-                ).catch(function (err) {
-                    console.log("vm.allPartnerFeedbackTopics", err)
-                });
-            };
-
             vm.clearFeedBackResultDataStatus = function (rowData) {
                 if (rowData && rowData.playerId) {
                     vm.addPlayerFeedbackResultData.message = null;
@@ -15767,22 +15707,15 @@ define(['js/app'], function (myApp) {
                     reqData.value = vm.addPlayerFeedbackResultData.value;
                     console.log(reqData);
                     return $scope.$socketPromise('createPlayerFeedbackResult', reqData).then(
-                        function (data) {
-                            console.log("vm.addPlayerFeedbackResults()", data);
-                            vm.addPlayerFeedbackResultData.message = "SUCCESS";
-                            vm.addPlayerFeedbackResultData.success = true;
-                            vm.getAllPlayerFeedbackResults();
-                            $scope.safeApply();
+                        () => {
+                            $scope.$evalAsync(async () => {
+                                vm.addPlayerFeedbackResultData.message = "SUCCESS";
+                                vm.addPlayerFeedbackResultData.success = true;
+                                vm.allPlayerFeedbackResults = await commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([]));
+                            })
                         },
                         function (err) {
                             console.log("vm.addPlayerFeedbackResults()ErrIn", err);
-                            vm.addPlayerFeedbackResultData.message = "FAILURE";
-                            vm.addPlayerFeedbackResultData.failure = true;
-                            $scope.safeApply();
-                        }
-                    ).catch(
-                        function (err) {
-                            console.log("vm.addPlayerFeedbackResults()ErrOut", err);
                             vm.addPlayerFeedbackResultData.message = "FAILURE";
                             vm.addPlayerFeedbackResultData.failure = true;
                             $scope.safeApply();
@@ -15795,12 +15728,12 @@ define(['js/app'], function (myApp) {
                     reqData.value = vm.addPartnerFeedbackResultData.value;
                     console.log(reqData);
                     return $scope.$socketPromise('createPartnerFeedbackResult', reqData).then(
-                        function (data) {
-                            console.log("vm.addPartnerFeedbackResults()", data);
-                            vm.addPartnerFeedbackResultData.message = "SUCCESS";
-                            vm.addPartnerFeedbackResultData.success = true;
-                            vm.getAllPartnerFeedbackResults();
-                            $scope.safeApply();
+                        () => {
+                            $scope.$evalAsync(async () => {
+                                vm.addPartnerFeedbackResultData.message = "SUCCESS";
+                                vm.addPartnerFeedbackResultData.success = true;
+                                vm.allPartnerFeedbackResults = await commonService.getAllPartnerFeedbackResults($scope).catch(err => Promise.resolve([]));
+                            })
                         },
                         function (err) {
                             console.log("vm.addPartnerFeedbackResults()ErrIn", err);
@@ -15827,21 +15760,14 @@ define(['js/app'], function (myApp) {
                     reqData._id = vm.deletePlayerFeedbackResultData._id;
                     return $scope.$socketPromise('deletePlayerFeedbackResult', reqData).then(
                         function (data) {
-                            console.log("vm.addPlayerFeedbackResults()", data);
-                            vm.deletePlayerFeedbackResultData.message = "SUCCESS";
-                            vm.deletePlayerFeedbackResultData.success = true;
-                            vm.getAllPlayerFeedbackResults();
-                            $scope.safeApply();
+                            $scope.$evalAsync(async () => {
+                                vm.deletePlayerFeedbackResultData.message = "SUCCESS";
+                                vm.deletePlayerFeedbackResultData.success = true;
+                                vm.allPlayerFeedbackResults = await commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([]));
+                            })
                         },
                         function (err) {
                             console.log("vm.addPlayerFeedbackResults()ErrIn", err);
-                            vm.deletePlayerFeedbackResultData.message = "FAILURE";
-                            vm.deletePlayerFeedbackResultData.failure = true;
-                            $scope.safeApply();
-                        }
-                    ).catch(
-                        function (err) {
-                            console.log("vm.addPlayerFeedbackResults()Out", err);
                             vm.deletePlayerFeedbackResultData.message = "FAILURE";
                             vm.deletePlayerFeedbackResultData.failure = true;
                             $scope.safeApply();
@@ -15852,12 +15778,12 @@ define(['js/app'], function (myApp) {
                 if (rowData && rowData.partnerId) {
                     reqData._id = vm.deletePartnerFeedbackResultData._id;
                     return $scope.$socketPromise('deletePartnerFeedbackResult', reqData).then(
-                        function (data) {
-                            console.log("vm.addPartnerFeedbackResults()", data);
-                            vm.deletePartnerFeedbackResultData.message = "SUCCESS";
-                            vm.deletePartnerFeedbackResultData.success = true;
-                            vm.getAllPartnerFeedbackResults();
-                            $scope.safeApply();
+                        () => {
+                            $scope.$evalAsync(async () => {
+                                vm.deletePartnerFeedbackResultData.message = "SUCCESS";
+                                vm.deletePartnerFeedbackResultData.success = true;
+                                vm.allPartnerFeedbackResults = await commonService.getAllPartnerFeedbackResults($scope).catch(err => Promise.resolve([]));
+                            })
                         },
                         function (err) {
                             console.log("vm.addPartnerFeedbackResults()ErrIn", err);
@@ -15907,22 +15833,13 @@ define(['js/app'], function (myApp) {
                     reqData.value = vm.addPlayerFeedbackTopicData.value;
                     console.log(reqData);
                     return $scope.$socketPromise('createPlayerFeedbackTopic', reqData).then(
-                        function (data) {
-                            console.log("vm.addPlayerFeedbackTopics()", data);
+                        () => $scope.$evalAsync(async () => {
                             vm.addPlayerFeedbackTopicData.message = "SUCCESS";
                             vm.addPlayerFeedbackTopicData.success = true;
-                            vm.getAllPlayerFeedbackTopics();
-                            $scope.safeApply();
-                        },
+                            vm.allPlayerFeedbackTopics = await commonService.getAllPlayerFeedbackTopics($scope).catch(err => Promise.resolve([]));
+                        }),
                         function (err) {
                             console.log("vm.addPlayerFeedbackTopics()ErrIn", err);
-                            vm.addPlayerFeedbackTopicData.message = "FAILURE";
-                            vm.addPlayerFeedbackTopicData.failure = true;
-                            $scope.safeApply();
-                        }
-                    ).catch(
-                        function (err) {
-                            console.log("vm.addPlayerFeedbackTopics()ErrOut", err);
                             vm.addPlayerFeedbackTopicData.message = "FAILURE";
                             vm.addPlayerFeedbackTopicData.failure = true;
                             $scope.safeApply();
@@ -15935,13 +15852,11 @@ define(['js/app'], function (myApp) {
                     reqData.value = vm.addPartnerFeedbackTopicData.value;
                     console.log(reqData);
                     return $scope.$socketPromise('createPartnerFeedbackTopic', reqData).then(
-                        function (data) {
-                            console.log("vm.addPartnerFeedbackTopics()", data);
+                        () => $scope.$evalAsync(async () => {
                             vm.addPartnerFeedbackTopicData.message = "SUCCESS";
                             vm.addPartnerFeedbackTopicData.success = true;
-                            vm.getAllPartnerFeedbackTopics();
-                            $scope.safeApply();
-                        },
+                            vm.allPartnerFeedbackTopics = await commonService.getAllPartnerFeedbackTopics($scope).catch(err => Promise.resolve([]));
+                        }),
                         function (err) {
                             console.log("vm.addPartnerFeedbackTopics()ErrIn", err);
                             vm.addPartnerFeedbackTopicData.message = "FAILURE";
@@ -15966,22 +15881,13 @@ define(['js/app'], function (myApp) {
                 if (rowData && rowData.playerId) {
                     reqData._id = vm.deletePlayerFeedbackTopicData._id;
                     return $scope.$socketPromise('deletePlayerFeedbackTopic', reqData).then(
-                        function (data) {
-                            console.log("vm.addPlayerFeedbackTopics()", data);
+                        () => $scope.$evalAsync(async () => {
                             vm.deletePlayerFeedbackTopicData.message = "SUCCESS";
                             vm.deletePlayerFeedbackTopicData.success = true;
-                            vm.getAllPlayerFeedbackTopics();
-                            $scope.safeApply();
-                        },
+                            vm.allPlayerFeedbackTopics = await commonService.getAllPlayerFeedbackTopics($scope).catch(err => Promise.resolve([]));
+                        }),
                         function (err) {
                             console.log("vm.addPlayerFeedbackTopics()ErrIn", err);
-                            vm.deletePlayerFeedbackTopicData.message = "FAILURE";
-                            vm.deletePlayerFeedbackTopicData.failure = true;
-                            $scope.safeApply();
-                        }
-                    ).catch(
-                        function (err) {
-                            console.log("vm.addPlayerFeedbackTopics()Out", err);
                             vm.deletePlayerFeedbackTopicData.message = "FAILURE";
                             vm.deletePlayerFeedbackTopicData.failure = true;
                             $scope.safeApply();
@@ -15992,13 +15898,11 @@ define(['js/app'], function (myApp) {
                 if (rowData && rowData.partnerId) {
                     reqData._id = vm.deletePartnerFeedbackTopicData._id;
                     return $scope.$socketPromise('deletePartnerFeedbackTopic', reqData).then(
-                        function (data) {
-                            console.log("vm.addPartnerFeedbackTopics()", data);
+                        () => $scope.$evalAsync(async () => {
                             vm.deletePartnerFeedbackTopicData.message = "SUCCESS";
                             vm.deletePartnerFeedbackTopicData.success = true;
-                            vm.getAllPartnerFeedbackTopics();
-                            $scope.safeApply();
-                        },
+                            vm.allPartnerFeedbackTopics = await commonService.getAllPartnerFeedbackTopics($scope).catch(err => Promise.resolve([]));
+                        }),
                         function (err) {
                             console.log("vm.addPartnerFeedbackTopics()ErrIn", err);
                             vm.deletePartnerFeedbackTopicData.message = "FAILURE";
@@ -27371,35 +27275,6 @@ define(['js/app'], function (myApp) {
             }
 
             //////////////////////////initial socket actions//////////////////////////////////
-            vm.getAllGameTypes = function () {
-                return $scope.$socketPromise('getGameTypeList', {})
-                    .then(function (data) {
-                        var gameTypes = data.data;
-                        vm.allGameTypesList = gameTypes;
-                        console.log("vm.allGameTypesList:", vm.allGameTypesList);
-
-                        var allGameTypes = {};
-                        gameTypes.forEach(function (gameType) {
-                            var GAMETYPE = gameType.gameTypeId;
-                            allGameTypes[GAMETYPE] = gameType.name;
-                        });
-                        vm.allGameTypes = allGameTypes;
-                        console.log("vm.allGameTypes", vm.allGameTypes);
-
-                        $scope.safeApply();
-                    }, function (err) {
-                        console.log('err', err);
-                    });
-            };
-
-            vm.getAllRewardTypes = function () {
-                return $scope.$socketPromise('getAllRewardTypes')
-                    .then(function (data) {
-                        vm.allRewardTypes = data.data;
-                        console.log("vm.allRewardTypes", vm.allRewardTypes);
-                    });
-            };
-
             vm.setValue = function (obj, key, val) {
                 if (obj && key) {
                     obj[key] = val;
@@ -27543,35 +27418,23 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 });
-
-                Q.all([vm.getAllPlayerFeedbackResults(), vm.getAllPlayerFeedbackTopics(), vm.getAllPartnerFeedbackResults(), vm.getAllPartnerFeedbackTopics()]).then(
-                    function (data) {
-                        // This init data will be a list of undefineds.
-                        // The above promises don't actually produce data, they just promise to set their vm variables!
-
-                        vm.getAllGameTypes();
-                        vm.getAllRewardTypes();
-                        loadPlatformData();
-                        vm.getAllMessageTypes();
-                        vm.linkProvider();
-                        $.getScript("dataSource/data.js").then(
-                            () => {
-                                $scope.creditChangeTypeStrings = creditChangeTypeStrings.sort(function (a, b) {
-                                    return a < b;
-                                })
-                            }
-                        );
-
-                        window.document.title = $translate("platform") + "->" + $translate(vm.platformPageName);
-                        var showLeft = $cookies.get("platformShowLeft");
-                        if (showLeft === 'false') {
-                            vm.toggleShowPlatformList(false)
-                        }
-                    },
-                    function (error) {
-                        console.warn("init error", error);
+                vm.getAllMessageTypes();
+                vm.linkProvider();
+                $.getScript("dataSource/data.js").then(
+                    () => {
+                        $scope.creditChangeTypeStrings = creditChangeTypeStrings.sort(function (a, b) {
+                            return a < b;
+                        })
                     }
-                ).done();
+                );
+
+                window.document.title = $translate("platform") + "->" + $translate(vm.platformPageName);
+                var showLeft = $cookies.get("platformShowLeft");
+                if (showLeft === 'false') {
+                    vm.toggleShowPlatformList(false)
+                }
+
+
 
                 // Create the view-model for the chart and attach to the scope.
                 //
@@ -27597,14 +27460,12 @@ define(['js/app'], function (myApp) {
                 });
 
                 socketService.$socket($scope.AppSocket, 'getRewardTypesConfig', {}, function (data) {
-                    console.log('rewardType', data);
                     vm.rewardAttrConst = data.data;
                 })
                 socketService.$socket($scope.AppSocket, 'getAllGameProviders', '', function (data) {
-                    vm.allGameProvider = data.data;
-                    console.log("vm.allGameProvider", vm.allGameProvider);
-                    $scope.safeApply();
-                }, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.allGameProvider = data.data;
+                    });
                 });
                 vm.generalDataTableOptions = {
                     "paging": true,
