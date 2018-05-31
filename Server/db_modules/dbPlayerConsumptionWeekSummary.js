@@ -746,6 +746,7 @@ var dbPlayerConsumptionWeekSummary = {
             }
         ).then(
             function (data) {
+                console.log('XIMAAA data', data);
                 if (data && data[0]) {
                     deferred.resolve(true);
                 }
