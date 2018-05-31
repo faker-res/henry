@@ -446,38 +446,38 @@ var PartnerServiceImplement = function () {
     };
 
     this.getCrewActiveInfo.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data.platformId && data.partnerId && data.period && data.circleTimes);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewActiveInfo, [data.platformId, data.partnerId, data.period, data.circleTimes], isValidData, false, false, true);
+        let isValidData = Boolean(data.platformId && conn.partnerId && data.period && data.circleTimes);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewActiveInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes], isValidData);
     };
 
     this.getCrewDepositInfo.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data.platformId && data.partnerId && data.period && data.circleTimes);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewDepositInfo, [data.platformId, data.partnerId, data.period, data.circleTimes], isValidData, false, false, true);
+        let isValidData = Boolean(data.platformId && conn.partnerId && data.period && data.circleTimes);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewDepositInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes], isValidData);
     };
 
     this.getCrewWithdrawInfo.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data.platformId && data.partnerId && data.period && data.circleTimes);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewWithdrawInfo, [data.platformId, data.partnerId, data.period, data.circleTimes], isValidData, false, false, true);
+        let isValidData = Boolean(data.platformId && conn.partnerId && data.period && data.circleTimes);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewWithdrawInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes], isValidData);
     };
 
     this.getCrewBetInfo.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data.platformId && data.partnerId && data.period && data.circleTimes);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewBetInfo, [data.platformId, data.partnerId, data.period, data.circleTimes, data.providerGroupId], isValidData, false, false, true);
+        let isValidData = Boolean(data.platformId && conn.partnerId && data.period && data.circleTimes);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewBetInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes, data.providerGroupId], isValidData);
     };
 
     this.getNewCrewInfo.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data.platformId && data.partnerId && data.period && data.circleTimes);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getNewCrewInfo, [data.platformId, data.partnerId, data.period, data.circleTimes], isValidData, false, false, true);
+        let isValidData = Boolean(data.platformId && conn.partnerId && data.period && data.circleTimes);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getNewCrewInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes], isValidData);
     };
 
     this.preditCommission.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data.platformId && data.partnerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.preditCommission, [data.platformId, data.partnerId], isValidData, false, false, true);
+        let isValidData = Boolean(data.platformId && conn.partnerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.preditCommission, [data.platformId, conn.partnerId], isValidData);
     };
 
     this.getCommissionProposalList.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data.platformId && data.partnerId && data.startTime && data.endTime);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCommissionProposalList, [data.platformId, data.partnerId, data.startTime, data.endTime, data.status], isValidData, false, false, true);
+        let isValidData = Boolean(data.platformId && conn.partnerId && data.startTime && data.endTime);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCommissionProposalList, [data.platformId, conn.partnerId, data.startTime, data.endTime, data.status], isValidData);
     };
 };
 var proto = PartnerServiceImplement.prototype = Object.create(PartnerService.prototype);
