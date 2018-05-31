@@ -190,6 +190,7 @@ var dbPlayerConsumptionWeekSummary = {
 
     checkPlatformWeeklyConsumptionReturnForPlayers: function (platformId, eventData, proposalTypeId, startTime, endTime, playerIds, bRequest, userAgent, adminId=null, adminName=null, isForceApply) {
         var deferred = Q.defer();
+        let isLessAmtAfterOffset = false;
 
         var summaryProm = dbconfig.collection_playerConsumptionSummary.find(
             {
@@ -459,7 +460,8 @@ var dbPlayerConsumptionWeekSummary = {
                                                 && bRequest && !isForceApply && returnAmount >= eventData.param.earlyXimaMinAmount) {
                                                 return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
                                             } else {
-                                                return false;
+                                                isLessAmtAfterOffset = true;
+                                                deferred.resolve(null);
                                             }
                                         }
                                     )
@@ -469,7 +471,8 @@ var dbPlayerConsumptionWeekSummary = {
                                         && bRequest && !isForceApply && returnAmount >= eventData.param.earlyXimaMinAmount) {
                                         return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
                                     } else {
-                                        return false;
+                                        isLessAmtAfterOffset = true;
+                                        deferred.resolve(null);
                                     }
                                 }
 
@@ -585,7 +588,9 @@ var dbPlayerConsumptionWeekSummary = {
             }
         ).then(
             function (data) {
-                deferred.resolve(true);
+                if (!isLessAmtAfterOffset) {
+                    deferred.resolve(true);
+                }
             },
             function (error) {
                 deferred.reject({name: "DBError", message: "Error marking player consumption record", error: error});
