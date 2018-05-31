@@ -632,22 +632,6 @@ define(['js/app'], function (myApp) {
                 return deferred.promise;
             }
 
-            vm.getAllGameProviders = function (platformId) {
-                if (!platformId) return;
-                socketService.$socket($scope.AppSocket, 'getPlatform', {_id: platformId}, function (data) {
-                    vm.allGameProviders = data.data.gameProviders;
-                    vm.gameProvidersList = {};
-                    vm.allGameProviders.map(provider => {
-                        vm.gameProvidersList[provider._id] = provider;
-                    });
-                    console.log('vm.allGameProviders', vm.allGameProviders);
-                    $scope.safeApply();
-                }, function (err) {
-                    console.log("vm.allGameProviders ERROR", err);
-                });
-            };
-
-
             //////////Lin Hao:: Provider List Delay Popup
             utilService.setupPopover({
                 context: ulMenu,
@@ -806,7 +790,8 @@ define(['js/app'], function (myApp) {
                 [vm.rewardList, vm.promoTypeList, vm.allAlipaysAcc, vm.allWechatpaysAcc, vm.allBankTypeList,
                     vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
                     vm.allPlayerFeedbackResults, vm.allPlayerFeedbackTopics, vm.allPartnerFeedbackResults,
-                    vm.allPartnerFeedbackTopics, [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes
+                    vm.allPartnerFeedbackTopics, [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes,
+                    [vm.allGameProviders, vm.gameProvidersList]
                 ] = await Promise.all([
                     commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -823,6 +808,7 @@ define(['js/app'], function (myApp) {
                     commonService.getAllPartnerFeedbackTopics($scope).catch(err => Promise.resolve([])),
                     commonService.getAllGameTypes($scope).catch(err => Promise.resolve([[], []])),
                     commonService.getAllRewardTypes($scope).catch(err => Promise.resolve([])),
+                    commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []]))
                 ]);
 
                 // 1st dependencies variable
@@ -874,7 +860,7 @@ define(['js/app'], function (myApp) {
                     });
                 })
 
-                Q.all([vm.getAllGameProviders(vm.selectedPlatform.id), vm.getAllPlayerLevels(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
+                Q.all([vm.getAllPlayerLevels(), vm.getAllPartnerLevels()]).then(
                     function (data) {
                         $scope.$evalAsync(() => {
                             // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
@@ -8058,7 +8044,6 @@ define(['js/app'], function (myApp) {
                             platformAlipayGroupList: vm.platformAlipayGroupList,
                             platformWechatPayGroupList: vm.platformWechatPayGroupList,
                             platformQuickPayGroupList: vm.platformQuickPayGroupList,
-                            allPlayerTrustLvl: vm.allPlayerTrustLvl,
                             isIdInList: commonService.isIdInList,
                             //vm.platformCreditTransferLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                             updateEditedPlayer: function () {
@@ -20482,9 +20467,6 @@ define(['js/app'], function (myApp) {
                         vm.newPartnerLvl = {};
                         vm.getAllPartners();
                         break;
-                    case 'trust':
-                        vm.getAllPlayerTrustLevels();
-                        break;
                     case 'validActive':
                         vm.getPartnerLevelConfig();
                         break;
@@ -20907,14 +20889,14 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'loginRewardPoints':
                         vm.userAgentWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.constPlayerRegistrationInterface);
-                        vm.getAllGameProviders(vm.selectedPlatform.id);
+                        // [vm.allGameProviders, vm.gameProvidersList] = vm.getAllGameProviders(vm.selectedPlatform.id);
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.LOGIN_REWARD_POINTS);
                         break;
                     case 'topupRewardPoints':
                         vm.topupRewardPoints = [];
                         vm.userAgentTypeWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.userAgentType);
                         vm.topupTypeListWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.topUpTypeList);
-                        vm.getAllGameProviders(vm.selectedPlatform.id);
+                        // vm.getAllGameProviders(vm.selectedPlatform.id);
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.TOPUP_REWARD_POINTS);
                         break;
                     case 'gameRewardPoints':
@@ -20922,7 +20904,7 @@ define(['js/app'], function (myApp) {
                         vm.allGameBetType = [];
                         //Todo get all game type
                         //Todo get all game bet type
-                        vm.getAllGameProviders(vm.selectedPlatform.id);
+                        // vm.getAllGameProviders(vm.selectedPlatform.id);
                         vm.getGameProviderToManuallyInsertGameId();
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.GAME_REWARD_POINTS);
                         break;
@@ -23929,7 +23911,6 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getAllPartnerLevels = function () {
-
                 if (!authService.checkViewPermission('Platform', 'Partner', 'Read')) {
                     return;
                 }
@@ -23938,9 +23919,7 @@ define(['js/app'], function (myApp) {
                         vm.allPartnerLevels = data.data;
                         vm.allPartnerLevels.sort(function (a, b) {
                             return a.value > b.value;
-                        })
-                        console.log('ok', vm.allPartnerLevels);
-                        // vm.allPartnerLevelsByValue = Lodash.keyBy(vm.allPartnerLevels, 'value');
+                        });
                         vm.allPartnerLevelsByName = Lodash.keyBy(vm.allPartnerLevels, 'name');
                     });
             };
@@ -23969,27 +23948,28 @@ define(['js/app'], function (myApp) {
                 vm.manualPlayerLevelUp = null;
                 return $scope.$socketPromise('getPlayerLevelByPlatformId', {platformId: vm.selectedPlatform.id})
                     .then(function (data) {
-                        vm.playerLevelPeriod = {};
-                        vm.allPlayerLvl = data.data;
-                        vm.platformBatchLevelUp = true;
-                        vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
-                        vm.manualPlayerLevelUp = vm.selectedPlatform.data.manualPlayerLevelUp;
-                        vm.playerLevelPeriod.playerLevelUpPeriod = vm.selectedPlatform.data.playerLevelUpPeriod ? vm.selectedPlatform.data.playerLevelUpPeriod : vm.allPlayerLevelUpPeriod.MONTH;
-                        vm.playerLevelPeriod.playerLevelDownPeriod = vm.selectedPlatform.data.playerLevelDownPeriod ? vm.selectedPlatform.data.playerLevelDownPeriod : vm.allPlayerLevelUpPeriod.MONTH;
-                        vm.allPlayerLvlReordered = false;
-                        vm.sortPlayerLevels();
-                        console.log("vm.allPlayerLvl", data.data);
-                        vm.playerLvlData = {};
-                        if (vm.allPlayerLvl) {
-                            $.each(vm.allPlayerLvl, function (i, v) {
-                                vm.playerIDArr.push(v._id);
-                                vm.playerLvlData[v._id] = v;
-                            })
-                        }
-                        vm.playerLevelPeriod.levelUpPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelUpPeriod);
-                        vm.playerLevelPeriod.levelDownPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelDownPeriod);
-                        vm.initiateLevelDownPeriodAllField();
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            vm.playerLevelPeriod = {};
+                            vm.allPlayerLvl = data.data;
+                            vm.platformBatchLevelUp = true;
+                            vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
+                            vm.manualPlayerLevelUp = vm.selectedPlatform.data.manualPlayerLevelUp;
+                            vm.playerLevelPeriod.playerLevelUpPeriod = vm.selectedPlatform.data.playerLevelUpPeriod ? vm.selectedPlatform.data.playerLevelUpPeriod : vm.allPlayerLevelUpPeriod.MONTH;
+                            vm.playerLevelPeriod.playerLevelDownPeriod = vm.selectedPlatform.data.playerLevelDownPeriod ? vm.selectedPlatform.data.playerLevelDownPeriod : vm.allPlayerLevelUpPeriod.MONTH;
+                            vm.allPlayerLvlReordered = false;
+                            vm.sortPlayerLevels();
+                            console.log("vm.allPlayerLvl", data.data);
+                            vm.playerLvlData = {};
+                            if (vm.allPlayerLvl) {
+                                $.each(vm.allPlayerLvl, function (i, v) {
+                                    vm.playerIDArr.push(v._id);
+                                    vm.playerLvlData[v._id] = v;
+                                })
+                            }
+                            vm.playerLevelPeriod.levelUpPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelUpPeriod);
+                            vm.playerLevelPeriod.levelDownPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelDownPeriod);
+                            vm.initiateLevelDownPeriodAllField();
+                        })
                     });
             };
 
@@ -24031,15 +24011,6 @@ define(['js/app'], function (myApp) {
             vm.sortPlayerLevels = function () {
                 vm.allPlayerLvl.sort((a, b) => a.value - b.value);
             };
-            vm.getAllPlayerTrustLevels = function () {
-                vm.playerIDArr = [];
-                return $scope.$socketPromise('getPlayerTrustLevelByPlatformId', {platformId: vm.selectedPlatform.id})
-                    .then(function (data) {
-                        vm.allPlayerTrustLvl = data.data;
-                        console.log("vm.allPlayerTrustLvl", data.data);
-                        $scope.safeApply();
-                    });
-            }
 
             vm.getPartnerLevelConfig = function () {
                 return $scope.$socketPromise('getPartnerLevelConfig', {platform: vm.selectedPlatform.id})
@@ -26297,7 +26268,6 @@ define(['js/app'], function (myApp) {
 
             vm.getAdminNameByDepartment = function (departmentId) {
                 socketService.$socket($scope.AppSocket, 'getAdminNameByDepartment', {departmentId}, function (data) {
-                    console.log('getAdminsData', data);
                     vm.adminList = data.data;
                 });
             };
@@ -27462,11 +27432,6 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getRewardTypesConfig', {}, function (data) {
                     vm.rewardAttrConst = data.data;
                 })
-                socketService.$socket($scope.AppSocket, 'getAllGameProviders', '', function (data) {
-                    $scope.$evalAsync(() => {
-                        vm.allGameProvider = data.data;
-                    });
-                });
                 vm.generalDataTableOptions = {
                     "paging": true,
                     columnDefs: [{targets: '_all', defaultContent: ' '}],
