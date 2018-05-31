@@ -23,15 +23,15 @@ var playerConsumptionRecordSchema = new Schema({
     // payment time
     createTime: {type: Date, default: Date.now, index: true},
     //total amount for statistics
-    amount: {type: Number, required: true, default: 0},
+    amount: {type: Number, required: true, default: 0, index: true},
     //total amount for statistics
-    validAmount: {type: Number, required: true, default: 0},
+    validAmount: {type: Number, required: true, default: 0, index: true},
     //order time
     orderTime: {type: Date},
     //order id
     orderNo: {type: String, index: true, unique: true},
     //bonus amount
-    bonusAmount: {type: Number, default: 0},
+    bonusAmount: {type: Number, default: 0, index: true},
     //commissionable amount
     commissionAmount: {type: Number, default: 0},
     //content detail
