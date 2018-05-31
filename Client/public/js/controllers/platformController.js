@@ -16789,7 +16789,7 @@ define(['js/app'], function (myApp) {
                             title: $translate('DAILY_ACTIVE'), data: "dailyActivePlayer", advSearch: true, "sClass": "",
                             render: function (data, type, row, index) {
                                 let link = $('<a>', {
-                                    'ng-click': 'vm.showActivePartnerInfoModal("' + index.row + '","DAILY_ACTIVE")'
+                                    'ng-click': 'vm.showActivePartnerInfoModal("' + row._id + '","DAILY_ACTIVE")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -16798,7 +16798,7 @@ define(['js/app'], function (myApp) {
                             title: $translate('WEEKLY_ACTIVE'), data: "weeklyActivePlayer", advSearch: true, "sClass": "",
                             render: function (data, type, row, index) {
                                 let link = $('<a>', {
-                                    'ng-click': 'vm.showActivePartnerInfoModal("' + index.row + '","WEEKLY_ACTIVE")'
+                                    'ng-click': 'vm.showActivePartnerInfoModal("' + row._id + '","WEEKLY_ACTIVE")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -16807,7 +16807,7 @@ define(['js/app'], function (myApp) {
                             title: $translate('MONTHLY_ACTIVE'), data: "monthlyActivePlayer", advSearch: true, "sClass": "",
                             render: function (data, type, row, index) {
                                 let link = $('<a>', {
-                                    'ng-click': 'vm.showActivePartnerInfoModal("' + index.row + '","MONTHLY_ACTIVE")'
+                                    'ng-click': 'vm.showActivePartnerInfoModal("' + row._id + '","MONTHLY_ACTIVE")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -16816,7 +16816,7 @@ define(['js/app'], function (myApp) {
                             title: $translate('VALID_PLAYER'), data: "validPlayers", advSearch: true, "sClass": "",
                             render: function (data, type, row, index) {
                                 let link = $('<a>', {
-                                    'ng-click': 'vm.showActivePartnerInfoModal("' + index.row + '","VALID_ACTIVE")'
+                                    'ng-click': 'vm.showActivePartnerInfoModal("' + row._id + '","VALID_ACTIVE")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -17473,30 +17473,29 @@ define(['js/app'], function (myApp) {
                 $('#modalPartnerInfo').modal().show();
             };
 
-            vm.showActivePartnerInfoModal = function (index, activeType) {
+            vm.showActivePartnerInfoModal = function (partnerObjId, activeType) {
 
                 vm.selectedPartnerObjArr = {}
-
                 switch(activeType){
                     case "DAILY_ACTIVE":
                         vm.selectedPartnerObjArr.title = "Daily Active Player";
-                        vm.selectedPartnerObjArr.data =  vm.partners[Number(index)].dailyActivePlayerObjArr || [];
-                        vm.selectedPartnerObjArr.size = vm.partners[Number(index)].dailyActivePlayerObjArr && vm.partners[Number(index)].dailyActivePlayerObjArr.length ? vm.partners[Number(index)].dailyActivePlayerObjArr.length : 0;
+                        vm.selectedPartnerObjArr.data =  vm.partners.find(p => p._id == partnerObjId).dailyActivePlayerObjArr || [];
+                        vm.selectedPartnerObjArr.size = vm.partners.find(p => p._id == partnerObjId).dailyActivePlayerObjArr && vm.partners.find(p => p._id == partnerObjId).dailyActivePlayerObjArr.length ? vm.partners.find(p => p._id == partnerObjId).dailyActivePlayerObjArr.length : 0;
                         break;
                     case "WEEKLY_ACTIVE":
                         vm.selectedPartnerObjArr.title = "Weekly Active Player";
-                        vm.selectedPartnerObjArr.data =  vm.partners[Number(index)].weeklyActivePlayerObjArr || [];
-                        vm.selectedPartnerObjArr.size = vm.partners[Number(index)].weeklyActivePlayerObjArr && vm.partners[Number(index)].weeklyActivePlayerObjArr.length ? vm.partners[Number(index)].weeklyActivePlayerObjArr.length : 0;
+                        vm.selectedPartnerObjArr.data =  vm.partners.find(p => p._id == partnerObjId).weeklyActivePlayerObjArr || [];
+                        vm.selectedPartnerObjArr.size = vm.partners.find(p => p._id == partnerObjId).weeklyActivePlayerObjArr && vm.partners.find(p => p._id == partnerObjId).weeklyActivePlayerObjArr.length ? vm.partners.find(p => p._id == partnerObjId).weeklyActivePlayerObjArr.length : 0;
                         break;
                     case "MONTHLY_ACTIVE":
                         vm.selectedPartnerObjArr.title = "Monthly Active Player";
-                        vm.selectedPartnerObjArr.data =  vm.partners[Number(index)].monthlyActivePlayerObjArr || [];
-                        vm.selectedPartnerObjArr.size = vm.partners[Number(index)].monthlyActivePlayerObjArr && vm.partners[Number(index)].monthlyActivePlayerObjArr.length ? vm.partners[Number(index)].monthlyActivePlayerObjArr.length : 0;
+                        vm.selectedPartnerObjArr.data =  vm.partners.find(p => p._id == partnerObjId).monthlyActivePlayerObjArr || [];
+                        vm.selectedPartnerObjArr.size = vm.partners.find(p => p._id == partnerObjId).monthlyActivePlayerObjArr && vm.partners.find(p => p._id == partnerObjId).monthlyActivePlayerObjArr.length ? vm.partners.find(p => p._id == partnerObjId).monthlyActivePlayerObjArr.length : 0;
                         break;
                     case "VALID_ACTIVE":
                         vm.selectedPartnerObjArr.title = "Valid Active Player";
-                        vm.selectedPartnerObjArr.data =  vm.partners[Number(index)].validActivePlayerObjArr || [];
-                        vm.selectedPartnerObjArr.size =  vm.partners[Number(index)].validActivePlayerObjArr && vm.partners[Number(index)].validActivePlayerObjArr.length ? vm.partners[Number(index)].validActivePlayerObjArr.length : 0;
+                        vm.selectedPartnerObjArr.data =  vm.partners.find(p => p._id == partnerObjId).validActivePlayerObjArr || [];
+                        vm.selectedPartnerObjArr.size =  vm.partners.find(p => p._id == partnerObjId).validActivePlayerObjArr && vm.partners.find(p => p._id == partnerObjId).validActivePlayerObjArr.length ? vm.partners.find(p => p._id == partnerObjId).validActivePlayerObjArr.length : 0;
                         break;
                 }
 
