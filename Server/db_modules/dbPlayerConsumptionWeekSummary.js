@@ -459,7 +459,7 @@ var dbPlayerConsumptionWeekSummary = {
                                                 && bRequest && !isForceApply && returnAmount >= eventData.param.earlyXimaMinAmount) {
                                                 return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
                                             } else {
-                                                return Promise.resolve(null);
+                                                return false;
                                             }
                                         }
                                     )
@@ -469,7 +469,7 @@ var dbPlayerConsumptionWeekSummary = {
                                         && bRequest && !isForceApply && returnAmount >= eventData.param.earlyXimaMinAmount) {
                                         return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
                                     } else {
-                                        return Promise.resolve(null);
+                                        return false;
                                     }
                                 }
 
