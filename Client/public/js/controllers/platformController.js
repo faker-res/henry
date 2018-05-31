@@ -14918,6 +14918,7 @@ define(['js/app'], function (myApp) {
 
             vm.submitPlayerFeedbackQuery = function (isNewSearch) {
                 if (!vm.selectedPlatform) return;
+                if (vm.ctiData.hasOwnProperty('admin')) return;
                 console.log('vm.feedback', vm.playerFeedbackQuery);
                 vm.exportPlayerFilter = JSON.parse(JSON.stringify(vm.playerFeedbackQuery))
                 let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
@@ -15555,14 +15556,34 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'toggleCallOutMissionStatus', {
                     platformObjId: vm.selectedPlatform.id,
                     missionName: vm.ctiData.missionName
-                }, function (data) {});
+                }, function (data) {
+                    console.log("toggleCallOutMissionStatus ret" , data);
+                    if(data && data.data && data.data.hasOwnProperty('status')) {
+                        vm.ctiData.status = data.data.status;
+                        $scope.$evalAsync(function () {
+                            if (vm.ctiData.status == $scope.constCallOutMissionStatus.ON_GOING) {
+                                vm.callOutMissionStatusText = $translate("On Going");
+                            } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.PAUSED) {
+                                vm.callOutMissionStatusText = $translate("Paused");
+                            }
+                        });
+                    }
+                });
             };
 
             vm.stopCallOutMission = function() {
                 socketService.$socket($scope.AppSocket, 'stopCallOutMission', {
                     platformObjId: vm.selectedPlatform.id,
                     missionName: vm.ctiData.missionName
-                }, function (data) {});
+                }, function (data) {
+                    console.log("stopCallOutMission ret" , data);
+                    $scope.$evalAsync(function(){
+                        vm.ctiData = {};
+                        vm.feedbackPlayersPara.total = 0;
+                        vm.callOutMissionStatus = "";
+                        setTableData(vm.playerFeedbackTable, []);
+                    });
+                });
             };
 
             vm.getCtiData = function() {
@@ -15571,10 +15592,30 @@ define(['js/app'], function (myApp) {
                 }, function (data) {
                     console.log("getCtiData ret",data);
                     vm.ctiData = data.data;
+                    if(vm.ctiData.hasOnGoingMission) {
+                        let players = [];
+                        let completedAmount = 0;
+                        vm.callOutMissionStatusText = '';
 
-                    setTableData(vm.playerFeedbackTable, vm.ctiData.callee);
-                    vm.feedbackPlayersPara.total = vm.ctiData.callee.length;
-                    // vm.callOutMissionStatus = vm.ctiData.adminName + ':' + $scope.constCallOutMissionStatus[vm.ctiData.status] + '/' + "Completed" | translate}} : ( {{vm.ctiData}} / {{vm.ctiData}} );
+                        vm.ctiData.callee.forEach(callee => {
+                            players.push(callee.player);
+                            if (status == $scope.constCallOutMissionStatus.SUCCEEDED) {
+                                completedAmount++;
+                            }
+                        });
+
+                        if (vm.ctiData.status == $scope.constCallOutMissionStatus.ON_GOING) {
+                            vm.callOutMissionStatusText = $translate("On Going");
+                        } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.PAUSED) {
+                            vm.callOutMissionStatusText = $translate("Paused");
+                        }
+
+                        $scope.$evalAsync(function () {
+                            vm.feedbackPlayersPara.total = vm.ctiData.callee.length;
+                            vm.callOutMissionProgressText = completedAmount + '/' + vm.ctiData.callee.length;
+                        });
+                        setTableData(vm.playerFeedbackTable, players);
+                    }
                 });
             };
             
@@ -15684,6 +15725,7 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     });
+                    vm.getCtiData();
                 });
 
                 $scope.safeApply();
@@ -30358,17 +30400,10 @@ define(['js/app'], function (myApp) {
                 sendQuery.searchQuery = vm.getPlayerFeedbackQuery();
                 sendQuery.sortCol = VM.playerFeedbackQuery.sortCol || {registrationTime: -1};
 
-                $scope.$socketPromise("createCallOutMission", sendQuery);
-
-                // todo :: add implementation
-                // send adminData, search filter and platform id
-                // on backend,
-                // - search result (return error if empty)
-                // - add cti mission and phone numbers
-                // - once success, add callOutMission and callOutMissionCallee
-                // - return callOutMission and callOutMissionCallee, while start the mission on cti
-
-                // note :: every 10 sec check cti for status if there is any mission on going
+                $scope.$socketPromise("createCallOutMission", sendQuery).then(data => {
+                    console.log(data);
+                    vm.getCtiData();
+                });
             };
 
 
