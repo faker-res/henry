@@ -139,7 +139,7 @@ let dbCallOutMission = {
                     return Promise.reject({message: "This mission is finished."})
                 }
 
-                return deleteCtiMission(platform, missionName);
+                return updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED); //.catch().then(() => deleteCtiMission(platform, missionName));
             }
         ).then(
             () => {

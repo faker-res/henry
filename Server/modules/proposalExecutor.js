@@ -872,6 +872,7 @@ var proposalExecutor = {
             executeUpdatePartnerPhone: function (proposalData, deferred) {
                 //data validation
                 if (proposalData && proposalData.data && proposalData.data.partnerName && proposalData.data.updateData && proposalData.data.updateData.phoneNumber) {
+                    proposalData.data.updateData.phoneNumber = rsaCrypto.encrypt(proposalData.data.updateData.phoneNumber);
                     dbUtil.findOneAndUpdateForShard(
                         dbconfig.collection_partner,
                         {partnerName: proposalData.data.partnerName},
