@@ -841,10 +841,8 @@ var dbUtility = {
         if (!ip || ip === '127.0.0.1') {
             console.warn('dbutility.getIpLocationByIPIPDotNet() skipping because called with ip=' + ip);
             // For now, don't throw an error, just respond with an empty result
-            return Q.resolve(null);
+            return;
         }
-
-        var deferred = Q.defer();
 
         var ipipCity = new datx.City(path.join(__dirname, "../IPIPDotNet/17monipdb.datx"));
         var cityObj = ipipCity.findSync(ip);
@@ -857,10 +855,10 @@ var dbUtility = {
             };
 
             console.log(res);
-            deferred.resolve(res);
+            return res;
         }
 
-        return deferred.promise;
+        return;
     },
 
     /*
