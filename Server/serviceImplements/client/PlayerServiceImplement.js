@@ -77,7 +77,7 @@ let PlayerServiceImplement = function () {
                 data.domain = data.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
             }
             if(data.lastLoginIp && data.lastLoginIp != "undefined"){
-                dbUtility.getGeoIp(data.lastLoginIp).then(
+                dbUtility.getIpLocationByIPIPDotNet(data.lastLoginIp).then(
                     ipData=>{
                         if(data){
                             data.ipArea = ipData;

@@ -10,6 +10,8 @@ var dbconfig = require("./dbproperties.js");
 var moment = require('moment-timezone');
 var geoip2ws = require('geoip2ws');
 var geoip2wsCity = new geoip2ws(101359, "oVO2d561nEW9", 'city');
+var datx = require('ipip-datx');
+var path = require('path');
 
 var dbUtility = {
 
@@ -832,6 +834,32 @@ var dbUtility = {
                 deferred.resolve(res);
             }
         });
+        return deferred.promise;
+    },
+
+    getIpLocationByIPIPDotNet: function(ip) {
+        if (!ip || ip === '127.0.0.1') {
+            console.warn('dbutility.getIpLocationByIPIPDotNet() skipping because called with ip=' + ip);
+            // For now, don't throw an error, just respond with an empty result
+            return Q.resolve(null);
+        }
+
+        var deferred = Q.defer();
+
+        var ipipCity = new datx.City(path.join(__dirname, "../IPIPDotNet/17monipdb.datx"));
+        var cityObj = ipipCity.findSync(ip);
+
+        if(cityObj.length > 0){
+            var res = {
+                country: cityObj[0] || null,
+                city: cityObj[2] || null,
+                province: cityObj[1] || null,
+            };
+
+            console.log(res);
+            deferred.resolve(res);
+        }
+
         return deferred.promise;
     },
 
