@@ -114,6 +114,12 @@ var PlatformServiceImplement = function () {
         console.log("extractUserFromFpms ip:", ipAddress);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerFeedback.getExportedData, [data.proposalId,ipAddress], isValidData, null, null, true);
     };
+
+    this.getUserInfoFromPopUp.onRequest = (wsFunc, conn, data) => {
+        let isValidData = Boolean(data);
+
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.savePlayerInformationFromPopUp, [data], isValidData, null, null, true);
+    };
 };
 
 var proto = PlatformServiceImplement.prototype = Object.create(PlatformService.prototype);
