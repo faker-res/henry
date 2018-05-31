@@ -11896,7 +11896,7 @@ let dbPlayerInfo = {
                     }
                     return dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true).then(
                         playerState => {
-                            if (playerState) {
+                            if (playerState || data.isClearConcurrent) {
                                 //check if player's reward task is no credit now
                                 return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
                                     taskStatus => {
@@ -14924,7 +14924,7 @@ let dbPlayerInfo = {
                 data[1].map(d => {
                     if (d && d.name && d.name == "LOCAL_CREDIT") {
                         result.currentFreeAmount = d.currentLockAmount ? d.currentLockAmount : 0;
-                        result.freeAmount = d.lockAmount ? d.lockAmount : 0;
+                        result.freeAmount = d.lockAmount ? dbUtility.noRoundTwoDecimalPlaces(d.lockAmount) : 0;
                     }
                 })
             }

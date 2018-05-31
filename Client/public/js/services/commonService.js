@@ -52,7 +52,7 @@ define([], () => {
                     let bankCards = data && data.data && data.data.data ? data.data.data : false;
 
                     bankCards.forEach(bank => {
-                        let bankStatus = $translate(bank.status);
+                        let bankStatus = $translate(bank.status == 'DISABLED' ? 'DISABLE' : bank.status);
                         bank.displayText = getBankCardTypeTextbyId(allBankTypeList, bank.bankTypeId) + ' - ' + bank.name
                             + ' ('+bank.accountNumber+') - ' + bankStatus;
                     });

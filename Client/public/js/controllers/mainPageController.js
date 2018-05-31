@@ -710,6 +710,7 @@ define(['js/app'], function (myApp) {
                     did: vm.curUser.did,
                     callerId: vm.curUser.callerId,
                     live800CompanyId:vm.curUser.live800CompanyId,
+                    callerQueue: vm.curUser.callerQueue,
                     live800Acc: vm.curUser.live800Acc
                 };
                 vm.updateAdminLive800 = {
