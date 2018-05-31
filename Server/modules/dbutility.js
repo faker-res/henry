@@ -1253,6 +1253,25 @@ var dbUtility = {
         }
 
         return ipAddress;
+    },
+
+    noRoundTwoDecimalPlaces: (value) => {
+        let decimalPlacesValue = value;
+
+        if (Number.isInteger(value)){
+            decimalPlacesValue = value.toLocaleString() + '.00';
+        }
+        else{
+            let splitString =  value.toLocaleString().split(".");
+            if (splitString[1] && splitString[1].length == 1) {
+                decimalPlacesValue = value.toLocaleString() + '0';
+            }
+            else{
+                decimalPlacesValue = (Number.isFinite(parseFloat(value)) ? Math.floor(parseFloat(value) * 100 ) / 100 : value).toLocaleString();
+            }
+        }
+
+        return decimalPlacesValue;
     }
 };
 

@@ -422,6 +422,7 @@
                 "getCrewBetInfo",
                 "getNewCrewInfo",
                 "preditCommission",
+                "getCommissionProposalList",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

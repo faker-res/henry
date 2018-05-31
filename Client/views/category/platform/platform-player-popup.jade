@@ -1296,7 +1296,8 @@
                                 label.form-control(ng-if='!vm.playerApplyRewardShow.showConsumptionReturn') {{(vm.playerApplyEventResult.error.message || vm.playerApplyEventResult.error.errorMessage) | translate}}
                                 label.form-control(style='width:80%;display:inline-block;' ng-if='vm.playerApplyRewardShow.showConsumptionReturn') {{ vm.playerApplyEventResult.error.message | translate}}
                                 button.btn.btn-primary.common-button(ng-if='vm.playerApplyRewardShow.showConsumptionReturn && (vm.playerApplyEventResult.error.message.indexOf("您的洗码额度不足") !== -1 || vm.playerApplyEventResult.error.errorMessage.indexOf("您的洗码额度不足") !== -1 )'
-                                ng-click='vm.applyPlayerReward(true)' style='vertical-align: bottom;margin-left: 10px;') {{"force submit" | translate}}
+                                    ng-click='vm.applyPlayerReward(true)' style='vertical-align: bottom;margin-left: 10px;') {{"force submit" | translate}}
+                                button.btn.btn-primary.common-button(ng-if='vm.playerApplyEventResult && vm.playerApplyEventResult.error && vm.playerApplyEventResult.error.status === 466' ng-click='vm.applyPlayerReward(true)' style='vertical-align: bottom;margin-left: 10px;') {{"force submit" | translate}}
 
                         //#modalManualUnlockRewardTask
                         table.simple-table(ng-if="vm.selectedRewardSettingsTab == 'unlock-reward'")

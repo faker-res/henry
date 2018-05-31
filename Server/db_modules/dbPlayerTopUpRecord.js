@@ -1731,9 +1731,7 @@ var dbPlayerTopUpRecord = {
                                 queryObj.name = constProposalType.PLAYER_TOP_UP;
                                 break;
                             case constPlayerTopUpType.MANUAL:
-                                queryObj.name = {
-                                    $in: [constProposalType.PLAYER_MANUAL_TOP_UP, constProposalType.PLAYER_ALIPAY_TOP_UP, constProposalType.PLAYER_WECHAT_TOP_UP]
-                                };
+                                queryObj.name = constProposalType.PLAYER_MANUAL_TOP_UP;
                                 break;
                             case constPlayerTopUpType.ALIPAY:
                                 queryObj.name = constProposalType.PLAYER_ALIPAY_TOP_UP;
@@ -3754,5 +3752,11 @@ function updateOnlineTopUpProposalDailyLimit (proposalQuery, merchantNo) {
 }
 
 function updateProposalRemark (proposalData, remark) {
-    return dbconfig.collection_proposal.findByIdAndUpdate(proposalData._id, {'data.remark': remark})
+    if(proposalData && proposalData._id){
+        return dbconfig.collection_proposal.findByIdAndUpdate(proposalData._id, {'data.remark': remark})
+    }
+    else{
+        return Promise.resolve(true);
+    }
+
 }
