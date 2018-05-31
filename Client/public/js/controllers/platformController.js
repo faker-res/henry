@@ -10209,7 +10209,11 @@ define(['js/app'], function (myApp) {
                     }
                 };
                 if (isForceApply) {
-                    sendQuery.data.isForceApply = isForceApply;
+                    if (vm.playerApplyEventResult && vm.playerApplyEventResult.error && vm.playerApplyEventResult.error.status === 466) {
+                        sendQuery.data.isClearConcurrent = isForceApply;
+                    } else {
+                        sendQuery.data.isForceApply = isForceApply;
+                    }
                 }
                 socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
                     console.log('sent', data);

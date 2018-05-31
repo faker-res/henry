@@ -82,7 +82,7 @@ var playerSchema = new Schema({
     //last access time
     lastAccessTime: {type: Date, default: Date.now, index: true}, //logout and login
     //if player has login
-    isLogin: {type: Boolean, default: false},
+    isLogin: {type: Boolean, default: false, index: true},
     // Last Login Ip
     lastLoginIp: {type: String, default: "", index: true}, //login
     //login ip records
@@ -319,7 +319,7 @@ var playerSchema = new Schema({
     // xima withdrawal check bypass
     ximaWithdraw: {type: Number, default: 0},
     // dian xiao mission related player
-    dxMission: {type: Schema.ObjectId, ref: 'dxMission'},
+    dxMission: {type: Schema.ObjectId, ref: 'dxMission', index: true},
     //client data
     clientData: {type: String}
 });
@@ -327,6 +327,7 @@ var playerSchema = new Schema({
 //record is unique by name and platform
 playerSchema.index({name: 1, platform: 1});
 playerSchema.index({platform: 1, partner: 1});
+playerSchema.index({platform: 1, isRealPlayer: 1});
 
 playerSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('playerId'));
 
