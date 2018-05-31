@@ -12,6 +12,7 @@ var geoip2ws = require('geoip2ws');
 var geoip2wsCity = new geoip2ws(101359, "oVO2d561nEW9", 'city');
 var datx = require('ipip-datx');
 var path = require('path');
+var ipipCity = new datx.City(path.join(__dirname, "../IPIPDotNet/17monipdb.datx"));
 
 var dbUtility = {
 
@@ -844,14 +845,13 @@ var dbUtility = {
             return;
         }
 
-        var ipipCity = new datx.City(path.join(__dirname, "../IPIPDotNet/17monipdb.datx"));
         var cityObj = ipipCity.findSync(ip);
 
         if(cityObj.length > 0){
             var res = {
                 country: cityObj[0] || null,
-                city: cityObj[2] || null,
-                province: cityObj[1] || null,
+                city: cityObj.length > 3 ? cityObj[2] : null,
+                province: cityObj.length > 2 ? cityObj[1] : null,
             };
 
             console.log(res);
