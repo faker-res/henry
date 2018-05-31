@@ -54,9 +54,10 @@ var PartnerServiceImplement = function () {
                     data.phoneType = queryRes.type;
                 }
             }
+            let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
             conn.captchaCode = null;
             data.partnerName = data.name;
-            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.createPartnerAPI, [data], isValidData, true, false, true).then(
+            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.createPartnerAPI, [data, byPassSMSCode], isValidData, true, false, true).then(
                 partnerData => {
                     conn.partnerId = partnerData.partnerId;
                     conn.partnerObjId = partnerData._id;
@@ -472,6 +473,11 @@ var PartnerServiceImplement = function () {
     this.preditCommission.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data.platformId && data.partnerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.preditCommission, [data.platformId, data.partnerId], isValidData, false, false, true);
+    };
+
+    this.getCommissionProposalList.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data.platformId && data.partnerId && data.startTime && data.endTime);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCommissionProposalList, [data.platformId, data.partnerId, data.startTime, data.endTime, data.status], isValidData, false, false, true);
     };
 };
 var proto = PartnerServiceImplement.prototype = Object.create(PartnerService.prototype);

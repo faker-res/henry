@@ -162,6 +162,13 @@ var proposal = {
     },
 
     applyRepairCreditTransfer: function (platformId, proposalData) {
+        if (proposalData.data && (!proposalData.data.transferId || (proposalData.data.transferId && proposalData.data.transferId == "unknown"))) {
+            return Promise.reject({
+                name: "DBError",
+                message: "This transaction does not have valid transfer ID"
+            });
+        }
+
         function isRepairableTransfer(transferId) {
             return dbconfig.collection_playerCreditTransferLog.find({
                 transferId,

@@ -37,6 +37,7 @@ const constRewardTaskStatus = require('../const/constRewardTaskStatus');
 const rewardUtility = require("../modules/rewardUtility");
 const constPlayerCreditChangeType = require('../const/constPlayerCreditChangeType');
 const errorUtils = require("../modules/errorUtils.js");
+const localization = require("../modules/localization");
 
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 
@@ -894,9 +895,11 @@ var dbPlayerTopUpRecord = {
                         requestData.groupMerchantList = groupMerchantList;
                         return pmsAPI.payment_requestOnlineMerchant(requestData);
                     } else {
+                        let errorMsg = "No Any MerchantNo Are Available, Please Change TopUp Method";
+                        updateProposalRemark(proposalData, localization.localization.translate(errorMsg)).catch(errorUtils.reportError);
                         return Q.reject({
                             name: "DataError",
-                            message: "No Any MerchantNo Are Available, Please Change TopUp Method",
+                            message: errorMsg,
                             error: Error()
                         });
                     }
@@ -960,6 +963,10 @@ var dbPlayerTopUpRecord = {
                         error: Error()
                     });
                 }
+            },
+            err => {
+                updateProposalRemark(proposal, err.errorMessage).catch(errorUtils.reportError);
+                return Promise.reject(err);
             }
         ).then(
             res => {
@@ -1300,6 +1307,10 @@ var dbPlayerTopUpRecord = {
                         errorMessage: "Cannot create manual top up request"
                     });
                 }
+            },
+            err => {
+                updateProposalRemark(proposal, err.errorMessage).catch(errorUtils.reportError);
+                return Promise.reject(err);
             }
         ).then(
             resultData => {
@@ -1670,7 +1681,6 @@ var dbPlayerTopUpRecord = {
     getTopUpTotalAmountForAllPlatform: function (startTime, endTime, platform) {
         let matchObj = {
             createTime: {$gte: startTime, $lt: endTime},
-            platformId: platform
         };
 
         if (platform !== 'all') {
@@ -1721,9 +1731,7 @@ var dbPlayerTopUpRecord = {
                                 queryObj.name = constProposalType.PLAYER_TOP_UP;
                                 break;
                             case constPlayerTopUpType.MANUAL:
-                                queryObj.name = {
-                                    $in: [constProposalType.PLAYER_MANUAL_TOP_UP, constProposalType.PLAYER_ALIPAY_TOP_UP, constProposalType.PLAYER_WECHAT_TOP_UP]
-                                };
+                                queryObj.name = constProposalType.PLAYER_MANUAL_TOP_UP;
                                 break;
                             case constPlayerTopUpType.ALIPAY:
                                 queryObj.name = constProposalType.PLAYER_ALIPAY_TOP_UP;
@@ -2103,6 +2111,10 @@ var dbPlayerTopUpRecord = {
                                 totalAmount: {$sum: "$data.amount"},
                             }
                         })
+                },
+                err => {
+                    updateProposalRemark(proposal, err.errorMessage).catch(errorUtils.reportError);
+                    return Promise.reject(err);
                 }
             ).then(
                 res => {
@@ -2494,6 +2506,10 @@ var dbPlayerTopUpRecord = {
                                 totalAmount: {$sum: "$data.amount"},
                             }
                         })
+                },
+                err => {
+                    updateProposalRemark(proposal, err.errorMessage).catch(errorUtils.reportError);
+                    return Promise.reject(err);
                 }
             ).then(
                 res => {
@@ -2697,6 +2713,10 @@ var dbPlayerTopUpRecord = {
                 else {
                     return Q.reject({name: "APIError", errorMessage: "Cannot create manual top up request"});
                 }
+            },
+            err => {
+                updateProposalRemark(proposal, err.errorMessage).catch(errorUtils.reportError);
+                return Promise.reject(err);
             }
         ).then(
             data => {
@@ -3729,4 +3749,14 @@ function updateOnlineTopUpProposalDailyLimit (proposalQuery, merchantNo) {
             }
         }
     )
+}
+
+function updateProposalRemark (proposalData, remark) {
+    if(proposalData && proposalData._id){
+        return dbconfig.collection_proposal.findByIdAndUpdate(proposalData._id, {'data.remark': remark})
+    }
+    else{
+        return Promise.resolve(true);
+    }
+
 }

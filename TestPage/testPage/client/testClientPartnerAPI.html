@@ -77,6 +77,11 @@
         </label>
     </div>
     <div>
+        <label>Commission Type
+            <input type=text name="commissionType">
+        </label>
+    </div>
+    <div>
         <button id="getSmsCode" data-api-name="getSMSCode">Get SMS Code</button>
     </div>
 
@@ -962,6 +967,40 @@
     <p></p>
     <div>
         <button id="preditCommission" data-api-name="preditCommission">Update</button>
+    </div>
+</div>
+
+<h3>GET PARTNER COMMISSION PROPOSAL (查询代理佣金提案)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Partner Id
+            <input type=text name="partnerId">
+        </label>
+    </div>
+    <div>
+        <label>Start Time
+            <input name="startTime" type="datetime-local">
+        </label>
+    </div>
+    <div>
+        <label>End Time
+            <input name="endTime" type="datetime-local">
+        </label>
+    </div>
+    <div>
+        <label>Status
+            <input type=text name="status">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <button id="getCommissionProposalList" data-api-name="getCommissionProposalList">Update</button>
     </div>
 </div>
 
