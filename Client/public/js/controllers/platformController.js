@@ -7327,8 +7327,15 @@ define(['js/app'], function (myApp) {
 
             vm.playerBatchPermitTableRowClick = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                 $compile(nRow)($scope);
-            }
+            };
             vm.playerTableRowClick = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                if(vm.ctiData && vm.ctiData.hasOnGoingMission) {
+                    if(aData.callOutMissionStatus == $scope.constCallOutMissionCalleeStatus.SUCCEEDED) {
+                        $(nRow).addClass('callOutSucceeded');
+                    } else if(aData.callOutMissionStatus == $scope.constCallOutMissionCalleeStatus.FAILED) {
+                        $(nRow).addClass('callOutFailed');
+                    }
+                }
                 //MARK!!!
                 $compile(nRow)($scope);
                 //set player color according to status
@@ -15583,7 +15590,7 @@ define(['js/app'], function (myApp) {
                         vm.callOutMissionStatusText = '';
 
                         vm.ctiData.callee.forEach(callee => {
-                            players.push(callee.player);
+                            players.push(Object.assign({},callee.player,{callOutMissionStatus:callee.status}));
                             if (status == $scope.constCallOutMissionStatus.SUCCEEDED) {
                                 completedAmount++;
                             }
