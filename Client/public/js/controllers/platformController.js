@@ -20634,6 +20634,9 @@ define(['js/app'], function (myApp) {
 
                         vm.scopeChannelList = $scope.channelList; // todo :: debug use, remove later
                         break;
+                    case 'bulkPhoneCallSetting':
+                        vm.getBulkCallBasic();
+                        break;
                 }
             };
 
@@ -25349,6 +25352,16 @@ define(['js/app'], function (myApp) {
             };
 
             // announcement codes==============end===============================
+
+            vm.getBulkCallBasic = () => {
+                vm.bulkCallBasic = vm.bulkCallBasic || {};
+                vm.bulkCallBasic.maxRingTime = vm.selectedPlatform.data.maxRingTime || 30;
+                vm.bulkCallBasic.redialTimes = vm.selectedPlatform.data.redialTimes || 3;
+                vm.bulkCallBasic.minRedialInterval = vm.selectedPlatform.data.minRedialInterval || 10;
+                vm.bulkCallBasic.idleAgentMultiple = vm.selectedPlatform.data.idleAgentMultiple || 2.0;
+                $scope.safeApply();
+            };
+
             vm.getPlatformBasic = function () {
                 vm.platformBasic = vm.platformBasic || {};
                 vm.platformBasic.playerNameMaxLength = vm.selectedPlatform.data.playerNameMaxLength;
@@ -25820,6 +25833,9 @@ define(['js/app'], function (myApp) {
                     case 'smsGroup':
                         updateSmsGroup();
                         break;
+                    case 'bulkPhoneCallSetting':
+                        updateBulkCallBasic(vm.bulkCallBasic);
+                        break;
                 }
             };
 
@@ -25921,6 +25937,22 @@ define(['js/app'], function (myApp) {
                     vm.partnerLevelConfig = vm.partnerLevelConfigEdit;
                     vm.configTabClicked("validActive");
                     $scope.safeApply();
+                });
+            }
+
+            function updateBulkCallBasic(srcData) {
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {
+                        maxRingTime: srcData.maxRingTime,
+                        redialTimes: srcData.redialTimes,
+                        minRedialInterval: srcData.minRedialInterval,
+                        idleAgentMultiple: srcData.idleAgentMultiple,
+                    }
+                };
+
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
                 });
             }
 
