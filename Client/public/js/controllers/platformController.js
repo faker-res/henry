@@ -2400,9 +2400,9 @@ define(['js/app'], function (myApp) {
             vm.drawSendMessagesTable = function (data, size, newSearch) {
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: data,
-                    order: vm.sendMultiMessage.aaSorting || [[4, 'desc']],
+                    order: vm.sendMultiMessage.aaSorting || [[5, 'desc']],
                     aoColumnDefs: [
-                        {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [5]},
                         {
                             targets: [8],
                             title: '<input type="checkbox" class="toggleCheckAll">',
@@ -2451,7 +2451,7 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {'title': $translate('playerLevel'), data: 'playerLevel.name'},
-                        {'title': $translate('LOGIN_TIMES'), data: 'loginTimes', sType: 'numeric'},
+                        {'title': $translate('LOGIN_TIMES'), data: 'loginTimes'},
                         {'title': $translate('topUpTimes'), data: 'topUpTimes', bSortable: true},
                         {'title': $translate('lastAccessTime'), data: 'lastAccessTime$'},
                         {'title': $translate('registrationTime'), data: 'registrationTime$'},
