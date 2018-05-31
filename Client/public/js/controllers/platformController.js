@@ -2451,7 +2451,7 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {'title': $translate('playerLevel'), data: 'playerLevel.name'},
-                        {'title': $translate('LOGIN_TIMES'), data: 'loginTimes'},
+                        {'title': $translate('LOGIN_TIMES'), data: 'loginTimes', sType: 'numeric'},
                         {'title': $translate('topUpTimes'), data: 'topUpTimes', bSortable: true},
                         {'title': $translate('lastAccessTime'), data: 'lastAccessTime$'},
                         {'title': $translate('registrationTime'), data: 'registrationTime$'},
