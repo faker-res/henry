@@ -850,8 +850,8 @@ var dbUtility = {
         if(cityObj.length > 0){
             var res = {
                 country: cityObj[0] || null,
-                city: cityObj.length > 3 ? cityObj[2] : null,
-                province: cityObj.length > 2 ? cityObj[1] : null,
+                city: cityObj.length > 2 ? cityObj[2] : null,
+                province: cityObj.length > 1 ? cityObj[1] : null,
             };
 
             console.log(res);
