@@ -3076,6 +3076,49 @@ var dbPlatform = {
                 }
             }
         );
+    },
+
+    savePlayerInformationFromPopUp: function(data){
+
+        let prom = [];
+
+        if (data && data.length > 0){
+
+            data.forEach( inData => {
+               let record = {};
+
+               record.platformId = inData.platformId || "";
+               record.phoneNumber = inData.phoneNumber || "";
+               record.name = inData.name || "";
+
+               prom.push(checkAndInsertRecord(record.platformId,record.phoneNumber,record.name));
+            })
+        }
+
+        return Promise.all([Promise.all(prom)]);
+
+        function checkAndInsertRecord (platformId, phoneNumber, name){
+            return dbconfig.collection_playerDataFromExternalSource.findOne({
+                    platformId: platformId,
+                    phoneNumber: phoneNumber,
+                    name: name,
+                }
+            ).then( res => {
+                if(!res){
+                    let dataTobeSaved = {
+                        platformId: platformId || "",
+                        phoneNumber: phoneNumber || "",
+                        name: name || ""
+                    };
+
+                    let playerData = new dbconfig.collection_playerDataFromExternalSource(dataTobeSaved);
+                    return playerData.save().then().catch(err => errorUtils.reportError(err));
+                }
+                else{
+                    return;
+                }
+            })
+        }
     }
 };
 

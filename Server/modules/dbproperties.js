@@ -380,6 +380,9 @@ let rewardPointsLogModel = dbLogs.model('rewardPointsLog', rewardPointsLogSchema
 
 let qualityInspectionModel = dbLogs.model('qualityInspection', qualityInspectionSchema, 'qualityInspection');
 let live800RecordDaySummaryModel = dbLogs.model('live800RecordDaySummary', live800RecordDaySummarySchema, 'live800RecordDaySummary');
+
+let playerInfoFromExternalSourceSchema = require('./../schema/logs2/playerInfoFromExternalSource');
+let playerInfoFromExternalSourceModel = dbLogs2.model('playerInfoFromExternalSource', playerInfoFromExternalSourceSchema, 'playerInfoFromExternalSource');
 //unique schema
 var playerNameSchema = require('./../schema/unique/playerName');
 var playerNameModal = db_player.model('playerName', playerNameSchema, 'playerName');
@@ -560,6 +563,7 @@ var dbProperties = {
 
     collection_qualityInspection: qualityInspectionModel,
     collection_live800RecordDaySummary: live800RecordDaySummaryModel,
+    collection_playerDataFromExternalSource: playerInfoFromExternalSourceModel,
     //unique
     collection_playerName: playerNameModal,
     collection_consumptionOrderNumModal: consumptionOrderNumModal,
