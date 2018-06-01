@@ -2982,3 +2982,10 @@ input[type='number'].leftALignNumber {
     top: calc(100% + 1px);
     left: 6px;
 }
+
+.callOutSucceeded {
+    background-color: lightgreen !important;
+}
+.callOutFailed {
+    background-color: rgb(180,180,180) !important;
+}

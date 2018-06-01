@@ -2349,6 +2349,14 @@ a.highlightProposalType:hover {
     color: rgb(216, 193, 19);
 }
 
+.colorOrangeImportant {
+    color: rgb(255, 92, 0) !important;
+}
+
+.text-bold {
+    font-weight: bold;
+}
+
 .bg-pale {
     color: #fff;
     background-color: rgba(51, 122, 183, 0.24);
