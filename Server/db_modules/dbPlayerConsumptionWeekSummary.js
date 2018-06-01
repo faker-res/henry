@@ -364,7 +364,7 @@ var dbPlayerConsumptionWeekSummary = {
 
                                 // Check minimum xima amount
                                 if (eventData && eventData.param && eventData.param.earlyXimaMinAmount
-                                    && bRequest && !isForceApply && returnAmount < eventData.param.earlyXimaMinAmount) {
+                                    && bRequest && !isForceApply && proposalData.data.rewardAmount < eventData.param.earlyXimaMinAmount) {
                                     isLessAmtAfterOffset = true;
                                     // deferred.resolve(null);
                                 } else {
