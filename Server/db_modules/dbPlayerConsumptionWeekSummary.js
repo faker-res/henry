@@ -143,20 +143,19 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {ObjectId} proposalTypeId
      */
     checkPlatformWeeklyConsumptionReturn: function (platformId, eventData, proposalTypeId, period) {
-
+        console.log("#xima, checkPlatformWeeklyConsumptionReturn1");
         var settleTime = period == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         var balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
             // This collects players who have dirty records in the time range, although dirty records will not actually be used during processing.
             // var stream = dbPlayerConsumptionRecord.streamPlayersWithConsumptionSummaryInTimeFrame(startTime, endTime, platformId);
 
-            var query = dbconfig.collection_playerConsumptionSummary.aggregate(
+            var query = dbconfig.collection_playerConsumptionRecord.aggregate(
                 [
                     {
                         $match: {
                             platformId: platformId,
-                            summaryDay: {$gte: settleTime.startTime, $lt: settleTime.endTime},
-                            bDirty: false
+                            createTime: {$gte: settleTime.startTime, $lt: settleTime.endTime}
                         }
                     },
                     {
@@ -166,6 +165,8 @@ var dbPlayerConsumptionWeekSummary = {
             );
 
             var stream = query.cursor({batchSize: 1000}).allowDiskUse(true).exec();
+
+            console.log("#xima, checkPlatformWeeklyConsumptionReturn2");
 
             return balancer.processStream(
                 {
@@ -457,22 +458,22 @@ var dbPlayerConsumptionWeekSummary = {
 
                                             // Check minimum xima amount
                                             if (eventData && eventData.param && eventData.param.earlyXimaMinAmount
-                                                && bRequest && !isForceApply && returnAmount >= eventData.param.earlyXimaMinAmount) {
-                                                return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
-                                            } else {
+                                                && bRequest && !isForceApply && returnAmount < eventData.param.earlyXimaMinAmount) {
                                                 isLessAmtAfterOffset = true;
                                                 deferred.resolve(null);
+                                            } else {
+                                                return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
                                             }
                                         }
                                     )
                                 } else {
                                     // Check minimum xima amount
                                     if (eventData && eventData.param && eventData.param.earlyXimaMinAmount
-                                        && bRequest && !isForceApply && returnAmount >= eventData.param.earlyXimaMinAmount) {
-                                        return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
-                                    } else {
+                                        && bRequest && !isForceApply && returnAmount < eventData.param.earlyXimaMinAmount) {
                                         isLessAmtAfterOffset = true;
                                         deferred.resolve(null);
+                                    } else {
+                                        return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
                                     }
                                 }
 

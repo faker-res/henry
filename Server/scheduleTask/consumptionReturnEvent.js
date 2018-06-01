@@ -13,6 +13,7 @@ let consumptionReturnEvent = {
      * start weekly consumption return event check for platform
      */
     checkPlatformWeeklyConsumptionReturnEvent: function (platformId, selectedEvent) {
+        console.log("#xima, checkPlatformWeeklyConsumptionReturnEvent1");
         if (selectedEvent && selectedEvent.length > 0) {
             let promArr = [];
 
