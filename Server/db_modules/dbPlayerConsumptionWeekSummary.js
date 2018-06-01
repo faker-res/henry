@@ -150,13 +150,12 @@ var dbPlayerConsumptionWeekSummary = {
             // This collects players who have dirty records in the time range, although dirty records will not actually be used during processing.
             // var stream = dbPlayerConsumptionRecord.streamPlayersWithConsumptionSummaryInTimeFrame(startTime, endTime, platformId);
 
-            var query = dbconfig.collection_playerConsumptionSummary.aggregate(
+            var query = dbconfig.collection_playerConsumptionRecord.aggregate(
                 [
                     {
                         $match: {
                             platformId: platformId,
-                            summaryDay: {$gte: settleTime.startTime, $lt: settleTime.endTime},
-                            bDirty: false
+                            createTime: {$gte: settleTime.startTime, $lt: settleTime.endTime}
                         }
                     },
                     {
@@ -191,8 +190,6 @@ var dbPlayerConsumptionWeekSummary = {
     checkPlatformWeeklyConsumptionReturnForPlayers: function (platformId, eventData, proposalTypeId, startTime, endTime, playerIds, bRequest, userAgent, adminId=null, adminName=null, isForceApply) {
         var deferred = Q.defer();
         let isLessAmtAfterOffset = false;
-
-        console.log('checkPlatformWeeklyConsumptionReturnForPlayers aaa');
 
         var summaryProm = dbconfig.collection_playerConsumptionSummary.find(
             {
@@ -232,7 +229,6 @@ var dbPlayerConsumptionWeekSummary = {
                     var proms = [];
                     players.forEach(
                         function (playerData) {
-                            console.log('playerData', playerData.name);
                             if (playerData && playerData.permission && !(playerData.permission.banReward)) {
                                 //check if platform only allow new system users
                                 if( platformData && platformData.onlyNewCanLogin && !playerData.isNewSystem ){
@@ -461,9 +457,6 @@ var dbPlayerConsumptionWeekSummary = {
                                             proposalData.data.isIgnoreAudit = eventData.param
                                                 && Number.isInteger(eventData.param.isIgnoreAudit)
                                                 && eventData.param.isIgnoreAudit >= proposalData.data.rewardAmount;
-
-                                            console.log('eventData', eventData);
-                                            console.log('returnAmount', proposalData.data.playerName, returnAmount);
 
                                             // Check minimum xima amount
                                             if (eventData && eventData.param && eventData.param.earlyXimaMinAmount
