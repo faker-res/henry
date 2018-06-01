@@ -457,22 +457,22 @@ var dbPlayerConsumptionWeekSummary = {
 
                                             // Check minimum xima amount
                                             if (eventData && eventData.param && eventData.param.earlyXimaMinAmount
-                                                && bRequest && !isForceApply && returnAmount >= eventData.param.earlyXimaMinAmount) {
-                                                return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
-                                            } else {
+                                                && bRequest && !isForceApply && returnAmount < eventData.param.earlyXimaMinAmount) {
                                                 isLessAmtAfterOffset = true;
                                                 deferred.resolve(null);
+                                            } else {
+                                                return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
                                             }
                                         }
                                     )
                                 } else {
                                     // Check minimum xima amount
                                     if (eventData && eventData.param && eventData.param.earlyXimaMinAmount
-                                        && bRequest && !isForceApply && returnAmount >= eventData.param.earlyXimaMinAmount) {
-                                        return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
-                                    } else {
+                                        && bRequest && !isForceApply && returnAmount < eventData.param.earlyXimaMinAmount) {
                                         isLessAmtAfterOffset = true;
                                         deferred.resolve(null);
+                                    } else {
+                                        return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
                                     }
                                 }
 
