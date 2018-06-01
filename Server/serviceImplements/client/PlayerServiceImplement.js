@@ -54,6 +54,7 @@ let PlayerServiceImplement = function () {
             if (geo) {
                 data.country = geo.country;
                 data.city = geo.city;
+                data.province = geo.region;
                 data.longitude = geo.ll ? geo.ll[1] : null;
                 data.latitude = geo.ll ? geo.ll[0] : null;
             }

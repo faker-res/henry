@@ -1738,6 +1738,7 @@ let dbPlayerInfo = {
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
             .populate({path: "partner", model: dbconfig.collection_partner})
             .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints})
+            .populate({path: "csOfficer", model: dbconfig.collection_admin})
             .then(data => {
                 if (data) {
                     playerData = data;
