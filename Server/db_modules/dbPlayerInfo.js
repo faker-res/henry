@@ -7058,7 +7058,7 @@ let dbPlayerInfo = {
                                 'data.platformObjId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]},
                                 'data.levelValue': levelUpObj.value,
                                 type: proposalTypeData._id,
-                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS, tatus: constProposalStatus.PENDING]}
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.PENDING]}
                             }).lean();
                         }
                     ).then(
