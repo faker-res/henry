@@ -3217,6 +3217,15 @@ define(['js/app'], function (myApp) {
                     vm.getPlatformGameData();
                 })
             }
+
+            vm.getProviderStatus = (provider) => {
+                if (provider && provider.platformStatusFromCPMS && provider.platformStatusFromCPMS[vm.selectedPlatform.data.platformId]) {
+                    return provider.platformStatusFromCPMS[vm.selectedPlatform.data.platformId];
+                }
+
+                return provider.status;
+            };
+
             vm.getGameStatusClass = function (str) {
                 if (!str) return;
                 if (str == vm.allGameStatusString.ENABLE) {
@@ -25267,7 +25276,20 @@ define(['js/app'], function (myApp) {
 
                                 vm.rateAfterRebatePromo = vm.commissionRateConfig.rateAfterRebatePromo;
                                 vm.rateAfterRebatePlatform = vm.commissionRateConfig.rateAfterRebatePlatform;
-                                vm.rateAfterRebateGameProviderGroup = vm.commissionRateConfig.rateAfterRebateGameProviderGroup;
+                                if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
+                                    vm.gameProviderGroup.forEach(gameProviderGroup => {
+                                        let providerGroupRate = {gameProviderGroupId: gameProviderGroup._id, name: gameProviderGroup.name};
+                                        if (vm.commissionRateConfig && vm.commissionRateConfig.rateAfterRebateGameProviderGroup && vm.commissionRateConfig.rateAfterRebateGameProviderGroup.length > 0) {
+                                            vm.commissionRateConfig.rateAfterRebateGameProviderGroup.map(availableProviderGroupRate => {
+                                                if (gameProviderGroup._id == availableProviderGroupRate.gameProviderGroupId) {
+                                                    providerGroupRate = availableProviderGroupRate;
+                                                }
+                                            })
+                                        }
+                                        vm.rateAfterRebateGameProviderGroup.push(providerGroupRate);
+                                    })
+                                }
+
                                 vm.rateAfterRebateTotalDeposit = vm.commissionRateConfig.rateAfterRebateTotalDeposit;
                                 vm.rateAfterRebateTotalWithdrawal = vm.commissionRateConfig.rateAfterRebateTotalWithdrawal;
                                 vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
