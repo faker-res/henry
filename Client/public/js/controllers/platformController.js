@@ -16303,7 +16303,7 @@ define(['js/app'], function (myApp) {
 
             vm.activatePlayerTab = function () {
                 if (vm.selectedPlatform && vm.selectedPlatform.id) {
-                    vm.getRewardPointsEvent(vm.selectedPlatform.id);
+                    commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id);
                 }
 
                 setTimeout(() => {
@@ -27531,7 +27531,7 @@ define(['js/app'], function (myApp) {
                             }
                         );
 
-                        window.document.title = $translate("platform") + "->" + $translate(vm.platformPageName);
+                        window.document.title = $translate("Website Business") + "->" + $translate(vm.platformPageName);
                         var showLeft = $cookies.get("platformShowLeft");
                         if (showLeft === 'false') {
                             vm.toggleShowPlatformList(false)
