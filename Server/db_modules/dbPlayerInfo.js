@@ -6995,13 +6995,25 @@ let dbPlayerInfo = {
                 let levelDownLevel;
 
                 function createProposal(proposal, inputDevice, index) {
-                    let levelProposalQuery = {
-                        'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
-                        'data.platformObjId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]},
-                        'data.levelObjId': proposal.levelObjId,
-                        status: constProposalStatus.PENDING
-                    }
-                    return dbPropUtil.getOneProposalDataOfType(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, levelProposalQuery).then(
+                    return dbconfig.collection_players.findOne({_id: ObjectId(playerObj._id)}).lean().then(
+                        playerCurrentData => {
+                            // double check if player's level already on this level
+                            if (!(playerCurrentData && playerCurrentData._id)) {
+                                return Promise.reject({name: "DBError", message: "Error in getting player data"})
+                            }
+                            if (playerCurrentData && playerCurrentData.playerLevel && playerCurrentData.playerLevel.toString() == proposal.levelObjId.toString()) {
+                                return Promise.reject({name: "DBError", message: "Player already on this level"})
+                            }
+
+                            let levelProposalQuery = {
+                                'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
+                                'data.platformObjId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]},
+                                'data.levelObjId': proposal.levelObjId,
+                                status: constProposalStatus.PENDING
+                            }
+                            return dbPropUtil.getOneProposalDataOfType(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, levelProposalQuery)
+                        }
+                    ).then(
                         proposalDetail => {
                             if (proposalDetail && proposalDetail._id) {
                                 return Promise.reject({
@@ -7046,7 +7058,7 @@ let dbPlayerInfo = {
                                 'data.platformObjId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]},
                                 'data.levelValue': levelUpObj.value,
                                 type: proposalTypeData._id,
-                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.PENDING]}
                             }).lean();
                         }
                     ).then(

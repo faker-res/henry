@@ -19,6 +19,7 @@ div(style="height:265px;overflow:auto;margin-bottom:5px")
                             option(value="all") {{"ALL" | translate}}
                             option(value="players") {{"PLAYERS_ONLY" | translate}}
                             option(value="conditional") {{"CUSTOM" | translate}}
+                            option(value="partner") {{"PARTNER" | translate}}
                     td
                         input.form-control(ng-disabled="!vm.configTableEdit", ng-model="ann.order", required, title="{{ann.order}}")
                     td
@@ -33,6 +34,7 @@ div(style="height:265px;overflow:auto;margin-bottom:5px")
                             option(value="all") {{"ALL" | translate}}
                             option(value="players") {{"PLAYERS_ONLY" | translate}}
                             option(value="conditional") {{"CUSTOM" | translate}}
+                            option(value="partner") {{"PARTNER" | translate}}
                     td
                         input.form-control(ng-model="vm.newAnn.order", required)
                     td

@@ -12,7 +12,7 @@ var platformAnnouncement = new Schema({
     date: {type: Date, required: true},
 
     // Who will this announcement be shown to?
-    reach: {type: String, required: true, enum: ['all', 'players', 'conditional']},
+    reach: {type: String, required: true, enum: ['all', 'players', 'conditional', 'partner']},
 
     // When reach === 'conditional'
     // Condition(s) for who will see this announcement
