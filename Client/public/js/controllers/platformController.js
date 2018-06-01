@@ -14918,9 +14918,137 @@ define(['js/app'], function (myApp) {
                 return sendQuery;
             };
 
+            vm.getCallOutMissionPlayerDetail = function() {
+                if(vm.playerFeedbackSearchType == "one") {
+                    let query = {
+                        _id: vm.ctiData.callee[vm.feedbackPlayersPara.index - 1].player._id
+                    };
+                    socketService.$socket($scope.AppSocket, 'getSinglePlayerFeedbackQuery', {
+                        query: query,
+                        index: 0
+                    }, function (data) {
+                        console.log('_getSinglePlayerFeedbackQuery for CallOutMission', data);
+                        vm.drawSinglePlayerFeedback(data);
+                    });
+                }
+            };
+
+            vm.drawSinglePlayerFeedback = function (data) {
+                let playerList = [], extendedResult = [];
+                vm.curFeedbackPlayer = data.data.data;
+                vm.feedbackPlayersPara.total = data.data.total || 0;
+                vm.feedbackPlayersPara.index = data.data.index + 1;
+
+                if (vm.curFeedbackPlayer && !$.isEmptyObject(vm.curFeedbackPlayer)) {
+                    playerList.push(vm.curFeedbackPlayer);
+                    //process data for extended table
+                    if (vm.curFeedbackPlayer.consumptionDetail && !$.isEmptyObject(vm.curFeedbackPlayer.consumptionDetail)) {
+                        vm.playerFeedbackResultExtended = vm.curFeedbackPlayer.consumptionDetail;
+                        vm.playerFeedbackResultExtended.manualTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.manualTopUpAmount).toFixed(2);
+                        vm.playerFeedbackResultExtended.onlineTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.onlineTopUpAmount).toFixed(2);
+                        vm.playerFeedbackResultExtended.weChatTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.weChatTopUpAmount).toFixed(2);
+                        vm.playerFeedbackResultExtended.aliPayTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.aliPayTopUpAmount).toFixed(2);
+                        vm.playerFeedbackResultExtended.topUpAmount$ = parseFloat(vm.curFeedbackPlayer.topUpSum).toFixed(2);
+                        vm.playerFeedbackResultExtended.bonusAmount$ = parseFloat(vm.playerFeedbackResultExtended.bonusAmount).toFixed(2);
+                        vm.playerFeedbackResultExtended.rewardAmount$ = parseFloat(vm.playerFeedbackResultExtended.rewardAmount).toFixed(2);
+                        vm.playerFeedbackResultExtended.consumptionReturnAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionReturnAmount).toFixed(2);
+                        vm.playerFeedbackResultExtended.consumptionAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionAmount).toFixed(2);
+                        vm.playerFeedbackResultExtended.validConsumptionAmount$ = parseFloat(vm.playerFeedbackResultExtended.validConsumptionAmount).toFixed(2);
+                        vm.playerFeedbackResultExtended.consumptionBonusAmount$ = parseFloat(vm.curFeedbackPlayer.bonusAmountSum).toFixed(2);
+
+                        vm.playerFeedbackResultExtended.playerLevel$ = "";
+                        if (vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel]) {
+                            vm.playerFeedbackResultExtended.playerLevel$ = vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel].name;
+                        }
+                        else {
+                            vm.playerFeedbackResultExtended.playerLevel$ = "";
+                        }
+
+                        vm.playerFeedbackResultExtended.credibility$ = "";
+                        if (vm.playerFeedbackResultExtended.credibilityRemarks) {
+                            for (let i = 0; i < vm.playerFeedbackResultExtended.credibilityRemarks.length; i++) {
+                                for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                    if (vm.playerFeedbackResultExtended.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                        vm.playerFeedbackResultExtended.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                                    }
+                                }
+                            }
+                        }
+
+                        vm.playerFeedbackResultExtended.providerArr = [];
+                        for (var key in vm.playerFeedbackResultExtended.providerDetail) {
+                            if (vm.playerFeedbackResultExtended.providerDetail.hasOwnProperty(key)) {
+                                vm.playerFeedbackResultExtended.providerDetail[key].providerId = key;
+                                vm.playerFeedbackResultExtended.providerArr.push(vm.playerFeedbackResultExtended.providerDetail[key]);
+                            }
+                        }
+
+                        vm.playerFeedbackResultExtended.provider$ = "";
+                        if (vm.playerFeedbackResultExtended.providerDetail) {
+                            for (let i = 0; i < vm.playerFeedbackResultExtended.providerArr.length; i++) {
+                                vm.playerFeedbackResultExtended.providerArr[i].amount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].amount).toFixed(2);
+                                vm.playerFeedbackResultExtended.providerArr[i].bonusAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount).toFixed(2);
+                                vm.playerFeedbackResultExtended.providerArr[i].validAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].validAmount).toFixed(2);
+                                vm.playerFeedbackResultExtended.providerArr[i].profit = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount / vm.playerFeedbackResultExtended.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                                for (let j = 0; j < vm.allProviders.length; j++) {
+                                    if (vm.playerFeedbackResultExtended.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                        vm.playerFeedbackResultExtended.providerArr[i].name = vm.allProviders[j].name;
+                                        vm.playerFeedbackResultExtended.provider$ += vm.allProviders[j].name + "<br>";
+                                    }
+                                }
+                            }
+                        }
+
+                        vm.playerFeedbackResultExtended.profit$ = 0;
+                        if (vm.playerFeedbackResultExtended.consumptionBonusAmount != 0 && vm.playerFeedbackResultExtended.validConsumptionAmount != 0) {
+                            vm.playerFeedbackResultExtended.profit$ = parseFloat((vm.playerFeedbackResultExtended.consumptionBonusAmount / vm.playerFeedbackResultExtended.validConsumptionAmount) * -100).toFixed(2) + "%";
+                        }
+
+                        vm.playerFeedbackResultExtended.topUpTimes = vm.curFeedbackPlayer.topUpTimes || 0;
+                        vm.playerFeedbackResultExtended.bonusTimes = vm.curFeedbackPlayer.withdrawTimes || 0;
+                        vm.playerFeedbackResultExtended.consumptionTimes = vm.curFeedbackPlayer.consumptionTimes || 0;
+                        extendedResult.push(vm.playerFeedbackResultExtended);
+                    } //end processing for extended table
+                }
+
+                setTableData(vm.playerFeedbackTable, playerList);
+                vm.drawExtendedFeedbackTable(extendedResult);
+
+                $('#platformFeedbackSpin').hide();
+                if (!vm.curFeedbackPlayer) {
+                    $scope.safeApply();
+                    return;
+                }
+
+                vm.addFeedback = {
+                    playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
+                    platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
+                };
+                if (vm.curFeedbackPlayer._id) {
+                    vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
+                        vm.curPlayerFeedbackDetail = data;
+
+                        vm.curPlayerFeedbackDetail.forEach(item => {
+                            item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                        });
+
+                        $scope.safeApply();
+                    });
+                    vm.getPlayerCredibilityComment(vm.curFeedbackPlayer._id);
+                    $scope.safeApply();
+                } else {
+                    vm.curPlayerFeedbackDetail = {};
+                    $scope.safeApply();
+                }
+            };
             vm.submitPlayerFeedbackQuery = function (isNewSearch) {
                 if (!vm.selectedPlatform) return;
-                if (vm.ctiData.hasOwnProperty('admin')) return;
+                if (vm.ctiData.hasOnGoingMission) {
+                    if (isNewSearch) {
+                        vm.feedbackPlayersPara.index = 1;
+                    }
+                    return vm.getCallOutMissionPlayerDetail();
+                }
                 console.log('vm.feedback', vm.playerFeedbackQuery);
                 vm.exportPlayerFilter = JSON.parse(JSON.stringify(vm.playerFeedbackQuery))
                 let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
@@ -15171,112 +15299,7 @@ define(['js/app'], function (myApp) {
                         index: vm.feedbackPlayersPara.index - 1
                     }, function (data) {
                         console.log('_getSinglePlayerFeedbackQuery', data);
-                        let playerList = [], extendedResult = [];
-                        vm.curFeedbackPlayer = data.data.data;
-                        vm.feedbackPlayersPara.total = data.data.total || 0;
-                        vm.feedbackPlayersPara.index = data.data.index + 1;
-
-                        if (vm.curFeedbackPlayer && !$.isEmptyObject(vm.curFeedbackPlayer)) {
-                            playerList.push(vm.curFeedbackPlayer);
-                            //process data for extended table
-                            if (vm.curFeedbackPlayer.consumptionDetail && !$.isEmptyObject(vm.curFeedbackPlayer.consumptionDetail)) {
-                                vm.playerFeedbackResultExtended = vm.curFeedbackPlayer.consumptionDetail;
-                                vm.playerFeedbackResultExtended.manualTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.manualTopUpAmount).toFixed(2);
-                                vm.playerFeedbackResultExtended.onlineTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.onlineTopUpAmount).toFixed(2);
-                                vm.playerFeedbackResultExtended.weChatTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.weChatTopUpAmount).toFixed(2);
-                                vm.playerFeedbackResultExtended.aliPayTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.aliPayTopUpAmount).toFixed(2);
-                                vm.playerFeedbackResultExtended.topUpAmount$ = parseFloat(vm.curFeedbackPlayer.topUpSum).toFixed(2);
-                                vm.playerFeedbackResultExtended.bonusAmount$ = parseFloat(vm.playerFeedbackResultExtended.bonusAmount).toFixed(2);
-                                vm.playerFeedbackResultExtended.rewardAmount$ = parseFloat(vm.playerFeedbackResultExtended.rewardAmount).toFixed(2);
-                                vm.playerFeedbackResultExtended.consumptionReturnAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionReturnAmount).toFixed(2);
-                                vm.playerFeedbackResultExtended.consumptionAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionAmount).toFixed(2);
-                                vm.playerFeedbackResultExtended.validConsumptionAmount$ = parseFloat(vm.playerFeedbackResultExtended.validConsumptionAmount).toFixed(2);
-                                vm.playerFeedbackResultExtended.consumptionBonusAmount$ = parseFloat(vm.curFeedbackPlayer.bonusAmountSum).toFixed(2);
-
-                                vm.playerFeedbackResultExtended.playerLevel$ = "";
-                                if (vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel]) {
-                                    vm.playerFeedbackResultExtended.playerLevel$ = vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel].name;
-                                }
-                                else {
-                                    vm.playerFeedbackResultExtended.playerLevel$ = "";
-                                }
-
-                                vm.playerFeedbackResultExtended.credibility$ = "";
-                                if (vm.playerFeedbackResultExtended.credibilityRemarks) {
-                                    for (let i = 0; i < vm.playerFeedbackResultExtended.credibilityRemarks.length; i++) {
-                                        for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                                            if (vm.playerFeedbackResultExtended.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
-                                                vm.playerFeedbackResultExtended.credibility$ += vm.credibilityRemarks[j].name + "<br>";
-                                            }
-                                        }
-                                    }
-                                }
-
-                                vm.playerFeedbackResultExtended.providerArr = [];
-                                for (var key in vm.playerFeedbackResultExtended.providerDetail) {
-                                    if (vm.playerFeedbackResultExtended.providerDetail.hasOwnProperty(key)) {
-                                        vm.playerFeedbackResultExtended.providerDetail[key].providerId = key;
-                                        vm.playerFeedbackResultExtended.providerArr.push(vm.playerFeedbackResultExtended.providerDetail[key]);
-                                    }
-                                }
-
-                                vm.playerFeedbackResultExtended.provider$ = "";
-                                if (vm.playerFeedbackResultExtended.providerDetail) {
-                                    for (let i = 0; i < vm.playerFeedbackResultExtended.providerArr.length; i++) {
-                                        vm.playerFeedbackResultExtended.providerArr[i].amount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].amount).toFixed(2);
-                                        vm.playerFeedbackResultExtended.providerArr[i].bonusAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount).toFixed(2);
-                                        vm.playerFeedbackResultExtended.providerArr[i].validAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].validAmount).toFixed(2);
-                                        vm.playerFeedbackResultExtended.providerArr[i].profit = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount / vm.playerFeedbackResultExtended.providerArr[i].validAmount * -100).toFixed(2) + "%";
-                                        for (let j = 0; j < vm.allProviders.length; j++) {
-                                            if (vm.playerFeedbackResultExtended.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
-                                                vm.playerFeedbackResultExtended.providerArr[i].name = vm.allProviders[j].name;
-                                                vm.playerFeedbackResultExtended.provider$ += vm.allProviders[j].name + "<br>";
-                                            }
-                                        }
-                                    }
-                                }
-
-                                vm.playerFeedbackResultExtended.profit$ = 0;
-                                if (vm.playerFeedbackResultExtended.consumptionBonusAmount != 0 && vm.playerFeedbackResultExtended.validConsumptionAmount != 0) {
-                                    vm.playerFeedbackResultExtended.profit$ = parseFloat((vm.playerFeedbackResultExtended.consumptionBonusAmount / vm.playerFeedbackResultExtended.validConsumptionAmount) * -100).toFixed(2) + "%";
-                                }
-
-                                vm.playerFeedbackResultExtended.topUpTimes = vm.curFeedbackPlayer.topUpTimes || 0;
-                                vm.playerFeedbackResultExtended.bonusTimes = vm.curFeedbackPlayer.withdrawTimes || 0;
-                                vm.playerFeedbackResultExtended.consumptionTimes = vm.curFeedbackPlayer.consumptionTimes || 0;
-                                extendedResult.push(vm.playerFeedbackResultExtended);
-                            } //end processing for extended table
-                        }
-
-                        setTableData(vm.playerFeedbackTable, playerList);
-                        vm.drawExtendedFeedbackTable(extendedResult);
-
-                        $('#platformFeedbackSpin').hide();
-                        if (!vm.curFeedbackPlayer) {
-                            $scope.safeApply();
-                            return;
-                        }
-
-                        vm.addFeedback = {
-                            playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
-                            platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
-                        };
-                        if (vm.curFeedbackPlayer._id) {
-                            vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
-                                vm.curPlayerFeedbackDetail = data;
-
-                                vm.curPlayerFeedbackDetail.forEach(item => {
-                                    item.result$ = item.resultName ? item.resultName : $translate(item.result);
-                                });
-
-                                $scope.safeApply();
-                            });
-                            vm.getPlayerCredibilityComment(vm.curFeedbackPlayer._id);
-                            $scope.safeApply();
-                        } else {
-                            vm.curPlayerFeedbackDetail = {};
-                            $scope.safeApply();
-                        }
+                        vm.drawSinglePlayerFeedback(data);
                     });
                 }
                 else {
@@ -15584,6 +15607,9 @@ define(['js/app'], function (myApp) {
                         vm.feedbackPlayersPara.total = 0;
                         vm.callOutMissionStatus = "";
                         setTableData(vm.playerFeedbackTable, []);
+                        vm.drawExtendedFeedbackTable([]);
+                        vm.playerCredibilityComment = [];
+                        vm.curPlayerFeedbackDetail = {};
                     });
                 });
             };
