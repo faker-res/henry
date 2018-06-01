@@ -385,7 +385,7 @@ define(['js/app'], function (myApp) {
 
                         });
                         vm.getClickCountDevice();
-                        vm.getClickCountPageName();
+                        // vm.getClickCountPageName();
                         vm.clickCountTimes = 1;
                         break;
                     case "MANUAL_APPROVAL_PERCENTAGE":
@@ -2492,9 +2492,10 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.getClickCountPageName = function () {
+        vm.getClickCountPageName = function (device) {
             let sendData = {
-                platformId: vm.selectedPlatform._id
+                platformId: vm.selectedPlatform._id,
+                device: device
             };
 
             socketService.$socket($scope.AppSocket, 'getClickCountPageName', sendData, function (data) {
