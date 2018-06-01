@@ -885,7 +885,7 @@ define(['js/app'], function (myApp) {
                             vm.playersQueryCreated = false;
                             vm.configTabClicked();
                             vm.loadAlldepartment();
-                            vm.rewardTabClicked();
+                            // vm.rewardTabClicked();
                             vm.getPlatformRewardProposal();
                             vm.getPlatformPlayersData(true, true);
                             vm.getPlatformPartnersData();
@@ -3203,6 +3203,15 @@ define(['js/app'], function (myApp) {
                     vm.getPlatformGameData();
                 })
             }
+
+            vm.getProviderStatus = (provider) => {
+                if (provider && provider.platformStatusFromCPMS && provider.platformStatusFromCPMS[vm.selectedPlatform.data.platformId]) {
+                    return provider.platformStatusFromCPMS[vm.selectedPlatform.data.platformId];
+                }
+
+                return provider.status;
+            };
+
             vm.getGameStatusClass = function (str) {
                 if (!str) return;
                 if (str == vm.allGameStatusString.ENABLE) {
@@ -5439,7 +5448,6 @@ define(['js/app'], function (myApp) {
                             });
                         }
                     }
-                    $scope.safeApply();
                 });
             };
 
@@ -13735,7 +13743,7 @@ define(['js/app'], function (myApp) {
                     utilService.actionAfterLoaded('#modalPlayerPermissionChangeLog .searchDiv .startTime', function () {
                         vm.playerPermissionQuery.startTime = utilService.createDatePicker('#modalPlayerPermissionChangeLog .searchDiv .startTime');
                         vm.playerPermissionQuery.endTime = utilService.createDatePicker('#modalPlayerPermissionChangeLog .searchDiv .endTime');
-                        vm.playerPermissionQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                        vm.playerPermissionQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 180)));
                         vm.playerPermissionQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     });
                 }
@@ -20570,7 +20578,7 @@ define(['js/app'], function (myApp) {
                     case 'providerGroup':
                         vm.availableGameProviders = vm.allGameProvider;
                         vm.providerGroupConfig = {showWarning: false};
-                        $scope.$evalAsync(vm.getPlatformProviderGroup);
+                        vm.getPlatformProviderGroup();
                         break;
                     case 'smsGroup':
                         vm.deletingSmsGroup = null;
@@ -25211,7 +25219,20 @@ define(['js/app'], function (myApp) {
 
                                 vm.rateAfterRebatePromo = vm.commissionRateConfig.rateAfterRebatePromo;
                                 vm.rateAfterRebatePlatform = vm.commissionRateConfig.rateAfterRebatePlatform;
-                                vm.rateAfterRebateGameProviderGroup = vm.commissionRateConfig.rateAfterRebateGameProviderGroup;
+                                if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
+                                    vm.gameProviderGroup.forEach(gameProviderGroup => {
+                                        let providerGroupRate = {gameProviderGroupId: gameProviderGroup._id, name: gameProviderGroup.name};
+                                        if (vm.commissionRateConfig && vm.commissionRateConfig.rateAfterRebateGameProviderGroup && vm.commissionRateConfig.rateAfterRebateGameProviderGroup.length > 0) {
+                                            vm.commissionRateConfig.rateAfterRebateGameProviderGroup.map(availableProviderGroupRate => {
+                                                if (gameProviderGroup._id == availableProviderGroupRate.gameProviderGroupId) {
+                                                    providerGroupRate = availableProviderGroupRate;
+                                                }
+                                            })
+                                        }
+                                        vm.rateAfterRebateGameProviderGroup.push(providerGroupRate);
+                                    })
+                                }
+
                                 vm.rateAfterRebateTotalDeposit = vm.commissionRateConfig.rateAfterRebateTotalDeposit;
                                 vm.rateAfterRebateTotalWithdrawal = vm.commissionRateConfig.rateAfterRebateTotalWithdrawal;
                                 vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
@@ -25593,7 +25614,7 @@ define(['js/app'], function (myApp) {
                                     let providerGroup = vm.gameProviderGroup[i];
                                     vm.gameProviderGroupNames[providerGroup._id] = providerGroup.name;
                                 }
-                                vm.endLoadWeekDay();
+                                // vm.endLoadWeekDay();
                             });
                         }
                     }
@@ -26493,9 +26514,9 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
 
                 function success(data) {
-                    vm.departments = data.data;
-                    console.log("vm.departments", vm.departments);
-                    $scope.$digest();
+                    $scope.$evalAsync(() => {
+                        vm.departments = data.data;
+                    })
                 }
             }
             vm.initStep = function () {
@@ -27332,47 +27353,37 @@ define(['js/app'], function (myApp) {
                 eventName = "socketConnected";
                 $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
             }
-            $scope.$on(eventName, function (e, d) {
-
-                setTimeout(
-                    function () {
-                        initPageParam();
-
-                        //TODO::TEST CODE
-                        /*
-                         vm.dialogIds = [];
-                         vm.openTestDialog = function () {
-                         var newDivId = "newEditPlayer" + Date.now();
-                         $("#dialogFrame").prepend("<div id='" + newDivId + "'>" + $("#platformEditPlayerTemp").html() + "</div>");
-                         vm.dialogIds.push(newDivId);
-                         };
-                         */
-                        var countDown = -1;
-                        var a = setInterval(function () {
-                            var item = $('#autoRefreshPlayerFlag');
-                            var isRefresh = item && item.length > 0 && item[0].checked;
-                            var mark = $('#timeLeftRefreshPlayer')[0];
-                            $(mark).parent().toggleClass('hidden', countDown < 0);
-                            if (isRefresh) {
-                                if (countDown < 0) {
-                                    countDown = 11
-                                }
-                                if (countDown == 0) {
-                                    vm.advancedPlayerQuery();
-                                    countDown = 11;
-                                }
-                                countDown--;
-                                $(mark).text(countDown);
-                            } else {
-                                countDown = -1;
-                            }
-                        }, 1000);
-                    }
-                );
+            $scope.$on(eventName, () => {
+                initPageParam();
+                loadPlatformData({loadAll: true, noParallelTrigger: true});
             });
+
+            function oneSecIntervalTask () {
+                let countDown = -1;
+                setInterval(() => {
+                    let item = $('#autoRefreshPlayerFlag');
+                    let isRefresh = item && item.length > 0 && item[0].checked;
+                    let mark = $('#timeLeftRefreshPlayer')[0];
+                    $(mark).parent().toggleClass('hidden', countDown < 0);
+                    if (isRefresh) {
+                        if (countDown < 0) {
+                            countDown = 11
+                        }
+                        if (countDown == 0) {
+                            vm.advancedPlayerQuery();
+                            countDown = 11;
+                        }
+                        countDown--;
+                        $(mark).text(countDown);
+                    } else {
+                        countDown = -1;
+                    }
+                }, 1000);
+            }
 
             function initPageParam() {
                 vm.initFeedbackQuery();
+                oneSecIntervalTask();
 
                 vm.queryPara = {};
 
@@ -28147,7 +28158,7 @@ define(['js/app'], function (myApp) {
                 utilService.actionAfterLoaded('#modalForbidGameLog.in #forbidGameSearch .endTime', function () {
                     vm.forbidGameLog.startTime = utilService.createDatePicker('#forbidGameSearch .startTime');
                     vm.forbidGameLog.endTime = utilService.createDatePicker('#forbidGameSearch .endTime');
-                    vm.forbidGameLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                    vm.forbidGameLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 180)));
                     vm.forbidGameLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.forbidGameLog.pageObj = utilService.createPageForPagingTable("#forbidGameTblPage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "forbidGameLog", vm.getForbidGameLog)
@@ -28258,7 +28269,7 @@ define(['js/app'], function (myApp) {
                 utilService.actionAfterLoaded('#modalForbidTopUpLog.in #forbidTopUpSearch .endTime', function () {
                     vm.forbidTopUpLog.startTime = utilService.createDatePicker('#forbidTopUpSearch .startTime');
                     vm.forbidTopUpLog.endTime = utilService.createDatePicker('#forbidTopUpSearch .endTime');
-                    vm.forbidTopUpLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                    vm.forbidTopUpLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 180)));
                     vm.forbidTopUpLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.forbidTopUpLog.pageObj = utilService.createPageForPagingTable("#forbidTopUpTblPage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "forbidTopUpLog", vm.getForbidTopUpLog)
@@ -28366,7 +28377,7 @@ define(['js/app'], function (myApp) {
                 utilService.actionAfterLoaded('#modalForbidRewardLog.in #forbidRewardSearch .endTime', function () {
                     vm.forbidRewardLog.startTime = utilService.createDatePicker('#forbidRewardSearch .startTime');
                     vm.forbidRewardLog.endTime = utilService.createDatePicker('#forbidRewardSearch .endTime');
-                    vm.forbidRewardLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                    vm.forbidRewardLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 180)));
                     vm.forbidRewardLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.forbidRewardLog.pageObj = utilService.createPageForPagingTable("#forbidRewardTblPage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "forbidRewardLog", vm.getForbidRewardLog)
@@ -28472,7 +28483,7 @@ define(['js/app'], function (myApp) {
                 utilService.actionAfterLoaded('#modalForbidRewardPointsEventLog.in #forbidRewardPointsEventSearch .endTime', function () {
                     vm.forbidRewardPointsEventLog.startTime = utilService.createDatePicker('#forbidRewardPointsEventSearch .startTime');
                     vm.forbidRewardPointsEventLog.endTime = utilService.createDatePicker('#forbidRewardPointsEventSearch .endTime');
-                    vm.forbidRewardPointsEventLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                    vm.forbidRewardPointsEventLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 180)));
                     vm.forbidRewardPointsEventLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.forbidRewardPointsEventLog.pageObj = utilService.createPageForPagingTable("#forbidRewardPointsEventTblPage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "forbidRewardPointsEventLog", vm.getForbidRewardPointsEventLog)
