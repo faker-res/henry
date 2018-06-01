@@ -23634,7 +23634,12 @@ define(['js/app'], function (myApp) {
                     };
                     socketService.$socket($scope.AppSocket, 'saveBlockPromoCodeUserGroup', deleteData);
                 } else {
-                    socketService.$socket($scope.AppSocket, 'saveBlockPromoCodeUserGroup', sendData);
+                    socketService.$socket($scope.AppSocket, 'saveBlockPromoCodeUserGroup', sendData, function () {
+                        vm.getPromoCodeUserGroup();
+                        vm.getBlockPromoCodeUserGroup();
+                        vm.getAllPromoCodeUserGroup();
+                        $scope.safeApply();
+                    });
                     vm.saveUserFromGroupToGroup(2, vm.userGroupAllConfig, vm.userGroupConfig)
                 }
             };
