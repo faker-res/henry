@@ -632,22 +632,6 @@ define(['js/app'], function (myApp) {
                 return deferred.promise;
             }
 
-            vm.getAllGameProviders = function (platformId) {
-                if (!platformId) return;
-                socketService.$socket($scope.AppSocket, 'getPlatform', {_id: platformId}, function (data) {
-                    vm.allGameProviders = data.data.gameProviders;
-                    vm.gameProvidersList = {};
-                    vm.allGameProviders.map(provider => {
-                        vm.gameProvidersList[provider._id] = provider;
-                    });
-                    console.log('vm.allGameProviders', vm.allGameProviders);
-                    $scope.safeApply();
-                }, function (err) {
-                    console.log("vm.allGameProviders ERROR", err);
-                });
-            };
-
-
             //////////Lin Hao:: Provider List Delay Popup
             utilService.setupPopover({
                 context: ulMenu,
@@ -803,7 +787,12 @@ define(['js/app'], function (myApp) {
                 getProposalTypeByPlatformId(vm.selectedPlatform.id);
 
                 // Zero dependencies variable
-                const preValue0 = await Promise.all([
+                [vm.rewardList, vm.promoTypeList, vm.allAlipaysAcc, vm.allWechatpaysAcc, vm.allBankTypeList,
+                    vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
+                    vm.allPlayerFeedbackResults, vm.allPlayerFeedbackTopics, vm.allPartnerFeedbackResults,
+                    vm.allPartnerFeedbackTopics, [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes,
+                    [vm.allGameProviders, vm.gameProvidersList]
+                ] = await Promise.all([
                     commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getAllAlipaysByAlipayGroup($scope, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
@@ -812,18 +801,15 @@ define(['js/app'], function (myApp) {
                     commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
-                    commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
+                    commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([])),
+                    commonService.getAllPlayerFeedbackTopics($scope).catch(err => Promise.resolve([])),
+                    commonService.getAllPartnerFeedbackResults($scope).catch(err => Promise.resolve([])),
+                    commonService.getAllPartnerFeedbackTopics($scope).catch(err => Promise.resolve([])),
+                    commonService.getAllGameTypes($scope).catch(err => Promise.resolve([[], []])),
+                    commonService.getAllRewardTypes($scope).catch(err => Promise.resolve([])),
+                    commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []]))
                 ]);
-
-                vm.rewardList = preValue0[0];
-                vm.promoTypeList = preValue0[1];
-                vm.allAlipaysAcc = preValue0[2];
-                vm.allWechatpaysAcc = preValue0[3];
-                vm.allBankTypeList = preValue0[4];
-                vm.allProviders = preValue0[5];
-                vm.allRewardEvent = preValue0[6];
-                vm.rewardPointsAllEvent = preValue0[7];
-                vm.allPartnerCommSettPreview = preValue0[8];
 
                 // 1st dependencies variable
                 const preValue1 = await Promise.all([
@@ -874,7 +860,7 @@ define(['js/app'], function (myApp) {
                     });
                 })
 
-                Q.all([vm.getAllGameProviders(vm.selectedPlatform.id), vm.getAllPlayerLevels(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
+                Q.all([vm.getAllPlayerLevels(), vm.getAllPartnerLevels()]).then(
                     function (data) {
                         $scope.$evalAsync(() => {
                             // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
@@ -3224,7 +3210,7 @@ define(['js/app'], function (myApp) {
                 } else if (str == vm.allGameStatusString.DISABLE) {
                     return 'colorRed';
                 } else if (str == vm.allGameStatusString.MAINTENANCE) {
-                    return 'colorYellow';
+                    return 'colorOrangeImportant text-bold';
                 } else {
                     return 'colorRed';
                 }
@@ -7341,8 +7327,15 @@ define(['js/app'], function (myApp) {
 
             vm.playerBatchPermitTableRowClick = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                 $compile(nRow)($scope);
-            }
+            };
             vm.playerTableRowClick = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                if(vm.ctiData && vm.ctiData.hasOnGoingMission) {
+                    if(aData.callOutMissionStatus == $scope.constCallOutMissionCalleeStatus.SUCCEEDED) {
+                        $(nRow).addClass('callOutSucceeded');
+                    } else if(aData.callOutMissionStatus == $scope.constCallOutMissionCalleeStatus.FAILED) {
+                        $(nRow).addClass('callOutFailed');
+                    }
+                }
                 //MARK!!!
                 $compile(nRow)($scope);
                 //set player color according to status
@@ -8058,7 +8051,6 @@ define(['js/app'], function (myApp) {
                             platformAlipayGroupList: vm.platformAlipayGroupList,
                             platformWechatPayGroupList: vm.platformWechatPayGroupList,
                             platformQuickPayGroupList: vm.platformQuickPayGroupList,
-                            allPlayerTrustLvl: vm.allPlayerTrustLvl,
                             isIdInList: commonService.isIdInList,
                             //vm.platformCreditTransferLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                             updateEditedPlayer: function () {
@@ -14556,7 +14548,7 @@ define(['js/app'], function (myApp) {
                     vm.playerFeedbackQuery.lastFeedbackTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 });
                 vm.playerLastLoginRange = '';
-                $scope.safeApply();
+                // $scope.safeApply();
             };
 
             vm.setLastAccessTimeRange = function () {
@@ -14918,6 +14910,7 @@ define(['js/app'], function (myApp) {
 
             vm.submitPlayerFeedbackQuery = function (isNewSearch) {
                 if (!vm.selectedPlatform) return;
+                if (vm.ctiData.hasOwnProperty('admin')) return;
                 console.log('vm.feedback', vm.playerFeedbackQuery);
                 vm.exportPlayerFilter = JSON.parse(JSON.stringify(vm.playerFeedbackQuery))
                 let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
@@ -15555,14 +15548,67 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'toggleCallOutMissionStatus', {
                     platformObjId: vm.selectedPlatform.id,
                     missionName: vm.ctiData.missionName
-                }, function (data) {});
+                }, function (data) {
+                    console.log("toggleCallOutMissionStatus ret" , data);
+                    if(data && data.data && data.data.hasOwnProperty('status')) {
+                        vm.ctiData.status = data.data.status;
+                        $scope.$evalAsync(function () {
+                            if (vm.ctiData.status == $scope.constCallOutMissionStatus.ON_GOING) {
+                                vm.callOutMissionStatusText = $translate("On Going");
+                            } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.PAUSED) {
+                                vm.callOutMissionStatusText = $translate("Paused");
+                            }
+                        });
+                    }
+                });
             };
 
             vm.stopCallOutMission = function() {
                 socketService.$socket($scope.AppSocket, 'stopCallOutMission', {
                     platformObjId: vm.selectedPlatform.id,
                     missionName: vm.ctiData.missionName
-                }, function (data) {});
+                }, function (data) {
+                    console.log("stopCallOutMission ret" , data);
+                    $scope.$evalAsync(function(){
+                        vm.ctiData = {};
+                        vm.feedbackPlayersPara.total = 0;
+                        vm.callOutMissionStatus = "";
+                        setTableData(vm.playerFeedbackTable, []);
+                    });
+                });
+            };
+
+            vm.getCtiData = function() {
+                socketService.$socket($scope.AppSocket, 'getUpdatedAdminMissionStatusFromCti', {
+                    platformObjId: vm.selectedPlatform.id
+                }, function (data) {
+                    console.log("getCtiData ret",data);
+                    vm.ctiData = data.data;
+                    if(vm.ctiData.hasOnGoingMission) {
+                        let players = [];
+                        let completedAmount = 0;
+                        vm.callOutMissionStatusText = '';
+
+                        vm.ctiData.callee.forEach(callee => {
+                            players.push(Object.assign({},callee.player,{callOutMissionStatus:callee.status}));
+                            if (status == $scope.constCallOutMissionStatus.SUCCEEDED) {
+                                completedAmount++;
+                            }
+                        });
+
+                        if (vm.ctiData.status == $scope.constCallOutMissionStatus.ON_GOING) {
+                            vm.callOutMissionStatusText = $translate("On Going");
+                        } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.PAUSED) {
+                            vm.callOutMissionStatusText = $translate("Paused");
+                        }
+
+                        $scope.$evalAsync(function () {
+                            vm.feedbackPlayersPara.total = vm.ctiData.callee.length;
+                            vm.callOutMissionProgressText = completedAmount + '/' + vm.ctiData.callee.length;
+                        });
+                        setTableData(vm.playerFeedbackTable, players);
+                    }
+                });
             };
             
             vm.getPlayerCreditinFeedbackInfo = function () {
@@ -15671,69 +15717,10 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     });
+                    vm.getCtiData();
                 });
 
                 $scope.safeApply();
-            };
-
-            vm.getAllPlayerFeedbackResults = function () {
-                return $scope.$socketPromise('getAllPlayerFeedbackResults').then(
-                    function (data) {
-                        vm.allPlayerFeedbackResults = data.data;
-                        console.log("vm.allPlayerFeedbackResults", data.data);
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        console.log("vm.allPlayerFeedbackResults", err);
-                    }
-                ).catch(function (err) {
-                    console.log("vm.allPlayerFeedbackResults", err)
-                });
-            };
-
-            vm.getAllPartnerFeedbackResults = function () {
-                return $scope.$socketPromise('getAllPartnerFeedbackResults').then(
-                    function (data) {
-                        vm.allPartnerFeedbackResults = data.data;
-                        console.log("vm.allPartnerFeedbackResults", data.data);
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        console.log("vm.allPartnerFeedbackResults", err);
-                    }
-                ).catch(function (err) {
-                    console.log("vm.allPartnerFeedbackResults", err)
-                });
-            };
-
-            vm.getAllPlayerFeedbackTopics = function () {
-                return $scope.$socketPromise('getAllPlayerFeedbackTopics').then(
-                    function (data) {
-                        vm.allPlayerFeedbackTopics = data.data;
-                        console.log("vm.allPlayerFeedbackTopics", data.data);
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        console.log("vm.allPlayerFeedbackTopics", err);
-                    }
-                ).catch(function (err) {
-                    console.log("vm.allPlayerFeedbackTopics", err)
-                });
-            };
-
-            vm.getAllPartnerFeedbackTopics = function () {
-                return $scope.$socketPromise('getAllPartnerFeedbackTopics').then(
-                    function (data) {
-                        vm.allPartnerFeedbackTopics = data.data;
-                        console.log("vm.allPartnerFeedbackTopics", data.data);
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        console.log("vm.allPartnerFeedbackTopics", err);
-                    }
-                ).catch(function (err) {
-                    console.log("vm.allPartnerFeedbackTopics", err)
-                });
             };
 
             vm.clearFeedBackResultDataStatus = function (rowData) {
@@ -15767,22 +15754,15 @@ define(['js/app'], function (myApp) {
                     reqData.value = vm.addPlayerFeedbackResultData.value;
                     console.log(reqData);
                     return $scope.$socketPromise('createPlayerFeedbackResult', reqData).then(
-                        function (data) {
-                            console.log("vm.addPlayerFeedbackResults()", data);
-                            vm.addPlayerFeedbackResultData.message = "SUCCESS";
-                            vm.addPlayerFeedbackResultData.success = true;
-                            vm.getAllPlayerFeedbackResults();
-                            $scope.safeApply();
+                        () => {
+                            $scope.$evalAsync(async () => {
+                                vm.addPlayerFeedbackResultData.message = "SUCCESS";
+                                vm.addPlayerFeedbackResultData.success = true;
+                                vm.allPlayerFeedbackResults = await commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([]));
+                            })
                         },
                         function (err) {
                             console.log("vm.addPlayerFeedbackResults()ErrIn", err);
-                            vm.addPlayerFeedbackResultData.message = "FAILURE";
-                            vm.addPlayerFeedbackResultData.failure = true;
-                            $scope.safeApply();
-                        }
-                    ).catch(
-                        function (err) {
-                            console.log("vm.addPlayerFeedbackResults()ErrOut", err);
                             vm.addPlayerFeedbackResultData.message = "FAILURE";
                             vm.addPlayerFeedbackResultData.failure = true;
                             $scope.safeApply();
@@ -15795,12 +15775,12 @@ define(['js/app'], function (myApp) {
                     reqData.value = vm.addPartnerFeedbackResultData.value;
                     console.log(reqData);
                     return $scope.$socketPromise('createPartnerFeedbackResult', reqData).then(
-                        function (data) {
-                            console.log("vm.addPartnerFeedbackResults()", data);
-                            vm.addPartnerFeedbackResultData.message = "SUCCESS";
-                            vm.addPartnerFeedbackResultData.success = true;
-                            vm.getAllPartnerFeedbackResults();
-                            $scope.safeApply();
+                        () => {
+                            $scope.$evalAsync(async () => {
+                                vm.addPartnerFeedbackResultData.message = "SUCCESS";
+                                vm.addPartnerFeedbackResultData.success = true;
+                                vm.allPartnerFeedbackResults = await commonService.getAllPartnerFeedbackResults($scope).catch(err => Promise.resolve([]));
+                            })
                         },
                         function (err) {
                             console.log("vm.addPartnerFeedbackResults()ErrIn", err);
@@ -15827,21 +15807,14 @@ define(['js/app'], function (myApp) {
                     reqData._id = vm.deletePlayerFeedbackResultData._id;
                     return $scope.$socketPromise('deletePlayerFeedbackResult', reqData).then(
                         function (data) {
-                            console.log("vm.addPlayerFeedbackResults()", data);
-                            vm.deletePlayerFeedbackResultData.message = "SUCCESS";
-                            vm.deletePlayerFeedbackResultData.success = true;
-                            vm.getAllPlayerFeedbackResults();
-                            $scope.safeApply();
+                            $scope.$evalAsync(async () => {
+                                vm.deletePlayerFeedbackResultData.message = "SUCCESS";
+                                vm.deletePlayerFeedbackResultData.success = true;
+                                vm.allPlayerFeedbackResults = await commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([]));
+                            })
                         },
                         function (err) {
                             console.log("vm.addPlayerFeedbackResults()ErrIn", err);
-                            vm.deletePlayerFeedbackResultData.message = "FAILURE";
-                            vm.deletePlayerFeedbackResultData.failure = true;
-                            $scope.safeApply();
-                        }
-                    ).catch(
-                        function (err) {
-                            console.log("vm.addPlayerFeedbackResults()Out", err);
                             vm.deletePlayerFeedbackResultData.message = "FAILURE";
                             vm.deletePlayerFeedbackResultData.failure = true;
                             $scope.safeApply();
@@ -15852,12 +15825,12 @@ define(['js/app'], function (myApp) {
                 if (rowData && rowData.partnerId) {
                     reqData._id = vm.deletePartnerFeedbackResultData._id;
                     return $scope.$socketPromise('deletePartnerFeedbackResult', reqData).then(
-                        function (data) {
-                            console.log("vm.addPartnerFeedbackResults()", data);
-                            vm.deletePartnerFeedbackResultData.message = "SUCCESS";
-                            vm.deletePartnerFeedbackResultData.success = true;
-                            vm.getAllPartnerFeedbackResults();
-                            $scope.safeApply();
+                        () => {
+                            $scope.$evalAsync(async () => {
+                                vm.deletePartnerFeedbackResultData.message = "SUCCESS";
+                                vm.deletePartnerFeedbackResultData.success = true;
+                                vm.allPartnerFeedbackResults = await commonService.getAllPartnerFeedbackResults($scope).catch(err => Promise.resolve([]));
+                            })
                         },
                         function (err) {
                             console.log("vm.addPartnerFeedbackResults()ErrIn", err);
@@ -15907,22 +15880,13 @@ define(['js/app'], function (myApp) {
                     reqData.value = vm.addPlayerFeedbackTopicData.value;
                     console.log(reqData);
                     return $scope.$socketPromise('createPlayerFeedbackTopic', reqData).then(
-                        function (data) {
-                            console.log("vm.addPlayerFeedbackTopics()", data);
+                        () => $scope.$evalAsync(async () => {
                             vm.addPlayerFeedbackTopicData.message = "SUCCESS";
                             vm.addPlayerFeedbackTopicData.success = true;
-                            vm.getAllPlayerFeedbackTopics();
-                            $scope.safeApply();
-                        },
+                            vm.allPlayerFeedbackTopics = await commonService.getAllPlayerFeedbackTopics($scope).catch(err => Promise.resolve([]));
+                        }),
                         function (err) {
                             console.log("vm.addPlayerFeedbackTopics()ErrIn", err);
-                            vm.addPlayerFeedbackTopicData.message = "FAILURE";
-                            vm.addPlayerFeedbackTopicData.failure = true;
-                            $scope.safeApply();
-                        }
-                    ).catch(
-                        function (err) {
-                            console.log("vm.addPlayerFeedbackTopics()ErrOut", err);
                             vm.addPlayerFeedbackTopicData.message = "FAILURE";
                             vm.addPlayerFeedbackTopicData.failure = true;
                             $scope.safeApply();
@@ -15935,13 +15899,11 @@ define(['js/app'], function (myApp) {
                     reqData.value = vm.addPartnerFeedbackTopicData.value;
                     console.log(reqData);
                     return $scope.$socketPromise('createPartnerFeedbackTopic', reqData).then(
-                        function (data) {
-                            console.log("vm.addPartnerFeedbackTopics()", data);
+                        () => $scope.$evalAsync(async () => {
                             vm.addPartnerFeedbackTopicData.message = "SUCCESS";
                             vm.addPartnerFeedbackTopicData.success = true;
-                            vm.getAllPartnerFeedbackTopics();
-                            $scope.safeApply();
-                        },
+                            vm.allPartnerFeedbackTopics = await commonService.getAllPartnerFeedbackTopics($scope).catch(err => Promise.resolve([]));
+                        }),
                         function (err) {
                             console.log("vm.addPartnerFeedbackTopics()ErrIn", err);
                             vm.addPartnerFeedbackTopicData.message = "FAILURE";
@@ -15966,22 +15928,13 @@ define(['js/app'], function (myApp) {
                 if (rowData && rowData.playerId) {
                     reqData._id = vm.deletePlayerFeedbackTopicData._id;
                     return $scope.$socketPromise('deletePlayerFeedbackTopic', reqData).then(
-                        function (data) {
-                            console.log("vm.addPlayerFeedbackTopics()", data);
+                        () => $scope.$evalAsync(async () => {
                             vm.deletePlayerFeedbackTopicData.message = "SUCCESS";
                             vm.deletePlayerFeedbackTopicData.success = true;
-                            vm.getAllPlayerFeedbackTopics();
-                            $scope.safeApply();
-                        },
+                            vm.allPlayerFeedbackTopics = await commonService.getAllPlayerFeedbackTopics($scope).catch(err => Promise.resolve([]));
+                        }),
                         function (err) {
                             console.log("vm.addPlayerFeedbackTopics()ErrIn", err);
-                            vm.deletePlayerFeedbackTopicData.message = "FAILURE";
-                            vm.deletePlayerFeedbackTopicData.failure = true;
-                            $scope.safeApply();
-                        }
-                    ).catch(
-                        function (err) {
-                            console.log("vm.addPlayerFeedbackTopics()Out", err);
                             vm.deletePlayerFeedbackTopicData.message = "FAILURE";
                             vm.deletePlayerFeedbackTopicData.failure = true;
                             $scope.safeApply();
@@ -15992,13 +15945,11 @@ define(['js/app'], function (myApp) {
                 if (rowData && rowData.partnerId) {
                     reqData._id = vm.deletePartnerFeedbackTopicData._id;
                     return $scope.$socketPromise('deletePartnerFeedbackTopic', reqData).then(
-                        function (data) {
-                            console.log("vm.addPartnerFeedbackTopics()", data);
+                        () => $scope.$evalAsync(async () => {
                             vm.deletePartnerFeedbackTopicData.message = "SUCCESS";
                             vm.deletePartnerFeedbackTopicData.success = true;
-                            vm.getAllPartnerFeedbackTopics();
-                            $scope.safeApply();
-                        },
+                            vm.allPartnerFeedbackTopics = await commonService.getAllPartnerFeedbackTopics($scope).catch(err => Promise.resolve([]));
+                        }),
                         function (err) {
                             console.log("vm.addPartnerFeedbackTopics()ErrIn", err);
                             vm.deletePartnerFeedbackTopicData.message = "FAILURE";
@@ -20578,9 +20529,6 @@ define(['js/app'], function (myApp) {
                         vm.newPartnerLvl = {};
                         vm.getAllPartners();
                         break;
-                    case 'trust':
-                        vm.getAllPlayerTrustLevels();
-                        break;
                     case 'validActive':
                         vm.getPartnerLevelConfig();
                         break;
@@ -21003,14 +20951,14 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'loginRewardPoints':
                         vm.userAgentWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.constPlayerRegistrationInterface);
-                        vm.getAllGameProviders(vm.selectedPlatform.id);
+                        // [vm.allGameProviders, vm.gameProvidersList] = vm.getAllGameProviders(vm.selectedPlatform.id);
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.LOGIN_REWARD_POINTS);
                         break;
                     case 'topupRewardPoints':
                         vm.topupRewardPoints = [];
                         vm.userAgentTypeWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.userAgentType);
                         vm.topupTypeListWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.topUpTypeList);
-                        vm.getAllGameProviders(vm.selectedPlatform.id);
+                        // vm.getAllGameProviders(vm.selectedPlatform.id);
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.TOPUP_REWARD_POINTS);
                         break;
                     case 'gameRewardPoints':
@@ -21018,7 +20966,7 @@ define(['js/app'], function (myApp) {
                         vm.allGameBetType = [];
                         //Todo get all game type
                         //Todo get all game bet type
-                        vm.getAllGameProviders(vm.selectedPlatform.id);
+                        // vm.getAllGameProviders(vm.selectedPlatform.id);
                         vm.getGameProviderToManuallyInsertGameId();
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.GAME_REWARD_POINTS);
                         break;
@@ -24025,7 +23973,6 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getAllPartnerLevels = function () {
-
                 if (!authService.checkViewPermission('Platform', 'Partner', 'Read')) {
                     return;
                 }
@@ -24034,9 +23981,7 @@ define(['js/app'], function (myApp) {
                         vm.allPartnerLevels = data.data;
                         vm.allPartnerLevels.sort(function (a, b) {
                             return a.value > b.value;
-                        })
-                        console.log('ok', vm.allPartnerLevels);
-                        // vm.allPartnerLevelsByValue = Lodash.keyBy(vm.allPartnerLevels, 'value');
+                        });
                         vm.allPartnerLevelsByName = Lodash.keyBy(vm.allPartnerLevels, 'name');
                     });
             };
@@ -24065,27 +24010,28 @@ define(['js/app'], function (myApp) {
                 vm.manualPlayerLevelUp = null;
                 return $scope.$socketPromise('getPlayerLevelByPlatformId', {platformId: vm.selectedPlatform.id})
                     .then(function (data) {
-                        vm.playerLevelPeriod = {};
-                        vm.allPlayerLvl = data.data;
-                        vm.platformBatchLevelUp = true;
-                        vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
-                        vm.manualPlayerLevelUp = vm.selectedPlatform.data.manualPlayerLevelUp;
-                        vm.playerLevelPeriod.playerLevelUpPeriod = vm.selectedPlatform.data.playerLevelUpPeriod ? vm.selectedPlatform.data.playerLevelUpPeriod : vm.allPlayerLevelUpPeriod.MONTH;
-                        vm.playerLevelPeriod.playerLevelDownPeriod = vm.selectedPlatform.data.playerLevelDownPeriod ? vm.selectedPlatform.data.playerLevelDownPeriod : vm.allPlayerLevelUpPeriod.MONTH;
-                        vm.allPlayerLvlReordered = false;
-                        vm.sortPlayerLevels();
-                        console.log("vm.allPlayerLvl", data.data);
-                        vm.playerLvlData = {};
-                        if (vm.allPlayerLvl) {
-                            $.each(vm.allPlayerLvl, function (i, v) {
-                                vm.playerIDArr.push(v._id);
-                                vm.playerLvlData[v._id] = v;
-                            })
-                        }
-                        vm.playerLevelPeriod.levelUpPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelUpPeriod);
-                        vm.playerLevelPeriod.levelDownPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelDownPeriod);
-                        vm.initiateLevelDownPeriodAllField();
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            vm.playerLevelPeriod = {};
+                            vm.allPlayerLvl = data.data;
+                            vm.platformBatchLevelUp = true;
+                            vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
+                            vm.manualPlayerLevelUp = vm.selectedPlatform.data.manualPlayerLevelUp;
+                            vm.playerLevelPeriod.playerLevelUpPeriod = vm.selectedPlatform.data.playerLevelUpPeriod ? vm.selectedPlatform.data.playerLevelUpPeriod : vm.allPlayerLevelUpPeriod.MONTH;
+                            vm.playerLevelPeriod.playerLevelDownPeriod = vm.selectedPlatform.data.playerLevelDownPeriod ? vm.selectedPlatform.data.playerLevelDownPeriod : vm.allPlayerLevelUpPeriod.MONTH;
+                            vm.allPlayerLvlReordered = false;
+                            vm.sortPlayerLevels();
+                            console.log("vm.allPlayerLvl", data.data);
+                            vm.playerLvlData = {};
+                            if (vm.allPlayerLvl) {
+                                $.each(vm.allPlayerLvl, function (i, v) {
+                                    vm.playerIDArr.push(v._id);
+                                    vm.playerLvlData[v._id] = v;
+                                })
+                            }
+                            vm.playerLevelPeriod.levelUpPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelUpPeriod);
+                            vm.playerLevelPeriod.levelDownPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelDownPeriod);
+                            vm.initiateLevelDownPeriodAllField();
+                        })
                     });
             };
 
@@ -24127,15 +24073,6 @@ define(['js/app'], function (myApp) {
             vm.sortPlayerLevels = function () {
                 vm.allPlayerLvl.sort((a, b) => a.value - b.value);
             };
-            vm.getAllPlayerTrustLevels = function () {
-                vm.playerIDArr = [];
-                return $scope.$socketPromise('getPlayerTrustLevelByPlatformId', {platformId: vm.selectedPlatform.id})
-                    .then(function (data) {
-                        vm.allPlayerTrustLvl = data.data;
-                        console.log("vm.allPlayerTrustLvl", data.data);
-                        $scope.safeApply();
-                    });
-            }
 
             vm.getPartnerLevelConfig = function () {
                 return $scope.$socketPromise('getPartnerLevelConfig', {platform: vm.selectedPlatform.id})
@@ -26393,7 +26330,6 @@ define(['js/app'], function (myApp) {
 
             vm.getAdminNameByDepartment = function (departmentId) {
                 socketService.$socket($scope.AppSocket, 'getAdminNameByDepartment', {departmentId}, function (data) {
-                    console.log('getAdminsData', data);
                     vm.adminList = data.data;
                 });
             };
@@ -27371,35 +27307,6 @@ define(['js/app'], function (myApp) {
             }
 
             //////////////////////////initial socket actions//////////////////////////////////
-            vm.getAllGameTypes = function () {
-                return $scope.$socketPromise('getGameTypeList', {})
-                    .then(function (data) {
-                        var gameTypes = data.data;
-                        vm.allGameTypesList = gameTypes;
-                        console.log("vm.allGameTypesList:", vm.allGameTypesList);
-
-                        var allGameTypes = {};
-                        gameTypes.forEach(function (gameType) {
-                            var GAMETYPE = gameType.gameTypeId;
-                            allGameTypes[GAMETYPE] = gameType.name;
-                        });
-                        vm.allGameTypes = allGameTypes;
-                        console.log("vm.allGameTypes", vm.allGameTypes);
-
-                        $scope.safeApply();
-                    }, function (err) {
-                        console.log('err', err);
-                    });
-            };
-
-            vm.getAllRewardTypes = function () {
-                return $scope.$socketPromise('getAllRewardTypes')
-                    .then(function (data) {
-                        vm.allRewardTypes = data.data;
-                        console.log("vm.allRewardTypes", vm.allRewardTypes);
-                    });
-            };
-
             vm.setValue = function (obj, key, val) {
                 if (obj && key) {
                     obj[key] = val;
@@ -27543,35 +27450,23 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 });
-
-                Q.all([vm.getAllPlayerFeedbackResults(), vm.getAllPlayerFeedbackTopics(), vm.getAllPartnerFeedbackResults(), vm.getAllPartnerFeedbackTopics()]).then(
-                    function (data) {
-                        // This init data will be a list of undefineds.
-                        // The above promises don't actually produce data, they just promise to set their vm variables!
-
-                        vm.getAllGameTypes();
-                        vm.getAllRewardTypes();
-                        loadPlatformData();
-                        vm.getAllMessageTypes();
-                        vm.linkProvider();
-                        $.getScript("dataSource/data.js").then(
-                            () => {
-                                $scope.creditChangeTypeStrings = creditChangeTypeStrings.sort(function (a, b) {
-                                    return a < b;
-                                })
-                            }
-                        );
-
-                        window.document.title = $translate("platform") + "->" + $translate(vm.platformPageName);
-                        var showLeft = $cookies.get("platformShowLeft");
-                        if (showLeft === 'false') {
-                            vm.toggleShowPlatformList(false)
-                        }
-                    },
-                    function (error) {
-                        console.warn("init error", error);
+                vm.getAllMessageTypes();
+                vm.linkProvider();
+                $.getScript("dataSource/data.js").then(
+                    () => {
+                        $scope.creditChangeTypeStrings = creditChangeTypeStrings.sort(function (a, b) {
+                            return a < b;
+                        })
                     }
-                ).done();
+                );
+
+                window.document.title = $translate("platform") + "->" + $translate(vm.platformPageName);
+                var showLeft = $cookies.get("platformShowLeft");
+                if (showLeft === 'false') {
+                    vm.toggleShowPlatformList(false)
+                }
+
+
 
                 // Create the view-model for the chart and attach to the scope.
                 //
@@ -27597,15 +27492,8 @@ define(['js/app'], function (myApp) {
                 });
 
                 socketService.$socket($scope.AppSocket, 'getRewardTypesConfig', {}, function (data) {
-                    console.log('rewardType', data);
                     vm.rewardAttrConst = data.data;
                 })
-                socketService.$socket($scope.AppSocket, 'getAllGameProviders', '', function (data) {
-                    vm.allGameProvider = data.data;
-                    console.log("vm.allGameProvider", vm.allGameProvider);
-                    $scope.safeApply();
-                }, function (data) {
-                });
                 vm.generalDataTableOptions = {
                     "paging": true,
                     columnDefs: [{targets: '_all', defaultContent: ' '}],
@@ -30345,17 +30233,10 @@ define(['js/app'], function (myApp) {
                 sendQuery.searchQuery = vm.getPlayerFeedbackQuery();
                 sendQuery.sortCol = VM.playerFeedbackQuery.sortCol || {registrationTime: -1};
 
-                $scope.$socketPromise("createCallOutMission", sendQuery);
-
-                // todo :: add implementation
-                // send adminData, search filter and platform id
-                // on backend,
-                // - search result (return error if empty)
-                // - add cti mission and phone numbers
-                // - once success, add callOutMission and callOutMissionCallee
-                // - return callOutMission and callOutMissionCallee, while start the mission on cti
-
-                // note :: every 10 sec check cti for status if there is any mission on going
+                $scope.$socketPromise("createCallOutMission", sendQuery).then(data => {
+                    console.log(data);
+                    vm.getCtiData();
+                });
             };
 
 

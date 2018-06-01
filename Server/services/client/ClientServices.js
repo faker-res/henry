@@ -123,6 +123,7 @@
                 "getClientData",
                 "saveClientData",
                 "extractUserFromFpms",
+                "getUserInfoFromPopUp",
                 "createPlayerFromTel"
             ];
             addServiceFunctions(sinonet, this, functionNames);

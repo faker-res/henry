@@ -102,6 +102,57 @@ define([], () => {
             return $scope.$socketPromise("getAllPartnerCommSettPreview", {platformObjId: platformObjId}).then(data => data.data)
         };
 
+        self.getAllPlayerFeedbackResults = function ($scope) {
+            return $scope.$socketPromise('getAllPlayerFeedbackResults').then(data => data.data)
+        };
+
+        self.getAllPlayerFeedbackTopics = function ($scope) {
+            return $scope.$socketPromise('getAllPlayerFeedbackTopics').then(data => data.data)
+        };
+
+        self.getAllPartnerFeedbackResults = function ($scope) {
+            return $scope.$socketPromise('getAllPartnerFeedbackResults').then(data => data.data)
+        };
+
+        self.getAllPartnerFeedbackTopics = function ($scope) {
+            return $scope.$socketPromise('getAllPartnerFeedbackTopics').then(data => data.data)
+        };
+
+        self.getAllGameTypes = function ($scope) {
+            return $scope.$socketPromise('getGameTypeList').then(
+                data => {
+                    let gameTypes = data.data;
+                    let allGameTypes = {};
+                    gameTypes.forEach(
+                        gameType => {
+                            allGameTypes[gameType.gameTypeId] = gameType.name;
+                        }
+                    );
+
+                    return [gameTypes, allGameTypes]
+                }
+            );
+        };
+
+        self.getAllRewardTypes = function ($scope) {
+            return $scope.$socketPromise('getAllRewardTypes').then(data => data.data)
+        };
+
+        self.getAllGameProviders = function ($scope, platformId) {
+            if (!platformId) return;
+            return $scope.$socketPromise('getPlatform', {_id: platformId}).then(
+                data => {
+                    let allGameProviders = data.data.gameProviders;
+                    let gameProvidersList = {};
+                    allGameProviders.map(provider => {
+                        gameProvidersList[provider._id] = provider;
+                    });
+
+                    return [allGameProviders, gameProvidersList];
+                }
+            )
+        };
+
         this.updatePageTile = ($translate, pageName, tabName) => {
             window.document.title = $translate(pageName) + "->" + $translate(tabName);
             $(document).one('shown.bs.tab', function (e) {

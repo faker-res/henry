@@ -1,7 +1,7 @@
-const constCallOutMissionStatus = {
+const constCallOutMissionCalleeStatus = {
     CREATED: 0,
     SUCCEEDED: 1,
     FAILED: 2
 };
 
-module.exports = constCallOutMissionStatus;
+module.exports = constCallOutMissionCalleeStatus;
