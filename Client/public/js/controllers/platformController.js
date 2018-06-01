@@ -885,7 +885,7 @@ define(['js/app'], function (myApp) {
                             vm.playersQueryCreated = false;
                             vm.configTabClicked();
                             vm.loadAlldepartment();
-                            vm.rewardTabClicked();
+                            // vm.rewardTabClicked();
                             vm.getPlatformRewardProposal();
                             vm.getPlatformPlayersData(true, true);
                             vm.getPlatformPartnersData();
@@ -5448,7 +5448,6 @@ define(['js/app'], function (myApp) {
                             });
                         }
                     }
-                    $scope.safeApply();
                 });
             };
 
@@ -20579,7 +20578,7 @@ define(['js/app'], function (myApp) {
                     case 'providerGroup':
                         vm.availableGameProviders = vm.allGameProvider;
                         vm.providerGroupConfig = {showWarning: false};
-                        $scope.$evalAsync(vm.getPlatformProviderGroup);
+                        vm.getPlatformProviderGroup();
                         break;
                     case 'smsGroup':
                         vm.deletingSmsGroup = null;
@@ -26515,9 +26514,9 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
 
                 function success(data) {
-                    vm.departments = data.data;
-                    console.log("vm.departments", vm.departments);
-                    $scope.$digest();
+                    $scope.$evalAsync(() => {
+                        vm.departments = data.data;
+                    })
                 }
             }
             vm.initStep = function () {
