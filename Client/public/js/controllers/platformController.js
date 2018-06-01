@@ -3628,7 +3628,7 @@ define(['js/app'], function (myApp) {
                     vm.platformCreditTransferLog.endTime = utilService.createDatePicker('#' + panelBody + ' .endTime');
                     vm.platformCreditTransferLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.platformCreditTransferLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                    vm.platformCreditTransferLog.pageObj = utilService.createPageForPagingTable('#' + tablePage, {}, $translate, function (curP, pageSize) {
+                    vm.platformCreditTransferLog.pageObj = utilService.createPageForPagingTable('#' + tablePage, {pageSize: 50}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, 'platformCreditTransferLog', vm.getPagedPlatformCreditTransferLog)
                     });
                     vm.getPagedPlatformCreditTransferLog(true, isPopup);
@@ -8963,7 +8963,7 @@ define(['js/app'], function (myApp) {
                     vm.playerCreditChangeLog.endTime = utilService.createDatePicker('#playerCreditChangeLog .endTime');
                     vm.playerCreditChangeLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.playerCreditChangeLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                    vm.playerCreditChangeLog.pageObj = utilService.createPageForPagingTable("#playerCreditChangeLogTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.playerCreditChangeLog.pageObj = utilService.createPageForPagingTable("#playerCreditChangeLogTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerCreditChangeLog", vm.getPagedPlayerCreditChangeLog)
                     });
                     vm.getPagedPlayerCreditChangeLog(true);
@@ -9205,7 +9205,7 @@ define(['js/app'], function (myApp) {
                     vm.playerRewardTaskLog.endTime = utilService.createDatePicker('#playerRewardTaskLog .endTime');
                     vm.playerRewardTaskLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.playerRewardTaskLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                    vm.playerRewardTaskLog.pageObj = utilService.createPageForPagingTable("#playerRewardTaskLogTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.playerRewardTaskLog.pageObj = utilService.createPageForPagingTable("#playerRewardTaskLogTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerRewardTaskLog", vm.getPagedPlayerRewardTaskLog)
                     });
                     vm.getPagedPlayerRewardTaskLog(true);
@@ -10685,7 +10685,7 @@ define(['js/app'], function (myApp) {
                     vm.playerProposal.endTime = utilService.createDatePicker('#playerProposalData .endTime');
                     vm.playerProposal.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.playerProposal.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                    vm.playerProposal.pageObj = utilService.createPageForPagingTable("#playerProposalTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.playerProposal.pageObj = utilService.createPageForPagingTable("#playerProposalTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerProposal", vm.getPlayerProposalByFilter)
                     });
                     //set time out to solve $rootScope:inprog error
@@ -10982,7 +10982,7 @@ define(['js/app'], function (myApp) {
                 vm.playerExpenseLog = {totalCount: 0};
                 vm.initQueryTimeFilter('playerExpense', function () {
                     $('#modalPlayerExpenses').modal();
-                    vm.playerExpenseLog.pageObj = utilService.createPageForPagingTable("#playerExpenseTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.playerExpenseLog.pageObj = utilService.createPageForPagingTable("#playerExpenseTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerExpenseLog", vm.getPlayerExpenseByFilter)
                     });
                     vm.getPlayerExpenseByFilter(true);
@@ -13949,7 +13949,7 @@ define(['js/app'], function (myApp) {
                     vm.playerCreditLog.query.endTime = utilService.createDatePicker('#playerCreditLogQuery .endTime');
                     vm.playerCreditLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.playerCreditLog.query.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                    vm.playerCreditLog.pageObj = utilService.createPageForPagingTable("#playerCreditLogTblPage", {}, $translate, function (curP, pageSize) {
+                    vm.playerCreditLog.pageObj = utilService.createPageForPagingTable("#playerCreditLogTblPage", {pageSize: 50}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerCreditLog", vm.getPlayerCreditLogData)
                     });
                     vm.getPlayerCreditLogData(true);
