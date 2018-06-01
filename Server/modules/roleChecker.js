@@ -607,7 +607,7 @@ var roleChecker = {
                 PARTNERCOMMISSION_REPORT: ['getPartnerCommissionReport'],
                 PLAYERDOMAIN_REPORT: ['getPlayerDomainReport', 'getDepartmentDetailsByPlatformObjId'],
                 WINRATE_REPORT: ['winRateReport'],
-                FEEDBACK_REPORT: [],
+                FEEDBACK_REPORT: ['getDepartmentDetailsByPlatformObjId'],
                 PARTNER_SETTLEMENT_HISTORY_REPORT: [],
                 REAL_TIME_COMMISSION_REPORT: ['getCurrentPartnerCommissionDetail'],
             },

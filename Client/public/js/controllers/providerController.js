@@ -121,7 +121,18 @@ define(['js/app'], function (myApp) {
             2: 'colorYellow',
             3: 'colorRed'
         }
+
+        // vm.gePlatformSpecifictProviderStatus = (provider) => {
+        //     if (provider && provider.platformStatusFromCPMS && provider.platformStatusFromCPMS[vm.selectedPlatformID]) {
+        //         return provider.platformStatusFromCPMS[vm.selectedPlatformID];
+        //     }
+        //
+        //     return provider.status;
+        // };
+
         vm.createProviderNode = function (v) {
+            // let providerStatus = vm.gePlatformSpecifictProviderStatus(v); // function fail to get platformId
+            // var colorClass = (v && v.status) ? providerStatusColorObj[providerStatus] : '';
             var colorClass = (v && v.status) ? providerStatusColorObj[v.status] : '';
             var obj = {
                 text: v.name,
