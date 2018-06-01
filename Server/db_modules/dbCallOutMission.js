@@ -534,7 +534,6 @@ function callCtiApiWithRetry (platformId, path, param) {
         let url = urls[triedTimes];
 
         let link = url + path;
-        console.log('link', link)
 
         return new Promise((resolve) => {
             try {
