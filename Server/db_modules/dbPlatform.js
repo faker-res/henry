@@ -2640,9 +2640,10 @@ var dbPlatform = {
         return dbconfig.collection_clickCount.distinct("device", matchObj);
     },
 
-    getClickCountPageName: (platformId) => {
+    getClickCountPageName: (platformId, device) => {
         let matchObj = {
-            platform: platformId
+            platform: platformId,
+            device: device
         };
 
         return dbconfig.collection_clickCount.distinct("pageName", matchObj);
