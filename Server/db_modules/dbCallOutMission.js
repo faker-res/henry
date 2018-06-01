@@ -328,7 +328,7 @@ function getCtiUrls (platformId) {
     platformId = platformId ? String(platformId) : "6";
 
     // todo :: debug used value, delete later
-    platformId = 6;
+    platformId = 8;
 
     let urls = [
         "http://eu.tel400.me/cti/",
@@ -338,6 +338,8 @@ function getCtiUrls (platformId) {
         "http://bbet8.tel400.me/cti/",
         "http://xindelitz.tel400.me/cti/",
         "http://buyuhuang.tel400.me/cti/",
+        "http://hm.tel400.me/cti/",
+        "http://jsh.tel400.me/cti/",
     ];
 
     if (platformId == '6') {
@@ -358,6 +360,14 @@ function getCtiUrls (platformId) {
     } else if (platformId == '9') {
         let jshUrl = urls[6];
         urls[6] = urls[0];
+        urls[0] = jshUrl;
+    } else if (platformId == '5') {
+        let bylUrl = urls[7];
+        urls[7] = urls[0];
+        urls[0] = bylUrl;
+    } else if (platformId == '8') {
+        let jshUrl = urls[8];
+        urls[8] = urls[0];
         urls[0] = jshUrl;
     }
 
@@ -535,6 +545,11 @@ function callCtiApiWithRetry (platformId, path, param) {
                     if (err) {
                         console.error(err);
                         resolve(tryCallCtiApi(nextTriedTimes));
+                    }
+
+                    if (!resp) {
+                        // throw this to prevent passing undefined to JSON.parse function
+                        throw(new Error('Post request get nothing for ' + link));
                     }
 
                     resolve(JSON.parse(body));
