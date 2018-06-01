@@ -5292,7 +5292,7 @@ let dbPlayerInfo = {
                         rewardProm = dbRewardTask.getPlayerCurRewardTask(playerObjId);
                     }
                     let gameCreditProm = {};
-                    if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
+                    if (playerData.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, playerData.platform.platformId) == constGameStatus.ENABLE) {
                         gameCreditProm = cpmsAPI.player_queryCredit(
                             {
                                 username: userName,
@@ -5646,7 +5646,7 @@ let dbPlayerInfo = {
                     gameProvider = data[1];
                     let platformData = playerObj.platform;
 
-                    if (gameProvider.status != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(gameProvider._id)] && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false) {
+                    if (dbUtility.getPlatformSpecificProviderStatus(gameProvider, platformData.platformId) != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(gameProvider._id)] && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false) {
                         deferred.reject({
                             name: "DataError",
                             message: "Provider is not available"
@@ -6081,6 +6081,7 @@ let dbPlayerInfo = {
         ).lean().then(
             playerData => {
                 if (playerData) {
+                    let platform = playerData.platform;
                     returnObj.validCredit = playerData.validCredit;
                     returnObj.lockedCredit = playerData.lockedCredit;
                     return dbconfig.collection_proposal
@@ -6110,7 +6111,7 @@ let dbPlayerInfo = {
                                     }
                                 }
                                 returnObj.pendingRewardAmount = sumAmount;
-                                if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
+                                if (playerData.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE) {
                                     return cpmsAPI.player_queryCredit(
                                         {
                                             username: playerData.name,
@@ -6150,6 +6151,7 @@ let dbPlayerInfo = {
         ).lean().then(
             playerData => {
                 if (playerData) {
+                    let platform = playerData.platform;
                     creditData.validCredit = playerData.validCredit;
                     creditData.lockedCredit = playerData.lockedCredit;
                     return dbconfig.collection_rewardTask.findOne({
@@ -6159,7 +6161,7 @@ let dbPlayerInfo = {
                     }).lean().then(
                         taskData => {
                             creditData.taskData = taskData;
-                            if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
+                            if (playerData.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE) {
                                 return cpmsAPI.player_queryCredit(
                                     {
                                         username: playerData.name,
@@ -9317,6 +9319,7 @@ let dbPlayerInfo = {
         let player = null;
         let bonusDetail = null;
         let bUpdateCredit = false;
+        let platform;
         let resetCredit = function (playerObjId, platformObjId, credit, error) {
             //reset player credit if credit is incorrect
             return dbconfig.collection_players.findOneAndUpdate(
@@ -9350,6 +9353,8 @@ let dbPlayerInfo = {
                         let propQ = {
                             "data._id": String(playerData._id)
                         };
+
+                        platform = playerData.platform;
 
                         return dbPropUtil.getProposalDataOfType(playerData.platform._id, constProposalType.UPDATE_PLAYER_BANK_INFO, propQ).then(
                             proposals => {
@@ -9422,7 +9427,7 @@ let dbPlayerInfo = {
                         let todayTime = dbUtility.getTodaySGTime();
                         let creditProm = Q.resolve();
 
-                        if (player.lastPlayedProvider && player.lastPlayedProvider.status == constGameStatus.ENABLE) {
+                        if (player.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(player.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE) {
                             creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(player.playerId, player.platform._id, player.lastPlayedProvider.providerId, -1, null, true).catch(errorUtils.reportError);
                         }
 
@@ -10376,12 +10381,14 @@ let dbPlayerInfo = {
                     // }
 
                     // Added checking for platform level disable game provider
-                    if (gameData.provider.status != constProviderStatus.NORMAL) {
+
+                    let providerStatus = dbUtility.getPlatformSpecificProviderStatus(gameData.provider, platform.platformId);
+                    if (providerStatus != constProviderStatus.NORMAL) {
                         return Q.reject({
                             status: constServerCode.CP_NOT_AVAILABLE,
                             name: "DataError",
                             message: "Provider is not available",
-                            providerStatus: gameData.provider.status
+                            providerStatus: providerStatus
                         });
                     }
 
@@ -10438,7 +10445,7 @@ let dbPlayerInfo = {
                                                 // Still not enough credit in RTG, transfer out from last provider
                                                 if (retData.rewardCredit < 1
                                                     && playerData.lastPlayedProvider
-                                                    && playerData.lastPlayedProvider.status == constGameStatus.ENABLE
+                                                    && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE
                                                     && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
                                                     return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id,
                                                         playerData.lastPlayedProvider.providerId, -1, null, true);
@@ -10457,7 +10464,7 @@ let dbPlayerInfo = {
                                         return true;
                                     }
                                 } else {
-                                    if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
+                                    if (playerData.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
                                         return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true).then(transferCreditToProvider, errorUtils.reportError);
                                     }
                                     else {

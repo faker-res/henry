@@ -1281,6 +1281,14 @@ var dbUtility = {
         return ipAddress;
     },
 
+    getPlatformSpecificProviderStatus: (provider, platformId) => {
+        if (provider && provider.platformStatusFromCPMS && provider.platformStatusFromCPMS[platformId]) {
+            return provider.platformStatusFromCPMS[platformId];
+        }
+
+        return provider.status;
+    },
+
     noRoundTwoDecimalPlaces: (value) => {
         let decimalPlacesValue = value;
 

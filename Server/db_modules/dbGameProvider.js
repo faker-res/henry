@@ -4,6 +4,7 @@ var dbGameProviderFunc = function () {
 };
 module.exports = new dbGameProviderFunc();
 
+const dbutility = require('./../modules/dbutility');
 var dbconfig = require('./../modules/dbproperties');
 var constServerCode = require('./../const/constServerCode');
 let constProviderStatus = require('./../const/constProviderStatus');
@@ -120,6 +121,17 @@ var dbGameProvider = {
      */
     updateGameProvider: function (query, updateData) {
         return dbconfig.collection_gameProvider.findOneAndUpdate(query, updateData, {new: true}).exec();
+    },
+
+    updateGameProviderStatus: function (providerId, platformId, status) {
+        if (!platformId) {
+            return dbGameProvider.updateGameProvider({providerId: providerId}, {platformStatusFromCPMS: {}, status: status});
+        }
+
+        let key = "platformStatusFromCPMS." + platformId;
+        let setObject = {};
+        setObject[key] = status;
+        return dbconfig.collection_gameProvider.findOneAndUpdate({providerId: providerId}, {$set: setObject}, {new: true}).exec();
     },
 
     /**
@@ -328,7 +340,7 @@ var dbGameProvider = {
                     else {
                         let providers = data.gameProviders.map(
                             (gameProvider) => {
-                                let gameProviderStatus = gameProvider.status;
+                                let gameProviderStatus = dbutility.getPlatformSpecificProviderStatus(gameProvider, platform.platformId);
                                 if (player && player.permission &&  player.permission.forbidPlayerFromEnteringGame) {
                                     gameProviderStatus = constProviderStatus.MAINTENANCE;
                                 }

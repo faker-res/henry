@@ -27,7 +27,7 @@ var ProviderServiceImplement = function () {
     this.changeStatus.expectsData = 'providerId, status';
     this.changeStatus.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.providerId && data.status);
-        WebSocketUtil.performProviderAction(conn, wsFunc,  data,dbGameProvider.updateGameProvider, [{providerId: data.providerId}, data], isValidData, data);
+        WebSocketUtil.performProviderAction(conn, wsFunc, data, dbGameProvider.updateGameProviderStatus, [data.providerId, data.platformId, data.status], isValidData, data);
     };
 
     this.getProviderList.expectsData = '';
