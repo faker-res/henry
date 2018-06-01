@@ -16264,9 +16264,9 @@ define(['js/app'], function (myApp) {
             });
 
             vm.activatePlayerTab = function () {
-                if (vm.selectedPlatform && vm.selectedPlatform.id) {
-                    commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id);
-                }
+                // if (vm.selectedPlatform && vm.selectedPlatform.id) {
+                //     vm.getRewardPointsEvent($scope, vm.selectedPlatform.id);
+                // }
 
                 setTimeout(() => {
                     $('#playerDataTable').resize();
@@ -27479,26 +27479,11 @@ define(['js/app'], function (myApp) {
                     }
                 );
 
-                window.document.title = $translate("platform") + "->" + $translate(vm.platformPageName);
+                window.document.title = $translate("Website Business") + "->" + $translate(vm.platformPageName);
                 var showLeft = $cookies.get("platformShowLeft");
                 if (showLeft === 'false') {
                     vm.toggleShowPlatformList(false)
                 }
-
-
-<<<<<<< HEAD
-                        window.document.title = $translate("Website Business") + "->" + $translate(vm.platformPageName);
-                        var showLeft = $cookies.get("platformShowLeft");
-                        if (showLeft === 'false') {
-                            vm.toggleShowPlatformList(false)
-                        }
-                    },
-                    function (error) {
-                        console.warn("init error", error);
-                    }
-                ).done();
-=======
->>>>>>> upstream/develop-1.1
 
                 // Create the view-model for the chart and attach to the scope.
                 //
