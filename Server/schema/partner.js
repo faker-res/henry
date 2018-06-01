@@ -179,7 +179,7 @@ var partnerSchema = new Schema({
 
 partnerSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('partnerId'));
 
-partnerSchema.pre('save', ensureFieldsAreUnique(['partnerId', 'partnerName']));
+partnerSchema.pre('save', ensureFieldsAreUnique(['partnerId']));
 
 //encrypt password before save
 partnerSchema.pre('save', function (next) {

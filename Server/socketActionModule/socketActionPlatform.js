@@ -584,8 +584,8 @@ function socketActionPlatform(socketIO, socket) {
 
         getClickCountPageName: function getClickCountPageName(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformId);
-            socketUtil.emitter(self.socket, dbPlatform.getClickCountPageName, [ObjectId(data.platformId)], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformId && data.device);
+            socketUtil.emitter(self.socket, dbPlatform.getClickCountPageName, [ObjectId(data.platformId), data.device], actionName, isValidData);
         },
 
         getClickCountButtonName: function getClickCountButtonName(data) {

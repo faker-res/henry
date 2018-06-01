@@ -22,7 +22,7 @@
                 .endTime
             div
                 label {{'DEVICE' | translate}}
-                select.form-control(ng-model='vm.queryPara.clickCount.inputDevice', ng-options="i as v | translate for (i,v) in vm.clickCountDevice", style='max-width:200px')
+                select.form-control(ng-model='vm.queryPara.clickCount.inputDevice', ng-options="i as v | translate for (i,v) in vm.clickCountDevice", style='max-width:200px', ng-change="vm.getClickCountPageName(vm.queryPara.clickCount.inputDevice)")
             div
                 label {{'PAGE_NAME' | translate}}
                 select.form-control(ng-model='vm.queryPara.clickCount.pageName', ng-options="i as v | translate for (i,v) in vm.clickCountPageName", style='max-width:200px')
