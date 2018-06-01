@@ -66,9 +66,6 @@ const dbPlayerUtility = {
         let updateQ = {$set: updateQChild};
         let allowExec = true;
 
-        // Make sure we are getting the correct status of state
-        matchQ[stateName] = !bFlag;
-
         return dbconfig.collection_playerBState.findOneAndUpdate(
             matchQ,
             updateQ,
@@ -78,12 +75,6 @@ const dbPlayerUtility = {
             }
         ).then(
             beforeRec => {
-                // Already in bFlag state, not found
-                if (!beforeRec) {
-                    allowExec = false;
-                }
-
-                // Already in bFlag state after findOneAndUpdate
                 if (beforeRec && beforeRec[stateName] === bFlag) {
                     allowExec = false;
                 }
