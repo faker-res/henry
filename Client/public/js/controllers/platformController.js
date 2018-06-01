@@ -16265,7 +16265,7 @@ define(['js/app'], function (myApp) {
 
             vm.activatePlayerTab = function () {
                 // if (vm.selectedPlatform && vm.selectedPlatform.id) {
-                //     vm.getRewardPointsEvent($scope, vm.selectedPlatform.id);
+                //     vm.getRewardPointsEvent(vm.selectedPlatform.id);
                 // }
 
                 setTimeout(() => {
