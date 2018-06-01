@@ -192,6 +192,8 @@ var dbPlayerConsumptionWeekSummary = {
         var deferred = Q.defer();
         let isLessAmtAfterOffset = false;
 
+        console.log('checkPlatformWeeklyConsumptionReturnForPlayers aaa');
+
         var summaryProm = dbconfig.collection_playerConsumptionSummary.find(
             {
                 platformId: platformId,
@@ -230,6 +232,7 @@ var dbPlayerConsumptionWeekSummary = {
                     var proms = [];
                     players.forEach(
                         function (playerData) {
+                            console.log('playerData', playerData.name);
                             if (playerData && playerData.permission && !(playerData.permission.banReward)) {
                                 //check if platform only allow new system users
                                 if( platformData && platformData.onlyNewCanLogin && !playerData.isNewSystem ){
@@ -295,6 +298,8 @@ var dbPlayerConsumptionWeekSummary = {
                                 let summaryIds = thisPlayersConsumptionSummaries.map(summary => summary._id);
                                 let spendingAmount = returnAmount < 0.01 ? 0 : returnAmount;
 
+                                console.log('first return amount', returnAmount);
+
                                 let proposalData = {
                                     type: proposalTypeId,
                                     entryType: bRequest ? constProposalEntryType.CLIENT : constProposalEntryType.SYSTEM,
@@ -338,6 +343,8 @@ var dbPlayerConsumptionWeekSummary = {
                                         id: playerData.playerId
                                     }
                                 }
+
+                                console.log('before postprom');
 
                                 let postProm = Promise.resolve();
 
@@ -454,6 +461,9 @@ var dbPlayerConsumptionWeekSummary = {
                                             proposalData.data.isIgnoreAudit = eventData.param
                                                 && Number.isInteger(eventData.param.isIgnoreAudit)
                                                 && eventData.param.isIgnoreAudit >= proposalData.data.rewardAmount;
+
+                                            console.log('eventData', eventData);
+                                            console.log('returnAmount', proposalData.data.playerName, returnAmount);
 
                                             // Check minimum xima amount
                                             if (eventData && eventData.param && eventData.param.earlyXimaMinAmount
