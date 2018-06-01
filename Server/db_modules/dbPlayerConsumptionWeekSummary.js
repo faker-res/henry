@@ -294,8 +294,6 @@ var dbPlayerConsumptionWeekSummary = {
                                 let summaryIds = thisPlayersConsumptionSummaries.map(summary => summary._id);
                                 let spendingAmount = returnAmount < 0.01 ? 0 : returnAmount;
 
-                                console.log('first return amount', returnAmount);
-
                                 let proposalData = {
                                     type: proposalTypeId,
                                     entryType: bRequest ? constProposalEntryType.CLIENT : constProposalEntryType.SYSTEM,
@@ -339,8 +337,6 @@ var dbPlayerConsumptionWeekSummary = {
                                         id: playerData.playerId
                                     }
                                 }
-
-                                console.log('before postprom');
 
                                 let postProm = Promise.resolve();
 
