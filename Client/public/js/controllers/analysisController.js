@@ -2486,6 +2486,7 @@ define(['js/app'], function (myApp) {
 
                     // set first page name as default selected page name
                     vm.queryPara.clickCount.inputDevice = vm.clickCountDevice[Object.keys(vm.clickCountDevice)[0]] || "";
+                    vm.getClickCountPageName(vm.queryPara.clickCount.inputDevice);
                 });
             }, function (data) {
                 console.log("clickCount device data not found?", data);
