@@ -143,7 +143,7 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {ObjectId} proposalTypeId
      */
     checkPlatformWeeklyConsumptionReturn: function (platformId, eventData, proposalTypeId, period) {
-
+        console.log("#xima, checkPlatformWeeklyConsumptionReturn1");
         var settleTime = period == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         var balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
@@ -166,6 +166,8 @@ var dbPlayerConsumptionWeekSummary = {
             );
 
             var stream = query.cursor({batchSize: 1000}).allowDiskUse(true).exec();
+
+            console.log("#xima, checkPlatformWeeklyConsumptionReturn2");
 
             return balancer.processStream(
                 {
