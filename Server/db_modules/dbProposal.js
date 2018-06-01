@@ -3401,10 +3401,11 @@ var proposal = {
     },
 
     checkManualTopUpExpiration: function () {
+        let startTime = new Date (new Date().getTime() - 12*60*60*1000);
         return dbconfig.collection_proposal.update(
             {
                 status: constProposalStatus.PENDING,
-                "data.validTime": {$lt: new Date()}
+                "data.validTime": {$lt: new Date(), $gt: startTime}
             },
             {
                 status: constProposalStatus.EXPIRED
