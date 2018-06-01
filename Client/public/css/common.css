@@ -1289,6 +1289,14 @@ a.highlightProposalType:hover {
     color: rgb(216, 193, 19);
 }
 
+.colorOrangeImportant {
+    color: rgb(255, 92, 0) !important;
+}
+
+.text-bold {
+    font-weight: bold;
+}
+
 .bg-pale {
     color: #fff;
     background-color: rgba(51, 122, 183, 0.24);
@@ -2973,4 +2981,11 @@ input[type='number'].leftALignNumber {
     position: absolute;
     top: calc(100% + 1px);
     left: 6px;
+}
+
+.callOutSucceeded {
+    background-color: lightgreen !important;
+}
+.callOutFailed {
+    background-color: rgb(180,180,180) !important;
 }
