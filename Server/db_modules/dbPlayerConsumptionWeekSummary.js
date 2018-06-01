@@ -150,13 +150,12 @@ var dbPlayerConsumptionWeekSummary = {
             // This collects players who have dirty records in the time range, although dirty records will not actually be used during processing.
             // var stream = dbPlayerConsumptionRecord.streamPlayersWithConsumptionSummaryInTimeFrame(startTime, endTime, platformId);
 
-            var query = dbconfig.collection_playerConsumptionSummary.aggregate(
+            var query = dbconfig.collection_playerConsumptionRecord.aggregate(
                 [
                     {
                         $match: {
                             platformId: platformId,
-                            summaryDay: {$gte: settleTime.startTime, $lt: settleTime.endTime},
-                            bDirty: false
+                            createTime: {$gte: settleTime.startTime, $lt: settleTime.endTime}
                         }
                     },
                     {
