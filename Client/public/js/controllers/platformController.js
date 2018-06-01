@@ -27332,47 +27332,37 @@ define(['js/app'], function (myApp) {
                 eventName = "socketConnected";
                 $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
             }
-            $scope.$on(eventName, function (e, d) {
-
-                setTimeout(
-                    function () {
-                        initPageParam();
-
-                        //TODO::TEST CODE
-                        /*
-                         vm.dialogIds = [];
-                         vm.openTestDialog = function () {
-                         var newDivId = "newEditPlayer" + Date.now();
-                         $("#dialogFrame").prepend("<div id='" + newDivId + "'>" + $("#platformEditPlayerTemp").html() + "</div>");
-                         vm.dialogIds.push(newDivId);
-                         };
-                         */
-                        var countDown = -1;
-                        var a = setInterval(function () {
-                            var item = $('#autoRefreshPlayerFlag');
-                            var isRefresh = item && item.length > 0 && item[0].checked;
-                            var mark = $('#timeLeftRefreshPlayer')[0];
-                            $(mark).parent().toggleClass('hidden', countDown < 0);
-                            if (isRefresh) {
-                                if (countDown < 0) {
-                                    countDown = 11
-                                }
-                                if (countDown == 0) {
-                                    vm.advancedPlayerQuery();
-                                    countDown = 11;
-                                }
-                                countDown--;
-                                $(mark).text(countDown);
-                            } else {
-                                countDown = -1;
-                            }
-                        }, 1000);
-                    }
-                );
+            $scope.$on(eventName, () => {
+                initPageParam();
+                loadPlatformData({loadAll: true, noParallelTrigger: true});
             });
+
+            function oneSecIntervalTask () {
+                let countDown = -1;
+                setInterval(() => {
+                    let item = $('#autoRefreshPlayerFlag');
+                    let isRefresh = item && item.length > 0 && item[0].checked;
+                    let mark = $('#timeLeftRefreshPlayer')[0];
+                    $(mark).parent().toggleClass('hidden', countDown < 0);
+                    if (isRefresh) {
+                        if (countDown < 0) {
+                            countDown = 11
+                        }
+                        if (countDown == 0) {
+                            vm.advancedPlayerQuery();
+                            countDown = 11;
+                        }
+                        countDown--;
+                        $(mark).text(countDown);
+                    } else {
+                        countDown = -1;
+                    }
+                }, 1000);
+            }
 
             function initPageParam() {
                 vm.initFeedbackQuery();
+                oneSecIntervalTask();
 
                 vm.queryPara = {};
 
