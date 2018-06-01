@@ -3786,7 +3786,7 @@ define(['js/app'], function (myApp) {
                 vm.newPlayerRecords = {totalCount: 0};
                 vm.initQueryTimeFilter('newPlayerRecords', function () {
                     // $('#modalNewPla').modal();
-                    vm.newPlayerRecords.pageObj = utilService.createPageForPagingTable("#newPlayerListTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.newPlayerRecords.pageObj = utilService.createPageForPagingTable("#newPlayerListTablePage", {pageSize: 100}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "newPlayerRecords", vm.getNewPlayerListByFilter)
                     });
 
@@ -4151,7 +4151,7 @@ define(['js/app'], function (myApp) {
                     name: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.playerName : null,
                     phoneNumber: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.phoneNumber : null,
                     // entryType: vm.queryProposalEntryType,
-                    size: newSearch ? 10 : (vm.newPlayerRecords.limit || 10),
+                    size: newSearch ? 100 : (vm.newPlayerRecords.limit || 100),
                     index: newSearch ? 0 : (vm.newPlayerRecords.index || 0),
                     sortCol: vm.newPlayerRecords.sortCol || null,
                     displayPhoneNum: true
@@ -4217,6 +4217,7 @@ define(['js/app'], function (myApp) {
                             record.registrationTime = (record.data && record.data.registrationTime) ? vm.dateReformat(record.data.registrationTime) : "";
                             record.proposalId = (record.data && record.proposalId) ? record.proposalId : "";
                             record.ipAreaName = (record.data && record.data.ipArea) ? vm.getIpAreaName(record.data.ipArea) : '';
+                            record.domain = (record.data && record.data.domain) ? record.data.domain : "";
                             return record
                         }
                     );
@@ -4958,6 +4959,7 @@ define(['js/app'], function (myApp) {
                             records.registrationTime = records.data.registrationTime ? vm.dateReformat(records.data.registrationTime) : "";
                             records.proposalId = records.proposalId ? records.proposalId : "";
                             records.ipAreaName = records.data.ipArea ? vm.getIpAreaName(records.data.ipArea) : '';
+                            records.domain = (records.data && records.data.domain) ? records.data.domain : "";
                             //arr.push(record);
                             // })
                             //return arr;
@@ -5366,7 +5368,7 @@ define(['js/app'], function (myApp) {
                     console.log("updatePlayerProposalRemarks", sendData);
                     vm.newPlayerProposal.remarks = remarks;
                     vm.editNewplayerRemark = false;
-                    vm.getNewPlayerListByFilter(true);
+                    vm.getNewPlayerListByFilter(false);
                     $scope.safeApply();
                 });
 
