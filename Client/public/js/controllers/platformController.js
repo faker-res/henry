@@ -25614,7 +25614,7 @@ define(['js/app'], function (myApp) {
                                     let providerGroup = vm.gameProviderGroup[i];
                                     vm.gameProviderGroupNames[providerGroup._id] = providerGroup.name;
                                 }
-                                vm.endLoadWeekDay();
+                                // vm.endLoadWeekDay();
                             });
                         }
                     }
