@@ -353,10 +353,6 @@ function getCtiUrls (platformId) {
         let xdlUrl = urls[3];
         urls[3] = urls[1];
         urls[1] = xdlUrl;
-    } else if (platformId == '8') {
-        let jshUrl = urls[3];
-        urls[3] = urls[0];
-        urls[0] = jshUrl;
     } else if (platformId == '9') {
         let jshUrl = urls[6];
         urls[6] = urls[0];
