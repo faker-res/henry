@@ -3203,6 +3203,15 @@ define(['js/app'], function (myApp) {
                     vm.getPlatformGameData();
                 })
             }
+
+            vm.getProviderStatus = (provider) => {
+                if (provider && provider.platformStatusFromCPMS && provider.platformStatusFromCPMS[vm.selectedPlatform.data.platformId]) {
+                    return provider.platformStatusFromCPMS[vm.selectedPlatform.data.platformId];
+                }
+
+                return provider.status;
+            };
+
             vm.getGameStatusClass = function (str) {
                 if (!str) return;
                 if (str == vm.allGameStatusString.ENABLE) {
@@ -3614,7 +3623,7 @@ define(['js/app'], function (myApp) {
                     vm.platformCreditTransferLog.endTime = utilService.createDatePicker('#' + panelBody + ' .endTime');
                     vm.platformCreditTransferLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.platformCreditTransferLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                    vm.platformCreditTransferLog.pageObj = utilService.createPageForPagingTable('#' + tablePage, {}, $translate, function (curP, pageSize) {
+                    vm.platformCreditTransferLog.pageObj = utilService.createPageForPagingTable('#' + tablePage, {pageSize: 50}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, 'platformCreditTransferLog', vm.getPagedPlatformCreditTransferLog)
                     });
                     vm.getPagedPlatformCreditTransferLog(true, isPopup);
@@ -3786,7 +3795,7 @@ define(['js/app'], function (myApp) {
                 vm.newPlayerRecords = {totalCount: 0};
                 vm.initQueryTimeFilter('newPlayerRecords', function () {
                     // $('#modalNewPla').modal();
-                    vm.newPlayerRecords.pageObj = utilService.createPageForPagingTable("#newPlayerListTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.newPlayerRecords.pageObj = utilService.createPageForPagingTable("#newPlayerListTablePage", {pageSize: 100}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "newPlayerRecords", vm.getNewPlayerListByFilter)
                     });
 
@@ -4151,7 +4160,7 @@ define(['js/app'], function (myApp) {
                     name: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.playerName : null,
                     phoneNumber: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.phoneNumber : null,
                     // entryType: vm.queryProposalEntryType,
-                    size: newSearch ? 10 : (vm.newPlayerRecords.limit || 10),
+                    size: newSearch ? 100 : (vm.newPlayerRecords.limit || 100),
                     index: newSearch ? 0 : (vm.newPlayerRecords.index || 0),
                     sortCol: vm.newPlayerRecords.sortCol || null,
                     displayPhoneNum: true
@@ -4217,6 +4226,7 @@ define(['js/app'], function (myApp) {
                             record.registrationTime = (record.data && record.data.registrationTime) ? vm.dateReformat(record.data.registrationTime) : "";
                             record.proposalId = (record.data && record.proposalId) ? record.proposalId : "";
                             record.ipAreaName = (record.data && record.data.ipArea) ? vm.getIpAreaName(record.data.ipArea) : '';
+                            record.domain = (record.data && record.data.domain) ? record.data.domain : "";
                             return record
                         }
                     );
@@ -4958,6 +4968,7 @@ define(['js/app'], function (myApp) {
                             records.registrationTime = records.data.registrationTime ? vm.dateReformat(records.data.registrationTime) : "";
                             records.proposalId = records.proposalId ? records.proposalId : "";
                             records.ipAreaName = records.data.ipArea ? vm.getIpAreaName(records.data.ipArea) : '';
+                            records.domain = (records.data && records.data.domain) ? records.data.domain : "";
                             //arr.push(record);
                             // })
                             //return arr;
@@ -5366,7 +5377,7 @@ define(['js/app'], function (myApp) {
                     console.log("updatePlayerProposalRemarks", sendData);
                     vm.newPlayerProposal.remarks = remarks;
                     vm.editNewplayerRemark = false;
-                    vm.getNewPlayerListByFilter(true);
+                    vm.getNewPlayerListByFilter(false);
                     $scope.safeApply();
                 });
 
@@ -8955,7 +8966,7 @@ define(['js/app'], function (myApp) {
                     vm.playerCreditChangeLog.endTime = utilService.createDatePicker('#playerCreditChangeLog .endTime');
                     vm.playerCreditChangeLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.playerCreditChangeLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                    vm.playerCreditChangeLog.pageObj = utilService.createPageForPagingTable("#playerCreditChangeLogTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.playerCreditChangeLog.pageObj = utilService.createPageForPagingTable("#playerCreditChangeLogTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerCreditChangeLog", vm.getPagedPlayerCreditChangeLog)
                     });
                     vm.getPagedPlayerCreditChangeLog(true);
@@ -9197,7 +9208,7 @@ define(['js/app'], function (myApp) {
                     vm.playerRewardTaskLog.endTime = utilService.createDatePicker('#playerRewardTaskLog .endTime');
                     vm.playerRewardTaskLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.playerRewardTaskLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                    vm.playerRewardTaskLog.pageObj = utilService.createPageForPagingTable("#playerRewardTaskLogTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.playerRewardTaskLog.pageObj = utilService.createPageForPagingTable("#playerRewardTaskLogTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerRewardTaskLog", vm.getPagedPlayerRewardTaskLog)
                     });
                     vm.getPagedPlayerRewardTaskLog(true);
@@ -10677,7 +10688,7 @@ define(['js/app'], function (myApp) {
                     vm.playerProposal.endTime = utilService.createDatePicker('#playerProposalData .endTime');
                     vm.playerProposal.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.playerProposal.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                    vm.playerProposal.pageObj = utilService.createPageForPagingTable("#playerProposalTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.playerProposal.pageObj = utilService.createPageForPagingTable("#playerProposalTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerProposal", vm.getPlayerProposalByFilter)
                     });
                     //set time out to solve $rootScope:inprog error
@@ -10974,7 +10985,7 @@ define(['js/app'], function (myApp) {
                 vm.playerExpenseLog = {totalCount: 0};
                 vm.initQueryTimeFilter('playerExpense', function () {
                     $('#modalPlayerExpenses').modal();
-                    vm.playerExpenseLog.pageObj = utilService.createPageForPagingTable("#playerExpenseTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.playerExpenseLog.pageObj = utilService.createPageForPagingTable("#playerExpenseTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerExpenseLog", vm.getPlayerExpenseByFilter)
                     });
                     vm.getPlayerExpenseByFilter(true);
@@ -13733,7 +13744,7 @@ define(['js/app'], function (myApp) {
                     utilService.actionAfterLoaded('#modalPlayerPermissionChangeLog .searchDiv .startTime', function () {
                         vm.playerPermissionQuery.startTime = utilService.createDatePicker('#modalPlayerPermissionChangeLog .searchDiv .startTime');
                         vm.playerPermissionQuery.endTime = utilService.createDatePicker('#modalPlayerPermissionChangeLog .searchDiv .endTime');
-                        vm.playerPermissionQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                        vm.playerPermissionQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 180)));
                         vm.playerPermissionQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     });
                 }
@@ -13941,7 +13952,7 @@ define(['js/app'], function (myApp) {
                     vm.playerCreditLog.query.endTime = utilService.createDatePicker('#playerCreditLogQuery .endTime');
                     vm.playerCreditLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.playerCreditLog.query.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                    vm.playerCreditLog.pageObj = utilService.createPageForPagingTable("#playerCreditLogTblPage", {}, $translate, function (curP, pageSize) {
+                    vm.playerCreditLog.pageObj = utilService.createPageForPagingTable("#playerCreditLogTblPage", {pageSize: 50}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerCreditLog", vm.getPlayerCreditLogData)
                     });
                     vm.getPlayerCreditLogData(true);
@@ -16253,9 +16264,9 @@ define(['js/app'], function (myApp) {
             });
 
             vm.activatePlayerTab = function () {
-                if (vm.selectedPlatform && vm.selectedPlatform.id) {
-                    vm.getRewardPointsEvent(vm.selectedPlatform.id);
-                }
+                // if (vm.selectedPlatform && vm.selectedPlatform.id) {
+                //     vm.getRewardPointsEvent(vm.selectedPlatform.id);
+                // }
 
                 setTimeout(() => {
                     $('#playerDataTable').resize();
@@ -23634,7 +23645,12 @@ define(['js/app'], function (myApp) {
                     };
                     socketService.$socket($scope.AppSocket, 'saveBlockPromoCodeUserGroup', deleteData);
                 } else {
-                    socketService.$socket($scope.AppSocket, 'saveBlockPromoCodeUserGroup', sendData);
+                    socketService.$socket($scope.AppSocket, 'saveBlockPromoCodeUserGroup', sendData, function () {
+                        vm.getPromoCodeUserGroup();
+                        vm.getBlockPromoCodeUserGroup();
+                        vm.getAllPromoCodeUserGroup();
+                        $scope.safeApply();
+                    });
                     vm.saveUserFromGroupToGroup(2, vm.userGroupAllConfig, vm.userGroupConfig)
                 }
             };
@@ -25204,7 +25220,20 @@ define(['js/app'], function (myApp) {
 
                                 vm.rateAfterRebatePromo = vm.commissionRateConfig.rateAfterRebatePromo;
                                 vm.rateAfterRebatePlatform = vm.commissionRateConfig.rateAfterRebatePlatform;
-                                vm.rateAfterRebateGameProviderGroup = vm.commissionRateConfig.rateAfterRebateGameProviderGroup;
+                                if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
+                                    vm.gameProviderGroup.forEach(gameProviderGroup => {
+                                        let providerGroupRate = {gameProviderGroupId: gameProviderGroup._id, name: gameProviderGroup.name};
+                                        if (vm.commissionRateConfig && vm.commissionRateConfig.rateAfterRebateGameProviderGroup && vm.commissionRateConfig.rateAfterRebateGameProviderGroup.length > 0) {
+                                            vm.commissionRateConfig.rateAfterRebateGameProviderGroup.map(availableProviderGroupRate => {
+                                                if (gameProviderGroup._id == availableProviderGroupRate.gameProviderGroupId) {
+                                                    providerGroupRate = availableProviderGroupRate;
+                                                }
+                                            })
+                                        }
+                                        vm.rateAfterRebateGameProviderGroup.push(providerGroupRate);
+                                    })
+                                }
+
                                 vm.rateAfterRebateTotalDeposit = vm.commissionRateConfig.rateAfterRebateTotalDeposit;
                                 vm.rateAfterRebateTotalWithdrawal = vm.commissionRateConfig.rateAfterRebateTotalWithdrawal;
                                 vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
@@ -27325,47 +27354,37 @@ define(['js/app'], function (myApp) {
                 eventName = "socketConnected";
                 $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
             }
-            $scope.$on(eventName, function (e, d) {
-
-                setTimeout(
-                    function () {
-                        initPageParam();
-
-                        //TODO::TEST CODE
-                        /*
-                         vm.dialogIds = [];
-                         vm.openTestDialog = function () {
-                         var newDivId = "newEditPlayer" + Date.now();
-                         $("#dialogFrame").prepend("<div id='" + newDivId + "'>" + $("#platformEditPlayerTemp").html() + "</div>");
-                         vm.dialogIds.push(newDivId);
-                         };
-                         */
-                        var countDown = -1;
-                        var a = setInterval(function () {
-                            var item = $('#autoRefreshPlayerFlag');
-                            var isRefresh = item && item.length > 0 && item[0].checked;
-                            var mark = $('#timeLeftRefreshPlayer')[0];
-                            $(mark).parent().toggleClass('hidden', countDown < 0);
-                            if (isRefresh) {
-                                if (countDown < 0) {
-                                    countDown = 11
-                                }
-                                if (countDown == 0) {
-                                    vm.advancedPlayerQuery();
-                                    countDown = 11;
-                                }
-                                countDown--;
-                                $(mark).text(countDown);
-                            } else {
-                                countDown = -1;
-                            }
-                        }, 1000);
-                    }
-                );
+            $scope.$on(eventName, () => {
+                initPageParam();
+                loadPlatformData({loadAll: true, noParallelTrigger: true});
             });
+
+            function oneSecIntervalTask () {
+                let countDown = -1;
+                setInterval(() => {
+                    let item = $('#autoRefreshPlayerFlag');
+                    let isRefresh = item && item.length > 0 && item[0].checked;
+                    let mark = $('#timeLeftRefreshPlayer')[0];
+                    $(mark).parent().toggleClass('hidden', countDown < 0);
+                    if (isRefresh) {
+                        if (countDown < 0) {
+                            countDown = 11
+                        }
+                        if (countDown == 0) {
+                            vm.advancedPlayerQuery();
+                            countDown = 11;
+                        }
+                        countDown--;
+                        $(mark).text(countDown);
+                    } else {
+                        countDown = -1;
+                    }
+                }, 1000);
+            }
 
             function initPageParam() {
                 vm.initFeedbackQuery();
+                oneSecIntervalTask();
 
                 vm.queryPara = {};
 
@@ -28140,7 +28159,7 @@ define(['js/app'], function (myApp) {
                 utilService.actionAfterLoaded('#modalForbidGameLog.in #forbidGameSearch .endTime', function () {
                     vm.forbidGameLog.startTime = utilService.createDatePicker('#forbidGameSearch .startTime');
                     vm.forbidGameLog.endTime = utilService.createDatePicker('#forbidGameSearch .endTime');
-                    vm.forbidGameLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                    vm.forbidGameLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 180)));
                     vm.forbidGameLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.forbidGameLog.pageObj = utilService.createPageForPagingTable("#forbidGameTblPage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "forbidGameLog", vm.getForbidGameLog)
@@ -28251,7 +28270,7 @@ define(['js/app'], function (myApp) {
                 utilService.actionAfterLoaded('#modalForbidTopUpLog.in #forbidTopUpSearch .endTime', function () {
                     vm.forbidTopUpLog.startTime = utilService.createDatePicker('#forbidTopUpSearch .startTime');
                     vm.forbidTopUpLog.endTime = utilService.createDatePicker('#forbidTopUpSearch .endTime');
-                    vm.forbidTopUpLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                    vm.forbidTopUpLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 180)));
                     vm.forbidTopUpLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.forbidTopUpLog.pageObj = utilService.createPageForPagingTable("#forbidTopUpTblPage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "forbidTopUpLog", vm.getForbidTopUpLog)
@@ -28359,7 +28378,7 @@ define(['js/app'], function (myApp) {
                 utilService.actionAfterLoaded('#modalForbidRewardLog.in #forbidRewardSearch .endTime', function () {
                     vm.forbidRewardLog.startTime = utilService.createDatePicker('#forbidRewardSearch .startTime');
                     vm.forbidRewardLog.endTime = utilService.createDatePicker('#forbidRewardSearch .endTime');
-                    vm.forbidRewardLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                    vm.forbidRewardLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 180)));
                     vm.forbidRewardLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.forbidRewardLog.pageObj = utilService.createPageForPagingTable("#forbidRewardTblPage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "forbidRewardLog", vm.getForbidRewardLog)
@@ -28465,7 +28484,7 @@ define(['js/app'], function (myApp) {
                 utilService.actionAfterLoaded('#modalForbidRewardPointsEventLog.in #forbidRewardPointsEventSearch .endTime', function () {
                     vm.forbidRewardPointsEventLog.startTime = utilService.createDatePicker('#forbidRewardPointsEventSearch .startTime');
                     vm.forbidRewardPointsEventLog.endTime = utilService.createDatePicker('#forbidRewardPointsEventSearch .endTime');
-                    vm.forbidRewardPointsEventLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                    vm.forbidRewardPointsEventLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 180)));
                     vm.forbidRewardPointsEventLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.forbidRewardPointsEventLog.pageObj = utilService.createPageForPagingTable("#forbidRewardPointsEventTblPage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "forbidRewardPointsEventLog", vm.getForbidRewardPointsEventLog)

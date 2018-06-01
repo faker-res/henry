@@ -358,7 +358,7 @@ function socketActionProposal(socketIO, socket) {
             var startTime = data.startDate ? data.startDate : null;
             var endTime = data.endDate ? data.endDate : null;
             var index = data.index || 0;
-            var size = data.size || 10;
+            var size = data.size || 100;
             var sortCol = data.sortCol || {"createTime": -1};
             socketUtil.emitter(self.socket, dbProposal.getPlayerProposalsForPlatformId, [data.platformId, data.type, data.status, data.name, data.phoneNumber, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.proposalId], actionName, isValidData);
         },
