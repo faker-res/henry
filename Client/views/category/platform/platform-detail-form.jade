@@ -254,7 +254,7 @@ form(name="form_new_platform" ,novalidate)
 
                     .well(style="margin-top: 50px; background-color: white;" )
                         .row(style="text-align: right; margin-bottom: 10px;" ng-if="!vm.addNewPlayerAdvertisement")
-                            button.common-button.btn.btn-info(ng-click="vm.getNextOrderNo();vm.addNewPlayerAdvertisement=true", ng-disabled="vm.isNotAllowEdit" style="width: auto; background-color: #5bc0de") {{'ADD' | translate}}
+                            button.common-button.btn.btn-info(ng-click="vm.getNextOrderNo();vm.addNewPlayerAdvertisement=true" style="width: auto; background-color: #5bc0de") {{'ADD' | translate}}
                         .row(style="text-align: center; margin-bottom: 10px;" ng-if="vm.addNewPlayerAdvertisement")
                             label {{"Add new advertisement" | translate}}
                         .row(style="overflow-x: scroll; max-height: 250px;" ng-if="vm.addNewPlayerAdvertisement")
@@ -529,7 +529,7 @@ form(name="form_new_platform" ,novalidate)
 
                     .well(style="margin-top: 50px; background-color: white;" )
                         .row(style="text-align: right; margin-bottom: 10px;" ng-if="!vm.addNewPartnerAdvertisement")
-                            button.common-button.btn.btn-info(ng-click="vm.getPartnerNextOrderNo();vm.addNewPartnerAdvertisement=true", ng-disabled="vm.isNotAllowEdit" style="width: auto; background-color: #5bc0de") {{'ADD' | translate}}
+                            button.common-button.btn.btn-info(ng-click="vm.getPartnerNextOrderNo();vm.addNewPartnerAdvertisement=true" style="width: auto; background-color: #5bc0de") {{'ADD' | translate}}
                         .row(style="text-align: center; margin-bottom: 10px;" ng-if="vm.addNewPartnerAdvertisement")
                             label {{"Add new advertisement" | translate}}
                         .row(style="overflow-x: scroll; max-height: 250px;" ng-if="vm.addNewPartnerAdvertisement")
