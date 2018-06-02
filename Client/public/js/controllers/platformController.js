@@ -14920,16 +14920,23 @@ define(['js/app'], function (myApp) {
 
             vm.getCallOutMissionPlayerDetail = function() {
                 if(vm.playerFeedbackSearchType == "one") {
-                    let query = {
-                        _id: vm.ctiData.callee[vm.feedbackPlayersPara.index - 1].player._id
-                    };
-                    socketService.$socket($scope.AppSocket, 'getSinglePlayerFeedbackQuery', {
-                        query: query,
-                        index: 0
+                    socketService.$socket($scope.AppSocket, 'getUpdatedAdminMissionStatusFromCti', {
+                        platformObjId: vm.selectedPlatform.id
                     }, function (data) {
-                        console.log('_getSinglePlayerFeedbackQuery for CallOutMission', data);
-                        vm.drawSinglePlayerFeedback(data);
+                        vm.ctiData = data.data;
+                        let query = {
+                            _id: vm.ctiData.callee[vm.feedbackPlayersPara.index - 1].player._id
+                        };
+                        socketService.$socket($scope.AppSocket, 'getSinglePlayerFeedbackQuery', {
+                            query: query,
+                            index: 0
+                        }, function (data) {
+                            console.log('_getSinglePlayerFeedbackQuery for CallOutMission', data);
+                            vm.drawSinglePlayerFeedback(data);
+                        });
                     });
+                } else {
+                    vm.getCtiData();
                 }
             };
 

@@ -165,6 +165,9 @@
     label.inlineBlk(ng-show='vm.ctiData.hasOnGoingMission') {{vm.ctiData.adminName}} : {{vm.callOutMissionStatusText}}  /  {{"Completed" | translate}} : ({{vm.callOutMissionProgressText}})
     .inlineBlk
         .btn.btn-primary(ng-click="vm.createCallOutMission()" ng-if="checkViewPermission('Platform','Feedback','BulkCall') && !vm.ctiData.hasOnGoingMission") {{"BULK_CALL" | translate}}
+    .pull-right
+        a.fa.fa-refresh.margin-top-5(ng-click='vm.submitPlayerFeedbackQuery()')
+            text.margin-right-5.pull-left {{"Refresh" | translate}}
 
 .row.margin-top-bottom-small(ng-show='vm.selectedPlatform')
     .col-md-12
