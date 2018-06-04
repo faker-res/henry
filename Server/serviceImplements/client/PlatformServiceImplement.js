@@ -24,10 +24,14 @@ var PlatformServiceImplement = function () {
     this.getPlatformAnnouncements.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.platformId);
         data = data || {};
-        if(!data.reach){
-            data.reach = "";
+        let inputData = {}
+        if(data.platformId){
+            inputData.platformId = data.platformId;
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformAnnouncement.getPlatformAnnouncementsByPlatformId, [{platformId: data.platformId, reach: data.reach}], isValidData, null, null, true);
+        if(data.reach){
+            inputData.reach = data.reach;
+        }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformAnnouncement.getPlatformAnnouncementsByPlatformId, [inputData], isValidData, null, null, true);
     };
 
     this.getConfig.expectsData = 'platformId: String';

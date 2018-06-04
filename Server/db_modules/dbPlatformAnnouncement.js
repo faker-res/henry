@@ -27,11 +27,6 @@ var dbPlatformAnnouncement = {
      * @param {String} query
      */
     getPlatformAnnouncements: function (query) {
-        if(query.hasOwnProperty("reach")){
-            if(!query.reach){
-                delete query.reach;
-            }
-        }
         return dbconfig.collection_platformAnnouncement.find(query);
     },
 
