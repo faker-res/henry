@@ -84,7 +84,7 @@ var dbGameProviderDaySummary = {
                     }
                 }
             ]
-        ).exec().then(
+        ).read("secondaryPreferred").exec().then(
             function (data) {
                 if (data && data.length > 0) {
                     var prom = [];
