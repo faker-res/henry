@@ -104,7 +104,7 @@ form(name="form_new_platform" ,novalidate)
                         input.form-control(type="text", placeholder="{{'WEIXIN_PHOTO' | translate}}", ng-model="vm.showPlatform.weixinPhotoUrl", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"WEBSITE_LOGO" | translate}} ({{"IMAGE_URL" | translate}})
-                        input.form-control(type="text", placeholder="{{'WEBSITE_LOGO' | translate}}", ng-model="vm.showPlatform.playerWebLogo", ng-disabled="vm.isNotAllowEdit")
+                        input.form-control(type="text", placeholder="{{'WEBSITE_LOGO' | translate}}", ng-model="vm.showPlatform.playerWebLogoUrl", ng-disabled="vm.isNotAllowEdit")
 
                 #advertisementPanel.panel-body(ng-if="vm.playerDisplayDataTab === 'advertisementPanel'", style="background-color: white;")
                     #playerAdvertisementRecords.adminLogQueryDiv
@@ -381,8 +381,8 @@ form(name="form_new_platform" ,novalidate)
                         label.control-label {{"PARTNER_WEIXIN_PHOTO" | translate}}
                         input.form-control(type="text", placeholder="{{'WEIXIN_PHOTO' | translate}}", ng-model="vm.showPlatform.partnerWeixinPhotoUrl", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
-                        label.control-label {{"WEBSITE_LOGO" | translate}}
-                        input.form-control(type="text", placeholder="{{'WEBSITE_LOGO' | translate}}", ng-model="vm.showPlatform.partnerWebLogo", ng-disabled="vm.isNotAllowEdit")
+                        label.control-label {{"WEBSITE_LOGO_PARTNER" | translate}} ({{"IMAGE_URL" | translate}})
+                        input.form-control(type="text", placeholder="{{'WEBSITE_LOGO_PARTNER' | translate}}", ng-model="vm.showPlatform.partnerWebLogoUrl", ng-disabled="vm.isNotAllowEdit")
 
                 #partnerAdvertisementPanel.panel-body(ng-if="vm.partnerDisplayDataTab === 'partnerAdvertisementPanel'", style="background-color: white;")
                     #partnerAdvertisementRecords.adminLogQueryDiv

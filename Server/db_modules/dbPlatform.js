@@ -2424,6 +2424,13 @@ var dbPlatform = {
                             });
                         }
 
+                        if (data.playerWebLogoUrl) {
+                            returnedObj.playerWebLogoUrl.push({
+                                isImg: 0,
+                                value: data.playerWebLogoUrl
+                            });
+                        }
+
                         if (data.csUrl) {
                             returnedObj.live800 = data.csUrl;
                         }
