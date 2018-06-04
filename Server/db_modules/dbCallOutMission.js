@@ -11,6 +11,7 @@ const errorUtils = require("./../modules/errorUtils");
 let dbCallOutMission = {
     createCallOutMission: (platformObjId, adminObjId, searchFilter, searchQuery, sortCol) => {
         let platform, admin, calleeList, callOutMission;
+        searchQuery = typeof searchQuery == "string" ? JSON.parse(searchQuery) : searchQuery;
 
         let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
         let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
@@ -303,7 +304,7 @@ function getCalleeList (query, sortCol) {
             query.isRealPlayer = true;
             query.partner = {$ne: null};
     }
-    if ("playerType" in query) {
+    if (query.playerType) {
         delete query.playerType;
     }
 

@@ -1290,22 +1290,17 @@ var dbUtility = {
     },
 
     noRoundTwoDecimalPlaces: (value) => {
-        let decimalPlacesValue = value;
+        let splitString =  value.toLocaleString().split(".");
 
-        if (Number.isInteger(value)){
-            decimalPlacesValue = value.toLocaleString() + '.00';
-        }
-        else{
-            let splitString =  value.toLocaleString().split(".");
-            if (splitString[1] && splitString[1].length == 1) {
-                decimalPlacesValue = value.toLocaleString() + '0';
-            }
-            else{
-                decimalPlacesValue = (Number.isFinite(parseFloat(value)) ? Math.floor(parseFloat(value) * 100 ) / 100 : value).toLocaleString();
-            }
+        let tempNum = splitString[0];
+
+        if (splitString[1]) {
+            tempNum += "." + splitString[1].substr(0,2);
         }
 
-        return decimalPlacesValue;
+        tempNum = tempNum.replace(/,/g,"");
+
+        return parseFloat(tempNum);
     }
 };
 

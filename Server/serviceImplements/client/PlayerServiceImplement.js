@@ -343,14 +343,15 @@ let PlayerServiceImplement = function () {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
         data.userAgent = userAgent;
         let isValidData = Boolean(data && data.platformId && data.playerId && (data.playerId == conn.playerId) && data.smsCode);
-        data.phoneNumber = data.phoneNumber || "";
-        let queryRes = queryPhoneLocation(data.phoneNumber);
-        if (queryRes) {
-            data.phoneProvince = queryRes.province;
-            data.phoneCity = queryRes.city;
-            data.phoneType = queryRes.type;
-        }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.userAgent, data.platformId, data.playerId, data.newPhoneNumber.toString(), data.smsCode, 0], isValidData);
+        // data.phoneNumber = data.phoneNumber || "";
+        data.newPhoneNumber = data.newPhoneNumber || "";
+        // let queryRes = queryPhoneLocation(data.phoneNumber);
+        // if (queryRes) {
+        //     data.phoneProvince = queryRes.province;
+        //     data.phoneCity = queryRes.city;
+        //     data.phoneType = queryRes.type;
+        // }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.userAgent, data.platformId, data.playerId, String(data.newPhoneNumber), data.smsCode, 0], isValidData);
     };
 
     this.updatePlayerPartnerPhoneNumberWithSMS.expectsData = 'playerId: String, phoneNumber: Number';
