@@ -7069,7 +7069,10 @@ let dbPartner = {
 
                     let playerMatchQuery = {
                         $match: {
-                            partner: {$exists: true},
+                            $and: [
+                                {partner: {$exists: true}},
+                                {partner: {$ne: null}}
+                            ],
                             platform: platformObj._id,
                         }
                     };
@@ -7150,7 +7153,10 @@ let dbPartner = {
                     }
                     let allPlayerObj = [];
                     let stream = dbconfig.collection_players.find({
-                        partner : {$exists: true},
+                        $and: [
+                            {partner: {$exists: true}},
+                            {partner: {$ne: null}}
+                        ],
                         platform: platformObj._id
                     }, {partner: 1}).cursor({batchSize: 100});
                     let balancer = new SettlementBalancer();
@@ -8707,7 +8713,10 @@ function billBoardAmtRankingNoPeriod (platformObj, partnerObj, totalRecord, obje
     return dbconfig.collection_players.aggregate([
         {
             $match: {
-                partner : {$exists: true},
+                $and: [
+                    {partner: {$exists: true}},
+                    {partner: {$ne: null}}
+                ],
                 platform: platformObj._id
             }
         },
@@ -8775,7 +8784,10 @@ function billBoardAmtRanking (platformObj, partnerObj, recordDate, totalRecord, 
     let allPlayerObj = [];
     let returnData = {}
     let stream = dbconfig.collection_players.find({
-        partner : {$exists: true},
+        $and: [
+        {partner: {$exists: true}},
+        {partner: {$ne: null}}
+        ],
         platform: platformObj._id
     }, {partner: 1}).cursor({batchSize: 100});
     // let stream = query.cursor({batchSize: 100}).allowDiskUse(true).exec();
