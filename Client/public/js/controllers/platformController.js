@@ -19949,7 +19949,7 @@ define(['js/app'], function (myApp) {
                 vm.platformRewardIsEnabled = !disabled;
                 if (vm.isRandomReward) {
                     $("#rewardMainTasks [data-cond-name='applyType']").prop("disabled", true);
-                    $("#rewardMainTasks [data-cond-name='canApplyFromClient']").prop("disabled", true);
+                    $("#rewardMainTasks [data-cond-name='canApplyFromClient']").prop("disabled", false);
                 }
             }
 
