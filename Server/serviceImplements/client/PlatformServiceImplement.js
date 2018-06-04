@@ -65,7 +65,7 @@ var PlatformServiceImplement = function () {
         if(data.requestCount > constSystemParam.REPORT_MAX_RECORD_NUM){
             data.requestCount = constSystemParam.REPORT_MAX_RECORD_NUM;
         }
-        if( !data.startTime || new Date(data.startTime).getTime() - new Date().getTime() > 24 * 60 * 1000 * 1000 ){
+        if( !data.startTime || (new Date().getTime() - new Date(data.startTime).getTime() > 24 * 60 * 1000 * 1000) ){
             data.startTime =  new Date(new Date().getTime() - 24 * 60 * 1000 * 1000);
         }
         data.minBonusAmount = data.minBonusAmount || 0;
