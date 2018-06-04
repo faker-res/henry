@@ -804,7 +804,7 @@ db.rewardParam.update({
                     type: "checkbox",
                     des: "Is player manually applicable",
                     disabled: true,
-                    value: true
+                    value: false
                 }
             }),
             periodCond: {
