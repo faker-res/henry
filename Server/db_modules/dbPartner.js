@@ -7282,8 +7282,8 @@ let dbPartner = {
                         proposalTypeData => {
                             if (proposalTypeData && proposalTypeData._id) {
                                 let partnerRanking;
-                                returnData["totalcommission "] = {};
-                                returnData["totalcommission "].boardRanking = [];
+                                returnData["totalcommission"] = {};
+                                returnData["totalcommission"].boardRanking = [];
 
                                 let proposalMatchQuery = {
                                     $match: {
@@ -7340,15 +7340,15 @@ let dbPartner = {
                                                         }
                                                     }
                                                     if (partnerObj) {
-                                                        returnData["totalcommission "].partnerRanking = {};
+                                                        returnData["totalcommission"].partnerRanking = {};
                                                         if (partnerRanking) {
-                                                            returnData["totalcommission "].partnerRanking = partnerRanking;
+                                                            returnData["totalcommission"].partnerRanking = partnerRanking;
                                                         } else {
-                                                            returnData["totalcommission "].partnerRanking.error = "No record for this partner";
+                                                            returnData["totalcommission"].partnerRanking.error = "No record for this partner";
                                                         }
                                                     }
 
-                                                    returnData["totalcommission "].boardRanking = populatedData;
+                                                    returnData["totalcommission"].boardRanking = populatedData;
                                                     return returnData;
                                                 }
                                             );
