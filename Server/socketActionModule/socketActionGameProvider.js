@@ -137,7 +137,7 @@ function socketActionGame(socketIO, socket) {
          */
         manualDailyProviderSettlement: function manualDailyProviderSettlement(data) {
             var actionName = arguments.callee.name;
-            let sevenDayAgo = (new Date).setDate((new Date).getDate() - 7);
+            let sevenDayAgo = (new Date).setDate((new Date).getDate() - 14);
             var isValidData = Boolean(data && data.providerId && data.settlementDay && new Date(data.settlementDay) > sevenDayAgo);
             socketUtil.emitter(self.socket, dailyProviderSettlement.manualDailyProviderSettlement, [ObjectId(data.providerId), new Date(data.settlementDay), data.selectedPlatformID], actionName, isValidData);
         },
