@@ -272,7 +272,9 @@ var platformSchema = new Schema({
     // call out mission number of call in parallel happen per idle agent
     idleAgentMultiple: {type: Number},
     //client type
-    clientData: {type: String}
+    clientData: {type: String},
+    //call Request URL config
+    callRequestUrlConfig: {type: String}
 });
 
 //add platform id before save

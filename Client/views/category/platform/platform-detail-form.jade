@@ -7,43 +7,34 @@ form(name="form_new_platform" ,novalidate)
                     label.control-label *{{"PLATFORM_NAME" | translate}}
                     input.form-control(type="text", placeholder="{{'PLATFORM_NAME' | translate}}", ng-model="vm.showPlatform.name", ng-disabled="vm.isNotAllowEdit", required)
                 div.form-group.col-md-6
-                    label.control-label *{{"OPERATION_DEPARTMENT" | translate}}
-                    select.form-control(ng-model="vm.showPlatform.department._id", ng-disabled="vm.isNotAllowEdit", required)
-                        option(ng-repeat='(i,v) in vm.departments',value='{{v._id}}', ng-selected='vm.showPlatform.department._id==v._id') {{v.departmentName}}
-                div.form-group.col-md-6
-                    label.control-label *{{"PLATFORM_CODE" | translate}}
-                    input.form-control(type="text", placeholder="{{'PLATFORM_CODE' | translate}}", ng-model="vm.showPlatform.code", ng-disabled="vm.isNotAllowEdit", required)
-                div.form-group.col-md-6
                     label.control-label *{{"PLATFORM_ID" | translate}}
-                    input.form-control(type="text", placeholder="{{'PLATFORM_ID' | translate}}", ng-model="vm.showPlatform.platformId", ng-disabled="vm.isNotAllowEdit", required)
+                    div
+                    input.form-control(type="text", placeholder="{{'PLATFORM_ID' | translate}}", ng-model="vm.showPlatform.platformId", ng-disabled="!vm.isCreateNewPlatform")
                 div.form-group.col-md-6
-                    label.control-label {{"PLATFORM_PREFIX" | translate}}
+                    label.control-label *{{"PLATFORM_SHORTFORM" | translate}}
+                    input.form-control(type="text", placeholder="{{'PLATFORM_CODE' | translate}}", ng-model="vm.showPlatform.code", ng-disabled="vm.isNotAllowEdit", required)
+                div.form-group.col-md-7
+                div.form-group.col-md-6
+                    label.control-label {{"PLATFORM_PLAYER_PREFIX" | translate}}
                     input.form-control(type="text", placeholder="{{'PLATFORM_PREFIX' | translate}}", ng-model="vm.showPlatform.prefix", ng-disabled="vm.isNotAllowEdit")
                 div.form-group.col-md-6
                     label.control-label {{"PLATFORM_PARTNER_PREFIX" | translate}}
                     input.form-control(type="text", placeholder="{{'PLATFORM_PARTNER_PREFIX' | translate}}", ng-model="vm.showPlatform.partnerPrefix", ng-disabled="vm.isNotAllowEdit")
-                div.form-group.col-md-3
+                div.form-group.col-md-6
                     label.control-label {{"DemoPlayerPrefix" | translate}}
                     div
                     select(ng-model='vm.showPlatform.demoPlayerPrefix', ng-disabled="vm.isNotAllowEdit", style='height:30px')
                         option(ng-repeat='(i,v) in vm.alphabetArr', value='{{v}}') {{v}}
-                div.form-group.col-md-3
+                div.form-group.col-md-6
                     label.control-label {{"DEMO_PLAYER_DEFAULT_CREDIT" | translate}}
                     div
                     input.form-control(type="text", placeholder="{{'DEMO_PLAYER_DEFAULT_CREDIT' | translate}}", ng-model="vm.showPlatform.demoPlayerDefaultCredit", ng-disabled="vm.isNotAllowEdit")
-                div.form-group.col-md-6
-                    label.control-label {{"PLATFORM_ICON" | translate}}
-                    input.form-control(type="text", placeholder="{{'PLATFORM ICON URL' | translate}}", ng-model="vm.showPlatform.icon", ng-disabled="vm.isNotAllowEdit", style='width:calc(100% - 50px);display:inline-block')
-                    img.margin-left-5(ng-if='vm.showPlatform.icon', src="{{vm.showPlatform.icon}}", style='width:40px;height:40px;top: 20px;position: absolute;')
                 div.form-group.col-md-6
                     label.control-label {{"PUSH_NOTIFICATION_APP_KEY" | translate}}
                     input.form-control(type="text", ng-model="vm.showPlatform.jiguangAppKey", ng-disabled="vm.isNotAllowEdit")
                 div.form-group.col-md-6
                     label.control-label {{"PUSH_NOTIFICATION_MASTER_KEY" | translate}}
                     input.form-control(type="text", ng-model="vm.showPlatform.jiguangMasterKey", ng-disabled="vm.isNotAllowEdit")
-                div.form-group.col-md-6
-                    label.control-label {{"CUSTOMER_SERVICE_EMAIL_AUTOMATED" | translate}} {{"used when sending automated messages" | translate}}
-                    input.form-control(type="text", placeholder="{{'EMAIL' | translate}}", ng-model="vm.showPlatform.csEmail", ng-disabled="vm.isNotAllowEdit")
                 div.form-group.col-md-6
                     label.control-label {{"LIVE800 COMPANYID" | translate}}
                     input.form-control(type="text", placeholder="{{'live800CompanyId' | translate}}",ng-blur="vm.isValidCompanyId(vm.showPlatform.live800CompanyIdTXT)", ng-model= "vm.showPlatform.live800CompanyIdTXT", ng-disabled="vm.isNotAllowEdit")
@@ -57,8 +48,8 @@ form(name="form_new_platform" ,novalidate)
                     input.form-control(type="text", ng-model="vm.showPlatform.qiDepartmentTXT", ng-blur="vm.isValidQIDepartment(vm.showPlatform.qiDepartmentTXT)", ng-disabled="vm.isNotAllowEdit")
                     div(ng-if="vm.qiDepartmentError", style='color:red') {{vm.qiDepartmentError}}
                 div.form-group.col-md-6
-                    label.control-label {{"AUTO_SETTLEMENT" | translate}}
-                    input.form-control(type="checkbox", ng-model="vm.showPlatform.canAutoSettlement", ng-disabled="vm.isNotAllowEdit")
+                    label.control-label {{"CALL_REQUEST_URL_CONFIG" | translate}}
+                    input.form-control(type="text", ng-model="vm.showPlatform.callRequestUrlConfig", ng-disabled="vm.isNotAllowEdit")
 
 
 
