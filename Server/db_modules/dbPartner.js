@@ -57,8 +57,8 @@ let dbPartner = {
             platformDataResult => {
                 platformData = platformDataResult;
                 if (platformData) {
-                    if(partnerData.phoneNumber && platformData.partnerBlackListingPhoneNumbers){
-                        let indexNo = platformData.partnerBlackListingPhoneNumbers.findIndex(p => p == partnerData.phoneNumber);
+                    if(partnerData.phoneNumber && platformData.blackListingPhoneNumbers){
+                        let indexNo = platformData.blackListingPhoneNumbers.findIndex(p => p == partnerData.phoneNumber);
                         if(indexNo != -1){
                             return Q.reject({name: "DataError", message: localization.localization.translate("Registration failed, phone number is invalid")});
                         }
@@ -82,10 +82,10 @@ let dbPartner = {
                     //     partnerData.partnerName = platformData.partnerPrefix + partnerData.partnerName;
                     // }
 
-                    if (platformData.partnerWhiteListingPhoneNumbers
-                        && platformData.partnerWhiteListingPhoneNumbers.length > 0
+                    if (platformData.whiteListingPhoneNumbers
+                        && platformData.whiteListingPhoneNumbers.length > 0
                         && partnerData.phoneNumber
-                        && platformData.partnerWhiteListingPhoneNumbers.indexOf(partnerData.phoneNumber) > -1)
+                        && platformData.whiteListingPhoneNumbers.indexOf(partnerData.phoneNumber) > -1)
                         return {isPhoneNumberValid: true};
 
                     if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
@@ -194,10 +194,10 @@ let dbPartner = {
                         return Promise.reject(new Error());
                     }
 
-                    if (platformData.partnerWhiteListingPhoneNumbers
-                        && platformData.partnerWhiteListingPhoneNumbers.length > 0
+                    if (platformData.whiteListingPhoneNumbers
+                        && platformData.whiteListingPhoneNumbers.length > 0
                         && partnerdata.phoneNumber
-                        && platformData.partnerWhiteListingPhoneNumbers.indexOf(partnerdata.phoneNumber) > -1)
+                        && platformData.whiteListingPhoneNumbers.indexOf(partnerdata.phoneNumber) > -1)
                         return {isPhoneNumberValid: true};
 
                     if (platformData.partnerAllowSamePhoneNumberToRegister === true) {

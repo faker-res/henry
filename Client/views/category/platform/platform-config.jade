@@ -999,13 +999,13 @@
                                     text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerSamePhoneNumberRegisterCount}}
                                     input(type='number', ng-show='vm.configTableEdit && vm.partnerBasic.partnerAllowSamePhoneNumberToRegister', min=1, ng-model='vm.partnerBasic.partnerSamePhoneNumberRegisterCount')
                             tr
-                                td {{'partnerWhiteListingPhoneNumbers' | translate}}
+                                td {{'Whitelisting Phone Number' | translate}}
                                 td
-                                    textarea(ng-model='vm.partnerBasic.partnerWhiteListingPhoneNumbers', ng-disabled='!vm.configTableEdit')
+                                    textarea(ng-model='vm.partnerBasic.whiteListingPhoneNumbers', ng-disabled='!vm.configTableEdit')
                             tr
-                                td {{'partnerBlackListingPhoneNumbers' | translate}}
+                                td {{'Blacklisting Phone Number' | translate}}
                                 td
-                                    textarea(ng-model='vm.partnerBasic.partnerBlackListingPhoneNumbers', ng-disabled='!vm.configTableEdit')
+                                    textarea(ng-model='vm.partnerBasic.blackListingPhoneNumbers', ng-disabled='!vm.configTableEdit')
                             tr
                                 td {{'partnerRequireSMSVerification' | translate}}
                                 td
