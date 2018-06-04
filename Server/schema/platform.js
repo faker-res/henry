@@ -50,6 +50,8 @@ var platformSchema = new Schema({
     weixinPhotoUrl: {type: String},
     csSkype: {type: String},
     csDisplayUrl: {type: String},
+    playerWebLogo: {type: String},
+    partnerWebLogo: {type: String},
     //OFFICIAL_ACCOUNT_WEIXIN
     oaWeixin: {type: String},
     //CUSTOMER SERVICE PARTNER INFO
