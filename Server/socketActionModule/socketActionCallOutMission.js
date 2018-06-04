@@ -32,7 +32,7 @@ function socketActionBankCardGroup(socketIO, socket) {
         getUpdatedAdminMissionStatusFromCti: function getUpdatedAdminMissionStatusFromCti(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
-            socketUtil.emitter(self.socket, dbCallOutMission.getUpdatedAdminMissionStatusFromCti, [data.platformObjId, getAdminId()], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbCallOutMission.getUpdatedAdminMissionStatusFromCti, [data.platformObjId, getAdminId(), data.limit, data.index], actionName, isValidData);
         },
 
     };
