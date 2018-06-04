@@ -611,7 +611,7 @@ let dbPlayerInfo = {
                             let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
                                 domain: {
                                     $regex: inputData.domain,
-                                    $options: "x"
+                                    $options: "xi"
                                 }
                             }).lean().then(data => {
                                 if (data) {
