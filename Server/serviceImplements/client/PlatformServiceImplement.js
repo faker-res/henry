@@ -24,7 +24,14 @@ var PlatformServiceImplement = function () {
     this.getPlatformAnnouncements.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.platformId);
         data = data || {};
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformAnnouncement.getPlatformAnnouncementsByPlatformId, [{platformId: data.platformId}], isValidData, null, null, true);
+        let inputData = {}
+        if(data.platformId){
+            inputData.platformId = data.platformId;
+        }
+        if(data.reach){
+            inputData.reach = data.reach;
+        }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformAnnouncement.getPlatformAnnouncementsByPlatformId, [inputData], isValidData, null, null, true);
     };
 
     this.getConfig.expectsData = 'platformId: String';
@@ -58,7 +65,7 @@ var PlatformServiceImplement = function () {
         if(data.requestCount > constSystemParam.REPORT_MAX_RECORD_NUM){
             data.requestCount = constSystemParam.REPORT_MAX_RECORD_NUM;
         }
-        if( !data.startTime || new Date(data.startTime).getTime() - new Date().getTime() > 24 * 60 * 1000 * 1000 ){
+        if( !data.startTime || (new Date().getTime() - new Date(data.startTime).getTime() > 24 * 60 * 1000 * 1000) ){
             data.startTime =  new Date(new Date().getTime() - 24 * 60 * 1000 * 1000);
         }
         data.minBonusAmount = data.minBonusAmount || 0;

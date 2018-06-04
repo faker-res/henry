@@ -663,6 +663,8 @@
   "CUSTOMER_SERVICE_URL":"Customer Service URL",
   "CUSTOMER_SERVICE_WEIXIN":"Customer Service WeChat",
   "CUSTOMER_SERVICE_WEIXIN_PHOTO":"Customer Service WeChat Photo",
+  "WEBSITE_LOGO":"Website Logo",
+  "WEBSITE_LOGO_PARTNER":"Partner Website Logo",
   "CUSTOMER_SERVICE_QQ":"Customer Service QQ",
   "CUSTOMER_SERVICE_SKYPE": "Customer Service Skype",
   "CUSTOMER_SERVICE_EMAIL":"Customer service email",

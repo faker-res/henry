@@ -6,6 +6,8 @@
         .panel.panel-primary(style="min-height:610px")
             .panel-heading.panel-heading-sm
                 label {{"GAME_PROVIDER" | translate}}
+                .pull-right
+                    a.bg-pale(ng-click="vm.getPlatformGameData()" class="fa fa-refresh")
             .panel-body
                 div(ng-if='!vm.platformProviderList || vm.platformProviderList.length==0', style="height: 430px; overflow-y: auto;")
                     label.text-danger {{"NO_PROVIDER" | translate}}

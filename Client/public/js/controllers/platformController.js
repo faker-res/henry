@@ -788,10 +788,9 @@ define(['js/app'], function (myApp) {
 
                 // Zero dependencies variable
                 [vm.rewardList, vm.promoTypeList, vm.allAlipaysAcc, vm.allWechatpaysAcc, vm.allBankTypeList,
-                    vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
-                    vm.allPlayerFeedbackResults, vm.allPlayerFeedbackTopics, vm.allPartnerFeedbackResults,
-                    vm.allPartnerFeedbackTopics, [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes,
-                    [vm.allGameProviders, vm.gameProvidersList]
+                 vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
+                 vm.playerFeedbackTopic, vm.partnerFeedbackTopic, vm.allPlayerFeedbackResults,vm.allPartnerFeedbackResults,
+                 [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes,[vm.allGameProviders, vm.gameProvidersList]
                 ] = await Promise.all([
                     commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -802,10 +801,10 @@ define(['js/app'], function (myApp) {
                     commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getPartnerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([])),
-                    commonService.getAllPlayerFeedbackTopics($scope).catch(err => Promise.resolve([])),
                     commonService.getAllPartnerFeedbackResults($scope).catch(err => Promise.resolve([])),
-                    commonService.getAllPartnerFeedbackTopics($scope).catch(err => Promise.resolve([])),
                     commonService.getAllGameTypes($scope).catch(err => Promise.resolve([[], []])),
                     commonService.getAllRewardTypes($scope).catch(err => Promise.resolve([])),
                     commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []]))
@@ -885,7 +884,7 @@ define(['js/app'], function (myApp) {
                             vm.playersQueryCreated = false;
                             vm.configTabClicked();
                             vm.loadAlldepartment();
-                            // vm.rewardTabClicked();
+                            vm.rewardTabClicked();
                             vm.getPlatformRewardProposal();
                             vm.getPlatformPlayersData(true, true);
                             vm.getPlatformPartnersData();
@@ -1666,7 +1665,7 @@ define(['js/app'], function (myApp) {
                         commSettLog: vm.selectedSettlePartnerCommPrev,
                     };
                     let partnerCommLogIdArr = [];
-                    
+
                     vm.partnerCommissionLog.forEach( partnerCommLog => {
                         if (partnerCommLog) {
                             partnerCommLogIdArr.push(partnerCommLog._id);
@@ -15623,18 +15622,27 @@ define(['js/app'], function (myApp) {
 
             vm.getCtiData = function() {
                 socketService.$socket($scope.AppSocket, 'getUpdatedAdminMissionStatusFromCti', {
-                    platformObjId: vm.selectedPlatform.id
+                    platformObjId: vm.selectedPlatform.id,
+                    limit: vm.playerFeedbackQuery.limit || 10,
+                    index: vm.playerFeedbackQuery.index || 0,
                 }, function (data) {
                     console.log("getCtiData ret",data);
                     vm.ctiData = data.data;
                     if(vm.ctiData.hasOnGoingMission) {
+                        let playerFeedbackDetail = vm.ctiData.feedbackPlayerDetail;
+                        setTableData(vm.playerFeedbackTable, playerFeedbackDetail.data);
+                        vm.playerFeedbackQuery.total = playerFeedbackDetail.total || 0;
+                        vm.playerFeedbackQuery.index = playerFeedbackDetail.index || 0;
+                        vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total});
+                        vm.feedbackPlayersPara.total = vm.playerFeedbackQuery.total;
+
                         let players = [];
                         let completedAmount = 0;
                         vm.callOutMissionStatusText = '';
 
                         vm.ctiData.callee.forEach(callee => {
-                            players.push(Object.assign({},callee.player,{callOutMissionStatus:callee.status}));
-                            if (status == $scope.constCallOutMissionStatus.SUCCEEDED) {
+                            players.push(Object.assign({},callee.player,{callOutMissionStatus: callee.status}));
+                            if (status == $scope.constCallOutMissionStatus.SUCCEEDED || status == $scope.constCallOutMissionStatus.FAILED) {
                                 completedAmount++;
                             }
                         });
@@ -15649,11 +15657,11 @@ define(['js/app'], function (myApp) {
                             vm.feedbackPlayersPara.total = vm.ctiData.callee.length;
                             vm.callOutMissionProgressText = completedAmount + '/' + vm.ctiData.callee.length;
                         });
-                        setTableData(vm.playerFeedbackTable, players);
+                        // setTableData(vm.playerFeedbackTable, players);
                     }
                 });
             };
-            
+
             vm.getPlayerCreditinFeedbackInfo = function () {
                 vm.curFeedbackPlayer.gameCredit = {};
                 for (var i in vm.platformProviderList) {
@@ -15921,17 +15929,21 @@ define(['js/app'], function (myApp) {
                 if (rowData && rowData.playerId) {
                     reqData.key = vm.addPlayerFeedbackTopicData.value;
                     reqData.value = vm.addPlayerFeedbackTopicData.value;
+                    reqData.platform = vm.selectedPlatform.id;
                     console.log(reqData);
                     return $scope.$socketPromise('createPlayerFeedbackTopic', reqData).then(
                         () => $scope.$evalAsync(async () => {
                             vm.addPlayerFeedbackTopicData.message = "SUCCESS";
                             vm.addPlayerFeedbackTopicData.success = true;
-                            vm.allPlayerFeedbackTopics = await commonService.getAllPlayerFeedbackTopics($scope).catch(err => Promise.resolve([]));
+                            vm.playerFeedbackTopic = await commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]));
                         }),
                         function (err) {
                             console.log("vm.addPlayerFeedbackTopics()ErrIn", err);
                             vm.addPlayerFeedbackTopicData.message = "FAILURE";
                             vm.addPlayerFeedbackTopicData.failure = true;
+                            if(err.error && err.error.error && err.error.error.code == '11000'){
+                                vm.addPlayerFeedbackTopicData.message = '失败，回访主题已存在'
+                            }
                             $scope.safeApply();
                         }
                     );
@@ -15940,17 +15952,21 @@ define(['js/app'], function (myApp) {
                 if (rowData && rowData.partnerId) {
                     reqData.key = vm.addPartnerFeedbackTopicData.value;
                     reqData.value = vm.addPartnerFeedbackTopicData.value;
+                    reqData.platform = vm.selectedPlatform.id;
                     console.log(reqData);
                     return $scope.$socketPromise('createPartnerFeedbackTopic', reqData).then(
                         () => $scope.$evalAsync(async () => {
                             vm.addPartnerFeedbackTopicData.message = "SUCCESS";
                             vm.addPartnerFeedbackTopicData.success = true;
-                            vm.allPartnerFeedbackTopics = await commonService.getAllPartnerFeedbackTopics($scope).catch(err => Promise.resolve([]));
+                            vm.partnerFeedbackTopic = await commonService.getPartnerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]));
                         }),
                         function (err) {
                             console.log("vm.addPartnerFeedbackTopics()ErrIn", err);
                             vm.addPartnerFeedbackTopicData.message = "FAILURE";
                             vm.addPartnerFeedbackTopicData.failure = true;
+                            if(err.error && err.error.error && err.error.error.code == '11000'){
+                                vm.addPartnerFeedbackTopicData.message = '失败，回访主题已存在'
+                            }
                             $scope.safeApply();
                         }
                     ).catch(
@@ -15974,7 +15990,7 @@ define(['js/app'], function (myApp) {
                         () => $scope.$evalAsync(async () => {
                             vm.deletePlayerFeedbackTopicData.message = "SUCCESS";
                             vm.deletePlayerFeedbackTopicData.success = true;
-                            vm.allPlayerFeedbackTopics = await commonService.getAllPlayerFeedbackTopics($scope).catch(err => Promise.resolve([]));
+                            vm.playerFeedbackTopic = await commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]));
                         }),
                         function (err) {
                             console.log("vm.addPlayerFeedbackTopics()ErrIn", err);
@@ -15991,7 +16007,7 @@ define(['js/app'], function (myApp) {
                         () => $scope.$evalAsync(async () => {
                             vm.deletePartnerFeedbackTopicData.message = "SUCCESS";
                             vm.deletePartnerFeedbackTopicData.success = true;
-                            vm.allPartnerFeedbackTopics = await commonService.getAllPartnerFeedbackTopics($scope).catch(err => Promise.resolve([]));
+                            vm.partnerFeedbackTopic = await commonService.getPartnerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]));
                         }),
                         function (err) {
                             console.log("vm.addPartnerFeedbackTopics()ErrIn", err);
@@ -16543,7 +16559,7 @@ define(['js/app'], function (myApp) {
                     let sumOfTotalBonus = 0;
                     let sumOfTotalDeposit = 0;
                     let sumOfTotalBalance = 0;
-                    
+
                     if(data && data.data){
                         data.data.forEach(result => {
                             if(result){
@@ -19949,7 +19965,7 @@ define(['js/app'], function (myApp) {
                 vm.platformRewardIsEnabled = !disabled;
                 if (vm.isRandomReward) {
                     $("#rewardMainTasks [data-cond-name='applyType']").prop("disabled", true);
-                    $("#rewardMainTasks [data-cond-name='canApplyFromClient']").prop("disabled", true);
+                    $("#rewardMainTasks [data-cond-name='canApplyFromClient']").prop("disabled", disabled);
                 }
             }
 
@@ -25418,8 +25434,8 @@ define(['js/app'], function (myApp) {
                 vm.partnerBasic.partnerNameMinLength = vm.selectedPlatform.data.partnerNameMinLength;
                 vm.partnerBasic.partnerAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.partnerAllowSamePhoneNumberToRegister;
                 vm.partnerBasic.partnerSamePhoneNumberRegisterCount = vm.selectedPlatform.data.partnerSamePhoneNumberRegisterCount;
-                vm.partnerBasic.partnerWhiteListingPhoneNumbers = "";
-                vm.partnerBasic.partnerBlackListingPhoneNumbers = "";
+                vm.partnerBasic.whiteListingPhoneNumbers = "";
+                vm.partnerBasic.blackListingPhoneNumbers = "";
                 vm.partnerBasic.partnerRequireSMSVerification = vm.selectedPlatform.data.partnerRequireSMSVerification;
                 vm.partnerBasic.partnerRequireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.partnerRequireSMSVerificationForPasswordUpdate;
                 vm.partnerBasic.partnerRequireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.partnerRequireSMSVerificationForPaymentUpdate;
@@ -25430,21 +25446,21 @@ define(['js/app'], function (myApp) {
                 vm.partnerBasic.partnerUnreadMailMaxDuration = vm.selectedPlatform.data.partnerUnreadMailMaxDuration;
                 vm.partnerBasic.partnerDefaultCommissionGroup = vm.selectedPlatform.data.partnerDefaultCommissionGroup.toString();
 
-                if (vm.selectedPlatform.data.partnerWhiteListingPhoneNumbers && vm.selectedPlatform.data.partnerWhiteListingPhoneNumbers.length > 0) {
-                    let phones = vm.selectedPlatform.data.partnerWhiteListingPhoneNumbers;
+                if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
+                    let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
                     for (let i = 0, len = phones.length; i < len; i++) {
                         let phone = phones[i];
-                        vm.partnerBasic.partnerWhiteListingPhoneNumbers += phone;
-                        i !== (len - 1) ? vm.partnerBasic.partnerWhiteListingPhoneNumbers += "\n" : "";
+                        vm.partnerBasic.whiteListingPhoneNumbers += phone;
+                        i !== (len - 1) ? vm.partnerBasic.whiteListingPhoneNumbers += "\n" : "";
                     }
                 }
 
-                if (vm.selectedPlatform.data.partnerBlackListingPhoneNumbers && vm.selectedPlatform.data.partnerBlackListingPhoneNumbers.length > 0) {
-                    let phones = vm.selectedPlatform.data.partnerBlackListingPhoneNumbers;
+                if (vm.selectedPlatform.data.blackListingPhoneNumbers && vm.selectedPlatform.data.blackListingPhoneNumbers.length > 0) {
+                    let phones = vm.selectedPlatform.data.blackListingPhoneNumbers;
                     for (let i = 0, len = phones.length; i < len; i++) {
                         let phone = phones[i];
-                        vm.partnerBasic.partnerBlackListingPhoneNumbers += phone;
-                        i !== (len - 1) ? vm.partnerBasic.partnerBlackListingPhoneNumbers += "\n" : "";
+                        vm.partnerBasic.blackListingPhoneNumbers += phone;
+                        i !== (len - 1) ? vm.partnerBasic.blackListingPhoneNumbers += "\n" : "";
                     }
                 }
                 $scope.safeApply();
@@ -26038,16 +26054,16 @@ define(['js/app'], function (myApp) {
                 let whiteListingPhoneNumbers = [];
                 let blackListingPhoneNumbers = [];
 
-                if (srcData.partnerWhiteListingPhoneNumbers) {
-                    let phones = srcData.partnerWhiteListingPhoneNumbers.split(/\r?\n/);
+                if (srcData.whiteListingPhoneNumbers) {
+                    let phones = srcData.whiteListingPhoneNumbers.split(/\r?\n/);
                     for (let i = 0, len = phones.length; i < len; i++) {
                         let phone = phones[i].trim();
                         if (phone) whiteListingPhoneNumbers.push(phone);
                     }
                 }
 
-                if (srcData.partnerBlackListingPhoneNumbers) {
-                    let phones = srcData.partnerBlackListingPhoneNumbers.split(/\r?\n/);
+                if (srcData.blackListingPhoneNumbers) {
+                    let phones = srcData.blackListingPhoneNumbers.split(/\r?\n/);
                     for (let i = 0, len = phones.length; i < len; i++) {
                         let phone = phones[i].trim();
                         if (phone) blackListingPhoneNumbers.push(phone);
@@ -26060,8 +26076,8 @@ define(['js/app'], function (myApp) {
                         partnerNameMinLength: srcData.partnerNameMinLength,
                         partnerAllowSamePhoneNumberToRegister: srcData.partnerAllowSamePhoneNumberToRegister,
                         partnerSamePhoneNumberRegisterCount: srcData.partnerSamePhoneNumberRegisterCount,
-                        partnerWhiteListingPhoneNumbers: whiteListingPhoneNumbers,
-                        partnerBlackListingPhoneNumbers: blackListingPhoneNumbers,
+                        whiteListingPhoneNumbers: whiteListingPhoneNumbers,
+                        blackListingPhoneNumbers: blackListingPhoneNumbers,
                         partnerRequireSMSVerification: srcData.partnerRequireSMSVerification,
                         partnerRequireSMSVerificationForPasswordUpdate: srcData.partnerRequireSMSVerificationForPasswordUpdate,
                         partnerRequireSMSVerificationForPaymentUpdate: srcData.partnerRequireSMSVerificationForPaymentUpdate,
@@ -30279,7 +30295,7 @@ define(['js/app'], function (myApp) {
                 sendQuery.platformObjId = vm.selectedPlatform.id;
                 sendQuery.adminObjId = authService.adminId;
                 sendQuery.searchFilter = JSON.stringify(vm.playerFeedbackQuery);
-                sendQuery.searchQuery = vm.getPlayerFeedbackQuery();
+                sendQuery.searchQuery = JSON.stringify(vm.getPlayerFeedbackQuery());
                 sendQuery.sortCol = VM.playerFeedbackQuery.sortCol || {registrationTime: -1};
 
                 $scope.$socketPromise("createCallOutMission", sendQuery).then(data => {

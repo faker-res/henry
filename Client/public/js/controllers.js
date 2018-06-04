@@ -536,6 +536,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         '1': "WEB",
         '2': "APP",
         '3': "H5",
+        '0': "Backstage"
     }
     $scope.constProposalEntryType = {
         0: "ENTRY_TYPE_CLIENT",

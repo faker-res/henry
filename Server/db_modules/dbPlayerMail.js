@@ -347,7 +347,6 @@ const dbPlayerMail = {
         if (isPartner) {
             sameTelPermission = "partnerAllowSamePhoneNumberToRegister";
             samTelCount = "partnerSamePhoneNumberRegisterCount";
-            whiteListPhone = "partnerWhiteListingPhoneNumbers";
             requireCaptchaInSMS = "partnerRequireCaptchaInSMS";
             seletedDb = dbPartner;
         }
