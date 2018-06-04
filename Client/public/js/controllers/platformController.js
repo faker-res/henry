@@ -885,7 +885,7 @@ define(['js/app'], function (myApp) {
                             vm.playersQueryCreated = false;
                             vm.configTabClicked();
                             vm.loadAlldepartment();
-                            // vm.rewardTabClicked();
+                            vm.rewardTabClicked();
                             vm.getPlatformRewardProposal();
                             vm.getPlatformPlayersData(true, true);
                             vm.getPlatformPartnersData();
