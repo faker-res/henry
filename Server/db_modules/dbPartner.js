@@ -7223,7 +7223,7 @@ let dbPartner = {
                             let sortedData = rankingArr.sort(sortRankingRecord);
                             for (let i = 0; i < sortedData.length; i++) {
                                 sortedData[i].rank = i + 1;
-                                if (sortedData[i].partner.toString() == partnerObj._id.toString()) {
+                                if (partnerObj && partnerObj._id && sortedData[i].partner.toString() == partnerObj._id.toString()) {
                                     delete sortedData[i].partner;
                                     sortedData[i].name = partnerObj.partnerName? partnerObj.partnerName: " ";
                                     partnerRanking = sortedData[i];
@@ -7306,7 +7306,7 @@ let dbPartner = {
                                         if (partnerData && partnerData.length) {
                                             for (let i = 0; i < partnerData.length; i++) {
                                                 partnerData[i].rank = i + 1;
-                                                if (partnerData[i]._id.toString() == partnerObj._id.toString()) {
+                                                if (partnerObj && partnerObj._id && partnerData[i]._id.toString() == partnerObj._id.toString()) {
                                                     delete partnerData[i]._id;
                                                     partnerData[i].name = partnerObj.partnerName ? partnerObj.partnerName : " ";
                                                     partnerRanking = partnerData[i];
