@@ -19958,7 +19958,7 @@ define(['js/app'], function (myApp) {
                 vm.platformRewardIsEnabled = !disabled;
                 if (vm.isRandomReward) {
                     $("#rewardMainTasks [data-cond-name='applyType']").prop("disabled", true);
-                    $("#rewardMainTasks [data-cond-name='canApplyFromClient']").prop("disabled", true);
+                    $("#rewardMainTasks [data-cond-name='canApplyFromClient']").prop("disabled", false);
                 }
             }
 
@@ -25427,8 +25427,8 @@ define(['js/app'], function (myApp) {
                 vm.partnerBasic.partnerNameMinLength = vm.selectedPlatform.data.partnerNameMinLength;
                 vm.partnerBasic.partnerAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.partnerAllowSamePhoneNumberToRegister;
                 vm.partnerBasic.partnerSamePhoneNumberRegisterCount = vm.selectedPlatform.data.partnerSamePhoneNumberRegisterCount;
-                vm.partnerBasic.partnerWhiteListingPhoneNumbers = "";
-                vm.partnerBasic.partnerBlackListingPhoneNumbers = "";
+                vm.partnerBasic.whiteListingPhoneNumbers = "";
+                vm.partnerBasic.blackListingPhoneNumbers = "";
                 vm.partnerBasic.partnerRequireSMSVerification = vm.selectedPlatform.data.partnerRequireSMSVerification;
                 vm.partnerBasic.partnerRequireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.partnerRequireSMSVerificationForPasswordUpdate;
                 vm.partnerBasic.partnerRequireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.partnerRequireSMSVerificationForPaymentUpdate;
@@ -25439,21 +25439,21 @@ define(['js/app'], function (myApp) {
                 vm.partnerBasic.partnerUnreadMailMaxDuration = vm.selectedPlatform.data.partnerUnreadMailMaxDuration;
                 vm.partnerBasic.partnerDefaultCommissionGroup = vm.selectedPlatform.data.partnerDefaultCommissionGroup.toString();
 
-                if (vm.selectedPlatform.data.partnerWhiteListingPhoneNumbers && vm.selectedPlatform.data.partnerWhiteListingPhoneNumbers.length > 0) {
-                    let phones = vm.selectedPlatform.data.partnerWhiteListingPhoneNumbers;
+                if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
+                    let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
                     for (let i = 0, len = phones.length; i < len; i++) {
                         let phone = phones[i];
-                        vm.partnerBasic.partnerWhiteListingPhoneNumbers += phone;
-                        i !== (len - 1) ? vm.partnerBasic.partnerWhiteListingPhoneNumbers += "\n" : "";
+                        vm.partnerBasic.whiteListingPhoneNumbers += phone;
+                        i !== (len - 1) ? vm.partnerBasic.whiteListingPhoneNumbers += "\n" : "";
                     }
                 }
 
-                if (vm.selectedPlatform.data.partnerBlackListingPhoneNumbers && vm.selectedPlatform.data.partnerBlackListingPhoneNumbers.length > 0) {
-                    let phones = vm.selectedPlatform.data.partnerBlackListingPhoneNumbers;
+                if (vm.selectedPlatform.data.blackListingPhoneNumbers && vm.selectedPlatform.data.blackListingPhoneNumbers.length > 0) {
+                    let phones = vm.selectedPlatform.data.blackListingPhoneNumbers;
                     for (let i = 0, len = phones.length; i < len; i++) {
                         let phone = phones[i];
-                        vm.partnerBasic.partnerBlackListingPhoneNumbers += phone;
-                        i !== (len - 1) ? vm.partnerBasic.partnerBlackListingPhoneNumbers += "\n" : "";
+                        vm.partnerBasic.blackListingPhoneNumbers += phone;
+                        i !== (len - 1) ? vm.partnerBasic.blackListingPhoneNumbers += "\n" : "";
                     }
                 }
                 $scope.safeApply();
@@ -26047,16 +26047,16 @@ define(['js/app'], function (myApp) {
                 let whiteListingPhoneNumbers = [];
                 let blackListingPhoneNumbers = [];
 
-                if (srcData.partnerWhiteListingPhoneNumbers) {
-                    let phones = srcData.partnerWhiteListingPhoneNumbers.split(/\r?\n/);
+                if (srcData.whiteListingPhoneNumbers) {
+                    let phones = srcData.whiteListingPhoneNumbers.split(/\r?\n/);
                     for (let i = 0, len = phones.length; i < len; i++) {
                         let phone = phones[i].trim();
                         if (phone) whiteListingPhoneNumbers.push(phone);
                     }
                 }
 
-                if (srcData.partnerBlackListingPhoneNumbers) {
-                    let phones = srcData.partnerBlackListingPhoneNumbers.split(/\r?\n/);
+                if (srcData.blackListingPhoneNumbers) {
+                    let phones = srcData.blackListingPhoneNumbers.split(/\r?\n/);
                     for (let i = 0, len = phones.length; i < len; i++) {
                         let phone = phones[i].trim();
                         if (phone) blackListingPhoneNumbers.push(phone);
@@ -26069,8 +26069,8 @@ define(['js/app'], function (myApp) {
                         partnerNameMinLength: srcData.partnerNameMinLength,
                         partnerAllowSamePhoneNumberToRegister: srcData.partnerAllowSamePhoneNumberToRegister,
                         partnerSamePhoneNumberRegisterCount: srcData.partnerSamePhoneNumberRegisterCount,
-                        partnerWhiteListingPhoneNumbers: whiteListingPhoneNumbers,
-                        partnerBlackListingPhoneNumbers: blackListingPhoneNumbers,
+                        whiteListingPhoneNumbers: whiteListingPhoneNumbers,
+                        blackListingPhoneNumbers: blackListingPhoneNumbers,
                         partnerRequireSMSVerification: srcData.partnerRequireSMSVerification,
                         partnerRequireSMSVerificationForPasswordUpdate: srcData.partnerRequireSMSVerificationForPasswordUpdate,
                         partnerRequireSMSVerificationForPaymentUpdate: srcData.partnerRequireSMSVerificationForPaymentUpdate,
