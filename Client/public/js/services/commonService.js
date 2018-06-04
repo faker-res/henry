@@ -98,6 +98,14 @@ define([], () => {
             return $scope.$socketPromise('getRewardPointsEvent', {platformObjId: platformObjId}).then(data => data.data)
         };
 
+        self.getPlayerFeedbackTopic = ($scope, platformObjId) => {
+            return $scope.$socketPromise('getPlayerFeedbackTopic', {platform: platformObjId}).then(data => data.data)
+        };
+
+        self.getPartnerFeedbackTopic = ($scope, platformObjId) => {
+            return $scope.$socketPromise('getPartnerFeedbackTopic', {platform: platformObjId}).then(data => data.data)
+        };
+
         self.getAllPartnerCommSettPreview = ($scope, platformObjId) => {
             return $scope.$socketPromise("getAllPartnerCommSettPreview", {platformObjId: platformObjId}).then(data => data.data)
         };
