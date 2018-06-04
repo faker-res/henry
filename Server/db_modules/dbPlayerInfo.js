@@ -611,7 +611,7 @@ let dbPlayerInfo = {
                             let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
                                 domain: {
                                     $regex: inputData.domain,
-                                    $options: "x"
+                                    $options: "xi"
                                 }
                             }).lean().then(data => {
                                 if (data) {
@@ -13560,13 +13560,13 @@ let dbPlayerInfo = {
 
                 let outputResult = [];
 
+                // Output filter promote way
+                result = query.csPromoteWay && query.csPromoteWay.length > 0 ? result.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : result;
+                result = query.admins && query.admins.length > 0 ? result.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : result;
+
                 for (let i = 0, len = limit; i < len; i++) {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
-
-                // Output filter promote way
-                outputResult = query.csPromoteWay && query.csPromoteWay.length > 0 ? outputResult.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : outputResult;
-                outputResult = query.admins && query.admins.length > 0 ? outputResult.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : outputResult;
 
                 return {size: outputResult.length, data: outputResult};
             }
@@ -14738,7 +14738,7 @@ let dbPlayerInfo = {
     },
 
     importDiffPhoneNum: function (platform, phoneNumber, dxMission) {
-        let phoneArr = phoneNumber.split(',').map((item) => item.trim());
+        let phoneArr = phoneNumber.split(/[\n,]+/).map((item) => item.trim());
 
         if (phoneArr.length > 0) {
             let promArr = [];
@@ -14746,6 +14746,11 @@ let dbPlayerInfo = {
             return dbconfig.collection_dxMission.findOne({_id: dxMission}).lean().then(
                 dxMissionRes => {
                     for (let x = 0; x < phoneArr.length; x++) {
+                        // if it is not a valid phone number, do not import
+                        if (!phoneArr[x] || phoneArr[x].length < 11 || !(/^\d+$/.test(phoneArr[x]))) {
+                            continue;
+                        }
+
                         promArr.push(
                             dbPlayerInfo.generateDXCode(dxMission).then(
                                 randomCode => {

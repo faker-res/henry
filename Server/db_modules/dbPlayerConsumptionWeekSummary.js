@@ -143,19 +143,20 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {ObjectId} proposalTypeId
      */
     checkPlatformWeeklyConsumptionReturn: function (platformId, eventData, proposalTypeId, period) {
-        console.log("#xima, checkPlatformWeeklyConsumptionReturn1");
+
         var settleTime = period == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         var balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
             // This collects players who have dirty records in the time range, although dirty records will not actually be used during processing.
             // var stream = dbPlayerConsumptionRecord.streamPlayersWithConsumptionSummaryInTimeFrame(startTime, endTime, platformId);
 
-            var query = dbconfig.collection_playerConsumptionRecord.aggregate(
+            var query = dbconfig.collection_playerConsumptionSummary.aggregate(
                 [
                     {
                         $match: {
                             platformId: platformId,
-                            createTime: {$gte: settleTime.startTime, $lt: settleTime.endTime}
+                            summaryDay: {$gte: settleTime.startTime, $lt: settleTime.endTime},
+                            bDirty: false
                         }
                     },
                     {
@@ -165,8 +166,6 @@ var dbPlayerConsumptionWeekSummary = {
             );
 
             var stream = query.cursor({batchSize: 1000}).allowDiskUse(true).exec();
-
-            console.log("#xima, checkPlatformWeeklyConsumptionReturn2");
 
             return balancer.processStream(
                 {

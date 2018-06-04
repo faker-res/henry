@@ -11,6 +11,7 @@ const errorUtils = require("./../modules/errorUtils");
 let dbCallOutMission = {
     createCallOutMission: (platformObjId, adminObjId, searchFilter, searchQuery, sortCol) => {
         let platform, admin, calleeList, callOutMission;
+        searchQuery = typeof searchQuery == "string" ? JSON.parse(searchQuery) : searchQuery;
 
         let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
         let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
@@ -135,7 +136,7 @@ let dbCallOutMission = {
                 }
                 mission = missionData;
 
-                if (mission.status != constCallOutMissionStatus.ON_GOING && mission.status != constCallOutMissionStatus.PAUSED) {
+                if (mission.status != constCallOutMissionStatus.ON_GOING && mission.status != constCallOutMissionStatus.PAUSED && mission.status != constCallOutMissionStatus.CREATED) {
                     return Promise.reject({message: "This mission is finished."})
                 }
 
@@ -148,7 +149,7 @@ let dbCallOutMission = {
         );
     },
 
-    getUpdatedAdminMissionStatusFromCti: (platformObjId, adminObjId) => {
+    getUpdatedAdminMissionStatusFromCti: (platformObjId, adminObjId, limit, index) => {
         let platform, admin;
 
         let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
@@ -184,7 +185,7 @@ let dbCallOutMission = {
                     return {hasOnGoingMission: false};
                 }
 
-                return getUpdatedMissionDetail(platform, admin, callOutMissionData);
+                return getUpdatedMissionDetail(platform, admin, callOutMissionData, limit, index);
             }
         )
     },
@@ -192,7 +193,7 @@ let dbCallOutMission = {
 
 module.exports = dbCallOutMission;
 
-function getUpdatedMissionDetail (platform, admin, mission) {
+function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
     let apiOutput, ctiMissionStatus;
 
     return getCtiCallOutMissionDetail(platform, mission.missionName).then(
@@ -247,9 +248,44 @@ function getUpdatedMissionDetail (platform, admin, mission) {
             outputData = Object.assign({}, outputData, mission);
             outputData.callee = calleeList;
 
+            if (limit) {
+                let total = calleeList.length;
+                index = index || 0;
+                let calleeShown = calleeList.slice(index, Number(limit) + Number(index));
+                let playersData = calleeShown.map(callee => {
+                    return callee.player;
+                });
+
+                return getPlayerDetails(playersData).then(playersDetail => {
+                    let feedbackPlayerDetail = {
+                        data: playersDetail,
+                        index: index,
+                        total: total
+                    };
+
+                    outputData.feedbackPlayerDetail = feedbackPlayerDetail;
+                    return outputData;
+                });
+
+            }
+
             return outputData;
         }
     );
+}
+
+function getPlayerDetails(players) {
+    let proms = [];
+    players.map(player => {
+        let prom = dbconfig.collection_players.findOne({_id: player._id})
+            .populate({path: "partner", model: dbconfig.collection_partner})
+            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+            .lean();
+
+        proms.push(prom)
+    });
+
+    return Promise.all(proms);
 }
 
 function getCalleeList (query, sortCol) {
@@ -268,7 +304,7 @@ function getCalleeList (query, sortCol) {
             query.isRealPlayer = true;
             query.partner = {$ne: null};
     }
-    if ("playerType" in query) {
+    if (query.playerType) {
         delete query.playerType;
     }
 

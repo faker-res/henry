@@ -148,7 +148,7 @@ var dbPlayerConsumptionRecord = {
             matchObj.gameId = gameId
         }
 
-        var a = dbconfig.collection_playerConsumptionRecord.find(matchObj)
+        var a = dbconfig.collection_playerConsumptionRecord.find(matchObj).read("secondaryPreferred")
             .populate({path: "playerId", model: dbconfig.collection_players})
             .populate({path: "gameId", model: dbconfig.collection_game})
             .populate({path: "platformId", model: dbconfig.collection_platform})
