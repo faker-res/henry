@@ -70,7 +70,6 @@ var playerConsumptionRecordSchema = new Schema({
 playerConsumptionRecordSchema.index({playerId: 1, platformId: 1, gameId: 1, createTime: 1});
 playerConsumptionRecordSchema.index({platformId: 1, createTime: 1});
 playerConsumptionRecordSchema.index({playerId: 1, createTime: 1});
-playerConsumptionRecordSchema.index({platformId: 1, createTime: 1, providerId: 1, isDuplicate: 1});
 playerConsumptionRecordSchema.index({platformId: 1, playerId: 1, createTime: 1});
 playerConsumptionRecordSchema.index({platformId: 1, providerId: 1});
 
