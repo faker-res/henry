@@ -2395,7 +2395,8 @@ var dbPlatform = {
                 qqList: [],
                 telList: [],
                 live800: "",
-                activityList: []
+                activityList: [],
+                playerWebLogoUrl: []
             };
             return dbconfig.collection_platform.findOne({platformId: platformId}).then(
                 data => {
