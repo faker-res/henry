@@ -14738,7 +14738,7 @@ let dbPlayerInfo = {
     },
 
     importDiffPhoneNum: function (platform, phoneNumber, dxMission) {
-        let phoneArr = phoneNumber.split(',').map((item) => item.trim());
+        let phoneArr = phoneNumber.split(/[\n,]+/).map((item) => item.trim());
 
         if (phoneArr.length > 0) {
             let promArr = [];
@@ -14746,6 +14746,11 @@ let dbPlayerInfo = {
             return dbconfig.collection_dxMission.findOne({_id: dxMission}).lean().then(
                 dxMissionRes => {
                     for (let x = 0; x < phoneArr.length; x++) {
+                        // if it is not a valid phone number, do not import
+                        if (!phoneArr[x] || phoneArr[x].length < 11 || !(/^\d+$/.test(phoneArr[x]))) {
+                            continue;
+                        }
+
                         promArr.push(
                             dbPlayerInfo.generateDXCode(dxMission).then(
                                 randomCode => {
