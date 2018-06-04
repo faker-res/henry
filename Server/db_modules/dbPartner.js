@@ -7066,6 +7066,8 @@ let dbPartner = {
 
                 } else if (mode == constPartnerBillBoardMode.CREW_COUNT_ALL) {
                     let partnerRanking;
+                    returnData["allCrewHeadCount"] = {};
+                    returnData["allCrewHeadCount"].boardRanking = [];
 
                     let playerMatchQuery = {
                         $match: {
@@ -7119,7 +7121,6 @@ let dbPartner = {
                                     select: "partnerName"
                                 }).then(
                                     populatedData => {
-                                        returnData["allCrewHeadCount"] = {};
                                         for (let i = 0; i < populatedData.length; i++) {
                                             if (populatedData[i]._id && populatedData[i]._id.partnerName) {
                                                 populatedData[i].name = censoredPlayerName(populatedData[i]._id.partnerName);
@@ -7141,7 +7142,7 @@ let dbPartner = {
                                 );
 
                             } else {
-                                return Promise.reject({name: "DataError", message: "No record to show"});
+                                return returnData;
                             }
                         }
                     )
@@ -7188,6 +7189,8 @@ let dbPartner = {
                             let partnerAmtObj = {};
                             let rankingArr = [];
                             let partnerRanking;
+                            returnData["activeCrewHeadCount"] = {};
+                            returnData["activeCrewHeadCount"].boardRanking = [];
 
                             for (let i = 0; i < res.length; i++) {
                                 if (!partnerAmtObj[res[i].partner.toString()]) {
@@ -7246,7 +7249,6 @@ let dbPartner = {
                                     select: "partnerName"
                                 }).then(
                                     populatedData => {
-                                        returnData["activeCrewHeadCount"] = {};
                                         for (let i = 0; i < populatedData.length; i++) {
                                             if (populatedData[i].partner && populatedData[i].partner.partnerName) {
                                                 populatedData[i].name = censoredPlayerName(populatedData[i].partner.partnerName);
@@ -7267,7 +7269,7 @@ let dbPartner = {
                                     }
                                 );
                             } else {
-                                return Promise.reject({name: "DataError", message: "No record to show"});
+                                return returnData;
                             }
                         }
                     )
@@ -7280,6 +7282,9 @@ let dbPartner = {
                         proposalTypeData => {
                             if (proposalTypeData && proposalTypeData._id) {
                                 let partnerRanking;
+                                returnData["totalcommission "] = {};
+                                returnData["totalcommission "].boardRanking = [];
+
                                 let proposalMatchQuery = {
                                     $match: {
                                         "data.platformObjId": platformObj._id,
@@ -7328,7 +7333,6 @@ let dbPartner = {
                                                 select: "partnerName"
                                             }).then(
                                                 populatedData => {
-                                                    returnData["totalcommission "] = {};
                                                     for (let i = 0; i < populatedData.length; i++) {
                                                         if (populatedData[i]._id && populatedData[i]._id.partnerName) {
                                                             populatedData[i].name = censoredPlayerName(populatedData[i]._id.partnerName);
@@ -7350,7 +7354,7 @@ let dbPartner = {
                                             );
 
                                         } else {
-                                            return Promise.reject({name: "DataError", message: "No record to show"});
+                                            return returnData;
                                         }
                                     }
                                 )
@@ -8703,6 +8707,8 @@ function censoredPlayerName(name) {
 
 function billBoardAmtRankingNoPeriod (platformObj, partnerObj, totalRecord, objectField, sortOrder, playerDataField) {
     let returnData = {};
+    returnData[objectField] = {};
+    returnData[objectField].boardRanking = [];
     let groupQuery = {
         $group: {
             _id: "$partner"
@@ -8750,7 +8756,6 @@ function billBoardAmtRankingNoPeriod (platformObj, partnerObj, totalRecord, obje
                         select: "partnerName"
                     }).then(
                         populatedData => {
-                            returnData[objectField] = {};
                             for (let i = 0; i < populatedData.length; i++) {
                                 if (populatedData[i]._id && populatedData[i]._id.partnerName) {
                                     populatedData[i].name = censoredPlayerName(populatedData[i]._id.partnerName);
@@ -8772,7 +8777,7 @@ function billBoardAmtRankingNoPeriod (platformObj, partnerObj, totalRecord, obje
                     );
                 }
             } else {
-                return Promise.reject({name: "DataError", message: "No record to show"});
+                return returnData;
             }
         }
     )
@@ -8782,7 +8787,9 @@ function billBoardAmtRankingNoPeriod (platformObj, partnerObj, totalRecord, obje
 
 function billBoardAmtRanking (platformObj, partnerObj, recordDate, totalRecord, objectField, isReverseSort) {
     let allPlayerObj = [];
-    let returnData = {}
+    let returnData = {};
+    returnData[objectField] = {};
+    returnData[objectField].boardRanking = [];
     let stream = dbconfig.collection_players.find({
         $and: [
         {partner: {$exists: true}},
@@ -8900,7 +8907,7 @@ function billBoardAmtRanking (platformObj, partnerObj, recordDate, totalRecord, 
                     select: "partnerName"
                 }).then(
                     populatedData => {
-                        returnData[objectField] = {};
+                        // returnData[objectField] = {};
                         for (let i = 0; i < populatedData.length; i++) {
                             if (populatedData[i].partner && populatedData[i].partner.partnerName) {
                                 populatedData[i].name = censoredPlayerName(populatedData[i].partner.partnerName);
@@ -8921,7 +8928,8 @@ function billBoardAmtRanking (platformObj, partnerObj, recordDate, totalRecord, 
                     }
                 );
             } else {
-                return Promise.reject({name: "DataError", message: "No record to show"});
+                // return Promise.reject({name: "DataError", message: "No record to show"});
+                return returnData;
             }
 
         }
