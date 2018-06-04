@@ -79,7 +79,7 @@ var dbGameProviderPlayerDaySummary = {
                     }
                 }
             ]
-        ).cursor({batchSize: 10000}).allowDiskUse(true).exec();
+        ).read("secondaryPreferred").cursor({batchSize: 10000}).allowDiskUse(true).exec();
     },
 
     /**
@@ -161,7 +161,7 @@ var dbGameProviderPlayerDaySummary = {
                     }
                 }
             ]
-        ).cursor({batchSize: 10000}).allowDiskUse(true).exec().toArray().then(
+        ).read("secondaryPreferred").cursor({batchSize: 10000}).allowDiskUse(true).exec().toArray().then(
             function (data) {
                 if (data && data.length > 0) {
                     var prom = [];

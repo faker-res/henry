@@ -37,7 +37,7 @@ let promoCodeSchema = new Schema({
     // Promo Code Expiration Time
     expirationTime: {type: Date},
     // Promo Code Status
-    status: {type: Number},
+    status: {type: Number, index: true},
     // Promo Code Active Flag
     isActive: {type: Boolean, default: false, index: true},
     // Top Up Proposal Used for this promo code
