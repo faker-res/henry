@@ -16,7 +16,7 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
     #cssmenu
         ul.navibar.navbar-header.nav-header.navbar-brand
             li(style="{{ checkViewPermission('Platform')? 'display:block; width:60px;' : 'display:none'}}" class="wbLogo")
-                a(href='', name='platform', ng-click="openHeaderPanel('platform'); setClickedHeaderIcon()" )
+                a(href='', name='platform', ng-click="openHeaderPanel('Website Business'); setClickedHeaderIcon()" )
                     i.fa
                         div()
                     | {{ 'Website Business' | translate }}
@@ -72,7 +72,7 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
             //        | {{'API TEST PAGE' | translate }}
 
         ul.navbar-right()
-            li(style="min-width:330px !important;font-size:0.8em;color:#ffffff;")
+            li(style="min-width:310px !important;font-size:0.8em;color:#ffffff;")
                 .row.margin-top-bottom-small(style='margin-left:0;margin-right:0')
                     table.pull-right(style='width:100%;')
                         thead

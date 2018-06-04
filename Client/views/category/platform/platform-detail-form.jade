@@ -82,7 +82,7 @@ form(name="form_new_platform" ,novalidate)
                         label.control-label {{"CUSTOMER_SERVICE_HOTLINE" | translate}} ({{"IMAGE_URL" | translate}})
                         input.form-control(type="text", placeholder="{{'HOTLINE' | translate}}", ng-model="vm.showPlatform.csPhone", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
-                        label.control-label {{"CUSTOMER_SERVICE_URL" | translate}} ({{"IMAGE_URL" | translate}})
+                        label.control-label {{"CUSTOMER_SERVICE_URL" | translate}}
                         input.form-control(type="text", placeholder="{{'CUSTOMER_SERVICE_URL' | translate}}", ng-model="vm.showPlatform.csUrl", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_QQ" | translate}} ({{"IMAGE_URL" | translate}})
@@ -107,9 +107,9 @@ form(name="form_new_platform" ,novalidate)
                     #playerAdvertisementRecords.adminLogQueryDiv
                         .inlineBlk
                             label {{"WEB" | translate}}
-                            input(type="checkbox" ng-model="vm.playerAdvertisementWebDevice" ng-change="vm.playerAdvertisementH5Device = !vm.playerAdvertisementWebDevice; vm.playerAdvertisementList();" ng-init="vm.playerAdvertisementWebDevice = true" ng-disabled="vm.isNotAllowEdit")
+                            input(type="checkbox" ng-model="vm.playerAdvertisementWebDevice" ng-change="vm.playerAdvertisementH5Device = !vm.playerAdvertisementWebDevice; vm.playerAdvertisementList();" ng-init="vm.playerAdvertisementWebDevice = true" )
                             label {{"H5" | translate}}
-                            input(type="checkbox" ng-model="vm.playerAdvertisementH5Device" ng-change="vm.playerAdvertisementWebDevice = !vm.playerAdvertisementH5Device; vm.playerAdvertisementList();" ng-disabled="vm.isNotAllowEdit")
+                            input(type="checkbox" ng-model="vm.playerAdvertisementH5Device" ng-change="vm.playerAdvertisementWebDevice = !vm.playerAdvertisementH5Device; vm.playerAdvertisementList();" )
                     .well
                         .row(style="overflow:scroll; max-height: 250px;")
                             table.common-table.playerLvlTable(style='width:auto; min-width:99.9%; background-color: white;')
@@ -254,7 +254,7 @@ form(name="form_new_platform" ,novalidate)
 
                     .well(style="margin-top: 50px; background-color: white;" )
                         .row(style="text-align: right; margin-bottom: 10px;" ng-if="!vm.addNewPlayerAdvertisement")
-                            button.common-button.btn.btn-info(ng-click="vm.getNextOrderNo();vm.addNewPlayerAdvertisement=true", ng-disabled="vm.isNotAllowEdit" style="width: auto; background-color: #5bc0de") {{'ADD' | translate}}
+                            button.common-button.btn.btn-info(ng-click="vm.getNextOrderNo();vm.addNewPlayerAdvertisement=true" style="width: auto; background-color: #5bc0de") {{'ADD' | translate}}
                         .row(style="text-align: center; margin-bottom: 10px;" ng-if="vm.addNewPlayerAdvertisement")
                             label {{"Add new advertisement" | translate}}
                         .row(style="overflow-x: scroll; max-height: 250px;" ng-if="vm.addNewPlayerAdvertisement")
@@ -382,9 +382,9 @@ form(name="form_new_platform" ,novalidate)
                     #partnerAdvertisementRecords.adminLogQueryDiv
                         .inlineBlk
                             label {{"WEB" | translate}}
-                            input(type="checkbox" ng-model="vm.partnerAdvertisementWebDevice" ng-change="vm.partnerAdvertisementH5Device = !vm.partnerAdvertisementWebDevice; vm.partnerAdvertisementList();" ng-init="vm.partnerAdvertisementWebDevice = true" ng-disabled="vm.isNotAllowEdit")
+                            input(type="checkbox" ng-model="vm.partnerAdvertisementWebDevice" ng-change="vm.partnerAdvertisementH5Device = !vm.partnerAdvertisementWebDevice; vm.partnerAdvertisementList();" ng-init="vm.partnerAdvertisementWebDevice = true")
                             label {{"H5" | translate}}
-                            input(type="checkbox" ng-model="vm.partnerAdvertisementH5Device" ng-change="vm.partnerAdvertisementWebDevice = !vm.partnerAdvertisementH5Device; vm.partnerAdvertisementList();" ng-disabled="vm.isNotAllowEdit")
+                            input(type="checkbox" ng-model="vm.partnerAdvertisementH5Device" ng-change="vm.partnerAdvertisementWebDevice = !vm.partnerAdvertisementH5Device; vm.partnerAdvertisementList();")
                     .well
                         .row(style="overflow:scroll; max-height: 250px;")
                             table.common-table.playerLvlTable(style='width:auto; min-width:99.9%; background-color: white;')
@@ -529,7 +529,7 @@ form(name="form_new_platform" ,novalidate)
 
                     .well(style="margin-top: 50px; background-color: white;" )
                         .row(style="text-align: right; margin-bottom: 10px;" ng-if="!vm.addNewPartnerAdvertisement")
-                            button.common-button.btn.btn-info(ng-click="vm.getPartnerNextOrderNo();vm.addNewPartnerAdvertisement=true", ng-disabled="vm.isNotAllowEdit" style="width: auto; background-color: #5bc0de") {{'ADD' | translate}}
+                            button.common-button.btn.btn-info(ng-click="vm.getPartnerNextOrderNo();vm.addNewPartnerAdvertisement=true" style="width: auto; background-color: #5bc0de") {{'ADD' | translate}}
                         .row(style="text-align: center; margin-bottom: 10px;" ng-if="vm.addNewPartnerAdvertisement")
                             label {{"Add new advertisement" | translate}}
                         .row(style="overflow-x: scroll; max-height: 250px;" ng-if="vm.addNewPartnerAdvertisement")

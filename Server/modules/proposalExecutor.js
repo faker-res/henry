@@ -1654,7 +1654,9 @@ var proposalExecutor = {
                                     if (!Number(proposalData.data.spendingAmount)) {
                                         dbConsumptionReturnWithdraw.addXimaWithdraw(proposalData.data.playerObjId, proposalData.data.rewardAmount).catch(errorUtils.reportError);
                                     }
-                                    sendMessageToPlayer(proposalData,constRewardType.PLAYER_CONSUMPTION_RETURN,{});
+                                    if(proposalData.data.rewardAmount > 0){
+                                        sendMessageToPlayer(proposalData,constRewardType.PLAYER_CONSUMPTION_RETURN,{});
+                                    }
                                     dbOperation.removeWithRetry(dbconfig.collection_playerConsumptionSummary, {_id: {$in: proposalData.data.summaryIds}}).catch(errorUtils.reportError);
                                 }
                             );

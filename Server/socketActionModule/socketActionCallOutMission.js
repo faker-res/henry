@@ -7,6 +7,9 @@ function socketActionBankCardGroup(socketIO, socket) {
     this.socket = socket;
 
     let self = this;
+    function getAdminId() {
+        return self.socket.decoded_token && self.socket.decoded_token._id;
+    }
     this.actions = {
         createCallOutMission: function createCallOutMission(data) {
             let actionName = arguments.callee.name;
@@ -28,8 +31,8 @@ function socketActionBankCardGroup(socketIO, socket) {
 
         getUpdatedAdminMissionStatusFromCti: function getUpdatedAdminMissionStatusFromCti(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.adminObjectId);
-            socketUtil.emitter(self.socket, dbCallOutMission.getUpdatedAdminMissionStatusFromCti, [data.platformObjId, data.adminObjectId], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbCallOutMission.getUpdatedAdminMissionStatusFromCti, [data.platformObjId, getAdminId()], actionName, isValidData);
         },
 
     };

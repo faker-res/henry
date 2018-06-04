@@ -146,6 +146,21 @@ define([], () => {
             return $scope.$socketPromise('getAllRewardTypes').then(data => data.data)
         };
 
+        self.getAllGameProviders = function ($scope, platformId) {
+            if (!platformId) return;
+            return $scope.$socketPromise('getPlatform', {_id: platformId}).then(
+                data => {
+                    let allGameProviders = data.data.gameProviders;
+                    let gameProvidersList = {};
+                    allGameProviders.map(provider => {
+                        gameProvidersList[provider._id] = provider;
+                    });
+
+                    return [allGameProviders, gameProvidersList];
+                }
+            )
+        };
+
         this.updatePageTile = ($translate, pageName, tabName) => {
             window.document.title = $translate(pageName) + "->" + $translate(tabName);
             $(document).one('shown.bs.tab', function (e) {

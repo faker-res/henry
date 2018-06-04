@@ -4,6 +4,7 @@ var dbGameFunc = function () {
 };
 module.exports = new dbGameFunc();
 
+const dbutility = require('./../modules/dbutility');
 var dbconfig = require('./../modules/dbproperties');
 var dbPlatformGameStatus = require('./../db_modules/dbPlatformGameStatus');
 var dbProposal = require('./../db_modules/dbProposal');
@@ -225,12 +226,12 @@ var dbGame = {
                     query.provider = {$in: platform.gameProviders};
                 }
 
-                return dbGame.getGameList(query, startIndex, count, playerId, bannedProvider);
+                return dbGame.getGameList(query, startIndex, count, playerId, bannedProvider, platform.platformId);
             }
         );
     },
 
-    getGameList: function (query, index, count, playerId, bannedProvider) {
+    getGameList: function (query, index, count, playerId, bannedProvider, platformId) {
         bannedProvider = bannedProvider || [];
         index = index || 0;
         count = count || constSystemParam.MAX_RECORD_NUM;
@@ -274,6 +275,10 @@ var dbGame = {
                                 bannedProvider = bannedProvider.map(providerId => {
                                     return String(providerId);
                                 });
+
+                                if (platformId) {
+                                    game.provider.status = dbutility.getPlatformSpecificProviderStatus(game.provider, platformId);
+                                }
 
                                 if (bannedProvider.indexOf(String(game.provider._id)) >= 0) {
                                     game.provider.status = constProviderStatus.MAINTENANCE;

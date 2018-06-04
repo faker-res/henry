@@ -54,6 +54,7 @@ let PlayerServiceImplement = function () {
             if (geo) {
                 data.country = geo.country;
                 data.city = geo.city;
+                data.province = geo.region;
                 data.longitude = geo.ll ? geo.ll[1] : null;
                 data.latitude = geo.ll ? geo.ll[0] : null;
             }
@@ -77,14 +78,12 @@ let PlayerServiceImplement = function () {
                 data.domain = data.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
             }
             if(data.lastLoginIp && data.lastLoginIp != "undefined"){
-                dbUtility.getGeoIp(data.lastLoginIp).then(
-                    ipData=>{
-                        if(data){
-                            data.ipArea = ipData;
-                        }else{
-                            data.ipArea = {'province':'', 'city':''};
-                        }
-                    })
+                var ipData = dbUtility.getIpLocationByIPIPDotNet(data.lastLoginIp);
+                if(ipData){
+                    data.ipArea = ipData;
+                }else{
+                    data.ipArea = {'province':'', 'city':''};
+                }
             }
 
             //set email to qq if there is only qq number and no email data

@@ -150,9 +150,9 @@
                     i.fa.fa-spinner.fa-spin
                 span.margin-left-5
             .inlineBlk
-                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','BulkCall')",ng-click='vm.toggleCallOutMissionStatus') {{"Pause/Resume Mission" | translate}}
+                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission",ng-click='vm.toggleCallOutMissionStatus()') {{"Pause/Resume Mission" | translate}}
             .inlineBlk
-                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','BulkCall')",ng-click='vm.stopCallOutMission') {{"Stop Mission" | translate}}
+                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission",ng-click='vm.stopCallOutMission()') {{"Stop Mission" | translate}}
 
 
 .row.margin-top-bottom-small(ng-show='!vm.selectedPlatform')
@@ -161,7 +161,13 @@
 .col-md-12
     label.inlineBlk(ng-show='vm.platformPlayerCount') {{"Search Result" | translate}} : {{vm.feedbackPlayersPara.total}}
     .inlineBlk
-        .btn.btn-primary(ng-click="vm.createCallOutMission()" ng-if="checkViewPermission('Platform','Feedback','BulkCall')") {{"BULK_CALL" | translate}}
+    label.inlineBlk(ng-show='vm.ctiData.hasOnGoingMission') {{vm.callOutMissionStatus}}
+    label.inlineBlk(ng-show='vm.ctiData.hasOnGoingMission') {{vm.ctiData.adminName}} : {{vm.callOutMissionStatusText}}  /  {{"Completed" | translate}} : ({{vm.callOutMissionProgressText}})
+    .inlineBlk
+        .btn.btn-primary(ng-click="vm.createCallOutMission()" ng-if="checkViewPermission('Platform','Feedback','BulkCall') && !vm.ctiData.hasOnGoingMission") {{"BULK_CALL" | translate}}
+    .pull-right
+        a.fa.fa-refresh.margin-top-5(ng-click='vm.submitPlayerFeedbackQuery()')
+            text.margin-right-5.pull-left {{"Refresh" | translate}}
 
 .row.margin-top-bottom-small(ng-show='vm.selectedPlatform')
     .col-md-12

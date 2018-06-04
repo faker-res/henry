@@ -1738,6 +1738,7 @@ let dbPlayerInfo = {
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
             .populate({path: "partner", model: dbconfig.collection_partner})
             .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints})
+            .populate({path: "csOfficer", model: dbconfig.collection_admin})
             .then(data => {
                 if (data) {
                     playerData = data;
@@ -5292,7 +5293,7 @@ let dbPlayerInfo = {
                         rewardProm = dbRewardTask.getPlayerCurRewardTask(playerObjId);
                     }
                     let gameCreditProm = {};
-                    if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
+                    if (playerData.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, playerData.platform.platformId) == constGameStatus.ENABLE) {
                         gameCreditProm = cpmsAPI.player_queryCredit(
                             {
                                 username: userName,
@@ -5646,7 +5647,7 @@ let dbPlayerInfo = {
                     gameProvider = data[1];
                     let platformData = playerObj.platform;
 
-                    if (gameProvider.status != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(gameProvider._id)] && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false) {
+                    if (dbUtility.getPlatformSpecificProviderStatus(gameProvider, platformData.platformId) != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(gameProvider._id)] && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false) {
                         deferred.reject({
                             name: "DataError",
                             message: "Provider is not available"
@@ -6081,6 +6082,7 @@ let dbPlayerInfo = {
         ).lean().then(
             playerData => {
                 if (playerData) {
+                    let platform = playerData.platform;
                     returnObj.validCredit = playerData.validCredit;
                     returnObj.lockedCredit = playerData.lockedCredit;
                     return dbconfig.collection_proposal
@@ -6110,7 +6112,7 @@ let dbPlayerInfo = {
                                     }
                                 }
                                 returnObj.pendingRewardAmount = sumAmount;
-                                if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
+                                if (playerData.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE) {
                                     return cpmsAPI.player_queryCredit(
                                         {
                                             username: playerData.name,
@@ -6150,6 +6152,7 @@ let dbPlayerInfo = {
         ).lean().then(
             playerData => {
                 if (playerData) {
+                    let platform = playerData.platform;
                     creditData.validCredit = playerData.validCredit;
                     creditData.lockedCredit = playerData.lockedCredit;
                     return dbconfig.collection_rewardTask.findOne({
@@ -6159,7 +6162,7 @@ let dbPlayerInfo = {
                     }).lean().then(
                         taskData => {
                             creditData.taskData = taskData;
-                            if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
+                            if (playerData.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE) {
                                 return cpmsAPI.player_queryCredit(
                                     {
                                         username: playerData.name,
@@ -6995,13 +6998,25 @@ let dbPlayerInfo = {
                 let levelDownLevel;
 
                 function createProposal(proposal, inputDevice, index) {
-                    let levelProposalQuery = {
-                        'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
-                        'data.platformObjId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]},
-                        'data.levelObjId': proposal.levelObjId,
-                        status: constProposalStatus.PENDING
-                    }
-                    return dbPropUtil.getOneProposalDataOfType(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, levelProposalQuery).then(
+                    return dbconfig.collection_players.findOne({_id: ObjectId(playerObj._id)}).lean().then(
+                        playerCurrentData => {
+                            // double check if player's level already on this level
+                            if (!(playerCurrentData && playerCurrentData._id)) {
+                                return Promise.reject({name: "DBError", message: "Error in getting player data"})
+                            }
+                            if (playerCurrentData && playerCurrentData.playerLevel && playerCurrentData.playerLevel.toString() == proposal.levelObjId.toString()) {
+                                return Promise.reject({name: "DBError", message: "Player already on this level"})
+                            }
+
+                            let levelProposalQuery = {
+                                'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
+                                'data.platformObjId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]},
+                                'data.levelObjId': proposal.levelObjId,
+                                status: constProposalStatus.PENDING
+                            }
+                            return dbPropUtil.getOneProposalDataOfType(playerObj.platform, constProposalType.PLAYER_LEVEL_MIGRATION, levelProposalQuery)
+                        }
+                    ).then(
                         proposalDetail => {
                             if (proposalDetail && proposalDetail._id) {
                                 return Promise.reject({
@@ -7046,7 +7061,7 @@ let dbPlayerInfo = {
                                 'data.platformObjId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]},
                                 'data.levelValue': levelUpObj.value,
                                 type: proposalTypeData._id,
-                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.PENDING]}
                             }).lean();
                         }
                     ).then(
@@ -9305,6 +9320,7 @@ let dbPlayerInfo = {
         let player = null;
         let bonusDetail = null;
         let bUpdateCredit = false;
+        let platform;
         let resetCredit = function (playerObjId, platformObjId, credit, error) {
             //reset player credit if credit is incorrect
             return dbconfig.collection_players.findOneAndUpdate(
@@ -9338,6 +9354,8 @@ let dbPlayerInfo = {
                         let propQ = {
                             "data._id": String(playerData._id)
                         };
+
+                        platform = playerData.platform;
 
                         return dbPropUtil.getProposalDataOfType(playerData.platform._id, constProposalType.UPDATE_PLAYER_BANK_INFO, propQ).then(
                             proposals => {
@@ -9410,7 +9428,7 @@ let dbPlayerInfo = {
                         let todayTime = dbUtility.getTodaySGTime();
                         let creditProm = Q.resolve();
 
-                        if (player.lastPlayedProvider && player.lastPlayedProvider.status == constGameStatus.ENABLE) {
+                        if (player.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(player.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE) {
                             creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(player.playerId, player.platform._id, player.lastPlayedProvider.providerId, -1, null, true).catch(errorUtils.reportError);
                         }
 
@@ -10364,12 +10382,14 @@ let dbPlayerInfo = {
                     // }
 
                     // Added checking for platform level disable game provider
-                    if (gameData.provider.status != constProviderStatus.NORMAL) {
+
+                    let providerStatus = dbUtility.getPlatformSpecificProviderStatus(gameData.provider, platform.platformId);
+                    if (providerStatus != constProviderStatus.NORMAL) {
                         return Q.reject({
                             status: constServerCode.CP_NOT_AVAILABLE,
                             name: "DataError",
                             message: "Provider is not available",
-                            providerStatus: gameData.provider.status
+                            providerStatus: providerStatus
                         });
                     }
 
@@ -10426,7 +10446,7 @@ let dbPlayerInfo = {
                                                 // Still not enough credit in RTG, transfer out from last provider
                                                 if (retData.rewardCredit < 1
                                                     && playerData.lastPlayedProvider
-                                                    && playerData.lastPlayedProvider.status == constGameStatus.ENABLE
+                                                    && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE
                                                     && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
                                                     return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id,
                                                         playerData.lastPlayedProvider.providerId, -1, null, true);
@@ -10445,7 +10465,7 @@ let dbPlayerInfo = {
                                         return true;
                                     }
                                 } else {
-                                    if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
+                                    if (playerData.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
                                         return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true).then(transferCreditToProvider, errorUtils.reportError);
                                     }
                                     else {
@@ -13540,13 +13560,13 @@ let dbPlayerInfo = {
 
                 let outputResult = [];
 
+                // Output filter promote way
+                result = query.csPromoteWay && query.csPromoteWay.length > 0 ? result.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : result;
+                result = query.admins && query.admins.length > 0 ? result.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : result;
+
                 for (let i = 0, len = limit; i < len; i++) {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
-
-                // Output filter promote way
-                outputResult = query.csPromoteWay && query.csPromoteWay.length > 0 ? outputResult.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : outputResult;
-                outputResult = query.admins && query.admins.length > 0 ? outputResult.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : outputResult;
 
                 return {size: outputResult.length, data: outputResult};
             }

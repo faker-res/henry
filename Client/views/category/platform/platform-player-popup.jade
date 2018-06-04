@@ -240,13 +240,13 @@
                                         //button.btn.btn-primary.common-button-sm(ng-click='') {{"EDIT_HISTORY" | translate}}
                                 tr
                                     td
-                                        div {{'IP' | translate}}
+                                        div {{'REGISTRATION_INFO' | translate}}
                                     td
                                         .row
                                             .col-md-4
                                                 .row
                                                     .col-sm-4(style='white-space: nowrap;')
-                                                        label {{"IP" | translate}}
+                                                        label {{"REGISTRATION_IP" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.lastLoginIp || 'Unknown' | translate}}
                                             .col-md-4
@@ -255,6 +255,12 @@
                                                         label {{'COUNTRY' | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.country || 'Unknown' | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{'PROVINCE' | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.selectedSinglePlayer.province || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
                                                     .col-sm-4(style='white-space: nowrap;')
@@ -276,6 +282,18 @@
                                                     .col-sm-8(style='word-wrap:break-word;')
                                                         text
                                                             a(href='{{vm.selectedSinglePlayer.sourceUrl}}', title='{{vm.selectedSinglePlayer.sourceUrl}}', target='_blank') {{vm.selectedSinglePlayer.$displaySourceUrl || 'Unknown' | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"REGISTRATION_ADMIN" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.selectedSinglePlayer.csOfficer.adminName || 'Unknown' | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"PROMOTE_WAY" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.selectedSinglePlayer.promoteWay || 'Unknown' | translate}}
                                         //.inlineBlk
                                         //    label {{'BANK_BRANCH' | translate}}
                                         //    text {{vm.selectedSinglePlayer.bankBranch || 'Unknown' | translate}}
