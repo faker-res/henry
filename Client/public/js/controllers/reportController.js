@@ -1587,7 +1587,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('DEVICE'), data: "data.userAgent",
                         render: function (data, type, row) {
-                            var text = $translate(data ? $scope.userAgentType[data] : "");
+                            var text = $translate(data ? $scope.userAgentType[data] : $scope.userAgentType['0']);
                             return "<div>" + text + "</div>";
                         }
                     },

@@ -3083,18 +3083,20 @@ var dbPlatform = {
 
         let prom = [];
 
-        if (data && data.length > 0){
+        console.log("YH------CHECKING------", data);
 
-            data.forEach( inData => {
-               let record = {};
-
-               record.platformId = inData.platformId || "";
-               record.phoneNumber = inData.phoneNumber || "";
-               record.name = inData.name || "";
-
-               prom.push(checkAndInsertRecord(record.platformId,record.phoneNumber,record.name));
-            })
-        }
+        // if (data && data.length > 0){
+        //
+        //     data.forEach( inData => {
+        //        let record = {};
+        //
+        //        record.platformId = inData.platformId || "";
+        //        record.phoneNumber = inData.phoneNumber || "";
+        //        record.name = inData.name || "";
+        //
+        //        prom.push(checkAndInsertRecord(record.platformId,record.phoneNumber,record.name));
+        //     })
+        // }
 
         return Promise.all(prom);
 
