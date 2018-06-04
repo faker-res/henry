@@ -7100,7 +7100,7 @@ let dbPartner = {
                                     if (playerData[i].createTime) {
                                         delete playerData[i].createTime;
                                     }
-                                    if (playerData[i]._id.toString() == partnerObj._id.toString()) {
+                                    if (partnerObj && partnerObj._id && playerData[i]._id.toString() == partnerObj._id.toString()) {
                                         delete playerData[i]._id;
                                         playerData[i].name = partnerObj.partnerName ? partnerObj.partnerName : " ";
                                         partnerRanking = playerData[i];
@@ -8723,7 +8723,7 @@ function billBoardAmtRankingNoPeriod (platformObj, partnerObj, totalRecord, obje
                 let partnerRanking;
                 for (let i = 0; i < allRankingData.length; i++) {
                     allRankingData[i].rank = i + 1;
-                    if (allRankingData[i]._id.toString() == partnerObj._id.toString()) {
+                    if (partnerObj && partnerObj._id && allRankingData[i]._id.toString() == partnerObj._id.toString()) {
                         delete allRankingData[i]._id;
                         allRankingData[i].name = partnerObj.partnerName? partnerObj.partnerName: " ";
                         partnerRanking = allRankingData[i];
@@ -8871,7 +8871,7 @@ function billBoardAmtRanking (platformObj, partnerObj, recordDate, totalRecord, 
                 if (sortedData[i].createTime) {
                     delete sortedData[i].createTime;
                 }
-                if (sortedData[i].partner.toString() == partnerObj._id.toString()) {
+                if (partnerObj && partnerObj._id && sortedData[i].partner.toString() == partnerObj._id.toString()) {
                     delete sortedData[i].partner;
                     sortedData[i].name = partnerObj.partnerName? partnerObj.partnerName: " ";
                     partnerRanking = sortedData[i];
