@@ -57,8 +57,8 @@ let dbPartner = {
             platformDataResult => {
                 platformData = platformDataResult;
                 if (platformData) {
-                    if(partnerData.phoneNumber && platformData.partnerBlackListingPhoneNumbers){
-                        let indexNo = platformData.partnerBlackListingPhoneNumbers.findIndex(p => p == partnerData.phoneNumber);
+                    if(partnerData.phoneNumber && platformData.blackListingPhoneNumbers){
+                        let indexNo = platformData.blackListingPhoneNumbers.findIndex(p => p == partnerData.phoneNumber);
                         if(indexNo != -1){
                             return Q.reject({name: "DataError", message: localization.localization.translate("Registration failed, phone number is invalid")});
                         }
@@ -82,10 +82,10 @@ let dbPartner = {
                     //     partnerData.partnerName = platformData.partnerPrefix + partnerData.partnerName;
                     // }
 
-                    if (platformData.partnerWhiteListingPhoneNumbers
-                        && platformData.partnerWhiteListingPhoneNumbers.length > 0
+                    if (platformData.whiteListingPhoneNumbers
+                        && platformData.whiteListingPhoneNumbers.length > 0
                         && partnerData.phoneNumber
-                        && platformData.partnerWhiteListingPhoneNumbers.indexOf(partnerData.phoneNumber) > -1)
+                        && platformData.whiteListingPhoneNumbers.indexOf(partnerData.phoneNumber) > -1)
                         return {isPhoneNumberValid: true};
 
                     if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
@@ -194,10 +194,10 @@ let dbPartner = {
                         return Promise.reject(new Error());
                     }
 
-                    if (platformData.partnerWhiteListingPhoneNumbers
-                        && platformData.partnerWhiteListingPhoneNumbers.length > 0
+                    if (platformData.whiteListingPhoneNumbers
+                        && platformData.whiteListingPhoneNumbers.length > 0
                         && partnerdata.phoneNumber
-                        && platformData.partnerWhiteListingPhoneNumbers.indexOf(partnerdata.phoneNumber) > -1)
+                        && platformData.whiteListingPhoneNumbers.indexOf(partnerdata.phoneNumber) > -1)
                         return {isPhoneNumberValid: true};
 
                     if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
@@ -7069,7 +7069,10 @@ let dbPartner = {
 
                     let playerMatchQuery = {
                         $match: {
-                            partner: {$exists: true},
+                            $and: [
+                                {partner: {$exists: true}},
+                                {partner: {$ne: null}}
+                            ],
                             platform: platformObj._id,
                         }
                     };
@@ -7100,7 +7103,7 @@ let dbPartner = {
                                     if (playerData[i].createTime) {
                                         delete playerData[i].createTime;
                                     }
-                                    if (playerData[i]._id.toString() == partnerObj._id.toString()) {
+                                    if (partnerObj && partnerObj._id && playerData[i]._id.toString() == partnerObj._id.toString()) {
                                         delete playerData[i]._id;
                                         playerData[i].name = partnerObj.partnerName ? partnerObj.partnerName : " ";
                                         partnerRanking = playerData[i];
@@ -7150,7 +7153,10 @@ let dbPartner = {
                     }
                     let allPlayerObj = [];
                     let stream = dbconfig.collection_players.find({
-                        partner : {$exists: true},
+                        $and: [
+                            {partner: {$exists: true}},
+                            {partner: {$ne: null}}
+                        ],
                         platform: platformObj._id
                     }, {partner: 1}).cursor({batchSize: 100});
                     let balancer = new SettlementBalancer();
@@ -7223,7 +7229,7 @@ let dbPartner = {
                             let sortedData = rankingArr.sort(sortRankingRecord);
                             for (let i = 0; i < sortedData.length; i++) {
                                 sortedData[i].rank = i + 1;
-                                if (sortedData[i].partner.toString() == partnerObj._id.toString()) {
+                                if (partnerObj && partnerObj._id && sortedData[i].partner.toString() == partnerObj._id.toString()) {
                                     delete sortedData[i].partner;
                                     sortedData[i].name = partnerObj.partnerName? partnerObj.partnerName: " ";
                                     partnerRanking = sortedData[i];
@@ -7306,7 +7312,7 @@ let dbPartner = {
                                         if (partnerData && partnerData.length) {
                                             for (let i = 0; i < partnerData.length; i++) {
                                                 partnerData[i].rank = i + 1;
-                                                if (partnerData[i]._id.toString() == partnerObj._id.toString()) {
+                                                if (partnerObj && partnerObj._id && partnerData[i]._id.toString() == partnerObj._id.toString()) {
                                                     delete partnerData[i]._id;
                                                     partnerData[i].name = partnerObj.partnerName ? partnerObj.partnerName : " ";
                                                     partnerRanking = partnerData[i];
@@ -8707,7 +8713,10 @@ function billBoardAmtRankingNoPeriod (platformObj, partnerObj, totalRecord, obje
     return dbconfig.collection_players.aggregate([
         {
             $match: {
-                partner : {$exists: true},
+                $and: [
+                    {partner: {$exists: true}},
+                    {partner: {$ne: null}}
+                ],
                 platform: platformObj._id
             }
         },
@@ -8723,7 +8732,7 @@ function billBoardAmtRankingNoPeriod (platformObj, partnerObj, totalRecord, obje
                 let partnerRanking;
                 for (let i = 0; i < allRankingData.length; i++) {
                     allRankingData[i].rank = i + 1;
-                    if (allRankingData[i]._id.toString() == partnerObj._id.toString()) {
+                    if (partnerObj && partnerObj._id && allRankingData[i]._id.toString() == partnerObj._id.toString()) {
                         delete allRankingData[i]._id;
                         allRankingData[i].name = partnerObj.partnerName? partnerObj.partnerName: " ";
                         partnerRanking = allRankingData[i];
@@ -8775,7 +8784,10 @@ function billBoardAmtRanking (platformObj, partnerObj, recordDate, totalRecord, 
     let allPlayerObj = [];
     let returnData = {}
     let stream = dbconfig.collection_players.find({
-        partner : {$exists: true},
+        $and: [
+        {partner: {$exists: true}},
+        {partner: {$ne: null}}
+        ],
         platform: platformObj._id
     }, {partner: 1}).cursor({batchSize: 100});
     // let stream = query.cursor({batchSize: 100}).allowDiskUse(true).exec();
@@ -8871,7 +8883,7 @@ function billBoardAmtRanking (platformObj, partnerObj, recordDate, totalRecord, 
                 if (sortedData[i].createTime) {
                     delete sortedData[i].createTime;
                 }
-                if (sortedData[i].partner.toString() == partnerObj._id.toString()) {
+                if (partnerObj && partnerObj._id && sortedData[i].partner.toString() == partnerObj._id.toString()) {
                     delete sortedData[i].partner;
                     sortedData[i].name = partnerObj.partnerName? partnerObj.partnerName: " ";
                     partnerRanking = sortedData[i];
