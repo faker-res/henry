@@ -2395,7 +2395,8 @@ var dbPlatform = {
                 qqList: [],
                 telList: [],
                 live800: "",
-                activityList: []
+                activityList: [],
+                playerWebLogoUrl: []
             };
             return dbconfig.collection_platform.findOne({platformId: platformId}).then(
                 data => {
@@ -2421,6 +2422,13 @@ var dbPlatform = {
                             returnedObj.telList.push({
                                 isImg: 0,
                                 value: data.csPhone
+                            });
+                        }
+
+                        if (data.playerWebLogoUrl) {
+                            returnedObj.playerWebLogoUrl.push({
+                                isImg: 0,
+                                value: data.playerWebLogoUrl
                             });
                         }
 

@@ -93,6 +93,9 @@ form(name="form_new_platform" ,novalidate)
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_WEIXIN_PHOTO" | translate}}
                         input.form-control(type="text", placeholder="{{'WEIXIN_PHOTO' | translate}}", ng-model="vm.showPlatform.weixinPhotoUrl", ng-disabled="vm.isNotAllowEdit")
+                    div.form-group.col-md-6
+                        label.control-label {{"WEBSITE_LOGO" | translate}} ({{"IMAGE_URL" | translate}})
+                        input.form-control(type="text", placeholder="{{'WEBSITE_LOGO' | translate}}", ng-model="vm.showPlatform.playerWebLogoUrl", ng-disabled="vm.isNotAllowEdit")
 
                 #advertisementPanel.panel-body(ng-if="vm.playerDisplayDataTab === 'advertisementPanel'", style="background-color: white;")
                     #playerAdvertisementRecords.adminLogQueryDiv
@@ -348,7 +351,7 @@ form(name="form_new_platform" ,novalidate)
                         label.control-label {{"CUSTOMER_SERVICE_PARTNER_HOTLINE" | translate}} ({{"IMAGE_URL" | translate}})
                         input.form-control(type="text", placeholder="{{'HOTLINE' | translate}}", ng-model="vm.showPlatform.csPartnerPhone", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
-                        label.control-label {{"CUSTOMER_SERVICE_PARTNER_URL" | translate}} ({{"IMAGE_URL" | translate}})
+                        label.control-label {{"CUSTOMER_SERVICE_PARTNER_URL" | translate}}
                         input.form-control(type="text", placeholder="{{'CUSTOMER_SERVICE_URL' | translate}}", ng-model="vm.showPlatform.csPartnerUrl", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_PARTNER_QQ" | translate}} ({{"IMAGE_URL" | translate}})
@@ -368,6 +371,9 @@ form(name="form_new_platform" ,novalidate)
                     div.form-group.col-md-6
                         label.control-label {{"PARTNER_WEIXIN_PHOTO" | translate}}
                         input.form-control(type="text", placeholder="{{'WEIXIN_PHOTO' | translate}}", ng-model="vm.showPlatform.partnerWeixinPhotoUrl", ng-disabled="vm.isNotAllowEdit")
+                    div.form-group.col-md-6
+                        label.control-label {{"WEBSITE_LOGO_PARTNER" | translate}} ({{"IMAGE_URL" | translate}})
+                        input.form-control(type="text", placeholder="{{'WEBSITE_LOGO_PARTNER' | translate}}", ng-model="vm.showPlatform.partnerWebLogoUrl", ng-disabled="vm.isNotAllowEdit")
 
                 #partnerAdvertisementPanel.panel-body(ng-if="vm.partnerDisplayDataTab === 'partnerAdvertisementPanel'", style="background-color: white;")
                     #partnerAdvertisementRecords.adminLogQueryDiv

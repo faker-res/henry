@@ -788,10 +788,9 @@ define(['js/app'], function (myApp) {
 
                 // Zero dependencies variable
                 [vm.rewardList, vm.promoTypeList, vm.allAlipaysAcc, vm.allWechatpaysAcc, vm.allBankTypeList,
-                    vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
-                    vm.allPlayerFeedbackResults, vm.allPlayerFeedbackTopics, vm.allPartnerFeedbackResults,
-                    vm.allPartnerFeedbackTopics, [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes,
-                    [vm.allGameProviders, vm.gameProvidersList]
+                 vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
+                 vm.playerFeedbackTopic, vm.partnerFeedbackTopic, vm.allPlayerFeedbackResults,vm.allPartnerFeedbackResults,
+                 [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes,[vm.allGameProviders, vm.gameProvidersList]
                 ] = await Promise.all([
                     commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -802,10 +801,10 @@ define(['js/app'], function (myApp) {
                     commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    commonService.getPartnerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([])),
-                    commonService.getAllPlayerFeedbackTopics($scope).catch(err => Promise.resolve([])),
                     commonService.getAllPartnerFeedbackResults($scope).catch(err => Promise.resolve([])),
-                    commonService.getAllPartnerFeedbackTopics($scope).catch(err => Promise.resolve([])),
                     commonService.getAllGameTypes($scope).catch(err => Promise.resolve([[], []])),
                     commonService.getAllRewardTypes($scope).catch(err => Promise.resolve([])),
                     commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []]))
@@ -1666,7 +1665,7 @@ define(['js/app'], function (myApp) {
                         commSettLog: vm.selectedSettlePartnerCommPrev,
                     };
                     let partnerCommLogIdArr = [];
-                    
+
                     vm.partnerCommissionLog.forEach( partnerCommLog => {
                         if (partnerCommLog) {
                             partnerCommLogIdArr.push(partnerCommLog._id);
@@ -15663,7 +15662,7 @@ define(['js/app'], function (myApp) {
                     }
                 });
             };
-            
+
             vm.getPlayerCreditinFeedbackInfo = function () {
                 vm.curFeedbackPlayer.gameCredit = {};
                 for (var i in vm.platformProviderList) {
@@ -15931,17 +15930,21 @@ define(['js/app'], function (myApp) {
                 if (rowData && rowData.playerId) {
                     reqData.key = vm.addPlayerFeedbackTopicData.value;
                     reqData.value = vm.addPlayerFeedbackTopicData.value;
+                    reqData.platform = vm.selectedPlatform.id;
                     console.log(reqData);
                     return $scope.$socketPromise('createPlayerFeedbackTopic', reqData).then(
                         () => $scope.$evalAsync(async () => {
                             vm.addPlayerFeedbackTopicData.message = "SUCCESS";
                             vm.addPlayerFeedbackTopicData.success = true;
-                            vm.allPlayerFeedbackTopics = await commonService.getAllPlayerFeedbackTopics($scope).catch(err => Promise.resolve([]));
+                            vm.playerFeedbackTopic = await commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]));
                         }),
                         function (err) {
                             console.log("vm.addPlayerFeedbackTopics()ErrIn", err);
                             vm.addPlayerFeedbackTopicData.message = "FAILURE";
                             vm.addPlayerFeedbackTopicData.failure = true;
+                            if(err.error && err.error.error && err.error.error.code == '11000'){
+                                vm.addPlayerFeedbackTopicData.message = '失败，回访主题已存在'
+                            }
                             $scope.safeApply();
                         }
                     );
@@ -15950,17 +15953,21 @@ define(['js/app'], function (myApp) {
                 if (rowData && rowData.partnerId) {
                     reqData.key = vm.addPartnerFeedbackTopicData.value;
                     reqData.value = vm.addPartnerFeedbackTopicData.value;
+                    reqData.platform = vm.selectedPlatform.id;
                     console.log(reqData);
                     return $scope.$socketPromise('createPartnerFeedbackTopic', reqData).then(
                         () => $scope.$evalAsync(async () => {
                             vm.addPartnerFeedbackTopicData.message = "SUCCESS";
                             vm.addPartnerFeedbackTopicData.success = true;
-                            vm.allPartnerFeedbackTopics = await commonService.getAllPartnerFeedbackTopics($scope).catch(err => Promise.resolve([]));
+                            vm.partnerFeedbackTopic = await commonService.getPartnerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]));
                         }),
                         function (err) {
                             console.log("vm.addPartnerFeedbackTopics()ErrIn", err);
                             vm.addPartnerFeedbackTopicData.message = "FAILURE";
                             vm.addPartnerFeedbackTopicData.failure = true;
+                            if(err.error && err.error.error && err.error.error.code == '11000'){
+                                vm.addPartnerFeedbackTopicData.message = '失败，回访主题已存在'
+                            }
                             $scope.safeApply();
                         }
                     ).catch(
@@ -15984,7 +15991,7 @@ define(['js/app'], function (myApp) {
                         () => $scope.$evalAsync(async () => {
                             vm.deletePlayerFeedbackTopicData.message = "SUCCESS";
                             vm.deletePlayerFeedbackTopicData.success = true;
-                            vm.allPlayerFeedbackTopics = await commonService.getAllPlayerFeedbackTopics($scope).catch(err => Promise.resolve([]));
+                            vm.playerFeedbackTopic = await commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]));
                         }),
                         function (err) {
                             console.log("vm.addPlayerFeedbackTopics()ErrIn", err);
@@ -16001,7 +16008,7 @@ define(['js/app'], function (myApp) {
                         () => $scope.$evalAsync(async () => {
                             vm.deletePartnerFeedbackTopicData.message = "SUCCESS";
                             vm.deletePartnerFeedbackTopicData.success = true;
-                            vm.allPartnerFeedbackTopics = await commonService.getAllPartnerFeedbackTopics($scope).catch(err => Promise.resolve([]));
+                            vm.partnerFeedbackTopic = await commonService.getPartnerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]));
                         }),
                         function (err) {
                             console.log("vm.addPartnerFeedbackTopics()ErrIn", err);
@@ -16553,7 +16560,7 @@ define(['js/app'], function (myApp) {
                     let sumOfTotalBonus = 0;
                     let sumOfTotalDeposit = 0;
                     let sumOfTotalBalance = 0;
-                    
+
                     if(data && data.data){
                         data.data.forEach(result => {
                             if(result){
@@ -19959,7 +19966,7 @@ define(['js/app'], function (myApp) {
                 vm.platformRewardIsEnabled = !disabled;
                 if (vm.isRandomReward) {
                     $("#rewardMainTasks [data-cond-name='applyType']").prop("disabled", true);
-                    $("#rewardMainTasks [data-cond-name='canApplyFromClient']").prop("disabled", false);
+                    $("#rewardMainTasks [data-cond-name='canApplyFromClient']").prop("disabled", disabled);
                 }
             }
 

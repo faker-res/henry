@@ -196,7 +196,7 @@
                             td {{'FEEDBACK_TOPIC' | translate}}
                             td
                                 select(ng-model='vm.addFeedback.topic', required)
-                                    option(ng-repeat='(i,v) in vm.allPlayerFeedbackTopics', value='{{v.key}}') {{v.value}}
+                                    option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
                                 button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Platform', 'Player','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
                         tr
                             td

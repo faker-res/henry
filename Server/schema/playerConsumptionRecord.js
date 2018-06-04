@@ -63,7 +63,7 @@ var playerConsumptionRecordSchema = new Schema({
     // Number of comsumption (compressed records)
     count: {type: Number, default: 1},
     // win ratio (bonusAmount / validAmount)
-    winRatio: {type: Number}
+    winRatio: {type: Number, index: true}
 });
 
 //record is unique by playerId platformId and date

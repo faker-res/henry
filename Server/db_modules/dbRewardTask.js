@@ -2262,6 +2262,8 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                     updatedRTG => {
                         // RTG updated successfully
                         if (updatedRTG) {
+                            updatedRTG.targetConsumption = updatedRTG.targetConsumption || 0;
+                            updatedRTG.forbidXIMAAmt = updatedRTG.forbidXIMAAmt || 0;
                             // Check boundary case - RTG still overflow, try again
                             // retryCount > 1 to bypass condition below: fixed reward task not achieve when updatedRTG.curConsumption > updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt
                             if ( (updatedRTG.curConsumption > updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt && retryCount > 1)
