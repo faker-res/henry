@@ -15623,18 +15623,27 @@ define(['js/app'], function (myApp) {
 
             vm.getCtiData = function() {
                 socketService.$socket($scope.AppSocket, 'getUpdatedAdminMissionStatusFromCti', {
-                    platformObjId: vm.selectedPlatform.id
+                    platformObjId: vm.selectedPlatform.id,
+                    limit: vm.playerFeedbackQuery.limit || 10,
+                    index: vm.playerFeedbackQuery.index || 0,
                 }, function (data) {
                     console.log("getCtiData ret",data);
                     vm.ctiData = data.data;
                     if(vm.ctiData.hasOnGoingMission) {
+                        let playerFeedbackDetail = vm.ctiData.feedbackPlayerDetail;
+                        setTableData(vm.playerFeedbackTable, playerFeedbackDetail.data);
+                        vm.playerFeedbackQuery.total = playerFeedbackDetail.total || 0;
+                        vm.playerFeedbackQuery.index = playerFeedbackDetail.index || 0;
+                        vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total});
+                        vm.feedbackPlayersPara.total = vm.playerFeedbackQuery.total;
+
                         let players = [];
                         let completedAmount = 0;
                         vm.callOutMissionStatusText = '';
 
                         vm.ctiData.callee.forEach(callee => {
-                            players.push(Object.assign({},callee.player,{callOutMissionStatus:callee.status}));
-                            if (status == $scope.constCallOutMissionStatus.SUCCEEDED) {
+                            players.push(Object.assign({},callee.player,{callOutMissionStatus: callee.status}));
+                            if (status == $scope.constCallOutMissionStatus.SUCCEEDED || status == $scope.constCallOutMissionStatus.FAILED) {
                                 completedAmount++;
                             }
                         });
@@ -15649,7 +15658,7 @@ define(['js/app'], function (myApp) {
                             vm.feedbackPlayersPara.total = vm.ctiData.callee.length;
                             vm.callOutMissionProgressText = completedAmount + '/' + vm.ctiData.callee.length;
                         });
-                        setTableData(vm.playerFeedbackTable, players);
+                        // setTableData(vm.playerFeedbackTable, players);
                     }
                 });
             };
@@ -30279,7 +30288,7 @@ define(['js/app'], function (myApp) {
                 sendQuery.platformObjId = vm.selectedPlatform.id;
                 sendQuery.adminObjId = authService.adminId;
                 sendQuery.searchFilter = JSON.stringify(vm.playerFeedbackQuery);
-                sendQuery.searchQuery = vm.getPlayerFeedbackQuery();
+                sendQuery.searchQuery = JSON.stringify(vm.getPlayerFeedbackQuery());
                 sendQuery.sortCol = VM.playerFeedbackQuery.sortCol || {registrationTime: -1};
 
                 $scope.$socketPromise("createCallOutMission", sendQuery).then(data => {
