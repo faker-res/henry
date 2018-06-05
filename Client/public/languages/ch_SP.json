@@ -3257,6 +3257,7 @@
   "There are unallocated providers": "还有未分配的提供商",
   "xima required N time withdraw":"洗码流水要求N倍提款",
   "below X amount auto execute reward":"X 元以下优惠自动执行（忽略审核部)",
+  "Display imageUrl":"前端展示图片网址/imageUrl",
   "all provider group will force unlock": "所有锁大厅优惠将会强制解锁",
   "turn off Use Provider Group": "关闭锁大厅组",
   "early xima minimum amount": "提前洗码最低金额",
