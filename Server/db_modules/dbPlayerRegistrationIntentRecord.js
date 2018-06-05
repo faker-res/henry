@@ -98,8 +98,8 @@ var dbPlayerRegistrationIntentRecord = {
                     data.phoneCity = queryRes.city;
                     data.phoneType = queryRes.type;
                 }
-                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(data.platform, newProposal, status);
             }
+            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(data.platform, newProposal, status);
 
             if (typeof(data.platform) != 'object') {
                 data.platform = ObjectId(data.platform);

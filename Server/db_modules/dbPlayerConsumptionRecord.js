@@ -533,12 +533,7 @@ var dbPlayerConsumptionRecord = {
                         {creditBalance: 0},
                         {new: true}
                     ).lean().exec();
-                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).then(
-                        data => data,
-                        error => {
-                            errorUtils.reportError(error);
-                        }
-                    );
+                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).catch(errorUtils.reportError);
                     return Q.all([creditProm, levelProm]);
                 }
             },
@@ -740,7 +735,7 @@ var dbPlayerConsumptionRecord = {
                     return Q.all([prom1, prom2, prom3]);
                 }
                 else {
-                    return resolveError ? Q.resolve(null) : Q.reject({
+                    return resolveError ? Q.resolve(false) : Q.reject({
                         name: "DataError",
                         message: "Can't find platform"
                     });
@@ -798,7 +793,7 @@ var dbPlayerConsumptionRecord = {
                     if (verifiedData && !verifiedData[2]) {
                         missingList.push("providerId");
                     }
-                    return resolveError ? Q.resolve(null) : Q.reject({
+                    return resolveError ? Q.resolve(false) : Q.reject({
                         code: code,
                         name: "DataError",
                         message: "Could not find documents matching: " + missingList.join(', '),
@@ -817,7 +812,7 @@ var dbPlayerConsumptionRecord = {
         ).catch(
             function (error) {
                 console.error("createExternalPlayerConsumptionRecord", error);
-                return resolveError ? Q.resolve(null) : Q.reject(error);
+                return resolveError ? Q.resolve(false) : Q.reject(error);
             }
         );
     },
@@ -854,13 +849,13 @@ var dbPlayerConsumptionRecord = {
                     }
                 }
                 else {
-                    return dbPlayerConsumptionRecord.createExternalPlayerConsumptionRecord(recordData, resolveError);
+                    return dbPlayerConsumptionRecord.addMissingConsumption(recordData, resolveError);
                 }
             }
         ).catch(
             function (error) {
                 console.error("updateExternalPlayerConsumptionRecord", error);
-                return resolveError ? Q.resolve(null) : Q.reject({
+                return resolveError ? Q.resolve(false) : Q.reject({
                     code: error.code,
                     name: "DBError",
                     message: "Error in updating player consumption record",
@@ -886,7 +881,7 @@ var dbPlayerConsumptionRecord = {
                 }
                 else {
                     console.error("updateExternalPlayerConsumptionRecordData", "Can't find platform");
-                    return resolveError ? Q.resolve(null) : Q.reject({
+                    return resolveError ? Q.resolve(false) : Q.reject({
                         name: "DataError",
                         message: "Can't find platform",
                         data: updateData
@@ -940,7 +935,7 @@ var dbPlayerConsumptionRecord = {
                         missingList.push("providerId");
                     }
                     console.error("updateExternalPlayerConsumptionRecordData", "Could not find documents matching");
-                    return resolveError ? Q.resolve(null) : Q.reject({
+                    return resolveError ? Q.resolve(false) : Q.reject({
                         code: code,
                         name: "DataError",
                         message: "Could not find documents matching: " + missingList.join(', '),
@@ -951,7 +946,7 @@ var dbPlayerConsumptionRecord = {
         ).catch(
             function (error) {
                 console.error("updateExternalPlayerConsumptionRecordData", error);
-                return resolveError ? Q.resolve(null) : Q.reject({
+                return resolveError ? Q.resolve(false) : Q.reject({
                     code: error.code,
                     name: "DBError",
                     message: "Error in updating player consumption record",

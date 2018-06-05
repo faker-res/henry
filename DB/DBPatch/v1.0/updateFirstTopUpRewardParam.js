@@ -391,16 +391,18 @@ var generalCond = {
     code: {index: 1, type: "text", des: "Reward code", detail: "REWARD_CODE_DETAIL"},
     // Reward apply type
     applyType: {index: 2, type: "select", des: "Reward apply type", options: "rewardApplyType", detail: "REWARD_APPLY_TYPE_DETAIL"},
+    // Reward image url
+    imageUrl: {index: 3, type: "text", des: "Display imageUrl"},
     // Is player manually applicable
-    canApplyFromClient: {index: 3, type: "checkbox", des: "Is player manually applicable", detail: "REWARD_CLIENT_APPLY_DETAIL"},
+    canApplyFromClient: {index: 4, type: "checkbox", des: "Is player manually applicable", detail: "REWARD_CLIENT_APPLY_DETAIL"},
     // Is ignore audit
-    isIgnoreAudit: {index: 4, type: "number", des: "below X amount auto execute reward", detail: "REWARD_IGNORE_AUDIT_DETAIL"},
+    isIgnoreAudit: {index: 5, type: "number", des: "below X amount auto execute reward", detail: "REWARD_IGNORE_AUDIT_DETAIL"},
     // Reward start time
-    validStartTime: {index: 5, type: "date", des: "Reward start time"},
+    validStartTime: {index: 6, type: "date", des: "Reward start time"},
     // Reward end time
-    validEndTime: {index: 6, type: "date", des: "Reward end time"},
+    validEndTime: {index: 7, type: "date", des: "Reward end time"},
     // Is differentiate reward by player level
-    isPlayerLevelDiff: {index: 7, type: "checkbox", des: "Reward differentiate by player level", default: false}
+    isPlayerLevelDiff: {index: 8, type: "checkbox", des: "Reward differentiate by player level", default: false}
 };
 
 var topUpCond = {
@@ -799,8 +801,9 @@ db.rewardParam.update({
                     disabled: true,
                     value: "1"
                 },
+                imageUrl: {index: 3, type: "text", des: "Display imageUrl"},
                 canApplyFromClient: {
-                    index: 3,
+                    index: 4,
                     type: "checkbox",
                     des: "Is player manually applicable",
                     disabled: true,

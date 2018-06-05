@@ -856,7 +856,7 @@ define(['js/app'], function (myApp) {
                             Object.keys($scope.merchantTopupTypeJson).forEach(key => {
                                 vm.merchantTypes.forEach(
                                     merchantType => {
-                                        if(merchantType.name){
+                                        if(merchantType.name && userAgentTypeKey != 0){
                                             let calculatedData = vm.calculateOnlineTopupTypeData(key, userAgentTypeKey-1, merchantType.merchantTypeId);
                                             if(calculatedData.totalCount) // if no data dont show
                                                 vm.platformOnlineTopupAnalysisByType.push(calculatedData);
@@ -879,6 +879,7 @@ define(['js/app'], function (myApp) {
                             Object.keys($scope.merchantTopupTypeJson).forEach(key => {
                                 merchantListWithoutRepeatMerchantNo.forEach(
                                     merchant => {
+                                        if (userAgentTypeKey == 0) return;
                                         let calculatedData = vm.calculateOnlineTopupTypeData(key, userAgentTypeKey-1, merchant.merchantTypeId, merchant.merchantNo);
                                         if(calculatedData.totalCount) // if no data dont show
                                             vm.platformOnlineTopupAnalysisByType.push(calculatedData);
@@ -888,6 +889,7 @@ define(['js/app'], function (myApp) {
                         } else {
                             // onlineTopupType
                             Object.keys($scope.merchantTopupTypeJson).forEach(key => {
+                                if (userAgentTypeKey == 0) return;
                                 vm.platformOnlineTopupAnalysisByType.push(vm.calculateOnlineTopupTypeData(key, userAgentTypeKey-1));
                             });
                         }

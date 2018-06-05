@@ -64,7 +64,7 @@ var platformSchema = new Schema({
     csPartnerSkype: {type: String},
     csPartnerDisplayUrl: {type: String},
     //auto settlement
-    canAutoSettlement: {type: Boolean, default: false},
+    canAutoSettlement: {type: Boolean, default: true},
     //invitation url for player from partner
     playerInvitationUrl: {type: String},
     //invitatio url for partner from partner
@@ -274,7 +274,9 @@ var platformSchema = new Schema({
     // call out mission number of call in parallel happen per idle agent
     idleAgentMultiple: {type: Number},
     //client type
-    clientData: {type: String}
+    clientData: {type: String},
+    //call Request URL config
+    callRequestUrlConfig: {type: String}
 });
 
 //add platform id before save

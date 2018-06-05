@@ -124,7 +124,8 @@
                 "saveClientData",
                 "extractUserFromFpms",
                 "getUserInfoFromPopUp",
-                "createPlayerFromTel"
+                "createPlayerFromTel",
+                "getPlatformSetting"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
