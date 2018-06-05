@@ -1186,7 +1186,7 @@ define(['js/app'], function (myApp) {
                 vm.pickDay = null;
                 vm.pickWeek = null;
                 vm.listArray = [];
-                $("form[name='form_new_platform'] input").attr('disabled', !bool);
+                //$("form[name='form_new_platform'] input").attr('disabled', !bool);
                 $("form[name='form_new_platform'] select").attr('disabled', !bool);
                 $("form[name='form_new_platform'] button").attr('disabled', !bool);
                 console.log("init ed");
@@ -1992,6 +1992,7 @@ define(['js/app'], function (myApp) {
 
             vm.updatePlatformConfig = function () {
                 vm.isNotAllowEdit = false;
+                vm.isCreateNewPlatform = false;
             };
 
             vm.cancelUpdatePlatformConfig = function () {
