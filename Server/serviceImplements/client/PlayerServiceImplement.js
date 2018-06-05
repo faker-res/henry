@@ -106,7 +106,7 @@ let PlayerServiceImplement = function () {
                     }
 
                     console.log("createPlayerRegistrationIntentRecordAPI SUCCESS", data);
-                    if(data && data.realName && data.realName != "" && data.partnerName && data.partnerName != ""){
+                    if(data){
                         dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS, inputDevice).then();
                     }else{
                         dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
