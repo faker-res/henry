@@ -21,6 +21,7 @@ const constMessageType = require('./../../const/constMessageType');
 const dbLogger = require('./../../modules/dbLogger');
 const dbPlayerPartner = require('../../db_modules/dbPlayerPartner');
 const dbPlayerRegistrationIntentRecord = require('../../db_modules/dbPlayerRegistrationIntentRecord');
+const dbPlatform = require('./../../db_modules/dbPlatform');
 const errorUtils = require("./../../modules/errorUtils");
 const mobileDetect = require('mobile-detect');
 
@@ -1190,6 +1191,11 @@ let PlayerServiceImplement = function () {
     this.saveClientData.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(conn.playerId && data && data.clientData && typeof data.clientData == "string");
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.saveClientData, [conn.playerId, data.clientData], isValidData);
+    };
+
+    this.callBackToUser.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data.platformId && data.phoneNumber && data.randomNumber && data.captcha);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.callBackToUser, [data.platformId, data.phoneNumber, data.randomNumber, data.captcha, data.lineId, conn.playerID], isValidData, false, false, true);
     };
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);

@@ -94,7 +94,8 @@
                 "loginJblShow",
                 "createDemoPlayer",
                 "getClientData",
-                "saveClientData"
+                "saveClientData",
+                "callBackToUser",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
