@@ -45,12 +45,12 @@
                     .inlineBlk
                         select.form-control(ng-model='vm.deletePlayerFeedbackTopicData._id')
                             option(value='') {{'CHOOSE_FEEDBACK_TOPIC' | translate}}
-                            option(ng-repeat='(i,v) in vm.allPlayerFeedbackTopics', value='{{v._id}}') {{v.value | translate}}
+                            option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v._id}}') {{v.value | translate}}
                     button.btn.btn-primary(ng-click='vm.deleteFeedbackTopic( vm.canEditPlayer() );') {{"DELETE" | translate}}
                     span(style="color:green;",ng-show="vm.deletePlayerFeedbackTopicData.success === true") &nbsp{{vm.deletePlayerFeedbackTopicData.message | translate}}
                     span(style="color:red;",ng-show="vm.deletePlayerFeedbackTopicData.failure === true") &nbsp{{vm.deletePlayerFeedbackTopicData.message | translate}}
-                    
-                    
+
+
 
 #modalAddPartnerFeedbackResult.modal.fade(style='background: rgba(0,0,0,0.5);z-index:1052', tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:40%; top: 20vh;')
@@ -99,8 +99,7 @@
                     .inlineBlk
                         select.form-control(ng-model='vm.deletePartnerFeedbackTopicData._id')
                             option(value='') {{'CHOOSE_FEEDBACK_TOPIC' | translate}}
-                            option(ng-repeat='(i,v) in vm.allPartnerFeedbackTopics', value='{{v._id}}') {{v.value | translate}}
+                            option(ng-repeat='(i,v) in vm.partnerFeedbackTopic', value='{{v._id}}') {{v.value | translate}}
                     button.btn.btn-primary(ng-click='vm.deleteFeedbackTopic( vm.canEditPartner() );') {{"DELETE" | translate}}
                     span(style="color:green;", ng-show="vm.deletePartnerFeedbackTopicData.success === true") &nbsp{{vm.deletePartnerFeedbackTopicData.message | translate}}
                     span(style="color:red;", ng-show="vm.deletePartnerFeedbackTopicData.failure === true") &nbsp{{vm.deletePartnerFeedbackTopicData.message | translate}}
-

@@ -331,8 +331,8 @@ define(['js/app'], function (myApp) {
         }
         $scope.$on(eventName, function (e, d) {
             vm.loadPlatformData();
-            vm.getAllPlayerFeedbackResults()
-            vm.getAllPlayerFeedbackTopics()
+            vm.getAllPlayerFeedbackResults();
+            vm.getPlayerFeedbackTopic();
         });
 
         vm.initTeleMarketingOverview = function () {
@@ -1403,7 +1403,7 @@ define(['js/app'], function (myApp) {
             $('#addFeedbackTab').addClass('active');
             $('#feedbackHistoryTab').removeClass('active');
             vm.getAllPlayerFeedbackResults();
-            vm.getAllPlayerFeedbackTopics();
+            vm.getPlayerFeedbackTopic();
             $scope.safeApply();
             vm.feedbackModalTab = "addFeedbackPanel";
         };
@@ -1426,6 +1426,20 @@ define(['js/app'], function (myApp) {
             return $scope.$socketPromise('getAllPlayerFeedbackTopics').then(
                 function (data) {
                     vm.allPlayerFeedbackTopics = data.data;
+                    console.log("vm.allPlayerFeedbackTopics", data.data);
+                    $scope.safeApply();
+                },
+                function (err) {
+                    console.log("vm.allPlayerFeedbackTopics", err);
+                }
+            ).catch(function (err) {
+                console.log("vm.allPlayerFeedbackTopics", err)
+            });
+        };
+        vm.getPlayerFeedbackTopic = function () {
+            return $scope.$socketPromise('getPlayerFeedbackTopic', {platform: vm.selectedPlatform.id}).then(
+                function (data) {
+                    vm.playerFeedbackTopic = data.data;
                     console.log("vm.allPlayerFeedbackTopics", data.data);
                     $scope.safeApply();
                 },
@@ -1520,19 +1534,23 @@ define(['js/app'], function (myApp) {
             let reqData = {};
             reqData.key = vm.addPlayerFeedbackTopicData.value;
             reqData.value = vm.addPlayerFeedbackTopicData.value;
+            reqData.platform = vm.selectedPlatform.id;
             console.log(reqData);
             return $scope.$socketPromise('createPlayerFeedbackTopic', reqData).then(
                 function (data) {
                     console.log("vm.addPlayerFeedbackTopics()", data);
                     vm.addPlayerFeedbackTopicData.message = "SUCCESS";
                     vm.addPlayerFeedbackTopicData.success = true;
-                    vm.getAllPlayerFeedbackTopics();
+                    vm.getPlayerFeedbackTopic();
                     $scope.safeApply();
                 },
                 function (err) {
                     console.log("vm.addPlayerFeedbackTopics()ErrIn", err);
                     vm.addPlayerFeedbackTopicData.message = "FAILURE";
                     vm.addPlayerFeedbackTopicData.failure = true;
+                    if(err.error && err.error.error && err.error.error.code == '11000'){
+                        vm.addPlayerFeedbackTopicData.message = '失败，回访主题已存在'
+                    }
                     $scope.safeApply();
                 }
             ).catch(
@@ -1540,6 +1558,9 @@ define(['js/app'], function (myApp) {
                     console.log("vm.addPlayerFeedbackTopics()ErrOut", err);
                     vm.addPlayerFeedbackTopicData.message = "FAILURE";
                     vm.addPlayerFeedbackTopicData.failure = true;
+                    if(err.error && err.error.error && err.error.error.code == '11000'){
+                        vm.addPlayerFeedbackTopicData.message = '失败，回访主题已存在'
+                    }
                     $scope.safeApply();
                 }
             );
@@ -1554,7 +1575,7 @@ define(['js/app'], function (myApp) {
                     console.log("vm.addPlayerFeedbackTopics()", data);
                     vm.deletePlayerFeedbackTopicData.message = "SUCCESS";
                     vm.deletePlayerFeedbackTopicData.success = true;
-                    vm.getAllPlayerFeedbackTopics();
+                    vm.getPlayerFeedbackTopic();
                     $scope.safeApply();
                 },
                 function (err) {

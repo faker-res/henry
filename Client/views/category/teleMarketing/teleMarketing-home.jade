@@ -359,7 +359,7 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                             label.control-label {{'FEEDBACK_TOPIC' | translate}}
                             button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Platform', 'Player','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
                             select.form-control(style='margin-top:5px;', ng-model='vm.playerFeedback.topic', required)
-                                option(ng-repeat='(i,v) in vm.allPlayerFeedbackTopics', value='{{v.key}}') {{v.value}}
+                                option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
                         .form-group
                             label.control-label {{'FEEDBACK_CONTENT' | translate}}
                             .textareaDetail
@@ -444,7 +444,7 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                     .inlineBlk
                         select.form-control(ng-model='vm.deletePlayerFeedbackTopicData._id')
                             option(value='') {{'CHOOSE_FEEDBACK_TOPIC' | translate}}
-                            option(ng-repeat='(i,v) in vm.allPlayerFeedbackTopics', value='{{v._id}}') {{v.value | translate}}
+                            option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v._id}}') {{v.value | translate}}
                     button.btn.btn-primary(ng-click='vm.deletePlayerFeedbackTopic();') {{"DELETE" | translate}}
                     span(style="color:green;",ng-show="vm.deletePlayerFeedbackTopicData.success === true") &nbsp{{vm.deletePlayerFeedbackTopicData.message | translate}}
                     span(style="color:red;",ng-show="vm.deletePlayerFeedbackTopicData.failure === true") &nbsp{{vm.deletePlayerFeedbackTopicData.message | translate}}
