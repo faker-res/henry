@@ -22,6 +22,7 @@ const constServerCode = require("../const/constServerCode");
 const dbUtility = require("../modules/dbutility");
 const constProposalEntryType = require("../const/constProposalEntryType");
 const constProposalUserType = require('../const/constProposalUserType');
+const dbPropUtil = require("../db_common/dbProposalUtility");
 const constShardKeys = require('../const/constShardKeys');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
@@ -2228,11 +2229,30 @@ var dbPlayerTopUpRecord = {
             .populate({path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup}).then(
                 playerData => {
                     if (playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) {
-                        return pmsAPI.alipay_getAlipayList({
+                        let aliPayProm = pmsAPI.alipay_getAlipayList({
                             platformId: playerData.platform.platformId,
                             queryId: serverInstance.getQueryId()
-                        }).then(
-                            alipays => {
+                        });
+
+                        let proposalQuery = {
+                            'data.playerObjId': {$in: [ObjectId(playerData._id), String(playerData._id)]},
+                            'data.platformId': {$in: [ObjectId(playerData.platform._id), String(playerData.platform._id)]}
+                        };
+
+                        let  proposalProm = dbconfig.collection_proposalType.findOne({
+                            platformId: playerData.platform._id,
+                            name: constProposalType.PLAYER_ALIPAY_TOP_UP
+                        }).lean().then(
+                            proposalType => {
+                                proposalQuery.type = proposalType._id;
+                                return dbconfig.collection_proposal.findOne(proposalQuery).sort({createTime: -1}).lean();
+                            }
+                        );
+                        let promArr = [aliPayProm, proposalProm];
+                        return Promise.all(promArr).then(
+                            res => {
+                                let alipays = res[0];
+                                let aliProposal = res[1];
                                 let bValid = false;
                                 let maxDeposit = 0;
                                 if (alipays.data && alipays.data.length > 0) {
@@ -2251,8 +2271,13 @@ var dbPlayerTopUpRecord = {
                                         }
                                     );
                                 }
-                                if (bValid || maxDeposit > 0)
-                                    bValid = {valid: bValid, maxDepositAmount: maxDeposit};
+                                if (bValid || maxDeposit > 0) {
+                                    bValid = {
+                                        valid: bValid,
+                                        maxDepositAmount: maxDeposit,
+                                        lastNicknameOrAccount: aliProposal && aliProposal.data && aliProposal.data.userAlipayName? aliProposal.data.userAlipayName: ""
+                                    };
+                                }
                                 return bValid;
                             }
                         );
