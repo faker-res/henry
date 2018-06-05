@@ -854,7 +854,7 @@ var dbPlayerConsumptionRecord = {
                     }
                 }
                 else {
-                    return dbPlayerConsumptionRecord.createExternalPlayerConsumptionRecord(recordData, resolveError);
+                    return dbPlayerConsumptionRecord.addMissingConsumption(recordData, resolveError);
                 }
             }
         ).catch(
