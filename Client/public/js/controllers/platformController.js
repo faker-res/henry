@@ -20314,9 +20314,9 @@ define(['js/app'], function (myApp) {
                 });
             }
             vm.getProviderText = function (providerId) {
-                if (!providerId || !vm.allGameProvider) return false;
+                if (!providerId || !vm.allGameProviders) return false;
                 var result = '';
-                $.each(vm.allGameProvider, function (i, v) {
+                $.each(vm.allGameProviders, function (i, v) {
                     if (providerId == v._id || providerId == v.providerId) {
                         result = v.name;
                         return true;
