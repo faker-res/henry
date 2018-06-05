@@ -533,12 +533,7 @@ var dbPlayerConsumptionRecord = {
                         {creditBalance: 0},
                         {new: true}
                     ).lean().exec();
-                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).then(
-                        data => data,
-                        error => {
-                            errorUtils.reportError(error);
-                        }
-                    );
+                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).catch(errorUtils.reportError);
                     return Q.all([creditProm, levelProm]);
                 }
             },
