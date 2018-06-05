@@ -202,6 +202,26 @@ var dbPlatform = {
     },
 
     /**
+     * get few basic platform settings
+     * @param query
+     */
+    getBasicPlatformSetting: function (query) {
+        return dbconfig.collection_platform.findOne(query, {_id: 0, platformId: 1, name: 1, prefix: 1, partnerPrefix: 1}).lean().then(data=> {
+            if (data) {
+                data.platformName = data.name ? data.name : "";
+                data.playerAccountPrefix = data.prefix ? data.prefix : "";
+                data.partnerAccountPrefix = data.partnerPrefix ? data.partnerPrefix : "";
+
+                delete data.name;
+                delete data.prefix;
+                delete data.partnerPrefix;
+
+                return data;
+            }
+        });
+    },
+
+    /**
      * Search the platform information of the platform by  platformName or _id
      * @param {Object} platformData - Query
      */
@@ -2395,7 +2415,8 @@ var dbPlatform = {
                 qqList: [],
                 telList: [],
                 live800: "",
-                activityList: []
+                activityList: [],
+                playerWebLogoUrl: []
             };
             return dbconfig.collection_platform.findOne({platformId: platformId}).then(
                 data => {
@@ -2421,6 +2442,13 @@ var dbPlatform = {
                             returnedObj.telList.push({
                                 isImg: 0,
                                 value: data.csPhone
+                            });
+                        }
+
+                        if (data.playerWebLogoUrl) {
+                            returnedObj.playerWebLogoUrl.push({
+                                isImg: 0,
+                                value: data.playerWebLogoUrl
                             });
                         }
 

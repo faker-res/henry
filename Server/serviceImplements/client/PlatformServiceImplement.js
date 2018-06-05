@@ -127,6 +127,13 @@ var PlatformServiceImplement = function () {
 
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.savePlayerInformationFromPopUp, [data], isValidData, null, null, true);
     };
+
+    this.getPlatformSetting.expectsData = 'platformId: String';
+    this.getPlatformSetting.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId);
+        data = data || {};
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getBasicPlatformSetting, [{platformId:data.platformId}], isValidData, null, null, true);
+    };
 };
 
 var proto = PlatformServiceImplement.prototype = Object.create(PlatformService.prototype);

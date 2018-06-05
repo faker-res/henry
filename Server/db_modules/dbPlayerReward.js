@@ -2284,6 +2284,7 @@ let dbPlayerReward = {
     },
 
     checkPlayerHasPromoCode: (searchQuery) => {
+        console.log('searchQuery===99', searchQuery);
         return expirePromoCode().then(res => {
             return dbConfig.collection_players.findOne({
                 platform: searchQuery.platformObjId,
@@ -2291,6 +2292,7 @@ let dbPlayerReward = {
             }).lean();
         }).then(
             playerData => {
+                console.log('playerData===99', playerData);
                 let query = {
                     platformObjId: searchQuery.platformObjId
                 };
@@ -2412,6 +2414,10 @@ let dbPlayerReward = {
     },
 
     generatePromoCode: (platformObjId, newPromoCodeEntry, adminObjId, adminName) => {
+        console.log('platformObjId===11', platformObjId);
+        console.log('newPromoCodeEntry===11', newPromoCodeEntry);
+        console.log('adminObjId===11', adminObjId);
+        console.log('adminName===11', adminName);
         let player;
         // Check if player exist
         return dbConfig.collection_players.findOne({
@@ -2419,6 +2425,7 @@ let dbPlayerReward = {
             name: newPromoCodeEntry.playerName
         }).lean().then(
             playerData => {
+                console.log('playerData===22', playerData);
                 if (playerData) {
                     player = playerData;
 
@@ -2430,6 +2437,7 @@ let dbPlayerReward = {
             }
         ).then(
             playerState => {
+                console.log('playerState===33', playerState);
                 if (playerState) {
                     newPromoCodeEntry.playerObjId = player._id;
                     newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(1000, 9999);
@@ -2446,6 +2454,7 @@ let dbPlayerReward = {
             }
         ).then(
             activeTimeRes => {
+                console.log('activeTimeRes===44', activeTimeRes);
                 if (activeTimeRes) {
                     newPromoCodeEntry.isActive = true;
                 }
@@ -2454,6 +2463,7 @@ let dbPlayerReward = {
             }
         ).then(
             newPromoCode => {
+                console.log('newPromoCode===55', newPromoCode);
                 if (newPromoCode) {
                     if (newPromoCodeEntry.allowedSendSms) {
                         SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);

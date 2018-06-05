@@ -91,7 +91,7 @@ function socketActionPartnerFeedback(socketIO, socket) {
          */
         getPartnerFeedbackTopic: function getPartnerFeedbackTopic(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && (data.key || data.value || data._id));
+            let isValidData = Boolean(data && (data.key || data.value || data._id || data.platform));
             socketUtil.emitter(self.socket, dbPartnerFeedback.getPartnerFeedbackTopic, [data], actionName, isValidData);
         },
         /**
