@@ -356,15 +356,17 @@ var dbPlayerConsumptionWeekSummary = {
                                         props => {
                                             if (props && props.length > 0) {
                                                 props.map(prop => {
-                                                    Object.keys(prop.data.returnDetail).forEach(el => {
-                                                        doneXIMAConsumption[el] && doneXIMAConsumption[el].consumeValidAmount
-                                                            ? doneXIMAConsumption[el].consumeValidAmount += prop.data.returnDetail[el].consumeValidAmount
-                                                            : doneXIMAConsumption[el] = prop.data.returnDetail[el];
+                                                    if (prop.data && prop.data.returnDetail) {
+                                                        Object.keys(prop.data.returnDetail).forEach(el => {
+                                                            doneXIMAConsumption[el] && doneXIMAConsumption[el].consumeValidAmount
+                                                                ? doneXIMAConsumption[el].consumeValidAmount += prop.data.returnDetail[el].consumeValidAmount
+                                                                : doneXIMAConsumption[el] = prop.data.returnDetail[el];
 
-                                                        if (prop.data.nonXIMADetail[el] && prop.data.nonXIMADetail[el].nonXIMAAmt) {
-                                                            doneXIMAConsumption[el].consumeValidAmount += prop.data.nonXIMADetail[el].nonXIMAAmt;
-                                                        }
-                                                    });
+                                                            if (prop.data.nonXIMADetail[el] && prop.data.nonXIMADetail[el].nonXIMAAmt) {
+                                                                doneXIMAConsumption[el].consumeValidAmount += prop.data.nonXIMADetail[el].nonXIMAAmt;
+                                                            }
+                                                        });
+                                                    }
                                                 })
                                             }
 
