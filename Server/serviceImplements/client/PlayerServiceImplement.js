@@ -1193,6 +1193,12 @@ let PlayerServiceImplement = function () {
         let isValidData = Boolean(data.platformId && data.phoneNumber && data.randomNumber && data.captcha);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.callBackToUser, [data.platformId, data.phoneNumber, data.randomNumber, data.captcha, data.lineId, conn.playerID], isValidData, false, false, true);
     };
+
+    this.getOMCaptcha.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data.platformId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getOMCaptcha, [data.platformId], isValidData, false, false, true);
+    };
+
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;

@@ -697,6 +697,17 @@
         });
     };
 
+    proto.getOMCaptcha = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.playerService.getOMCaptcha.request(data);
+        this.playerService.getOMCaptcha.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     if (isNode) {
         module.exports = ClientPlayerAPITest;
     } else {

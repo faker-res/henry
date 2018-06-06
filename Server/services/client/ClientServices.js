@@ -96,6 +96,7 @@
                 "getClientData",
                 "saveClientData",
                 "callBackToUser",
+                "getOMCaptcha",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -427,6 +428,7 @@
                 "getNewCrewInfo",
                 "preditCommission",
                 "getCommissionProposalList",
+                "getPartnerConfig"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

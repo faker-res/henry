@@ -33,6 +33,7 @@ var dbLogger = require('./../modules/dbLogger');
 const dbPlayerMail = require("./../db_modules/dbPlayerMail");
 const dbPartner = require("./../db_modules/dbPartner");
 const qrCode = require('qrcode');
+const http = require('http');
 
 // constants
 const constProposalEntryType = require('../const/constProposalEntryType');
@@ -2421,58 +2422,97 @@ var dbPlatform = {
         );
     },
 
-    getConfig: function (platformId, inputDevice) {
-        if (platformId) {
-            let returnedObj = {
-                wechatList: [],
-                qqList: [],
-                telList: [],
-                live800: "",
-                activityList: [],
-                playerWebLogoUrl: []
-            };
+    getConfig: function (platformId, inputDevice, subject) {
+        if (platformId && subject) {
+
+            let returnedObj;
+            let listName;
+
+            if (subject == 'player'){
+                returnedObj= {
+                    wechatList: [],
+                    qqList: [],
+                    telList: [],
+                    live800: "",
+                    activityList: [],
+                    platformLogoUrl: [],
+                    SkypeList: [],
+                    emailList: [],
+                    wechatQRUrl: [],
+                    displayUrl: [],
+                    playerSpreadUrl: [],
+                };
+                listName = [
+                    ['csEmailImageUrlList','emailList'],
+                    ['csPhoneList', 'telList'],
+                    ['csQQList', 'qqList'],
+                    ['csUrlList', 'live800'],
+                    ['csWeixinList', 'wechatList'],
+                    ['csSkypeList', 'SkypeList'],
+                    ['csDisplayUrlList', 'displayUrl'],
+                    ['playerInvitationUrlList', 'playerSpreadUrl'],
+                    ['weixinPhotoUrlList', 'wechatQRUrl'],
+                    ['playerWebLogoUrlList', 'platformLogoUrl']
+                ];
+            }
+            else if (subject == 'partner'){
+                returnedObj= {
+                    partnerEmail: [],
+                    partnerCSPhoneNumber: [],
+                    partnerCSQQNumber: [],
+                    partnerCSWechatNumber: "",
+                    partnerActivityList: [],
+                    partnerCSWechatQRUrl: [],
+                    partnerCSSkypeNumber: [],
+                    partnerDisplayUrl: [],
+                    partnerPlatformLogoUrl: [],
+                    partnerLive800Url: [],
+                    partnerSpreadUrl: [],
+                };
+                listName = [
+                    ['csPartnerEmailList', 'partnerEmail'],
+                    ['csPartnerPhoneList', 'partnerCSPhoneNumber'],
+                    ['csPartnerUrlList', 'partnerLive800Url'],
+                    ['csPartnerQQList', 'partnerCSQQNumber'],
+                    ['csPartnerWeixinList', 'partnerCSWechatNumber'],
+                    ['csPartnerSkypeList', 'partnerCSSkypeNumber'],
+                    ['csPartnerDisplayUrlList', 'partnerDisplayUrl'],
+                    ['partnerInvitationUrlList', 'partnerSpreadUrl'],
+                    ['partnerWeixinPhotoUrlList', 'partnerCSWechatQRUrl'],
+                    ['partnerWebLogoUrlList', 'partnerPlatformLogoUrl']
+                ];
+            }
+            else {
+                return Q.reject({name: "DBError", message: "Missing of default param: 'partner' or 'player'."});
+            }
+
             return dbconfig.collection_platform.findOne({platformId: platformId}).then(
                 data => {
                     if (data) {
-                        if (data.csWeixin) {
-                            returnedObj.wechatList.push({
-                                isImg: 0,
-                                value: data.csWeixin
-                            }, {
-                                isImg: 1,
-                                value: data.weixinPhotoUrl ? data.weixinPhotoUrl : ""
-                            });
-                        }
 
-                        if (data.csQQ) {
-                            returnedObj.qqList.push({
-                                isImg: 0,
-                                value: data.csQQ
-                            });
-                        }
+                        listName.forEach( list => {
+                            if(data[list[0]]){
+                                returnedObj[list[1]] = data[list[0]];
 
-                        if (data.csPhone) {
-                            returnedObj.telList.push({
-                                isImg: 0,
-                                value: data.csPhone
-                            });
-                        }
+                            }
+                        })
 
-                        if (data.playerWebLogoUrl) {
-                            returnedObj.playerWebLogoUrl.push({
-                                isImg: 0,
-                                value: data.playerWebLogoUrl
-                            });
-                        }
-
-                        if (data.csUrl) {
-                            returnedObj.live800 = data.csUrl;
-                        }
                         if (data.platformId) {
-                            return dbconfig.collection_playerPageAdvertisementInfo.find({
-                                platformId: data._id,
-                                inputDevice: inputDevice
-                            }).sort({orderNo: 1}).lean();
+                            if (subject == 'player'){
+                                return dbconfig.collection_playerPageAdvertisementInfo.find({
+                                    platformId: data._id,
+                                    inputDevice: inputDevice
+                                }).sort({orderNo: 1}).lean();
+                            }
+                            else if (subject == 'partner'){
+                                return dbconfig.collection_partnerPageAdvertisementInfo.find({
+                                    platformId: data._id,
+                                    inputDevice: inputDevice
+                                }).sort({orderNo: 1}).lean();
+                            }
+                            else{
+                                return Q.reject({name: "DBError", message: "No advertisement Information exists with id: " + platformId});
+                            }
                         }
                     } else {
                         return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
@@ -2524,7 +2564,15 @@ var dbPlatform = {
                                     }
                                 }
 
-                                returnedObj.activityList.push(activityListObj);
+                                if (subject == 'player'){
+                                    returnedObj.activityList.push(activityListObj);
+                                }
+                                else if (subject == 'partner'){
+                                    returnedObj.partnerActivityList.push(activityListObj);
+                                }
+                                else{
+                                    return Q.reject({name: "DBError", message: "Missing of default param: 'partner' or 'player'."});
+                                }
                             }
                         })
                         return returnedObj;
@@ -3203,15 +3251,66 @@ var dbPlatform = {
                 return new Promise((resolve, reject) => {
                     request.get(link, {strictSSL: false}, (err, res, body) => {
                         if (err) {
-                            reject({code: constServerCode.EXTERNAL_API_FAILURE, message: err})
+                            reject({code: constServerCode.EXTERNAL_API_FAILURE, message: err});
                         } else {
-                            console.log('callBackToUser API output', res);
-                            return true;
+                            console.log('callBackToUser API output', body);
+                            resolve(true);
                         }
                     });
                 });
             }
         );
+    },
+
+    getOMCaptcha: (platformId) => {
+        let platform, url;
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({
+                        status: constServerCode.INVALID_PLATFORM,
+                        name: "DBError",
+                        message: "Platform does not exist"
+                    });
+                }
+
+                platform = platformData;
+
+                if (!platform.callRequestUrlConfig) {
+                    return Promise.reject({
+                        status: constServerCode.INVALID_DATA,
+                        name: "DBError",
+                        message: "Error finding db data"
+                    });
+                }
+
+                url = platform.callRequestUrlConfig;
+
+                let randomNumber = Math.random();
+
+                let path = "/servlet/GetMaCode?random=" + randomNumber;
+
+                let link = url + path;
+
+                return new Promise((resolve, reject) => {
+                    http.get(link, (resp) => {
+                        resp.setEncoding('base64');
+                        let body = "data:" + resp.headers["content-type"] + ";base64,";
+                        resp.on('data', (data) => { body += data});
+                        resp.on('end', () => {
+                            resolve({
+                                randomNumber: randomNumber,
+                                b64ImgDataUrl: body
+                            });
+                        });
+                    }).on('error', (e) => {
+                        console.error(e);
+                        reject({code: constServerCode.EXTERNAL_API_FAILURE, message: e.message});
+                    });
+                });
+
+            }
+        )
     },
 };
 
