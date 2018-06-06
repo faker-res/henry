@@ -13676,7 +13676,7 @@ define(['js/app'], function (myApp) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updatePlayerForbidProviders', sendData, function (data) {
                     vm.getPlatformPlayersData();
-                    vm.updateForbidGameLog(data.data._id, vm.findForbidCheckedName(data.data.forbidProviders, vm.allGameProvider));
+                    vm.updateForbidGameLog(data.data._id, vm.findForbidCheckedName(data.data.forbidProviders, vm.allGameProviders));
                 });
             };
 
@@ -20628,7 +20628,7 @@ define(['js/app'], function (myApp) {
                         vm.prepareCredibilityConfig();
                         break;
                     case 'providerGroup':
-                        vm.availableGameProviders = vm.allGameProvider;
+                        vm.availableGameProviders = vm.allGameProviders;
                         vm.providerGroupConfig = {showWarning: false};
                         vm.getPlatformProviderGroup();
                         break;
@@ -22140,7 +22140,7 @@ define(['js/app'], function (myApp) {
 
                                     if (!data.hasMoreThanOne || (data.skipCheck && !data.cancel)) {
                                         sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
-                                        let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProvider;
+                                        let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
 
                                         sendData.playerName = sendData.playerName.trim();
                                         sendData.expirationTime = vm.dateReformat(sendData.expirationTime.data('datetimepicker').getLocalDate());
@@ -28178,7 +28178,7 @@ define(['js/app'], function (myApp) {
 
                 let proms = []
                 data.data.forEach(item => {
-                    let prom = vm.updateForbidGameLog(item._id, vm.findForbidCheckedName(item.forbidProviders, vm.allGameProvider));
+                    let prom = vm.updateForbidGameLog(item._id, vm.findForbidCheckedName(item.forbidProviders, vm.allGameProviders));
                     proms.push(prom);
                 });
                 return Promise.all(proms).then(data => {
