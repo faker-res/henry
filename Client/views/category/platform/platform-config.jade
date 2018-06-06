@@ -42,6 +42,8 @@
                         span {{"sensitive keyword setting" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "bulkPhoneCallSetting"}', ng-click='vm.configTabClicked("bulkPhoneCallSetting")')
                         span {{"Bulk Call Setting" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "callRequestConfig"}', ng-click='vm.configTabClicked("callRequestConfig")')
+                        span {{"callRequestConfig" | translate}}
 
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary
@@ -375,6 +377,59 @@
                             img.img-edit
                         button.btn.btn-danger.common-button(ng-if='vm.configTableEdit || vm.configTableAdd', ng-click='vm.configTableEdit=false;vm.configTableAdd=false') {{"CANCEL" | translate}}
                         button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("partner")') {{"CONFIRM" | translate}}
+
+                div(ng-if='vm.selectedConfigTab=="callRequestConfig"')
+                    table.simple-table.callConfigUrlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'TITLE' | translate}}
+                                th {{'VALUE' | translate}}
+                        tbody
+                            tr
+                                td(style='width:50%') {{'CALL_REQUEST_URL_CONFIG' | translate}}
+                                td(style='width:50%')
+                                    text(ng-if='!vm.configTableEdit') {{vm.callRequestConfig.callRequestUrlConfig}}
+                                    input(style= 'width: 80%' ng-if='vm.configTableEdit', type='text', ng-model='vm.callRequestConfig.callRequestUrlConfig')
+
+                    br
+                    table.common-table.callConfigTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'LINE_ID_CUSTOM' | translate}}
+                                th {{'LINE_NAME_CPMS' | translate}}
+                                th {{'MIN_LEVEL_ABOVE' | translate}}
+                                th(ng-if='vm.configTableEdit')
+                        tbody
+                            tr(ng-repeat='item in vm.callRequestConfig.callRequestLineConfig')
+                                td
+                                    input.form-control(type='number', ng-model='item.lineId', ng-disabled='!vm.configTableEdit')
+                                td
+                                    input.form-control(type='text', ng-model='item.lineName', ng-disabled='!vm.configTableEdit')
+                                td
+                                    select.form-control(ng-model='item.minLevel', ng-disabled='!vm.configTableEdit')
+                                        option(value="") {{"N/A" | translate}}
+                                        option(ng-repeat='(i,j) in vm.allPlayerLvl', value= '{{j._id}}') {{j.name | translate}}
+                                td(ng-if='vm.configTableEdit')
+                                    i.fa.fa-minus(ng-click='vm.updateCallRequestConfigInEdit("remove", $index, vm.callRequestConfig.callRequestLineConfig)')
+
+                            tr(ng-if='vm.configTableEdit')
+                                td
+                                    input.form-control(type='number', ng-model='vm.tempCallRequestEntry.lineId', ng-disabled='!vm.configTableEdit')
+                                td
+                                    input.form-control(type='text', ng-model='vm.tempCallRequestEntry.lineName', ng-disabled='!vm.configTableEdit')
+                                td
+                                    select.form-control(ng-model='vm.tempCallRequestEntry.minLevel', ng-disabled='!vm.configTableEdit')
+                                        option(value="") {{"N/A" | translate}}
+                                        option(ng-repeat='(i,j) in vm.allPlayerLvl', value= '{{j._id}}') {{j.name | translate}}
+                                td
+                                    i.fa.fa-plus(ng-click='vm.updateCallRequestConfigInEdit("add",  vm.tempCallRequestEntry);vm.tempCallRequestEntry={}')
+                    br
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'CallRequest')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("callRequestConfig")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("callRequestConfig")') {{"CONFIRM" | translate}}
+
 
                 div(ng-if='vm.selectedConfigTab=="validActive"')
                     div(ng-if='vm.allGameTypes' style="margin-bottom:5px")

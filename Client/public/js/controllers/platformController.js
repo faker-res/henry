@@ -20190,6 +20190,20 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.updateCallRequestConfigInEdit = function (type, data, arrayToRemove) {
+                if (type == 'add') {
+                    if (data && data.hasOwnProperty('lineId') && data.hasOwnProperty('lineName')) {
+                        vm.callRequestConfig.callRequestLineConfig.push({
+                            lineId: data.lineId,
+                            lineName: data.lineName,
+                            minLevel: data.minLevel? data.minLevel: ""
+                        });
+                    }
+                } else if (type == 'remove') {
+                    arrayToRemove.splice(data, 1);
+                }
+            };
+
             vm.updateCollectionInEdit = function (type, collection, data) {
                 if (type == 'add') {
                     let newObj = {};
@@ -20649,6 +20663,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'bulkPhoneCallSetting':
                         vm.getBulkCallBasic();
+                        break;
+                    case 'callRequestConfig':
+                        vm.getCallRequestConfig();
                         break;
                 }
             };
@@ -25567,6 +25584,15 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.getCallRequestConfig = () => {
+                vm.callRequestConfig = {};
+                vm.callRequestConfig.callRequestUrlConfig = vm.selectedPlatform.data.callRequestUrlConfig? vm.selectedPlatform.data.callRequestUrlConfig: "";
+                vm.callRequestConfig.callRequestLineConfig = vm.selectedPlatform.data.callRequestLineConfig && vm.selectedPlatform.data.callRequestLineConfig.length?
+                    vm.selectedPlatform.data.callRequestLineConfig: [];
+
+                // $scope.safeApply();
+            };
+
             vm.prepareCredibilityConfig = () => {
                 vm.removedRemarkId = [];
                 return vm.getCredibilityRemarks().then(
@@ -25856,6 +25882,9 @@ define(['js/app'], function (myApp) {
                     case 'bulkPhoneCallSetting':
                         updateBulkCallBasic(vm.bulkCallBasic);
                         break;
+                    case 'callRequestConfig':
+                        updateCallRequestConfig(vm.callRequestConfig);
+                        break;
                 }
             };
 
@@ -25968,6 +25997,20 @@ define(['js/app'], function (myApp) {
                         redialTimes: srcData.redialTimes,
                         minRedialInterval: srcData.minRedialInterval,
                         idleAgentMultiple: srcData.idleAgentMultiple,
+                    }
+                };
+
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updateCallRequestConfig(srcData) {
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {
+                        callRequestUrlConfig: srcData.callRequestUrlConfig,
+                        callRequestLineConfig: srcData.callRequestLineConfig
                     }
                 };
 

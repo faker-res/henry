@@ -276,7 +276,12 @@ var platformSchema = new Schema({
     //client type
     clientData: {type: String},
     //call Request URL config
-    callRequestUrlConfig: {type: String}
+    callRequestUrlConfig: {type: String},
+    callRequestLineConfig: [{
+        lineId: {type: Number},
+        lineName: {type: String},
+        minLevel: {type: String}
+    }]
 });
 
 //add platform id before save
