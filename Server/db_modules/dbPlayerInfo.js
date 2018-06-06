@@ -9564,7 +9564,7 @@ let dbPlayerInfo = {
                                                 amount: finalAmount,
                                                 // bonusCredit: bonusDetail.credit,
                                                 curAmount: player.validCredit,
-                                                remark: player.remark,
+                                                // remark: player.remark,
                                                 lastSettleTime: new Date(),
                                                 honoreeDetail: honoreeDetail,
                                                 creditCharge: creditCharge,
