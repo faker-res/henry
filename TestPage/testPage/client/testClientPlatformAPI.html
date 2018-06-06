@@ -272,6 +272,20 @@
     </div>
 </div>
 
+<h3>Get QR CODE (获取QR CODE)</h3>
+<div class="test-container">
+    <div>
+        <label>Target Url
+            <input name="targetUrl">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="turnUrlToQr">Get QR Code</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlatformAPITest','testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPlatformAPITest, ClientConnectionAPITest) {

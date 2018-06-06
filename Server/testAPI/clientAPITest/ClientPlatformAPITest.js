@@ -153,6 +153,15 @@
         });
     };
 
+    proto.turnUrlToQr = function (callback, requestData) {
+        this._service.turnUrlToQr.request(requestData);
+        this._service.turnUrlToQr.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     if (isNode) {
         module.exports = ClientPlatformAPITest;
     } else {
