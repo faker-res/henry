@@ -112,7 +112,7 @@ var playerSchema = new Schema({
     //photo url
     photoUrl: {type: String},
     //registration domain
-    domain: {type: String},
+    domain: {type: String, index: true},
     //external registration domain
     sourceUrl: {type: String},
     //User agent containing 3 sub fields: browser, os, device
@@ -231,7 +231,7 @@ var playerSchema = new Schema({
     //bank name， bankTypeId
     bankName: {type: String},
     //bank account
-    bankAccount: {type: String},
+    bankAccount: {type: String, index: true},
     //bank account name
     bankAccountName: {type: String},
     //bank account type
