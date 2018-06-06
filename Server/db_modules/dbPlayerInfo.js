@@ -9404,7 +9404,7 @@ let dbPlayerInfo = {
                         if (player.ximaWithdraw) {
                             ximaWithdrawUsed = Math.min(amount, player.ximaWithdraw);
 
-                            if (amount < player.ximaWithdraw) {
+                            if (amount <= player.ximaWithdraw) {
                                 isUsingXima = true;
                             }
                         }
