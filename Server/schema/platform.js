@@ -40,31 +40,111 @@ var platformSchema = new Schema({
     //last weekly settlement time
     lastWeeklySettlementTime: {type: Date},
     //CUSTOMER SERVICE INFO
+    // for player
+    csEmailImageUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csPhoneList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csQQList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csWeixinList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csSkypeList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csDisplayUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    playerInvitationUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    weixinPhotoUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    playerWebLogoUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    // for partner
+    csPartnerEmailList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csPartnerPhoneList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csPartnerUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csPartnerQQList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csPartnerWeixinList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csPartnerSkypeList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    partnerInvitationUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    partnerWeixinPhotoUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    partnerWebLogoUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csPartnerDisplayUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+
     //email address used when sending emails to players
     csEmail: {type: String},
-    // for player
-    csEmailImageUrlList: [{isImg: Number, content: String}],
-    csPhoneList: [{isImg: Number, content: String}],
-    csQQList: [{isImg: Number, content: String}],
-    csUrlList: [{isImg: Number, content: String}],
-    csWeixinList: [{isImg: Number, content: String}],
-    csSkypeList: [{isImg: Number, content: String}],
-    csDisplayUrlList: [{isImg: Number, content: String}],
-    playerInvitationUrlList: [{isImg: Number, content: String}],
-    weixinPhotoUrlList: [{isImg: Number, content: String}],
-    playerWebLogoUrlList: [{isImg: Number, content: String}],
-    // for partner
-    csPartnerEmailList: [{isImg: Number, content: String}],
-    csPartnerPhoneList: [{isImg: Number, content: String}],
-    csPartnerUrlList: [{isImg: Number, content: String}],
-    csPartnerQQList: [{isImg: Number, content: String}],
-    csPartnerWeixinList: [{isImg: Number, content: String}],
-    csPartnerSkypeList: [{isImg: Number, content: String}],
-    partnerInvitationUrlList: [{isImg: Number, content: String}],
-    partnerWeixinPhotoUrlList: [{isImg: Number, content: String}],
-    partnerWebLogoUrlList: [{isImg: Number, content: String}],
-    csPartnerDisplayUrlList: [{isImg: Number, content: String}],
-
     csEmailImageUrl: {type: String},
     csPhone: {type: String},
     csUrl: {type: String},
