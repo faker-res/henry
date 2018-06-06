@@ -24,7 +24,6 @@ function socketActionPlayerFeedbackTopic(socketIO, socket) {
          */
         getPlayerFeedbackTopic: function getPlayerFeedbackTopic(data) {
             let actionName = arguments.callee.name;
-            console.log('getPlayerFeedbackTopic data', data);
             let isValidData = Boolean(data);
             socketUtil.emitter(self.socket, dbPlayerFeedbackTopic.getPlayerFeedbackTopic, [data], actionName, isValidData);
         },
