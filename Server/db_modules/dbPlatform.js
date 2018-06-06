@@ -32,6 +32,7 @@ var dbRewardEvent = require("../db_modules/dbRewardEvent");
 var dbLogger = require('./../modules/dbLogger');
 const dbPlayerMail = require("./../db_modules/dbPlayerMail");
 const dbPartner = require("./../db_modules/dbPartner");
+const qrCode = require('qrcode');
 
 // constants
 const constProposalEntryType = require('../const/constProposalEntryType');
@@ -219,6 +220,18 @@ var dbPlatform = {
                 return data;
             }
         });
+    },
+
+    /**
+     * get QR code image from targetUrl
+     * @param targetUrl
+     */
+    turnUrlToQr: function (targetUrl) {
+            return new Promise((resolve, reject) => {
+                return qrCode.toDataURL(targetUrl, (err, imgCode) => {
+                        return err? reject({name: "DBError", message: "Error in getting QR code", error: err}): resolve(imgCode);
+                    });
+            });
     },
 
     /**

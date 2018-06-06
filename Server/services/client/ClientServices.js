@@ -125,7 +125,8 @@
                 "extractUserFromFpms",
                 "getUserInfoFromPopUp",
                 "createPlayerFromTel",
-                "getPlatformSetting"
+                "getPlatformSetting",
+                "turnUrlToQr"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
