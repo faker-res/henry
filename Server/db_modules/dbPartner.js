@@ -7734,7 +7734,7 @@ let dbPartner = {
                     }
                 }
 
-                return dbconfig.collection_proposal.find(proposalQuery).lean();
+                return dbPropUtil.getProposalDataOfType(platformObj._id, constProposalType.SETTLE_PARTNER_COMMISSION, proposalQuery);
             }
         ).then(
             proposalData => {

@@ -6321,6 +6321,12 @@ let dbPlayerInfo = {
                         var rewardEventItem = rewardEvent[i].toObject();
                         delete rewardEventItem.platform;
                         rewardEventItem.platformId = platformId;
+
+                        if (rewardEventItem && rewardEventItem.display && rewardEventItem.display.length > 0) {
+                            rewardEventItem.list = rewardEventItem.display;
+                        }
+                        delete rewardEventItem.display;
+
                         if (rewardEventItem.canApplyFromClient) {
                             rewardEventArray.push(rewardEventItem);
                         }

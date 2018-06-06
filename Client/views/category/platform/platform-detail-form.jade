@@ -47,9 +47,6 @@ form(name="form_new_platform" ,novalidate)
                     label.control-label {{"QI Department" | translate}}
                     input.form-control(type="text", ng-model="vm.showPlatform.qiDepartmentTXT", ng-blur="vm.isValidQIDepartment(vm.showPlatform.qiDepartmentTXT)", ng-disabled="vm.isNotAllowEdit")
                     div(ng-if="vm.qiDepartmentError", style='color:red') {{vm.qiDepartmentError}}
-                div.form-group.col-md-6
-                    label.control-label {{"CALL_REQUEST_URL_CONFIG" | translate}}
-                    input.form-control(type="text", ng-model="vm.showPlatform.callRequestUrlConfig", ng-disabled="vm.isNotAllowEdit")
 
 
 
