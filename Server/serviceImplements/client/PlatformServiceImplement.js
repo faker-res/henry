@@ -42,7 +42,7 @@ var PlatformServiceImplement = function () {
         if(!data.device){
             data.device = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent'], false);
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getConfig, [data.platformId,data.device], isValidData, null, null, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getConfig, [data.platformId, data.device, 'player'], isValidData, null, null, true);
     };
 
     this.getLiveStream.expectsData = '';
