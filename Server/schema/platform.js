@@ -40,6 +40,109 @@ var platformSchema = new Schema({
     //last weekly settlement time
     lastWeeklySettlementTime: {type: Date},
     //CUSTOMER SERVICE INFO
+    // for player
+    csEmailImageUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csPhoneList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csQQList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csWeixinList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csSkypeList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csDisplayUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    playerInvitationUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    weixinPhotoUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    playerWebLogoUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    // for partner
+    csPartnerEmailList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csPartnerPhoneList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csPartnerUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csPartnerQQList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csPartnerWeixinList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csPartnerSkypeList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    partnerInvitationUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    partnerWeixinPhotoUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    partnerWebLogoUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+    csPartnerDisplayUrlList: [{
+        _id: false,
+        isImg: {type: Number},
+        content: {type: String}
+    }],
+
     //email address used when sending emails to players
     csEmail: {type: String},
     csEmailImageUrl: {type: String},
@@ -276,7 +379,12 @@ var platformSchema = new Schema({
     //client type
     clientData: {type: String},
     //call Request URL config
-    callRequestUrlConfig: {type: String}
+    callRequestUrlConfig: {type: String},
+    callRequestLineConfig: [{
+        lineId: {type: Number},
+        lineName: {type: String},
+        minLevel: {type: String}
+    }]
 });
 
 //add platform id before save
