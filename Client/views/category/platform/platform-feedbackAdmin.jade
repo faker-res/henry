@@ -21,7 +21,7 @@
                 label.control-label {{'FEEDBACK_TOPIC' | translate}}
                 select.form-control(ng-model='vm.feedbackAdminQuery.topic', required)
                     option(value='all') {{'ALL' | translate}}
-                    option(ng-repeat='(i,v) in vm.allPlayerFeedbackTopics', value='{{v.value}}') {{v.value|translate}}
+                    option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.value}}') {{v.value|translate}}
             .inlineBlk
                 label.control-label {{'Start date' | translate}}
                 #feedbackquerystarttime.input-append.form-control
@@ -60,5 +60,3 @@
                 span &nbsp;充值额：
                 span.totalAmount
                 span )
-
-

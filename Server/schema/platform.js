@@ -64,7 +64,7 @@ var platformSchema = new Schema({
     csPartnerSkype: {type: String},
     csPartnerDisplayUrl: {type: String},
     //auto settlement
-    canAutoSettlement: {type: Boolean, default: false},
+    canAutoSettlement: {type: Boolean, default: true},
     //invitation url for player from partner
     playerInvitationUrl: {type: String},
     //invitatio url for partner from partner

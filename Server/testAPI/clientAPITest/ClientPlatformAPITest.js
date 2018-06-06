@@ -141,6 +141,18 @@
         });
     };
 
+    proto.getPlatformSetting = function (callback, requestData) {
+        var data = requestData || {
+            platformId: testPlatformId
+        };
+        this._service.getPlatformSetting.request(data);
+        this._service.getPlatformSetting.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     if (isNode) {
         module.exports = ClientPlatformAPITest;
     } else {

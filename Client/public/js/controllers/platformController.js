@@ -20314,9 +20314,9 @@ define(['js/app'], function (myApp) {
                 });
             }
             vm.getProviderText = function (providerId) {
-                if (!providerId || !vm.allGameProvider) return false;
+                if (!providerId || !vm.allGameProviders) return false;
                 var result = '';
-                $.each(vm.allGameProvider, function (i, v) {
+                $.each(vm.allGameProviders, function (i, v) {
                     if (providerId == v._id || providerId == v.providerId) {
                         result = v.name;
                         return true;
@@ -20384,6 +20384,7 @@ define(['js/app'], function (myApp) {
                     condition: vm.rewardCondition,
                     validStartTime: vm.showReward.validStartTime || null,
                     validEndTime: vm.showReward.validEndTime || null,
+                    imageUrl: vm.showReward.imageUrl,
 
                 };
 
@@ -20551,6 +20552,7 @@ define(['js/app'], function (myApp) {
                     sendData.canApplyFromClient = vm.showReward.canApplyFromClient;
                     sendData.validStartTime = vm.showReward.validStartTime || null;
                     sendData.validEndTime = vm.showReward.validEndTime || null;
+                    sendData.imageUrl = vm.showReward.imageUrl;
 
                 }
                 console.log('vm.showRewardTypeData', vm.showRewardTypeData);
