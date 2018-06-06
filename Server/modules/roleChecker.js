@@ -390,6 +390,7 @@ var roleChecker = {
                 PlayerLevelCreate: ['createPlayerLevel'],
                 PartnerLevelCreate: ['createPartnerLevel'],
                 PartnerLevelUpdate: ['partnerLevel/update'],
+                CallRequest: [],
                 // PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
                 // PlatformAnnouncementRead: ['getPlatformAnnouncements'],
                 // PlatformAnnouncementUpdate: ['updatePlatformAnnouncement'],

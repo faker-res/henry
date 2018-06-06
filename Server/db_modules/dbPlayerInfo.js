@@ -6321,6 +6321,12 @@ let dbPlayerInfo = {
                         var rewardEventItem = rewardEvent[i].toObject();
                         delete rewardEventItem.platform;
                         rewardEventItem.platformId = platformId;
+
+                        if (rewardEventItem && rewardEventItem.display && rewardEventItem.display.length > 0) {
+                            rewardEventItem.list = rewardEventItem.display;
+                        }
+                        delete rewardEventItem.display;
+
                         if (rewardEventItem.canApplyFromClient) {
                             rewardEventArray.push(rewardEventItem);
                         }
@@ -13923,7 +13929,7 @@ let dbPlayerInfo = {
 
             // Promise domain CS and promote way
             let promoteWayProm = domain ?
-                dbconfig.collection_csOfficerUrl.findOne({domain: {$regex: domain, $options: "x"}}).populate({
+                dbconfig.collection_csOfficerUrl.findOne({domain: {$regex: domain, $options: "xi"}}).populate({
                     path: 'admin',
                     model: dbconfig.collection_admin
                 }).lean() : Promise.resolve(false);

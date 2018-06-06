@@ -37,8 +37,13 @@ var rewardEventSchema = new Schema({
     validStartTime: {type: Date},
     //reward event valid end time
     validEndTime: {type: Date},
-    //reward event image url that use to display on front-end
-    imageUrl: {type: String}
+    //reward event displayId, displayTitle, and displayTextContent
+    display: [{
+        _id: false,
+        displayId: {type: String},
+        displayTitle: {type: String},
+        displayTextContent: {type: String}
+    }]
 });
 
 rewardEventSchema.index({platform: 1, name: 1}, {unique: true});

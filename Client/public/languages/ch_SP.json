@@ -542,6 +542,10 @@
   "Create": "创建",
   "Delete": "删除",
   "Edit": "编辑",
+  "Add/Delete": "新增/删除",
+  "Display ID": "展示ID",
+  "Display Title": "展示文字标题",
+  "Display Content": "展示内文",
   "CreateTrial": "创建试玩玩家",
   "DemoPlayerPrefix": "试玩帐号F开头后的字母",
   "DEMO_PLAYER_DEFAULT_CREDIT": "试玩预设额度（如需发起转入）",
@@ -2288,6 +2292,8 @@
   "PARTNER_SETTLEMENT_HISTORY_REPORT": "代理结算历史报表",
   "CALENDER": "日历",
   "PartnerCommission": "代理佣金(旧)",
+  "callRequestConfig": "请求回电设置",
+  "CallRequest": "请求回电",
   "Valid top up days": "充值有效天数",
   "Valid top up amount": "充值最小限额",
   "Maximum reward amount per player": "每个推荐人最大优惠限额",
@@ -3791,6 +3797,10 @@
   "On Going": "拨号中",
   "Paused": "暂停中",
   "PLATFORM_SHORTFORM": "平台缩写（与结算共用的名称如：PA）",
-  "CALL_REQUEST_URL_CONFIG": "请求回电域名配置（与运维确认）"
+  "CALL_REQUEST_URL_CONFIG": "请求回电域名配置（与运维确认）",
+  "LINE_ID_CUSTOM": "线路ID（自定义）",
+  "LINE_NAME_CPMS": "线路名称（与运维确认）",
+  "MIN_LEVEL_ABOVE": "最低等级限制（以上皆可）"
+
 
 }
