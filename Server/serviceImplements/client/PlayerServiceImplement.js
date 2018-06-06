@@ -53,9 +53,9 @@ let PlayerServiceImplement = function () {
             }];
             var geo = geoip.lookup(data.lastLoginIp);
             if (geo) {
-                data.country = geo.country;
-                data.city = geo.city;
-                data.province = geo.region;
+                // data.country = geo.country;
+                // data.city = geo.city;
+                // data.province = geo.region;
                 data.longitude = geo.ll ? geo.ll[1] : null;
                 data.latitude = geo.ll ? geo.ll[0] : null;
             }
@@ -82,8 +82,14 @@ let PlayerServiceImplement = function () {
                 var ipData = dbUtility.getIpLocationByIPIPDotNet(data.lastLoginIp);
                 if(ipData){
                     data.ipArea = ipData;
+                    data.country = ipData.country || null;
+                    data.city = ipData.city || null;
+                    data.province = ipData.province || null;
                 }else{
                     data.ipArea = {'province':'', 'city':''};
+                    data.country = "";
+                    data.city = "";
+                    data.province = "";
                 }
             }
 
