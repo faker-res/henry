@@ -22,6 +22,7 @@ define(['js/app'], function (myApp) {
             vm.existRealName = false;
             vm.rewardPointsChange = {};
             vm.rewardPointsConvert = {};
+            vm.platformPageName = 'Player';
 
             // constants declaration
             vm.constPartnerCommisionType = {
@@ -27609,7 +27610,6 @@ define(['js/app'], function (myApp) {
                 vm.filterGameType = 'all';
                 vm.filterPlayGameType = 'all';
 
-                vm.platformPageName = 'Player';
                 vm.playerTableQuery = {limit: 10};
 
                 utilService.actionAfterLoaded("#playerTablePage", function () {
