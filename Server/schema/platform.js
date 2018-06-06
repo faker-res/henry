@@ -42,6 +42,29 @@ var platformSchema = new Schema({
     //CUSTOMER SERVICE INFO
     //email address used when sending emails to players
     csEmail: {type: String},
+    // for player
+    csEmailImageUrlList: [{isImg: Number, content: String}],
+    csPhoneList: [{isImg: Number, content: String}],
+    csQQList: [{isImg: Number, content: String}],
+    csUrlList: [{isImg: Number, content: String}],
+    csWeixinList: [{isImg: Number, content: String}],
+    csSkypeList: [{isImg: Number, content: String}],
+    csDisplayUrlList: [{isImg: Number, content: String}],
+    playerInvitationUrlList: [{isImg: Number, content: String}],
+    weixinPhotoUrlList: [{isImg: Number, content: String}],
+    playerWebLogoUrlList: [{isImg: Number, content: String}],
+    // for partner
+    csPartnerEmailList: [{isImg: Number, content: String}],
+    csPartnerPhoneList: [{isImg: Number, content: String}],
+    csPartnerUrlList: [{isImg: Number, content: String}],
+    csPartnerQQList: [{isImg: Number, content: String}],
+    csPartnerWeixinList: [{isImg: Number, content: String}],
+    csPartnerSkypeList: [{isImg: Number, content: String}],
+    partnerInvitationUrlList: [{isImg: Number, content: String}],
+    partnerWeixinPhotoUrlList: [{isImg: Number, content: String}],
+    partnerWebLogoUrlList: [{isImg: Number, content: String}],
+    csPartnerDisplayUrlList: [{isImg: Number, content: String}],
+
     csEmailImageUrl: {type: String},
     csPhone: {type: String},
     csUrl: {type: String},

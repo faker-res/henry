@@ -404,6 +404,7 @@ define(['js/app'], function (myApp) {
                     hoverCss: ":hover{filter: contrast(200%);}"
                 }
             ];
+            vm.editFrontEndDisplay = false;
             vm.commonTableOption = {
                 dom: 'Zrtlp',
                 "autoWidth": true,
@@ -692,9 +693,65 @@ define(['js/app'], function (myApp) {
                 vm.platformAction = platformAction;
             };
 
+            vm.retrievePlatformData = function(platformData) {
+
+                let newList = [
+                    'csEmailImageUrlList',
+                    'csPhoneList',
+                    'csQQList',
+                    'csUrlList',
+                    'csWeixinList',
+                    'csSkypeList',
+                    'csDisplayUrlList',
+                    'playerInvitationUrlList',
+                    'weixinPhotoUrlList',
+                    'playerWebLogoUrlList',
+                    'csPartnerEmailList',
+                    'csPartnerPhoneList',
+                    'csPartnerUrlList',
+                    'csPartnerQQList',
+                    'csPartnerWeixinList',
+                    'csPartnerSkypeList',
+                    'csPartnerDisplayUrlList',
+                    'partnerInvitationUrlList',
+                    'partnerWeixinPhotoUrlList',
+                    'partnerWebLogoUrlList'
+                ];
+
+                newList.forEach( listName => {
+                    if (!platformData[listName]){
+                        platformData[listName] = [];
+                    }
+
+                    //check the platform data is old or new
+                    let nativeFieldName = listName.substr(0, listName.length-4);
+                    if (platformData[nativeFieldName] && platformData[nativeFieldName].length > 0 && (!platformData[listName] || platformData[listName].length == 0)){
+                        let oldData = platformData[nativeFieldName];
+                        platformData[listName] = [{content: oldData}];
+                    }
+
+                    if(platformData[listName] && platformData[listName].length > 0){
+                        platformData[listName].forEach(p => {
+                            p.isImg = typeof p.isImg === 'number' ? p.isImg.toString() : null ;
+
+                        })
+                    }
+                })
+
+                return platformData;
+            };
+
             vm.populatePlatformData = function () {
                 vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
             };
+
+            vm.checkIsImg = function (data){
+               data.forEach(p => {
+                    p.isImg = typeof p.isImg === 'number' ? p.isImg.toString() : null ;
+
+                })
+                return data
+            }
 
             vm.showTopupTab = function (tabName) {
                 vm.selectedTopupTab = tabName == null ? "manual" : tabName;
@@ -779,6 +836,7 @@ define(['js/app'], function (myApp) {
 
                 vm.showPlatform = commonService.convertDepartment(vm.selectedPlatform.data);
                 beforeUpdatePlatform();
+                vm.retrievePlatformData(vm.showPlatform);
 
                 // if (option && !option.loadAll) {
                 //     $scope.safeApply();
@@ -1183,6 +1241,7 @@ define(['js/app'], function (myApp) {
                 return obj;
             };
             vm.initPlatform = function (bool) {
+                vm.editFrontEndDisplay = true;
                 vm.pickDay = null;
                 vm.pickWeek = null;
                 vm.listArray = [];
@@ -2029,6 +2088,7 @@ define(['js/app'], function (myApp) {
                     function (data) {
                         vm.curPlatformText = vm.showPlatform.name;
                         loadPlatformData({loadAll: false});
+                        vm.editFrontEndDisplay = false;
                         vm.syncPlatform();
                     });
             };
@@ -20193,7 +20253,7 @@ define(['js/app'], function (myApp) {
             vm.updateCollectionInEdit = function (type, collection, data) {
                 if (type == 'add') {
                     let newObj = {};
-
+                    
                     Object.keys(data).forEach(e => {
                         newObj[e] = data[e];
                     });
