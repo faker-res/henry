@@ -9327,6 +9327,7 @@ let dbPlayerInfo = {
         let bonusDetail = null;
         let bUpdateCredit = false;
         let platform;
+        let isUsingXima = false;
         let resetCredit = function (playerObjId, platformObjId, credit, error) {
             //reset player credit if credit is incorrect
             return dbconfig.collection_players.findOneAndUpdate(
@@ -9400,6 +9401,14 @@ let dbPlayerInfo = {
                     if (playerData) {
                         player = playerData;
 
+                        if (player.ximaWithdraw) {
+                            ximaWithdrawUsed = Math.min(amount, player.ximaWithdraw);
+
+                            if (amount <= player.ximaWithdraw) {
+                                isUsingXima = true;
+                            }
+                        }
+
                         if (player.platform && player.platform.useProviderGroup) {
                             let unlockAllGroups = Promise.resolve(true);
                             if (bForce) {
@@ -9423,7 +9432,7 @@ let dbPlayerInfo = {
                 }
             ).then(
                 RTGs => {
-                    if (!RTGs) {
+                    if (!RTGs || isUsingXima) {
                         if (!player.bankName || !player.bankAccountName || !player.bankAccount) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
@@ -9495,10 +9504,6 @@ let dbPlayerInfo = {
                                     }
                                 }
 
-                                if (player.ximaWithdraw) {
-                                    ximaWithdrawUsed = Math.min(amount, player.ximaWithdraw);
-                                }
-
                                 return dbconfig.collection_players.findOneAndUpdate(
                                     {
                                         _id: player._id,
@@ -9559,7 +9564,7 @@ let dbPlayerInfo = {
                                                 amount: finalAmount,
                                                 // bonusCredit: bonusDetail.credit,
                                                 curAmount: player.validCredit,
-                                                remark: player.remark,
+                                                // remark: player.remark,
                                                 lastSettleTime: new Date(),
                                                 honoreeDetail: honoreeDetail,
                                                 creditCharge: creditCharge,

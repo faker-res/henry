@@ -216,7 +216,7 @@ define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
                     latency = receiveTime - sendTime;
                     WSCONFIG[server].latency = latency;
 
-                    if (latency < lowestLatency) {
+                    if (server != 'dev' && (latency < lowestLatency)) {
                         lowestLatency = latency;
                         fastestServer = server;
                     }

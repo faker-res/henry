@@ -134,6 +134,11 @@ var PlatformServiceImplement = function () {
         data = data || {};
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getBasicPlatformSetting, [{platformId:data.platformId}], isValidData, null, null, true);
     };
+
+    this.turnUrlToQr.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.targetUrl);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.turnUrlToQr, [data.targetUrl], isValidData, null, null, true);
+    };
 };
 
 var proto = PlatformServiceImplement.prototype = Object.create(PlatformService.prototype);

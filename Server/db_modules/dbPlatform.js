@@ -32,6 +32,7 @@ var dbRewardEvent = require("../db_modules/dbRewardEvent");
 var dbLogger = require('./../modules/dbLogger');
 const dbPlayerMail = require("./../db_modules/dbPlayerMail");
 const dbPartner = require("./../db_modules/dbPartner");
+const qrCode = require('qrcode');
 
 // constants
 const constProposalEntryType = require('../const/constProposalEntryType');
@@ -219,6 +220,18 @@ var dbPlatform = {
                 return data;
             }
         });
+    },
+
+    /**
+     * get QR code image from targetUrl
+     * @param targetUrl
+     */
+    turnUrlToQr: function (targetUrl) {
+            return new Promise((resolve, reject) => {
+                return qrCode.toDataURL(targetUrl, (err, imgCode) => {
+                        return err? reject({name: "DBError", message: "Error in getting QR code", error: err}): resolve(imgCode);
+                    });
+            });
     },
 
     /**
@@ -3150,8 +3163,106 @@ var dbPlatform = {
                 }
             })
         }
-    }
+    },
+
+    callBackToUser: (platformId, phoneNumber, randomNumber, captcha, lineId, playerId) => {
+        let platform, url, platformString;
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({
+                        status: constServerCode.INVALID_PLATFORM,
+                        name: "DBError",
+                        message: "Platform does not exist"
+                    });
+                }
+
+                platform = platformData;
+                let platformStringArray = platform.callRequestLineConfig;
+
+                if (!platform.callRequestUrlConfig || !platformStringArray) {
+                    return Promise.reject({
+                        status: constServerCode.INVALID_DATA,
+                        name: "DBError",
+                        message: "Error finding db data"
+                    });
+                }
+
+                return getPlatformStringForCallback(platformStringArray, playerId, lineId);
+            }
+        ).then(
+            platformStringData => {
+                platformString = platformStringData;
+            
+                url = platform.callRequestUrlConfig;
+                
+                let path = "/servlet/TelephoneApplication?phone=" + phoneNumber + "&captcha=" + captcha + "&platform=" + platformString + "&random=" + randomNumber + "&callback=jsonp1";
+
+                let link = url + path;
+
+                return new Promise((resolve, reject) => {
+                    request.get(link, {strictSSL: false}, (err, res, body) => {
+                        if (err) {
+                            reject({code: constServerCode.EXTERNAL_API_FAILURE, message: err})
+                        } else {
+                            console.log('callBackToUser API output', res);
+                            return true;
+                        }
+                    });
+                });
+            }
+        );
+    },
 };
+
+function getPlatformStringForCallback (platformStringArray, playerId, lineId) {
+    lineId = lineId || 0;
+    let platformString;
+
+    let requiredLevelProm;
+    platformStringArray.map(line => {
+        if (lineId == line.lineId) {
+            platformString = line.lineName;
+            if (line.minLevel) {
+                requiredLevelProm = dbconfig.collection_playerLevel.findOne({_id: line.minLevel}).lean();
+            }
+        }
+    });
+
+    if (!platformString) {
+        return Promise.reject({message: "Invalid line ID"});
+    }
+
+    if (!requiredLevelProm) {
+        return platformString;
+    }
+
+    let playerProm = Promise.all();
+    if (playerId) {
+        playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
+    }
+
+    if (!playerProm) {
+        return Promise.reject({message: "Player level is not enough"});
+    }
+
+    return Promise.all([requiredLevelProm, playerProm]).then(
+        data => {
+            let requiredPlayerLevel, player;
+            ([requiredPlayerLevel, player] = data);
+
+            if (!requiredPlayerLevel) {
+                return platformString;
+            }
+
+            if (!player || !player.playerLevel || requiredPlayerLevel.value < player.playerLevel.value) {
+                return Promise.reject({message: "Player level is not enough"});
+            }
+            
+            return platformString;
+        }
+    );
+}
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {
     var createTimeQuery = {};
