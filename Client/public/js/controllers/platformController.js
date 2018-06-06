@@ -27439,6 +27439,8 @@ define(['js/app'], function (myApp) {
 
                 vm.queryPara = {};
 
+                vm.forbidGameAddList = [];
+                vm.forbidGameRemoveList = [];
                 vm.phonePattern = /^[0-9]{8,11}$/;
                 vm.showPlatformList = true;
                 vm.showPlatformDropDownList = false;
