@@ -107,17 +107,13 @@ let PlayerServiceImplement = function () {
                     }
 
                     console.log("createPlayerRegistrationIntentRecordAPI SUCCESS", data);
-                    if(data){
-                        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS, inputDevice).then();
-                    }else{
-                        dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
-                            isUpdateData=> {
-                                if (!(isUpdateData[0] && isUpdateData[0]._id)) {
-                                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.NOVERIFY, inputDevice).catch(errorUtils.reportError);
-                                }
+                    dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
+                        isUpdateData=> {
+                            if (!(isUpdateData[0] && isUpdateData[0]._id)) {
+                                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.NOVERIFY, inputDevice).catch(errorUtils.reportError);
                             }
-                        );
-                    }
+                        }
+                    );
 
                     //dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
                     //dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
