@@ -1,0 +1,6 @@
+form#formEditPlayerAdmin(name="form_edit_player_admin", novalidate)
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label {{"AdminName" | translate}}
+            input.form-control(type="text", placeholder='{{"AdminName" | translate}}', ng-model="playerBeingEdited.accAdmin", ng-change="checkAdminNameValidity(playerBeingEdited.accAdmin,form_edit_player_admin);")
+            div(ng-if="checkAdminNameValidity();", style='color:red') {{"Admin name is invalid, please try again" | translate}}
