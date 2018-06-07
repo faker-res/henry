@@ -144,6 +144,8 @@
                 createTime: Date.now(),
                 detail: 'detail'
             };
+
+        data.orderNo = data.orderNo || Math.random().toString(36).substring(2, 9) + Math.random().toString(36).substring(2, 9);
         // We need to get the latest values for testProviderId and testGameId above, because this module's vars might
         // have been empty the first time it loaded, and if requirejs caches the module, they will never be set!
         this._service.addConsumption.request(data);
