@@ -2441,6 +2441,73 @@ var dbQualityInspection = {
         return live800SummarizedRecords;
     },
 
+    getWorkingCSName: function(query){
+        let startDate = new Date()
+        let endDate = new Date();
+        let queryString;
+        let queryObj = "";
+
+        if (query.operatorId && query.operatorId.length > 0) {
+            if(Array.isArray(query.operatorId)){
+                operatorId = dbQualityInspection.splitOperatorId(query.operatorId);
+                companyId = dbQualityInspection.splitOperatorIdByCompanyId(query.operatorId)
+            }else{
+                operatorId = query.operatorId;
+            }
+
+            if(operatorId!='all'){
+                queryObj += " operator_name IN (" + operatorId + ") AND ";
+            }
+
+            queryObj += " company_id IN (" + companyId + ") AND ";
+            query.companyId = companyId;
+        }else{
+            if (query.companyId && query.companyId.length > 0) {
+                companyId = query.companyId.join(',');
+                queryObj += " company_id IN (" + companyId + ") AND ";
+            }
+        }
+
+        if (query.startTime && query.endTime) {
+            let startTime = dbUtility.getLocalTimeString(query.startTime);
+            let endTime = dbUtility.getLocalTimeString(query.endTime);
+            queryObj += " store_time BETWEEN CAST('"+ startTime +"' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME)";
+        }
+
+        if(query.startTime && query.endTime){
+            startDate = new Date(query.startTime);
+            endDate = new Date(query.endTime);
+
+            endDate.setHours(23, 59, 59, 999);
+            endDate.setDate(endDate.getDate() - 1);
+
+            startDate = dbUtility.getLocalTimeString(startDate);
+            endDate = dbUtility.getLocalTimeString(endDate);
+
+            queryString = "SELECT DISTINCT operator_name FROM chat_content WHERE " + queryObj;
+        }
+
+        let connection = dbQualityInspection.connectMysql();
+        connection.connect();
+        if(connection) {
+            let promise = new Promise((resolve, reject) => {
+                connection.query(queryString, function (error, results, fields) {
+                    if (error) {
+                        console.log(error);
+                        return reject(error);
+                    }
+
+                    if (results) {
+                        resolve(results);
+                    }
+                });
+            });
+
+            return Q.all([promise]);
+        }
+    },
+
+
 
 };
 module.exports = dbQualityInspection;

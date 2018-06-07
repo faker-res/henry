@@ -42,7 +42,7 @@
                     option(ng-repeat='(i,v) in vm.qiDepartments', value='{{v._id}}') {{v.name | translate}}
                     option(value='all') {{'NONE' | translate}}
             .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Live800Record', 'Read')")
-                button.btn.btn-primary(ng-click='vm.searchLive800();vm.pgn.index=0') {{"SEARCH" | translate}}
+                button.btn.btn-primary(ng-click='vm.searchLive800();vm.pgn.index=0;vm.getWorkingCSName();') {{"SEARCH" | translate}}
                 span.collapse
                     i.fa.fa-spinner.fa-spin
                 span.margin-left-5
@@ -51,6 +51,8 @@
 
 div
     label {{'Total' | translate}}：{{vm.pgn.count}} {{'COUNT1' | translate}}{{'VALID_INVALID_CONVERSATION' | translate}}
+    br
+    label(ng-show="vm.workingCSName") {{'当天工作客服' | translate}} : {{vm.workingCSName}}
 div(style='height:50px')
     table#800RecordTable(style="width: 100%; text-align: center; border: 1px solid;")
         thead(style='background-color:#337ab7;')
