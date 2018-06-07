@@ -13455,7 +13455,7 @@ let dbPlayerInfo = {
                                         endTime: query.end,
                                         query: query,
                                         playerObjIds: playerIdObjs.map(function (playerIdObj) {
-                                            return String(playerIdObj._id);
+                                            return playerIdObj._id;
                                         }),
                                         isPromoteWay: true
                                     });
