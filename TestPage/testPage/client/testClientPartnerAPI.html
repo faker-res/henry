@@ -969,6 +969,27 @@
     </div>
 </div>
 
+<h3>GET PLATFORM - PARTNER'S CONFIGURATION (获取平台-代理页面的设置)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform ID
+            <input name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Device type
+            <input name="device">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="getPartnerConfig">Get platform - Partner's configuration</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPartnerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
         function (ClientServices, WebSocketClient, TestHelper, ClientPartnerAPITest, ClientConnectionAPITest) {
