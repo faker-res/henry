@@ -1014,22 +1014,23 @@
                                 label {{'CREDIT' | translate}}
                                 //text.small.margin-left-5 ({{'minTopUpAmount' | translate}} 1)
                                 input.form-control(type='number', min=0, ng-model='vm.playerAlipayTopUp.amount', required)
-                            .form-group.col-md-6
-                                .control-label
-                                label {{'Alipay' | translate}}
-                                select.form-control#alipayOption(ng-model='vm.alipaysAcc',ng-change='vm.pickAlipayAcc(vm.alipaysAcc)')
-                                    option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.allAlipaysAcc | orderBy : "accountNumber"', value='{{v}}') {{v.accountNumber}} {{v.name}}({{(v.state == "DISABLED"?"Disable":v.state) | translate}})
-                            .form-group.col-md-6
-                                .control-label
-                                label {{'alipayName' | translate}}
-                                input.form-control(ng-model='vm.playerAlipayTopUp.alipayName', required)
-                            .form-group.col-md-6
-                                .control-label
-                            .form-group.col-md-6
-                                .control-label
-                                label {{'alipayAccount' | translate}}
-                                input.form-control(ng-model='vm.playerAlipayTopUp.alipayAccount', required)
+                            .form-group.col-md-12
+                                .form-group.col-md-6
+                                    .control-label
+                                    label {{'Alipay' | translate}}
+                                    select.form-control#alipayOption(ng-model='vm.alipaysAcc',ng-change='vm.pickAlipayAcc(vm.alipaysAcc)', ng-options='a as a.displayText for a in vm.allAlipaysAcc | orderBy : "accountNumber"',  data-live-search="true", bsp )
+                                        option(value='') {{'any' | translate}}
+                                .form-group.col-md-6
+                                    .control-label
+                                    label {{'alipayName' | translate}}
+                                    input.form-control(ng-model='vm.playerAlipayTopUp.alipayName', required)
+                            .form-group.col-md-12
+                                .form-group.col-md-6
+                                    .control-label
+                                .form-group.col-md-6
+                                    .control-label
+                                    label {{'alipayAccount' | translate}}
+                                    input.form-control(ng-model='vm.playerAlipayTopUp.alipayAccount', required)
                             .form-group.col-md-12
                                 .control-label
                                 label {{'realName' | translate}}
@@ -1074,26 +1075,28 @@
                                 label {{'CREDIT' | translate}}
                                 //text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
                                 input.form-control(type='number', min=0, ng-model='vm.playerWechatPayTopUp.amount', required)
-                            .form-group.col-md-6
-                                .control-label
-                                label {{'WechatPay' | translate}}
-                                select.form-control#wechatpayOption(ng-model='vm.wechatpaysAcc',ng-change='vm.pickWechatPayAcc(vm.wechatpaysAcc)')
-                                    option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.allWechatpaysAcc | orderBy : "nickName"', value='{{v}}') {{v.nickName}} {{v.accountNumber}} ({{(v.state == "DISABLED"?"Disable":v.state) | translate}})
-                            .form-group.col-md-6
-                                .control-label
-                                label {{'wechatPayName' | translate}}
-                                input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayName', required)
-                            .form-group.col-md-6
-                                .control-label
-                                label {{'QRMode' | translate}}
-                                select.form-control(ng-model='vm.playerWechatPayTopUp.notUseQR')
-                                    option(value="true") {{'CS_QR' | translate}}
-                                    option(value="") {{'Settlement_QR' | translate}}
-                            .form-group.col-md-6
-                                .control-label
-                                label {{'wechatPayAccount' | translate}}
-                                input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayAccount', required)
+                            .form-group.col-md-12
+                                .form-group.col-md-6
+                                    .control-label
+                                    label {{'WechatPay' | translate}}
+                                    select.form-control#wechatpayOption(ng-model='vm.wechatpaysAcc',ng-change='vm.pickWechatPayAcc(vm.wechatpaysAcc)',  ng-options='a as a.displayText for a in vm.allWechatpaysAcc | orderBy : "nickName"',  data-live-search="true", bsp)
+                                        option(value='') {{'any' | translate}}
+                                        //option(ng-repeat='(i,v) in vm.allWechatpaysAcc | orderBy : "nickName"', value='{{v}}') {{v.nickName}} {{v.accountNumber}} ({{(v.state == "DISABLED"?"Disable":v.state) | translate}})
+                                .form-group.col-md-6
+                                    .control-label
+                                    label {{'wechatPayName' | translate}}
+                                    input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayName', required)
+                            .form-group.col-md-12
+                                .form-group.col-md-6
+                                    .control-label
+                                    label {{'QRMode' | translate}}
+                                    select.form-control(ng-model='vm.playerWechatPayTopUp.notUseQR')
+                                        option(value="true") {{'CS_QR' | translate}}
+                                        option(value="") {{'Settlement_QR' | translate}}
+                                .form-group.col-md-6
+                                    .control-label
+                                    label {{'wechatPayAccount' | translate}}
+                                    input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayAccount', required)
                             .form-group.col-md-12
                                 .control-label
                                 label {{'promoCode' | translate}}
