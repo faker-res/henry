@@ -26,9 +26,9 @@
                             li.list-group-item(class="{{vm.seleDataType.PROPOSAL_REPORT}}" ng-click='vm.loadPage("PROPOSAL_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PROPOSAL_REPORT')")
                                 text {{'PROPOSAL_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.PROVIDER_REPORT}}" ng-click='vm.loadPage("PROVIDER_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PROVIDER_REPORT')")
-                                text {{'PROVIDER_REPORT' | translate}}
+                                text {{'PROVIDER_REPORT' | translate}} ({{'Non Real Time' | translate}}、{{'Recorded Once Daily' | translate}})
                             li.list-group-item(class="{{vm.seleDataType.PLAYER_EXPENSE_REPORT}}" ng-click='vm.loadPage("PLAYER_EXPENSE_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PLAYER_EXPENSE_REPORT')")
-                                text {{'PLAYER_EXPENSE_REPORT' | translate}}
+                                text {{'PLAYER_EXPENSE_REPORT' | translate}} ({{'Non Real Time' | translate}}、{{'Recorded Once Daily' | translate}})
                             li.list-group-item(class="{{vm.seleDataType.PLAYER_REPORT}}" ng-click='vm.loadPage("PLAYER_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PLAYER_REPORT')")
                                 text {{'PLAYER_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.NEWACCOUNT_REPORT}}" ng-click='vm.loadPage("NEWACCOUNT_REPORT")', ng-if="checkViewPermission('Report', 'General', 'NEWACCOUNT_REPORT')")
