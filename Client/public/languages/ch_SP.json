@@ -765,6 +765,7 @@
   "PROCESS": "正在处理",
   "SUCCESS": "成功",
   "FAIL": "失败",
+  "OVERTIME": "超时",
   "FAILURE": "失败",
   "Last hour": "上小时",
   "Player Information": "玩家信息",

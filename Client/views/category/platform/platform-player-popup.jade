@@ -719,6 +719,7 @@
                                     label {{ 'STATUS' | translate }}
                                     select.form-control(ng-model='vm.queryPlatformCreditTransferStatus', style='min-width:100px;height:34px;')
                                         option(value='') {{'all' | translate}}
+                                        option(value='default') {{'SUCCESS' | translate}} + {{'FAIL' | translate}} + {{'OVERTIME' | translate}}
                                         option(ng-repeat='(i,v) in vm.allPlayerCreditTransferStatus', value='{{v}}') {{i | translate}}
                                 .inlineBlk
                                     button.btn.btn-primary(ng-click='vm.getPagedPlatformCreditTransferLog(true)') {{'SEARCH' | translate}}
