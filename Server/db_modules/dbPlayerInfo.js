@@ -13975,7 +13975,10 @@ let dbPlayerInfo = {
 
             // Promise domain CS and promote way
             let promoteWayProm = domain ?
-                dbconfig.collection_csOfficerUrl.findOne({domain: {$regex: domain, $options: "xi"}}).populate({
+                dbconfig.collection_csOfficerUrl.findOne({
+                    platform: platformObjId,
+                    domain: {$regex: domain, $options: "xi"
+                }}).populate({
                     path: 'admin',
                     model: dbconfig.collection_admin
                 }).lean() : Promise.resolve(false);
