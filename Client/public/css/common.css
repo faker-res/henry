@@ -2989,3 +2989,22 @@ input[type='number'].leftALignNumber {
 .callOutFailed {
     background-color: rgb(180,180,180) !important;
 }
+
+table.simple-table.platformFrontEndDisplayTable {
+    table-layout: fixed;
+}
+table.simple-table.platformFrontEndDisplayTable tbody td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#customerServicePanel > div {
+    display: inline-block;
+    float: none;
+}
+
+#partnerPanel > div {
+    display: inline-block;
+    float: none;
+}

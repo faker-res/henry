@@ -1751,7 +1751,10 @@ let dbPartner = {
                 isVerified => {
                     if (isVerified) {
                         // Update partner data
-                        if (updateData.bankAccountName && updateData.bankAccountName != partnerData.realName) {
+                        if(partnerData.bankAccountName){
+                            delete updateData.bankAccountName;
+                        }
+                        if (updateData.bankAccountName && !partnerData.realName) {
                             if (updateData.bankAccountName.indexOf('*') > -1)
                                 delete updateData.bankAccountName;
                             else
@@ -6278,11 +6281,11 @@ let dbPartner = {
                 providerGroupConsumptionData = getTotalPlayerConsumptionByProviderGroupName(downLinesRawCommissionDetail, providerGroups);
 
                 commissionRateTables.map(groupRate => {
-                    commissionRates[groupRate.groupName] = getCommissionRate(groupRate.rateTable, providerGroupConsumptionData[groupRate.groupName].validAmount, activeDownLines);
-
                     let totalConsumption = commissionType === constPartnerCommissionType.WEEKLY_CONSUMPTION
                         ? providerGroupConsumptionData[groupRate.groupName].validAmount
                         : -providerGroupConsumptionData[groupRate.groupName].bonusAmount;
+
+                    commissionRates[groupRate.groupName] = getCommissionRate(groupRate.rateTable, totalConsumption, activeDownLines);
 
                     let platformFeeRateData = {};
 
@@ -7825,6 +7828,11 @@ function calculateRawCommission (totalDownLineConsumption, commissionRate) {
 function getCommissionRate (commissionRateTable, consumptionAmount, activeCount) {
     let lastValidCommissionRate = 0;
     let isCustom = false;
+
+    if (consumptionAmount < 0) {
+        consumptionAmount *= -1;
+    }
+
     for (let i = 0; i < commissionRateTable.length; i++) {
         let commissionRequirement = commissionRateTable[i];
 

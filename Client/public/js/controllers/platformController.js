@@ -946,7 +946,7 @@ define(['js/app'], function (myApp) {
                             vm.rewardTabClicked();
                             vm.getPlatformRewardProposal();
                             vm.getPlatformPlayersData(true, true);
-                            vm.getPlatformPartnersData();
+                            // vm.getPlatformPartnersData();
                             vm.getPlatformGameData();
                             vm.loadProposalTypeData();
                             vm.loadBankCardGroupData();
@@ -1116,9 +1116,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case "Partner":
                         vm.partnerCommission = {};
+                        vm.getPlatformPartnersData();
                         vm.getCommissionRateGameProviderGroup();
                         vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
-
 
                         break;
                     case "Game":
@@ -3194,7 +3194,7 @@ define(['js/app'], function (myApp) {
 
                     //provider delay status init
                     vm.getProviderLatestTimeRecord();
-                    $scope.safeApply();
+                    // $scope.safeApply();
                 })
             };
 
@@ -3675,6 +3675,7 @@ define(['js/app'], function (myApp) {
                     number: 0,
                     remark: ''
                 };
+                vm.queryPlatformCreditTransferStatus = 'default';
                 vm.platformCreditTransferLog = {};
                 vm.platformCreditTransferLog.isPopup = isPopup === true;
                 vm.platformCreditTransferLog.index = 0;
@@ -3693,6 +3694,7 @@ define(['js/app'], function (myApp) {
 
             vm.getPagedPlatformCreditTransferLog = function (newSearch) {
                 vm.platformCreditTransferLog.loading = true;
+                let defaultPlatformCreditTransferStatus;
                 $scope.safeApply();
                 let sendQuery = {
                     PlatformObjId: vm.selectedPlatform.id,
@@ -3703,7 +3705,10 @@ define(['js/app'], function (myApp) {
                     sortCol: vm.platformCreditTransferLog.sortCol
                 };
 
-                vm.queryPlatformCreditTransferStatus ? sendQuery.status = vm.queryPlatformCreditTransferStatus : '';
+                if (vm.queryPlatformCreditTransferStatus == 'default'){
+                    defaultPlatformCreditTransferStatus = {$in: [vm.allPlayerCreditTransferStatus.SUCCESS, vm.allPlayerCreditTransferStatus.FAIL, vm.allPlayerCreditTransferStatus.TIMEOUT]};
+                }
+                vm.queryPlatformCreditTransferStatus ?  vm.queryPlatformCreditTransferStatus == 'default' ? sendQuery.status =  defaultPlatformCreditTransferStatus : sendQuery.status = vm.queryPlatformCreditTransferStatus : '';
                 vm.queryPlatformCreditTransferType ? sendQuery.type = vm.queryPlatformCreditTransferType : '';
                 vm.queryPlatformCreditTransferProvider ? sendQuery.provider = vm.queryPlatformCreditTransferProvider : '';
                 vm.queryPlatformCreditTransferPlayerName ? sendQuery.playerName = vm.queryPlatformCreditTransferPlayerName : '';
@@ -16352,24 +16357,24 @@ define(['js/app'], function (myApp) {
                 };
                 console.log('apiQuery', apiQuery);
                 socketService.$socket($scope.AppSocket, 'getPartnersByAdvancedQuery', apiQuery, function (reply) {
-                    console.log('partnerData', reply);
-                    let size = reply.data.size || 0;
-                    vm.customCommissionConfig.forEach(customSetting => {
-                        if (reply && reply.data && reply.data.data) {
-                            reply.data.data.map(data => {
-                                if(data._id
-                                    && customSetting.partner
-                                    && (data._id.toString() == customSetting.partner.toString())) {
-                                    data.isCustomizeSettingExist = true;
-                                }
-                            });
-                        }
-                    });
-                    setPartnerTableData(reply.data.data);
-                    vm.searchPartnerCount = reply.data.size;
-                    vm.advancedPartnerQueryObj.pageObj.init({maxCount: size}, true);
-
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {
+                        console.log('partnerData', reply);
+                        let size = reply.data.size || 0;
+                        vm.customCommissionConfig.forEach(customSetting => {
+                            if (reply && reply.data && reply.data.data) {
+                                reply.data.data.map(data => {
+                                    if(data._id
+                                        && customSetting.partner
+                                        && (data._id.toString() == customSetting.partner.toString())) {
+                                        data.isCustomizeSettingExist = true;
+                                    }
+                                });
+                            }
+                        });
+                        setPartnerTableData(reply.data.data);
+                        vm.searchPartnerCount = reply.data.size;
+                        vm.advancedPartnerQueryObj.pageObj.init({maxCount: size}, true);
+                    })
                 });
             });
 
@@ -19081,14 +19086,16 @@ define(['js/app'], function (myApp) {
                 }
                 console.log("getAlipays", vm.selectedPlatform.id);
                 socketService.$socket($scope.AppSocket, 'getPlatformAlipayGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                    console.log('Alipaygroup', data);
-                    //provider list init
-                    vm.platformAlipayGroupList = data.data;
-                    vm.platformAlipayGroupListCheck = {};
-                    $.each(vm.platformAlipayGroupList, function (i, v) {
-                        vm.platformAlipayGroupListCheck[v._id] = v.displayName ? v.displayName : true;
+                    $scope.$evalAsync(() => {
+                        console.log('Alipaygroup', data);
+                        //provider list init
+                        vm.platformAlipayGroupList = data.data;
+                        vm.platformAlipayGroupListCheck = {};
+                        $.each(vm.platformAlipayGroupList, function (i, v) {
+                            vm.platformAlipayGroupListCheck[v._id] = v.displayName ? v.displayName : true;
+                        })
                     })
-                    $scope.safeApply();
+                    // $scope.safeApply();
                 })
             }
 
@@ -19242,7 +19249,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.rewardTabClicked = function (callback) {
+            vm.rewardTabClicked = async function (callback) {
                 vm.forbidRewardRemark = '';
                 vm.dayHrs = {};
                 vm.dayMin = {};
@@ -19257,41 +19264,34 @@ define(['js/app'], function (myApp) {
                     return;
                 }
                 socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform.id}, function (data) {
-                    vm.allRewardEvent = data.data;
-                    console.log("vm.allRewardEvent", data.data);
-                    vm.showApplyRewardEvent = data.data.filter(item => {
-                        return item.needApply || (item.condition && item.condition.applyType && item.condition.applyType == "1")
-                    }).length > 0
-                    vm.curContentRewardType = {};
-                    vm.settlementRewardGroupEvent = [];
-                    if (vm.showReward && vm.showReward.display && !vm.showReward.display.length) {
-                        vm.showReward.display.push({displayId:"", displayTitle:"", displayTextContent: ""});
-                    }
-                    $.each(vm.allRewardEvent, function (i, v) {
-                        $.each(vm.allRewardTypes, function (a, b) {
-                            if (b._id == v.type._id) {
-                                vm.curContentRewardType[v._id] = b;
-                                return true;
-                            }
-                        })
-
-                        // Setup settlement reward group events entry
-                        if (v && v.condition && v.condition.applyType == "3" && v.condition.interval != "5") {
-                            vm.settlementRewardGroupEvent.push(v);
+                    $scope.$evalAsync(() => {
+                        vm.allRewardEvent = data.data;
+                        vm.showApplyRewardEvent = data.data.filter(item => {
+                            return item.needApply || (item.condition && item.condition.applyType && item.condition.applyType == "1")
+                        }).length > 0
+                        vm.curContentRewardType = {};
+                        vm.settlementRewardGroupEvent = [];
+                        if (vm.showReward && vm.showReward.display && !vm.showReward.display.length) {
+                            vm.showReward.display.push({displayId:"", displayTitle:"", displayTextContent: ""});
                         }
-                    });
-                    console.log(vm.curContentRewardType);
-                    $scope.safeApply();
-                    if (callback) {
-                        callback();
-                    }
+                        $.each(vm.allRewardEvent, function (i, v) {
+                            $.each(vm.allRewardTypes, function (a, b) {
+                                if (b._id == v.type._id) {
+                                    vm.curContentRewardType[v._id] = b;
+                                    return true;
+                                }
+                            })
+
+                            // Setup settlement reward group events entry
+                            if (v && v.condition && v.condition.applyType == "3" && v.condition.interval != "5") {
+                                vm.settlementRewardGroupEvent.push(v);
+                            }
+                        });
+                        if (callback) {
+                            callback();
+                        }
+                    })
                 });
-                // socketService.$socket($scope.AppSocket, 'getAllSettlementPeriod', '', function (data) {
-                //     vm.allSettlePeriod = data.data;
-                //     console.log("vm.allSettlePeriod", vm.allSettlePeriod);
-                //     $scope.safeApply();
-                // }, function (data) {
-                // });
 
                 vm.getPlatformProviderGroup();
             };
@@ -19591,7 +19591,6 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }, function (data) {
                         console.log("created not", data);
-                        //vm.rewardTabClicked();
                     });
                 } else if (vm.showRewardTypeData.name == "GameProviderReward") {
                     vm.rewardParams.games = vm.rewardParams.games || [];
@@ -19612,7 +19611,6 @@ define(['js/app'], function (myApp) {
                             $scope.safeApply();
                         }, function (data) {
                             console.log("created not", data);
-                            //vm.rewardTabClicked();
                         });
                     }
                     $scope.safeApply();
@@ -19636,7 +19634,6 @@ define(['js/app'], function (myApp) {
                             $scope.safeApply();
                         }, function (data) {
                             console.log("created not", data);
-                            //vm.rewardTabClicked();
                         });
                     }
                     $scope.safeApply();
@@ -19667,7 +19664,6 @@ define(['js/app'], function (myApp) {
                             $scope.safeApply();
                         }, function (data) {
                             console.log("created not", data);
-                            //vm.rewardTabClicked();
                         });
                     }
                 } else if (vm.showRewardTypeData.name == "PlayerDoubleTopUpReward") {
@@ -19764,7 +19760,6 @@ define(['js/app'], function (myApp) {
                             $scope.safeApply();
                         }, function (data) {
                             console.log("created not", data);
-                            //vm.rewardTabClicked();
                         });
                     }
                     $scope.safeApply();
@@ -19787,7 +19782,6 @@ define(['js/app'], function (myApp) {
                             $scope.safeApply();
                         }, function (data) {
                             console.log("created not", data);
-                            //vm.rewardTabClicked();
                         });
                     }
                     $scope.safeApply();
@@ -19809,7 +19803,6 @@ define(['js/app'], function (myApp) {
                             $scope.safeApply();
                         }, function (data) {
                             console.log("created not", data);
-                            //vm.rewardTabClicked();
                         });
                     }
                 }
@@ -22085,21 +22078,24 @@ define(['js/app'], function (myApp) {
                     platformObjId: vm.selectedPlatform.id,
                     deleteFlag: false
                 }, function (data) {
-                    console.log('getPromoCodeTypes', data);
+                    $scope.$evalAsync(() => {
+                        console.log('getPromoCodeTypes', data);
 
-                    vm.promoCodeTypes = data.data;
+                        vm.promoCodeTypes = data.data;
 
-                    vm.promoCodeTypes.forEach(entry => {
-                        if (entry.type == 1) {
-                            vm.promoCodeType1.push(entry);
-                        } else if (entry.type == 2) {
-                            vm.promoCodeType2.push(entry);
-                        } else if (entry.type == 3) {
-                            vm.promoCodeType3.push(entry);
-                        }
-                    });
+                        vm.promoCodeTypes.forEach(entry => {
+                            if (entry.type == 1) {
+                                vm.promoCodeType1.push(entry);
+                            } else if (entry.type == 2) {
+                                vm.promoCodeType2.push(entry);
+                            } else if (entry.type == 3) {
+                                vm.promoCodeType3.push(entry);
+                            }
+                        });
+                    })
 
-                    $scope.safeApply();
+
+                    // $scope.safeApply();
                 });
             }
 
