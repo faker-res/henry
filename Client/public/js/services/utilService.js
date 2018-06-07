@@ -283,18 +283,22 @@ define([], function () {
             var n = $.isNumeric(n) ? parseInt(n) : 0;
             return new Date(util.getTodayStartTime().getTime() + 24 * 60 * 60 * 1000 * n);
         }
-        this.actionAfterLoaded = function (id, func) {
+        this.actionAfterLoaded = function (id, func, times) {
+            let count = times || 0;
             if ($(id) && $(id)[0] && func) {
                 return func();
             } else {
-                setTimeout(function () {
-                        return util.actionAfterLoaded(id, func);
-                    }, 50
-                );
+                count++;
+                if(count< 10){
+                    setTimeout(function () {
+                            return util.actionAfterLoaded(id, func, count);
+                        }, 50
+                    );
+                }
             }
         }
-        this.actionAfterLoadedDateTimePickers = function (id, func) {
-
+        this.actionAfterLoadedDateTimePickers = function (id, func, times) {
+            let count = times || 0;
             var datetimePickerStartTimeId = id + "From";
             var datetimePickerEndTimeId = id + "To";
 
@@ -317,12 +321,15 @@ define([], function () {
                 return func();
 
             } else {
-                setTimeout(
-                    function () {
-                        return util.actionAfterLoadedDateTimePickers(id, func);
-                    },
-                    100
-                );
+                count++;
+                if(count< 10) {
+                    setTimeout(
+                        function () {
+                            return util.actionAfterLoadedDateTimePickers(id, func, count);
+                        },
+                        100
+                    );
+                }
             }
         }
         this.setDataTablePageInput = function (id, tableVar, $translate) {

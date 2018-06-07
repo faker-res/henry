@@ -7825,13 +7825,13 @@ function calculateRawCommission (totalDownLineConsumption, commissionRate) {
 function getCommissionRate (commissionRateTable, consumptionAmount, activeCount) {
     let lastValidCommissionRate = 0;
     let isCustom = false;
+
+    if (consumptionAmount < 0) {
+        consumptionAmount *= -1;
+    }
+
     for (let i = 0; i < commissionRateTable.length; i++) {
         let commissionRequirement = commissionRateTable[i];
-
-        if (i === 0) {
-            lastValidCommissionRate = commissionRequirement.commissionRate;
-            isCustom = Boolean(commissionRequirement.isCustom);
-        }
 
         if (commissionRequirement.playerConsumptionAmountFrom && consumptionAmount < commissionRequirement.playerConsumptionAmountFrom
             || commissionRequirement.playerConsumptionAmountTo && consumptionAmount > commissionRequirement.playerConsumptionAmountTo

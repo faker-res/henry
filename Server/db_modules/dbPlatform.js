@@ -34,6 +34,7 @@ const dbPlayerMail = require("./../db_modules/dbPlayerMail");
 const dbPartner = require("./../db_modules/dbPartner");
 const qrCode = require('qrcode');
 const http = require('http');
+const https = require('https');
 
 // constants
 const constProposalEntryType = require('../const/constProposalEntryType');
@@ -3286,6 +3287,11 @@ var dbPlatform = {
 
                 url = platform.callRequestUrlConfig;
 
+                let requestProtocol = http;
+                if (url.startsWith('https')) {
+                    requestProtocol = https;
+                }
+
                 let randomNumber = Math.random();
 
                 let path = "/servlet/GetMaCode?random=" + randomNumber;
@@ -3293,7 +3299,7 @@ var dbPlatform = {
                 let link = url + path;
 
                 return new Promise((resolve, reject) => {
-                    http.get(link, (resp) => {
+                    requestProtocol.get(link, (resp) => {
                         resp.setEncoding('base64');
                         let body = "data:" + resp.headers["content-type"] + ";base64,";
                         resp.on('data', (data) => { body += data});
@@ -3316,9 +3322,9 @@ var dbPlatform = {
 
 function getPlatformStringForCallback (platformStringArray, playerId, lineId) {
     lineId = lineId || 0;
-    let platformString;
+    let platformString = "";
 
-    let requiredLevelProm;
+    let requiredLevelProm = "";
     platformStringArray.map(line => {
         if (lineId == line.lineId) {
             platformString = line.lineName;
@@ -3336,13 +3342,13 @@ function getPlatformStringForCallback (platformStringArray, playerId, lineId) {
         return platformString;
     }
 
-    let playerProm = Promise.all();
+    let playerProm = "";
     if (playerId) {
-        playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
+        playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
     }
 
     if (!playerProm) {
-        return Promise.reject({message: "Player level is not enough"});
+        return Promise.reject({message: "Please login and try again"});
     }
 
     return Promise.all([requiredLevelProm, playerProm]).then(
