@@ -16655,17 +16655,15 @@ define(['js/app'], function (myApp) {
                                 }
 
                                 if(result.totalDepositAmount){
-                                    // sumOfTotalDeposit = sumOfTotalDeposit + result.totalDepositAmount;
-                                    sumOfTotalDeposit = 69.9999999;
+                                    sumOfTotalDeposit = sumOfTotalDeposit + result.totalDepositAmount;
                                 }
 
                                 if(result.validCredit){
-                                    // sumOfTotalBalance = sumOfTotalBalance + result.validCredit;
-                                    sumOfTotalBalance = 59.49999;
+                                    sumOfTotalBalance = sumOfTotalBalance + result.validCredit;
                                 }
                             }
                         })
-                        // $noRoundTwoDecimalPlaces(item.involveAmount$);
+                        
                         vm.playerDetailsSummary = data.data;
                         vm.playerDetailsSummary.totalCount = data.data.length;
                         vm.playerDetailsSummary.sumOfManualTopUp = sumOfManualTopUp;
