@@ -34,6 +34,7 @@ const dbPlayerMail = require("./../db_modules/dbPlayerMail");
 const dbPartner = require("./../db_modules/dbPartner");
 const qrCode = require('qrcode');
 const http = require('http');
+const https = require('https');
 
 // constants
 const constProposalEntryType = require('../const/constProposalEntryType');
@@ -3286,6 +3287,11 @@ var dbPlatform = {
 
                 url = platform.callRequestUrlConfig;
 
+                let requestProtocol = http;
+                if (url.startsWith('https')) {
+                    requestProtocol = https;
+                }
+
                 let randomNumber = Math.random();
 
                 let path = "/servlet/GetMaCode?random=" + randomNumber;
@@ -3293,7 +3299,7 @@ var dbPlatform = {
                 let link = url + path;
 
                 return new Promise((resolve, reject) => {
-                    http.get(link, (resp) => {
+                    requestProtocol.get(link, (resp) => {
                         resp.setEncoding('base64');
                         let body = "data:" + resp.headers["content-type"] + ";base64,";
                         resp.on('data', (data) => { body += data});
