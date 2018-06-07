@@ -3674,6 +3674,7 @@ define(['js/app'], function (myApp) {
                     number: 0,
                     remark: ''
                 };
+                vm.queryPlatformCreditTransferStatus = 'default';
                 vm.platformCreditTransferLog = {};
                 vm.platformCreditTransferLog.isPopup = isPopup === true;
                 vm.platformCreditTransferLog.index = 0;
@@ -3692,6 +3693,7 @@ define(['js/app'], function (myApp) {
 
             vm.getPagedPlatformCreditTransferLog = function (newSearch) {
                 vm.platformCreditTransferLog.loading = true;
+                let defaultPlatformCreditTransferStatus;
                 $scope.safeApply();
                 let sendQuery = {
                     PlatformObjId: vm.selectedPlatform.id,
@@ -3702,7 +3704,10 @@ define(['js/app'], function (myApp) {
                     sortCol: vm.platformCreditTransferLog.sortCol
                 };
 
-                vm.queryPlatformCreditTransferStatus ? sendQuery.status = vm.queryPlatformCreditTransferStatus : '';
+                if (vm.queryPlatformCreditTransferStatus == 'default'){
+                    defaultPlatformCreditTransferStatus = {$in: [vm.allPlayerCreditTransferStatus.SUCCESS, vm.allPlayerCreditTransferStatus.FAIL, vm.allPlayerCreditTransferStatus.TIMEOUT]};
+                }
+                vm.queryPlatformCreditTransferStatus ?  vm.queryPlatformCreditTransferStatus == 'default' ? sendQuery.status =  defaultPlatformCreditTransferStatus : sendQuery.status = vm.queryPlatformCreditTransferStatus : '';
                 vm.queryPlatformCreditTransferType ? sendQuery.type = vm.queryPlatformCreditTransferType : '';
                 vm.queryPlatformCreditTransferProvider ? sendQuery.provider = vm.queryPlatformCreditTransferProvider : '';
                 vm.queryPlatformCreditTransferPlayerName ? sendQuery.playerName = vm.queryPlatformCreditTransferPlayerName : '';
