@@ -71,7 +71,7 @@ angular.module('myApp.filters', []).
     }).
     filter('noRoundTwoDecimalPlaces', function (){
         return function (value) {
-            let splitString =  value.toLocaleString().split(".");
+            let splitString =  value.toString().split(".");
             let tempNum = splitString[0];
             if (splitString[1]) {
                 tempNum += "." + splitString[1].substr(0,2);
