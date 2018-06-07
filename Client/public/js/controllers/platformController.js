@@ -3194,7 +3194,7 @@ define(['js/app'], function (myApp) {
 
                     //provider delay status init
                     vm.getProviderLatestTimeRecord();
-                    $scope.safeApply();
+                    // $scope.safeApply();
                 })
             };
 
@@ -19086,14 +19086,16 @@ define(['js/app'], function (myApp) {
                 }
                 console.log("getAlipays", vm.selectedPlatform.id);
                 socketService.$socket($scope.AppSocket, 'getPlatformAlipayGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                    console.log('Alipaygroup', data);
-                    //provider list init
-                    vm.platformAlipayGroupList = data.data;
-                    vm.platformAlipayGroupListCheck = {};
-                    $.each(vm.platformAlipayGroupList, function (i, v) {
-                        vm.platformAlipayGroupListCheck[v._id] = v.displayName ? v.displayName : true;
+                    $scope.$evalAsync(() => {
+                        console.log('Alipaygroup', data);
+                        //provider list init
+                        vm.platformAlipayGroupList = data.data;
+                        vm.platformAlipayGroupListCheck = {};
+                        $.each(vm.platformAlipayGroupList, function (i, v) {
+                            vm.platformAlipayGroupListCheck[v._id] = v.displayName ? v.displayName : true;
+                        })
                     })
-                    $scope.safeApply();
+                    // $scope.safeApply();
                 })
             }
 
@@ -22076,21 +22078,24 @@ define(['js/app'], function (myApp) {
                     platformObjId: vm.selectedPlatform.id,
                     deleteFlag: false
                 }, function (data) {
-                    console.log('getPromoCodeTypes', data);
+                    $scope.$evalAsync(() => {
+                        console.log('getPromoCodeTypes', data);
 
-                    vm.promoCodeTypes = data.data;
+                        vm.promoCodeTypes = data.data;
 
-                    vm.promoCodeTypes.forEach(entry => {
-                        if (entry.type == 1) {
-                            vm.promoCodeType1.push(entry);
-                        } else if (entry.type == 2) {
-                            vm.promoCodeType2.push(entry);
-                        } else if (entry.type == 3) {
-                            vm.promoCodeType3.push(entry);
-                        }
-                    });
+                        vm.promoCodeTypes.forEach(entry => {
+                            if (entry.type == 1) {
+                                vm.promoCodeType1.push(entry);
+                            } else if (entry.type == 2) {
+                                vm.promoCodeType2.push(entry);
+                            } else if (entry.type == 3) {
+                                vm.promoCodeType3.push(entry);
+                            }
+                        });
+                    })
 
-                    $scope.safeApply();
+
+                    // $scope.safeApply();
                 });
             }
 
