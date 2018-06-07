@@ -129,7 +129,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             for (let server in WSCONFIG) {
                 pingServer(server);
             }
-        }, 6000);
+        }, 30000);
 
         // internal function to ping server
         function pingServer(server) {
@@ -149,13 +149,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
                 serverPing.on('pong', (latency) => {
                     WSCONFIG[server].latency = latency * 2;
-                    //todo::too much safe apply here. use a different way
-                    //$scope.safeApply();
 
                     setTimeout(() => {
                         serverPing.disconnect();
                         resolve(serverPing.close());
-                    }, 1000);
+                    }, 30000);
                 });
 
                 serverPing.emit('ping');
@@ -1353,6 +1351,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     $scope.isValidPassword = isValidPassword;
 
     $scope.safeApply = function (fn) {
+        console.log("$scope.safeApply");
         if ($scope.$root && $scope.$root.$$phase == '$apply' || $scope.$root.$$phase == '$digest') {
             if (fn && (typeof(fn) === 'function')) {
                 fn();
