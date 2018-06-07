@@ -561,6 +561,18 @@ define(['js/app'], function (myApp) {
 
             }
 
+            vm.rateIt = function(conversation){
+                // if the complain is closed(6) , or this conversation no need to rate(7)
+                if(conversation.status!=6 && conversation.status!=7){
+                    conversation.editable = true;
+                }
+
+            };
+
+            vm.cancelRate = function(conversation){
+                conversation.editable = false;
+            };
+
             var eventName = "$viewContentLoaded";
             if (!$scope.AppSocket) {
                 eventName = "socketConnected";
