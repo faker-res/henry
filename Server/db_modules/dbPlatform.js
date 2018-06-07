@@ -33,6 +33,7 @@ var dbLogger = require('./../modules/dbLogger');
 const dbPlayerMail = require("./../db_modules/dbPlayerMail");
 const dbPartner = require("./../db_modules/dbPartner");
 const qrCode = require('qrcode');
+const http = require('http');
 
 // constants
 const constProposalEntryType = require('../const/constProposalEntryType');
@@ -3250,15 +3251,66 @@ var dbPlatform = {
                 return new Promise((resolve, reject) => {
                     request.get(link, {strictSSL: false}, (err, res, body) => {
                         if (err) {
-                            reject({code: constServerCode.EXTERNAL_API_FAILURE, message: err})
+                            reject({code: constServerCode.EXTERNAL_API_FAILURE, message: err});
                         } else {
-                            console.log('callBackToUser API output', res);
-                            return true;
+                            console.log('callBackToUser API output', body);
+                            resolve(true);
                         }
                     });
                 });
             }
         );
+    },
+
+    getOMCaptcha: (platformId) => {
+        let platform, url;
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({
+                        status: constServerCode.INVALID_PLATFORM,
+                        name: "DBError",
+                        message: "Platform does not exist"
+                    });
+                }
+
+                platform = platformData;
+
+                if (!platform.callRequestUrlConfig) {
+                    return Promise.reject({
+                        status: constServerCode.INVALID_DATA,
+                        name: "DBError",
+                        message: "Error finding db data"
+                    });
+                }
+
+                url = platform.callRequestUrlConfig;
+
+                let randomNumber = Math.random();
+
+                let path = "/servlet/GetMaCode?random=" + randomNumber;
+
+                let link = url + path;
+
+                return new Promise((resolve, reject) => {
+                    http.get(link, (resp) => {
+                        resp.setEncoding('base64');
+                        let body = "data:" + resp.headers["content-type"] + ";base64,";
+                        resp.on('data', (data) => { body += data});
+                        resp.on('end', () => {
+                            resolve({
+                                randomNumber: randomNumber,
+                                b64ImgDataUrl: body
+                            });
+                        });
+                    }).on('error', (e) => {
+                        console.error(e);
+                        reject({code: constServerCode.EXTERNAL_API_FAILURE, message: e.message});
+                    });
+                });
+
+            }
+        )
     },
 };
 

@@ -96,6 +96,7 @@
                 "getClientData",
                 "saveClientData",
                 "callBackToUser",
+                "getOMCaptcha",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

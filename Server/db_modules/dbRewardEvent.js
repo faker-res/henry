@@ -557,7 +557,10 @@ var dbRewardEvent = {
     bulkPlayerApplyReward: function (playerIdArray, eventCode, applyTargetDate) {
         let proms = [];
         for (let i = 0; i < playerIdArray.length; i++) {
-            let prom = dbPlayerInfo.applyRewardEvent(0, playerIdArray[i], eventCode, {applyTargetDate}).catch(errorUtils.reportError);
+            let prom = dbPlayerInfo.applyRewardEvent(0, playerIdArray[i], eventCode, {applyTargetDate}).catch(err => {
+                console.error("rejectedId:", playerIdArray[i], "eventCode", eventCode, " error:", err)
+                errorUtils.reportError(err)
+            });
             proms.push(prom);
         }
 
