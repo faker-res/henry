@@ -30,7 +30,7 @@ let dbCsOfficer = {
 
     addUrl: (platformId, adminId, domain, way) => {
 
-        let urlExistProm = dbconfig.collection_csOfficerUrl.find({platform: platformId, domain: new RegExp("^" + domain, "i")}).count();
+        let urlExistProm = dbconfig.collection_csOfficerUrl.find({platform: platformId, domain: new RegExp(domain, "i")}).count();
 
         return urlExistProm.then(
             urlIsExist => {
