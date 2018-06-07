@@ -907,13 +907,17 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 "http://bbet8.tel400.me/cti/previewcallout.action",
                 "http://xindelitz.tel400.me/cti/previewcallout.action",
                 "http://buyuhuang.tel400.me/cti/previewcallout.action",
-                "http://hm.tel400.me/cti/previewcallout.action"
+                "http://hm.tel400.me/cti/previewcallout.action",
+                "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
             ];
 
             if (platformId == '6') {
                 let jblUrl = urls[2];
                 urls[2] = urls[0];
                 urls[0] = jblUrl;
+                let jblUrl1 = urls[2];
+                urls[2] = urls[8];
+                urls[8] = jblUrl1;
             } else if (platformId == '2' || platformId == '7') {
                 let bbetUrl = urls[4];
                 urls[4] = urls[0];
