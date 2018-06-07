@@ -2,7 +2,10 @@ const dbconfig = require('./../modules/dbproperties');
 const pmsAPI = require("../externalAPI/pmsAPI.js");
 const serverInstance = require("../modules/serverInstance");
 const constPlayerTopUpTypes = require("../const/constPlayerTopUpType.js");
+const constProposalType = require('./../const/constProposalType');
 const Q = require("q");
+const errorUtils = require('./../modules/errorUtils');
+const ObjectId = require('mongoose').Types.ObjectId;
 
 const dbPlayerPayment = {
 
@@ -178,11 +181,14 @@ const dbPlayerPayment = {
     },
 
     requestBankTypeByUserName: function (playerId, clientType, userIp) {
+        let playerObj;
+        let returnData;
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbconfig.collection_platform}
         ).lean().then(
             playerData => {
                 if( playerData ){
+                    playerObj = playerData;
                     if( playerData.permission.topupManual){
                         return pmsAPI.foundation_requestBankTypeByUsername(
                             {
@@ -200,6 +206,61 @@ const dbPlayerPayment = {
                 else{
                     return Q.reject({name: "DataError", message: "Cannot find player"})
                 }
+            }
+        ).then(
+            bankData => {
+                let promDeposit1,promDeposit2,promDeposit3;
+                returnData = bankData;
+                let manualTopUpProposal = (depositMethod) => {
+                    let proposalQuery = {
+                        'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
+                        'data.platformId': {$in: [ObjectId(playerObj.platform._id), String(playerObj.platform._id)]},
+                        'data.depositMethod': depositMethod
+                    };
+
+                    return dbconfig.collection_proposalType.findOne({
+                        platformId: playerObj.platform._id,
+                        name: constProposalType.PLAYER_MANUAL_TOP_UP
+                    }).lean().then(
+                        proposalType => {
+                            proposalQuery.type = proposalType._id;
+                            return dbconfig.collection_proposal.findOne(proposalQuery).sort({createTime: -1}).lean();
+                        }
+                    )
+                }
+
+                if (returnData && returnData.data) {
+                    for (let i = 0; i < returnData.data.length; i++) {
+                        if (returnData.data[i].depositMethod) {
+                            if (returnData.data[i].depositMethod == "1") {
+                                promDeposit1 = manualTopUpProposal("1")
+                            } else if (returnData.data[i].depositMethod == "2") {
+                                promDeposit2 = manualTopUpProposal("2")
+                            } else if (returnData.data[i].depositMethod == "3") {
+                                promDeposit3 = manualTopUpProposal("3")
+                            }
+                        }
+                    }
+                }
+                return Promise.all([promDeposit1, promDeposit2, promDeposit3]);
+            }
+        ).then(
+            lastProposalData => {
+                if (returnData && returnData.data) {
+                    for (let j = 0; j < returnData.data.length; j++) {
+                        if (returnData.data[j].depositMethod) {
+                            if (returnData.data[j].depositMethod == "1") {
+                                returnData.data[j].lastOnlineBankingName = lastProposalData[0] && lastProposalData[0].data && lastProposalData[0].data.realName ? lastProposalData[0].data.realName : "";
+                            } else if (returnData.data[j].depositMethod == "2") {
+                                returnData.data[j].lastDepositProviceId = lastProposalData[1] && lastProposalData[1].data && lastProposalData[1].data.provinceId ? lastProposalData[1].data.provinceId : "";
+                                returnData.data[j].lastDepositCityId = lastProposalData[1] && lastProposalData[1].data && lastProposalData[1].data.cityId ? lastProposalData[1].data.cityId : "";
+                            } else if (returnData.data[j].depositMethod == "3") {
+                                returnData.data[j].lastDepositorName = lastProposalData[2] && lastProposalData[2].data && lastProposalData[2].data.realName ? lastProposalData[2].data.realName : "";
+                            }
+                        }
+                    }
+                }
+                return returnData;
             }
         ).catch(() => []);
     }

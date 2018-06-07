@@ -65,7 +65,7 @@ form(name="form_new_platform" ,novalidate)
                 #customerServicePanel.panel-body(ng-if="vm.playerDisplayDataTab === 'customerServicePanel'", style="background-color: white;")
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_EMAIL" | translate}} ({{"IMAGE_URL" | translate}})
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
@@ -109,7 +109,7 @@ form(name="form_new_platform" ,novalidate)
                         //input.form-control(type="text", placeholder="{{'EMAIL' | translate}}", ng-model="vm.showPlatform.csEmailImageUrl", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_HOTLINE" | translate}} ({{"IMAGE_URL" | translate}})
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
@@ -151,7 +151,7 @@ form(name="form_new_platform" ,novalidate)
                         //input.form-control(type="text", placeholder="{{'HOTLINE' | translate}}", ng-model="vm.showPlatform.csPhone", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_URL" | translate}}
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
@@ -166,11 +166,12 @@ form(name="form_new_platform" ,novalidate)
                                 tr(ng-repeat= 'item in vm.showPlatform.csUrlList')
                                     td(ng-if="vm.editFrontEndDisplay")
                                         i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.showPlatform.csUrlList, $index)')
-                                    td(ng-if="vm.editFrontEndDisplay", ng-init="item.isImg = '1'") {{ (item.isImg == 0 || item.isImg == 1 ?  item.isImg == 1 ? 'IMAGE' : 'WORDS' : '') | translate}}
-                                        //div
-                                            //select.form-control(ng-model='item.isImg', style='max-width:300px', required)
-                                            //    option(value= '0') {{'WORDS' | translate}}
-                                            //    option(value= '1') {{'IMAGE' | translate}}
+                                    td(ng-if="vm.editFrontEndDisplay")
+                                        //, ng-init="item.isImg = '1'") {{ (item.isImg == 0 || item.isImg == 1 ?  item.isImg == 1 ? 'IMAGE' : 'WORDS' : '') | translate}}
+                                        div
+                                            select.form-control(ng-model='item.isImg', style='max-width:300px', required)
+                                                option(value= '0') {{'WORDS' | translate}}
+                                                option(value= '1') {{'IMAGE' | translate}}
                                     td(ng-if="vm.editFrontEndDisplay")
                                         input.form-control(type='text', value='{{item.content}}', ng-model='item.content')
 
@@ -184,17 +185,17 @@ form(name="form_new_platform" ,novalidate)
                                     td
                                         i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.showPlatform.csUrlList, {isImg: vm.newCsUrlIsImg, content: vm.newCsUrlContent}); vm.newCsUrlIsImg=""; vm.newCsUrlContent="";')
                                     td
-                                        label.form-control(type="text", ng-init="vm.newCsUrlIsImg='1'",ng-model="vm.newCsUrlIsImg ") {{ 'IMAGE' | translate}}
-                                        //div
-                                        //    select.form-control(ng-model='vm.newCsUrlIsImg', style='max-width:300px', required)
-                                        //        option(value= '0') {{'WORDS' | translate}}
-                                        //        option(value= '1') {{'IMAGE' | translate}}
+                                        //label.form-control(type="text", ng-init="vm.newCsUrlIsImg='1'",ng-model="vm.newCsUrlIsImg ") {{ 'IMAGE' | translate}}
+                                        div
+                                            select.form-control(ng-model='vm.newCsUrlIsImg', style='max-width:300px', required)
+                                                option(value= '0') {{'WORDS' | translate}}
+                                                option(value= '1') {{'IMAGE' | translate}}
                                     td
                                         input.form-control(type="text", ng-model="vm.newCsUrlContent")
                         //input.form-control(type="text", placeholder="{{'CUSTOMER_SERVICE_URL' | translate}}", ng-model="vm.showPlatform.csUrl", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_QQ" | translate}} ({{"IMAGE_URL" | translate}})
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
@@ -236,7 +237,7 @@ form(name="form_new_platform" ,novalidate)
                         //input.form-control(type="text", placeholder="{{'QQ' | translate}}", ng-model="vm.showPlatform.csQQ", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_WEIXIN" | translate}} ({{"IMAGE_URL" | translate}})
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
@@ -278,7 +279,7 @@ form(name="form_new_platform" ,novalidate)
                         //input.form-control(type="text", placeholder="{{'CUSTOMER_WEIXIN' | translate}}", ng-model="vm.showPlatform.csWeixin", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_SKYPE" | translate}} ({{"IMAGE_URL" | translate}})
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
@@ -320,7 +321,7 @@ form(name="form_new_platform" ,novalidate)
                         //input.form-control(type="text", placeholder="{{'CUSTOMER_SERVICE_SKYPE' | translate}}", ng-model="vm.showPlatform.csSkype", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_DISPLAY_URL" | translate}} ({{"IMAGE_URL" | translate}})
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
@@ -362,7 +363,7 @@ form(name="form_new_platform" ,novalidate)
                         //input.form-control(type="text", ng-model="vm.showPlatform.csDisplayUrl", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"PLAYER_INVITE" | translate}}
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
@@ -377,11 +378,12 @@ form(name="form_new_platform" ,novalidate)
                                 tr(ng-repeat= 'item in vm.showPlatform.playerInvitationUrlList')
                                     td(ng-if="vm.editFrontEndDisplay")
                                         i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.showPlatform.playerInvitationUrlList, $index)')
-                                    td(ng-if="vm.editFrontEndDisplay", ng-init="item.isImg = '1'") {{ (item.isImg == 0 || item.isImg == 1 ?  item.isImg == 1 ? 'IMAGE' : 'WORDS' : '') | translate}}
-                                        //div
-                                        //    select.form-control(ng-model='item.isImg', style='max-width:300px', required)
-                                        //        option(value= '0') {{'WORDS' | translate}}
-                                        //        option(value= '1') {{'IMAGE' | translate}}
+                                    td(ng-if="vm.editFrontEndDisplay")
+                                        //, ng-init="item.isImg = '1'") {{ (item.isImg == 0 || item.isImg == 1 ?  item.isImg == 1 ? 'IMAGE' : 'WORDS' : '') | translate}}
+                                        div
+                                            select.form-control(ng-model='item.isImg', style='max-width:300px', required)
+                                                option(value= '0') {{'WORDS' | translate}}
+                                                option(value= '1') {{'IMAGE' | translate}}
                                     td(ng-if="vm.editFrontEndDisplay")
                                         input.form-control(type='text', value='{{item.content}}', ng-model='item.content')
 
@@ -395,17 +397,17 @@ form(name="form_new_platform" ,novalidate)
                                     td
                                         i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.showPlatform.playerInvitationUrlList, {isImg: vm.newInvUrlIsImg, content: vm.newInvUrlContent}); vm.newInvUrlIsImg=""; vm.newInvUrlContent="";')
                                     td
-                                        label.form-control(type="text", ng-init="vm.newCsUrlIsImg='1'",ng-model="vm.newCsUrlIsImg ") {{ 'IMAGE' | translate}}
-                                        //div
-                                        //    select.form-control(ng-model='vm.newInvUrlIsImg', style='max-width:300px', required)
-                                        //        option(value= '0') {{'WORDS' | translate}}
-                                        //        option(value= '1') {{'IMAGE' | translate}}
+                                        //label.form-control(type="text", ng-init="vm.newCsUrlIsImg='1'",ng-model="vm.newCsUrlIsImg ") {{ 'IMAGE' | translate}}
+                                        div
+                                            select.form-control(ng-model='vm.newInvUrlIsImg', style='max-width:300px', required)
+                                                option(value= '0') {{'WORDS' | translate}}
+                                                option(value= '1') {{'IMAGE' | translate}}
                                     td
                                         input.form-control(type="text", ng-model="vm.newInvUrlContent")
                         //input.form-control(type="text", ng-model="vm.showPlatform.playerInvitationUrl", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_WEIXIN_PHOTO" | translate}}
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
@@ -420,11 +422,12 @@ form(name="form_new_platform" ,novalidate)
                                 tr(ng-repeat= 'item in vm.showPlatform.weixinPhotoUrlList')
                                     td(ng-if="vm.editFrontEndDisplay")
                                         i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.showPlatform.weixinPhotoUrlList, $index)')
-                                    td(ng-if="vm.editFrontEndDisplay", ng-init="item.isImg = '1'") {{ (item.isImg == 0 || item.isImg == 1 ?  item.isImg == 1 ? 'IMAGE' : 'WORDS' : '') | translate}}
-                                        //div
-                                        //    select.form-control(ng-model='item.isImg', style='max-width:300px', required)
-                                        //        option(value= '0') {{'WORDS' | translate}}
-                                        //        option(value= '1') {{'IMAGE' | translate}}
+                                    td(ng-if="vm.editFrontEndDisplay")
+                                        //, ng-init="item.isImg = '1'") {{ (item.isImg == 0 || item.isImg == 1 ?  item.isImg == 1 ? 'IMAGE' : 'WORDS' : '') | translate}}
+                                        div
+                                            select.form-control(ng-model='item.isImg', style='max-width:300px', required)
+                                                option(value= '0') {{'WORDS' | translate}}
+                                                option(value= '1') {{'IMAGE' | translate}}
                                     td(ng-if="vm.editFrontEndDisplay")
                                         input.form-control(type='text', value='{{item.content}}', ng-model='item.content')
 
@@ -438,17 +441,17 @@ form(name="form_new_platform" ,novalidate)
                                     td
                                         i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.showPlatform.weixinPhotoUrlList, {isImg: vm.newWeixinPhotoUrlIsImg, content: vm.newWeixinPhotoUrlContent}); vm.newWeixinPhotoUrlIsImg=""; vm.newWeixinPhotoUrlContent="";')
                                     td
-                                        label.form-control(type="text", ng-init="vm.newCsUrlIsImg='1'",ng-model="vm.newCsUrlIsImg ") {{ 'IMAGE' | translate}}
-                                        //div
-                                        //    select.form-control(ng-model='vm.newWeixinPhotoUrlIsImg', style='max-width:300px', required)
-                                        //        option(value= '0') {{'WORDS' | translate}}
-                                        //        option(value= '1') {{'IMAGE' | translate}}
+                                        //label.form-control(type="text", ng-init="vm.newCsUrlIsImg='1'",ng-model="vm.newCsUrlIsImg ") {{ 'IMAGE' | translate}}
+                                        div
+                                            select.form-control(ng-model='vm.newWeixinPhotoUrlIsImg', style='max-width:300px', required)
+                                                option(value= '0') {{'WORDS' | translate}}
+                                                option(value= '1') {{'IMAGE' | translate}}
                                     td
                                         input.form-control(type="text", ng-model="vm.newWeixinPhotoUrlContent")
                         //input.form-control(type="text", placeholder="{{'WEIXIN_PHOTO' | translate}}", ng-model="vm.showPlatform.weixinPhotoUrl", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"WEBSITE_LOGO" | translate}} ({{"IMAGE_URL" | translate}})
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
@@ -738,7 +741,7 @@ form(name="form_new_platform" ,novalidate)
                 #partnerPanel.panel-body(ng-if="vm.partnerDisplayDataTab === 'partnerPanel'", style="background-color: white;")
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_PARTNER_EMAIL" | translate}} ({{"IMAGE_URL" | translate}})
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
@@ -781,7 +784,7 @@ form(name="form_new_platform" ,novalidate)
                         //input.form-control(type="text", placeholder="{{'EMAIL' | translate}}", ng-model="vm.showPlatform.csPartnerEmail", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_PARTNER_HOTLINE" | translate}} ({{"IMAGE_URL" | translate}})
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
@@ -823,7 +826,7 @@ form(name="form_new_platform" ,novalidate)
                         //input.form-control(type="text", placeholder="{{'HOTLINE' | translate}}", ng-model="vm.showPlatform.csPartnerPhone", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_PARTNER_URL" | translate}}
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
@@ -838,11 +841,12 @@ form(name="form_new_platform" ,novalidate)
                                 tr(ng-repeat= 'item in vm.showPlatform.csPartnerUrlList')
                                     td(ng-if="vm.editFrontEndDisplay")
                                         i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.showPlatform.csPartnerUrlList, $index)')
-                                    td(ng-if="vm.editFrontEndDisplay", ng-init="item.isImg = '1'") {{ (item.isImg == 0 || item.isImg == 1 ?  item.isImg == 1 ? 'IMAGE' : 'WORDS' : '') | translate}}
-                                        //div
-                                        //    select.form-control(ng-model='item.isImg', style='max-width:300px', required)
-                                        //        option(value= '0') {{'WORDS' | translate}}
-                                        //        option(value= '1') {{'IMAGE' | translate}}
+                                    td(ng-if="vm.editFrontEndDisplay")
+                                        //, ng-init="item.isImg = '1'") {{ (item.isImg == 0 || item.isImg == 1 ?  item.isImg == 1 ? 'IMAGE' : 'WORDS' : '') | translate}}
+                                        div
+                                            select.form-control(ng-model='item.isImg', style='max-width:300px', required)
+                                                option(value= '0') {{'WORDS' | translate}}
+                                                option(value= '1') {{'IMAGE' | translate}}
                                     td(ng-if="vm.editFrontEndDisplay")
                                         input.form-control(type='text', value='{{item.content}}', ng-model='item.content')
 
@@ -856,17 +860,17 @@ form(name="form_new_platform" ,novalidate)
                                     td
                                         i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.showPlatform.csPartnerUrlList, {isImg: vm.newPartnerUrlIsImg, content: vm.newPartnerUrlContent}); vm.newPartnerUrlIsImg=""; vm.newPartnerUrlContent="";')
                                     td
-                                        label.form-control(type="text", ng-init="vm.newPartnerUrlIsImg='1'",ng-model="vm.newPartnerUrlIsImg ") {{ 'IMAGE' | translate}}
-                                        //div
-                                        //    select.form-control(ng-model='vm.newPartnerUrlIsImg', style='max-width:300px', required)
-                                        //        option(value= '0') {{'WORDS' | translate}}
-                                        //        option(value= '1') {{'IMAGE' | translate}}
+                                        //label.form-control(type="text", ng-init="vm.newPartnerUrlIsImg='1'",ng-model="vm.newPartnerUrlIsImg ") {{ 'IMAGE' | translate}}
+                                        div
+                                            select.form-control(ng-model='vm.newPartnerUrlIsImg', style='max-width:300px', required)
+                                                option(value= '0') {{'WORDS' | translate}}
+                                                option(value= '1') {{'IMAGE' | translate}}
                                     td
                                         input.form-control(type="text", ng-model="vm.newPartnerUrlContent")
                         //input.form-control(type="text", placeholder="{{'CUSTOMER_SERVICE_URL' | translate}}", ng-model="vm.showPlatform.csPartnerUrl", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_PARTNER_QQ" | translate}} ({{"IMAGE_URL" | translate}})
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
@@ -908,7 +912,7 @@ form(name="form_new_platform" ,novalidate)
                         //input.form-control(type="text", placeholder="{{'QQ' | translate}}", ng-model="vm.showPlatform.csPartnerQQ", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_PARTNER_WEIXIN" | translate}} ({{"IMAGE_URL" | translate}})
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
@@ -950,7 +954,7 @@ form(name="form_new_platform" ,novalidate)
                         //input.form-control(type="text", placeholder="{{'CUSTOMER_WEIXIN' | translate}}", ng-model="vm.showPlatform.csPartnerWeixin", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_PARTNER_SKYPE" | translate}} ({{"IMAGE_URL" | translate}})
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
@@ -992,7 +996,7 @@ form(name="form_new_platform" ,novalidate)
                         //input.form-control(type="text", placeholder="{{'CUSTOMER_SERVICE_SKYPE' | translate}}", ng-model="vm.showPlatform.csPartnerSkype", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_PARTNER_DISPLAY_URL" | translate}} ({{"IMAGE_URL" | translate}})
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
@@ -1034,7 +1038,7 @@ form(name="form_new_platform" ,novalidate)
                         //input.form-control(type="text", ng-model="vm.showPlatform.csPartnerDisplayUrl", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"PARTNER_INVITE" | translate}}
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
@@ -1049,11 +1053,12 @@ form(name="form_new_platform" ,novalidate)
                                 tr(ng-repeat= 'item in vm.showPlatform.partnerInvitationUrlList')
                                     td(ng-if="vm.editFrontEndDisplay")
                                         i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.showPlatform.partnerInvitationUrlList, $index)')
-                                    td(ng-if="vm.editFrontEndDisplay", ng-init="item.isImg = '1'") {{ (item.isImg == 0 || item.isImg == 1 ?  item.isImg == 1 ? 'IMAGE' : 'WORDS' : '') | translate}}
-                                        //div
-                                        //    select.form-control(ng-model='item.isImg', style='max-width:300px', required)
-                                        //        option(value= '0') {{'WORDS' | translate}}
-                                        //        option(value= '1') {{'IMAGE' | translate}}
+                                    td(ng-if="vm.editFrontEndDisplay")
+                                        //, ng-init="item.isImg = '1'") {{ (item.isImg == 0 || item.isImg == 1 ?  item.isImg == 1 ? 'IMAGE' : 'WORDS' : '') | translate}}
+                                        div
+                                            select.form-control(ng-model='item.isImg', style='max-width:300px', required)
+                                                option(value= '0') {{'WORDS' | translate}}
+                                                option(value= '1') {{'IMAGE' | translate}}
                                     td(ng-if="vm.editFrontEndDisplay")
                                         input.form-control(type='text', value='{{item.content}}', ng-model='item.content')
 
@@ -1067,17 +1072,17 @@ form(name="form_new_platform" ,novalidate)
                                     td
                                         i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.showPlatform.partnerInvitationUrlList, {isImg: vm.newInvUrlIsImg, content: vm.newInvUrlContent}); vm.newInvUrlIsImg=""; vm.newInvUrlContent="";')
                                     td
-                                        label.form-control(type="text", ng-init="vm.newInvUrlIsImg='1'",ng-model="vm.newInvUrlIsImg ") {{ 'IMAGE' | translate}}
-                                        //div
-                                        //    select.form-control(ng-model='vm.newInvUrlIsImg', style='max-width:300px', required)
-                                        //        option(value= '0') {{'WORDS' | translate}}
-                                        //        option(value= '1') {{'IMAGE' | translate}}
+                                        //label.form-control(type="text", ng-init="vm.newInvUrlIsImg='1'",ng-model="vm.newInvUrlIsImg ") {{ 'IMAGE' | translate}}
+                                        div
+                                            select.form-control(ng-model='vm.newInvUrlIsImg', style='max-width:300px', required)
+                                                option(value= '0') {{'WORDS' | translate}}
+                                                option(value= '1') {{'IMAGE' | translate}}
                                     td
                                         input.form-control(type="text", ng-model="vm.newInvUrlContent")
                         //input.form-control(type="text", ng-model="vm.showPlatform.partnerInvitationUrl", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"PARTNER_WEIXIN_PHOTO" | translate}}
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
@@ -1092,11 +1097,12 @@ form(name="form_new_platform" ,novalidate)
                                 tr(ng-repeat= 'item in vm.showPlatform.partnerWeixinPhotoUrlList')
                                     td(ng-if="vm.editFrontEndDisplay")
                                         i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.showPlatform.partnerWeixinPhotoUrlList, $index)')
-                                    td(ng-if="vm.editFrontEndDisplay", ng-init="item.isImg = '1'") {{ (item.isImg == 0 || item.isImg == 1 ?  item.isImg == 1 ? 'IMAGE' : 'WORDS' : '') | translate}}
-                                        //div
-                                        //    select.form-control(ng-model='item.isImg', style='max-width:300px', required)
-                                        //        option(value= '0') {{'WORDS' | translate}}
-                                        //        option(value= '1') {{'IMAGE' | translate}}
+                                    td(ng-if="vm.editFrontEndDisplay")
+                                        //, ng-init="item.isImg = '1'") {{ (item.isImg == 0 || item.isImg == 1 ?  item.isImg == 1 ? 'IMAGE' : 'WORDS' : '') | translate}}
+                                        div
+                                            select.form-control(ng-model='item.isImg', style='max-width:300px', required)
+                                                option(value= '0') {{'WORDS' | translate}}
+                                                option(value= '1') {{'IMAGE' | translate}}
                                     td(ng-if="vm.editFrontEndDisplay")
                                         input.form-control(type='text', value='{{item.content}}', ng-model='item.content')
 
@@ -1110,17 +1116,17 @@ form(name="form_new_platform" ,novalidate)
                                     td
                                         i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.showPlatform.partnerWeixinPhotoUrlList, {isImg: vm.newWeixinPhotoIsImg, content: vm.newWeixinPhotoContent}); vm.newWeixinPhotoIsImg=""; vm.newWeixinPhotoContent="";')
                                     td
-                                        label.form-control(type="text", ng-init="vm.newWeixinPhotoIsImg='1'",ng-model="vm.newWeixinPhotoIsImg ") {{ 'IMAGE' | translate}}
-                                        //div
-                                            //select.form-control(ng-model='vm.newWeixinPhotoIsImg', style='max-width:300px', required)
-                                            //    option(value= '0') {{'WORDS' | translate}}
-                                            //    option(value= '1') {{'IMAGE' | translate}}
+                                        //label.form-control(type="text", ng-init="vm.newWeixinPhotoIsImg='1'",ng-model="vm.newWeixinPhotoIsImg ") {{ 'IMAGE' | translate}}
+                                        div
+                                            select.form-control(ng-model='vm.newWeixinPhotoIsImg', style='max-width:300px', required)
+                                                option(value= '0') {{'WORDS' | translate}}
+                                                option(value= '1') {{'IMAGE' | translate}}
                                     td
                                         input.form-control(type="text", ng-model="vm.newWeixinPhotoContent")
                         //input.form-control(type="text", placeholder="{{'WEIXIN_PHOTO' | translate}}", ng-model="vm.showPlatform.partnerWeixinPhotoUrl", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"WEBSITE_LOGO_PARTNER" | translate}} ({{"IMAGE_URL" | translate}})
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table.platformFrontEndDisplayTable
                             thead
                                 tr(ng-if="vm.editFrontEndDisplay")
                                     th(style="width:20px")
