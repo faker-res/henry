@@ -3322,9 +3322,9 @@ var dbPlatform = {
 
 function getPlatformStringForCallback (platformStringArray, playerId, lineId) {
     lineId = lineId || 0;
-    let platformString;
+    let platformString = "";
 
-    let requiredLevelProm;
+    let requiredLevelProm = "";
     platformStringArray.map(line => {
         if (lineId == line.lineId) {
             platformString = line.lineName;
@@ -3342,13 +3342,13 @@ function getPlatformStringForCallback (platformStringArray, playerId, lineId) {
         return platformString;
     }
 
-    let playerProm = Promise.all();
+    let playerProm = "";
     if (playerId) {
-        playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
+        playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
     }
 
     if (!playerProm) {
-        return Promise.reject({message: "Player level is not enough"});
+        return Promise.reject({message: "Please login and try again"});
     }
 
     return Promise.all([requiredLevelProm, playerProm]).then(
