@@ -21,6 +21,7 @@ const constMessageType = require('./../../const/constMessageType');
 const dbLogger = require('./../../modules/dbLogger');
 const dbPlayerPartner = require('../../db_modules/dbPlayerPartner');
 const dbPlayerRegistrationIntentRecord = require('../../db_modules/dbPlayerRegistrationIntentRecord');
+const dbPlatform = require('./../../db_modules/dbPlatform');
 const errorUtils = require("./../../modules/errorUtils");
 const mobileDetect = require('mobile-detect');
 
@@ -52,9 +53,9 @@ let PlayerServiceImplement = function () {
             }];
             var geo = geoip.lookup(data.lastLoginIp);
             if (geo) {
-                data.country = geo.country;
-                data.city = geo.city;
-                data.province = geo.region;
+                // data.country = geo.country;
+                // data.city = geo.city;
+                // data.province = geo.region;
                 data.longitude = geo.ll ? geo.ll[1] : null;
                 data.latitude = geo.ll ? geo.ll[0] : null;
             }
@@ -81,8 +82,14 @@ let PlayerServiceImplement = function () {
                 var ipData = dbUtility.getIpLocationByIPIPDotNet(data.lastLoginIp);
                 if(ipData){
                     data.ipArea = ipData;
+                    data.country = ipData.country || null;
+                    data.city = ipData.city || null;
+                    data.province = ipData.province || null;
                 }else{
                     data.ipArea = {'province':'', 'city':''};
+                    data.country = "";
+                    data.city = "";
+                    data.province = "";
                 }
             }
 
@@ -106,17 +113,13 @@ let PlayerServiceImplement = function () {
                     }
 
                     console.log("createPlayerRegistrationIntentRecordAPI SUCCESS", data);
-                    if(data){
-                        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS, inputDevice).then();
-                    }else{
-                        dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
-                            isUpdateData=> {
-                                if (!(isUpdateData[0] && isUpdateData[0]._id)) {
-                                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.NOVERIFY, inputDevice).catch(errorUtils.reportError);
-                                }
+                    dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
+                        isUpdateData=> {
+                            if (!(isUpdateData[0] && isUpdateData[0]._id)) {
+                                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.NOVERIFY, inputDevice).catch(errorUtils.reportError);
                             }
-                        );
-                    }
+                        }
+                    );
 
                     //dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
                     //dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
@@ -1191,6 +1194,17 @@ let PlayerServiceImplement = function () {
         let isValidData = Boolean(conn.playerId && data && data.clientData && typeof data.clientData == "string");
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.saveClientData, [conn.playerId, data.clientData], isValidData);
     };
+
+    this.callBackToUser.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data.platformId && data.phoneNumber && data.randomNumber && data.captcha);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.callBackToUser, [data.platformId, data.phoneNumber, data.randomNumber, data.captcha, data.lineId, conn.playerID], isValidData, false, false, true);
+    };
+
+    this.getOMCaptcha.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data.platformId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getOMCaptcha, [data.platformId], isValidData, false, false, true);
+    };
+
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;

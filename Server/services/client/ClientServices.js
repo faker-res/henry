@@ -94,7 +94,9 @@
                 "loginJblShow",
                 "createDemoPlayer",
                 "getClientData",
-                "saveClientData"
+                "saveClientData",
+                "callBackToUser",
+                "getOMCaptcha",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -125,7 +127,8 @@
                 "extractUserFromFpms",
                 "getUserInfoFromPopUp",
                 "createPlayerFromTel",
-                "getPlatformSetting"
+                "getPlatformSetting",
+                "turnUrlToQr"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -425,6 +428,7 @@
                 "getNewCrewInfo",
                 "preditCommission",
                 "getCommissionProposalList",
+                "getPartnerConfig"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

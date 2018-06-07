@@ -1656,6 +1656,64 @@
     </div>
 </div>
 
+<h3>Call Back To User (请求回电域名配置)</h3>
+<div class="test-container">
+    <!--For testing player logout API (5)-->
+    <div>
+        <label>Platform ID
+            <input type=text name="platformId">
+        </label>
+    </div>
+
+    <div>
+        <label>Phone Number
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+
+    <div>
+        <label>Random Number
+            <input type=text name="randomNumber">
+        </label>
+    </div>
+
+    <div>
+        <label>Captcha
+            <input type=text name="captcha">
+        </label>
+    </div>
+
+    <div>
+        <label>Line ID
+            <input type=text name="lineId">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="callBackToUser">Send</button>
+    </div>
+    <div>
+        <textarea id="callBackToUserOutput"></textarea>
+    </div>
+</div>
+
+<h3>Get OM Captcha (获取OM图片验证)</h3>
+<div class="test-container">
+    <!--For testing player logout API (5)-->
+    <div>
+        <label>Platform ID
+            <input type=text name="platformId">
+        </label>
+    </div>
+
+    <div>
+        <button data-api-name="getOMCaptcha">Send</button>
+    </div>
+    <div>
+        <textarea id="getOMCaptchaOutput"></textarea>
+    </div>
+</div>
+
+
 
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],

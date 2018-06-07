@@ -19,6 +19,7 @@
     "geoip-lite": "^1.1.8",
     "geoip2ws": "^1.8.8",
     "i18n-2": "^0.6.2",
+    "ipip-datx": "^0.2.2",
     "jpush-sdk": "^3.4.1",
     "jsdom": "11.6.1",
     "jsonwebtoken": "^5.4.1",
@@ -36,6 +37,7 @@
     "osa-imessage": "^2.4.0",
     "pnglib": "0.0.1",
     "q": "^1.4.1",
+    "qrcode": "^1.2.0",
     "query-mobile-phone-area": "^1.0.6",
     "request": "~2.74.0",
     "serve-favicon": "~2.3.0",
@@ -51,8 +53,7 @@
     "winston": "^2.1.1",
     "winston-mongodb": "^1.2.0",
     "ws": "=1.0.1",
-    "xoauth2": "^1.2.0",
-    "ipip-datx": "^0.2.2"
+    "xoauth2": "^1.2.0"
   },
   "devDependencies": {
     "eslint": "^4.12.0",

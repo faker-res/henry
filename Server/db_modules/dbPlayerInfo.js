@@ -9327,6 +9327,7 @@ let dbPlayerInfo = {
         let bonusDetail = null;
         let bUpdateCredit = false;
         let platform;
+        let isUsingXima = false;
         let resetCredit = function (playerObjId, platformObjId, credit, error) {
             //reset player credit if credit is incorrect
             return dbconfig.collection_players.findOneAndUpdate(
@@ -9400,6 +9401,14 @@ let dbPlayerInfo = {
                     if (playerData) {
                         player = playerData;
 
+                        if (player.ximaWithdraw) {
+                            ximaWithdrawUsed = Math.min(amount, player.ximaWithdraw);
+
+                            if (amount <= player.ximaWithdraw) {
+                                isUsingXima = true;
+                            }
+                        }
+
                         if (player.platform && player.platform.useProviderGroup) {
                             let unlockAllGroups = Promise.resolve(true);
                             if (bForce) {
@@ -9423,7 +9432,7 @@ let dbPlayerInfo = {
                 }
             ).then(
                 RTGs => {
-                    if (!RTGs) {
+                    if (!RTGs || isUsingXima) {
                         if (!player.bankName || !player.bankAccountName || !player.bankAccount) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
@@ -9495,10 +9504,6 @@ let dbPlayerInfo = {
                                     }
                                 }
 
-                                if (player.ximaWithdraw) {
-                                    ximaWithdrawUsed = Math.min(amount, player.ximaWithdraw);
-                                }
-
                                 return dbconfig.collection_players.findOneAndUpdate(
                                     {
                                         _id: player._id,
@@ -9559,7 +9564,7 @@ let dbPlayerInfo = {
                                                 amount: finalAmount,
                                                 // bonusCredit: bonusDetail.credit,
                                                 curAmount: player.validCredit,
-                                                remark: player.remark,
+                                                // remark: player.remark,
                                                 lastSettleTime: new Date(),
                                                 honoreeDetail: honoreeDetail,
                                                 creditCharge: creditCharge,
@@ -13388,12 +13393,53 @@ let dbPlayerInfo = {
                 }
 
                 // relevant players are the players who played any game within given time period
-                let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+                let playerObjArr = [];
+                return dbconfig.collection_playerConsumptionRecord.aggregate([
                     {$match: relevantPlayerQuery},
                     {$group: {_id: "$playerId"}}
-                ]);
+                ]).then(
+                    consumptionData => {
+                        if (consumptionData && consumptionData.length) {
+                            playerObjArr = consumptionData.map(function (playerIdObj) {
+                                return String(playerIdObj._id);
+                            });
+                        }
+                        let proposalQuery = {
+                            mainType: {$in: ["PlayerBonus", "TopUp"]},
+                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            createTime: {$gte: startDate, $lte: endDate},
+                            'data.platformId': platform
+                        };
 
-                let stream = consumptionProm.cursor({batchSize: 100}).allowDiskUse(true).exec();
+                        if (player) {
+                            proposalQuery['data.playerObjId'] = player._id;
+                        }
+                        return dbconfig.collection_proposal.aggregate([
+                            {$match: proposalQuery},
+                            {$group: {_id: "$data.playerObjId"}}
+                        ])
+                    }
+                ).then(
+                    proposalData => {
+                        if (proposalData && proposalData.length) {
+                            for (let i = 0; i < proposalData.length; i++) {
+                                if (proposalData[i]._id && playerObjArr.indexOf(String(proposalData[i]._id)) === -1) {
+                                    playerObjArr.push(proposalData[i]._id);
+                                }
+                            }
+                        }
+                        for (let j = 0; j < playerObjArr.length; j++) {
+                            playerObjArr[j] = ObjectId(playerObjArr[j]);
+                        }
+                        return playerObjArr;
+                    }
+                );
+
+            }
+        ).then(
+            playerObjArrData => {
+                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}},{_id: 1});
+                let stream = playerProm.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
 
                 return balancer.initConns().then(function () {

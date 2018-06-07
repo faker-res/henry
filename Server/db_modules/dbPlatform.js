@@ -32,6 +32,9 @@ var dbRewardEvent = require("../db_modules/dbRewardEvent");
 var dbLogger = require('./../modules/dbLogger');
 const dbPlayerMail = require("./../db_modules/dbPlayerMail");
 const dbPartner = require("./../db_modules/dbPartner");
+const qrCode = require('qrcode');
+const http = require('http');
+const https = require('https');
 
 // constants
 const constProposalEntryType = require('../const/constProposalEntryType');
@@ -219,6 +222,18 @@ var dbPlatform = {
                 return data;
             }
         });
+    },
+
+    /**
+     * get QR code image from targetUrl
+     * @param targetUrl
+     */
+    turnUrlToQr: function (targetUrl) {
+            return new Promise((resolve, reject) => {
+                return qrCode.toDataURL(targetUrl, (err, imgCode) => {
+                        return err? reject({name: "DBError", message: "Error in getting QR code", error: err}): resolve(imgCode);
+                    });
+            });
     },
 
     /**
@@ -2408,58 +2423,97 @@ var dbPlatform = {
         );
     },
 
-    getConfig: function (platformId, inputDevice) {
-        if (platformId) {
-            let returnedObj = {
-                wechatList: [],
-                qqList: [],
-                telList: [],
-                live800: "",
-                activityList: [],
-                playerWebLogoUrl: []
-            };
+    getConfig: function (platformId, inputDevice, subject) {
+        if (platformId && subject) {
+
+            let returnedObj;
+            let listName;
+
+            if (subject == 'player'){
+                returnedObj= {
+                    wechatList: [],
+                    qqList: [],
+                    telList: [],
+                    live800: "",
+                    activityList: [],
+                    platformLogoUrl: [],
+                    SkypeList: [],
+                    emailList: [],
+                    wechatQRUrl: [],
+                    displayUrl: [],
+                    playerSpreadUrl: [],
+                };
+                listName = [
+                    ['csEmailImageUrlList','emailList'],
+                    ['csPhoneList', 'telList'],
+                    ['csQQList', 'qqList'],
+                    ['csUrlList', 'live800'],
+                    ['csWeixinList', 'wechatList'],
+                    ['csSkypeList', 'SkypeList'],
+                    ['csDisplayUrlList', 'displayUrl'],
+                    ['playerInvitationUrlList', 'playerSpreadUrl'],
+                    ['weixinPhotoUrlList', 'wechatQRUrl'],
+                    ['playerWebLogoUrlList', 'platformLogoUrl']
+                ];
+            }
+            else if (subject == 'partner'){
+                returnedObj= {
+                    partnerEmail: [],
+                    partnerCSPhoneNumber: [],
+                    partnerCSQQNumber: [],
+                    partnerCSWechatNumber: "",
+                    partnerActivityList: [],
+                    partnerCSWechatQRUrl: [],
+                    partnerCSSkypeNumber: [],
+                    partnerDisplayUrl: [],
+                    partnerPlatformLogoUrl: [],
+                    partnerLive800Url: [],
+                    partnerSpreadUrl: [],
+                };
+                listName = [
+                    ['csPartnerEmailList', 'partnerEmail'],
+                    ['csPartnerPhoneList', 'partnerCSPhoneNumber'],
+                    ['csPartnerUrlList', 'partnerLive800Url'],
+                    ['csPartnerQQList', 'partnerCSQQNumber'],
+                    ['csPartnerWeixinList', 'partnerCSWechatNumber'],
+                    ['csPartnerSkypeList', 'partnerCSSkypeNumber'],
+                    ['csPartnerDisplayUrlList', 'partnerDisplayUrl'],
+                    ['partnerInvitationUrlList', 'partnerSpreadUrl'],
+                    ['partnerWeixinPhotoUrlList', 'partnerCSWechatQRUrl'],
+                    ['partnerWebLogoUrlList', 'partnerPlatformLogoUrl']
+                ];
+            }
+            else {
+                return Q.reject({name: "DBError", message: "Missing of default param: 'partner' or 'player'."});
+            }
+
             return dbconfig.collection_platform.findOne({platformId: platformId}).then(
                 data => {
                     if (data) {
-                        if (data.csWeixin) {
-                            returnedObj.wechatList.push({
-                                isImg: 0,
-                                value: data.csWeixin
-                            }, {
-                                isImg: 1,
-                                value: data.weixinPhotoUrl ? data.weixinPhotoUrl : ""
-                            });
-                        }
 
-                        if (data.csQQ) {
-                            returnedObj.qqList.push({
-                                isImg: 0,
-                                value: data.csQQ
-                            });
-                        }
+                        listName.forEach( list => {
+                            if(data[list[0]]){
+                                returnedObj[list[1]] = data[list[0]];
 
-                        if (data.csPhone) {
-                            returnedObj.telList.push({
-                                isImg: 0,
-                                value: data.csPhone
-                            });
-                        }
+                            }
+                        })
 
-                        if (data.playerWebLogoUrl) {
-                            returnedObj.playerWebLogoUrl.push({
-                                isImg: 0,
-                                value: data.playerWebLogoUrl
-                            });
-                        }
-
-                        if (data.csUrl) {
-                            returnedObj.live800 = data.csUrl;
-                        }
                         if (data.platformId) {
-                            return dbconfig.collection_playerPageAdvertisementInfo.find({
-                                platformId: data._id,
-                                inputDevice: inputDevice
-                            }).sort({orderNo: 1}).lean();
+                            if (subject == 'player'){
+                                return dbconfig.collection_playerPageAdvertisementInfo.find({
+                                    platformId: data._id,
+                                    inputDevice: inputDevice
+                                }).sort({orderNo: 1}).lean();
+                            }
+                            else if (subject == 'partner'){
+                                return dbconfig.collection_partnerPageAdvertisementInfo.find({
+                                    platformId: data._id,
+                                    inputDevice: inputDevice
+                                }).sort({orderNo: 1}).lean();
+                            }
+                            else{
+                                return Q.reject({name: "DBError", message: "No advertisement Information exists with id: " + platformId});
+                            }
                         }
                     } else {
                         return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
@@ -2511,7 +2565,15 @@ var dbPlatform = {
                                     }
                                 }
 
-                                returnedObj.activityList.push(activityListObj);
+                                if (subject == 'player'){
+                                    returnedObj.activityList.push(activityListObj);
+                                }
+                                else if (subject == 'partner'){
+                                    returnedObj.partnerActivityList.push(activityListObj);
+                                }
+                                else{
+                                    return Q.reject({name: "DBError", message: "Missing of default param: 'partner' or 'player'."});
+                                }
                             }
                         })
                         return returnedObj;
@@ -3150,8 +3212,162 @@ var dbPlatform = {
                 }
             })
         }
-    }
+    },
+
+    callBackToUser: (platformId, phoneNumber, randomNumber, captcha, lineId, playerId) => {
+        let platform, url, platformString;
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({
+                        status: constServerCode.INVALID_PLATFORM,
+                        name: "DBError",
+                        message: "Platform does not exist"
+                    });
+                }
+
+                platform = platformData;
+                let platformStringArray = platform.callRequestLineConfig;
+
+                if (!platform.callRequestUrlConfig || !platformStringArray) {
+                    return Promise.reject({
+                        status: constServerCode.INVALID_DATA,
+                        name: "DBError",
+                        message: "Error finding db data"
+                    });
+                }
+
+                return getPlatformStringForCallback(platformStringArray, playerId, lineId);
+            }
+        ).then(
+            platformStringData => {
+                platformString = platformStringData;
+            
+                url = platform.callRequestUrlConfig;
+                
+                let path = "/servlet/TelephoneApplication?phone=" + phoneNumber + "&captcha=" + captcha + "&platform=" + platformString + "&random=" + randomNumber + "&callback=jsonp1";
+
+                let link = url + path;
+
+                return new Promise((resolve, reject) => {
+                    request.get(link, {strictSSL: false}, (err, res, body) => {
+                        if (err) {
+                            reject({code: constServerCode.EXTERNAL_API_FAILURE, message: err});
+                        } else {
+                            console.log('callBackToUser API output', body);
+                            resolve(true);
+                        }
+                    });
+                });
+            }
+        );
+    },
+
+    getOMCaptcha: (platformId) => {
+        let platform, url;
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({
+                        status: constServerCode.INVALID_PLATFORM,
+                        name: "DBError",
+                        message: "Platform does not exist"
+                    });
+                }
+
+                platform = platformData;
+
+                if (!platform.callRequestUrlConfig) {
+                    return Promise.reject({
+                        status: constServerCode.INVALID_DATA,
+                        name: "DBError",
+                        message: "Error finding db data"
+                    });
+                }
+
+                url = platform.callRequestUrlConfig;
+
+                let requestProtocol = http;
+                if (url.startsWith('https')) {
+                    requestProtocol = https;
+                }
+
+                let randomNumber = Math.random();
+
+                let path = "/servlet/GetMaCode?random=" + randomNumber;
+
+                let link = url + path;
+
+                return new Promise((resolve, reject) => {
+                    requestProtocol.get(link, (resp) => {
+                        resp.setEncoding('base64');
+                        let body = "data:" + resp.headers["content-type"] + ";base64,";
+                        resp.on('data', (data) => { body += data});
+                        resp.on('end', () => {
+                            resolve({
+                                randomNumber: randomNumber,
+                                b64ImgDataUrl: body
+                            });
+                        });
+                    }).on('error', (e) => {
+                        console.error(e);
+                        reject({code: constServerCode.EXTERNAL_API_FAILURE, message: e.message});
+                    });
+                });
+
+            }
+        )
+    },
 };
+
+function getPlatformStringForCallback (platformStringArray, playerId, lineId) {
+    lineId = lineId || 0;
+    let platformString;
+
+    let requiredLevelProm;
+    platformStringArray.map(line => {
+        if (lineId == line.lineId) {
+            platformString = line.lineName;
+            if (line.minLevel) {
+                requiredLevelProm = dbconfig.collection_playerLevel.findOne({_id: line.minLevel}).lean();
+            }
+        }
+    });
+
+    if (!platformString) {
+        return Promise.reject({message: "Invalid line ID"});
+    }
+
+    if (!requiredLevelProm) {
+        return platformString;
+    }
+
+    let playerProm = Promise.all();
+    if (playerId) {
+        playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
+    }
+
+    if (!playerProm) {
+        return Promise.reject({message: "Player level is not enough"});
+    }
+
+    return Promise.all([requiredLevelProm, playerProm]).then(
+        data => {
+            let requiredPlayerLevel, player;
+            ([requiredPlayerLevel, player] = data);
+
+            if (!requiredPlayerLevel) {
+                return platformString;
+            }
+
+            if (!player || !player.playerLevel || requiredPlayerLevel.value < player.playerLevel.value) {
+                return Promise.reject({message: "Player level is not enough"});
+            }
+            
+            return platformString;
+        }
+    );
+}
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {
     var createTimeQuery = {};
