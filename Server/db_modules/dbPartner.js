@@ -6278,11 +6278,11 @@ let dbPartner = {
                 providerGroupConsumptionData = getTotalPlayerConsumptionByProviderGroupName(downLinesRawCommissionDetail, providerGroups);
 
                 commissionRateTables.map(groupRate => {
-                    commissionRates[groupRate.groupName] = getCommissionRate(groupRate.rateTable, providerGroupConsumptionData[groupRate.groupName].validAmount, activeDownLines);
-
                     let totalConsumption = commissionType === constPartnerCommissionType.WEEKLY_CONSUMPTION
                         ? providerGroupConsumptionData[groupRate.groupName].validAmount
                         : -providerGroupConsumptionData[groupRate.groupName].bonusAmount;
+
+                    commissionRates[groupRate.groupName] = getCommissionRate(groupRate.rateTable, totalConsumption, activeDownLines);
 
                     let platformFeeRateData = {};
 
@@ -7827,6 +7827,11 @@ function getCommissionRate (commissionRateTable, consumptionAmount, activeCount)
     let isCustom = false;
     for (let i = 0; i < commissionRateTable.length; i++) {
         let commissionRequirement = commissionRateTable[i];
+
+        if (i === 0) {
+            lastValidCommissionRate = commissionRequirement.commissionRate;
+            isCustom = Boolean(commissionRequirement.isCustom);
+        }
 
         if (commissionRequirement.playerConsumptionAmountFrom && consumptionAmount < commissionRequirement.playerConsumptionAmountFrom
             || commissionRequirement.playerConsumptionAmountTo && consumptionAmount > commissionRequirement.playerConsumptionAmountTo
