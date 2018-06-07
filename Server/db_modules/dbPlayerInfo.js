@@ -2309,8 +2309,11 @@ let dbPlayerInfo = {
                 if (playerData) {
                     playerObj = playerData;
                     platformObjId = playerData.platform;
+                    if(playerData.bankAccountName){
+                        delete updateData.bankAccountName;
+                    }
                     //check if bankAccountName in update data is the same as player's real name
-                    if (updateData.bankAccountName && updateData.bankAccountName != playerData.realName) {
+                    if (updateData.bankAccountName && !playerData.realName) {
                         // return Q.reject({
                         //     name: "DataError",
                         //     code: constServerCode.INVALID_DATA,
