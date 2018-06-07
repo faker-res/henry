@@ -2309,8 +2309,11 @@ let dbPlayerInfo = {
                 if (playerData) {
                     playerObj = playerData;
                     platformObjId = playerData.platform;
+                    if(playerData.bankAccountName){
+                        delete updateData.bankAccountName;
+                    }
                     //check if bankAccountName in update data is the same as player's real name
-                    if (updateData.bankAccountName && updateData.bankAccountName != playerData.realName) {
+                    if (updateData.bankAccountName && !playerData.realName) {
                         // return Q.reject({
                         //     name: "DataError",
                         //     code: constServerCode.INVALID_DATA,
@@ -13393,12 +13396,53 @@ let dbPlayerInfo = {
                 }
 
                 // relevant players are the players who played any game within given time period
-                let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+                let playerObjArr = [];
+                return dbconfig.collection_playerConsumptionRecord.aggregate([
                     {$match: relevantPlayerQuery},
                     {$group: {_id: "$playerId"}}
-                ]);
+                ]).then(
+                    consumptionData => {
+                        if (consumptionData && consumptionData.length) {
+                            playerObjArr = consumptionData.map(function (playerIdObj) {
+                                return String(playerIdObj._id);
+                            });
+                        }
+                        let proposalQuery = {
+                            mainType: {$in: ["PlayerBonus", "TopUp"]},
+                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            createTime: {$gte: startDate, $lte: endDate},
+                            'data.platformId': platform
+                        };
 
-                let stream = consumptionProm.cursor({batchSize: 100}).allowDiskUse(true).exec();
+                        if (player) {
+                            proposalQuery['data.playerObjId'] = player._id;
+                        }
+                        return dbconfig.collection_proposal.aggregate([
+                            {$match: proposalQuery},
+                            {$group: {_id: "$data.playerObjId"}}
+                        ])
+                    }
+                ).then(
+                    proposalData => {
+                        if (proposalData && proposalData.length) {
+                            for (let i = 0; i < proposalData.length; i++) {
+                                if (proposalData[i]._id && playerObjArr.indexOf(String(proposalData[i]._id)) === -1) {
+                                    playerObjArr.push(proposalData[i]._id);
+                                }
+                            }
+                        }
+                        for (let j = 0; j < playerObjArr.length; j++) {
+                            playerObjArr[j] = ObjectId(playerObjArr[j]);
+                        }
+                        return playerObjArr;
+                    }
+                );
+
+            }
+        ).then(
+            playerObjArrData => {
+                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}},{_id: 1});
+                let stream = playerProm.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
 
                 return balancer.initConns().then(function () {
