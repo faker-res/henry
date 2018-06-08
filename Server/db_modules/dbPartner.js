@@ -1750,10 +1750,11 @@ let dbPartner = {
             ).then(
                 isVerified => {
                     if (isVerified) {
-                        // Update partner data
+
                         if(partnerData.bankAccountName){
                             delete updateData.bankAccountName;
                         }
+                        
                         if (updateData.bankAccountName && !partnerData.realName) {
                             if (updateData.bankAccountName.indexOf('*') > -1)
                                 delete updateData.bankAccountName;
