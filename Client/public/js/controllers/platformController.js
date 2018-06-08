@@ -3679,7 +3679,7 @@ define(['js/app'], function (myApp) {
                 vm.platformCreditTransferLog = {};
                 vm.platformCreditTransferLog.isPopup = isPopup === true;
                 vm.platformCreditTransferLog.index = 0;
-                vm.platformCreditTransferLog.limit = 10;
+                vm.platformCreditTransferLog.limit = vm.platformCreditTransferLog && vm.platformCreditTransferLog.limit ? vm.platformCreditTransferLog.limit : 50;
                 utilService.actionAfterLoaded(('#' + panelBody), function () {
                     vm.platformCreditTransferLog.startTime = utilService.createDatePicker('#' + panelBody + ' .startTime');
                     vm.platformCreditTransferLog.endTime = utilService.createDatePicker('#' + panelBody + ' .endTime');
@@ -3701,7 +3701,7 @@ define(['js/app'], function (myApp) {
                     startTime: vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate(),
                     index: newSearch ? 0 : vm.platformCreditTransferLog.index,
-                    limit: newSearch ? 10 : vm.platformCreditTransferLog.limit,
+                    limit: newSearch ? 50 : vm.platformCreditTransferLog.limit,
                     sortCol: vm.platformCreditTransferLog.sortCol
                 };
 
