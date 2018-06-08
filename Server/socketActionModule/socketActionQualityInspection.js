@@ -148,6 +148,11 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data && data.startTime && data.endTime);
             socketUtil.emitter(self.socket, dbQualityInspection.getSummarizedLive800RecordCount, [data.startTime,data.endTime], actionName, isDataValid);
         },
+        getWorkingCSName: function getWorkingCSName(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbQualityInspection.getWorkingCSName, [data], actionName, isDataValid);
+        }
     };
 
     socketActionQualityInspection.actions = this.actions;

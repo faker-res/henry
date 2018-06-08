@@ -504,6 +504,30 @@ define(['js/app'], function (myApp) {
 
                 vm.getTotalNumberOfAppealingRecord();
             };
+            vm.getWorkingCSName = function(){
+                var query = {
+                    'companyId':vm.companyIds,
+                    'fpmsAcc':vm.inspection800.fpms || [],
+                    'operatorId':vm.inspection800.live800Accs,
+                    'startTime': $('#live800StartDatetimePicker').data('datetimepicker').getLocalDate(),
+                    'endTime': $('#live800endDatetimePicker').data('datetimepicker').getLocalDate(),
+                };
+                vm.workingCSName = "";
+                socketService.$socket($scope.AppSocket, 'getWorkingCSName', query, function(data){
+                    console.log(data);
+                    if(data && data.data && data.data[0].length > 0){
+                        data.data[0].forEach(csName => {
+                            if(csName && csName.operator_name){
+                                vm.workingCSName += csName.operator_name + ", ";
+                            }
+                        })
+
+                        if(vm.workingCSName.length > 0){
+                            vm.workingCSName = vm.workingCSName.substring(0,vm.workingCSName.length - 2);
+                        }
+                    }
+                });
+            }
             vm.getPlatformOvertimeSetting = function(item){
                 let overtimeSetting = vm.platformList.filter(pf=>{
                     if(pf.data.live800CompanyId && pf.data.live800CompanyId.length > 0){
@@ -560,6 +584,18 @@ define(['js/app'], function (myApp) {
                 },0)
 
             }
+
+            vm.rateIt = function(conversation){
+                // if the complain is closed(6) , or this conversation no need to rate(7)
+                if(conversation.status!=6 && conversation.status!=7){
+                    conversation.editable = true;
+                }
+
+            };
+
+            vm.cancelRate = function(conversation){
+                conversation.editable = false;
+            };
 
             var eventName = "$viewContentLoaded";
             if (!$scope.AppSocket) {
