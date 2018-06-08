@@ -6729,6 +6729,7 @@ let dbPartner = {
                         }
                     } else {
                         for (let i = 0; i < commissionData.length; i++) {
+                            if (!commissionData[i].provider) continue;
                             let commissionObj = {
                                 providerGroupId: commissionData[i].provider.providerGroupId ? commissionData[i].provider.providerGroupId : "",
                                 providerGroupName: commissionData[i].provider.name ? commissionData[i].provider.name : ""
