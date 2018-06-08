@@ -420,7 +420,7 @@ const dbPlayerMail = {
 
                     let getPartnerProm = [];
                     if (isPartner && purpose != constSMSPurpose.PARTNER_REGISTRATION) {
-                        getPartnerProm = dbconfig.collection_partner.findOne({_id: playerName}).lean();
+                        getPartnerProm = dbconfig.collection_partner.findOne({partnerName: playerName}).lean();
                     }
 
 

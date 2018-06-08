@@ -7,6 +7,12 @@ define(['js/app'], function (myApp) {
     var operationController = function ($sce, $scope, $filter, $compile, $location, $log, socketService, authService, utilService, $translate, CONFIG, $cookies, commonService) {
         var $translate = $filter('translate');
         let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
+        let $fixTwoDecimalStr = (value) => {
+            if (typeof value != 'number') {
+                return value;
+            }
+            return $filter('noRoundTwoDecimalPlaces')(value).toFixed(2);
+        };
         var vm = this;
 
         // For debugging:
@@ -511,6 +517,8 @@ define(['js/app'], function (myApp) {
         vm.loadProposalAuditQueryData = function (newSearch, callback) {
             var selectedStatus = [];
             vm.proposalTypeUpdated();
+            let totalProposalType = 0;
+            let proposalTypeNames = [];
             // if (vm.proposalStatusSelected) {
             //     vm.proposalStatusSelected.forEach(
             //         status => {
@@ -534,10 +542,20 @@ define(['js/app'], function (myApp) {
                 return;
             }
 
+            totalProposalType = $('select#selectProposalAuditType option').length;
+
+            if (totalProposalType != vm.proposalAuditTypeSelected.length) {
+                vm.allProposalType.filter(item => {
+                    if (vm.proposalAuditTypeSelected.indexOf(item.name) > -1 && proposalTypeNames.indexOf(item.name) < 0) {
+                        proposalTypeNames.push(item.name);
+                    }
+                });
+            }
+
             let sendData = {
                 adminId: authService.adminId,
                 platformId: vm.allPlatformId,
-                type: vm.proposalAuditTypeSelected,
+                type: proposalTypeNames,
                 startDate: startTime.getLocalDate(),
                 endDate: newEndTime,
                 entryType: vm.queryProposalEntryType,
@@ -1450,7 +1468,7 @@ define(['js/app'], function (myApp) {
             console.log("whole data", data);
             vm.newProposalNum = 0;
             vm.blinkAllProposal = false;
-            
+
             var tableData = [];
             $.each(data, function (i, v) {
                 if (v) {
@@ -1996,9 +2014,9 @@ define(['js/app'], function (myApp) {
 
                 vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                     grossCommission += rawCommission.amount;
-                    let str = rawCommission.amount + $translate("YEN") + " "
-                        + "(" + $translate(consumptionUsed) + ": " + (rawCommission[consumptionUsedKey]) + "/"
-                        + $translate('active') + ": " + (vm.selectedProposal.data.activeCount || 0) + "/"
+                    let str = $fixTwoDecimalStr(rawCommission.amount)+ $translate("YEN") + " "
+                        + "(" + $translate(consumptionUsed) + ": " + $fixTwoDecimalStr(rawCommission[consumptionUsedKey]) + "/"
+                        + $translate('active') + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.activeCount || 0) + "/"
                         + $translate("RATIO") + ": " + (rawCommission.commissionRate * 100) + "%)";
 
                     proposalDetail[rawCommission.groupName + " " + $translate("Commission")] =  str;
@@ -2009,8 +2027,8 @@ define(['js/app'], function (myApp) {
                     }
                 });
 
-                proposalDetail["REQUIRED_PROMO_DEDUCTION"] = vm.selectedProposal.data.totalRewardFee + $translate("YEN")
-                    + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalReward + "/"
+                proposalDetail["REQUIRED_PROMO_DEDUCTION"] = $fixTwoDecimalStr(vm.selectedProposal.data.totalRewardFee) + $translate("YEN")
+                    + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.totalReward) + "/"
                     + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebatePromo) + "%)";
 
                 if (vm.selectedProposal.data.rateAfterRebatePromoIsCustom) {
@@ -2021,8 +2039,8 @@ define(['js/app'], function (myApp) {
                 proposalDetail["REQUIRED_PLATFORM_FEES_DEDUCTION"] = "";
                 vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                     totalPlatformFee += rawCommission.platformFee;
-                    let str = rawCommission.platformFee + $translate("YEN") + " "
-                        + "(" + $translate("SITE_LOSE_WIN") + ": " + rawCommission.siteBonusAmount + "/"
+                    let str = $fixTwoDecimalStr(rawCommission.platformFee) + $translate("YEN") + " "
+                        + "(" + $translate("SITE_LOSE_WIN") + ": " + $fixTwoDecimalStr(rawCommission.siteBonusAmount) + "/"
                         + $translate("RATIO") + ": " + (rawCommission.platformFeeRate) + "%)";
 
                     proposalDetail["- " + rawCommission.groupName] =  str;
@@ -2033,8 +2051,8 @@ define(['js/app'], function (myApp) {
                     }
                 });
 
-                proposalDetail["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = vm.selectedProposal.data.totalTopUpFee + $translate("YEN")
-                    + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalTopUp + "/"
+                proposalDetail["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = $fixTwoDecimalStr(vm.selectedProposal.data.totalTopUpFee) + $translate("YEN")
+                    + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.totalTopUp) + "/"
                     + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalDeposit) + "%)";
 
                 if (vm.selectedProposal.data.rateAfterRebateTotalDepositIsCustom) {
@@ -2042,8 +2060,8 @@ define(['js/app'], function (myApp) {
                     isCustomized = true;
                 }
 
-                proposalDetail["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = vm.selectedProposal.data.totalWithdrawalFee + $translate("YEN")
-                    + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalWithdrawal + "/"
+                proposalDetail["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = $fixTwoDecimalStr(vm.selectedProposal.data.totalWithdrawalFee) + $translate("YEN")
+                    + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.totalWithdrawal) + "/"
                     + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal) + "%)";
 
                 if (vm.selectedProposal.data.rateAfterRebateTotalWithdrawalIsCustom) {
@@ -2057,8 +2075,8 @@ define(['js/app'], function (myApp) {
 
                 let totalFee = Number(vm.selectedProposal.data.totalRewardFee) + Number(totalPlatformFee) + Number(vm.selectedProposal.data.totalTopUpFee) + Number(vm.selectedProposal.data.totalWithdrawalFee);
 
-                proposalDetail["COMMISSION_TOTAL"] = vm.selectedProposal.data.amount + " "
-                    + "(" + grossCommission + "-" + totalFee + ")";
+                proposalDetail["COMMISSION_TOTAL"] = $fixTwoDecimalStr(vm.selectedProposal.data.amount) + " "
+                    + "(" + $fixTwoDecimalStr(grossCommission) + "-" + $fixTwoDecimalStr(totalFee) + ")";
             }
 
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
@@ -3215,7 +3233,7 @@ define(['js/app'], function (myApp) {
                     if (window.location.pathname != '/operation') {
                         clearInterval(vm.refreshInterval);
                     }
-                    
+
                     countDown = -1;
                 }
             }, 1000);

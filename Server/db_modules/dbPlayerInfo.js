@@ -7791,8 +7791,44 @@ let dbPlayerInfo = {
         para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i') : null;
         para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i') : null;
         para.registrationInterface ? query.registrationInterface = para.registrationInterface : null;
-        para.csPromoteWay && para.csPromoteWay.length > 0 ? query.promoteWay = {$in: para.csPromoteWay} : null;
-        para.csOfficer && para.csOfficer.length > 0 ? query.csOfficer = {$in: para.csOfficer} : null;
+
+        if (para.csPromoteWay && para.csPromoteWay.length > 0 ) {
+            let nonePromoteWayQuery = {}, promoteWayArr = [];
+            para.csPromoteWay.forEach(el => {
+               if (el == "") {
+                   nonePromoteWayQuery = {promoteWay: {$exists: false}};
+               } else {
+                   promoteWayArr.push(el);
+               }
+            });
+
+            if (Object.keys(nonePromoteWayQuery) && Object.keys(nonePromoteWayQuery).length > 0) {
+                query.$or = [nonePromoteWayQuery, {promoteWay: {$in: promoteWayArr}}];
+            } else {
+                query.promoteWay = {$in: promoteWayArr};
+            }
+        }
+
+        if (para.csOfficer && para.csOfficer.length > 0 ) {
+            let noneCSOfficerQuery = {}, csOfficerArr = [];
+            para.csOfficer.forEach(el => {
+                if (el == "") {
+                    noneCSOfficerQuery = {csOfficer: {$exists: false}};
+                } else {
+                    csOfficerArr.push(el);
+                }
+            });
+
+            if (Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0) {
+                query.$or = [noneCSOfficerQuery, {csOfficer: {$in: csOfficerArr}}];
+            } else {
+                query.csOfficer = {$in: csOfficerArr};
+            }
+
+        }
+
+        //para.csPromoteWay && para.csPromoteWay.length > 0 ? query.promoteWay = {$in: para.csPromoteWay} : null;
+        //para.csOfficer && para.csOfficer.length > 0 ? query.csOfficer = {$in: para.csOfficer} : null;
 
         if (para.isNewSystem === 'old') {
             query.isNewSystem = {$ne: true};
@@ -13494,10 +13530,33 @@ let dbPlayerInfo = {
                     });
                 }
 
+                let filteredArr = []
+                if(query.csPromoteWay && query.csPromoteWay.length > 0 && query.admins && query.admins.length > 0){
+                    if(query.csPromoteWay.includes("") && query.admins.includes("")){
+                        filteredArr = result;
+                        filteredArr = filteredArr.filter(e => (!(e.hasOwnProperty('csPromoteWay')) || (e.csPromoteWay && e.csPromoteWay == ''))
+                            && (!(e.hasOwnProperty('csOfficer')) || (e.csOfficer && e.csOfficer == '')));
+                    }
+                }else if(query.csPromoteWay && query.csPromoteWay.length > 0){
+                    if(query.csPromoteWay.includes("")){
+                        filteredArr = result;
+                        filteredArr = filteredArr.filter(e => !(e.hasOwnProperty('csPromoteWay')) || (e.csPromoteWay && e.csPromoteWay == ''));
+                    }
+                }else if(query.csOfficer && query.csOfficer.length > 0){
+                    if(query.csOfficer.includes("")){
+                        filteredArr = result;
+                        filteredArr = filteredArr.filter(e => !(e.hasOwnProperty('csOfficer')) || (e.csOfficer && e.csOfficer == ''));
+                    }
+                }
 
                 // Output filter promote way
                 result = query.csPromoteWay && query.csPromoteWay.length > 0 ? result.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : result;
                 result = query.admins && query.admins.length > 0 ? result.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : result;
+
+                result = result.concat(
+                    filteredArr.filter(function(e) {
+                        return result.indexOf(e) === -1;
+                    }));
 
                 //handle sum of field here
                 for (let z = 0; z < result.length; z++) {
@@ -13612,12 +13671,34 @@ let dbPlayerInfo = {
                     });
                 }
 
-
                 let outputResult = [];
+                let filteredArr = []
+                if(query.csPromoteWay && query.csPromoteWay.length > 0 && query.admins && query.admins.length > 0){
+                    if(query.csPromoteWay.includes("") && query.admins.includes("")){
+                        filteredArr = result;
+                        filteredArr = filteredArr.filter(e => (!(e.hasOwnProperty('csPromoteWay')) || (e.csPromoteWay && e.csPromoteWay == ''))
+                            && (!(e.hasOwnProperty('csOfficer')) || (e.csOfficer && e.csOfficer == '')));
+                    }
+                }else if(query.csPromoteWay && query.csPromoteWay.length > 0){
+                    if(query.csPromoteWay.includes("")){
+                        filteredArr = result;
+                        filteredArr = filteredArr.filter(e => !(e.hasOwnProperty('csPromoteWay')) || (e.csPromoteWay && e.csPromoteWay == ''));
+                    }
+                }else if(query.csOfficer && query.csOfficer.length > 0){
+                    if(query.csOfficer.includes("")){
+                        filteredArr = result;
+                        filteredArr = filteredArr.filter(e => !(e.hasOwnProperty('csOfficer')) || (e.csOfficer && e.csOfficer == ''));
+                    }
+                }
 
                 // Output filter promote way
                 result = query.csPromoteWay && query.csPromoteWay.length > 0 ? result.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : result;
                 result = query.admins && query.admins.length > 0 ? result.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : result;
+
+                result = result.concat(
+                    filteredArr.filter(function(e) {
+                        return result.indexOf(e) === -1;
+                    }));
 
                 for (let i = 0, len = limit; i < len; i++) {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
@@ -13972,7 +14053,7 @@ let dbPlayerInfo = {
 
             let playerProm = dbconfig.collection_players.findOne(
                 playerQuery, {
-                    playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1, accAdmin: 1
+                    playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1, accAdmin: 1, promoteWay: 1
                 }
             ).lean();
 
@@ -14211,6 +14292,10 @@ let dbPlayerInfo = {
                     else if (csOfficerDetail) {
                         result.csOfficer = csOfficerDetail.admin ? csOfficerDetail.admin.adminName : "";
                         result.csPromoteWay = csOfficerDetail.way;
+                    }
+
+                    if (!csOfficerDetail && playerDetail && playerDetail.promoteWay) {
+                        result.csPromoteWay = playerDetail.promoteWay;
                     }
 
                     return result;
