@@ -203,7 +203,7 @@
     .modal-dialog
         .modal-content
             .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal', ng-click="vm.setPlatformFooter(null);vm.cancelUpdatePlatformConfig(); vm.editFrontEndDisplay = !vm.editFrontEndDisplay")
+                a.fa.fa-times.close(type='button', data-dismiss='modal', ng-click="vm.setPlatformFooter(null);vm.cancelUpdatePlatformConfig(); vm.editFrontEndDisplay = false")
                 h4.modal-title(ng-show="!vm.platformAction") {{"PLATFORM" | translate}}
                 h4.modal-title(ng-show="vm.platformAction=='create'") {{"CREATE_PLATFORM" | translate}}
                 h4.modal-title(ng-show="vm.platformAction=='delete'") {{"DELETE_PLATFORM" | translate}}

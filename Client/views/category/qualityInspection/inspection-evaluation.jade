@@ -59,10 +59,10 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                         th.col-md-2(style="background-color: red") {{"APPEAL_REASON" | translate}}
                                     tbody(ng-repeat="unreadEvaluation in vm.unreadEvaluationTable")
                                         tr(style="border: 1px solid")
-                                            td(style="width: 40px;")
+                                            td(style="width: 40px; border: 1px solid black")
                                                 input.form-control(type="checkbox", value="{{unreadEvaluation.messageId}}", ng-model="unreadEvaluation.isChecked", ng-change="vm.gatherCheckedRecord(unreadEvaluation.isChecked,unreadEvaluation.messageId,unreadEvaluation.appealReason)")
-                                            td.col-md-1 {{unreadEvaluation.status | translate}}
-                                            td.col-md-6(style="padding: 0px;", colspan=7)
+                                            td.col-md-1(style="border: 1px solid black;") {{unreadEvaluation.status | translate}}
+                                            td.col-md-6(style="padding: 0px; border: 1px solid black;", colspan=7)
                                                 table(style="width: 100%; table-layout: fixed;")
                                                     tbody
                                                         tr(style="text-align:center;color:red")
@@ -74,13 +74,13 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                             td(style="width: 77.27px;")
                                                             td(style="width: 180px;")
                                                         tr(ng-repeat="conversation in unreadEvaluation.conversation", style="border: 1px solid; word-wrap: break-word; background-color:{{conversation.colors}};")
-                                                            td(style="width: 78.18px;") {{unreadEvaluation.live800Acc.id}}
-                                                            td(style="width: 78.18px;") {{conversation.roleName}}
-                                                            td(style="width: 77.27px;") {{conversation.createTime | date:"yyyy-MM-dd HH:mm:ss"}}
-                                                            td(style="width: 250px;") {{conversation.content}}
-                                                            td(style="width: 77.27px;") {{conversation.timeoutRate}}
-                                                            td(style="width: 77.27px;") {{conversation.inspectionRate}}
-                                                            td(style="width: 180px;") {{conversation.review}}
+                                                            td(style="width: 78.18px; border: 1px solid black;") {{unreadEvaluation.live800Acc.id}}
+                                                            td(style="width: 78.18px; border: 1px solid black;") {{conversation.roleName}}
+                                                            td(style="width: 77.27px; border: 1px solid black;") {{conversation.createTime | date:"yyyy-MM-dd HH:mm:ss"}}
+                                                            td(style="width: 250px; border: 1px solid black;") {{conversation.content}}
+                                                            td(style="width: 77.27px; border: 1px solid black;") {{conversation.timeoutRate}}
+                                                            td(style="width: 77.27px; border: 1px solid black;") {{conversation.inspectionRate}}
+                                                            td(style="width: 180px; border: 1px solid black;") {{conversation.review}}
                                                         tr(style="text-align:center;color:red")
                                                             td(style="width: 78.18px;")
                                                             td(style="width: 78.18px;")
@@ -89,9 +89,9 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                             td(style="width: 77.27px;")
                                                             td(style="width: 77.27px;")
                                                             td(style="width: 180px;")
-                                            td.col-md-1 {{unreadEvaluation.qualityAssessor}}
-                                            td.col-md-1 {{unreadEvaluation.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
-                                            td.col-md-2
+                                            td.col-md-1(style="border: 1px solid black;") {{unreadEvaluation.qualityAssessor}}
+                                            td.col-md-1(style="border: 1px solid black;") {{unreadEvaluation.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
+                                            td.col-md-2(style="border: 1px solid black;")
                                                 input.form-control(type="textarea", value="{{unreadEvaluation.appealReason}}", ng-model="unreadEvaluation.appealReason", ng-change="vm.ammendCheckedRecord(unreadEvaluation.messageId,unreadEvaluation.appealReason);")
                                 .inlineBlk.pull-right(style='width:500px; padding-top:20px; text-align: right;')
                                     ul#unreadEvaluationPagination.pagination
@@ -137,11 +137,11 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                         th.col-md-1 {{"EVALUATED_TIME" | translate}}
                                     tbody(ng-repeat="readEvaluation in vm.readEvaluationTable")
                                         tr(style="border: 1px solid")
-                                            td.col-md-1 {{readEvaluation.status | translate}}
-                                            td.col-md-9(style="padding: 0px" colspan=7)
+                                            td.col-md-1(style="border: 1px solid black;") {{readEvaluation.status | translate}}
+                                            td.col-md-9(style="padding: 0px; border: 1px solid black;" colspan=7)
                                                 table(style="width: 100%; table-layout: fixed;")
                                                     tbody(style="width: 100%")
-                                                        tr(style="text-align:center;color:red")
+                                                        tr(style="text-align:center;color:red;")
                                                             td.col-sm-1
                                                             td.col-sm-1
                                                             td.col-sm-1
@@ -150,13 +150,13 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                             td.col-sm-1
                                                             td.col-sm-3
                                                         tr(ng-repeat="conversation in readEvaluation.conversation", style="border: 1px solid; word-wrap: break-word; background-color:{{conversation.colors}};")
-                                                            td.col-sm-1 {{readEvaluation.live800Acc.id}}
-                                                            td.col-sm-1 {{conversation.roleName}}
-                                                            td.col-sm-1 {{conversation.createTime | date:"yyyy-MM-dd HH:mm:ss"}}
-                                                            td.col-sm-4 {{conversation.content}}
-                                                            td.col-sm-1 {{conversation.timeoutRate}}
-                                                            td.col-sm-1 {{conversation.inspectionRate}}
-                                                            td.col-sm-3 {{conversation.review}}
+                                                            td.col-sm-1(style="border: 1px solid black;") {{readEvaluation.live800Acc.id}}
+                                                            td.col-sm-1(style="border: 1px solid black;") {{conversation.roleName}}
+                                                            td.col-sm-1(style="border: 1px solid black;") {{conversation.createTime | date:"yyyy-MM-dd HH:mm:ss"}}
+                                                            td.col-sm-4(style="border: 1px solid black;") {{conversation.content}}
+                                                            td.col-sm-1(style="border: 1px solid black;") {{conversation.timeoutRate}}
+                                                            td.col-sm-1(style="border: 1px solid black;") {{conversation.inspectionRate}}
+                                                            td.col-sm-3(style="border: 1px solid black;") {{conversation.review}}
                                                         tr(style="text-align:center;color:red")
                                                             td.col-sm-1
                                                             td.col-sm-1
@@ -165,8 +165,8 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                             td.col-sm-1
                                                             td.col-sm-1
                                                             td.col-sm-3
-                                            td.col-md-1 {{readEvaluation.qualityAssessor}}
-                                            td.col-md-1 {{readEvaluation.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
+                                            td.col-md-1(style="border: 1px solid black;") {{readEvaluation.qualityAssessor}}
+                                            td.col-md-1(style="border: 1px solid black;") {{readEvaluation.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
                                 .inlineBlk.pull-right(style='width:500px; padding-top:20px; text-align: right;')
                                     ul#readEvaluationPagination.pagination
                                         li(ng-repeat="page in vm.readEvaluationRecord.pageArr")
@@ -229,8 +229,8 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                         th.col-md-2(style="background-color: red") {{"APPEAL_REASON" | translate}}
                                     tbody(ng-repeat="appealEvaluation in vm.appealEvaluationTable")
                                         tr(style="border: 1px solid")
-                                            td.col-md-1 {{appealEvaluation.status | translate}}
-                                            td.col-md-6(style="padding: 0px;", colspan=7)
+                                            td.col-md-1(style="border: 1px solid black;") {{appealEvaluation.status | translate}}
+                                            td.col-md-6(style="padding: 0px; border: 1px solid black;", colspan=7)
                                                 table(style="width: 100%; table-layout: fixed;")
                                                     tbody
                                                         tr(style="text-align:center;color:red")
@@ -242,13 +242,13 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                             td(style="width: 80px;")
                                                             td(style="width: 180px;")
                                                         tr(ng-repeat="conversation in appealEvaluation.conversation", style="border: 1px solid; word-wrap: break-word; background-color:{{conversation.colors}};")
-                                                            td(style="width: 80px;") {{appealEvaluation.live800Acc.id}}
-                                                            td(style="width: 80px;") {{conversation.roleName}}
-                                                            td(style="width: 89px;") {{conversation.createTime | date:"yyyy-MM-dd HH:mm:ss"}}
-                                                            td(style="width: 250px;") {{conversation.content}}
-                                                            td(style="width: 80px;") {{conversation.timeoutRate}}
-                                                            td(style="width: 80px;") {{conversation.inspectionRate}}
-                                                            td(style="width: 180px;") {{conversation.review}}
+                                                            td(style="width: 80px; border: 1px solid black;") {{appealEvaluation.live800Acc.id}}
+                                                            td(style="width: 80px; border: 1px solid black;") {{conversation.roleName}}
+                                                            td(style="width: 89px; border: 1px solid black;") {{conversation.createTime | date:"yyyy-MM-dd HH:mm:ss"}}
+                                                            td(style="width: 250px; border: 1px solid black;") {{conversation.content}}
+                                                            td(style="width: 80px; border: 1px solid black;") {{conversation.timeoutRate}}
+                                                            td(style="width: 80px; border: 1px solid black;") {{conversation.inspectionRate}}
+                                                            td(style="width: 180px border: 1px solid black;") {{conversation.review}}
                                                         tr(style="text-align:center;color:red")
                                                             td(style="width: 80px;")
                                                             td(style="width: 80px;")
@@ -257,9 +257,9 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                             td(style="width: 80px;")
                                                             td(style="width: 80px;")
                                                             td(style="width: 180px;")
-                                            td.col-md-1 {{appealEvaluation.qualityAssessor}}
-                                            td.col-md-1 {{appealEvaluation.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
-                                            td.col-md-2 {{appealEvaluation.appealReason}}
+                                            td.col-md-1(style="border: 1px solid black") {{appealEvaluation.qualityAssessor}}
+                                            td.col-md-1(style="border: 1px solid black") {{appealEvaluation.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
+                                            td.col-md-2(style="border: 1px solid black") {{appealEvaluation.appealReason}}
 
                                 .inlineBlk.pull-right(style='width:500px; padding-top:20px; text-align: right;')
                                     ul#appealEvaluationPagination.pagination

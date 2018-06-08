@@ -1290,7 +1290,7 @@ var dbUtility = {
     },
 
     noRoundTwoDecimalPlaces: (value) => {
-        let splitString =  value.toLocaleString().split(".");
+        let splitString =  value.toString().split(".");
 
         let tempNum = splitString[0];
 

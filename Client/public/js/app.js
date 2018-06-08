@@ -138,6 +138,29 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                         }
                     }
                 })
+                .state('player', {
+                    url: '/player',
+                    templateUrl: 'category/player/platform-player',
+                    controller: 'playerCtrl',
+                    controllerAs: 'vm',
+                    resolve: {
+                        load: function ($q, $rootScope) {
+                            var deferred = $q.defer();
+
+                            var dependencies = [
+                                "/js/controllers/playerController.js"
+                            ];
+
+                            require(dependencies, function () {
+                                $rootScope.$apply(function () {
+                                    deferred.resolve();
+                                });
+                            });
+
+                            return deferred.promise;
+                        }
+                    }
+                })
                 .state('payment', {
                     url: '/payment',
                     templateUrl: 'category/payment/payment-home',

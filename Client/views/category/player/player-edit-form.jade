@@ -1,0 +1,63 @@
+form(name="form_editing_player", novalidate)
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"PLAYER_NAME" | translate}}
+            input.form-control(type="text", placeholder='{{"PLAYER_NAME" | translate}}', ng-model="playerBeingEdited.name", ng-change='checkPlayerNameValidity(playerBeingEdited.name,form_editing_player,"edit")', required, disabled)
+            span.help-block(style='color: #b94a48', ng-show='duplicateNameFound()') {{'PLAYER_NAME' | translate}}&nbsp;{{'existed already' | translate}}
+        //.form-group.col-md-6
+        //   label.control-label {{"EMAIL" | translate}}
+        //   input.form-control(type="email", name="email", placeholder='{{"EMAIL" | translate}}', ng-model="vm.editPlayer.email", required)
+        //   span.help-block(ng-show="form_new_player.email.$dirty && form_new_player.email.$error.email") {{"EMAIL_INVALID" | translate}}
+        .form-group.col-md-6
+            label.control-label {{"REAL_NAME" | translate}}
+            input.form-control(type="text", placeholder='{{"REAL_NAME" | translate}}', ng-model="playerBeingEdited.realName")
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label {{"GENDER" | translate}}
+            div
+                label.radio-inline {{"Male" | translate}}
+                    input.pull-left.relative(style="margin-right:8px;" type="radio", name="gender",ng-value="true", ng-model="playerBeingEdited.gender")
+                label.radio-inline {{"Female" | translate}}
+                    input.pull-left.relative(style="margin-right:8px;" type="radio", name="gender",ng-value="false", ng-model="playerBeingEdited.gender")
+
+        .form-group.col-md-6
+            label.control-label {{"DOB" | translate}}
+            input.form-control(style='width:calc(100% - 20px);display: inline-block', type="date",name="DOBInput", ng-model="playerBeingEdited.DOB", max="{{today}}")
+            i.margin-left-5.fa.fa-times.text-danger(style='width:10px;', ng-show="form_editing_player.DOBInput.$invalid")
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label {{"PLAYER_LEVEL" | translate}}
+            select.form-control(type="text", ng-model="playerBeingEdited.playerLevel")
+                option(ng-repeat='(i,v) in allPlayerLevel', value='{{v._id}}', ng-selected='v._id == playerBeingEdited.playerLevel') {{v.name}}
+        .form-group.col-md-6
+            label.control-label {{"PARTNER" | translate}}
+            input.partnerValue.form-control(style='width:calc(100% - 20px);display: inline-block', ng-model='playerBeingEdited.partnerName', ng-change="changePartner()")
+            i.partnerValidFalse.margin-left-5.fa.fa-times.text-danger(style='width:10px;display:none')
+            i.partnerValidTrue.margin-left-5.fa.fa-check.text-success(style='width:10px;display:none')
+        //.form-group.col-md-6
+            label.control-label {{"PARTNER" | translate}}
+            label#partnerInEditPlayer.form-control(ng-click='showPartnerTable()') {{partnerObjs[playerBeingEdited.partner].partnerName}}
+                //select.form-control(name="partner", ng-model="playerBeingEdited.partner")
+                    option(value='{{null}}', ng-selected='null==playerBeingEdited.partner') {{'NULL' | translate}}
+                    option(ng-repeat='(i,v) in allPartner', value='{{i}}', ng-selected='i==playerBeingEdited.partner') {{v.partnerName}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label {{"REFERRAL" | translate}}
+            input.referralValue.form-control(style='width:calc(100% - 20px);display: inline-block', ng-model='playerBeingEdited.referralName', ng-change="changeReferral()")
+            i.referralValidFalse.margin-left-5.fa.fa-times.text-danger(style='width:10px;display:none')
+            i.referralValidTrue.margin-left-5.fa.fa-check.text-success(style='width:10px;display:none')
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-12
+            label.control-label {{"ICON" | translate}}
+            img.margin-left-5(ng-if='playerBeingEdited.photoUrl', src="{{playerBeingEdited.photoUrl}}", style='width:40px;height:40px;')
+            br
+            input.form-control(type="text", placeholder='{{"URL" | translate}}', ng-model="playerBeingEdited.photoUrl", style='width:100%;display:inline-block')
+
+
+//.form-group.col-md-6
+    //   label.control-label {{"TELEPHONE" | translate}}
+    //   span.pull-right
+    //      label Change Phone number
+    //         input.pull-left(style='margin-right:5px' type='checkbox' ng-model='vm.changeMobile')
+    //   input.form-control(ng-if='!vm.changeMobile' type="text", placeholder="{{'MOBILE' | translate}}", ng-model="vm.editPlayer.phoneNumber", disabled)
+    //   input.form-control(ng-if='vm.changeMobile' type="text", placeholder="{{'MOBILE' | translate}}",ng-pattern="vm.phonePattern", ng-model="vm.newPhoneNumber")

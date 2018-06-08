@@ -30,9 +30,9 @@ let dbCsOfficer = {
 
     addUrl: (platformId, adminId, domain, way) => {
 
-        let urlExistProm = dbconfig.collection_csOfficerUrl.find({platform: platformId, domain: new RegExp("^" + domain, "i")}).count();
+        let urlExistProm = dbconfig.collection_csOfficerUrl.find({platform: platformId, domain: {$regex: "/^" + domain + "$/i"}}).count();
 
-        urlExistProm.then(
+        return urlExistProm.then(
             urlIsExist => {
                 if (urlIsExist) {
                     return Promise.reject({
@@ -44,12 +44,12 @@ let dbCsOfficer = {
                 let newUrlData = {
                     platform: platformId,
                     admin: adminId,
-                    domain,
-                    way
+                    domain: domain,
+                    way: way
                 };
 
                 let newUrl = dbconfig.collection_csOfficerUrl(newUrlData);
-                return newUrl.save().then(data => data, error => Promise.reject(error));
+                return newUrl.save();
             }
         );
     },
