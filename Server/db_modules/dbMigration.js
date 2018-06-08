@@ -28,6 +28,7 @@ const constSystemParam = require("../const/constSystemParam");
 const md5 = require('md5');
 const dbUtility = require('./../modules/dbutility');
 const mobileDetect = require('mobile-detect');
+const rsaCrypto = require("../modules/rsaCrypto");
 
 var dbMigration = {
 
@@ -1822,6 +1823,9 @@ var dbMigration = {
             parentData => {
                 if (parentData) {
                     data.updateData.parent = parentData._id;
+                }
+                if( data.updateData && data.updateData.phoneNumber ){
+                    data.updateData.phoneNumber = rsaCrypto.encrypt(data.updateData.phoneNumber);
                 }
                 return dbconfig.collection_partner.findOneAndUpdate({
                     _id: partnerObj._id,
