@@ -13542,8 +13542,8 @@ let dbPlayerInfo = {
                         filteredArr = result;
                         filteredArr = filteredArr.filter(e => !(e.hasOwnProperty('csPromoteWay')) || (e.csPromoteWay && e.csPromoteWay == ''));
                     }
-                }else if(query.csOfficer && query.csOfficer.length > 0){
-                    if(query.csOfficer.includes("")){
+                }else if(query.admins && query.admins.length > 0){
+                    if(query.admins.includes("")){
                         filteredArr = result;
                         filteredArr = filteredArr.filter(e => !(e.hasOwnProperty('csOfficer')) || (e.csOfficer && e.csOfficer == ''));
                     }
@@ -13684,8 +13684,8 @@ let dbPlayerInfo = {
                         filteredArr = result;
                         filteredArr = filteredArr.filter(e => !(e.hasOwnProperty('csPromoteWay')) || (e.csPromoteWay && e.csPromoteWay == ''));
                     }
-                }else if(query.csOfficer && query.csOfficer.length > 0){
-                    if(query.csOfficer.includes("")){
+                }else if(query.admins && query.admins.length > 0){
+                    if(query.admins.includes("")){
                         filteredArr = result;
                         filteredArr = filteredArr.filter(e => !(e.hasOwnProperty('csOfficer')) || (e.csOfficer && e.csOfficer == ''));
                     }
