@@ -1896,6 +1896,7 @@
   "ALIWAP": "支付宝wap",
   "QQWAP": "QQwap",
   "FASTPAY": "快捷支付",
+  "WXBARCODE": "微信条码",
   "QQPAYQR": "QQ扫码",
   "UnPayQR": "银联扫码支付",
   "JdPayQR": "京东钱包扫码支付",
