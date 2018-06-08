@@ -11,6 +11,7 @@ let constProviderStatus = require('./../const/constProviderStatus');
 var dbGame = require('./../db_modules/dbGame');
 var cpmsAPI = require("./../externalAPI/cpmsAPI");
 var Q = require("q");
+const errorUtils = require('./../modules/errorUtils');
 
 let mongoose = require('mongoose');
 let ObjectId = mongoose.Types.ObjectId;
@@ -443,7 +444,12 @@ var dbGameProvider = {
             )
         });
 
-        return Promise.all(promArr);
+        return Promise.all(promArr).then(
+            data => {
+                removeDeletedGroupCommissionConfig(platformObjId).catch(errorUtils.reportError);
+                return data;
+            }
+        );
     },
 
     batchCreditTransferOut: (providerObjId, platformObjId, providerId, startDate, endDate, adminName) => {
@@ -555,3 +561,35 @@ proto = Object.assign(proto, dbGameProvider);
 
 // This make WebStorm navigation work
 module.exports = dbGameProvider;
+
+function removeDeletedGroupCommissionConfig (platformObjId) {
+    if (!platformObjId) return;
+    let providerGroups, commissionConfigs;
+
+    let providerGroupsProm = dbconfig.collection_gameProviderGroup.find({platform: platformObjId}, {_id: 1}).lean();
+    let commissionConfigsProm = dbconfig.collection_partnerCommissionConfig.find({platform: platformObjId}, {provider: 1}).lean();
+
+    return Promise.all([providerGroupsProm, commissionConfigsProm]).then(
+        data => {
+            ([providerGroups, commissionConfigs] = data);
+
+            if (!providerGroups && providerGroups.length <= 0) return;
+            if (!commissionConfigs && commissionConfigs.length <= 0) return;
+
+            let providerGroupObjIds = providerGroups.map(providerGroup => {
+                return String(providerGroup._id);
+            });
+
+            let proms = [];
+
+            commissionConfigs.map(commissionConfig => {
+                if (!providerGroupObjIds.includes(String(commissionConfig.provider))) {
+                    let prom = dbconfig.collection_partnerCommissionConfig.remove({_id: commissionConfig._id}, {justOne: true});
+                    proms.push(prom);
+                }
+            });
+
+            return Promise.all(proms);
+        }
+    );
+}

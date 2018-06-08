@@ -504,7 +504,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         '11': 'ALIWAP',
         '12': 'QQWAP',
         '13': 'PCard',
-        '14': 'JDWAP'
+        '14': 'JDWAP',
+        '15': 'WXBARCODE'
     };
     $scope.depositMethod = {
         1: "网银转账(Online Transfer)",

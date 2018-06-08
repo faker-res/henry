@@ -69,18 +69,34 @@ angular.module('myApp.filters', []).
             return items;
         };
     }).
+
+    //no decimal places if whole number
     filter('noRoundTwoDecimalPlaces', function (){
         return function (value) {
-            let splitString =  value.toString().split(".");
-            let tempNum = splitString[0];
-            if (splitString[1]) {
-                tempNum += "." + splitString[1].substr(0,2);
-            }
-            tempNum = tempNum.replace(/,/g,"");
-            return parseFloat(tempNum);
+            // let splitString =  value.toString().split(".");
+            // let tempNum = splitString[0];
+            // if (splitString[1]) {
+            //     tempNum += "." + splitString[1].substr(0,2);
+            // }
+            // tempNum = tempNum.replace(/,/g,"");
+            // return parseFloat(tempNum);
             // return Number.isFinite(parseFloat(value)) ? Math.floor(parseFloat(value) * 100 ) / 100 : value;
+            if (value == undefined || value == null) {
+                return value;
+            }
+            return cutToTwoDecimal(value);
         }
     }).
+
+    filter('noRoundTwoDecimalToFix', function (){
+        return function (value) {
+            if (value == undefined || value == null) {
+                return value;
+            }
+            return cutToTwoDecimal(value).toFixed(2);
+        }
+    }).
+
     filter('roundToTwoDecimalPlacesString', function (){
         return function (value) {
             if (Number.isInteger(value)){
@@ -98,3 +114,14 @@ angular.module('myApp.filters', []).
             }
         }
     });
+
+
+function cutToTwoDecimal (value) {
+    let splitString =  value.toString().split(".");
+    let tempNum = splitString[0];
+    if (splitString[1]) {
+        tempNum += "." + splitString[1].substr(0,2);
+    }
+    tempNum = tempNum.replace(/,/g,"");
+    return parseFloat(tempNum);
+}
