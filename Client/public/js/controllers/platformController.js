@@ -16663,7 +16663,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                         })
-
+                        
                         vm.playerDetailsSummary = data.data;
                         vm.playerDetailsSummary.totalCount = data.data.length;
                         vm.playerDetailsSummary.sumOfManualTopUp = sumOfManualTopUp;

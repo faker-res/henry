@@ -1754,8 +1754,7 @@ let dbPartner = {
                         if(partnerData.bankAccountName){
                             delete updateData.bankAccountName;
                         }
-
-                        // Update partner data
+                        
                         if (updateData.bankAccountName && !partnerData.realName) {
                             if (updateData.bankAccountName.indexOf('*') > -1)
                                 delete updateData.bankAccountName;
