@@ -2954,7 +2954,7 @@ let dbPartner = {
                 if (data.partnerName) {
 
                     //partnerQuery.partnerName = data.partnerName;
-                    return dbconfig.collection_partner.findOne({partnerName: data.partnerName}).then(
+                    return dbconfig.collection_partner.findOne({partnerName: data.partnerName, platform: platformObjId}).then(
                         partner => {
                             if (partner) {
                                 matchObj.partner = partner._id;
@@ -3006,7 +3006,7 @@ let dbPartner = {
     },
 
     getPartnerPlayerBonusReport: function (platform, partnerName, startTime, endTime, index, limit) {
-        return dbconfig.collection_partner.findOne({partnerName: partnerName}).lean().then(
+        return dbconfig.collection_partner.findOne({partnerName: partnerName, platform: platform}).lean().then(
             data => {
                 if (data && data.partnerId && String(data.platform) == String(platform)) {
                     return dbPartner.getPartnerPlayerPaymentReport(data.partnerId, startTime, endTime, index, limit)
