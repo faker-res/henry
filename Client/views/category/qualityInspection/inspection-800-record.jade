@@ -56,26 +56,26 @@ div
 div(style='height:50px')
     table#800RecordTable(style="width: 100%; text-align: center; border: 1px solid;")
         thead(style='background-color:#337ab7;')
-            th(style="width: 40px;")
+            th(style="width: 38px;")
                 input.form-control(type="checkbox", id="selectAll", ng-click="vm.checkUncheckSelectAll()")
                 label(for="selectAll") {{'SELECT_ALL' | translate}}
-            th.col-md-1 {{"EVALUATION_STATUS" | translate}}
+            th(style="width: 38px;") {{"STATUS" | translate}}
             th(style="width: 78.18px;") {{"LIVE800_ACC" | translate}}
-            th(style="width: 78.18px;") {{"Type" | translate}}
+            th(style="width: 40px;") {{"Type" | translate}}
             th(style="width: 77.27px;") {{"TIME" | translate}}
-            th(style="width: 280px;") {{"CONVERSATION_CONTENT" | translate}}
-            th(style="width: 77.27px;") {{"OVERTIME_MARK" | translate}}
-            th(style="width: 77.27px;") {{"EVALUATION_MARK" | translate}}
-            th(style="width: 180px;") {{"EVALUATION_REVIEW" | translate}}
-            th.col-md-1 {{"QUALITY_ASSESSOR" | translate}}
-            th.col-md-1 {{"EVALUATED_TIME" | translate}}
-            th.col-md-1(style="background-color: red") {{"APPEAL_REASON" | translate}}
+            th(style="width: 350px;") {{"CONVERSATION_CONTENT" | translate}}
+            th(style="width: 50.27px;") {{"OVERTIME (+/-)" | translate}}
+            th(style="width: 50.27px;") {{"EVALUATION (+/-)" | translate}}
+            th(style="width: 300px;") {{"EVALUATION_REVIEW" | translate}}
+            th(style="width: 78.18px;") {{"ASSESSOR" | translate}}
+            th(style="width: 77.27px;") {{"EVALUATED_TIME" | translate}}
+            th(style="width: 90px; background-color: red") {{"APPEAL_REASON" | translate}}
         tbody(ng-repeat="conversationform in vm.conversationForm")
             tr(style="border: 1px solid")
-                td.col-md-1(style="width: 40px; border: 1px solid black")
+                td.col-md-1(style="width: 38px; border: 1px solid black")
                     //input.form-control(type="checkbox", value="{{unreadEvaluation.messageId}}", ng-model="unreadEvaluation.isChecked", ng-change="vm.gatherCheckedRecord(unreadEvaluation.isChecked,unreadEvaluation.messageId,unreadEvaluation.appealReason)")
                     input.form-control.batchEdit(type="checkbox", name="rowChecked", value="{{conversationform.messageId}}",ng-click="vm.storeBatchId(conversationform)")
-                td.col-md-1(style="border: 1px solid black;")
+                td.col-md-1(style="width: 38px; border: 1px solid black;")
                     div
                         a(href="" ng-click="vm.rateIt(conversationform)", style="cursor:pointer") {{conversationform.statusName}}
                     div(ng-if='conversationform.editable', style='margin-top:30px;')
@@ -86,25 +86,25 @@ div(style='height:50px')
                         tbody
                             tr(style="text-align:center;color:red")
                                 td(style="width: 78.18px;")
-                                td(style="width: 78.18px;")
+                                td(style="width: 40px;")
                                 td(style="width: 77.27px;")
-                                td(style="width: 280px;") **** 新的对话开始 ****
-                                td(style="width: 77.27px;")
-                                td(style="width: 77.27px;")
-                                td(style="width: 180px;")
-                            tr(ng-repeat="convert in conversationform.conversation", style="border: 1px solid; word-wrap: break-word; background-color:{{conversation.colors}};")
+                                td(style="width: 350px;") **** 新的对话开始 ****
+                                td(style="width: 50.27px;")
+                                td(style="width: 50.27px;")
+                                td(style="width: 300px;")
+                            tr(ng-repeat="convert in conversationform.conversation", style="border: 1px solid; word-wrap: break-word; background-color:{{convert.colors}};")
                                 td(style="width: 78.18px; border: 1px solid black;") {{conversationform.fpmsAcc.adminName}} ({{conversationform.live800Acc.id}})
-                                td(style="width: 78.18px; border: 1px solid black;") {{convert.roleName}}
+                                td(style="width: 40px; border: 1px solid black;") {{convert.roleName}}
                                 td(style="width: 77.27px; border: 1px solid black;") {{convert.displayTime}}
-                                td(style="width: 280px; border: 1px solid black;") {{convert.content}}
-                                td(style="width: 77.27px; border: 1px solid black;")
+                                td(style="width: 350px; border: 1px solid black;") {{convert.content}}
+                                td(style="width: 50.27px; border: 1px solid black;")
                                     input(style="width:45px;",type="number",value="{{convert.timeoutRate}}",readonly="readonly", ng-show="convert.roles==1")
-                                td(style="width: 77.27px; border: 1px solid black;")
+                                td(style="width: 50.27px; border: 1px solid black;")
                                     div(ng-if='conversationform.editable')
                                         input(style="width:45px;",type="number",ng-model="convert.inspectionRate")
                                     div(ng-if='!conversationform.editable')
                                         div(style='text-align:center') {{convert.inspectionRate}}
-                                td(style="width: 180px; border: 1px solid black;")
+                                td(style="width: 300px; border: 1px solid black;")
                                     div(ng-if='conversationform.editable', style="position:relative; bottom:0px;")
                                         div.form-group(ng-show="convert.roles==1")
                                             textarea.form-control(ng-model="convert.review", rows="3")
@@ -112,15 +112,15 @@ div(style='height:50px')
                                         div(style='text-align:center') {{convert.review}}
                             tr(style="text-align:center;color:red")
                                 td(style="width: 78.18px;")
-                                td(style="width: 78.18px;")
+                                td(style="width: 40px;")
                                 td(style="width: 77.27px;")
-                                td(style="width: 250px;") 結束對話:访客关闭对话 ({{conversationform.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
-                                td(style="width: 77.27px;")
-                                td(style="width: 77.27px;")
-                                td(style="width: 180px;")
-                td.col-md-1(style="border: 1px solid black;") {{conversationform.qualityAssessor.adminName}}
-                td.col-md-1(style="border: 1px solid black;") {{conversationform.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
-                td.col-md-1(style="border: 1px solid black;") {{conversationform.appealReason}}
+                                td(style="width: 350px;") 結束對話:访客关闭对话 ({{conversationform.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
+                                td(style="width: 50.27px;")
+                                td(style="width: 50.27px;")
+                                td(style="width: 300px;")
+                td(style="border: 1px solid black; width: 78.18px;") {{conversationform.qualityAssessor.adminName}}
+                td(style="border: 1px solid black; width: 77.27px;") {{conversationform.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
+                td(style="border: 1px solid black; width: 90px;") {{conversationform.appealReason}}
 
     div.row
         div.col-md-12
