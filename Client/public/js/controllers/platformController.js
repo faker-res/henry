@@ -15352,12 +15352,12 @@ define(['js/app'], function (myApp) {
                 if (vm.playerFeedbackQuery.departments) {
                     if (vm.playerFeedbackQuery.roles) {
                         vm.queryRoles.map(e => {
-                            if (vm.playerFeedbackQuery.roles.indexOf(e._id) >= 0) {
+                            if (e._id != "" && (vm.playerFeedbackQuery.roles.indexOf(e._id) >= 0)) {
                                 e.users.map(f => admins.push(f._id))
                             }
                         })
                     } else {
-                        vm.queryRoles.map(e => e.users.map(f => admins.push(f._id)))
+                        vm.queryRoles.map(e => e.users.map(f => {if (f._id != "") {admins.push(f._id)}}))
                     }
                 }
 
@@ -15746,8 +15746,10 @@ define(['js/app'], function (myApp) {
             vm.setQueryRole = (modal) => {
                 vm.queryRoles = [];
 
+                vm.queryRoles.push({_id:'', roleName:'N/A'});
+
                 vm.queryDepartments.map(e => {
-                    if (modal.departments.indexOf(e._id) >= 0) {
+                    if (e._id != "" && (modal.departments.indexOf(e._id) >= 0)) {
                         vm.queryRoles = vm.queryRoles.concat(e.roles);
                     }
                 });
@@ -15758,8 +15760,10 @@ define(['js/app'], function (myApp) {
             vm.setQueryAdmins = (modal) => {
                 vm.queryAdmins = [];
 
+                vm.queryAdmins.push({_id:'', adminName:'N/A'});
+
                 vm.queryRoles.map(e => {
-                    if (modal.roles.indexOf(e._id) >= 0) {
+                    if (e._id != "" && (modal.roles.indexOf(e._id) >= 0)) {
                         vm.queryAdmins = vm.queryAdmins.concat(e.users);
                     }
                 });
@@ -15781,6 +15785,8 @@ define(['js/app'], function (myApp) {
                         let parentId;
                         vm.queryDepartments = [];
                         vm.queryRoles = [];
+
+                        vm.queryDepartments.push({_id:'', departmentName:'N/A'});
 
                         vm.departments.map(e => {
                             if (e.departmentName == vm.selectedPlatform.data.name) {
