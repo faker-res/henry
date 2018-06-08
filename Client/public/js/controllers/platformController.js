@@ -17940,7 +17940,6 @@ define(['js/app'], function (myApp) {
                             partnerCommission: commonService.applyPartnerCustomRate(selectedPartner._id, vm.partnerCommission, vm.customPartnerCommission),
                             commissionSettingTab: vm.commissionSettingTab,
                             playerConsumptionTableHeader: vm.playerConsumptionTableHeader,
-                            activePlayerTableHeader: vm.activePlayerTableHeader,
                             rateAfterRebatePromo: vm.rateAfterRebatePromo,
                             rateAfterRebatePlatform: vm.rateAfterRebatePlatform,
                             rateAfterRebateGameProviderGroup: vm.rateAfterRebateGameProviderGroup,
@@ -17981,6 +17980,8 @@ define(['js/app'], function (myApp) {
                             },
                         }
                     };
+
+                    option.childScope.activePlayerTableHeader = getActivePlayerTableHeader(option.childScope.commissionSettingTab);
 
                     option.childScope.prepareEditPartnerPayment = function () {
                         vm.prepareEditPartnerPayment();
@@ -24935,6 +24936,23 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
+
+            function getActivePlayerTableHeader (commissionSettingTab) {
+                switch (vm.commissionSettingTab) {
+                    case 'DAILY_BONUS_AMOUNT':
+                        return 'DAILY_ACTIVE_PLAYER';
+                    case 'WEEKLY_BONUS_AMOUNT':
+                    case 'WEEKLY_CONSUMPTION':
+                        return 'WEEKLY_ACTIVE_PLAYER';
+                    case 'BIWEEKLY_BONUS_AMOUNT':
+                        return 'HALFMONTH_ACTIVE_PLAYER';
+                    case 'MONTHLY_BONUS_AMOUNT':
+                        return 'MONTHLY_ACTIVE_PLAYER';
+                    default:
+                        return '';
+                }
+            }
+
             vm.selectedCommissionTab = function (tab, partnerObjId) {
                 let isGetConfig = true;
 
