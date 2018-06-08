@@ -4471,7 +4471,8 @@ define(['js/app'], function (myApp) {
         "$timeout",
         '$http',
         'uiGridExporterService',
-        'uiGridExporterConstants'
+        'uiGridExporterConstants',
+        'commonService'
     ];
 
     teleMarketingController.$inject = injectParams;
