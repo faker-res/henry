@@ -235,18 +235,22 @@
                 div
                     label {{"csPromoteWay"|translate}}
                     select.spicker.form-control(ng-model='vm.playerQuery.csPromoteWay', multiple, data-actions-box='true')
+                        option(value="") {{"N/A" | translate}}
                         option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
                 div
                     label {{"REGISTRATION_DEPARTMENT"|translate}}
                     select.spicker.form-control(ng-model='vm.playerQuery.departments', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryRole(vm.playerQuery)")
+                        option(value="") {{"N/A" | translate}}
                         option(ng-repeat='(i,v) in vm.queryDepartments', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.departmentName}}
                 div
                     label {{"REGISTRATION_ROLE"|translate}}
                     select.spicker.form-control(ng-model='vm.playerQuery.roles', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryAdmins(vm.playerQuery)")
+                        option(value="") {{"N/A" | translate}}
                         option(ng-repeat='(i,v) in vm.queryRoles', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.roleName}}
                 div
                     label {{"REGISTRATION_ADMIN"|translate}}
                     select.spicker.form-control(ng-model='vm.playerQuery.admins', multiple, data-actions-box='true' data-width="200px")
+                        option(value="") {{"N/A" | translate}}
                         option(ng-repeat='(i,v) in vm.queryAdmins', value='{{v.adminName}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.adminName}}
                 div
                     label {{"Consumption Times"|translate}}
@@ -838,18 +842,22 @@
                 div
                     label {{"csPromoteWay"|translate}}
                     select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.csPromoteWay', multiple, data-actions-box='true')
+                        option(value="") {{"N/A" | translate}}
                         option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
                 div
                     label {{"REGISTRATION_DEPARTMENT"|translate}}
                     select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.departments', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryRole(vm.dxNewPlayerQuery)")
+                        option(value="") {{"N/A" | translate}}
                         option(ng-repeat='(i,v) in vm.queryDepartments', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.departmentName}}
                 div
                     label {{"REGISTRATION_ROLE"|translate}}
                     select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.roles', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryAdmins(vm.dxNewPlayerQuery)")
+                        option(value="") {{"N/A" | translate}}
                         option(ng-repeat='(i,v) in vm.queryRoles', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.roleName}}
                 div
                     label {{"REGISTRATION_ADMIN"|translate}}
                     select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.admins', multiple, data-actions-box='true' data-width="200px")
+                        option(value="") {{"N/A" | translate}}
                         option(ng-repeat='(i,v) in vm.queryAdmins', value='{{v.adminName}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.adminName}}
                 div
                     label {{"PlayerValue"|translate}}
@@ -982,18 +990,22 @@
                 div
                     label {{"csPromoteWay"|translate}}
                     select.spicker.form-control(ng-model='vm.playerDomain.csPromoteWay', multiple, data-actions-box='true')
+                        option(value="") {{"N/A" | translate}}
                         option(ng-repeat='(i,v) in vm.pdAllPromoteWay', value='{{v.name}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
                 div
                     label {{"REGISTRATION_DEPARTMENT"|translate}}
                     select.spicker.form-control(ng-model='vm.playerDomain.departments', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setPDQueryRole()")
+                        option(value="") {{"N/A" | translate}}
                         option(ng-repeat='(i,v) in vm.pdQueryDepartments', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.departmentName}}
                 div
                     label {{"REGISTRATION_ROLE"|translate}}
                     select.spicker.form-control(ng-model='vm.playerDomain.roles', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setPDQueryAdmins()")
+                        option(value="") {{"N/A" | translate}}
                         option(ng-repeat='(i,v) in vm.pdQueryRoles', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.roleName}}
                 div
                     label {{"REGISTRATION_ADMIN"|translate}}
                     select.spicker.form-control(ng-model='vm.playerDomain.admins', multiple, data-actions-box='true' data-width="200px")
+                        option(value="") {{"N/A" | translate}}
                         option(ng-repeat='(i,v) in vm.pdQueryAdmins', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.adminName}}
                 div
                     label {{"Registration Domain"|translate}}
@@ -1635,21 +1647,21 @@
                             tr(ng-if="vm.realTimeCommissionData[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length > 0", ng-repeat="v in vm.realTimeCommissionData[vm.partnerCommVar.partner].downLinesRawCommissionDetail")
                                 td {{v.name}}
                                 td {{v.realName}}
-                                td {{v.consumptionDetail.consumptionProviderDetail[vm.partnerCommVar.group.groupName].bonusAmount}} {{"/"}} {{v.consumptionDetail.consumptionProviderDetail[vm.partnerCommVar.group.groupName].validAmount}}
+                                td {{v.consumptionDetail.consumptionProviderDetail[vm.partnerCommVar.group.groupName].bonusAmount | noRoundTwoDecimalToFix}} {{"/"}} {{v.consumptionDetail.consumptionProviderDetail[vm.partnerCommVar.group.groupName].validAmount | noRoundTwoDecimalToFix}}
                             tr
                                 td(colspan="2", style="font-weight:bold") {{'Total Consumption' | translate}}
-                                td {{vm.partnerDLCommDetailTotal[vm.partnerCommVar.group.groupName].bonusAmount}} {{'/'}} {{vm.partnerDLCommDetailTotal[vm.partnerCommVar.group.groupName].validAmount}}
+                                td {{vm.partnerDLCommDetailTotal[vm.partnerCommVar.group.groupName].bonusAmount | noRoundTwoDecimalToFix}} {{'/'}} {{vm.partnerDLCommDetailTotal[vm.partnerCommVar.group.groupName].validAmount | noRoundTwoDecimalToFix}}
                             tr
                                 td(colspan="2", style="font-weight:bold") {{'Commission' | translate}} {{' ('}} {{'ACTIVE_DOWNLINES'| translate}} {{': '}} {{vm.realTimeCommissionData[vm.partnerCommVar.partner].activeDownLines}} {{'/'}} {{'RATIO'| translate}} {{': '}}
                                     text.span(ng-style='vm.partnerCommVar.group.isCustomCommissionRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.commissionRate}} {{'%)'}}
-                                td(ng-style='vm.partnerCommVar.group.isCustomCommissionRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.amount}}
+                                td(ng-style='vm.partnerCommVar.group.isCustomCommissionRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.amount | noRoundTwoDecimalToFix}}
                             tr
                                 td(colspan="2", style="font-weight:bold") {{'Platform Fee' | translate}} {{' ('}} {{'RATIO'| translate}} {{': '}}
                                     text.span(ng-style='vm.partnerCommVar.group.isCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.platformFeeRate}} {{'%)'}}
                                 td
-                                    text.span(ng-style='vm.partnerCommVar.group.isCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.platformFee}}
+                                    text.span(ng-style='vm.partnerCommVar.group.isCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.platformFee | noRoundTwoDecimalToFix}}
                                     text.span {{'/'}}
-                                    text.span(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].isAnyCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].totalPlatformFee}}
+                                    text.span(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].isAnyCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].totalPlatformFee | noRoundTwoDecimalToFix}}
 
 #modalRewardFeeTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:100%;')
@@ -1675,26 +1687,26 @@
                             tr(ng-if="vm.realTimeCommissionData[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length > 0", ng-repeat="v in vm.realTimeCommissionData[vm.partnerCommVar.partner].downLinesRawCommissionDetail")
                                 td {{v.name}}
                                 td {{v.realName}}
-                                td {{v.rewardDetail.systemReward}}
-                                td {{v.rewardDetail.manualReward}}
-                                td {{v.rewardDetail.consumptionReturn}}
-                                td {{v.rewardDetail.limitedOffer}}
-                                td {{v.rewardDetail.promoCode}}
-                                td {{v.rewardDetail.pointConversion}}
-                                td {{v.rewardDetail.total}}
+                                td {{v.rewardDetail.systemReward | noRoundTwoDecimalToFix}}
+                                td {{v.rewardDetail.manualReward | noRoundTwoDecimalToFix}}
+                                td {{v.rewardDetail.consumptionReturn | noRoundTwoDecimalToFix}}
+                                td {{v.rewardDetail.limitedOffer | noRoundTwoDecimalToFix}}
+                                td {{v.rewardDetail.promoCode | noRoundTwoDecimalToFix}}
+                                td {{v.rewardDetail.pointConversion | noRoundTwoDecimalToFix}}
+                                td {{v.rewardDetail.total | noRoundTwoDecimalToFix}}
                             tr
                                 td(colspan="2", style="font-weight:bold") {{'Total' | translate}}
-                                td {{vm.partnerDLCommDetailTotal.systemReward}}
-                                td {{vm.partnerDLCommDetailTotal.manualReward}}
-                                td {{vm.partnerDLCommDetailTotal.consumptionReturn}}
-                                td {{vm.partnerDLCommDetailTotal.limitedOffer}}
-                                td {{vm.partnerDLCommDetailTotal.promoCode}}
-                                td {{vm.partnerDLCommDetailTotal.pointConversion}}
-                                td {{vm.partnerDLCommDetailTotal.total}}
+                                td {{vm.partnerDLCommDetailTotal.systemReward | noRoundTwoDecimalToFix}}
+                                td {{vm.partnerDLCommDetailTotal.manualReward | noRoundTwoDecimalToFix}}
+                                td {{vm.partnerDLCommDetailTotal.consumptionReturn | noRoundTwoDecimalToFix}}
+                                td {{vm.partnerDLCommDetailTotal.limitedOffer | noRoundTwoDecimalToFix}}
+                                td {{vm.partnerDLCommDetailTotal.promoCode | noRoundTwoDecimalToFix}}
+                                td {{vm.partnerDLCommDetailTotal.pointConversion | noRoundTwoDecimalToFix}}
+                                td {{vm.partnerDLCommDetailTotal.total | noRoundTwoDecimalToFix}}
                             tr
                                 td(colspan="8", style="font-weight:bold") {{'Reward Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
                                     text.span(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebatePromoIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebatePromo}} {{"%)"}}
-                                td(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebatePromoIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].totalRewardFee}}
+                                td(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebatePromoIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].totalRewardFee | noRoundTwoDecimalToFix}}
 
 #modalTopUpFeeTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:100%;')
@@ -1718,22 +1730,22 @@
                             tr(ng-if="vm.realTimeCommissionData[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length > 0", ng-repeat="v in vm.realTimeCommissionData[vm.partnerCommVar.partner].downLinesRawCommissionDetail")
                                 td {{v.name}}
                                 td {{v.realName}}
-                                td {{v.topUpDetail.manualTopUpAmount}}
-                                td {{v.topUpDetail.onlineTopUpAmount}}
-                                td {{v.topUpDetail.aliPayTopUpAmount}}
-                                td {{v.topUpDetail.weChatTopUpAmount}}
-                                td {{v.topUpDetail.topUpAmount}}
+                                td {{v.topUpDetail.manualTopUpAmount | noRoundTwoDecimalToFix}}
+                                td {{v.topUpDetail.onlineTopUpAmount | noRoundTwoDecimalToFix}}
+                                td {{v.topUpDetail.aliPayTopUpAmount | noRoundTwoDecimalToFix}}
+                                td {{v.topUpDetail.weChatTopUpAmount | noRoundTwoDecimalToFix}}
+                                td {{v.topUpDetail.topUpAmount | noRoundTwoDecimalToFix}}
                             tr
                                 td(colspan="2", style="font-weight:bold") {{'Total' | translate}}
-                                td {{vm.partnerDLCommDetailTotal.manualTopUpAmount}}
-                                td {{vm.partnerDLCommDetailTotal.onlineTopUpAmount}}
-                                td {{vm.partnerDLCommDetailTotal.aliPayTopUpAmount}}
-                                td {{vm.partnerDLCommDetailTotal.weChatTopUpAmount}}
-                                td {{vm.partnerDLCommDetailTotal.topUpAmount}}
+                                td {{vm.partnerDLCommDetailTotal.manualTopUpAmount | noRoundTwoDecimalToFix}}
+                                td {{vm.partnerDLCommDetailTotal.onlineTopUpAmount | noRoundTwoDecimalToFix}}
+                                td {{vm.partnerDLCommDetailTotal.aliPayTopUpAmount | noRoundTwoDecimalToFix}}
+                                td {{vm.partnerDLCommDetailTotal.weChatTopUpAmount | noRoundTwoDecimalToFix}}
+                                td {{vm.partnerDLCommDetailTotal.topUpAmount | noRoundTwoDecimalToFix}}
                             tr
                                 td(colspan="6", style="font-weight:bold") {{'TopUp Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
                                     text.span(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalDepositIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalDeposit}} {{"%)"}}
-                                td(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalDepositIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].totalTopUpFee}}
+                                td(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalDepositIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].totalTopUpFee | noRoundTwoDecimalToFix}}
 
 #modalWithdrawalFeeTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:100%;')
@@ -1753,14 +1765,14 @@
                             tr(ng-if="vm.realTimeCommissionData[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length > 0", ng-repeat="v in vm.realTimeCommissionData[vm.partnerCommVar.partner].downLinesRawCommissionDetail")
                                 td {{v.name}}
                                 td {{v.realName}}
-                                td {{v.withdrawalDetail.withdrawalAmount}}
+                                td {{v.withdrawalDetail.withdrawalAmount | noRoundTwoDecimalToFix}}
                             tr
                                 td(colspan="2", style="font-weight:bold") {{'Total' | translate}}
-                                td {{vm.partnerDLCommDetailTotal.withdrawalAmount}}
+                                td {{vm.partnerDLCommDetailTotal.withdrawalAmount | noRoundTwoDecimalToFix}}
                             tr
                                 td(colspan="2", style="font-weight:bold") {{'Withdrawal Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
                                     text.span(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal}} {{"%)"}}
-                                td(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].totalWithdrawalFee}}
+                                td(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].totalWithdrawalFee | noRoundTwoDecimalToFix}}
 
 #modalActivePlayerTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:100%;')
@@ -1784,9 +1796,9 @@
                                 td {{v.name}}
                                 td {{v.realName}}
                                 td {{v.topUpDetail.topUpTimes}}
-                                td {{v.topUpDetail.topUpAmount}}
+                                td {{v.topUpDetail.topUpAmount | noRoundTwoDecimalToFix}}
                                 td {{v.consumptionDetail.consumptionTimes}}
-                                td {{v.consumptionDetail.validAmount}}
+                                td {{v.consumptionDetail.validAmount | noRoundTwoDecimalToFix}}
 
 
 include ../common-widget/telephone-popover

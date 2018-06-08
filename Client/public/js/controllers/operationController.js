@@ -517,6 +517,8 @@ define(['js/app'], function (myApp) {
         vm.loadProposalAuditQueryData = function (newSearch, callback) {
             var selectedStatus = [];
             vm.proposalTypeUpdated();
+            let totalProposalType = 0;
+            let proposalTypeNames = [];
             // if (vm.proposalStatusSelected) {
             //     vm.proposalStatusSelected.forEach(
             //         status => {
@@ -540,10 +542,20 @@ define(['js/app'], function (myApp) {
                 return;
             }
 
+            totalProposalType = $('select#selectProposalAuditType option').length;
+
+            if (totalProposalType != vm.proposalAuditTypeSelected.length) {
+                vm.allProposalType.filter(item => {
+                    if (vm.proposalAuditTypeSelected.indexOf(item.name) > -1 && proposalTypeNames.indexOf(item.name) < 0) {
+                        proposalTypeNames.push(item.name);
+                    }
+                });
+            }
+
             let sendData = {
                 adminId: authService.adminId,
                 platformId: vm.allPlatformId,
-                type: vm.proposalAuditTypeSelected,
+                type: proposalTypeNames,
                 startDate: startTime.getLocalDate(),
                 endDate: newEndTime,
                 entryType: vm.queryProposalEntryType,
@@ -1456,7 +1468,7 @@ define(['js/app'], function (myApp) {
             console.log("whole data", data);
             vm.newProposalNum = 0;
             vm.blinkAllProposal = false;
-            
+
             var tableData = [];
             $.each(data, function (i, v) {
                 if (v) {
@@ -3221,7 +3233,7 @@ define(['js/app'], function (myApp) {
                     if (window.location.pathname != '/operation') {
                         clearInterval(vm.refreshInterval);
                     }
-                    
+
                     countDown = -1;
                 }
             }, 1000);
