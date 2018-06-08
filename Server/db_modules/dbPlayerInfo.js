@@ -7802,10 +7802,15 @@ let dbPlayerInfo = {
                }
             });
 
-            if (Object.keys(nonePromoteWayQuery) && Object.keys(nonePromoteWayQuery).length > 0) {
+            if ((Object.keys(nonePromoteWayQuery) && Object.keys(nonePromoteWayQuery).length > 0) && promoteWayArr.length > 0) {
                 query.$or = [nonePromoteWayQuery, {promoteWay: {$in: promoteWayArr}}];
-            } else {
+
+            } else if ((Object.keys(nonePromoteWayQuery) && Object.keys(nonePromoteWayQuery).length > 0) && !promoteWayArr.length) {
+                query.promoteWay = {$exists: false};
+
+            } else if (promoteWayArr.length > 0 && !Object.keys(nonePromoteWayQuery).length) {
                 query.promoteWay = {$in: promoteWayArr};
+
             }
         }
 
@@ -7819,10 +7824,15 @@ let dbPlayerInfo = {
                 }
             });
 
-            if (Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0) {
+            if ((Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0) && csOfficerArr.length > 0) {
                 query.$or = [noneCSOfficerQuery, {csOfficer: {$in: csOfficerArr}}];
-            } else {
+
+            } else if ((Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0) && !csOfficerArr.length) {
+                query.csOfficer = {$exists: false};
+
+            } else if (csOfficerArr.length > 0 && !Object.keys(noneCSOfficerQuery).length) {
                 query.csOfficer = {$in: csOfficerArr};
+
             }
 
         }
