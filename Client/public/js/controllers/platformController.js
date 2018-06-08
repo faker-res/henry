@@ -3679,7 +3679,7 @@ define(['js/app'], function (myApp) {
                 vm.platformCreditTransferLog = {};
                 vm.platformCreditTransferLog.isPopup = isPopup === true;
                 vm.platformCreditTransferLog.index = 0;
-                vm.platformCreditTransferLog.limit = 10;
+                vm.platformCreditTransferLog.limit = vm.platformCreditTransferLog && vm.platformCreditTransferLog.limit ? vm.platformCreditTransferLog.limit : 50;
                 utilService.actionAfterLoaded(('#' + panelBody), function () {
                     vm.platformCreditTransferLog.startTime = utilService.createDatePicker('#' + panelBody + ' .startTime');
                     vm.platformCreditTransferLog.endTime = utilService.createDatePicker('#' + panelBody + ' .endTime');
@@ -3701,7 +3701,7 @@ define(['js/app'], function (myApp) {
                     startTime: vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate(),
                     index: newSearch ? 0 : vm.platformCreditTransferLog.index,
-                    limit: newSearch ? 10 : vm.platformCreditTransferLog.limit,
+                    limit: newSearch ? 50 : vm.platformCreditTransferLog.limit,
                     sortCol: vm.platformCreditTransferLog.sortCol
                 };
 
@@ -16663,7 +16663,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                         })
-
+                        
                         vm.playerDetailsSummary = data.data;
                         vm.playerDetailsSummary.totalCount = data.data.length;
                         vm.playerDetailsSummary.sumOfManualTopUp = sumOfManualTopUp;
@@ -17940,7 +17940,6 @@ define(['js/app'], function (myApp) {
                             partnerCommission: commonService.applyPartnerCustomRate(selectedPartner._id, vm.partnerCommission, vm.customPartnerCommission),
                             commissionSettingTab: vm.commissionSettingTab,
                             playerConsumptionTableHeader: vm.playerConsumptionTableHeader,
-                            activePlayerTableHeader: vm.activePlayerTableHeader,
                             rateAfterRebatePromo: vm.rateAfterRebatePromo,
                             rateAfterRebatePlatform: vm.rateAfterRebatePlatform,
                             rateAfterRebateGameProviderGroup: vm.rateAfterRebateGameProviderGroup,
@@ -17981,6 +17980,8 @@ define(['js/app'], function (myApp) {
                             },
                         }
                     };
+
+                    option.childScope.activePlayerTableHeader = getActivePlayerTableHeader(option.childScope.commissionSettingTab);
 
                     option.childScope.prepareEditPartnerPayment = function () {
                         vm.prepareEditPartnerPayment();
@@ -24935,6 +24936,23 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
+
+            function getActivePlayerTableHeader (commissionSettingTab) {
+                switch (vm.commissionSettingTab) {
+                    case 'DAILY_BONUS_AMOUNT':
+                        return 'DAILY_ACTIVE_PLAYER';
+                    case 'WEEKLY_BONUS_AMOUNT':
+                    case 'WEEKLY_CONSUMPTION':
+                        return 'WEEKLY_ACTIVE_PLAYER';
+                    case 'BIWEEKLY_BONUS_AMOUNT':
+                        return 'HALFMONTH_ACTIVE_PLAYER';
+                    case 'MONTHLY_BONUS_AMOUNT':
+                        return 'MONTHLY_ACTIVE_PLAYER';
+                    default:
+                        return '';
+                }
+            }
+
             vm.selectedCommissionTab = function (tab, partnerObjId) {
                 let isGetConfig = true;
 
