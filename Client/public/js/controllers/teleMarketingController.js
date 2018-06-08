@@ -1782,7 +1782,6 @@ define(['js/app'], function (myApp) {
             vm.chosenBankAcc = {};
             socketService.$socket($scope.AppSocket, 'getManualTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
                 vm.existingManualTopup = data.data ? data.data : false;
-                $scope.safeApply();
             });
             // utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
             //     vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerManualTopUp .createTime');
@@ -1790,7 +1789,6 @@ define(['js/app'], function (myApp) {
                 vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerTopUp [name="form_manual_topup"] .createTime');
                 vm.playerManualTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
             });
-            $scope.safeApply();
         };
 
         vm.pickBankCardAcc = function (bankcard) {
@@ -1899,7 +1897,6 @@ define(['js/app'], function (myApp) {
             });
         }
 
-
         //AliPay Top Up
         vm.initPlayerAlipayTopUp = function () {
             vm.getAllAlipaysByAlipayGroup();
@@ -1908,8 +1905,9 @@ define(['js/app'], function (myApp) {
             commonService.resetDropDown('#alipayOption');
             socketService.$socket($scope.AppSocket, 'getAlipayTopUpRequestList', {playerId: vm.selectedSinglePlayer.playerId},
                 data => {
-                    vm.existingAlipayTopup = data.data ? data.data : false;
-                    $scope.safeApply();
+                     $scope.$evalAsync(()=>{
+                         vm.existingAlipayTopup = data.data ? data.data : false;
+                     });
                 });
             vm.alipaysAcc = '';
 
@@ -1919,7 +1917,6 @@ define(['js/app'], function (myApp) {
                 vm.playerAlipayTopUp.createTime = utilService.createDatePicker('#modalPlayerTopUp [name="form_alipay_topup"] .createTime');
                 vm.playerAlipayTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
             });
-            $scope.safeApply();
         };
 
         vm.pickAlipayAcc = function () {
@@ -1936,13 +1933,15 @@ define(['js/app'], function (myApp) {
         vm.getAllAlipaysByAlipayGroup = function () {
             socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroup', {platform: vm.selectedPlatform.data.platformId},
                 data => {
-                    let alipayAccs = data && data.data && data.data.data ? data.data.data : false;
-                    alipayAccs.forEach(alipayAcc=>{
-                        let stateName = $translate(alipayAcc.state == 'DISABLED' ? 'DISABLE' : alipayAcc.state);
-                        alipayAcc.displayText = alipayAcc.accountNumber +' '+ alipayAcc.name + ' (' + stateName+')'
-                    })
-                    vm.allAlipaysAcc = alipayAccs;
-                    $scope.safeApply();
+
+                  $scope.$evalAsync(()=>{
+                      let alipayAccs = data && data.data && data.data.data ? data.data.data : false;
+                      alipayAccs.forEach(alipayAcc=>{
+                          let stateName = $translate(alipayAcc.state == 'DISABLED' ? 'DISABLE' : alipayAcc.state);
+                          alipayAcc.displayText = alipayAcc.accountNumber +' '+ alipayAcc.name + ' (' + stateName+')'
+                      })
+                      vm.allAlipaysAcc = alipayAccs;
+                  });
                 });
         }
 
@@ -2005,8 +2004,9 @@ define(['js/app'], function (myApp) {
             vm.existingWechatPayTopup = null;
             socketService.$socket($scope.AppSocket, 'getWechatPayTopUpRequestList', {playerId: vm.selectedSinglePlayer.playerId},
                 data => {
-                    vm.existingWechatPayTopup = data.data ? data.data : false;
-                    $scope.safeApply();
+                    $scope.$evalAsync(()=>{
+                        vm.existingWechatPayTopup = data.data ? data.data : false;
+                    });
                 });
             vm.wechatpaysAcc = '';
 
@@ -2016,19 +2016,19 @@ define(['js/app'], function (myApp) {
                 vm.playerWechatPayTopUp.createTime = utilService.createDatePicker('#modalPlayerTopUp [name="form_wechatPay_topup"] .createTime');
                 vm.playerWechatPayTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
             });
-            $scope.safeApply();
         };
 
         vm.getAllWechatpaysByWechatpayGroup = function () {
             socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroup', {platform: vm.selectedPlatform.data.platformId},
                 data => {
-                    let wechatAccs = data && data.data && data.data.data ? data.data.data : false;
-                    wechatAccs.forEach(wechatAcc=>{
-                        let stateName = $translate(wechatAcc.state == 'DISABLED' ? 'DISABLE' : wechatAcc.state);
-                        wechatAcc.displayText = (wechatAcc.nickName || '') + ' ' + wechatAcc.accountNumber + ' (' + stateName+')'
-                    })
-                    vm.allWechatpaysAcc = wechatAccs;
-                    $scope.safeApply();
+                  $scope.$evalAsync(()=>{
+                      let wechatAccs = data && data.data && data.data.data ? data.data.data : false;
+                      wechatAccs.forEach(wechatAcc=>{
+                          let stateName = $translate(wechatAcc.state == 'DISABLED' ? 'DISABLE' : wechatAcc.state);
+                          wechatAcc.displayText = (wechatAcc.nickName || '') + ' ' + wechatAcc.accountNumber + ' (' + stateName+')'
+                      })
+                      vm.allWechatpaysAcc = wechatAccs;
+                  });
                 });
         }
 
@@ -2092,7 +2092,6 @@ define(['js/app'], function (myApp) {
                 vm.playerWechatPayTopUp.wechatPayName = wechatpayAcc['name'];
                 vm.playerWechatPayTopUp.wechatPayAccount = wechatpayAcc['accountNumber'];
             }
-            $scope.safeApply();
         };
         //********************************** end of TopUp functions **********************************
 
