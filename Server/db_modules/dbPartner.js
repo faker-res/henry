@@ -6729,6 +6729,7 @@ let dbPartner = {
                         }
                     } else {
                         for (let i = 0; i < commissionData.length; i++) {
+                            if (!commissionData[i].provider) continue;
                             let commissionObj = {
                                 providerGroupId: commissionData[i].provider.providerGroupId ? commissionData[i].provider.providerGroupId : "",
                                 providerGroupName: commissionData[i].provider.name ? commissionData[i].provider.name : ""
@@ -7418,7 +7419,7 @@ let dbPartner = {
         );
     },
 
-    getCrewDepositInfo: (platformId, partnerId, periodCycle, circleTimes) => {
+    getCrewDepositInfo: (platformId, partnerId, periodCycle, circleTimes, playerId) => {
         if (!circleTimes) {
             return {};
         }
@@ -7429,7 +7430,7 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return getPartnerCrewsData(platformId, partnerId).then(
+        return getPartnerCrewsData(platformId, partnerId, playerId).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7451,6 +7452,10 @@ let dbPartner = {
                                 totalDepositAmount += player.depositAmount;
                             })
 
+                            if(playerId && relevantCrews.length <= 0){
+                                relevantCrews = playerDetails
+                            }
+
                             return {
                                 date: startTime,
                                 depositCrewNumber: count,
@@ -7468,7 +7473,7 @@ let dbPartner = {
         );
     },
 
-    getCrewWithdrawInfo: (platformId, partnerId, periodCycle, circleTimes) => {
+    getCrewWithdrawInfo: (platformId, partnerId, periodCycle, circleTimes, playerId) => {
         if (!circleTimes) {
             return {};
         }
@@ -7479,7 +7484,7 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return getPartnerCrewsData(platformId, partnerId).then(
+        return getPartnerCrewsData(platformId, partnerId, playerId).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7500,6 +7505,9 @@ let dbPartner = {
                                 totalWithdrawAmount += player.withdrawAmount;
                             });
 
+                            if(playerId && relevantCrews.length <= 0){
+                                relevantCrews = playerDetails
+                            }
 
                             return {
                                 date: startTime,
@@ -7518,7 +7526,7 @@ let dbPartner = {
         );
     },
 
-    getCrewBetInfo: (platformId, partnerId, periodCycle, circleTimes, providerGroupId) => {
+    getCrewBetInfo: (platformId, partnerId, periodCycle, circleTimes, providerGroupId, playerId) => {
         if (!circleTimes) {
             return {};
         }
@@ -7530,7 +7538,7 @@ let dbPartner = {
         let downLines = [];
         let providerGroup;
 
-        return getPartnerCrewsData(platformId, partnerId).then(
+        return getPartnerCrewsData(platformId, partnerId, playerId).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7564,6 +7572,10 @@ let dbPartner = {
                                 totalValidBet += player.validBet;
                                 totalCrewProfit += player.crewProfit;
                             });
+
+                            if(playerId && relevantCrews.length <= 0){
+                                relevantCrews = playerDetails
+                            }
 
                             return {
                                 date: startTime,
@@ -9025,7 +9037,7 @@ function getCrewsInfo (players, startTime, endTime, activePlayerRequirement, pro
     return Promise.all(playerDetailsProm);
 }
 
-function getPartnerCrewsData (platformId, partnerId) {
+function getPartnerCrewsData (platformId, partnerId, playerId) {
     let platform = {};
     let partner = {};
     let downLines = [];
@@ -9055,12 +9067,23 @@ function getPartnerCrewsData (platformId, partnerId) {
             }
 
             partner = partnerData;
+            if(playerId){
+                return dbconfig.collection_players.find({platform: platform._id, partner: partner._id, playerId: playerId}).lean();
+            }else{
+                return dbconfig.collection_players.find({platform: platform._id, partner: partner._id}).lean();
+            }
 
-            return dbconfig.collection_players.find({platform: platform._id, partner: partner._id}).lean();
         }
     ).then(
         downLineData => {
             if (!downLineData || downLineData.length < 1) {
+                if(playerId){
+                    return Promise.reject({
+                        code: constServerCode.PLAYER_NAME_INVALID,
+                        name: "DataError",
+                        message: "Player not found"
+                    });
+                }
                 downLineData = [];
             }
 
