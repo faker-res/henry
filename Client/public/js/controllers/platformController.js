@@ -15753,6 +15753,26 @@ define(['js/app'], function (myApp) {
                         vm.queryRoles = vm.queryRoles.concat(e.roles);
                     }
                 });
+
+                if (modal && modal.departments && modal.departments.length > 0) {
+                    if (!vm.queryAdmins) {
+                        vm.queryAdmins = [];
+                        vm.queryAdmins.push({_id:'', adminName:'N/A'});
+                    }
+
+                    if (modal.departments.includes("")) {
+                        if (modal && modal.roles && modal.admins) {
+                            modal.roles.push("");
+                            modal.admins.push("");
+                        } else {
+                            modal.roles = [];
+                            modal.admins = [];
+                            modal.roles.push("");
+                            modal.admins.push("");
+                        }
+                    }
+                }
+
                 vm.refreshSPicker();
                 $scope.safeApply();
             };
