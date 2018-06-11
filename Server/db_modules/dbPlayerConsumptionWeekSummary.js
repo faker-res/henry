@@ -192,6 +192,10 @@ var dbPlayerConsumptionWeekSummary = {
         var deferred = Q.defer();
         let isLessAmtAfterOffset = false;
 
+        console.log('JY check eventData:',eventData);
+        console.log('JY check startTime:',startTime);
+        console.log('JY check endTime:',endTime);
+
         var summaryProm = dbconfig.collection_playerConsumptionSummary.find(
             {
                 platformId: platformId,
@@ -210,6 +214,10 @@ var dbPlayerConsumptionWeekSummary = {
 
         Q.all([summaryProm, playerLevelProm, gameTypesProm, platformProm]).spread(
             function (consumptionSummaries, players, allGameTypes, platformData) {
+
+                console.log('JY check consumptionSummaries:',consumptionSummaries);
+                console.log('JY check players:',players);
+
                 if (consumptionSummaries && players) {
                     // Process the data into key map
                     var consumptionSummariesByKey = {};
@@ -291,6 +299,8 @@ var dbPlayerConsumptionWeekSummary = {
                                         thisPlayersConsumptionSummaries.push(consumptionSummary);
                                     }
                                 }
+
+                                console.log('JY check thisPlayersConsumptionSummaries:',thisPlayersConsumptionSummaries);
 
                                 let summaryIds = thisPlayersConsumptionSummaries.map(summary => summary._id);
                                 let spendingAmount = returnAmount < 0.01 ? 0 : returnAmount;
@@ -391,6 +401,8 @@ var dbPlayerConsumptionWeekSummary = {
                                         }
                                     ).then(
                                         rec => {
+                                            console.log('JY check rec:',rec);
+
                                             let totalConsumptionRec = rec && rec.length > 0 ? rec.reduce((a, b) => a + b.validAmount, 0) : 0;
                                             let totalConsumptionSummary = proposalData.data.consumeValidAmount + proposalData.data.totalNonXIMAAmt;
 
@@ -488,6 +500,8 @@ var dbPlayerConsumptionWeekSummary = {
                     if (proms.length > 0) {
                         return Q.all(proms).then(
                             data => {
+                                console.log('JY check data:',data);
+
                                 return data;
                             },
                             err => {
@@ -919,6 +933,9 @@ var dbPlayerConsumptionWeekSummary = {
             summaryDay["$lt"] = settleTime.endTime;
         }
 
+        console.log('JY check event:',event);
+        console.log('JY check summaryDay:',summaryDay);
+
         let summaryProm = dbconfig.collection_playerConsumptionSummary.find(
             {
                 platformId: platformId,
@@ -982,6 +999,8 @@ var dbPlayerConsumptionWeekSummary = {
             function (consumptionSummaries, playerData, allGameTypes, consumptionRecSumm, platformData) {
                 // Why is it that sometimes playerData is not found?
                 // Perhaps the player was requested because he had consumption records, but the player himself has been removed from the system
+
+                console.log('JY check consumptionSummaries:',consumptionSummaries);
 
                 if (consumptionSummaries && playerData) {
                     // Process the data into key map
@@ -1086,6 +1105,9 @@ var dbPlayerConsumptionWeekSummary = {
                         res.playerId = playerData.playerId;
                         res.playerName = playerData.name;
                     }
+
+                    console.log('JY check res:',res);
+
                     return res;
                 } else {
                     //no consumption records
