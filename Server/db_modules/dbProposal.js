@@ -1326,7 +1326,6 @@ var proposal = {
                         }
                     }
                     var queryObj = {
-                        type: {$in: proposalTypesId},
                         createTime: {
                             $gte: startTime,
                             $lt: endTime
@@ -1335,6 +1334,11 @@ var proposal = {
                         noSteps: false,
                         status: constProposalStatus.PENDING
                     };
+
+                    if (proposalTypesId && proposalTypesId.length > 0) {
+                        queryObj.type = {$in: proposalTypesId};
+                    }
+
                     if (relateUser) {
                         queryObj["data.playerName"] = relateUser
                     }
