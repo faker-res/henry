@@ -161,6 +161,18 @@ define([], () => {
             )
         };
 
+        self.getCredibilityRemarks = function ($scope, platformObjId) {
+            return $scope.$socketPromise("getCredibilityRemarks", {platformObjId: platformObjId}).then(data => data.data)
+        };
+
+        self.getPlatformRewardProposal = function ($scope, platformObjId) {
+            return $scope.$socketPromise("getPlatformRewardProposal", {platform: platformObjId}).then(data => data.data)
+        };
+
+        self.getAllPromoCodeUserGroup = function ($scope, platformObjId) {
+            return $scope.$socketPromise("getAllPromoCodeUserGroup", {platformObjId: platformObjId}).then(data => data.data)
+        }
+
         this.updatePageTile = ($translate, pageName, tabName) => {
             window.document.title = $translate(pageName) + "->" + $translate(tabName);
             $(document).one('shown.bs.tab', function (e) {
