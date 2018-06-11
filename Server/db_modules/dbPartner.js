@@ -609,7 +609,9 @@ let dbPartner = {
 
                     return Q.all([a, b, c]);
                 }
-            }, function (err) {
+                deferred.resolve(data);
+            },
+            function (err) {
                 deferred.reject({name: "DBError", message: "Error in getting partner data", error: err})
             }
         ).then(
@@ -625,7 +627,7 @@ let dbPartner = {
                 deferred.resolve(apiData);
             },
             zoneError => {
-                deferred.resolve(apiData);
+                deferred.resolve(false);
             }
         );
         return deferred.promise;
