@@ -230,15 +230,17 @@ var dailyPlatformSettlement = {
                     error: error
                 })
             )
-        ).then(
-            () => dbPlayerRewardPoints.startConvertPlayersRewardPoints().catch(
-                error => Q.reject({
-                    name: "DBError",
-                    message: "Error converting player reward points!",
-                    error: error
-                })
-            )
-        );
+        )
+        // Moved this to independent schedule
+        // .then(
+        //     () => dbPlayerRewardPoints.startConvertPlayersRewardPoints().catch(
+        //         error => Q.reject({
+        //             name: "DBError",
+        //             message: "Error converting player reward points!",
+        //             error: error
+        //         })
+        //     )
+        // );
         //reward task unlock logic is updated so no need this settlement any more
         //     .then(
         //     //check player reward task status
