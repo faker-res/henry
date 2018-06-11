@@ -463,7 +463,6 @@ let dbPlayerRewardPoints = {
                 if (dbUtil.isFirstDayOfYearSG()) {
                     queryObj.$or.push({"intervalPeriod": constRewardPointsPeriod.Yearly});
                 }
-                console.log("queryObj",queryObj);
                 //Get platform ids from rewardPointsLvlConfig, ignore platform without rewardPointsLvlConfig.
                 return dbConfig.collection_rewardPointsLvlConfig.find(queryObj).populate({
                     path: 'platformObjId',
@@ -534,99 +533,101 @@ let dbPlayerRewardPoints = {
     autoConvertPlayerRewardPoints: (playerObjIds) => {
         let proms = [];
 
-        playerObjIds.forEach(
-            playerObjId => {
-                let playerInfo, platformData, playerLvlRewardPointsConfig, playerRewardPoints, rewardPointsProposalType,
-                    isRewardPointsConfigSet = true;
-                proms.push(
-                    dbConfig.collection_players.findOne({
-                        _id: playerObjId
-                    }).populate({
-                        path: "platform",
-                        model: dbConfig.collection_platform
-                    }).lean().then(
-                        player => {
-                            playerInfo = player;
-                            platformData = player.platform;
-                            return dbConfig.collection_proposalType.findOne({
-                                platformId: platformData._id,
-                                name: constProposalType.PLAYER_AUTO_CONVERT_REWARD_POINTS
-                            }).lean();
-                        }
-                    ).then(
-                        proposalType => {
-                            rewardPointsProposalType = proposalType;
-                            if (!rewardPointsProposalType) {
-                                console.log("ERROR: player_convertRewardPoints failed for player", playerInfo.name, "can not find proposal type for reward points");
+        if (playerObjIds && playerObjIds.length) {
+            playerObjIds.forEach(
+                playerObjId => {
+                    let playerInfo = {}, platformData, playerLvlRewardPointsConfig, playerRewardPoints, rewardPointsProposalType,
+                        isRewardPointsConfigSet = true;
+                    proms.push(
+                        dbConfig.collection_players.findOne({
+                            _id: playerObjId
+                        }).populate({
+                            path: "platform",
+                            model: dbConfig.collection_platform
+                        }).lean().then(
+                            player => {
+                                playerInfo = player;
+                                platformData = player.platform;
+                                return dbConfig.collection_proposalType.findOne({
+                                    platformId: platformData._id,
+                                    name: constProposalType.PLAYER_AUTO_CONVERT_REWARD_POINTS
+                                }).lean();
                             }
-                            return dbRewardPointsLvlConfig.getRewardPointsLvlConfig(playerInfo.platform._id).lean();
-                        }
-                    ).then(
-                        rewardPointsLvlConfig => {
-                            playerLvlRewardPointsConfig = rewardPointsLvlConfig.params.filter(playerLvlConfig => playerLvlConfig.levelObjId.toString() == playerInfo.playerLevel.toString())[0];
-                            if (!(playerLvlRewardPointsConfig && playerLvlRewardPointsConfig.pointToCreditAutoRate &&
-                                    playerLvlRewardPointsConfig.pointToCreditAutoMaxPoints && playerLvlRewardPointsConfig.spendingAmountOnReward)) {
-                                isRewardPointsConfigSet = false;
-                                console.log("ERROR: player_convertRewardPoints failed for player", playerInfo.name, "reward points config for player level no config");
+                        ).then(
+                            proposalType => {
+                                rewardPointsProposalType = proposalType;
+                                if (!rewardPointsProposalType) {
+                                    console.log("ERROR: player_convertRewardPoints failed for player", playerInfo.name, "can not find proposal type for reward points");
+                                }
+                                return dbRewardPointsLvlConfig.getRewardPointsLvlConfig(playerInfo.platform._id).lean();
                             }
-                            return dbConfig.collection_rewardPoints.findOne({
-                                playerObjId: playerInfo._id
-                            }).lean();
-                        }
-                    ).then(
-                        rewardPoints => {
-                            //Player no rewardPoints, do nothing
-                            if (rewardPoints && isRewardPointsConfigSet && rewardPointsProposalType) {
-                                playerRewardPoints = rewardPoints;
-                                let convertRewardPoints = playerRewardPoints.points > playerLvlRewardPointsConfig.pointToCreditAutoMaxPoints ? playerLvlRewardPointsConfig.pointToCreditAutoMaxPoints : playerRewardPoints.points;
-                                let convertCredit = Math.floor(convertRewardPoints / playerLvlRewardPointsConfig.pointToCreditAutoRate);
-                                let spendingAmount = convertCredit * playerLvlRewardPointsConfig.spendingAmountOnReward;
-                                let proposalData = {
-                                    type: rewardPointsProposalType._id,
-                                    creator: {type: 'system', name: "system"},
-                                    data: {
-                                        playerObjId: playerInfo._id,
-                                        playerId: playerInfo.playerId,
-                                        playerRewardPointsObjId: playerRewardPoints._id,
-                                        playerName: playerInfo.name,
-                                        realName: playerInfo.realName,
-                                        platformObjId: playerInfo.platform._id,
-                                        beforeRewardPoints: playerRewardPoints.points,
-                                        afterRewardPoints: 0,
-                                        convertedRewardPoints: playerRewardPoints.points, //use all player reward points, for changePlayerRewardPoint
-                                        convertCredit: convertCredit,
-                                        rewardAmount: convertCredit,
-                                        spendingAmount: spendingAmount,
-                                        providerGroup: playerLvlRewardPointsConfig.providerGroup,
-                                        rewardPointsConvertCategory: constRewardPointsLogCategory.PERIOD_POINT_CONVERSION,
-                                        exchangeRatio: playerLvlRewardPointsConfig.pointToCreditAutoRate + ":1",
-                                        currentDayAppliedAmount: 0,
-                                        maxDayApplyAmount: playerLvlRewardPointsConfig.pointToCreditAutoMaxPoints
-                                    },
-                                    inputDevice: constPlayerRegistrationInterface.BACKSTAGE,
-                                };
+                        ).then(
+                            rewardPointsLvlConfig => {
+                                playerLvlRewardPointsConfig = rewardPointsLvlConfig.params.filter(playerLvlConfig => playerLvlConfig.levelObjId.toString() == playerInfo.playerLevel.toString())[0];
+                                if (!(playerLvlRewardPointsConfig && playerLvlRewardPointsConfig.pointToCreditAutoRate &&
+                                        playerLvlRewardPointsConfig.pointToCreditAutoMaxPoints && playerLvlRewardPointsConfig.spendingAmountOnReward)) {
+                                    isRewardPointsConfigSet = false;
+                                    console.log("ERROR: player_convertRewardPoints failed for player", playerInfo.name, "reward points config for player level no config");
+                                }
+                                return dbConfig.collection_rewardPoints.findOne({
+                                    playerObjId: playerInfo._id
+                                }).lean();
+                            }
+                        ).then(
+                            rewardPoints => {
+                                //Player no rewardPoints, do nothing
+                                if (rewardPoints && isRewardPointsConfigSet && rewardPointsProposalType) {
+                                    playerRewardPoints = rewardPoints;
+                                    let convertRewardPoints = playerRewardPoints.points > playerLvlRewardPointsConfig.pointToCreditAutoMaxPoints ? playerLvlRewardPointsConfig.pointToCreditAutoMaxPoints : playerRewardPoints.points;
+                                    let convertCredit = Math.floor(convertRewardPoints / playerLvlRewardPointsConfig.pointToCreditAutoRate);
+                                    let spendingAmount = convertCredit * playerLvlRewardPointsConfig.spendingAmountOnReward;
+                                    let proposalData = {
+                                        type: rewardPointsProposalType._id,
+                                        creator: {type: 'system', name: "system"},
+                                        data: {
+                                            playerObjId: playerInfo._id,
+                                            playerId: playerInfo.playerId,
+                                            playerRewardPointsObjId: playerRewardPoints._id,
+                                            playerName: playerInfo.name,
+                                            realName: playerInfo.realName,
+                                            platformObjId: playerInfo.platform._id,
+                                            beforeRewardPoints: playerRewardPoints.points,
+                                            afterRewardPoints: 0,
+                                            convertedRewardPoints: playerRewardPoints.points, //use all player reward points, for changePlayerRewardPoint
+                                            convertCredit: convertCredit,
+                                            rewardAmount: convertCredit,
+                                            spendingAmount: spendingAmount,
+                                            providerGroup: playerLvlRewardPointsConfig.providerGroup,
+                                            rewardPointsConvertCategory: constRewardPointsLogCategory.PERIOD_POINT_CONVERSION,
+                                            exchangeRatio: playerLvlRewardPointsConfig.pointToCreditAutoRate + ":1",
+                                            currentDayAppliedAmount: 0,
+                                            maxDayApplyAmount: playerLvlRewardPointsConfig.pointToCreditAutoMaxPoints
+                                        },
+                                        inputDevice: constPlayerRegistrationInterface.BACKSTAGE,
+                                    };
 
-                                return dbProposal.createProposalWithTypeId(rewardPointsProposalType._id, proposalData).then(
-                                    data => {
-                                        //minus from RP
-                                        dbPlayerRewardPoints.changePlayerRewardPoint(playerInfo._id, playerInfo.platform._id, -convertRewardPoints,
-                                            constRewardPointsLogCategory.PERIOD_POINT_CONVERSION, null, constPlayerRegistrationInterface.BACKSTAGE, "system");
-                                        return data;
-                                    },
-                                    err => {return Q.reject(err);}
-                                );
+                                    return dbProposal.createProposalWithTypeId(rewardPointsProposalType._id, proposalData).then(
+                                        data => {
+                                            //minus from RP
+                                            dbPlayerRewardPoints.changePlayerRewardPoint(playerInfo._id, playerInfo.platform._id, -convertRewardPoints,
+                                                constRewardPointsLogCategory.PERIOD_POINT_CONVERSION, null, constPlayerRegistrationInterface.BACKSTAGE, "system");
+                                            return data;
+                                        },
+                                        err => {return Q.reject(err);}
+                                    );
+                                }
+                                return rewardPoints;
                             }
-                            return rewardPoints;
-                        }
-                    ).catch(
-                        error => {
-                            // System log when timeout / error
-                            console.log("ERROR: player_convertRewardPoints failed for player", playerInfo.name, error);
-                        }
-                    )
-                );
-            }
-        );
+                        ).catch(
+                            error => {
+                                // System log when timeout / error
+                                console.log("ERROR: player_convertRewardPoints failed for player", playerInfo ? playerInfo.name : playerObjId, error);
+                            }
+                        )
+                    );
+                }
+            );
+        }
 
         return Q.all(proms);
     }
