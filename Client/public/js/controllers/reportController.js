@@ -1040,6 +1040,20 @@ define(['js/app'], function (myApp) {
                 }
             });
 
+            if (modal && modal.departments && modal.departments.length > 0) {
+                if (modal.departments.includes("")) {
+                    if (modal && modal.roles && modal.admins) {
+                        modal.roles.push("");
+                        modal.admins.push("");
+                    } else {
+                        modal.roles = [];
+                        modal.admins = [];
+                        modal.roles.push("");
+                        modal.admins.push("");
+                    }
+                }
+            }
+
             endLoadMultipleSelect('.spicker');
             $scope.safeApply();
         };
@@ -1065,6 +1079,20 @@ define(['js/app'], function (myApp) {
                     vm.pdQueryRoles = vm.pdQueryRoles.concat(e.roles);
                 }
             });
+
+            if (vm.playerDomain && vm.playerDomain.departments && vm.playerDomain.departments.length > 0) {
+                if (vm.playerDomain.departments.includes("")) {
+                    if (vm.playerDomain && vm.playerDomain.roles && vm.playerDomain.admins) {
+                        vm.playerDomain.roles.push("");
+                        vm.playerDomain.admins.push("");
+                    } else {
+                        vm.playerDomain.roles = [];
+                        vm.playerDomain.admins = [];
+                        vm.playerDomain.roles.push("");
+                        vm.playerDomain.admins.push("");
+                    }
+                }
+            }
 
             endLoadMultipleSelect('.spicker');
             $scope.safeApply();

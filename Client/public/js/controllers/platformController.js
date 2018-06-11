@@ -853,8 +853,8 @@ define(['js/app'], function (myApp) {
                 ] = await Promise.all([
                     commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
-                    commonService.getAllAlipaysByAlipayGroup($scope, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
-                    commonService.getAllWechatpaysByWechatpayGroup($scope, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
+                    commonService.getAllAlipaysByAlipayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
+                    commonService.getAllWechatpaysByWechatpayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
                     commonService.getBankTypeList($scope).catch(err => Promise.resolve({})),
                     commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -14346,6 +14346,7 @@ define(['js/app'], function (myApp) {
             vm.initPlayerAlipayTopUp = function () {
                 vm.playerAlipayTopUp = {submitted: false};
                 vm.existingAlipayTopup = null;
+                commonService.resetDropDown('#alipayOption');
 
                 socketService.$socket($scope.AppSocket, 'getAlipayTopUpRequestList', {playerId: vm.selectedSinglePlayer.playerId},
                     data => {
@@ -14418,6 +14419,8 @@ define(['js/app'], function (myApp) {
             vm.initPlayerWechatPayTopUp = function () {
                 vm.playerWechatPayTopUp = {submitted: false, notUseQR: "true"};
                 vm.existingWechatPayTopup = null;
+                commonService.resetDropDown('#wechatpayOption');
+
                 socketService.$socket($scope.AppSocket, 'getWechatPayTopUpRequestList', {playerId: vm.selectedSinglePlayer.playerId},
                     data => {
                         vm.existingWechatPayTopup = data.data ? data.data : false;
@@ -15758,6 +15761,26 @@ define(['js/app'], function (myApp) {
                         vm.queryRoles = vm.queryRoles.concat(e.roles);
                     }
                 });
+
+                if (modal && modal.departments && modal.departments.length > 0) {
+                    if (!vm.queryAdmins) {
+                        vm.queryAdmins = [];
+                        vm.queryAdmins.push({_id:'', adminName:'N/A'});
+                    }
+
+                    if (modal.departments.includes("")) {
+                        if (modal && modal.roles && modal.admins) {
+                            modal.roles.push("");
+                            modal.admins.push("");
+                        } else {
+                            modal.roles = [];
+                            modal.admins = [];
+                            modal.roles.push("");
+                            modal.admins.push("");
+                        }
+                    }
+                }
+
                 vm.refreshSPicker();
                 $scope.safeApply();
             };
@@ -19122,7 +19145,7 @@ define(['js/app'], function (myApp) {
                 vm.playerAlipayTopUp.alipayName = '';
                 vm.playerAlipayTopUp.alipayAccount = '';
                 if (vm.alipaysAcc != '') {
-                    var alipayAcc = JSON.parse(vm.alipaysAcc);
+                    var alipayAcc = vm.alipaysAcc;
                     vm.playerAlipayTopUp.alipayName = alipayAcc['name'];
                     vm.playerAlipayTopUp.alipayAccount = alipayAcc['accountNumber'];
                 }
@@ -19181,7 +19204,7 @@ define(['js/app'], function (myApp) {
                 vm.playerWechatPayTopUp.wechatPayName = '';
                 vm.playerWechatPayTopUp.wechatPayAccount = '';
                 if (vm.wechatpaysAcc != '') {
-                    var wechatpayAcc = JSON.parse(vm.wechatpaysAcc);
+                    var wechatpayAcc = vm.wechatpaysAcc;
                     vm.playerWechatPayTopUp.wechatPayName = wechatpayAcc['name'];
                     vm.playerWechatPayTopUp.wechatPayAccount = wechatpayAcc['accountNumber'];
                 }

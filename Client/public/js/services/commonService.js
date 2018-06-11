@@ -36,14 +36,28 @@ define([], () => {
             }).then(data => data.data)
         };
 
-        self.getAllAlipaysByAlipayGroup = ($scope, platformObjId) => {
+        self.getAllAlipaysByAlipayGroup = ($scope, $translate, platformObjId) => {
             return $scope.$socketPromise('getAllAlipaysByAlipayGroup', {platform: platformObjId})
-                .then(data => data && data.data && data.data.data ? data.data.data : false)
+                .then(data=>{
+                    let alipayAccs = data && data.data && data.data.data ? data.data.data : false;
+                    alipayAccs.forEach(alipayAcc=>{
+                        let stateName = $translate(alipayAcc.state == 'DISABLED' ? 'DISABLE' : alipayAcc.state);
+                        alipayAcc.displayText = alipayAcc.accountNumber +' '+ alipayAcc.name + ' (' + stateName+')'
+                    })
+                    return alipayAccs
+                })
         };
 
-        self.getAllWechatpaysByWechatpayGroup = ($scope, platformObjId) => {
+        self.getAllWechatpaysByWechatpayGroup = ($scope, $translate, platformObjId) => {
             return $scope.$socketPromise('getAllWechatpaysByWechatpayGroup', {platform: platformObjId})
-                .then(data => data && data.data && data.data.data ? data.data.data : false)
+                .then(data=>{
+                    let wechatAccs = data && data.data && data.data.data ? data.data.data : false;
+                    wechatAccs.forEach(wechatAcc=>{
+                        let stateName = $translate(wechatAcc.state == 'DISABLED' ? 'DISABLE' : wechatAcc.state);
+                        wechatAcc.displayText = (wechatAcc.nickName || '') + ' ' + wechatAcc.accountNumber + ' (' + stateName+')'
+                    })
+                    return wechatAccs;
+                })
         };
 
         self.getAllBankCard = ($scope, $translate, platformObjId, allBankTypeList) => {
@@ -159,6 +173,10 @@ define([], () => {
                     return [allGameProviders, gameProvidersList];
                 }
             )
+        };
+
+        self.resetDropDown = function(el){
+            $(el).val('').selectpicker("refresh");
         };
 
         self.getCredibilityRemarks = function ($scope, platformObjId) {

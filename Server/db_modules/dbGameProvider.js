@@ -446,7 +446,9 @@ var dbGameProvider = {
 
         return Promise.all(promArr).then(
             data => {
-                removeDeletedGroupCommissionConfig(platformObjId).catch(errorUtils.reportError);
+                ['1', '2', '3', '4', '5'].map(commissionType => {
+                    removeDeletedGroupCommissionConfig(platformObjId, commissionType).catch(errorUtils.reportError);
+                });
                 return data;
             }
         );
@@ -562,12 +564,12 @@ proto = Object.assign(proto, dbGameProvider);
 // This make WebStorm navigation work
 module.exports = dbGameProvider;
 
-function removeDeletedGroupCommissionConfig (platformObjId) {
+function removeDeletedGroupCommissionConfig (platformObjId, commissionType) {
     if (!platformObjId) return;
     let providerGroups, commissionConfigs;
 
     let providerGroupsProm = dbconfig.collection_gameProviderGroup.find({platform: platformObjId}, {_id: 1}).lean();
-    let commissionConfigsProm = dbconfig.collection_partnerCommissionConfig.find({platform: platformObjId}, {provider: 1}).lean();
+    let commissionConfigsProm = dbconfig.collection_partnerCommissionConfig.find({platform: platformObjId, partner: {$exists: false}, commissionType: commissionType}, {provider: 1}).lean();
 
     return Promise.all([providerGroupsProm, commissionConfigsProm]).then(
         data => {
@@ -580,12 +582,15 @@ function removeDeletedGroupCommissionConfig (platformObjId) {
                 return String(providerGroup._id);
             });
 
+            let existedProvider = [];
             let proms = [];
 
             commissionConfigs.map(commissionConfig => {
-                if (!providerGroupObjIds.includes(String(commissionConfig.provider))) {
+                if (!providerGroupObjIds.includes(String(commissionConfig.provider)) || existedProvider.includes(String(commissionConfig.provider))) {
                     let prom = dbconfig.collection_partnerCommissionConfig.remove({_id: commissionConfig._id}, {justOne: true});
                     proms.push(prom);
+                } else {
+                    existedProvider.push(String(commissionConfig.provider));
                 }
             });
 

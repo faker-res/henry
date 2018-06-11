@@ -329,7 +329,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice, playerName, inputData, isPartner) {
+    sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice, playerName, inputData, isPartner, partnerObjId) {
         let lastMin = moment().subtract(1, 'minutes');
         let channel = null;
         let platformObjId = null;
@@ -419,8 +419,8 @@ const dbPlayerMail = {
                     }
 
                     let getPartnerProm = [];
-                    if (isPartner && purpose != constSMSPurpose.PARTNER_REGISTRATION) {
-                        getPartnerProm = dbconfig.collection_partner.findOne({partnerName: playerName}).lean();
+                    if (isPartner && !playerName && partnerObjId) {
+                        getPartnerProm = dbconfig.collection_partner.findOne({_id: partnerObjId}).lean();
                     }
 
 
