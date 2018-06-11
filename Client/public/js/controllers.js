@@ -1406,10 +1406,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         // Get API server status response
         $scope.AppSocket.on('_getAPIServerStatus', function (data) {
             if (($scope.serverStatus.server != $scope.AppSocket.connected) || ($scope.serverStatus.cpServer != data.cpms) || ($scope.serverStatus.pServer != data.pms)) {
-                $scope.serverStatus.server = $scope.AppSocket.connected;
-                $scope.serverStatus.cpServer = data.cpms;
-                $scope.serverStatus.pServer = data.pms;
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    $scope.serverStatus.server = $scope.AppSocket.connected;
+                    $scope.serverStatus.cpServer = data.cpms;
+                    $scope.serverStatus.pServer = data.pms;
+                })
             }
         });
 
