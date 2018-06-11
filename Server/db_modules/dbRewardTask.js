@@ -1396,7 +1396,12 @@ const dbRewardTask = {
                 if (res) {
                     if (res.remainingCurConsumption) {
                         // RTG has fulfilled, if there's amount overflowed, add to free amount consumption
-                        dbRewardTaskGroup.addRemainingConsumptionToFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime, res.remainingCurConsumption);
+                        dbRewardTaskGroup.addRemainingConsumptionToFreeAmountRewardTaskGroup(
+                            consumptionRecord.platformId,
+                            consumptionRecord.playerId,
+                            createTime,
+                            res.remainingCurConsumption
+                        ).catch(errorUtils.reportError);
                         // Assume overflow amount is valid for consumption return
                         nonDirtyAmount = res.remainingCurConsumption;
                     }
