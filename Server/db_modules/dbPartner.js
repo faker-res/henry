@@ -1750,8 +1750,12 @@ let dbPartner = {
             ).then(
                 isVerified => {
                     if (isVerified) {
-                        // Update partner data
-                        if (updateData.bankAccountName && updateData.bankAccountName != partnerData.realName) {
+
+                        if(partnerData.bankAccountName){
+                            delete updateData.bankAccountName;
+                        }
+                        
+                        if (updateData.bankAccountName && !partnerData.realName) {
                             if (updateData.bankAccountName.indexOf('*') > -1)
                                 delete updateData.bankAccountName;
                             else
@@ -2951,7 +2955,7 @@ let dbPartner = {
                 if (data.partnerName) {
 
                     //partnerQuery.partnerName = data.partnerName;
-                    return dbconfig.collection_partner.findOne({partnerName: data.partnerName}).then(
+                    return dbconfig.collection_partner.findOne({partnerName: data.partnerName, platform: platformObjId}).then(
                         partner => {
                             if (partner) {
                                 matchObj.partner = partner._id;
@@ -3003,7 +3007,7 @@ let dbPartner = {
     },
 
     getPartnerPlayerBonusReport: function (platform, partnerName, startTime, endTime, index, limit) {
-        return dbconfig.collection_partner.findOne({partnerName: partnerName}).lean().then(
+        return dbconfig.collection_partner.findOne({partnerName: partnerName, platform: platform}).lean().then(
             data => {
                 if (data && data.partnerId && String(data.platform) == String(platform)) {
                     return dbPartner.getPartnerPlayerPaymentReport(data.partnerId, startTime, endTime, index, limit)
@@ -6278,11 +6282,11 @@ let dbPartner = {
                 providerGroupConsumptionData = getTotalPlayerConsumptionByProviderGroupName(downLinesRawCommissionDetail, providerGroups);
 
                 commissionRateTables.map(groupRate => {
-                    commissionRates[groupRate.groupName] = getCommissionRate(groupRate.rateTable, providerGroupConsumptionData[groupRate.groupName].validAmount, activeDownLines);
-
                     let totalConsumption = commissionType === constPartnerCommissionType.WEEKLY_CONSUMPTION
                         ? providerGroupConsumptionData[groupRate.groupName].validAmount
                         : -providerGroupConsumptionData[groupRate.groupName].bonusAmount;
+
+                    commissionRates[groupRate.groupName] = getCommissionRate(groupRate.rateTable, totalConsumption, activeDownLines);
 
                     let platformFeeRateData = {};
 
@@ -6725,6 +6729,7 @@ let dbPartner = {
                         }
                     } else {
                         for (let i = 0; i < commissionData.length; i++) {
+                            if (!commissionData[i].provider) continue;
                             let commissionObj = {
                                 providerGroupId: commissionData[i].provider.providerGroupId ? commissionData[i].provider.providerGroupId : "",
                                 providerGroupName: commissionData[i].provider.name ? commissionData[i].provider.name : ""
@@ -7414,7 +7419,7 @@ let dbPartner = {
         );
     },
 
-    getCrewDepositInfo: (platformId, partnerId, periodCycle, circleTimes) => {
+    getCrewDepositInfo: (platformId, partnerId, periodCycle, circleTimes, playerId) => {
         if (!circleTimes) {
             return {};
         }
@@ -7425,7 +7430,7 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return getPartnerCrewsData(platformId, partnerId).then(
+        return getPartnerCrewsData(platformId, partnerId, playerId).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7447,6 +7452,10 @@ let dbPartner = {
                                 totalDepositAmount += player.depositAmount;
                             })
 
+                            if(playerId && relevantCrews.length <= 0){
+                                relevantCrews = playerDetails
+                            }
+
                             return {
                                 date: startTime,
                                 depositCrewNumber: count,
@@ -7464,7 +7473,7 @@ let dbPartner = {
         );
     },
 
-    getCrewWithdrawInfo: (platformId, partnerId, periodCycle, circleTimes) => {
+    getCrewWithdrawInfo: (platformId, partnerId, periodCycle, circleTimes, playerId) => {
         if (!circleTimes) {
             return {};
         }
@@ -7475,7 +7484,7 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return getPartnerCrewsData(platformId, partnerId).then(
+        return getPartnerCrewsData(platformId, partnerId, playerId).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7496,6 +7505,9 @@ let dbPartner = {
                                 totalWithdrawAmount += player.withdrawAmount;
                             });
 
+                            if(playerId && relevantCrews.length <= 0){
+                                relevantCrews = playerDetails
+                            }
 
                             return {
                                 date: startTime,
@@ -7514,7 +7526,7 @@ let dbPartner = {
         );
     },
 
-    getCrewBetInfo: (platformId, partnerId, periodCycle, circleTimes, providerGroupId) => {
+    getCrewBetInfo: (platformId, partnerId, periodCycle, circleTimes, providerGroupId, playerId) => {
         if (!circleTimes) {
             return {};
         }
@@ -7526,7 +7538,7 @@ let dbPartner = {
         let downLines = [];
         let providerGroup;
 
-        return getPartnerCrewsData(platformId, partnerId).then(
+        return getPartnerCrewsData(platformId, partnerId, playerId).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7560,6 +7572,10 @@ let dbPartner = {
                                 totalValidBet += player.validBet;
                                 totalCrewProfit += player.crewProfit;
                             });
+
+                            if(playerId && relevantCrews.length <= 0){
+                                relevantCrews = playerDetails
+                            }
 
                             return {
                                 date: startTime,
@@ -7734,60 +7750,60 @@ let dbPartner = {
                     }
                 }
 
-                return dbconfig.collection_proposal.find(proposalQuery).lean();
+                return dbPropUtil.getProposalDataOfType(platformObj._id, constProposalType.SETTLE_PARTNER_COMMISSION, proposalQuery);
             }
         ).then(
             proposalData => {
-                if (!(proposalData && proposalData.length)) {
-                    return Promise.reject({name: "DBError", message: 'Cannot find proposal'});
-                }
                 let returnData = [];
-                for (let i = 0; i < proposalData.length; i++) {
-                    let commissionPeriod;
-                    let totalProviderFee = 0;
-                    let totalCommission = 0;
-                    if (proposalData[i].data) {
-                        if (proposalData[i].data.startTime && proposalData[i].data.endTime) {
-                            proposalData[i].data.endTime = new Date(proposalData[i].data.endTime.setSeconds(proposalData[i].data.endTime.getSeconds() - 1));
-                            commissionPeriod = proposalData[i].data.startTime.toISOString() + " ~ " + proposalData[i].data.endTime.toISOString();
-                        }
-                    }
-                    let returnObj = {
-                        proposalId: proposalData[i].proposalId? proposalData[i].proposalId: "",
-                        status: proposalData[i].status? proposalData[i].status: "",
-                        proposalAmount: proposalData[i].data && proposalData[i].data.amount? proposalData[i].data.amount: 0,
-                        createTime: proposalData[i].createTime? proposalData[i].createTime: "",
-                        commissionPeriod: commissionPeriod? commissionPeriod: "",
-                        activeCrewNumbers: proposalData[i].data && proposalData[i].data.activeCount? proposalData[i].data.activeCount: 0,
-                        totalDepositFee: proposalData[i].data && proposalData[i].data.totalTopUpFee? proposalData[i].data.totalTopUpFee: 0,
-                        totalWithdrawFee: proposalData[i].data && proposalData[i].data.totalWithdrawalFee? proposalData[i].data.totalWithdrawalFee: 0,
-                        totalBonusFee: proposalData[i].data && proposalData[i].data.totalRewardFee? proposalData[i].data.totalRewardFee: 0,
-                        list: []
-                    };
-
-                    if (proposalData[i].status == constProposalStatus.SUCCESS || proposalData[i].status == constProposalStatus.APPROVED) {
-                        returnObj.successTime = proposalData[i].settleTime? proposalData[i].settleTime: "";
-                    } else if (proposalData[i].status == constProposalStatus.CANCEL) {
-                        returnObj.cancelTime = proposalData[i].settleTime? proposalData[i].settleTime: "";
-                    }
-
-                    if (proposalData[i].data && proposalData[i].data.rawCommissions && proposalData[i].data.rawCommissions.length) {
-                        for (let j = 0; j < proposalData[i].data.rawCommissions.length; j++) {
-                            let returnListObj = {
-                                providerGroupId:proposalData[i].data.rawCommissions[j].groupId? proposalData[i].data.rawCommissions[j].groupId: "",
-                                providerGroupName: proposalData[i].data.rawCommissions[j].groupName? proposalData[i].data.rawCommissions[j].groupName: "",
-                                providerGroupCommission: proposalData[i].data.rawCommissions[j].amount? proposalData[i].data.rawCommissions[j].amount: 0,
-                                providerGroupFee:proposalData[i].data.rawCommissions[j].platformFee? proposalData[i].data.rawCommissions[j].platformFee: 0
+                if (proposalData && proposalData.length > 0) {
+                    for (let i = 0; i < proposalData.length; i++) {
+                        let commissionPeriod;
+                        let totalProviderFee = 0;
+                        let totalCommission = 0;
+                        if (proposalData[i].data) {
+                            if (proposalData[i].data.startTime && proposalData[i].data.endTime) {
+                                proposalData[i].data.endTime = new Date(proposalData[i].data.endTime.setSeconds(proposalData[i].data.endTime.getSeconds() - 1));
+                                commissionPeriod = proposalData[i].data.startTime.toISOString() + " ~ " + proposalData[i].data.endTime.toISOString();
                             }
-                            totalProviderFee += returnListObj.providerGroupFee;
-                            totalCommission += returnListObj.providerGroupCommission;
-                            returnObj.list.push(returnListObj);
                         }
+                        let returnObj = {
+                            proposalId: proposalData[i].proposalId ? proposalData[i].proposalId : "",
+                            status: proposalData[i].status ? proposalData[i].status : "",
+                            proposalAmount: proposalData[i].data && proposalData[i].data.amount ? proposalData[i].data.amount : 0,
+                            createTime: proposalData[i].createTime ? proposalData[i].createTime : "",
+                            commissionPeriod: commissionPeriod ? commissionPeriod : "",
+                            activeCrewNumbers: proposalData[i].data && proposalData[i].data.activeCount ? proposalData[i].data.activeCount : 0,
+                            totalDepositFee: proposalData[i].data && proposalData[i].data.totalTopUpFee ? proposalData[i].data.totalTopUpFee : 0,
+                            totalWithdrawFee: proposalData[i].data && proposalData[i].data.totalWithdrawalFee ? proposalData[i].data.totalWithdrawalFee : 0,
+                            totalBonusFee: proposalData[i].data && proposalData[i].data.totalRewardFee ? proposalData[i].data.totalRewardFee : 0,
+                            list: []
+                        };
+
+                        if (proposalData[i].status == constProposalStatus.SUCCESS || proposalData[i].status == constProposalStatus.APPROVED) {
+                            returnObj.successTime = proposalData[i].settleTime ? proposalData[i].settleTime : "";
+                        } else if (proposalData[i].status == constProposalStatus.CANCEL) {
+                            returnObj.cancelTime = proposalData[i].settleTime ? proposalData[i].settleTime : "";
+                        }
+
+                        if (proposalData[i].data && proposalData[i].data.rawCommissions && proposalData[i].data.rawCommissions.length) {
+                            for (let j = 0; j < proposalData[i].data.rawCommissions.length; j++) {
+                                let returnListObj = {
+                                    providerGroupId: proposalData[i].data.rawCommissions[j].groupId ? proposalData[i].data.rawCommissions[j].groupId : "",
+                                    providerGroupName: proposalData[i].data.rawCommissions[j].groupName ? proposalData[i].data.rawCommissions[j].groupName : "",
+                                    providerGroupCommission: proposalData[i].data.rawCommissions[j].amount ? proposalData[i].data.rawCommissions[j].amount : 0,
+                                    providerGroupFee: proposalData[i].data.rawCommissions[j].platformFee ? proposalData[i].data.rawCommissions[j].platformFee : 0
+                                }
+                                totalProviderFee += returnListObj.providerGroupFee;
+                                totalCommission += returnListObj.providerGroupCommission;
+                                returnObj.list.push(returnListObj);
+                            }
+                        }
+                        returnObj.totalProviderFee = totalProviderFee;
+                        returnObj.totalCommission = totalCommission;
+                        returnData.push(returnObj);
                     }
-                    returnObj.totalProviderFee = totalProviderFee;
-                    returnObj.totalCommission = totalCommission;
-                    returnData.push(returnObj);
                 }
+
                 return returnData;
             }
         )
@@ -7825,6 +7841,11 @@ function calculateRawCommission (totalDownLineConsumption, commissionRate) {
 function getCommissionRate (commissionRateTable, consumptionAmount, activeCount) {
     let lastValidCommissionRate = 0;
     let isCustom = false;
+
+    if (consumptionAmount < 0) {
+        consumptionAmount *= -1;
+    }
+
     for (let i = 0; i < commissionRateTable.length; i++) {
         let commissionRequirement = commissionRateTable[i];
 
@@ -9016,7 +9037,7 @@ function getCrewsInfo (players, startTime, endTime, activePlayerRequirement, pro
     return Promise.all(playerDetailsProm);
 }
 
-function getPartnerCrewsData (platformId, partnerId) {
+function getPartnerCrewsData (platformId, partnerId, playerId) {
     let platform = {};
     let partner = {};
     let downLines = [];
@@ -9046,12 +9067,23 @@ function getPartnerCrewsData (platformId, partnerId) {
             }
 
             partner = partnerData;
+            if(playerId){
+                return dbconfig.collection_players.find({platform: platform._id, partner: partner._id, playerId: playerId}).lean();
+            }else{
+                return dbconfig.collection_players.find({platform: platform._id, partner: partner._id}).lean();
+            }
 
-            return dbconfig.collection_players.find({platform: platform._id, partner: partner._id}).lean();
         }
     ).then(
         downLineData => {
             if (!downLineData || downLineData.length < 1) {
+                if(playerId){
+                    return Promise.reject({
+                        code: constServerCode.PLAYER_NAME_INVALID,
+                        name: "DataError",
+                        message: "Player not found"
+                    });
+                }
                 downLineData = [];
             }
 

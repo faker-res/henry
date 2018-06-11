@@ -405,6 +405,7 @@ define(['js/app'], function (myApp) {
                     hoverCss: ":hover{filter: contrast(200%);}"
                 }
             ];
+            vm.editFrontEndDisplay = false;
             vm.commonTableOption = {
                 dom: 'Zrtlp',
                 "autoWidth": true,
@@ -693,9 +694,65 @@ define(['js/app'], function (myApp) {
                 vm.platformAction = platformAction;
             };
 
+            vm.retrievePlatformData = function(platformData) {
+
+                let newList = [
+                    'csEmailImageUrlList',
+                    'csPhoneList',
+                    'csQQList',
+                    'csUrlList',
+                    'csWeixinList',
+                    'csSkypeList',
+                    'csDisplayUrlList',
+                    'playerInvitationUrlList',
+                    'weixinPhotoUrlList',
+                    'playerWebLogoUrlList',
+                    'csPartnerEmailList',
+                    'csPartnerPhoneList',
+                    'csPartnerUrlList',
+                    'csPartnerQQList',
+                    'csPartnerWeixinList',
+                    'csPartnerSkypeList',
+                    'csPartnerDisplayUrlList',
+                    'partnerInvitationUrlList',
+                    'partnerWeixinPhotoUrlList',
+                    'partnerWebLogoUrlList'
+                ];
+
+                newList.forEach( listName => {
+                    if (!platformData[listName]){
+                        platformData[listName] = [];
+                    }
+
+                    //check the platform data is old or new
+                    let nativeFieldName = listName.substr(0, listName.length-4);
+                    if (platformData[nativeFieldName] && platformData[nativeFieldName].length > 0 && (!platformData[listName] || platformData[listName].length == 0)){
+                        let oldData = platformData[nativeFieldName];
+                        platformData[listName] = [{content: oldData}];
+                    }
+
+                    if(platformData[listName] && platformData[listName].length > 0){
+                        platformData[listName].forEach(p => {
+                            p.isImg = typeof p.isImg === 'number' ? p.isImg.toString() : null ;
+
+                        })
+                    }
+                })
+
+                return platformData;
+            };
+
             vm.populatePlatformData = function () {
                 vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
             };
+
+            vm.checkIsImg = function (data){
+               data.forEach(p => {
+                    p.isImg = typeof p.isImg === 'number' ? p.isImg.toString() : null ;
+
+                })
+                return data
+            }
 
             vm.showTopupTab = function (tabName) {
                 vm.selectedTopupTab = tabName == null ? "manual" : tabName;
@@ -780,6 +837,7 @@ define(['js/app'], function (myApp) {
 
                 vm.showPlatform = commonService.convertDepartment(vm.selectedPlatform.data);
                 beforeUpdatePlatform();
+                vm.retrievePlatformData(vm.showPlatform);
 
                 // if (option && !option.loadAll) {
                 //     $scope.safeApply();
@@ -888,7 +946,7 @@ define(['js/app'], function (myApp) {
                             vm.rewardTabClicked();
                             vm.getPlatformRewardProposal();
                             vm.getPlatformPlayersData(true, true);
-                            vm.getPlatformPartnersData();
+                            // vm.getPlatformPartnersData();
                             vm.getPlatformGameData();
                             vm.loadProposalTypeData();
                             vm.loadBankCardGroupData();
@@ -1058,9 +1116,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case "Partner":
                         vm.partnerCommission = {};
+                        vm.getPlatformPartnersData();
                         vm.getCommissionRateGameProviderGroup();
                         vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
-
 
                         break;
                     case "Game":
@@ -1184,6 +1242,7 @@ define(['js/app'], function (myApp) {
                 return obj;
             };
             vm.initPlatform = function (bool) {
+                vm.editFrontEndDisplay = true;
                 vm.pickDay = null;
                 vm.pickWeek = null;
                 vm.listArray = [];
@@ -2030,6 +2089,7 @@ define(['js/app'], function (myApp) {
                     function (data) {
                         vm.curPlatformText = vm.showPlatform.name;
                         loadPlatformData({loadAll: false});
+                        vm.editFrontEndDisplay = false;
                         vm.syncPlatform();
                     });
             };
@@ -3134,7 +3194,7 @@ define(['js/app'], function (myApp) {
 
                     //provider delay status init
                     vm.getProviderLatestTimeRecord();
-                    $scope.safeApply();
+                    // $scope.safeApply();
                 })
             };
 
@@ -3615,10 +3675,11 @@ define(['js/app'], function (myApp) {
                     number: 0,
                     remark: ''
                 };
+                vm.queryPlatformCreditTransferStatus = 'default';
                 vm.platformCreditTransferLog = {};
                 vm.platformCreditTransferLog.isPopup = isPopup === true;
                 vm.platformCreditTransferLog.index = 0;
-                vm.platformCreditTransferLog.limit = 10;
+                vm.platformCreditTransferLog.limit = vm.platformCreditTransferLog && vm.platformCreditTransferLog.limit ? vm.platformCreditTransferLog.limit : 50;
                 utilService.actionAfterLoaded(('#' + panelBody), function () {
                     vm.platformCreditTransferLog.startTime = utilService.createDatePicker('#' + panelBody + ' .startTime');
                     vm.platformCreditTransferLog.endTime = utilService.createDatePicker('#' + panelBody + ' .endTime');
@@ -3633,17 +3694,21 @@ define(['js/app'], function (myApp) {
 
             vm.getPagedPlatformCreditTransferLog = function (newSearch) {
                 vm.platformCreditTransferLog.loading = true;
+                let defaultPlatformCreditTransferStatus;
                 $scope.safeApply();
                 let sendQuery = {
                     PlatformObjId: vm.selectedPlatform.id,
                     startTime: vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate(),
                     index: newSearch ? 0 : vm.platformCreditTransferLog.index,
-                    limit: newSearch ? 10 : vm.platformCreditTransferLog.limit,
+                    limit: newSearch ? 50 : vm.platformCreditTransferLog.limit,
                     sortCol: vm.platformCreditTransferLog.sortCol
                 };
 
-                vm.queryPlatformCreditTransferStatus ? sendQuery.status = vm.queryPlatformCreditTransferStatus : '';
+                if (vm.queryPlatformCreditTransferStatus == 'default'){
+                    defaultPlatformCreditTransferStatus = {$in: [vm.allPlayerCreditTransferStatus.SUCCESS, vm.allPlayerCreditTransferStatus.FAIL, vm.allPlayerCreditTransferStatus.TIMEOUT]};
+                }
+                vm.queryPlatformCreditTransferStatus ?  vm.queryPlatformCreditTransferStatus == 'default' ? sendQuery.status =  defaultPlatformCreditTransferStatus : sendQuery.status = vm.queryPlatformCreditTransferStatus : '';
                 vm.queryPlatformCreditTransferType ? sendQuery.type = vm.queryPlatformCreditTransferType : '';
                 vm.queryPlatformCreditTransferProvider ? sendQuery.provider = vm.queryPlatformCreditTransferProvider : '';
                 vm.queryPlatformCreditTransferPlayerName ? sendQuery.playerName = vm.queryPlatformCreditTransferPlayerName : '';
@@ -8961,6 +9026,8 @@ define(['js/app'], function (myApp) {
                 $('#modalPlayerCreditChangeLog').modal().show();
                 vm.playerCreditChangeLog = {};
                 vm.playerCreditChangeLog.type = 'none';
+                vm.playerCreditChangeLog.index = 0;
+                vm.playerCreditChangeLog.limit = vm.playerCreditChangeLog && vm.playerCreditChangeLog.limit ? vm.playerCreditChangeLog.limit : 50;
                 utilService.actionAfterLoaded(('#playerCreditChangeLog .endTime'), function () {
                     vm.playerCreditChangeLog.startTime = utilService.createDatePicker('#playerCreditChangeLog .startTime');
                     vm.playerCreditChangeLog.endTime = utilService.createDatePicker('#playerCreditChangeLog .endTime');
@@ -8981,7 +9048,7 @@ define(['js/app'], function (myApp) {
                     endTime: vm.playerCreditChangeLog.endTime.data('datetimepicker').getLocalDate(),
                     type: vm.playerCreditChangeLog.type,
                     index: newSearch ? 0 : vm.playerCreditChangeLog.index,
-                    limit: newSearch ? 10 : vm.playerCreditChangeLog.limit,
+                    limit: newSearch ? 50 : vm.playerCreditChangeLog.limit,
                     sortCol: vm.playerCreditChangeLog.sortCol,
                 }
                 socketService.$socket($scope.AppSocket, "getPagedPlayerCreditChangeLogs", sendQuery, function (data) {
@@ -9203,6 +9270,8 @@ define(['js/app'], function (myApp) {
                 // $('#modalPlayerCreditChangeLog').modal().show();
                 vm.playerRewardTaskLog = {};
                 vm.playerRewardTaskLog.type = 'none';
+                vm.playerRewardTaskLog.index = 0;
+                vm.playerRewardTaskLog.limit = vm.playerRewardTaskLog && vm.playerRewardTaskLog.limit ? vm.playerRewardTaskLog.limit : 50;
                 utilService.actionAfterLoaded(('#playerRewardTaskLog .endTime'), function () {
                     vm.playerRewardTaskLog.startTime = utilService.createDatePicker('#playerRewardTaskLog .startTime');
                     vm.playerRewardTaskLog.endTime = utilService.createDatePicker('#playerRewardTaskLog .endTime');
@@ -9222,7 +9291,7 @@ define(['js/app'], function (myApp) {
                     startTime: vm.playerRewardTaskLog.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.playerRewardTaskLog.endTime.data('datetimepicker').getLocalDate(),
                     index: newSearch ? 0 : vm.playerRewardTaskLog.index,
-                    limit: newSearch ? 10 : vm.playerRewardTaskLog.limit,
+                    limit: newSearch ? 50 : vm.playerRewardTaskLog.limit,
                     sortCol: vm.playerRewardTaskLog.sortCol,
                 }
 
@@ -10682,7 +10751,8 @@ define(['js/app'], function (myApp) {
             vm.prepareShowProposal = function () {
                 vm.playerProposal = {totalCount: 0};
                 vm.proposalFilterstatus = 'all';
-
+                vm.playerProposal.index = 0;
+                vm.playerProposal.limit = vm.playerProposal && vm.playerProposal.limit ? vm.playerProposal.limit : 50;
                 utilService.actionAfterLoaded(('#playerProposalData .endTime'), function () {
                     vm.playerProposal.startTime = utilService.createDatePicker('#playerProposalData .startTime');
                     vm.playerProposal.endTime = utilService.createDatePicker('#playerProposalData .endTime');
@@ -10794,7 +10864,7 @@ define(['js/app'], function (myApp) {
                     adminId: authService.adminId,
                     platformId: vm.selectedSinglePlayer.platform,
                     type: newproposalQuery.proposalTypeName,
-                    size: vm.playerProposal.limit || 10,
+                    size: vm.playerProposal.limit || 50,
                     index: newSearch ? 0 : (vm.playerProposal.index || 0),
                     sortCol: vm.playerProposal.sortCol,
                     status: newproposalQuery.status,
@@ -10983,6 +11053,8 @@ define(['js/app'], function (myApp) {
 
             vm.prepareShowPlayerExpense = function () {
                 vm.playerExpenseLog = {totalCount: 0};
+                vm.playerExpenseLog.index = 0;
+                vm.playerExpenseLog.limit = vm.playerExpenseLog && vm.playerExpenseLog.limit ? vm.playerExpenseLog.limit : 50;
                 vm.initQueryTimeFilter('playerExpense', function () {
                     $('#modalPlayerExpenses').modal();
                     vm.playerExpenseLog.pageObj = utilService.createPageForPagingTable("#playerExpenseTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
@@ -10997,7 +11069,7 @@ define(['js/app'], function (myApp) {
                     endTime: vm.queryPara.playerExpense.endTime.data('datetimepicker').getLocalDate(),
                     playerId: vm.isOneSelectedPlayer()._id,
                     index: newSearch ? 0 : (vm.playerExpenseLog.index || 0),
-                    limit: newSearch ? 10 : (vm.playerExpenseLog.limit || 10),
+                    limit: newSearch ? 50 : (vm.playerExpenseLog.limit || 50),
                     sortCol: vm.playerExpenseLog.sortCol || null
                 };
                 // if (vm.queryPara.playerExpense.dirty == 'Y') {
@@ -13677,7 +13749,7 @@ define(['js/app'], function (myApp) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updatePlayerForbidProviders', sendData, function (data) {
                     vm.getPlatformPlayersData();
-                    vm.updateForbidGameLog(data.data._id, vm.findForbidCheckedName(data.data.forbidProviders, vm.allGameProvider));
+                    vm.updateForbidGameLog(data.data._id, vm.findForbidCheckedName(data.data.forbidProviders, vm.allGameProviders));
                 });
             };
 
@@ -13945,7 +14017,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.initPlayerCreditLog = function () {
-                vm.playerCreditLog = vm.playerCreditLog || {totalCount: 0, limit: 10, index: 0, query: {}};
+                vm.playerCreditLog = vm.playerCreditLog || {totalCount: 0, limit: 50, index: 0, query: {}};
                 // utilService.actionAfterLoaded('#modalPlayerCreditLog.in #playerCreditLogQuery .endTime', function () {
                 utilService.actionAfterLoaded('#modalPlayerAccountingDetail #playerCreditLogQuery .endTime', function () {
                     vm.playerCreditLog.query.startTime = utilService.createDatePicker('#playerCreditLogQuery .startTime');
@@ -13968,7 +14040,7 @@ define(['js/app'], function (myApp) {
                     from: vm.playerCreditLog.query.startTime.data('datetimepicker').getLocalDate(),
                     to: vm.playerCreditLog.query.endTime.data('datetimepicker').getLocalDate(),
                     index: newSearch ? 0 : vm.playerCreditLog.index,
-                    limit: newSearch ? 10 : vm.playerCreditLog.limit,
+                    limit: newSearch ? 50 : vm.playerCreditLog.limit,
                     sortCol: vm.playerCreditLog.sortCol || null
                 }
                 socketService.$socket($scope.AppSocket, 'getPlayerCreditsDaily', sendQuery, function (data) {
@@ -15283,12 +15355,12 @@ define(['js/app'], function (myApp) {
                 if (vm.playerFeedbackQuery.departments) {
                     if (vm.playerFeedbackQuery.roles) {
                         vm.queryRoles.map(e => {
-                            if (vm.playerFeedbackQuery.roles.indexOf(e._id) >= 0) {
+                            if (e._id != "" && (vm.playerFeedbackQuery.roles.indexOf(e._id) >= 0)) {
                                 e.users.map(f => admins.push(f._id))
                             }
                         })
                     } else {
-                        vm.queryRoles.map(e => e.users.map(f => admins.push(f._id)))
+                        vm.queryRoles.map(e => e.users.map(f => {if (f._id != "") {admins.push(f._id)}}))
                     }
                 }
 
@@ -15677,8 +15749,10 @@ define(['js/app'], function (myApp) {
             vm.setQueryRole = (modal) => {
                 vm.queryRoles = [];
 
+                vm.queryRoles.push({_id:'', roleName:'N/A'});
+
                 vm.queryDepartments.map(e => {
-                    if (modal.departments.indexOf(e._id) >= 0) {
+                    if (e._id != "" && (modal.departments.indexOf(e._id) >= 0)) {
                         vm.queryRoles = vm.queryRoles.concat(e.roles);
                     }
                 });
@@ -15689,8 +15763,10 @@ define(['js/app'], function (myApp) {
             vm.setQueryAdmins = (modal) => {
                 vm.queryAdmins = [];
 
+                vm.queryAdmins.push({_id:'', adminName:'N/A'});
+
                 vm.queryRoles.map(e => {
-                    if (modal.roles.indexOf(e._id) >= 0) {
+                    if (e._id != "" && (modal.roles.indexOf(e._id) >= 0)) {
                         vm.queryAdmins = vm.queryAdmins.concat(e.users);
                     }
                 });
@@ -15712,6 +15788,8 @@ define(['js/app'], function (myApp) {
                         let parentId;
                         vm.queryDepartments = [];
                         vm.queryRoles = [];
+
+                        vm.queryDepartments.push({_id:'', departmentName:'N/A'});
 
                         vm.departments.map(e => {
                             if (e.departmentName == vm.selectedPlatform.data.name) {
@@ -16295,24 +16373,24 @@ define(['js/app'], function (myApp) {
                 };
                 console.log('apiQuery', apiQuery);
                 socketService.$socket($scope.AppSocket, 'getPartnersByAdvancedQuery', apiQuery, function (reply) {
-                    console.log('partnerData', reply);
-                    let size = reply.data.size || 0;
-                    vm.customCommissionConfig.forEach(customSetting => {
-                        if (reply && reply.data && reply.data.data) {
-                            reply.data.data.map(data => {
-                                if(data._id
-                                    && customSetting.partner
-                                    && (data._id.toString() == customSetting.partner.toString())) {
-                                    data.isCustomizeSettingExist = true;
-                                }
-                            });
-                        }
-                    });
-                    setPartnerTableData(reply.data.data);
-                    vm.searchPartnerCount = reply.data.size;
-                    vm.advancedPartnerQueryObj.pageObj.init({maxCount: size}, true);
-
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {
+                        console.log('partnerData', reply);
+                        let size = reply.data.size || 0;
+                        vm.customCommissionConfig.forEach(customSetting => {
+                            if (reply && reply.data && reply.data.data) {
+                                reply.data.data.map(data => {
+                                    if(data._id
+                                        && customSetting.partner
+                                        && (data._id.toString() == customSetting.partner.toString())) {
+                                        data.isCustomizeSettingExist = true;
+                                    }
+                                });
+                            }
+                        });
+                        setPartnerTableData(reply.data.data);
+                        vm.searchPartnerCount = reply.data.size;
+                        vm.advancedPartnerQueryObj.pageObj.init({maxCount: size}, true);
+                    })
                 });
             });
 
@@ -16601,7 +16679,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                         })
-
+                        
                         vm.playerDetailsSummary = data.data;
                         vm.playerDetailsSummary.totalCount = data.data.length;
                         vm.playerDetailsSummary.sumOfManualTopUp = sumOfManualTopUp;
@@ -17878,7 +17956,6 @@ define(['js/app'], function (myApp) {
                             partnerCommission: commonService.applyPartnerCustomRate(selectedPartner._id, vm.partnerCommission, vm.customPartnerCommission),
                             commissionSettingTab: vm.commissionSettingTab,
                             playerConsumptionTableHeader: vm.playerConsumptionTableHeader,
-                            activePlayerTableHeader: vm.activePlayerTableHeader,
                             rateAfterRebatePromo: vm.rateAfterRebatePromo,
                             rateAfterRebatePlatform: vm.rateAfterRebatePlatform,
                             rateAfterRebateGameProviderGroup: vm.rateAfterRebateGameProviderGroup,
@@ -17919,6 +17996,8 @@ define(['js/app'], function (myApp) {
                             },
                         }
                     };
+
+                    option.childScope.activePlayerTableHeader = getActivePlayerTableHeader(option.childScope.commissionSettingTab);
 
                     option.childScope.prepareEditPartnerPayment = function () {
                         vm.prepareEditPartnerPayment();
@@ -19024,14 +19103,16 @@ define(['js/app'], function (myApp) {
                 }
                 console.log("getAlipays", vm.selectedPlatform.id);
                 socketService.$socket($scope.AppSocket, 'getPlatformAlipayGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                    console.log('Alipaygroup', data);
-                    //provider list init
-                    vm.platformAlipayGroupList = data.data;
-                    vm.platformAlipayGroupListCheck = {};
-                    $.each(vm.platformAlipayGroupList, function (i, v) {
-                        vm.platformAlipayGroupListCheck[v._id] = v.displayName ? v.displayName : true;
+                    $scope.$evalAsync(() => {
+                        console.log('Alipaygroup', data);
+                        //provider list init
+                        vm.platformAlipayGroupList = data.data;
+                        vm.platformAlipayGroupListCheck = {};
+                        $.each(vm.platformAlipayGroupList, function (i, v) {
+                            vm.platformAlipayGroupListCheck[v._id] = v.displayName ? v.displayName : true;
+                        })
                     })
-                    $scope.safeApply();
+                    // $scope.safeApply();
                 })
             }
 
@@ -19185,7 +19266,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.rewardTabClicked = function (callback) {
+            vm.rewardTabClicked = async function (callback) {
                 vm.forbidRewardRemark = '';
                 vm.dayHrs = {};
                 vm.dayMin = {};
@@ -19200,38 +19281,34 @@ define(['js/app'], function (myApp) {
                     return;
                 }
                 socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform.id}, function (data) {
-                    vm.allRewardEvent = data.data;
-                    console.log("vm.allRewardEvent", data.data);
-                    vm.showApplyRewardEvent = data.data.filter(item => {
-                        return item.needApply || (item.condition && item.condition.applyType && item.condition.applyType == "1")
-                    }).length > 0
-                    vm.curContentRewardType = {};
-                    vm.settlementRewardGroupEvent = [];
-                    $.each(vm.allRewardEvent, function (i, v) {
-                        $.each(vm.allRewardTypes, function (a, b) {
-                            if (b._id == v.type._id) {
-                                vm.curContentRewardType[v._id] = b;
-                                return true;
-                            }
-                        })
-
-                        // Setup settlement reward group events entry
-                        if (v && v.condition && v.condition.applyType == "3" && v.condition.interval != "5") {
-                            vm.settlementRewardGroupEvent.push(v);
+                    $scope.$evalAsync(() => {
+                        vm.allRewardEvent = data.data;
+                        vm.showApplyRewardEvent = data.data.filter(item => {
+                            return item.needApply || (item.condition && item.condition.applyType && item.condition.applyType == "1")
+                        }).length > 0
+                        vm.curContentRewardType = {};
+                        vm.settlementRewardGroupEvent = [];
+                        if (vm.showReward && vm.showReward.display && !vm.showReward.display.length) {
+                            vm.showReward.display.push({displayId:"", displayTitle:"", displayTextContent: ""});
                         }
-                    });
-                    console.log(vm.curContentRewardType);
-                    $scope.safeApply();
-                    if (callback) {
-                        callback();
-                    }
+                        $.each(vm.allRewardEvent, function (i, v) {
+                            $.each(vm.allRewardTypes, function (a, b) {
+                                if (b._id == v.type._id) {
+                                    vm.curContentRewardType[v._id] = b;
+                                    return true;
+                                }
+                            })
+
+                            // Setup settlement reward group events entry
+                            if (v && v.condition && v.condition.applyType == "3" && v.condition.interval != "5") {
+                                vm.settlementRewardGroupEvent.push(v);
+                            }
+                        });
+                        if (callback) {
+                            callback();
+                        }
+                    })
                 });
-                // socketService.$socket($scope.AppSocket, 'getAllSettlementPeriod', '', function (data) {
-                //     vm.allSettlePeriod = data.data;
-                //     console.log("vm.allSettlePeriod", vm.allSettlePeriod);
-                //     $scope.safeApply();
-                // }, function (data) {
-                // });
 
                 vm.getPlatformProviderGroup();
             };
@@ -19270,7 +19347,9 @@ define(['js/app'], function (myApp) {
                 utilService.actionAfterLoaded("#rewardMainTasks", function () {
                     vm.disableAllRewardInput(true);
                 });
-
+                if (vm.showReward && vm.showReward.display && !vm.showReward.display.length) {
+                    vm.showReward.display.push({displayId:"", displayTitle:"", displayTextContent: ""});
+                }
                 console.log('vm.rewardParams', vm.rewardParams);
                 //$scope.safeApply();
             };
@@ -19293,7 +19372,7 @@ define(['js/app'], function (myApp) {
                 });
 
                 // Handling for reward group
-                if (vm.showRewardTypeData.isGrouped) {
+                if (vm.showRewardTypeData && vm.showRewardTypeData.isGrouped) {
                     vm.rewardMainTask = [];
                     vm.rewardMainCondition = {};
                     vm.rewardMainParam = {};
@@ -19306,6 +19385,11 @@ define(['js/app'], function (myApp) {
                     vm.platformRewardIsEnabled = false;
                     vm.rewardMainParamTable = [];
                     let params = vm.showRewardTypeData.params;
+
+                    if (vm.showReward && !vm.showReward.display) {
+                        vm.showReward.display = [];
+                        vm.showReward.display.push({displayId: "", displayTitle: "", displayTextContent: ""});
+                    }
 
                     // Set condition value
                     Object.keys(params.condition).forEach(el => {
@@ -19524,7 +19608,6 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }, function (data) {
                         console.log("created not", data);
-                        //vm.rewardTabClicked();
                     });
                 } else if (vm.showRewardTypeData.name == "GameProviderReward") {
                     vm.rewardParams.games = vm.rewardParams.games || [];
@@ -19545,7 +19628,6 @@ define(['js/app'], function (myApp) {
                             $scope.safeApply();
                         }, function (data) {
                             console.log("created not", data);
-                            //vm.rewardTabClicked();
                         });
                     }
                     $scope.safeApply();
@@ -19569,7 +19651,6 @@ define(['js/app'], function (myApp) {
                             $scope.safeApply();
                         }, function (data) {
                             console.log("created not", data);
-                            //vm.rewardTabClicked();
                         });
                     }
                     $scope.safeApply();
@@ -19600,7 +19681,6 @@ define(['js/app'], function (myApp) {
                             $scope.safeApply();
                         }, function (data) {
                             console.log("created not", data);
-                            //vm.rewardTabClicked();
                         });
                     }
                 } else if (vm.showRewardTypeData.name == "PlayerDoubleTopUpReward") {
@@ -19697,7 +19777,6 @@ define(['js/app'], function (myApp) {
                             $scope.safeApply();
                         }, function (data) {
                             console.log("created not", data);
-                            //vm.rewardTabClicked();
                         });
                     }
                     $scope.safeApply();
@@ -19720,7 +19799,6 @@ define(['js/app'], function (myApp) {
                             $scope.safeApply();
                         }, function (data) {
                             console.log("created not", data);
-                            //vm.rewardTabClicked();
                         });
                     }
                     $scope.safeApply();
@@ -19742,7 +19820,6 @@ define(['js/app'], function (myApp) {
                             $scope.safeApply();
                         }, function (data) {
                             console.log("created not", data);
-                            //vm.rewardTabClicked();
                         });
                     }
                 }
@@ -19853,6 +19930,18 @@ define(['js/app'], function (myApp) {
             vm.rewardPeriodDeleteRow = (idx, valueCollection) => {
                 valueCollection.splice(idx, 1);
                 console.log(vm.rewardMainCondition);
+            };
+            
+            vm.rewardDisplayNewRow = (valueCollection) => {
+                valueCollection.push({displayId: "", displayTitle: "", displayTextContent: ""});
+            };
+
+            vm.rewardDisplayDeleteRow = (idx, valueCollection) => {
+                valueCollection.splice(idx, 1);
+
+                if (valueCollection.length == 0) {
+                    valueCollection.push({displayId: "", displayTitle: "", displayTextContent: ""});
+                }
             };
 
             vm.rewardPercentageAmountNewRow = (valueCollection) => {
@@ -20194,10 +20283,24 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.updateCallRequestConfigInEdit = function (type, data, arrayToRemove) {
+                if (type == 'add') {
+                    if (data && data.hasOwnProperty('lineId') && data.hasOwnProperty('lineName')) {
+                        vm.callRequestConfig.callRequestLineConfig.push({
+                            lineId: data.lineId,
+                            lineName: data.lineName,
+                            minLevel: data.minLevel? data.minLevel: ""
+                        });
+                    }
+                } else if (type == 'remove') {
+                    arrayToRemove.splice(data, 1);
+                }
+            };
+
             vm.updateCollectionInEdit = function (type, collection, data) {
                 if (type == 'add') {
                     let newObj = {};
-
+                    
                     Object.keys(data).forEach(e => {
                         newObj[e] = data[e];
                     });
@@ -20388,8 +20491,6 @@ define(['js/app'], function (myApp) {
                     condition: vm.rewardCondition,
                     validStartTime: vm.showReward.validStartTime || null,
                     validEndTime: vm.showReward.validEndTime || null,
-                    imageUrl: vm.showReward.imageUrl,
-
                 };
 
                 if (vm.showRewardTypeData.isGrouped === true) {
@@ -20448,6 +20549,16 @@ define(['js/app'], function (myApp) {
 
                         curReward.param.rewardParam.push(levelParam);
                     });
+
+                    if (vm.showReward && vm.showReward.display) {
+                        for (let i=0; i < vm.showReward.display.length; i++) {
+                            if (vm.showReward.display[i].displayId == "" && vm.showReward.display[i].displayTitle == "" && vm.showReward.display[i].displayTextContent == "") {
+                                vm.showReward.display.splice(i, 1);
+                            }
+                        }
+
+                        curReward.display = vm.showReward.display || [];
+                    }
                 } else {
 
                 }
@@ -20545,6 +20656,16 @@ define(['js/app'], function (myApp) {
 
                         sendData.param.rewardParam.push(levelParam);
                     });
+
+                    if (vm.showReward && vm.showReward.display) {
+                        for (let i=0; i < vm.showReward.display.length; i++) {
+                            if (vm.showReward.display[i].displayId == "" && vm.showReward.display[i].displayTitle == "" && vm.showReward.display[i].displayTextContent == "") {
+                                vm.showReward.display.splice(i, 1);
+                            }
+                        }
+
+                        sendData.display = vm.showReward.display || [];
+                    }
                 } else {
                     sendData = vm.showReward;
                     sendData.name = vm.showReward.name;
@@ -20556,7 +20677,6 @@ define(['js/app'], function (myApp) {
                     sendData.canApplyFromClient = vm.showReward.canApplyFromClient;
                     sendData.validStartTime = vm.showReward.validStartTime || null;
                     sendData.validEndTime = vm.showReward.validEndTime || null;
-                    sendData.imageUrl = vm.showReward.imageUrl;
 
                 }
                 console.log('vm.showRewardTypeData', vm.showRewardTypeData);
@@ -20632,7 +20752,7 @@ define(['js/app'], function (myApp) {
                         vm.prepareCredibilityConfig();
                         break;
                     case 'providerGroup':
-                        vm.availableGameProviders = vm.allGameProvider;
+                        vm.availableGameProviders = vm.allGameProviders;
                         vm.providerGroupConfig = {showWarning: false};
                         vm.getPlatformProviderGroup();
                         break;
@@ -20653,6 +20773,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'bulkPhoneCallSetting':
                         vm.getBulkCallBasic();
+                        break;
+                    case 'callRequestConfig':
+                        vm.getCallRequestConfig();
                         break;
                 }
             };
@@ -21972,21 +22095,24 @@ define(['js/app'], function (myApp) {
                     platformObjId: vm.selectedPlatform.id,
                     deleteFlag: false
                 }, function (data) {
-                    console.log('getPromoCodeTypes', data);
+                    $scope.$evalAsync(() => {
+                        console.log('getPromoCodeTypes', data);
 
-                    vm.promoCodeTypes = data.data;
+                        vm.promoCodeTypes = data.data;
 
-                    vm.promoCodeTypes.forEach(entry => {
-                        if (entry.type == 1) {
-                            vm.promoCodeType1.push(entry);
-                        } else if (entry.type == 2) {
-                            vm.promoCodeType2.push(entry);
-                        } else if (entry.type == 3) {
-                            vm.promoCodeType3.push(entry);
-                        }
-                    });
+                        vm.promoCodeTypes.forEach(entry => {
+                            if (entry.type == 1) {
+                                vm.promoCodeType1.push(entry);
+                            } else if (entry.type == 2) {
+                                vm.promoCodeType2.push(entry);
+                            } else if (entry.type == 3) {
+                                vm.promoCodeType3.push(entry);
+                            }
+                        });
+                    })
 
-                    $scope.safeApply();
+
+                    // $scope.safeApply();
                 });
             }
 
@@ -22144,7 +22270,7 @@ define(['js/app'], function (myApp) {
 
                                     if (!data.hasMoreThanOne || (data.skipCheck && !data.cancel)) {
                                         sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
-                                        let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProvider;
+                                        let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
 
                                         sendData.playerName = sendData.playerName.trim();
                                         sendData.expirationTime = vm.dateReformat(sendData.expirationTime.data('datetimepicker').getLocalDate());
@@ -24826,6 +24952,23 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
+
+            function getActivePlayerTableHeader (commissionSettingTab) {
+                switch (vm.commissionSettingTab) {
+                    case 'DAILY_BONUS_AMOUNT':
+                        return 'DAILY_ACTIVE_PLAYER';
+                    case 'WEEKLY_BONUS_AMOUNT':
+                    case 'WEEKLY_CONSUMPTION':
+                        return 'WEEKLY_ACTIVE_PLAYER';
+                    case 'BIWEEKLY_BONUS_AMOUNT':
+                        return 'HALFMONTH_ACTIVE_PLAYER';
+                    case 'MONTHLY_BONUS_AMOUNT':
+                        return 'MONTHLY_ACTIVE_PLAYER';
+                    default:
+                        return '';
+                }
+            }
+
             vm.selectedCommissionTab = function (tab, partnerObjId) {
                 let isGetConfig = true;
 
@@ -25571,6 +25714,15 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.getCallRequestConfig = () => {
+                vm.callRequestConfig = {};
+                vm.callRequestConfig.callRequestUrlConfig = vm.selectedPlatform.data.callRequestUrlConfig? vm.selectedPlatform.data.callRequestUrlConfig: "";
+                vm.callRequestConfig.callRequestLineConfig = vm.selectedPlatform.data.callRequestLineConfig && vm.selectedPlatform.data.callRequestLineConfig.length?
+                    vm.selectedPlatform.data.callRequestLineConfig: [];
+
+                // $scope.safeApply();
+            };
+
             vm.prepareCredibilityConfig = () => {
                 vm.removedRemarkId = [];
                 return vm.getCredibilityRemarks().then(
@@ -25860,6 +26012,9 @@ define(['js/app'], function (myApp) {
                     case 'bulkPhoneCallSetting':
                         updateBulkCallBasic(vm.bulkCallBasic);
                         break;
+                    case 'callRequestConfig':
+                        updateCallRequestConfig(vm.callRequestConfig);
+                        break;
                 }
             };
 
@@ -25972,6 +26127,20 @@ define(['js/app'], function (myApp) {
                         redialTimes: srcData.redialTimes,
                         minRedialInterval: srcData.minRedialInterval,
                         idleAgentMultiple: srcData.idleAgentMultiple,
+                    }
+                };
+
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updateCallRequestConfig(srcData) {
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {
+                        callRequestUrlConfig: srcData.callRequestUrlConfig,
+                        callRequestLineConfig: srcData.callRequestLineConfig
                     }
                 };
 
@@ -27443,6 +27612,8 @@ define(['js/app'], function (myApp) {
 
                 vm.queryPara = {};
 
+                vm.forbidGameAddList = [];
+                vm.forbidGameRemoveList = [];
                 vm.phonePattern = /^[0-9]{8,11}$/;
                 vm.showPlatformList = true;
                 vm.showPlatformDropDownList = false;
@@ -28181,7 +28352,7 @@ define(['js/app'], function (myApp) {
 
                 let proms = []
                 data.data.forEach(item => {
-                    let prom = vm.updateForbidGameLog(item._id, vm.findForbidCheckedName(item.forbidProviders, vm.allGameProvider));
+                    let prom = vm.updateForbidGameLog(item._id, vm.findForbidCheckedName(item.forbidProviders, vm.allGameProviders));
                     proms.push(prom);
                 });
                 return Promise.all(proms).then(data => {

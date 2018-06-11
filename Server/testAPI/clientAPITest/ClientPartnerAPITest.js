@@ -14,7 +14,7 @@
     var proto = ClientPartnerAPITest.prototype;
     var platformId = null;
     var smsCode = null;
-
+    var testPlatformId = null;
     var date = new Date().getTime();
     var testPlayerObjId = !isNode && window.testPlayerObjId;
     var testPlayerId = !isNode && window.testPlayerId;
@@ -271,6 +271,19 @@
         this.partnerService.getCommissionProposalList.request(data);
         this.partnerService.getCommissionProposalList.once(callback);
     };
+
+    proto.getPartnerConfig = function (callback, requestData) {
+        var data = requestData || {
+            platformId: testPlatformId
+        };
+        this.partnerService.getPartnerConfig.request(data);
+        this.partnerService.getPartnerConfig.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
 
     if (isNode) {
         module.exports = ClientPartnerAPITest;

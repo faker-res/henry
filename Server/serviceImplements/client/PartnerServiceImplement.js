@@ -17,6 +17,7 @@ var queryPhoneLocation = require('query-mobile-phone-area');
 
 let dbPlayerMail = require('./../../db_modules/dbPlayerMail');
 let dbPlayerPartner = require('./../../db_modules/dbPlayerPartner');
+let dbPlatform = require('./../../db_modules/dbPlatform');
 
 var PartnerServiceImplement = function () {
     PartnerService.call(this);
@@ -452,17 +453,17 @@ var PartnerServiceImplement = function () {
 
     this.getCrewDepositInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data.platformId && conn.partnerId && data.period && data.circleTimes);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewDepositInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewDepositInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes, data.playerId], isValidData);
     };
 
     this.getCrewWithdrawInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data.platformId && conn.partnerId && data.period && data.circleTimes);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewWithdrawInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewWithdrawInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes, data.playerId], isValidData);
     };
 
     this.getCrewBetInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data.platformId && conn.partnerId && data.period && data.circleTimes);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewBetInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes, data.providerGroupId], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewBetInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes, data.providerGroupId, data.playerId], isValidData);
     };
 
     this.getNewCrewInfo.onRequest = function (wsFunc, conn, data) {
@@ -478,6 +479,16 @@ var PartnerServiceImplement = function () {
     this.getCommissionProposalList.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data.platformId && conn.partnerId && data.startTime && data.endTime);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCommissionProposalList, [data.platformId, conn.partnerId, data.startTime, data.endTime, data.status], isValidData);
+    };
+
+    this.getPartnerConfig.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.platformId);
+        data = data || {};
+
+        if(!data.device){
+            data.device = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent'], false);
+        }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getConfig, [data.platformId, data.device, 'partner'], isValidData, null, null, true);
     };
 };
 var proto = PartnerServiceImplement.prototype = Object.create(PartnerService.prototype);

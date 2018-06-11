@@ -42,7 +42,7 @@
                     option(ng-repeat='(i,v) in vm.qiDepartments', value='{{v._id}}') {{v.name | translate}}
                     option(value='all') {{'NONE' | translate}}
             .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Live800Record', 'Read')")
-                button.btn.btn-primary(ng-click='vm.searchLive800();vm.pgn.index=0') {{"SEARCH" | translate}}
+                button.btn.btn-primary(ng-click='vm.searchLive800();vm.pgn.index=0;vm.getWorkingCSName();') {{"SEARCH" | translate}}
                 span.collapse
                     i.fa.fa-spinner.fa-spin
                 span.margin-left-5
@@ -51,96 +51,100 @@
 
 div
     label {{'Total' | translate}}：{{vm.pgn.count}} {{'COUNT1' | translate}}{{'VALID_INVALID_CONVERSATION' | translate}}
+    br
+    label(ng-show="vm.workingCSName") {{'当天工作客服' | translate}} : {{vm.workingCSName}}
 div(style='height:50px')
-    .row(style='background-color:#337ab7;')
-        div.col-md-1(style="height:50px")
-            div(style='color:white;font-weight:bold;')
-                input.form-control(type="checkbox", id="selectAll", ng-click="vm.checkUncheckSelectAll()" style="float:left;position:absolute;margin-top:8px;")
-                label(for="selectAll" style='float:right;position:absolute;padding-left:20px;padding-top:15px') {{'SELECT_ALL' | translate}}
-        div.col-md-1(style="height:50px")
-            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold') {{'EVALUATION_STATUS' | translate}}
-        div.col-md-7(style="height:50px")
-            div.col-md-2.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold;") Live800{{"Account" | translate}}
-            div.col-md-1.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") {{'Type' | translate}}
-            div.col-md-1.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") {{'TIME' | translate}}
-            div.col-md-4.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") {{'CONVERSATION_CONTENT' | translate}}
-            div.col-md-1.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") {{'OVERTIME_MARK' | translate}}
-            div.col-md-1.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") {{'EVALUATION_MARK' | translate}}
-            div.col-md-2.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") {{'EVALUATION_REVIEW' | translate}}
-        div.col-md-1(style="height:50px")
-            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold') {{'QUALITY_ASSESSOR' | translate}}
-        div.col-md-1(style="height:50px")
-            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold') {{'EVALUATED_TIME' | translate}}
-        div.col-md-1(style="height:50px;background-color:red")
-            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold') {{'APPEAL_REASON' | translate}}
+    table#800RecordTable(style="width: 100%; text-align: center; border: 1px solid;")
+        thead(style='background-color:#337ab7;')
+            th(style="width: 38px;")
+                input.form-control(type="checkbox", id="selectAll", ng-click="vm.checkUncheckSelectAll()")
+                label(for="selectAll") {{'SELECT_ALL' | translate}}
+            th(style="width: 38px;") {{"STATUS" | translate}}
+            th(style="width: 78.18px;") {{"LIVE800_ACC" | translate}}
+            th(style="width: 40px;") {{"Type" | translate}}
+            th(style="width: 77.27px;") {{"TIME" | translate}}
+            th(style="width: 350px;") {{"CONVERSATION_CONTENT" | translate}}
+            th(style="width: 50.27px;") {{"OVERTIME (+/-)" | translate}}
+            th(style="width: 50.27px;") {{"EVALUATION (+/-)" | translate}}
+            th(style="width: 300px;") {{"EVALUATION_REVIEW" | translate}}
+            th(style="width: 78.18px;") {{"ASSESSOR" | translate}}
+            th(style="width: 77.27px;") {{"EVALUATED_TIME" | translate}}
+            th(style="width: 90px; background-color: red") {{"APPEAL_REASON" | translate}}
+        tbody(ng-repeat="conversationform in vm.conversationForm")
+            tr(style="border: 1px solid")
+                td.col-md-1(style="width: 38px; border: 1px solid black")
+                    //input.form-control(type="checkbox", value="{{unreadEvaluation.messageId}}", ng-model="unreadEvaluation.isChecked", ng-change="vm.gatherCheckedRecord(unreadEvaluation.isChecked,unreadEvaluation.messageId,unreadEvaluation.appealReason)")
+                    input.form-control.batchEdit(type="checkbox", name="rowChecked", value="{{conversationform.messageId}}",ng-click="vm.storeBatchId(conversationform)")
+                td.col-md-1(style="width: 38px; border: 1px solid black;")
+                    div
+                        a(href="" ng-click="vm.rateIt(conversationform)", style="cursor:pointer") {{conversationform.statusName}}
+                    div(ng-if='conversationform.editable', style='margin-top:30px;')
+                        div.btn.btn-primary(ng-click="vm.confirmRate(conversationform)", style="cursor:pointer;width:80px") {{'CONFIRM' | translate}}
+                        div.btn.btn-primary.red(ng-click="vm.cancelRate(conversationform)", style="cursor:pointer;margin-top:2px;width:80px") {{'CANCEL' | translate}}
+                td.col-md-7(style="padding: 0px; border: 1px solid black;", colspan=7)
+                    table(style="width: 100%; table-layout: fixed;")
+                        tbody
+                            tr(style="text-align:center;color:red")
+                                td(style="width: 78.18px;")
+                                td(style="width: 40px;")
+                                td(style="width: 77.27px;")
+                                td(style="width: 350px;") **** 新的对话开始 ****
+                                td(style="width: 50.27px;")
+                                td(style="width: 50.27px;")
+                                td(style="width: 300px;")
+                            tr(ng-repeat="convert in conversationform.conversation", style="border: 1px solid; word-wrap: break-word; background-color:{{convert.colors}};")
+                                td(style="width: 78.18px; border: 1px solid black;") {{conversationform.fpmsAcc.adminName}} ({{conversationform.live800Acc.id}})
+                                td(style="width: 40px; border: 1px solid black;") {{convert.roleName}}
+                                td(style="width: 77.27px; border: 1px solid black;") {{convert.displayTime}}
+                                td(style="width: 350px; border: 1px solid black;") {{convert.content}}
+                                td(style="width: 50.27px; border: 1px solid black;")
+                                    input(style="width:45px;",type="number",value="{{convert.timeoutRate}}",readonly="readonly", ng-show="convert.roles==1")
+                                td(style="width: 50.27px; border: 1px solid black;")
+                                    div(ng-if='conversationform.editable')
+                                        input(style="width:45px;",type="number",ng-model="convert.inspectionRate")
+                                    div(ng-if='!conversationform.editable')
+                                        div(style='text-align:center') {{convert.inspectionRate}}
+                                td(style="width: 300px; border: 1px solid black;")
+                                    div(ng-if='conversationform.editable', style="position:relative; bottom:0px;")
+                                        div.form-group(ng-show="convert.roles==1")
+                                            textarea.form-control(ng-model="convert.review", rows="3")
+                                    div(ng-if='!conversationform.editable')
+                                        div(style='text-align:center') {{convert.review}}
+                            tr(style="text-align:center;color:red")
+                                td(style="width: 78.18px;")
+                                td(style="width: 40px;")
+                                td(style="width: 77.27px;")
+                                td(style="width: 350px;") 結束對話:访客关闭对话 ({{conversationform.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
+                                td(style="width: 50.27px;")
+                                td(style="width: 50.27px;")
+                                td(style="width: 300px;")
+                td(style="border: 1px solid black; width: 78.18px;") {{conversationform.qualityAssessor.adminName}}
+                td(style="border: 1px solid black; width: 77.27px;") {{conversationform.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
+                td(style="border: 1px solid black; width: 90px;") {{conversationform.appealReason}}
 
-conversationform(ng-repeat='conversationform in vm.conversationForm',  cform = 'conversationform', rateconversation = 'vm.rateconversation(conversationform)', confirmrate='vm.confirmRate(conversationform)', storebatch='vm.storeBatchId(conversationform,$event)')
-div.row
-    div.col-md-12
-        div.col-md-10
-            div
-        div.col-md-2
-            .btn.btn-primary(ng-disabled="vm.batchSaveInProgress", ng-click="vm.batchSave()") {{"BATCH RATE" | translate}}
-
-div.row(style='margin-top:20px;')
-    div.col-md-12
-        div.col-md-2
-            span(style="display:inline-block;") {{'Length Per Page' | translate}}
-            input.form-control(style='max-width:70px;display:inline-block;',type="number",ng-model="vm.pgn.limit",ng-init=100 ,ng-blur="vm.searchLive800()")
-            span(style="display:inline-block;") {{'COUNT1' | translate}}
-        div.col-md-7
-            //ul.pagination(ng-repeat="i in vm.pgnPages")
-                li(ng-click="vm.gotoPG(i, $event)")
-                    a {{$index+1}}
-        div.col-md-3
-            div(style='display:inline-block')
-                span(style="width:50px;display:inline-block;") {{'Jump to' | translate}}
-                input.form-control(style='max-width:80px;display:inline-block;',type="number",ng-model="vm.pgn.currentPage",ng-init=1 ,ng-blur="vm.gotoPG((vm.pgn.currentPage),null)")
-                span(style="display:inline-block;") / {{ vm.pgn.totalPage }} {{'Page' | translate}}
-            div(style='display:inline-block')
-                .btn.btn-primary(ng-click="vm.nextPG()") {{'Page_Next' | translate}}
-            div(style='display:inline-block')
-                i.searchingQualityInspection.fa.fa-spin.fa-spinner(style="display:none")
-
-div(style='display:none')
-    div#conversationForm(style='height:60px')
-        div.row(style='border:2px solid #CECECE')
-            div.col-md-1(style="padding-top:10px;")
-                input.form-control.batchEdit(type="checkbox", name="rowChecked", value="{{cform.messageId}}",ng-click="storebatch(cform)")
-            div.col-md-1(style="text-align:center;padding-top:10px;")
+    div.row
+        div.col-md-12
+            div.col-md-10
                 div
-                    a(href="" ng-click="rateIt(cform)", style="cursor:pointer") {{cform.statusName}}
-                div(ng-if='cform.editable', style='margin-top:30px;')
-                    div.btn.btn-primary(ng-click="confirmrate(cform)", style="cursor:pointer;width:80px") {{'CONFIRM' | translate}}
-                    div.btn.btn-primary.red(ng-click="cancelrate(cform)", style="cursor:pointer;margin-top:2px;width:80px") {{'CANCEL' | translate}}
-            div.col-md-7(style='border-left:1px solid black;border-right:1px solid black')
-                .row
-                    div(style="text-align:center;color:red;padding-top:10px;") **** {{'NEW_CONVERSATION_START' | translate}} ****
-                .row(ng-repeat='convert in cform.conversation', style="background-color:{{convert.colors}};border-top:1px solid black")
-                    div(style='min-height:80px;padding:4px;',ng-show="convert.roles")
-                        div.col-md-2.text-center(style="padding:10px;") {{cform.fpmsAcc.adminName}} ({{cform.live800Acc.id}})
-                        div.col-md-1.text-center(style="padding:10px;") {{convert.roleName}}
-                        div.col-md-1.text-center(style="padding:10px;") {{convert.displayTime}}
-                        div.col-md-4.text-center(style="padding:10px;") {{convert.content}}
-                        div.col-md-1.text-center
-                            input(style="width:45px;",type="number",value="{{convert.timeoutRate}}",readonly="readonly", ng-show="convert.roles==1")
-                        div.col-md-1.text-center(ng-show="convert.roles==1")
-                            div(ng-if='cform.editable')
-                                input(style="width:45px;",type="number",ng-model="convert.inspectionRate")
-                            div(ng-if='!cform.editable')
-                                div(style='text-align:center') {{convert.inspectionRate}}
-                        div.col-md-2.text-center
-                            div(ng-if='cform.editable', style="position:relative; bottom:0px;")
-                                div.form-group(ng-show="convert.roles==1")
-                                    textarea.form-control(ng-model="convert.review", rows="3")
-                            div(ng-if='!cform.editable')
-                                div(style='text-align:center') {{convert.review}}
-                .row
-                    div(style="text-align:center;color:red") {{'CONVERSATION_END' | translate}} ({{cform.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
-            div.col-md-1(style="padding-top:10px;")
-                div.text-center  {{cform.qualityAssessor.adminName}}
-            div.col-md-1(style="padding-top:10px;")
-                div.text-center  {{cform.processTime | date:"yyyy-MM-dd hh:mm:ss"}}
-            div.col-md-1(style="padding-top:10px;")
-                div.form-group
-                    textarea.form-control(readonly="readonly", rows="3") {{cform.appealReason}}
+            div.col-md-2
+                .btn.btn-primary(ng-disabled="vm.batchSaveInProgress", ng-click="vm.batchSave()") {{"BATCH RATE" | translate}}
+
+    div.row(style='margin-top:20px;')
+        div.col-md-12
+            div.col-md-2
+                span(style="display:inline-block;") {{'Length Per Page' | translate}}
+                input.form-control(style='max-width:70px;display:inline-block;',type="number",ng-model="vm.pgn.limit",ng-init=100 ,ng-blur="vm.searchLive800()")
+                span(style="display:inline-block;") {{'COUNT1' | translate}}
+            div.col-md-7
+                //ul.pagination(ng-repeat="i in vm.pgnPages")
+                    li(ng-click="vm.gotoPG(i, $event)")
+                        a {{$index+1}}
+            div.col-md-3
+                div(style='display:inline-block')
+                    span(style="width:50px;display:inline-block;") {{'Jump to' | translate}}
+                    input.form-control(style='max-width:80px;display:inline-block;',type="number",ng-model="vm.pgn.currentPage",ng-init=1 ,ng-blur="vm.gotoPG((vm.pgn.currentPage),null)")
+                    span(style="display:inline-block;") / {{ vm.pgn.totalPage }} {{'Page' | translate}}
+                div(style='display:inline-block')
+                    .btn.btn-primary(ng-click="vm.nextPG()") {{'Page_Next' | translate}}
+                div(style='display:inline-block')
+                    i.searchingQualityInspection.fa.fa-spin.fa-spinner(style="display:none")

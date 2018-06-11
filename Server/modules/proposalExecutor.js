@@ -739,6 +739,9 @@ var proposalExecutor = {
                                 delete playerUpdate.playerId;
                                 delete playerUpdate.playerName;
                                 delete playerUpdate._id;
+                                // if(playerUpdate.bankAccountName){
+                                //     playerUpdate.realName = playerUpdate.bankAccountName;
+                                // }
 
                                 return dbconfig.collection_players.findOneAndUpdate(
                                     {_id: data._id, platform: data.platform},
@@ -807,7 +810,9 @@ var proposalExecutor = {
                                 delete partnerUpdate.partnerId;
                                 delete partnerUpdate.partnerName;
                                 delete partnerUpdate._id;
-
+                                // if(partnerUpdate.bankAccountName){
+                                //     partnerUpdate.realName = partnerUpdate.bankAccountName;
+                                // }
                                 return dbconfig.collection_partner.findOneAndUpdate(
                                     {_id: data._id, platform: data.platform},
                                     partnerUpdate,

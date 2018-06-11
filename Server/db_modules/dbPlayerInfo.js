@@ -2309,8 +2309,11 @@ let dbPlayerInfo = {
                 if (playerData) {
                     playerObj = playerData;
                     platformObjId = playerData.platform;
+                    if(playerData.bankAccountName){
+                        delete updateData.bankAccountName;
+                    }
                     //check if bankAccountName in update data is the same as player's real name
-                    if (updateData.bankAccountName && updateData.bankAccountName != playerData.realName) {
+                    if (updateData.bankAccountName && !playerData.realName) {
                         // return Q.reject({
                         //     name: "DataError",
                         //     code: constServerCode.INVALID_DATA,
@@ -6321,6 +6324,12 @@ let dbPlayerInfo = {
                         var rewardEventItem = rewardEvent[i].toObject();
                         delete rewardEventItem.platform;
                         rewardEventItem.platformId = platformId;
+
+                        if (rewardEventItem && rewardEventItem.display && rewardEventItem.display.length > 0) {
+                            rewardEventItem.list = rewardEventItem.display;
+                        }
+                        delete rewardEventItem.display;
+
                         if (rewardEventItem.canApplyFromClient) {
                             rewardEventArray.push(rewardEventItem);
                         }
@@ -7782,8 +7791,44 @@ let dbPlayerInfo = {
         para.domain ? query.domain = new RegExp('.*' + para.domain + '.*', 'i') : null;
         para.sourceUrl ? query.sourceUrl = new RegExp('.*' + para.sourceUrl + '.*', 'i') : null;
         para.registrationInterface ? query.registrationInterface = para.registrationInterface : null;
-        para.csPromoteWay && para.csPromoteWay.length > 0 ? query.promoteWay = {$in: para.csPromoteWay} : null;
-        para.csOfficer && para.csOfficer.length > 0 ? query.csOfficer = {$in: para.csOfficer} : null;
+
+        if (para.csPromoteWay && para.csPromoteWay.length > 0 ) {
+            let nonePromoteWayQuery = {}, promoteWayArr = [];
+            para.csPromoteWay.forEach(el => {
+               if (el == "") {
+                   nonePromoteWayQuery = {promoteWay: {$exists: false}};
+               } else {
+                   promoteWayArr.push(el);
+               }
+            });
+
+            if (Object.keys(nonePromoteWayQuery) && Object.keys(nonePromoteWayQuery).length > 0) {
+                query.$or = [nonePromoteWayQuery, {promoteWay: {$in: promoteWayArr}}];
+            } else {
+                query.promoteWay = {$in: promoteWayArr};
+            }
+        }
+
+        if (para.csOfficer && para.csOfficer.length > 0 ) {
+            let noneCSOfficerQuery = {}, csOfficerArr = [];
+            para.csOfficer.forEach(el => {
+                if (el == "") {
+                    noneCSOfficerQuery = {csOfficer: {$exists: false}};
+                } else {
+                    csOfficerArr.push(el);
+                }
+            });
+
+            if (Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0) {
+                query.$or = [noneCSOfficerQuery, {csOfficer: {$in: csOfficerArr}}];
+            } else {
+                query.csOfficer = {$in: csOfficerArr};
+            }
+
+        }
+
+        //para.csPromoteWay && para.csPromoteWay.length > 0 ? query.promoteWay = {$in: para.csPromoteWay} : null;
+        //para.csOfficer && para.csOfficer.length > 0 ? query.csOfficer = {$in: para.csOfficer} : null;
 
         if (para.isNewSystem === 'old') {
             query.isNewSystem = {$ne: true};
@@ -9321,6 +9366,7 @@ let dbPlayerInfo = {
         let bonusDetail = null;
         let bUpdateCredit = false;
         let platform;
+        let isUsingXima = false;
         let resetCredit = function (playerObjId, platformObjId, credit, error) {
             //reset player credit if credit is incorrect
             return dbconfig.collection_players.findOneAndUpdate(
@@ -9394,6 +9440,14 @@ let dbPlayerInfo = {
                     if (playerData) {
                         player = playerData;
 
+                        if (player.ximaWithdraw) {
+                            ximaWithdrawUsed = Math.min(amount, player.ximaWithdraw);
+
+                            if (amount <= player.ximaWithdraw) {
+                                isUsingXima = true;
+                            }
+                        }
+
                         if (player.platform && player.platform.useProviderGroup) {
                             let unlockAllGroups = Promise.resolve(true);
                             if (bForce) {
@@ -9417,7 +9471,7 @@ let dbPlayerInfo = {
                 }
             ).then(
                 RTGs => {
-                    if (!RTGs) {
+                    if (!RTGs || isUsingXima) {
                         if (!player.bankName || !player.bankAccountName || !player.bankAccount) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
@@ -9489,10 +9543,6 @@ let dbPlayerInfo = {
                                     }
                                 }
 
-                                if (player.ximaWithdraw) {
-                                    ximaWithdrawUsed = Math.min(amount, player.ximaWithdraw);
-                                }
-
                                 return dbconfig.collection_players.findOneAndUpdate(
                                     {
                                         _id: player._id,
@@ -9553,7 +9603,7 @@ let dbPlayerInfo = {
                                                 amount: finalAmount,
                                                 // bonusCredit: bonusDetail.credit,
                                                 curAmount: player.validCredit,
-                                                remark: player.remark,
+                                                // remark: player.remark,
                                                 lastSettleTime: new Date(),
                                                 honoreeDetail: honoreeDetail,
                                                 creditCharge: creditCharge,
@@ -13382,12 +13432,53 @@ let dbPlayerInfo = {
                 }
 
                 // relevant players are the players who played any game within given time period
-                let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+                let playerObjArr = [];
+                return dbconfig.collection_playerConsumptionRecord.aggregate([
                     {$match: relevantPlayerQuery},
                     {$group: {_id: "$playerId"}}
-                ]);
+                ]).then(
+                    consumptionData => {
+                        if (consumptionData && consumptionData.length) {
+                            playerObjArr = consumptionData.map(function (playerIdObj) {
+                                return String(playerIdObj._id);
+                            });
+                        }
+                        let proposalQuery = {
+                            mainType: {$in: ["PlayerBonus", "TopUp"]},
+                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            createTime: {$gte: startDate, $lte: endDate},
+                            'data.platformId': platform
+                        };
 
-                let stream = consumptionProm.cursor({batchSize: 100}).allowDiskUse(true).exec();
+                        if (player) {
+                            proposalQuery['data.playerObjId'] = player._id;
+                        }
+                        return dbconfig.collection_proposal.aggregate([
+                            {$match: proposalQuery},
+                            {$group: {_id: "$data.playerObjId"}}
+                        ])
+                    }
+                ).then(
+                    proposalData => {
+                        if (proposalData && proposalData.length) {
+                            for (let i = 0; i < proposalData.length; i++) {
+                                if (proposalData[i]._id && playerObjArr.indexOf(String(proposalData[i]._id)) === -1) {
+                                    playerObjArr.push(proposalData[i]._id);
+                                }
+                            }
+                        }
+                        for (let j = 0; j < playerObjArr.length; j++) {
+                            playerObjArr[j] = ObjectId(playerObjArr[j]);
+                        }
+                        return playerObjArr;
+                    }
+                );
+
+            }
+        ).then(
+            playerObjArrData => {
+                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}},{_id: 1});
+                let stream = playerProm.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
 
                 return balancer.initConns().then(function () {
@@ -13439,10 +13530,33 @@ let dbPlayerInfo = {
                     });
                 }
 
+                let filteredArr = []
+                if(query.csPromoteWay && query.csPromoteWay.length > 0 && query.admins && query.admins.length > 0){
+                    if(query.csPromoteWay.includes("") && query.admins.includes("")){
+                        filteredArr = result;
+                        filteredArr = filteredArr.filter(e => (!(e.hasOwnProperty('csPromoteWay')) || (e.csPromoteWay && e.csPromoteWay == ''))
+                            && (!(e.hasOwnProperty('csOfficer')) || (e.csOfficer && e.csOfficer == '')));
+                    }
+                }else if(query.csPromoteWay && query.csPromoteWay.length > 0){
+                    if(query.csPromoteWay.includes("")){
+                        filteredArr = result;
+                        filteredArr = filteredArr.filter(e => !(e.hasOwnProperty('csPromoteWay')) || (e.csPromoteWay && e.csPromoteWay == ''));
+                    }
+                }else if(query.csOfficer && query.csOfficer.length > 0){
+                    if(query.csOfficer.includes("")){
+                        filteredArr = result;
+                        filteredArr = filteredArr.filter(e => !(e.hasOwnProperty('csOfficer')) || (e.csOfficer && e.csOfficer == ''));
+                    }
+                }
 
                 // Output filter promote way
                 result = query.csPromoteWay && query.csPromoteWay.length > 0 ? result.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : result;
                 result = query.admins && query.admins.length > 0 ? result.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : result;
+
+                result = result.concat(
+                    filteredArr.filter(function(e) {
+                        return result.indexOf(e) === -1;
+                    }));
 
                 //handle sum of field here
                 for (let z = 0; z < result.length; z++) {
@@ -13557,12 +13671,34 @@ let dbPlayerInfo = {
                     });
                 }
 
-
                 let outputResult = [];
+                let filteredArr = []
+                if(query.csPromoteWay && query.csPromoteWay.length > 0 && query.admins && query.admins.length > 0){
+                    if(query.csPromoteWay.includes("") && query.admins.includes("")){
+                        filteredArr = result;
+                        filteredArr = filteredArr.filter(e => (!(e.hasOwnProperty('csPromoteWay')) || (e.csPromoteWay && e.csPromoteWay == ''))
+                            && (!(e.hasOwnProperty('csOfficer')) || (e.csOfficer && e.csOfficer == '')));
+                    }
+                }else if(query.csPromoteWay && query.csPromoteWay.length > 0){
+                    if(query.csPromoteWay.includes("")){
+                        filteredArr = result;
+                        filteredArr = filteredArr.filter(e => !(e.hasOwnProperty('csPromoteWay')) || (e.csPromoteWay && e.csPromoteWay == ''));
+                    }
+                }else if(query.csOfficer && query.csOfficer.length > 0){
+                    if(query.csOfficer.includes("")){
+                        filteredArr = result;
+                        filteredArr = filteredArr.filter(e => !(e.hasOwnProperty('csOfficer')) || (e.csOfficer && e.csOfficer == ''));
+                    }
+                }
 
                 // Output filter promote way
                 result = query.csPromoteWay && query.csPromoteWay.length > 0 ? result.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : result;
                 result = query.admins && query.admins.length > 0 ? result.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : result;
+
+                result = result.concat(
+                    filteredArr.filter(function(e) {
+                        return result.indexOf(e) === -1;
+                    }));
 
                 for (let i = 0, len = limit; i < len; i++) {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
@@ -13917,13 +14053,16 @@ let dbPlayerInfo = {
 
             let playerProm = dbconfig.collection_players.findOne(
                 playerQuery, {
-                    playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1, accAdmin: 1
+                    playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1, accAdmin: 1, promoteWay: 1
                 }
             ).lean();
 
             // Promise domain CS and promote way
             let promoteWayProm = domain ?
-                dbconfig.collection_csOfficerUrl.findOne({domain: {$regex: domain, $options: "x"}}).populate({
+                dbconfig.collection_csOfficerUrl.findOne({
+                    platform: platformObjId,
+                    domain: {$regex: domain, $options: "xi"
+                }}).populate({
                     path: 'admin',
                     model: dbconfig.collection_admin
                 }).lean() : Promise.resolve(false);
@@ -14153,6 +14292,10 @@ let dbPlayerInfo = {
                     else if (csOfficerDetail) {
                         result.csOfficer = csOfficerDetail.admin ? csOfficerDetail.admin.adminName : "";
                         result.csPromoteWay = csOfficerDetail.way;
+                    }
+
+                    if (!csOfficerDetail && playerDetail && playerDetail.promoteWay) {
+                        result.csPromoteWay = playerDetail.promoteWay;
                     }
 
                     return result;

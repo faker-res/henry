@@ -194,6 +194,30 @@
                                                     i.fa.fa-minus(ng-click='vm.rewardPercentageAmountDeleteRow(idx,entry[i])' ng-show='vm.platformRewardIsEnabled && idx!=0')
                                                     i.fa.fa-plus(ng-click='vm.rewardPercentageAmountNewRow(entry[i])' ng-show='vm.platformRewardIsEnabled && idx==0')
 
+                    .col-md-12.well
+                        table.simple-table
+                            thead
+                                tr
+                                    th {{"Add/Delete" | translate}}
+                                    th(style="width: 150px;") {{"Display ID" | translate}}
+                                    th {{"Display Title" | translate}}
+                                    th {{"Display Content" | translate}}
+                            tbody
+                                tr(ng-repeat='(idx, val) in vm.showReward.display')
+                                    td
+                                        label(ng-show='vm.platformRewardIsEnabled') (
+                                        i.fa.fa-plus(ng-click='vm.rewardDisplayNewRow(vm.showReward.display)', ng-show='vm.platformRewardIsEnabled')
+                                        label(ng-show='vm.platformRewardIsEnabled') )
+                                        label(ng-show='vm.platformRewardIsEnabled') (
+                                        i.fa.fa-minus(ng-click='vm.rewardDisplayDeleteRow(idx, vm.showReward.display)', ng-show='vm.platformRewardIsEnabled')
+                                        label(ng-show='vm.platformRewardIsEnabled') )
+                                    td
+                                        input(type="text" ng-model="val.displayId" style="width: 150px;")
+                                    td
+                                        input(type="text" ng-model="val.displayTitle" style="width: 100%;")
+                                    td
+                                        input(type="text" ng-model="val.displayTextContent" style="width: 100%;")
+
             .pull-right
                 //- Intuitive UI: The Delete Event button should probably be on the left, next to Add Event.  (Or it could be an X button next to the name of the currently selected event.)
                 //-               The Edit Event button could be a "pencil" icon in the top-right corner of the form.
