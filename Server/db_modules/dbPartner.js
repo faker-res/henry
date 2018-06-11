@@ -583,30 +583,33 @@ let dbPartner = {
             model: dbconfig.collection_players
         }).lean().then(
             function (data) {
-                data.fullPhoneNumber = data.phoneNumber;
-                data.phoneNumber = dbUtil.encodePhoneNum(data.phoneNumber);
-                data.email = dbUtil.encodeEmail(data.email);
-                if (data.bankAccount) {
-                    data.bankAccount = dbUtil.encodeBankAcc(data.bankAccount);
+                if (data) {
+                    data.fullPhoneNumber = data.phoneNumber;
+                    data.phoneNumber = dbUtil.encodePhoneNum(data.phoneNumber);
+                    data.email = dbUtil.encodeEmail(data.email);
+                    if (data.bankAccount) {
+                        data.bankAccount = dbUtil.encodeBankAcc(data.bankAccount);
+                    }
+                    apiData = data;
+
+                    var a, b, c;
+
+                    a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({
+                        provinceId: apiData.bankAccountProvince,
+                        queryId: serverInstance.getQueryId()
+                    }) : true;
+                    b = apiData.bankAccountCity ? pmsAPI.foundation_getCity({
+                        cityId: apiData.bankAccountCity,
+                        queryId: serverInstance.getQueryId()
+                    }) : true;
+                    c = apiData.bankAccountDistrict ? pmsAPI.foundation_getDistrict({
+                        districtId: apiData.bankAccountDistrict,
+                        queryId: serverInstance.getQueryId()
+                    }) : true;
+
+                    return Q.all([a, b, c]);
                 }
-                apiData = data;
-
-                var a, b, c;
-
-                a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({
-                    provinceId: apiData.bankAccountProvince,
-                    queryId: serverInstance.getQueryId()
-                }) : true;
-                b = apiData.bankAccountCity ? pmsAPI.foundation_getCity({
-                    cityId: apiData.bankAccountCity,
-                    queryId: serverInstance.getQueryId()
-                }) : true;
-                c = apiData.bankAccountDistrict ? pmsAPI.foundation_getDistrict({
-                    districtId: apiData.bankAccountDistrict,
-                    queryId: serverInstance.getQueryId()
-                }) : true;
-
-                return Q.all([a, b, c]);
+                deferred.resolve(data);
             },
             function (err) {
                 deferred.reject({name: "DBError", message: "Error in getting partner data", error: err})
