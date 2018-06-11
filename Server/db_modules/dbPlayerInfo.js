@@ -9455,11 +9455,7 @@ let dbPlayerInfo = {
                             }
                             return unlockAllGroups.then(
                                 () => {
-                                    return dbconfig.collection_rewardTaskGroup.findOne({
-                                        platformId: playerData.platform,
-                                        playerId: playerData._id,
-                                        status: {$in: [constRewardTaskStatus.STARTED]}
-                                    }).lean();
+                                    return findStartedRewardTaskGroup(playerData.platform, playerData._id);
                                 }
                             );
                         } else {
@@ -9468,6 +9464,23 @@ let dbPlayerInfo = {
                     } else {
                         return Promise.reject({name: "DataError", errorMessage: "Cannot find player"});
                     }
+                }
+            ).then(
+                RTG => {
+                    if (RTG) {
+                        if(RTG.curConsumption >= RTG.targetConsumption) {
+                            return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
+                                _id: RTG._id
+                            }, {
+                                status: constRewardTaskStatus.SYSTEM_UNLOCK
+                            }, {new: true}).lean().then(
+                                () => {
+                                    return findStartedRewardTaskGroup(player.platform, player._id);
+                                }
+                            );
+                        }
+                    }
+                    return RTG;
                 }
             ).then(
                 RTGs => {
@@ -16847,6 +16860,13 @@ function isRandomRewardConsumption (rewardEvent) {
         && rewardEvent.param.rewardParam[0].value[0] && rewardEvent.param.rewardParam[0].value[0].requiredConsumptionAmount
 }
 
+function findStartedRewardTaskGroup (platformObjId,playerObjId) {
+    return dbconfig.collection_rewardTaskGroup.findOne({
+        platformId: platformObjId,
+        playerId: playerObjId,
+        status: {$in: [constRewardTaskStatus.STARTED]}
+    }).lean();
+}
 
 var proto = dbPlayerInfoFunc.prototype;
 proto = Object.assign(proto, dbPlayerInfo);
