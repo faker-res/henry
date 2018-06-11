@@ -2893,13 +2893,13 @@ let dbPlayerReward = {
                     proms.push(
                         getPlayerConsumptionSummary(elem.platformObjId, elem.playerObjId, elem.acceptedTime, elem.nextWithdrawTime).then(
                             res => {
-                                monitorObjs[index].consumptionBeforeWithdraw = res && res[0] ? res[0].validAmount : 0;
+                                monitorObjs[index].consumptionBeforeWithdraw = res && res[0] ? dbUtility.noRoundTwoDecimalPlaces(res[0].validAmount) : 0;
 
                                 return dbPlayerUtil.getPlayerCreditByObjId(elem.playerObjId);
                             }
                         ).then(
                             creditRes => {
-                                monitorObjs[index].playerCredit = creditRes ? creditRes.gameCredit + creditRes.validCredit + creditRes.lockedCredit : 0;
+                                monitorObjs[index].playerCredit = creditRes ? creditRes.gameCredit + dbUtility.noRoundTwoDecimalPlaces(creditRes.validCredit) + dbUtility.noRoundTwoDecimalPlaces(creditRes.lockedCredit) : 0;
 
                                 return dbConfig.collection_proposal.find({
                                     'data.platformId': elem.platformObjId,
