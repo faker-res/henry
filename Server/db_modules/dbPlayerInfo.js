@@ -2296,69 +2296,83 @@ let dbPlayerInfo = {
         let playerObj = null;
         let platformObjId;
         let smsLogData;
+        let duplicatedRealNameCount = 0;
+
         // Get platform
-        return dbconfig.collection_players.findOne(query).lean().then(
-            playerData => {
-                // block action if it is Demo player
-                if (playerData && !playerData.isRealPlayer) {
+        let playerCount = dbconfig.collection_players.find({realName:updateData.bankAccountName}).lean().count();
+        let playerInfo =  dbconfig.collection_players.findOne(query).lean();
+
+        return Promise.all([playerCount, playerInfo]).then ( data => {
+            duplicatedRealNameCount = data[0] || 0;
+            let playerData = data[1];
+
+            if (playerData && !playerData.isRealPlayer) {
+                return Q.reject({
+                    name: "DataError",
+                    message: "Demo player cannot perform this action"
+                })
+            }
+            if (playerData) {
+                playerObj = playerData;
+                platformObjId = playerData.platform;
+                if (playerData.bankAccountName) {
+                    delete updateData.bankAccountName;
+                }
+                //check if bankAccountName in update data is the same as player's real name
+                if (updateData.bankAccountName && !playerData.realName) {
+                    // return Q.reject({
+                    //     name: "DataError",
+                    //     code: constServerCode.INVALID_DATA,
+                    //     message: "Bank account name is different from real name"
+                    // });
+                    if (updateData.bankAccountName.indexOf('*') > -1)
+                        delete updateData.bankAccountName;
+                    else
+                        updateData.realName = updateData.bankAccountName;
+                }
+                if (!updateData.bankAccountName && !playerData.realName) {
                     return Q.reject({
                         name: "DataError",
-                        message: "Demo player cannot perform this action"
-                    })
+                        code: constServerCode.INVALID_DATA,
+                        message: "Please enter bank account name or contact cs"
+                    });
                 }
-                if (playerData) {
-                    playerObj = playerData;
-                    platformObjId = playerData.platform;
-                    if(playerData.bankAccountName){
-                        delete updateData.bankAccountName;
-                    }
-                    //check if bankAccountName in update data is the same as player's real name
-                    if (updateData.bankAccountName && !playerData.realName) {
-                        // return Q.reject({
-                        //     name: "DataError",
-                        //     code: constServerCode.INVALID_DATA,
-                        //     message: "Bank account name is different from real name"
-                        // });
-                        if (updateData.bankAccountName.indexOf('*') > -1)
-                            delete updateData.bankAccountName;
-                        else
-                            updateData.realName = updateData.bankAccountName;
-                    }
-                    if (!updateData.bankAccountName && !playerData.realName) {
+
+                if (updateData.bankAccountType) {
+                    let tempBankAccountType = updateData.bankAccountType;
+                    let isValidBankType = Number.isInteger(Number(tempBankAccountType));
+                    if (!isValidBankType) {
                         return Q.reject({
                             name: "DataError",
                             code: constServerCode.INVALID_DATA,
-                            message: "Please enter bank account name or contact cs"
+                            message: "The name has been registered, please change a new bank card or contact our cs."
+                        });
+                    }
+                }
+
+                return dbconfig.collection_platform.findOne({
+                    _id: playerData.platform
+                })
+            }
+            else {
+                return Q.reject({
+                    name: "DataError",
+                    code: constServerCode.DOCUMENT_NOT_FOUND,
+                    message: "Unable to find player"
+                });
+            }
+        }).then(
+            platformData => {
+                if (platformData) {
+                    // check if same real name can be used for registration
+                    if (updateData.realName && duplicatedRealNameCount > 0 && !platformData.allowSameRealNameToRegister){
+                        return Q.reject({
+                            name: "DataError",
+                            code: constServerCode.INVALID_DATA,
+                            message: "The name has been registered, please change a new bank card or contact our cs."
                         });
                     }
 
-                    if (updateData.bankAccountType) {
-                        let tempBankAccountType = updateData.bankAccountType;
-                        let isValidBankType = Number.isInteger(Number(tempBankAccountType));
-                        if (!isValidBankType) {
-                            return Q.reject({
-                                name: "DataError",
-                                code: constServerCode.INVALID_DATA,
-                                message: "Invalid bank account type"
-                            });
-                        }
-                    }
-
-                    return dbconfig.collection_platform.findOne({
-                        _id: playerData.platform
-                    })
-                }
-                else {
-                    return Q.reject({
-                        name: "DataError",
-                        code: constServerCode.DOCUMENT_NOT_FOUND,
-                        message: "Unable to find player"
-                    });
-                }
-            }
-        ).then(
-            platformData => {
-                if (platformData) {
                     // Check if platform sms verification is required
                     if (!platformData.requireSMSVerificationForPaymentUpdate || skipSMSVerification) {
                         // SMS verification not required
