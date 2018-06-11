@@ -1488,7 +1488,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     // Fetch mail pre-emptively, so we can show unread count in the menu
     //setTimeout(fetchAdminMail, 10*1000);
     //setInterval(fetchAdminMail, 4*60*1000);
-    $scope.fetchAdminMailDebounced = $scope.debounce(fetchAdminMail, 10 * 1000, true);
+    // $scope.fetchAdminMailDebounced = $scope.debounce(fetchAdminMail, 10 * 1000, true);
     $scope.presentAdminMails = function () {
         fetchAdminMail();
     };

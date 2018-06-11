@@ -126,7 +126,7 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
                     label {{'OPEN_NEW_TAB' | translate}}
                         input.input-sm.pull-left.margin-right-5(style='height:inherit;margin-top:0', type='checkbox', ng-model='openInNewTab')
             li
-                a.dropdown-toggle(href='#', data-toggle='dropdown',style='direction: rtl;', ng-mouseover='fetchAdminMailDebounced()')
+                a.dropdown-toggle(href='#', data-toggle='dropdown',style='direction: rtl;')
                     i.fa.fa-user
                     text {{getUserName()}}
                 ul.dropdown-menu(role='menu')
