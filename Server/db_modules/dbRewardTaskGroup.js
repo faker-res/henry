@@ -57,51 +57,70 @@ let dbRewardTaskGroup = {
     },
 
     addRemainingConsumptionToFreeAmountRewardTaskGroup: (platformId, playerId, createTime, remainCurConsumption) => {
-        return dbconfig.collection_rewardTaskGroup.findOne({
+        let remainingAmount = remainCurConsumption;
+
+        return dbconfig.collection_rewardTaskGroup.find({
             platformId: platformId,
             playerId: playerId,
             providerGroup: null,
             status: {$in: [constRewardTaskStatus.STARTED]},
             createTime: {$lt: createTime}
-        }).lean().then(freeRewardTaskGroup =>{
-            if(freeRewardTaskGroup){
-                freeRewardTaskGroup.curConsumption += remainCurConsumption ? remainCurConsumption : 0;
-                //freeRewardTaskGroup.currentAmt += consumptionRecord.bonusAmount;
+        }).sort({createTime: 1}).lean().then(
+            RTGs => {
+                if (RTGs && RTGs.length) {
+                    let promArr = [];
 
-                // Check whether player has lost all credit
-                if (freeRewardTaskGroup.currentAmt < 1){
-                    freeRewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
-                    freeRewardTaskGroup.unlockTime = createTime;
+                    RTGs.forEach(RTG => {
+                        if (remainingAmount > 0) {
+                            let requiredConsumption = RTG.targetConsumption + RTG.forbidXIMAAmt - RTG.curConsumption;
+                            let status, unlockTime;
+
+                            if (RTG.currentAmt < 1){
+                                status = constRewardTaskStatus.NO_CREDIT;
+                                unlockTime = createTime;
+                            }
+                            else if (remainingAmount >= requiredConsumption) {
+                                status = constRewardTaskStatus.ACHIEVED;
+                                unlockTime = createTime;
+                            } else {
+                                requiredConsumption = remainingAmount;
+                            }
+
+                            let updObj = {
+                                $inc: {
+                                    //currentAmt: consumptionRecord.bonusAmount,
+                                    curConsumption: requiredConsumption ? requiredConsumption : 0
+                                }
+                            };
+
+                            if (status && unlockTime) {
+                                updObj.status = status;
+                                updObj.unlockTime = unlockTime;
+                            }
+
+                            promArr.push(
+                                dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                                    {_id: RTG._id},
+                                    updObj,
+                                    {new: true}
+                                ).then(updatedData => {
+                                    if (updatedData) {
+                                        // Transfer amount to player if reward is achieved
+                                        if (updatedData.status === constRewardTaskStatus.ACHIEVED) {
+                                            return dbRewardTask.completeRewardTaskGroup(updatedData, updatedData.status);
+                                        }
+                                    }
+                                })
+                            );
+
+                            remainingAmount -= requiredConsumption;
+                        }
+                    });
+
+                    return Promise.all(promArr);
                 }
-                // Consumption reached
-                else if (freeRewardTaskGroup.curConsumption >= freeRewardTaskGroup.targetConsumption + freeRewardTaskGroup.forbidXIMAAmt) {
-                    freeRewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
-                    freeRewardTaskGroup.unlockTime = createTime;
-                }
-
-                let updObj = {
-                    $inc: {
-                        //currentAmt: consumptionRecord.bonusAmount,
-                        curConsumption: remainCurConsumption ? remainCurConsumption : 0
-                    },
-                    status: freeRewardTaskGroup.status,
-                    unlockTime: freeRewardTaskGroup.unlockTime
-                };
-
-                return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
-                    {_id: freeRewardTaskGroup._id},
-                    updObj,
-                    {new: true}
-                );
             }
-        }).then(updatedData => {
-            if (updatedData) {
-                // Transfer amount to player if reward is achieved
-                if (updatedData.status == constRewardTaskStatus.ACHIEVED) {
-                    return dbRewardTask.completeRewardTaskGroup(updatedData, updatedData.status);
-                }
-            }
-        })
+        )
     },
 
     deletePlatformProviderGroup: (gameProviderGroupObjId) => {
