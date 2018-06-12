@@ -10,6 +10,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
     let $roundToTwoDecimalPlacesString = $filter('roundToTwoDecimalPlacesString');
+    let noDecimalPlacesString = $filter('noDecimalPlacesString');
     //set up socket service
     socketService.authService = authService;
     socketService.curScope = $scope;
@@ -1649,9 +1650,9 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 let bonusAmount = data.data[0][0] != undefined ? data.data[0][0].amount : 0;
                 let topUpAmount = data.data[1][0] != undefined ? data.data[1][0].amount : 0;
 
-                $scope.profitDetailIncome = $roundToTwoDecimalPlacesString(topUpAmount - bonusAmount);
-                $scope.profitDetailBonusAmount =  $roundToTwoDecimalPlacesString(bonusAmount);
-                $scope.profitDetailTopUpAmount = $roundToTwoDecimalPlacesString(topUpAmount);
+                $scope.profitDetailIncome = noDecimalPlacesString(topUpAmount - bonusAmount);
+                $scope.profitDetailBonusAmount =  noDecimalPlacesString(bonusAmount);
+                $scope.profitDetailTopUpAmount = noDecimalPlacesString(topUpAmount);
 
                 let sendData3 = {
                     platformId: $scope.selectedPlatform.id,
@@ -1669,7 +1670,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                         let totalBonusAmount = totalAmount.data[0][0] != undefined ? totalAmount.data[0][0].amount : 0;
                         let totalTopUpAmount = totalAmount.data[1][0] != undefined ? totalAmount.data[1][0].amount : 0;
 
-                        $scope.netProfitDetailIncome = $roundToTwoDecimalPlacesString(totalTopUpAmount - totalBonusAmount);
+                        $scope.netProfitDetailIncome = noDecimalPlacesString(totalTopUpAmount - totalBonusAmount);
 
                         queryDone[3] = true;
                     })
@@ -1684,7 +1685,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             $scope.$evalAsync(() => {
 
                 let consumptionAmount = data.data[0] != undefined ? data.data[0].totalAmount : 0;
-                $scope.profitDetailConsumptionAmount = $roundToTwoDecimalPlacesString(consumptionAmount);
+                $scope.profitDetailConsumptionAmount = noDecimalPlacesString(consumptionAmount);
                 $scope.profitDetailConsumptionPlayer = data.data[0] != undefined ? data.data[0].userIds.length.toLocaleString() : 0;
                 queryDone[1] = true;
             })

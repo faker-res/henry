@@ -494,7 +494,7 @@ var PartnerServiceImplement = function () {
 
     this.checkAllCrewDetail.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.platformId && conn.partnerId && data.sortMode);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.checkAllCrewDetail, [data.platformId, conn.partnerId, data.playerId, data.sortMode, data.startTime, data.endTime, data.startIndex, data.count], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.checkAllCrewDetail, [data.platformId, conn.partnerId, data.playerId, data.crewAccount, data.sortMode, data.startTime, data.endTime, data.startIndex, data.count], isValidData);
     };
 
 };

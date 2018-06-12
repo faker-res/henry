@@ -639,13 +639,10 @@ define(['js/app'], function (myApp) {
                 context: ulMenu,
                 elem: '.providerListPopover',
                 content: function () {
-                    // vm.getProviderLatestTimeRecord();
-                    $scope.safeApply();
                     return $compile($('#providerListPopover').html())($scope);
                 },
                 callback: function () {
                     let thisPopover = utilService.$getPopoverID(this);
-                    $scope.safeApply();
                 }
             });
 
@@ -667,7 +664,6 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getProviderLatestTimeRecord', sendData, function (data) {
                     $scope.$evalAsync(() => {
-                        console.log("getProviderLatestTimeRecord", data.data)
                         if (data && data.data && data.data.length > 0) {
                             data.data.map(d => {
                                 if (d) {
@@ -7069,8 +7065,6 @@ define(['js/app'], function (myApp) {
                         queryFunction: vm.getPlayersByAdvanceQueryDebounced
                     });
                 }
-
-                $scope.safeApply();
             };
 
             function createPlayerAdvancedSearchFilters(config) {
@@ -13849,8 +13843,6 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'getPlatformRewardProposal', {platform: vm.selectedPlatform.id}, function (data) {
                     vm.platformRewardtype = data.data || [];
-                    console.log("rewardType:", vm.platformRewardtype);
-                    $scope.safeApply();
                 });
             }
             vm.getPlayerRewardHistory = function ($event) {
@@ -19079,7 +19071,6 @@ define(['js/app'], function (myApp) {
                     $.each(vm.platformBankCardGroupList, function (i, v) {
                         vm.platformBankCardGroupListCheck[v._id] = v.displayName ? v.displayName : true;
                     })
-                    $scope.safeApply();
                 })
             }
 
@@ -19110,7 +19101,6 @@ define(['js/app'], function (myApp) {
                     $.each(vm.platformMerchantGroupList, function (i, v) {
                         vm.platformMerchantGroupListCheck[v._id] = v.displayName ? v.displayName : true;
                     })
-                    $scope.safeApply();
                 })
             }
 
@@ -19196,7 +19186,6 @@ define(['js/app'], function (myApp) {
                     $.each(vm.platformWechatPayGroupList, function (i, v) {
                         vm.platformWechatPayGroupListCheck[v._id] = v.displayName ? v.displayName : true;
                     });
-                    $scope.safeApply();
                 })
             };
 
@@ -19356,6 +19345,9 @@ define(['js/app'], function (myApp) {
                 //vm.highlightRewardEvent = {};
                 //vm.highlightRewardEvent[v.name] = 'bg-bright';
                 vm.showReward = v;
+                if (vm.showReward && vm.showReward.condition && vm.showReward.condition.imageUrl && typeof vm.showReward.condition.imageUrl == 'string') {
+                    vm.showReward.condition.imageUrl = [""];
+                }
                 vm.initRewardValidTimeDOM(vm.showReward.validStartTime, vm.showReward.validEndTime);
                 console.log('vm.showReward', vm.showReward);
                 vm.showRewardTypeData = null;   // This will probably be overwritten by vm.platformRewardTypeChanged() below
@@ -22133,8 +22125,6 @@ define(['js/app'], function (myApp) {
                     deleteFlag: false
                 }, function (data) {
                     $scope.$evalAsync(() => {
-                        console.log('getPromoCodeTypes', data);
-
                         vm.promoCodeTypes = data.data;
 
                         vm.promoCodeTypes.forEach(entry => {
@@ -24187,10 +24177,7 @@ define(['js/app'], function (myApp) {
 
             vm.getAllPromoCodeUserGroup = function () {
                 socketService.$socket($scope.AppSocket, 'getAllPromoCodeUserGroup', {platformObjId: vm.selectedPlatform.id}, function (data) {
-                    console.log('getAllPromoCodeUserGroup', data);
-
                     vm.userGroupAllConfig = data.data;
-                    $scope.safeApply();
                 });
             };
 
@@ -24463,7 +24450,6 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getAllDxMission', sendData, function (data) {
                     vm.allDxMission = data.data;
-                    $scope.safeApply();
                 });
             };
 
@@ -26629,7 +26615,6 @@ define(['js/app'], function (myApp) {
                 $scope.$socketPromise('getPlatformAnnouncementsByPlatformId', {platformId: vm.selectedPlatform.data.platformId}).then(function (data) {
                     vm.allPlatformAnnouncements = data.data;
                     vm.allPlatformAnnouncements.sort((a, b) => a.order - b.order);
-                    $scope.safeApply();
                 }).done();
             };
 
@@ -28135,7 +28120,6 @@ define(['js/app'], function (myApp) {
                     displayValues: false,
                     countSelected: $translate('# of % selected')
                 });
-                $scope.safeApply();
             };
 
             vm.setupRemarksMultiInput = function () {
@@ -28150,7 +28134,6 @@ define(['js/app'], function (myApp) {
                     displayValues: false,
                     countSelected: $translate('# of % selected')
                 });
-                $scope.safeApply();
             };
 
             utilService.actionAfterLoaded('#resetPlayerQuery', function () {
@@ -28190,7 +28173,6 @@ define(['js/app'], function (myApp) {
                     countSelected: $translate('# of % selected')
                 });
                 remarkSelect.multipleSelect("uncheckAll");
-                $scope.safeApply();
             };
             vm.setupGameProviderMultiInputFeedback = function () {
                 let gameProviderSelect = $('select#selectGameProvider');
@@ -28202,7 +28184,6 @@ define(['js/app'], function (myApp) {
                     countSelected: $translate('# of % selected')
                 });
                 gameProviderSelect.multipleSelect("uncheckAll");
-                $scope.safeApply();
             };
 
 
