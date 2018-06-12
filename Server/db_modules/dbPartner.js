@@ -7529,7 +7529,7 @@ let dbPartner = {
         );
     },
 
-    checkAllCrewDetail: (platformId, partnerId, playerId, sortMode, startTime, endTime, startIndex, count) => {
+    checkAllCrewDetail: (platformId, partnerId, playerId, crewAccount, sortMode, startTime, endTime, startIndex, count) => {
         let index = startIndex || 0;
         let limit = count || 100;
         let platformObj;
@@ -7562,11 +7562,15 @@ let dbPartner = {
 
                 let playerProm = dbconfig.collection_players.find({platform: platformObj._id, partner: partnerData._id},{_id: 1, name: 1}).lean();
                 let singlePlayerProm = Promise.resolve();
+                let singlePlayerQuery = {
+                    platform: platformObj._id,
+                }
                 if (playerId) {
-                    singlePlayerProm = dbconfig.collection_players.findOne({
-                        platform: platformObj._id,
-                        playerId: playerId
-                    }, {_id: 1, name: 1}).lean();
+                    singlePlayerQuery.playerId = playerId;
+                    singlePlayerProm = dbconfig.collection_players.findOne(singlePlayerQuery, {_id: 1, name: 1}).lean();
+                } else if (crewAccount) {
+                    singlePlayerQuery.name = crewAccount;
+                    singlePlayerProm = dbconfig.collection_players.findOne(singlePlayerQuery, {_id: 1, name: 1}).lean();
                 }
                 return Promise.all([playerProm, singlePlayerProm]);
             }
@@ -7575,7 +7579,7 @@ let dbPartner = {
                 let allDownLinesData = result[0];
                 let singleDownLines = result[1];
                 totalDownLines = allDownLinesData && allDownLinesData.length? allDownLinesData.length: 0;
-                if (playerId) {
+                if (playerId || crewAccount) {
                     let isMatch = false;
                     for (let i = 0; i < allDownLinesData.length; i++) {
                         if (singleDownLines && singleDownLines._id && String(allDownLinesData[i]._id) == String(singleDownLines._id)) {
