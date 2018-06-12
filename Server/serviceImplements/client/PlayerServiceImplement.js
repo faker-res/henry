@@ -848,14 +848,15 @@ let PlayerServiceImplement = function () {
                         errorMessage: "Player is not found"
                     }, data);
                 }
-            },
-            function (error) {
-                if (error != "INVALID_DATA") {
-                    wsFunc.response(conn, {
-                        status: constServerCode.COMMON_ERROR
-                    }, data);
-                }
             }
+            // ,
+            // function (error) {
+            //     if (error != "INVALID_DATA") {
+            //         wsFunc.response(conn, {
+            //             status: constServerCode.COMMON_ERROR
+            //         }, data);
+            //     }
+            // }
         ).catch(WebSocketUtil.errorHandler).done();
     };
 
