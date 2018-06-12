@@ -442,6 +442,10 @@ var playerPostFindUpdate = function (result, bOne) {
         result.wechat = result.wechat.substr(0, wechatIndex) + "****" + result.wechat.substr(wechatIndex + 4);
 
     }
+
+    if (!(result && result.smsSetting && result.smsSetting.PromoCodeSend)) {
+        result.smsSetting.PromoCodeSend = true;
+    }
 };
 
 // // example to get player phone number
