@@ -7422,7 +7422,7 @@ let dbPartner = {
         );
     },
 
-    getCrewDepositInfo: (platformId, partnerId, periodCycle, circleTimes, playerId, startDate, endDate) => {
+    getCrewDepositInfo: (platformId, partnerId, periodCycle, circleTimes, playerId, startDate, endDate, crewAccount) => {
         if (!circleTimes && !(periodCycle == 1 && startDate && endDate)) {
             return {};
         }
@@ -7433,7 +7433,7 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return getPartnerCrewsData(platformId, partnerId, playerId).then(
+        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7444,7 +7444,7 @@ let dbPartner = {
                     startDate = new Date(startDate);
                     endDate = new Date(endDate);
 
-                    for(let i = endDate; i > startDate; i.setDate(i.getDate() - 1)){
+                    for(let i = endDate; i >= startDate; i.setDate(i.getDate() - 1)){
                         let startTime = dbUtil.getDayStartTime(new Date(i));
                         let endTime = dbUtil.getDayStartTime(new Date(startTime));
                         endTime.setDate(startTime.getDate() + 1);
@@ -7459,7 +7459,7 @@ let dbPartner = {
                                     totalDepositAmount += player.depositAmount;
                                 })
 
-                                if(playerId && relevantCrews.length <= 0){
+                                if((playerId || crewAccount) && relevantCrews.length <= 0){
                                     relevantCrews = playerDetails
                                 }
 
@@ -7512,7 +7512,7 @@ let dbPartner = {
         );
     },
 
-    getCrewWithdrawInfo: (platformId, partnerId, periodCycle, circleTimes, playerId, startDate, endDate) => {
+    getCrewWithdrawInfo: (platformId, partnerId, periodCycle, circleTimes, playerId, startDate, endDate, crewAccount) => {
         if (!circleTimes && !(periodCycle == 1 && startDate && endDate)) {
             return {};
         }
@@ -7523,7 +7523,7 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return getPartnerCrewsData(platformId, partnerId, playerId).then(
+        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7534,7 +7534,7 @@ let dbPartner = {
                     startDate = new Date(startDate);
                     endDate = new Date(endDate);
 
-                    for(let i = endDate; i > startDate; i.setDate(i.getDate() - 1)){
+                    for(let i = endDate; i >= startDate; i.setDate(i.getDate() - 1)){
                         let startTime = dbUtil.getDayStartTime(new Date(i));
                         let endTime = dbUtil.getDayStartTime(new Date(startTime));
                         endTime.setDate(startTime.getDate() + 1);
@@ -7548,7 +7548,7 @@ let dbPartner = {
                                     totalWithdrawAmount += player.withdrawAmount;
                                 });
 
-                                if (playerId && relevantCrews.length <= 0) {
+                                if ((playerId || crewAccount) && relevantCrews.length <= 0) {
                                     relevantCrews = playerDetails
                                 }
 
@@ -7724,7 +7724,7 @@ let dbPartner = {
         )
     },
 
-    getCrewBetInfo: (platformId, partnerId, periodCycle, circleTimes, providerGroupId, playerId, startDate, endDate) => {
+    getCrewBetInfo: (platformId, partnerId, periodCycle, circleTimes, providerGroupId, playerId, startDate, endDate, crewAccount) => {
         if (!circleTimes && !(periodCycle == 1 && startDate && endDate)) {
             return {};
         }
@@ -7736,7 +7736,7 @@ let dbPartner = {
         let downLines = [];
         let providerGroup;
 
-        return getPartnerCrewsData(platformId, partnerId, playerId).then(
+        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7758,7 +7758,7 @@ let dbPartner = {
                     startDate = new Date(startDate);
                     endDate = new Date(endDate);
 
-                    for(let i = endDate; i > startDate; i.setDate(i.getDate() - 1)){
+                    for(let i = endDate; i >= startDate; i.setDate(i.getDate() - 1)){
                         let startTime = dbUtil.getDayStartTime(new Date(i));
                         let endTime = dbUtil.getDayStartTime(new Date(startTime));
                         endTime.setDate(startTime.getDate() + 1);
@@ -7775,7 +7775,7 @@ let dbPartner = {
                                     totalCrewProfit += player.crewProfit;
                                 });
 
-                                if (playerId && relevantCrews.length <= 0) {
+                                if ((playerId || crewAccount) && relevantCrews.length <= 0) {
                                     relevantCrews = playerDetails
                                 }
 
@@ -9295,7 +9295,7 @@ function getCrewsInfo (players, startTime, endTime, activePlayerRequirement, pro
     return Promise.all(playerDetailsProm);
 }
 
-function getPartnerCrewsData (platformId, partnerId, playerId) {
+function getPartnerCrewsData (platformId, partnerId, playerId, crewAccount) {
     let platform = {};
     let partner = {};
     let downLines = [];
@@ -9327,7 +9327,11 @@ function getPartnerCrewsData (platformId, partnerId, playerId) {
             partner = partnerData;
             if(playerId){
                 return dbconfig.collection_players.find({platform: platform._id, partner: partner._id, playerId: playerId}).lean();
-            }else{
+            }
+            else if(crewAccount){
+                return dbconfig.collection_players.find({platform: platform._id, partner: partner._id, name: crewAccount}).lean();
+            }
+            else{
                 return dbconfig.collection_players.find({platform: platform._id, partner: partner._id}).lean();
             }
 
@@ -9335,7 +9339,7 @@ function getPartnerCrewsData (platformId, partnerId, playerId) {
     ).then(
         downLineData => {
             if (!downLineData || downLineData.length < 1) {
-                if(playerId){
+                if(playerId || crewAccount){
                     return Promise.reject({
                         code: constServerCode.PLAYER_NAME_INVALID,
                         name: "DataError",
