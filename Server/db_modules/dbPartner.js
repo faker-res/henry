@@ -7566,7 +7566,7 @@ let dbPartner = {
                     singlePlayerProm = dbconfig.collection_players.findOne({
                         platform: platformObj._id,
                         playerId: playerId
-                    }, {_id: 1, name: 1}).lean();
+                    }, {_id: 1, name: 1, playerId: 1}).lean();
                 }
                 return Promise.all([playerProm, singlePlayerProm]);
             }
