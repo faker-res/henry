@@ -7630,13 +7630,13 @@ let dbPartner = {
                     endTime = new Date(endTime);
                 }
 
-                let playerProm = dbconfig.collection_players.find({platform: platformObj._id, partner: partnerData._id},{_id: 1, name: 1}).lean();
+                let playerProm = dbconfig.collection_players.find({platform: platformObj._id, partner: partnerData._id},{_id: 1, name: 1, playerId: 1}).lean();
                 let singlePlayerProm = Promise.resolve();
                 if (playerId) {
                     singlePlayerProm = dbconfig.collection_players.findOne({
                         platform: platformObj._id,
                         playerId: playerId
-                    }, {_id: 1, name: 1}).lean();
+                    }, {_id: 1, name: 1, playerId: 1}).lean();
                 }
                 return Promise.all([playerProm, singlePlayerProm]);
             }
@@ -9374,6 +9374,7 @@ function getCrewDetail (player, startTime, endTime) {
             let withdrawalDetail = data[2];
 
             returnData = {
+                playerId: player.playerId,
                 crewAccount: player.name,
                 depositAmount: topUpDetail.length && topUpDetail[0].topUpAmount? topUpDetail[0].topUpAmount: 0,
                 depositCount: topUpDetail.length && topUpDetail[0].topUpTimes? topUpDetail[0].topUpTimes: 0,

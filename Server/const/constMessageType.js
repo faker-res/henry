@@ -28,7 +28,8 @@ const constMessageType = {
     PLAYER_PROMO_CODE_REWARD_SUCCESS: "PlayerPromoCodeRewardSuccess",
     PLAYER_LEVEL_UP_MIGRATION_SUCCESS: "PlayerLevelUpMigrationSuccess",
     PLAYER_LEVEL_DOWN_MIGRATION_SUCCESS: "PlayerLevelDownMigrationSuccess",
-    PLAYER_LEVEL_UP_SUCCESS: "PlayerLevelUpSuccess"
+    PLAYER_LEVEL_UP_SUCCESS: "PlayerLevelUpSuccess",
+    PROMO_CODE_SEND: "PromoCodeSend"
 
 /* OLD MESSAGE TYPE
     //For proposal

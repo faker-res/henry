@@ -19956,6 +19956,18 @@ define(['js/app'], function (myApp) {
                 valueCollection.splice(idx, 1);
                 console.log(vm.rewardMainCondition);
             };
+
+            vm.rewardImageUrlNewRow = (valueCollection) => {
+                valueCollection.push("");
+            };
+
+            vm.rewardImageUrlDeleteRow = (idx, valueCollection) => {
+                valueCollection.splice(idx, 1);
+
+                if (valueCollection.length == 0) {
+                    valueCollection.push("");
+                }
+            };
             
             vm.rewardDisplayNewRow = (valueCollection) => {
                 valueCollection.push({displayId: "", displayTitle: "", displayTextContent: ""});
@@ -27332,6 +27344,9 @@ define(['js/app'], function (myApp) {
                     for (let messageType in vm.allMessageTypes) {
                         if (vm.allMessageTypes[messageType].name == vm.displayedMessageTemplate.type) {
                             vm.displayedMessageTemplate.typeIndex = messageType;
+                            if (vm.displayedMessageTemplate.type == "PromoCodeSend" && !vm.displayedMessageTemplate.content) {
+                                vm.displayedMessageTemplate.content = $translate("*Please config message template at 『PromoCode』~『SmsContent』");
+                            }
                             break;
                         }
                     }

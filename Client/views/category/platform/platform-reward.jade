@@ -117,6 +117,16 @@
                             label.control-label {{v.des | translate}}
                                 i.fa.fa-question-circle(style='margin-left: 0.3em; color: #A9A9A9' ng-attr-title='{{v.detail | translate}}' ng-if="v.detail")
 
+                            div(ng-if="v.type == 'ImageURLText'" style="display:inline-block")
+                                table(style="width:100%")
+                                    tbody
+                                        tr(ng-repeat='val in v.value track by $index')
+                                            td
+                                                input.form-control(type="text" ng-model="v.value[$index]" style="width:100%;margin:0;margin-bottom:5px;padding-right:50px;")
+                                            td(style="display:block;position:absolute;right:20px;padding:7px;")
+                                                i.fa.fa-plus(ng-click='vm.rewardImageUrlNewRow(v.value)' ng-show='vm.platformRewardIsEnabled' style="margin-right:5px;")
+                                                i.fa.fa-minus(ng-click='vm.rewardImageUrlDeleteRow($index, v.value)' ng-show='vm.platformRewardIsEnabled')
+
                             input.form-control(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-change="vm.changeRewardParamLayout(vm.rewardMainCondition[i]);" ng-model="vm.rewardMainCondition[i].value" data-cond-name="{{v.name}}" ng-disabled="v.disabled")
                             select.form-control(ng-if="v.type == 'select'" ng-model="vm.rewardMainCondition[i].value" ng-options="i as v | translate for (i,v) in v.options" ng-change="vm.rewardSelectOnChange(vm.rewardMainCondition[i])" data-cond-name="{{v.name}}" ng-disabled="v.disabled")
                                 option(value='' ng-if="vm.rewardMainCondition[i].name == 'providerGroup'") {{'LOCAL_CREDIT' | translate}}
