@@ -1896,6 +1896,7 @@
   "ALIWAP": "支付宝wap",
   "QQWAP": "QQwap",
   "FASTPAY": "快捷支付",
+  "WXBARCODE": "微信条码",
   "QQPAYQR": "QQ扫码",
   "UnPayQR": "银联扫码支付",
   "JdPayQR": "京东钱包扫码支付",
@@ -3417,11 +3418,14 @@
   "EVALUATION_STATUS": "评估状态",
   "LIVE800_ACC":"Live800账号",
   "QUALITY_ASSESSOR": "质检评估员",
+  "ASSESSOR": "评估员",
   "EVALUATED_TIME":"评估时间",
   "APPEAL_REASON": "申诉内容",
   "CONVERSATION_CONTENT": "对话内容",
-  "OVERTIME_MARK": "超时评分（+/-)",
-  "EVALUATION_MARK": "质检评分（+/-)",
+  "OVERTIME_MARK": "超时评分（+/-）",
+  "OVERTIME (+/-)": "超时（+/-）",
+  "EVALUATION_MARK": "质检评分（+/-）",
+  "EVALUATION (+/-)": "质检（+/-）",
   "EVALUATION_REVIEW": "质检评语",
   "CS Department":"客服部门名称（可在后台权限找到、质检功能需要）",
   "QI Department":"质检部门名称（可在后台权限找到、质检功能需要）",
@@ -3459,6 +3463,8 @@
   "LoginPlayer": "登入玩家",
   "Batch Setting":"批量设置",
   "OR": "或",
+  "Provider Group ID": "大厅组ID",
+  "Provider Group Name": "大厅组名字",
   "multipleTopUpPlayer": "多次充值玩家",
   "rechargedPlayer": "已充值玩家",
   "allNewRegistrationCount": "总开户数（全部）",
@@ -3807,7 +3813,8 @@
   "CALL_REQUEST_URL_CONFIG": "请求回电域名配置（与运维确认）",
   "LINE_ID_CUSTOM": "线路ID（自定义）",
   "LINE_NAME_CPMS": "线路名称（与运维确认）",
-  "MIN_LEVEL_ABOVE": "最低等级限制（以上皆可）"
+  "MIN_LEVEL_ABOVE": "最低等级限制（以上皆可）",
+  "Player not found": "查无此下线"
 
 
 }

@@ -504,7 +504,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         '11': 'ALIWAP',
         '12': 'QQWAP',
         '13': 'PCard',
-        '14': 'JDWAP'
+        '14': 'JDWAP',
+        '15': 'WXBARCODE'
     };
     $scope.depositMethod = {
         1: "网银转账(Online Transfer)",
@@ -1410,10 +1411,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         // Get API server status response
         $scope.AppSocket.on('_getAPIServerStatus', function (data) {
             if (($scope.serverStatus.server != $scope.AppSocket.connected) || ($scope.serverStatus.cpServer != data.cpms) || ($scope.serverStatus.pServer != data.pms)) {
-                $scope.serverStatus.server = $scope.AppSocket.connected;
-                $scope.serverStatus.cpServer = data.cpms;
-                $scope.serverStatus.pServer = data.pms;
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    $scope.serverStatus.server = $scope.AppSocket.connected;
+                    $scope.serverStatus.cpServer = data.cpms;
+                    $scope.serverStatus.pServer = data.pms;
+                })
             }
         });
 
@@ -1486,7 +1488,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     // Fetch mail pre-emptively, so we can show unread count in the menu
     //setTimeout(fetchAdminMail, 10*1000);
     //setInterval(fetchAdminMail, 4*60*1000);
-    $scope.fetchAdminMailDebounced = $scope.debounce(fetchAdminMail, 10 * 1000, true);
+    // $scope.fetchAdminMailDebounced = $scope.debounce(fetchAdminMail, 10 * 1000, true);
     $scope.presentAdminMails = function () {
         fetchAdminMail();
     };
