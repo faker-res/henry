@@ -30,6 +30,7 @@ var simplifiedChinese = {
     "No withdraw record for this player": "玩家没有提款记录",
     "No consumption record for this player": "玩家没有投注记录",
     "Invalid ranking mode": "无效排行模式",
+    "Cannot find this downline": "查无此下线",
 
     "Error in getting ID": "获得ID出错",
     "Error in getting player, game or provider": "无法获得玩家，游戏或供应商",
