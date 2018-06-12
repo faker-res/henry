@@ -27344,6 +27344,9 @@ define(['js/app'], function (myApp) {
                     for (let messageType in vm.allMessageTypes) {
                         if (vm.allMessageTypes[messageType].name == vm.displayedMessageTemplate.type) {
                             vm.displayedMessageTemplate.typeIndex = messageType;
+                            if (vm.displayedMessageTemplate.type == "PromoCodeSend" && !vm.displayedMessageTemplate.content) {
+                                vm.displayedMessageTemplate.content = $translate("*Please config message template at 『PromoCode』~『SmsContent』");
+                            }
                             break;
                         }
                     }

@@ -54,6 +54,7 @@ var playerSchema = new Schema({
         PlayerLevelUpMigrationSuccess: {type: Boolean, default: true},
         PlayerLevelDownMigrationSuccess: {type: Boolean, default: true},
         PlayerLevelUpSuccess: {type: Boolean, default: true},
+        PromoCodeSend: {type: Boolean, default: true},
     },
     //store player's icon
     icon: {type: String, default: ""},
