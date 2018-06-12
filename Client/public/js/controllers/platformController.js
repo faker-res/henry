@@ -19345,6 +19345,9 @@ define(['js/app'], function (myApp) {
                 //vm.highlightRewardEvent = {};
                 //vm.highlightRewardEvent[v.name] = 'bg-bright';
                 vm.showReward = v;
+                if (vm.showReward && vm.showReward.condition && vm.showReward.condition.imageUrl && typeof vm.showReward.condition.imageUrl == 'string') {
+                    vm.showReward.condition.imageUrl = [""];
+                }
                 vm.initRewardValidTimeDOM(vm.showReward.validStartTime, vm.showReward.validEndTime);
                 console.log('vm.showReward', vm.showReward);
                 vm.showRewardTypeData = null;   // This will probably be overwritten by vm.platformRewardTypeChanged() below
