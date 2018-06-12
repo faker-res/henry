@@ -3532,6 +3532,8 @@
   "PlayerLevelUpMigrationSuccess": "玩家升级（成功）",
   "PlayerLevelDownMigrationSuccess": "玩家降级（成功）",
   "PlayerLevelUpSuccess": "升级优惠（成功）",
+  "PromoCodeSend": "优惠代码（发送）",
+  "*Please config message template at 『PromoCode』~『SmsContent』": "*优惠代码发送内容请至『优惠代码』~『短信内容』编辑",
   "active": "活跃",
   "(previous period new player)": "（周期1新开户）",
   "grow": "增长",
