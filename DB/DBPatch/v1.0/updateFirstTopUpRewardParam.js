@@ -392,7 +392,12 @@ var generalCond = {
     // Reward apply type
     applyType: {index: 2, type: "select", des: "Reward apply type", options: "rewardApplyType", detail: "REWARD_APPLY_TYPE_DETAIL"},
     // Reward image url
-    imageUrl: {index: 3, type: "text", des: "Display imageUrl"},
+    imageUrl: {
+        index: 3,
+        type: "ImageURLText",
+        des: "Display imageUrl",
+        value: [""]
+    },
     // Is player manually applicable
     canApplyFromClient: {index: 4, type: "checkbox", des: "Is player manually applicable", detail: "REWARD_CLIENT_APPLY_DETAIL"},
     // Is ignore audit
@@ -801,7 +806,12 @@ db.rewardParam.update({
                     disabled: true,
                     value: "1"
                 },
-                imageUrl: {index: 3, type: "text", des: "Display imageUrl"},
+                imageUrl: {
+                    index: 3,
+                    type: "ImageURLText",
+                    des: "Display imageUrl",
+                    value: [""]
+                },
                 canApplyFromClient: {
                     index: 4,
                     type: "checkbox",

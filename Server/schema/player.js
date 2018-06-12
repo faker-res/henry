@@ -54,6 +54,7 @@ var playerSchema = new Schema({
         PlayerLevelUpMigrationSuccess: {type: Boolean, default: true},
         PlayerLevelDownMigrationSuccess: {type: Boolean, default: true},
         PlayerLevelUpSuccess: {type: Boolean, default: true},
+        PromoCodeSend: {type: Boolean, default: true},
     },
     //store player's icon
     icon: {type: String, default: ""},
@@ -440,6 +441,10 @@ var playerPostFindUpdate = function (result, bOne) {
         let wechatIndex = Math.max(Math.floor((result.wechat.length - 4) / 2), 0);
         result.wechat = result.wechat.substr(0, wechatIndex) + "****" + result.wechat.substr(wechatIndex + 4);
 
+    }
+
+    if (result && result.smsSetting && !result.smsSetting.hasOwnProperty("PromoCodeSend")) {
+        result.smsSetting.PromoCodeSend = true;
     }
 };
 
