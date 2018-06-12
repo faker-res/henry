@@ -184,7 +184,11 @@ const constMessageTypeParam = {
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
             {parameterName:'executeTime' , description:'executeTime'}
         ]
-    }
+    },
+    PROMO_CODE_SEND: {
+        name:"PromoCodeSend",
+        params:[]
+    },
 
 };
 
