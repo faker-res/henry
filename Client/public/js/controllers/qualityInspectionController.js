@@ -345,17 +345,20 @@ define(['js/app'], function (myApp) {
                     vm.prepareSettlementHistory();
                 }
             };
-            vm.checkUncheckSelectAll = function () {
+            vm.checkUncheckSelectAll = function (checkBoxNo) {
                 let isChecked = false;
 
-                isChecked = document.getElementById("selectAll").checked;
+                isChecked = document.getElementsByName("selectAll")[checkBoxNo].checked ? true : false;
 
                 if(isChecked) {
+                    document.getElementsByName("selectAll")[Number(!checkBoxNo)].checked = true;
+
                     $('input[name="rowChecked"]').each(function() {
                         this.checked = true;
                         vm.storeBatchId();
                     });
                 } else {
+                    document.getElementsByName("selectAll")[Number(!checkBoxNo)].checked = false;
                     $('input[name="rowChecked"]').each(function() {
                         this.checked = false;
                         vm.batchEditList = [];
