@@ -113,7 +113,21 @@ angular.module('myApp.filters', []).
                 }
             }
         }
-    });
+    }).
+
+    filter('noDecimalPlacesString', function (){
+        return function (value) {
+            if (Number.isInteger(value)){
+                return value.toLocaleString();
+            }
+            else{
+                let splitString =  value.toLocaleString().split(".");
+                return splitString[0];
+            }
+        }
+    })
+
+
 
 
 function cutToTwoDecimal (value) {
