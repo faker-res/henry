@@ -4932,7 +4932,7 @@ let dbPlayerReward = {
             amountCheckComplete => {
                 if (amountCheckComplete) {
                     if (isMultiApplication) {
-                        let proms = [];
+                        let asyncProms = Promise.resolve();
                         for (let i = 0; i < applicationDetails.length; i++) {
                             let applyDetail = applicationDetails[i];
                             let proposalData = {
@@ -5003,10 +5003,10 @@ let dbPlayerReward = {
                                     return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
                                 }
                             );
-                            proms.push(prom);
+                            asyncProms = asyncProms.then(prom);
                         }
 
-                        return Promise.all(proms);
+                        return asyncProms;
                     }
                     else {
                         // create reward proposal
