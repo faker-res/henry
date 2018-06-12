@@ -452,23 +452,23 @@ var PartnerServiceImplement = function () {
     };
 
     this.getCrewDepositInfo.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data.platformId && conn.partnerId && data.period && data.circleTimes);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewDepositInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes, data.playerId], isValidData);
+        let isValidData = Boolean(data.platformId && conn.partnerId && data.period && (data.circleTimes || (data.startTime && data.endTime)));
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewDepositInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes, data.playerId, data.startTime, data.endTime], isValidData);
     };
 
     this.getCrewWithdrawInfo.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data.platformId && conn.partnerId && data.period && data.circleTimes);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewWithdrawInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes, data.playerId], isValidData);
+        let isValidData = Boolean(data.platformId && conn.partnerId && data.period && (data.circleTimes || (data.startTime && data.endTime)));
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewWithdrawInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes, data.playerId, data.startTime, data.endTime], isValidData);
     };
 
     this.getCrewBetInfo.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data.platformId && conn.partnerId && data.period && data.circleTimes);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewBetInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes, data.providerGroupId, data.playerId], isValidData);
+        let isValidData = Boolean(data.platformId && conn.partnerId && data.period && (data.circleTimes || (data.startTime && data.endTime)));
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewBetInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes, data.providerGroupId, data.playerId, data.startTime, data.endTime], isValidData);
     };
 
     this.getNewCrewInfo.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data.platformId && conn.partnerId && data.period && data.circleTimes);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getNewCrewInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes], isValidData);
+        let isValidData = Boolean(data.platformId && conn.partnerId && data.period && (data.circleTimes || (data.startTime && data.endTime)));
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getNewCrewInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes, data.startTime, data.endTime], isValidData);
     };
 
     this.preditCommission.onRequest = function (wsFunc, conn, data) {
