@@ -227,6 +227,10 @@ let dbPlayerRewardPoints = {
                             //minus from RP
                             dbPlayerRewardPoints.changePlayerRewardPoint(playerInfo._id, playerInfo.platform._id, -actualConvertRewardPointsAmount,
                                 constRewardPointsLogCategory.EARLY_POINT_CONVERSION, remark, userAgent, adminName || playerInfo.name);
+
+                            // Reset BState
+                            dbPlayerUtil.setPlayerBState(playerInfo._id, "convertRewardPointsToCredit", false).catch(errorUtils.reportError);
+
                             return data;
                         },
                         err => {return Q.reject(err);}
@@ -254,9 +258,6 @@ let dbPlayerRewardPoints = {
                         rewardPointsRemainder + ") " + localization.localization.translate("reward points not enough to redeem (1) credit, has been returned to your account")});
                     }
                 }
-
-                // Reset BState
-                dbPlayerUtil.setPlayerBState(playerInfo._id, "convertRewardPointsToCredit", false).catch(errorUtils.reportError);
             }
         ).catch(
             err => {
