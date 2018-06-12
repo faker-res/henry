@@ -9370,6 +9370,7 @@ function getCrewDetail (player, startTime, endTime) {
             let withdrawalDetail = data[2];
 
             returnData = {
+                playerId: player.playerId,
                 crewAccount: player.name,
                 depositAmount: topUpDetail.length && topUpDetail[0].topUpAmount? topUpDetail[0].topUpAmount: 0,
                 depositCount: topUpDetail.length && topUpDetail[0].topUpTimes? topUpDetail[0].topUpTimes: 0,
