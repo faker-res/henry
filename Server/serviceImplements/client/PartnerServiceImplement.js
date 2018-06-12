@@ -60,6 +60,9 @@ var PartnerServiceImplement = function () {
             data.partnerName = data.name;
             WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.createPartnerAPI, [data, byPassSMSCode], isValidData, true, false, true).then(
                 partnerData => {
+                    if (data.phoneNumber){
+                        partnerData.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
+                    }
                     conn.partnerId = partnerData.partnerId;
                     conn.partnerObjId = partnerData._id;
                     var profile = {name: partnerData.name, password: partnerData.password};
