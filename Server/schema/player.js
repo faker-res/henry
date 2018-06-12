@@ -443,7 +443,7 @@ var playerPostFindUpdate = function (result, bOne) {
 
     }
 
-    if (!(result && result.smsSetting && result.smsSetting.PromoCodeSend)) {
+    if (result && result.smsSetting && !result.smsSetting.hasOwnProperty("PromoCodeSend")) {
         result.smsSetting.PromoCodeSend = true;
     }
 };
