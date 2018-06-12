@@ -284,6 +284,11 @@
         });
     };
 
+    proto.checkAllCrewDetail = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.checkAllCrewDetail.request(data);
+        this.partnerService.checkAllCrewDetail.once(callback);
+    };
 
     if (isNode) {
         module.exports = ClientPartnerAPITest;

@@ -30,6 +30,7 @@ var simplifiedChinese = {
     "No withdraw record for this player": "玩家没有提款记录",
     "No consumption record for this player": "玩家没有投注记录",
     "Invalid ranking mode": "无效排行模式",
+    "Cannot find this downline": "查无此下线",
 
     "Error in getting ID": "获得ID出错",
     "Error in getting player, game or provider": "无法获得玩家，游戏或供应商",
@@ -96,6 +97,7 @@ var simplifiedChinese = {
     "Player is not valid for first top up reward": "玩家不符合申请首冲奖励条件",
     "Invalid proposal Id": "提案ID无效",
     "Invalid bank account type": "账号类型无效",
+    "The name has been registered, please change a new bank card or contact our cs.": "此姓名已经注册， 请更换银行卡或联系客服。",
 
     "Cannot find player for online top up proposal": "无法找到玩家",
     "player level down already in period": "玩家周期内已降级",
