@@ -7560,7 +7560,7 @@ let dbPartner = {
                     endTime = new Date(endTime);
                 }
 
-                let playerProm = dbconfig.collection_players.find({platform: platformObj._id, partner: partnerData._id},{_id: 1, name: 1}).lean();
+                let playerProm = dbconfig.collection_players.find({platform: platformObj._id, partner: partnerData._id},{_id: 1, name: 1, playerId: 1}).lean();
                 let singlePlayerProm = Promise.resolve();
                 if (playerId) {
                     singlePlayerProm = dbconfig.collection_players.findOne({
