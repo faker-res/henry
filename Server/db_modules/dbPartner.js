@@ -7378,8 +7378,8 @@ let dbPartner = {
         )
     },
 
-    getCrewActiveInfo: (platformId, partnerId, periodCycle, circleTimes) => {
-        if (!circleTimes) {
+    getCrewActiveInfo: (platformId, partnerId, periodCycle, circleTimes, startDate, endDate) => {
+        if (!circleTimes && !(periodCycle == 1 && startDate && endDate)) {
             return {};
         }
 
@@ -7400,23 +7400,44 @@ let dbPartner = {
                 let nextPeriod = getCurrentCommissionPeriod(periodCycle);
                 let outputProms = [];
 
-                for (let i = 0; i < circleTimes; i++) {
-                    let startTime = new Date(nextPeriod.startTime);
-                    let endTime = new Date(nextPeriod.endTime);
+                if(periodCycle == 1){
+                    startDate = new Date(startDate);
+                    endDate = new Date(endDate);
 
-                    let prom = getCrewsInfo(downLines, startTime, endTime, activePlayerRequirement).then(
-                        playerActiveDetails => {
-                            return {
-                                date: startTime,
-                                activeCrewNumbers: getActiveDownLineCount(playerActiveDetails),
-                                list: playerActiveDetails.filter(player => player.active)
+                    for(let i = endDate; i >= startDate; i.setDate(i.getDate() - 1)){
+                        let startTime = dbUtil.getDayStartTime(new Date(i));
+                        let endTime = dbUtil.getDayStartTime(new Date(startTime));
+                        endTime.setDate(startTime.getDate() + 1);
+                        let prom = getCrewsInfo(downLines, startTime, endTime, activePlayerRequirement).then(
+                            playerActiveDetails => {
+                                return {
+                                    date: startTime,
+                                    activeCrewNumbers: getActiveDownLineCount(playerActiveDetails),
+                                    list: playerActiveDetails.filter(player => player.active)
+                                }
                             }
-                        }
-                    );
-                    nextPeriod = getPreviousCommissionPeriod(periodCycle, nextPeriod);
-                    outputProms.push(prom);
-                }
+                        );
+                        nextPeriod = getPreviousCommissionPeriod(periodCycle, nextPeriod);
+                        outputProms.push(prom);
+                    }
+                }else {
+                    for (let i = 0; i < circleTimes; i++) {
+                        let startTime = new Date(nextPeriod.startTime);
+                        let endTime = new Date(nextPeriod.endTime);
 
+                        let prom = getCrewsInfo(downLines, startTime, endTime, activePlayerRequirement).then(
+                            playerActiveDetails => {
+                                return {
+                                    date: startTime,
+                                    activeCrewNumbers: getActiveDownLineCount(playerActiveDetails),
+                                    list: playerActiveDetails.filter(player => player.active)
+                                }
+                            }
+                        );
+                        nextPeriod = getPreviousCommissionPeriod(periodCycle, nextPeriod);
+                        outputProms.push(prom);
+                    }
+                }
                 return Promise.all(outputProms);
             }
         );

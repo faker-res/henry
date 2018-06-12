@@ -449,7 +449,7 @@ var PartnerServiceImplement = function () {
 
     this.getCrewActiveInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data.platformId && conn.partnerId && data.period && data.circleTimes);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewActiveInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewActiveInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes, data.startTime, data.endTime,], isValidData);
     };
 
     this.getCrewDepositInfo.onRequest = function (wsFunc, conn, data) {
