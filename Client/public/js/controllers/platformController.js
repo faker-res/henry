@@ -19956,6 +19956,18 @@ define(['js/app'], function (myApp) {
                 valueCollection.splice(idx, 1);
                 console.log(vm.rewardMainCondition);
             };
+
+            vm.rewardImageUrlNewRow = (valueCollection) => {
+                valueCollection.push("");
+            };
+
+            vm.rewardImageUrlDeleteRow = (idx, valueCollection) => {
+                valueCollection.splice(idx, 1);
+
+                if (valueCollection.length == 0) {
+                    valueCollection.push("");
+                }
+            };
             
             vm.rewardDisplayNewRow = (valueCollection) => {
                 valueCollection.push({displayId: "", displayTitle: "", displayTextContent: ""});
