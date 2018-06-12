@@ -428,7 +428,8 @@
                 "getNewCrewInfo",
                 "preditCommission",
                 "getCommissionProposalList",
-                "getPartnerConfig"
+                "getPartnerConfig",
+                "checkAllCrewDetail"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

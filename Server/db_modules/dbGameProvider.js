@@ -11,6 +11,7 @@ let constProviderStatus = require('./../const/constProviderStatus');
 var dbGame = require('./../db_modules/dbGame');
 var cpmsAPI = require("./../externalAPI/cpmsAPI");
 var Q = require("q");
+const errorUtils = require('./../modules/errorUtils');
 
 let mongoose = require('mongoose');
 let ObjectId = mongoose.Types.ObjectId;
@@ -443,7 +444,14 @@ var dbGameProvider = {
             )
         });
 
-        return Promise.all(promArr);
+        return Promise.all(promArr).then(
+            data => {
+                ['1', '2', '3', '4', '5'].map(commissionType => {
+                    removeDeletedGroupCommissionConfig(platformObjId, commissionType).catch(errorUtils.reportError);
+                });
+                return data;
+            }
+        );
     },
 
     batchCreditTransferOut: (providerObjId, platformObjId, providerId, startDate, endDate, adminName) => {
@@ -555,3 +563,47 @@ proto = Object.assign(proto, dbGameProvider);
 
 // This make WebStorm navigation work
 module.exports = dbGameProvider;
+
+function removeDeletedGroupCommissionConfig (platformObjId, commissionType) {
+    if (!platformObjId) return;
+    let providerGroups, commissionConfigs;
+
+    let providerGroupsProm = dbconfig.collection_gameProviderGroup.find({platform: platformObjId}, {_id: 1}).lean();
+    let commissionConfigsProm = dbconfig.collection_partnerCommissionConfig.find({platform: platformObjId, partner: {$exists: false}, commissionType: commissionType}, {provider: 1}).lean();
+
+    return Promise.all([providerGroupsProm, commissionConfigsProm]).then(
+        data => {
+            ([providerGroups, commissionConfigs] = data);
+
+            if (!providerGroups && providerGroups.length <= 0) return;
+            if (!commissionConfigs && commissionConfigs.length <= 0) return;
+
+            let providerGroupObjIds = providerGroups.map(providerGroup => {
+                return String(providerGroup._id);
+            });
+
+            let existedProvider = [];
+            let proms = [];
+
+            commissionConfigs.map(commissionConfig => {
+                if (String(platformObjId) == "ded6825ae03d8b18ad29a228") { // todo :: debug used, remove later
+                    console.log('commissionConfig debug', commissionConfig._id, String(commissionConfig.provider));
+                }
+                if (!providerGroupObjIds.includes(String(commissionConfig.provider)) || existedProvider.includes(String(commissionConfig.provider))) {
+                    if (String(platformObjId) == "ded6825ae03d8b18ad29a228") { // todo :: debug used, remove later
+                        console.log('commissionConfig debug - removed triggered');
+                    }
+                    let prom = dbconfig.collection_partnerCommissionConfig.remove({_id: commissionConfig._id, platform: commissionConfig.platform}, {justOne: true}).catch(errorUtils.reportError);
+                    proms.push(prom);
+                } else {
+                    if (String(platformObjId) == "ded6825ae03d8b18ad29a228") { // todo :: debug used, remove later
+                        console.log('commissionConfig debug - add to existed provider');
+                    }
+                    existedProvider.push(String(commissionConfig.provider));
+                }
+            });
+
+            return Promise.all(proms);
+        }
+    );
+}

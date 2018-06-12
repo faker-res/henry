@@ -45,6 +45,7 @@ const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
 const constPartnerCommissionSettlementMode = require('../const/constPartnerCommissionSettlementMode');
 const constPartnerStatus = require('../const/constPartnerStatus');
+const constCrewDetailMode = require('../const/constCrewDetailMode');
 const constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
 const constPartnerCommissionLogStatus = require("../const/constPartnerCommissionLogStatus");
 
@@ -609,7 +610,9 @@ let dbPartner = {
 
                     return Q.all([a, b, c]);
                 }
-            }, function (err) {
+                deferred.resolve(data);
+            },
+            function (err) {
                 deferred.reject({name: "DBError", message: "Error in getting partner data", error: err})
             }
         ).then(
@@ -625,7 +628,7 @@ let dbPartner = {
                 deferred.resolve(apiData);
             },
             zoneError => {
-                deferred.resolve(apiData);
+                deferred.resolve(false);
             }
         );
         return deferred.promise;
@@ -6729,6 +6732,7 @@ let dbPartner = {
                         }
                     } else {
                         for (let i = 0; i < commissionData.length; i++) {
+                            if (!commissionData[i].provider) continue;
                             let commissionObj = {
                                 providerGroupId: commissionData[i].provider.providerGroupId ? commissionData[i].provider.providerGroupId : "",
                                 providerGroupName: commissionData[i].provider.name ? commissionData[i].provider.name : ""
@@ -7593,6 +7597,131 @@ let dbPartner = {
                 return Promise.all(outputProms);
             }
         );
+    },
+
+    checkAllCrewDetail: (platformId, partnerId, playerId, sortMode, startTime, endTime, startIndex, count) => {
+        let index = startIndex || 0;
+        let limit = count || 100;
+        let platformObj;
+        let totalDownLines = 0;
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!(platformData && platformData._id)) {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+                platformObj = platformData;
+                return dbconfig.collection_partner.findOne({partnerId: partnerId, platform: platformData._id}).lean();
+            }
+        ).then(
+            partnerData => {
+                if (!partnerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find partner"});
+                }
+
+                if (!startTime) {
+                    startTime = new Date(partnerData.registrationTime);
+                } else {
+                    startTime = new Date(startTime);
+                }
+
+                if (!endTime) {
+                    endTime = new Date();
+                } else {
+                    endTime = new Date(endTime);
+                }
+
+                let playerProm = dbconfig.collection_players.find({platform: platformObj._id, partner: partnerData._id},{_id: 1, name: 1}).lean();
+                let singlePlayerProm = Promise.resolve();
+                if (playerId) {
+                    singlePlayerProm = dbconfig.collection_players.findOne({
+                        platform: platformObj._id,
+                        playerId: playerId
+                    }, {_id: 1, name: 1}).lean();
+                }
+                return Promise.all([playerProm, singlePlayerProm]);
+            }
+        ).then(
+            result => {
+                let allDownLinesData = result[0];
+                let singleDownLines = result[1];
+                totalDownLines = allDownLinesData && allDownLinesData.length? allDownLinesData.length: 0;
+                if (playerId) {
+                    let isMatch = false;
+                    for (let i = 0; i < allDownLinesData.length; i++) {
+                        if (singleDownLines && singleDownLines._id && String(allDownLinesData[i]._id) == String(singleDownLines._id)) {
+                            isMatch = true;
+                            allDownLinesData = [singleDownLines];
+                            break;
+                        }
+                    }
+
+                    if (!isMatch) {
+                        return Promise.reject({name: "DataError", message: "Cannot find this downline"});
+                    }
+                }
+
+                return getCrewsDetail(allDownLinesData, startTime, endTime).then(
+                    playerDetails => {
+                        if (sortMode == constCrewDetailMode.TOP_UP) {
+                            function sortRecord(a, b) {
+                                if (a.depositAmount < b.depositAmount)
+                                    return 1;
+                                if (a.depositAmount > b.depositAmount)
+                                    return -1;
+                                return 0;
+                            }
+                            playerDetails = playerDetails.sort(sortRecord);
+
+                        } else if (sortMode == constCrewDetailMode.WITHDRAWAL) {
+                            function sortRecord(a, b) {
+                                if (a.withdrawAmount < b.withdrawAmount)
+                                    return 1;
+                                if (a.withdrawAmount > b.withdrawAmount)
+                                    return -1;
+                                return 0;
+                            }
+                            playerDetails = playerDetails.sort(sortRecord);
+
+                        } else if (sortMode == constCrewDetailMode.BET_BONUS ) {
+                            function sortRecord(a, b) {
+                                if (a.crewProfit < b.crewProfit)
+                                    return -1;
+                                if (a.crewProfit > b.crewProfit)
+                                    return 1;
+                                return 0;
+                            }
+                            playerDetails = playerDetails.sort(sortRecord);
+
+                        } else if (sortMode == constCrewDetailMode.BET_VALID) {
+                            function sortRecord(a, b) {
+                                if (a.validBet < b.validBet)
+                                    return 1;
+                                if (a.validBet > b.validBet)
+                                    return -1;
+                                return 0;
+                            }
+                            playerDetails = playerDetails.sort(sortRecord);
+
+                        } else {
+                            return Promise.reject({name: "DataError", message: "Invalid sorting mode"});
+                        }
+
+                        if (index) {
+                            playerDetails.splice(0,index);
+                        }
+                        if (limit && playerDetails.length && limit  < playerDetails.length) {
+                            playerDetails.length = limit;
+                        }
+
+                        return {
+                            startIndex: index,
+                            totalCount: totalDownLines,
+                            list: playerDetails
+                        }
+                    }
+                );
+            }
+        )
     },
 
     getCrewBetInfo: (platformId, partnerId, periodCycle, circleTimes, providerGroupId, playerId, startDate, endDate) => {
@@ -9227,7 +9356,61 @@ function getPartnerCrewsData (platformId, partnerId, playerId) {
     );
 }
 
+function getCrewDetail (player, startTime, endTime) {
+    let returnData = {};
+    let consumptionDetailProm = getPlayerCommissionConsumptionDetail(player._id, startTime, endTime);
+    let topUpDetailProm = getCrewTopUpDetail(player._id, startTime, endTime);
+    let withdrawalDetailProm = getPlayerCommissionWithdrawDetail(player._id, startTime, endTime);
 
+
+    return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm]).then(
+        data => {
+            let consumptionDetail = data[0];
+            let topUpDetail = data[1];
+            let withdrawalDetail = data[2];
+
+            returnData = {
+                crewAccount: player.name,
+                depositAmount: topUpDetail.length && topUpDetail[0].topUpAmount? topUpDetail[0].topUpAmount: 0,
+                depositCount: topUpDetail.length && topUpDetail[0].topUpTimes? topUpDetail[0].topUpTimes: 0,
+                validBet: consumptionDetail.validAmount,
+                betCounts: consumptionDetail.consumptionTimes,
+                withdrawAmount: withdrawalDetail.withdrawalAmount,
+                crewProfit: consumptionDetail.bonusAmount,
+            };
+
+            return returnData;
+        }
+    )
+}
+
+function getCrewsDetail (players, startTime, endTime) {
+    let playerDetailsProm = [] ;
+    players.map(player => {
+        let prom = getCrewDetail(player, startTime, endTime);
+        playerDetailsProm.push(prom);
+    });
+
+    return Promise.all(playerDetailsProm);
+}
+
+function getCrewTopUpDetail (playerObjId, startTime, endTime) {
+    return dbconfig.collection_playerTopUpRecord.aggregate([
+        {
+            $match : {
+                playerId: playerObjId,
+                createTime: {$gte: startTime, $lt: endTime}
+            }
+        },
+        {
+            $group: {
+                _id: "$playerId",
+                topUpTimes: {$sum: 1},
+                topUpAmount: {$sum: "$amount"}
+            }
+        }
+    ]).read("secondaryPreferred")
+}
 
 
 

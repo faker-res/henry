@@ -1051,7 +1051,49 @@
     </div>
 </div>
 
+<h3>GET ALL CREW DETAIL (查询所有下线玩家详情)</h3>
 
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Player Id
+            <input type=text name="playerId">
+        </label>
+    </div>
+    <div>
+        <label>Sort Mode
+            <input type=text name="sortMode">
+        </label>
+    </div>
+    <div>
+        <label>Start Time
+            <input name="startTime" type="datetime-local">
+        </label>
+    </div>
+    <div>
+        <label>End Time
+            <input name="endTime" type="datetime-local">
+        </label>
+    </div>
+    <div>
+        <label>Start Index
+            <input type=number name="startIndex">
+        </label>
+    </div>
+    <div>
+        <label>Count
+            <input type=number name="count">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <button id="checkAllCrewDetail" data-api-name="checkAllCrewDetail">Get Detail</button>
+    </div>
+</div>
 
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPartnerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],

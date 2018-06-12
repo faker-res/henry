@@ -2893,13 +2893,13 @@ let dbPlayerReward = {
                     proms.push(
                         getPlayerConsumptionSummary(elem.platformObjId, elem.playerObjId, elem.acceptedTime, elem.nextWithdrawTime).then(
                             res => {
-                                monitorObjs[index].consumptionBeforeWithdraw = res && res[0] ? res[0].validAmount : 0;
+                                monitorObjs[index].consumptionBeforeWithdraw = res && res[0] ? dbUtility.noRoundTwoDecimalPlaces(res[0].validAmount) : 0;
 
                                 return dbPlayerUtil.getPlayerCreditByObjId(elem.playerObjId);
                             }
                         ).then(
                             creditRes => {
-                                monitorObjs[index].playerCredit = creditRes ? creditRes.gameCredit + creditRes.validCredit + creditRes.lockedCredit : 0;
+                                monitorObjs[index].playerCredit = creditRes ? creditRes.gameCredit + dbUtility.noRoundTwoDecimalPlaces(creditRes.validCredit) + dbUtility.noRoundTwoDecimalPlaces(creditRes.lockedCredit) : 0;
 
                                 return dbConfig.collection_proposal.find({
                                     'data.platformId': elem.platformObjId,
@@ -4932,7 +4932,7 @@ let dbPlayerReward = {
             amountCheckComplete => {
                 if (amountCheckComplete) {
                     if (isMultiApplication) {
-                        let proms = [];
+                        let asyncProms = Promise.resolve();
                         for (let i = 0; i < applicationDetails.length; i++) {
                             let applyDetail = applicationDetails[i];
                             let proposalData = {
@@ -5003,10 +5003,10 @@ let dbPlayerReward = {
                                     return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
                                 }
                             );
-                            proms.push(prom);
+                            asyncProms = asyncProms.then(prom);
                         }
 
-                        return Promise.all(proms);
+                        return asyncProms;
                     }
                     else {
                         // create reward proposal

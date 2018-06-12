@@ -9,7 +9,9 @@ let playerBStateSchema = new Schema({
     // Transfer to provider
     transferToProvider: {type: Boolean, default: false},
     // Player Level
-    playerLevelMigration: {type: Boolean, default: false}
+    playerLevelMigration: {type: Boolean, default: false},
+    // Player convert reward point
+    convertRewardPointsToCredit: {type: Boolean, default: false}
 });
 
 module.exports = playerBStateSchema;

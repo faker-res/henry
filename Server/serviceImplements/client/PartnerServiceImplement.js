@@ -60,6 +60,9 @@ var PartnerServiceImplement = function () {
             data.partnerName = data.name;
             WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.createPartnerAPI, [data, byPassSMSCode], isValidData, true, false, true).then(
                 partnerData => {
+                    if (data.phoneNumber){
+                        partnerData.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
+                    }
                     conn.partnerId = partnerData.partnerId;
                     conn.partnerObjId = partnerData._id;
                     var profile = {name: partnerData.name, password: partnerData.password};
@@ -394,10 +397,8 @@ var PartnerServiceImplement = function () {
         conn.captchaCode = null;
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent'], true);
-        if (conn.isAuth && conn.partnerObjId && !data.name) {
-            data.name = conn.partnerObjId;
-        }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, null, true], isValidData, false, false, true);
+
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, null, true, conn.partnerObjId], isValidData, false, false, true);
     };
 
     this.updatePhoneNumberWithSMS.expectsData = 'partnerId: String, phoneNumber: Number';
@@ -490,6 +491,12 @@ var PartnerServiceImplement = function () {
         }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getConfig, [data.platformId, data.device, 'partner'], isValidData, null, null, true);
     };
+
+    this.checkAllCrewDetail.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && conn.partnerId && data.sortMode);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.checkAllCrewDetail, [data.platformId, conn.partnerId, data.playerId, data.sortMode, data.startTime, data.endTime, data.startIndex, data.count], isValidData);
+    };
+
 };
 var proto = PartnerServiceImplement.prototype = Object.create(PartnerService.prototype);
 proto.constructor = PartnerServiceImplement;
