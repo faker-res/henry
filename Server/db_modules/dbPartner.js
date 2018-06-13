@@ -7658,7 +7658,7 @@ let dbPartner = {
         ).then(
             allDownLinesData => {
                 let selectedDownLines = [];
-                totalDownLines = allDownLinesData && allDownLinesData.length? allDownLinesData.length: 0;
+                // totalDownLines = allDownLinesData && allDownLinesData.length? allDownLinesData.length: 0;
                 if (playerId || crewAccount) {
                     let fieldName;
                     let compareData;
@@ -7695,6 +7695,8 @@ let dbPartner = {
                 } else {
                     selectedDownLines = allDownLinesData;
                 }
+
+                totalDownLines = selectedDownLines && selectedDownLines.length? selectedDownLines.length: 0;
 
                 return getCrewsDetail(selectedDownLines, startTime, endTime).then(
                     playerDetails => {
