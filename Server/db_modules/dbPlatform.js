@@ -3318,6 +3318,288 @@ var dbPlatform = {
             }
         )
     },
+
+    replicatePlatformSetting: (fromPlatformObjId, toPlatformObjId) => {
+        let replicateFrom, replicateTo;
+
+        let replicateFromProm = dbconfig.collection_platform.findOne({_id: fromPlatformObjId}).lean();
+        let replicateToProm = dbconfig.collection_platform.findOne({_id: toPlatformObjId}).lean();
+
+        return Promise.all([replicateFromProm, replicateToProm]).then(platforms => {
+            ([replicateFrom, replicateTo] = platforms);
+
+            if (!replicateFrom || !replicateTo) {
+                return Promise.reject({message: "Platform not found."});
+            }
+
+            let platformKeysToCopy = [
+                "minTopUpAmount",
+                "allowSameRealNameToRegister",
+                "allowSamePhoneNumberToRegister",
+                "demoPlayerValidDays",
+                "samePhoneNumberRegisterCount",
+                "canMultiReward",
+                "autoCheckPlayerLevelUp",
+                "manualPlayerLevelUp",
+                "platformBatchLevelUp",
+                "playerLevelUpPeriod",
+                "playerLevelDownPeriod",
+                "requireLogInCaptcha",
+                "requireCaptchaInSMS",
+                "onlyNewCanLogin",
+                "useLockedCredit",
+                "playerNameMaxLength",
+                "playerNameMinLength",
+                "bonusSetting",
+                "requireSMSVerification",
+                "requireSMSVerificationForDemoPlayer",
+                "requireSMSVerificationForPasswordUpdate",
+                "requireSMSVerificationForPaymentUpdate",
+                "smsVerificationExpireTime",
+                "useProviderGroup",
+                "whiteListingPhoneNumbers",
+                "blackListingPhoneNumbers",
+                "usePointSystem",
+                "usePhoneNumberTwoStepsVerification",
+                "playerForbidApplyBonusNeedCsApproval",
+                "unreadMailMaxDuration",
+                "manualRewardSkipAuditAmount",
+                "partnerNameMaxLength",
+                "partnerNameMinLength",
+                "partnerAllowSamePhoneNumberToRegister",
+                "partnerSamePhoneNumberRegisterCount",
+                "partnerRequireSMSVerification",
+                "partnerRequireSMSVerificationForPasswordUpdate",
+                "partnerRequireSMSVerificationForPaymentUpdate",
+                "partnerSmsVerificationExpireTime",
+                "partnerRequireLogInCaptcha",
+                "partnerRequireCaptchaInSMS",
+                "partnerUsePhoneNumberTwoStepsVerification",
+                "partnerUnreadMailMaxDuration",
+                "partnerDefaultCommissionGroup",
+                "consumptionTimeConfig",
+                "enableAutoApplyBonus",
+                "manualAuditFirstWithdrawal",
+                "manualAuditAfterBankChanged",
+                "manualAuditBanWithdrawal",
+                "autoApproveWhenSingleBonusApplyLessThan",
+                "autoApproveWhenSingleDayTotalBonusApplyLessThan",
+                "autoApproveRepeatCount",
+                "autoApproveRepeatDelay",
+                "autoApproveLostThreshold",
+                "autoApproveConsumptionOffset",
+                "autoApproveProfitTimes",
+                "autoApproveProfitTimesMinAmount",
+                "autoApproveBonusProfitOffset",
+                "autoUnlockWhenInitAmtLessThanLostThreshold",
+                "monitorMerchantCount",
+                "monitorPlayerCount",
+                "monitorMerchantUseSound",
+                "monitorPlayerUseSound",
+                "monitorMerchantSoundChoice",
+                "monitorPlayerSoundChoice",
+                "playerValueConfig",
+            ];
+
+            let platformDataToCopy = {};
+            platformKeysToCopy.map(key => {
+                platformDataToCopy[key] = replicateFrom[key];
+            });
+
+            let copyPlatformDataProm = dbconfig.collection_platform.findOneAndUpdate({_id: replicateTo._id}, platformDataToCopy, {new: true}).lean();
+
+            // victor and zheming says not to make it harder to read just to save lines of code, so I'll keep it as it is
+            // 玩家等级
+            // playerLevel schema
+            let copyPlayerLevelProm = dbconfig.collection_playerLevel.find({platform: replicateFrom._id}).lean().then(
+                playerLevels => {
+                    let proms = [];
+                    playerLevels.map(playerLevel => {
+                        delete playerLevel._id;
+                        playerLevel.platform = replicateTo._id;
+                        let prom = dbconfig.collection_playerLevel(playerLevel).save().catch(errorUtils.reportError);
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            );
+
+            // 有效/活跃玩家
+            // partnerlevelconfig
+            let copyPartnerLevelConfigProm = dbconfig.collection_partnerLevelConfig.find({platform: replicateFrom._id}).lean().then(
+                partnerLevelConfigs => {
+                    let proms = [];
+                    partnerLevelConfigs.map(partnerLevelConfig => {
+                        delete partnerLevelConfig._id;
+                        partnerLevelConfig.platform = replicateTo._id;
+                        let prom = dbconfig.collection_partnerLevelConfig(partnerLevelConfig).save().catch(errorUtils.reportError);
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            );
+
+            // 玩家信用
+            // playerCredibilityRemark
+            let copyPlayerCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({platform: replicateFrom._id}).lean().then(
+                playerCredibilityRemarks => {
+                    let proms = [];
+                    playerCredibilityRemarks.map(playerCredibilityRemark => {
+                        delete playerCredibilityRemark._id;
+                        playerCredibilityRemark.platform = replicateTo._id;
+                        let prom = dbconfig.collection_playerCredibilityRemark(playerCredibilityRemark).save().catch(errorUtils.reportError);
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            );
+
+            // 短信组设置
+            // smsGroup
+            let copySmsGroupProm = dbconfig.collection_smsGroup.find({platformObjId: replicateFrom._id}).lean().then(
+                smsGroups => {
+                    let proms = [];
+                    smsGroups.map(smsGroup => {
+                        delete smsGroup._id;
+                        smsGroup.platformObjId = replicateTo._id;
+                        let prom = dbconfig.collection_smsGroup(smsGroup).save().catch(errorUtils.reportError);
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            );
+
+            // 敏感词设置
+            // keywordFilter
+            let copyKeywordFilterProm = dbconfig.collection_keywordFilter.find({platform: replicateFrom._id}).lean().then(
+                keywordFilters => {
+                    let proms = [];
+                    keywordFilters.map(keywordFilter => {
+                        delete keywordFilter._id;
+                        keywordFilter.platform = replicateTo._id;
+                        let prom = dbconfig.collection_keywordFilter(keywordFilter).save().catch(errorUtils.reportError);
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            );
+
+            // 消息模版
+            // messageTemplate
+            let copyMessageTemplateProm = dbconfig.collection_messageTemplate.find({platform: replicateFrom._id}).lean().then(
+                messageTemplates => {
+                    let proms = [];
+                    messageTemplates.map(messageTemplate => {
+                        delete messageTemplate._id;
+                        messageTemplate.platform = replicateTo._id;
+                        let prom = dbconfig.collection_messageTemplate(messageTemplate).save().catch(errorUtils.reportError);
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            );
+
+            // 公告版
+            // platformAnnouncement
+            let copyPlatformAnnouncemenetProm = dbconfig.collection_platformAnnouncement.find({platform: replicateFrom._id}).lean().then(
+                platformAnnouncements => {
+                    let proms = [];
+                    platformAnnouncements.map(platformAnnouncement => {
+                        delete platformAnnouncement._id;
+                        platformAnnouncement.platform = replicateTo._id;
+                        let prom = dbconfig.collection_platformAnnouncement(platformAnnouncement).save().catch(errorUtils.reportError);
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            );
+
+            // 游戏组 // 不用包含的游戏，只要组的设置
+            // platformGameGroup (where games should be empty array)
+            let copyPlatformGameGroupProm = dbconfig.collection_platformGameGroup.find({platform: replicateFrom._id}).lean().then(
+                platformGameGroups => {
+                    let proms = [];
+                    platformGameGroups.map(platformGameGroup => {
+                        delete platformGameGroup._id;
+                        platformGameGroup.games = [];
+                        platformGameGroup.platform = replicateTo._id;
+                        let prom = dbconfig.collection_platformGameGroup(platformGameGroup).save().catch(errorUtils.reportError);
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            );
+
+            // 优惠 // 除了『锁定大厅』内的配置，因为此时尚无游戏供应商，无法分组。
+            // rewardEvent (ignore provider group setting, fix reward event inter-relationship)
+            let oldNewEventObjId = {};
+            let copyRewardEventProm = dbconfig.collection_rewardEvent.find({platform: replicateFrom._id}).lean().then(
+                rewardEvents => {
+                    let proms = [];
+                    rewardEvents.map(rewardEvent => {
+                        delete rewardEvent._id;
+                        delete rewardEvent.condition.providerGroup;
+                        rewardEvent.platform = replicateTo._id;
+                        let prom = dbconfig.collection_rewardEvent(rewardEvent).save().then(newRewardEvent => {
+                            oldNewEventObjId[String(rewardEvent._id)] = String(newRewardEvent._id);
+                            return newRewardEvent;
+                        }).catch(errorUtils.reportError);
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            ).then(
+                () => dbconfig.collection_rewardEvent.find({platform: replicateTo._id}).lean()
+            ).then(
+                newRewardEvents => {
+                    let proms = [];
+                    if (!newRewardEvents || newRewardEvents.length < 1) {
+                        return [];
+                    }
+
+                    newRewardEvents.map(newRewardEvent => {
+                        if (newRewardEvent && newRewardEvent.condition && newRewardEvent.condition.ignoreTopUpDirtyCheckForReward && newRewardEvent.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
+                            let updatedParam = [];
+                            newRewardEvent.condition.ignoreTopUpDirtyCheckForReward.map(rewardEventId => {
+                                if (oldNewEventObjId[String(rewardEventId)]) {
+                                    updatedParam.push(oldNewEventObjId[String(rewardEventId)]);
+                                }
+                            });
+
+                            let prom = dbconfig.collection_rewardEvent.update({_id: newRewardEvent._id}, {"condition.ignoreTopUpDirtyCheckForReward": updatedParam});
+                            proms.push(prom);
+                        }
+                    });
+
+                    return Promise.all(proms);
+                }
+            );
+
+            return Promise.all([
+                copyPlatformDataProm,
+                copyPlayerLevelProm,
+                copyPartnerLevelConfigProm,
+                copyPlayerCredibilityRemarkProm,
+                copySmsGroupProm,
+                copyKeywordFilterProm,
+                copyMessageTemplateProm,
+                copyPlatformAnnouncemenetProm,
+                copyPlatformGameGroupProm,
+                copyRewardEventProm
+            ]);
+        });
+
+
+    },
 };
 
 function getPlatformStringForCallback (platformStringArray, playerId, lineId) {

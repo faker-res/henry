@@ -230,6 +230,7 @@
                 button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('create');vm.initPlatform(true);vm.clearShowPlatform();", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction&&vm.playerDisplayDataTab != 'advertisementPanel'") {{"CREATE" | translate}}
                 button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('delete')", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction && vm.playerDisplayDataTab != 'advertisementPanel' && vm.partnerDisplayDataTab != 'partnerAdvertisementPanel'") {{"DELETE" | translate}}
                 button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('edit');vm.initPlatform(true);vm.updatePlatformConfig();", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction&&vm.playerDisplayDataTab != 'advertisementPanel'") {{"EDIT" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal', ng-click="vm.openReplicatePlatformSettingModal()", ng-show="vm.selectedPlatformDetailTab == 'backstage-settings' && !vm.platformAction") {{"Replicate Other Platform Setting" | translate}}
 
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='create'", ng-click="vm.createNewPlatform();vm.setPlatformFooter(null);", ng-disabled="form_new_platform.$invalid") {{"CREATE" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='delete'", ng-click="vm.deletePlatform();vm.setPlatformFooter(null)") {{"CONFIRM" | translate}}
@@ -356,6 +357,21 @@
                     .text-danger {{vm.partnerCommissionSettlement.result | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{'CLOSE' | translate}}
                 i.fa.fa-spin.fa-spinner.text-danger.fa-2x(ng-if='vm.partnerCommissionSettlement.status=="processing"')
+
+#modalReplicatePlatformSetting.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='width:auto')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Replicate Other Platform Setting" | translate}}
+            .modal-body
+                label {{"Please choose a platform to replicate" | translate}}
+                select.form-control(ng-model="vm.platformToReplicate")
+                    option(ng-repeat="(i,v) in vm.platformList" ng-value="v.id" ng-if="v.id !== vm.selectedPlatform.id") {{v.text}}
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal' ng-click="vm.replicatePlatformSetting()") {{'Replicate' | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{'CANCEL' | translate}}
+
 
 //#modalTransferOutAllPlayerCreditFromGameProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:70%;')
