@@ -39,6 +39,7 @@ const errorUtils = require("./../modules/errorUtils.js");
 const rewardUtility = require("../modules/rewardUtility");
 const SMSSender = require('../modules/SMSSender');
 const messageDispatcher = require("../modules/messageDispatcher.js");
+const localization = require("../modules/localization");
 
 let rsaCrypto = require("../modules/rsaCrypto");
 
@@ -2737,6 +2738,16 @@ let dbPlayerReward = {
                         });
                     }
                 }
+
+                // if player apply for topup return , then he cannot apply promo code
+                if (topUpProp.data.topUpReturnCode) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DataError",
+                        message: localization.localization.translate("Cannot apply 2 reward in 1 top up")
+                    });
+                }
+
 
                 let consumptionRec = data[0];
 
