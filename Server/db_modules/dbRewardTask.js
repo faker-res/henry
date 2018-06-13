@@ -539,11 +539,7 @@ const dbRewardTask = {
         if (!rewards && !rewardTaskGroup) {
             return Q.reject("Record is not found");
         }
-
-        let rtgBonusAmt = {};
-        let providerGroupId;
-        let usedTopUp = [];
-
+        
         let totalAmount = rewardTaskGroup.currentAmt - rewardTaskGroup.initAmt; // for winlost count
         let totalConsumption = rewardTaskGroup.curConsumption;
 
