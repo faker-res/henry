@@ -57,7 +57,7 @@ div(style='height:50px')
     table#800RecordTable(style="width: 100%; text-align: center; border: 1px solid;")
         thead(style='background-color:#337ab7;')
             th(style="width: 38px;")
-                input.form-control(type="checkbox", id="selectAll", ng-click="vm.checkUncheckSelectAll()")
+                input.form-control(type="checkbox", id="selectAll", name="selectAll", ng-click="vm.checkUncheckSelectAll(0)")
                 label(for="selectAll") {{'SELECT_ALL' | translate}}
             th(style="width: 38px;") {{"STATUS" | translate}}
             th(style="width: 78.18px;") {{"LIVE800_ACC" | translate}}
@@ -81,11 +81,11 @@ div(style='height:50px')
                     div(ng-if='conversationform.editable', style='margin-top:30px;')
                         div.btn.btn-primary(ng-click="vm.confirmRate(conversationform)", style="cursor:pointer;width:80px") {{'CONFIRM' | translate}}
                         div.btn.btn-primary.red(ng-click="vm.cancelRate(conversationform)", style="cursor:pointer;margin-top:2px;width:80px") {{'CANCEL' | translate}}
-                td.col-md-7(style="padding: 0px; border: 1px solid black;", colspan=7)
+                td {{conversationform.fpmsAcc.adminName}} ({{conversationform.live800Acc.id}})
+                td.col-md-7(style="padding: 0px; border: 1px solid black;", colspan=6)
                     table(style="width: 100%; table-layout: fixed;")
                         tbody
                             tr(style="text-align:center;color:red")
-                                td(style="width: 78.18px;")
                                 td(style="width: 40px;")
                                 td(style="width: 77.27px;")
                                 td(style="width: 350px;") **** 新的对话开始 ****
@@ -93,7 +93,6 @@ div(style='height:50px')
                                 td(style="width: 50.27px;")
                                 td(style="width: 300px;")
                             tr(ng-repeat="convert in conversationform.conversation", style="border: 1px solid; word-wrap: break-word; background-color:{{convert.colors}};")
-                                td(style="width: 78.18px; border: 1px solid black;") {{conversationform.fpmsAcc.adminName}} ({{conversationform.live800Acc.id}})
                                 td(style="width: 40px; border: 1px solid black;") {{convert.roleName}}
                                 td(style="width: 77.27px; border: 1px solid black;") {{convert.displayTime}}
                                 td(style="width: 350px; border: 1px solid black;") {{convert.content}}
@@ -111,7 +110,6 @@ div(style='height:50px')
                                     div(ng-if='!conversationform.editable')
                                         div(style='text-align:center') {{convert.review}}
                             tr(style="text-align:center;color:red")
-                                td(style="width: 78.18px;")
                                 td(style="width: 40px;")
                                 td(style="width: 77.27px;")
                                 td(style="width: 350px;") 結束對話:访客关闭对话 ({{conversationform.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
@@ -121,11 +119,16 @@ div(style='height:50px')
                 td(style="border: 1px solid black; width: 78.18px;") {{conversationform.qualityAssessor.adminName}}
                 td(style="border: 1px solid black; width: 77.27px;") {{conversationform.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
                 td(style="border: 1px solid black; width: 90px;") {{conversationform.appealReason}}
-
+    br
     div.row
         div.col-md-12
-            div.col-md-10
+            div.col-md-9
                 div
+            div.col-md-1(style="display: inline-flex;")
+                div(style="width: 40px;")
+                    input.form-control(type="checkbox", name="selectAll", ng-click="vm.checkUncheckSelectAll(1)")
+                div(style="width: 40px;")
+                    label(for="selectAll") {{'SELECT_ALL' | translate}}
             div.col-md-2
                 .btn.btn-primary(ng-disabled="vm.batchSaveInProgress", ng-click="vm.batchSave()") {{"BATCH RATE" | translate}}
 
