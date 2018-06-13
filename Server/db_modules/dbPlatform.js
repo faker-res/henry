@@ -3403,7 +3403,9 @@ var dbPlatform = {
 
             let platformDataToCopy = {};
             platformKeysToCopy.map(key => {
-                platformDataToCopy[key] = replicateFrom[key];
+                if (replicateFrom[key]) {
+                    platformDataToCopy[key] = replicateFrom[key];
+                }
             });
 
             let copyPlatformDataProm = dbconfig.collection_platform.findOneAndUpdate({_id: replicateTo._id}, platformDataToCopy, {new: true}).lean();
@@ -3411,7 +3413,11 @@ var dbPlatform = {
             // victor and zheming says not to make it harder to read just to save lines of code, so I'll keep it as it is
             // 玩家等级
             // playerLevel schema
-            let copyPlayerLevelProm = dbconfig.collection_playerLevel.find({platform: replicateFrom._id}).lean().then(
+            let copyPlayerLevelProm = dbconfig.collection_playerLevel.remove({platform: replicateTo._id}).then(
+                ()=>{
+                    return dbconfig.collection_playerLevel.find({platform: replicateFrom._id}).lean()
+                }
+            ).then(
                 playerLevels => {
                     let proms = [];
                     playerLevels.map(playerLevel => {
@@ -3427,7 +3433,11 @@ var dbPlatform = {
 
             // 有效/活跃玩家
             // partnerlevelconfig
-            let copyPartnerLevelConfigProm = dbconfig.collection_partnerLevelConfig.find({platform: replicateFrom._id}).lean().then(
+            let copyPartnerLevelConfigProm = dbconfig.collection_partnerLevelConfig.remove({platform: replicateTo._id}).then(
+                () => {
+                    return dbconfig.collection_partnerLevelConfig.find({platform: replicateFrom._id}).lean();
+                }
+            ).then(
                 partnerLevelConfigs => {
                     let proms = [];
                     partnerLevelConfigs.map(partnerLevelConfig => {
@@ -3443,7 +3453,12 @@ var dbPlatform = {
 
             // 玩家信用
             // playerCredibilityRemark
-            let copyPlayerCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({platform: replicateFrom._id}).lean().then(
+
+            let copyPlayerCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.remove({platform: replicateTo._id}).then(
+                () => {
+                    return dbconfig.collection_playerCredibilityRemark.find({platform: replicateFrom._id}).lean() ;
+                }
+            ).then(
                 playerCredibilityRemarks => {
                     let proms = [];
                     playerCredibilityRemarks.map(playerCredibilityRemark => {
@@ -3459,7 +3474,11 @@ var dbPlatform = {
 
             // 短信组设置
             // smsGroup
-            let copySmsGroupProm = dbconfig.collection_smsGroup.find({platformObjId: replicateFrom._id}).lean().then(
+            let copySmsGroupProm = dbconfig.collection_smsGroup.remove({platformObjId: replicateTo._id}).then(
+                () => {
+                    return dbconfig.collection_smsGroup.find({platformObjId: replicateFrom._id}).lean();
+                }
+            ).then(
                 smsGroups => {
                     let proms = [];
                     smsGroups.map(smsGroup => {
@@ -3475,7 +3494,10 @@ var dbPlatform = {
 
             // 敏感词设置
             // keywordFilter
-            let copyKeywordFilterProm = dbconfig.collection_keywordFilter.find({platform: replicateFrom._id}).lean().then(
+
+            let copyKeywordFilterProm = dbconfig.collection_keywordFilter.remove({platform: replicateTo._id}).then(
+                () => dbconfig.collection_keywordFilter.find({platform: replicateFrom._id}).lean()
+            ).then(
                 keywordFilters => {
                     let proms = [];
                     keywordFilters.map(keywordFilter => {
@@ -3491,7 +3513,9 @@ var dbPlatform = {
 
             // 消息模版
             // messageTemplate
-            let copyMessageTemplateProm = dbconfig.collection_messageTemplate.find({platform: replicateFrom._id}).lean().then(
+            let copyMessageTemplateProm = dbconfig.collection_messageTemplate.remove({platform: replicateTo._id}).then(
+                () => dbconfig.collection_messageTemplate.find({platform: replicateFrom._id}).lean()
+            ).then(
                 messageTemplates => {
                     let proms = [];
                     messageTemplates.map(messageTemplate => {
@@ -3507,7 +3531,9 @@ var dbPlatform = {
 
             // 公告版
             // platformAnnouncement
-            let copyPlatformAnnouncemenetProm = dbconfig.collection_platformAnnouncement.find({platform: replicateFrom._id}).lean().then(
+            let copyPlatformAnnouncemenetProm = dbconfig.collection_platformAnnouncement.remove({platform: replicateTo._id}).then(
+                () => dbconfig.collection_platformAnnouncement.find({platform: replicateFrom._id}).lean()
+            ).then(
                 platformAnnouncements => {
                     let proms = [];
                     platformAnnouncements.map(platformAnnouncement => {
@@ -3523,11 +3549,15 @@ var dbPlatform = {
 
             // 游戏组 // 不用包含的游戏，只要组的设置
             // platformGameGroup (where games should be empty array)
-            let copyPlatformGameGroupProm = dbconfig.collection_platformGameGroup.find({platform: replicateFrom._id}).lean().then(
+            let copyPlatformGameGroupProm = dbconfig.collection_platformGameGroup.remove({platform: replicateTo._id}).then(
+                () => dbconfig.collection_platformGameGroup.find({platform: replicateFrom._id}).lean()
+            ).then(
                 platformGameGroups => {
                     let proms = [];
                     platformGameGroups.map(platformGameGroup => {
                         delete platformGameGroup._id;
+                        delete platformGameGroup.groupId;
+                        delete platformGameGroup.code;
                         platformGameGroup.games = [];
                         platformGameGroup.platform = replicateTo._id;
                         let prom = dbconfig.collection_platformGameGroup(platformGameGroup).save().catch(errorUtils.reportError);
@@ -3541,12 +3571,14 @@ var dbPlatform = {
             // 优惠 // 除了『锁定大厅』内的配置，因为此时尚无游戏供应商，无法分组。
             // rewardEvent (ignore provider group setting, fix reward event inter-relationship)
             let oldNewEventObjId = {};
-            let copyRewardEventProm = dbconfig.collection_rewardEvent.find({platform: replicateFrom._id}).lean().then(
+            let copyRewardEventProm = dbconfig.collection_rewardEvent.remove({platform: replicateTo._id}).then(
+                () => dbconfig.collection_rewardEvent.find({platform: replicateFrom._id}).lean()
+            ).then(
                 rewardEvents => {
                     let proms = [];
                     rewardEvents.map(rewardEvent => {
                         delete rewardEvent._id;
-                        delete rewardEvent.condition.providerGroup;
+                        if (rewardEvent.condition) delete rewardEvent.condition.providerGroup;
                         rewardEvent.platform = replicateTo._id;
                         let prom = dbconfig.collection_rewardEvent(rewardEvent).save().then(newRewardEvent => {
                             oldNewEventObjId[String(rewardEvent._id)] = String(newRewardEvent._id);
