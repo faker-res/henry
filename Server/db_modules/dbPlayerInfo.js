@@ -612,7 +612,8 @@ let dbPlayerInfo = {
                                 domain: {
                                     $regex: inputData.domain,
                                     $options: "xi"
-                                }
+                                },
+                                platform: platformObjId
                             }).lean().then(data => {
                                 if (data) {
                                     inputData.csOfficer = data.admin;
