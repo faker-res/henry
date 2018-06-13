@@ -272,6 +272,19 @@ var partnerPostFindUpdate = function (result, bOne) {
             result.wechat = result.wechat.substr(0, wechatIndex) + "****" + result.wechat.substr(wechatIndex + 4);
 
         }
+
+        //add default permission
+        if(result._doc){
+            if( !result._doc.permission || result._doc.permission == "null" ){
+                result._doc.permission = {
+                    applyBonus: true,
+                    forbidPartnerFromLogin: false,
+                    phoneCallFeedback: true,
+                    SMSFeedBack: true,
+                    disableCommSettlement: false
+                };
+            }
+        }
     }
 }
 
@@ -286,6 +299,7 @@ partnerSchema.post('find', function(result) {
 
 partnerSchema.post('findOne', function (result) {
     partnerPostFindUpdate(result, true);
+    return result;
 });
 
 partnerSchema.pre('save', function (next) {

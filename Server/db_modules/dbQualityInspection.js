@@ -303,7 +303,7 @@ var dbQualityInspection = {
         let qaResult =  dbconfig.collection_qualityInspection.find(queryQA)
             .populate({path: 'qualityAssessor', model: dbconfig.collection_admin})
             .populate({path: 'fpmsAcc', model: dbconfig.collection_admin}).lean()
-            .lean().sort({createTime: -1})
+            .lean().sort({createTime: 1})
             .then(results => {
                 results.forEach(item => {
                     let live800Chat = {conversation: []};
@@ -559,7 +559,7 @@ var dbQualityInspection = {
             }
 
             console.log("SELECT * FROM chat_content WHERE " + queryObj + excludeMongoQuery + paginationQuery);
-            connection.query("SELECT store_time,company_id,msg_id,operator_id,operator_name,content FROM chat_content WHERE " + queryObj + excludeMongoQuery + " ORDER BY store_time DESC " + paginationQuery, function (error, results, fields) {
+            connection.query("SELECT store_time,company_id,msg_id,operator_id,operator_name,content FROM chat_content WHERE " + queryObj + excludeMongoQuery + " ORDER BY store_time " + paginationQuery, function (error, results, fields) {
                 if (error) {
                     console.log(error)
                 }
@@ -573,7 +573,7 @@ var dbQualityInspection = {
     searchMySQLDB:function(queryObj, paginationQuery, connection){
         var deferred = Q.defer();
 
-        connection.query("SELECT * FROM chat_content WHERE " + queryObj + " ORDER BY store_time DESC " + paginationQuery, function (error, results, fields) {
+        connection.query("SELECT * FROM chat_content WHERE " + queryObj + " ORDER BY store_time " + paginationQuery, function (error, results, fields) {
             // if (error) throw error;
             if(error){
                 console.log(error);

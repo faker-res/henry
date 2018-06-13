@@ -2906,8 +2906,9 @@ let dbPlayerReward = {
                                     'data.playerObjId': elem.playerObjId,
                                     settleTime: {$gt: elem.nextWithdrawTime},
                                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
-                                    mainType: "TopUp"
-                                }).sort({settleTime: -1}).limit(1).lean();
+                                    mainType: "TopUp",
+                                    'data.promoCode': {$exists: true}
+                                }).sort({settleTime: 1}).limit(1).lean();
                             }
                         ).then(
                             topUpRes => {

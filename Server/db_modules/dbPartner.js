@@ -7378,8 +7378,8 @@ let dbPartner = {
         )
     },
 
-    getCrewActiveInfo: (platformId, partnerId, periodCycle, circleTimes) => {
-        if (!circleTimes) {
+    getCrewActiveInfo: (platformId, partnerId, periodCycle, circleTimes, startDate, endDate) => {
+        if (!circleTimes && !(periodCycle == 1 && startDate && endDate)) {
             return {};
         }
 
@@ -7400,23 +7400,44 @@ let dbPartner = {
                 let nextPeriod = getCurrentCommissionPeriod(periodCycle);
                 let outputProms = [];
 
-                for (let i = 0; i < circleTimes; i++) {
-                    let startTime = new Date(nextPeriod.startTime);
-                    let endTime = new Date(nextPeriod.endTime);
+                if(periodCycle == 1 && !circleTimes){
+                    startDate = new Date(startDate);
+                    endDate = new Date(endDate);
 
-                    let prom = getCrewsInfo(downLines, startTime, endTime, activePlayerRequirement).then(
-                        playerActiveDetails => {
-                            return {
-                                date: startTime,
-                                activeCrewNumbers: getActiveDownLineCount(playerActiveDetails),
-                                list: playerActiveDetails.filter(player => player.active)
+                    for(let i = endDate; i >= startDate; i.setDate(i.getDate() - 1)){
+                        let startTime = dbUtil.getDayStartTime(new Date(i));
+                        let endTime = dbUtil.getDayStartTime(new Date(startTime));
+                        endTime.setDate(startTime.getDate() + 1);
+                        let prom = getCrewsInfo(downLines, startTime, endTime, activePlayerRequirement).then(
+                            playerActiveDetails => {
+                                return {
+                                    date: startTime,
+                                    activeCrewNumbers: getActiveDownLineCount(playerActiveDetails),
+                                    list: playerActiveDetails.filter(player => player.active)
+                                }
                             }
-                        }
-                    );
-                    nextPeriod = getPreviousCommissionPeriod(periodCycle, nextPeriod);
-                    outputProms.push(prom);
-                }
+                        );
+                        nextPeriod = getPreviousCommissionPeriod(periodCycle, nextPeriod);
+                        outputProms.push(prom);
+                    }
+                }else {
+                    for (let i = 0; i < circleTimes; i++) {
+                        let startTime = new Date(nextPeriod.startTime);
+                        let endTime = new Date(nextPeriod.endTime);
 
+                        let prom = getCrewsInfo(downLines, startTime, endTime, activePlayerRequirement).then(
+                            playerActiveDetails => {
+                                return {
+                                    date: startTime,
+                                    activeCrewNumbers: getActiveDownLineCount(playerActiveDetails),
+                                    list: playerActiveDetails.filter(player => player.active)
+                                }
+                            }
+                        );
+                        nextPeriod = getPreviousCommissionPeriod(periodCycle, nextPeriod);
+                        outputProms.push(prom);
+                    }
+                }
                 return Promise.all(outputProms);
             }
         );
@@ -7440,7 +7461,7 @@ let dbPartner = {
                 let nextPeriod = getCurrentCommissionPeriod(periodCycle);
                 let outputProms = [];
 
-                if(periodCycle == 1){
+                if(periodCycle == 1 && !circleTimes){
                     startDate = new Date(startDate);
                     endDate = new Date(endDate);
 
@@ -7530,7 +7551,7 @@ let dbPartner = {
                 let nextPeriod = getCurrentCommissionPeriod(periodCycle);
                 let outputProms = [];
 
-                if(periodCycle == 1){
+                if(periodCycle == 1 && !circleTimes){
                     startDate = new Date(startDate);
                     endDate = new Date(endDate);
 
@@ -7599,11 +7620,13 @@ let dbPartner = {
         );
     },
 
-    checkAllCrewDetail: (platformId, partnerId, playerId, crewAccount, sortMode, startTime, endTime, startIndex, count) => {
+    checkAllCrewDetail: (platformId, partnerId, playerId, crewAccount, singleSearchMode, sortMode, startTime, endTime, startIndex, count) => {
         let index = startIndex || 0;
         let limit = count || 100;
         let platformObj;
         let totalDownLines = 0;
+        singleSearchMode = singleSearchMode? singleSearchMode: "0"; // "0" search whole word, "1" fuzzy search
+
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if (!(platformData && platformData._id)) {
@@ -7630,41 +7653,52 @@ let dbPartner = {
                     endTime = new Date(endTime);
                 }
 
-                let playerProm = dbconfig.collection_players.find({platform: platformObj._id, partner: partnerData._id},{_id: 1, name: 1, playerId: 1}).lean();
-                let singlePlayerProm = Promise.resolve();
-                let singlePlayerQuery = {
-                    platform: platformObj._id,
-                }
-                if (playerId) {
-                    singlePlayerQuery.playerId = playerId;
-                    singlePlayerProm = dbconfig.collection_players.findOne(singlePlayerQuery, {_id: 1, name: 1, playerId: 1}).lean();
-                } else if (crewAccount) {
-                    singlePlayerQuery.name = crewAccount;
-                    singlePlayerProm = dbconfig.collection_players.findOne(singlePlayerQuery, {_id: 1, name: 1, playerId: 1}).lean();
-                }
-                return Promise.all([playerProm, singlePlayerProm]);
+                return dbconfig.collection_players.find({platform: platformObj._id, partner: partnerData._id},{_id: 1, name: 1, playerId: 1}).lean();
             }
         ).then(
-            result => {
-                let allDownLinesData = result[0];
-                let singleDownLines = result[1];
-                totalDownLines = allDownLinesData && allDownLinesData.length? allDownLinesData.length: 0;
+            allDownLinesData => {
+                let selectedDownLines = [];
+                // totalDownLines = allDownLinesData && allDownLinesData.length? allDownLinesData.length: 0;
                 if (playerId || crewAccount) {
+                    let fieldName;
+                    let compareData;
+                    if (playerId) {
+                        compareData = playerId;
+                        fieldName = 'playerId';
+                    } else {
+                        compareData = crewAccount;
+                        fieldName = 'name';
+                    }
                     let isMatch = false;
-                    for (let i = 0; i < allDownLinesData.length; i++) {
-                        if (singleDownLines && singleDownLines._id && String(allDownLinesData[i]._id) == String(singleDownLines._id)) {
-                            isMatch = true;
-                            allDownLinesData = [singleDownLines];
-                            break;
+
+                    if (singleSearchMode == "1" && crewAccount && !playerId) {
+                        let accPattern = new RegExp("^" + crewAccount, "i")
+                        for (let i = 0; i < allDownLinesData.length; i++) {
+                            if (accPattern.test(allDownLinesData[i][fieldName])) {
+                                isMatch = true;
+                                selectedDownLines.push(allDownLinesData[i]);
+                            }
+                        }
+                    } else  {
+                        for (let i = 0; i < allDownLinesData.length; i++) {
+                            if (String(compareData) == String(allDownLinesData[i][fieldName])) {
+                                isMatch = true;
+                                selectedDownLines = [allDownLinesData[i]];
+                                break;
+                            }
                         }
                     }
 
                     if (!isMatch) {
                         return Promise.reject({name: "DataError", message: "Cannot find this downline"});
                     }
+                } else {
+                    selectedDownLines = allDownLinesData;
                 }
 
-                return getCrewsDetail(allDownLinesData, startTime, endTime).then(
+                totalDownLines = selectedDownLines && selectedDownLines.length? selectedDownLines.length: 0;
+
+                return getCrewsDetail(selectedDownLines, startTime, endTime).then(
                     playerDetails => {
                         if (sortMode == constCrewDetailMode.TOP_UP) {
                             function sortRecord(a, b) {
@@ -7758,7 +7792,7 @@ let dbPartner = {
                 let outputProms = [];
                 let providerGroups = providerGroup ? [providerGroup] : null;
 
-                if(periodCycle == 1){
+                if(periodCycle == 1 && !circleTimes){
                     startDate = new Date(startDate);
                     endDate = new Date(endDate);
 
@@ -7852,7 +7886,7 @@ let dbPartner = {
 
                 let nextPeriod = getCurrentCommissionPeriod(periodCycle);
                 let outputProms = [];
-                if(periodCycle == 1){
+                if(periodCycle == 1 && !circleTimes){
                     startDate = new Date(startDate);
                     endDate = new Date(endDate);
 

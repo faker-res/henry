@@ -253,7 +253,7 @@ var PartnerServiceImplement = function () {
         if (data.bankAccount && !(data.bankAccount.length >= constSystemParam.BANK_ACCOUNT_LENGTH && (/^\d+$/).test(data.bankAccount))) {
             isValidData = false;
         }
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.updatePartnerBankInfo, [userAgent, data.partnerId, data], isValidData, true, true, false).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.updatePartnerBankInfo, [userAgent, data.partnerId, data], isValidData, true, false, false).then(
             function (res) {
                 if (res) {
                     wsFunc.response(conn, {status: constServerCode.SUCCESS}, data);
@@ -263,14 +263,6 @@ var PartnerServiceImplement = function () {
                     wsFunc.response(conn, {
                         status: constServerCode.COMMON_ERROR,
                         errorMessage: "Partner is not found"
-                    }, data);
-                }
-            },
-            function (error) {
-                if (error != "INVALID_DATA") {
-                    wsFunc.response(conn, {
-                        status: constServerCode.COMMON_ERROR,
-                        errorMessage: error
                     }, data);
                 }
             }
@@ -448,8 +440,8 @@ var PartnerServiceImplement = function () {
     };
 
     this.getCrewActiveInfo.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data.platformId && conn.partnerId && data.period && data.circleTimes);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewActiveInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes], isValidData);
+        let isValidData = Boolean(data.platformId && conn.partnerId && data.period && (data.circleTimes || (data.startTime && data.endTime)));
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCrewActiveInfo, [data.platformId, conn.partnerId, data.period, data.circleTimes, data.startTime, data.endTime,], isValidData);
     };
 
     this.getCrewDepositInfo.onRequest = function (wsFunc, conn, data) {
@@ -494,7 +486,7 @@ var PartnerServiceImplement = function () {
 
     this.checkAllCrewDetail.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.platformId && conn.partnerId && data.sortMode);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.checkAllCrewDetail, [data.platformId, conn.partnerId, data.playerId, data.crewAccount, data.sortMode, data.startTime, data.endTime, data.startIndex, data.count], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.checkAllCrewDetail, [data.platformId, conn.partnerId, data.playerId, data.crewAccount, data.singleSearchMode, data.sortMode, data.startTime, data.endTime, data.startIndex, data.count], isValidData);
     };
 
 };
