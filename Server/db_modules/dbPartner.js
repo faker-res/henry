@@ -7400,7 +7400,7 @@ let dbPartner = {
                 let nextPeriod = getCurrentCommissionPeriod(periodCycle);
                 let outputProms = [];
 
-                if(periodCycle == 1){
+                if(periodCycle == 1 && !circleTimes){
                     startDate = new Date(startDate);
                     endDate = new Date(endDate);
 
@@ -7461,7 +7461,7 @@ let dbPartner = {
                 let nextPeriod = getCurrentCommissionPeriod(periodCycle);
                 let outputProms = [];
 
-                if(periodCycle == 1){
+                if(periodCycle == 1 && !circleTimes){
                     startDate = new Date(startDate);
                     endDate = new Date(endDate);
 
@@ -7551,7 +7551,7 @@ let dbPartner = {
                 let nextPeriod = getCurrentCommissionPeriod(periodCycle);
                 let outputProms = [];
 
-                if(periodCycle == 1){
+                if(periodCycle == 1 && !circleTimes){
                     startDate = new Date(startDate);
                     endDate = new Date(endDate);
 
@@ -7790,7 +7790,7 @@ let dbPartner = {
                 let outputProms = [];
                 let providerGroups = providerGroup ? [providerGroup] : null;
 
-                if(periodCycle == 1){
+                if(periodCycle == 1 && !circleTimes){
                     startDate = new Date(startDate);
                     endDate = new Date(endDate);
 
@@ -7884,7 +7884,7 @@ let dbPartner = {
 
                 let nextPeriod = getCurrentCommissionPeriod(periodCycle);
                 let outputProms = [];
-                if(periodCycle == 1){
+                if(periodCycle == 1 && !circleTimes){
                     startDate = new Date(startDate);
                     endDate = new Date(endDate);
 
