@@ -11976,7 +11976,7 @@ let dbPlayerInfo = {
         );
     },
 
-    applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName) {
+    applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply) {
         data = data || {};
         let playerInfo = null;
         let adminInfo = '';
@@ -12001,7 +12001,16 @@ let dbPlayerInfo = {
                             message: "Player do not have permission for reward"
                         });
                     }
-                    return dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true).then(
+
+                    let playerState;
+                    if(isBulkApply) {
+                        // bypass player state for bulk apply
+                        playerState = Promise.resolve(true);
+                    } else {
+                        playerState = dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true);
+                    }
+
+                    return playerState.then(
                         playerState => {
                             if (playerState || data.isClearConcurrent) {
                                 //check if player's reward task is no credit now
