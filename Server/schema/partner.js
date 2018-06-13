@@ -274,7 +274,7 @@ var partnerPostFindUpdate = function (result, bOne) {
         }
 
         //add default permission
-        if( result && (!result.permission || result.permission == "null") ){
+        if( !result.permission || result.permission == "null" ){
             result.permission = {
                 applyBonus: true,
                 forbidPartnerFromLogin: false,
