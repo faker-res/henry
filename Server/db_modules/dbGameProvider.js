@@ -593,7 +593,7 @@ function removeDeletedGroupCommissionConfig (platformObjId, commissionType) {
                     if (String(platformObjId) == "ded6825ae03d8b18ad29a228") { // todo :: debug used, remove later
                         console.log('commissionConfig debug - removed triggered');
                     }
-                    let prom = dbconfig.collection_partnerCommissionConfig.remove({_id: commissionConfig._id, platform: commissionConfig.platform}, {justOne: true}).catch(errorUtils.reportError);
+                    let prom = dbconfig.collection_partnerCommissionConfig.remove({_id: commissionConfig._id}).catch(errorUtils.reportError);
                     proms.push(prom);
                 } else {
                     if (String(platformObjId) == "ded6825ae03d8b18ad29a228") { // todo :: debug used, remove later

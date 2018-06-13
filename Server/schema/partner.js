@@ -272,6 +272,17 @@ var partnerPostFindUpdate = function (result, bOne) {
             result.wechat = result.wechat.substr(0, wechatIndex) + "****" + result.wechat.substr(wechatIndex + 4);
 
         }
+
+        //add default permission
+        if( !result.permission || result.permission == "null" ){
+            result.permission = {
+                applyBonus: true,
+                forbidPartnerFromLogin: false,
+                phoneCallFeedback: true,
+                SMSFeedBack: true,
+                disableCommSettlement: false
+            };
+        }
     }
 }
 

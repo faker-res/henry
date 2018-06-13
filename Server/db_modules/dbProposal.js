@@ -1330,10 +1330,13 @@ var proposal = {
                             $gte: startTime,
                             $lt: endTime
                         },
-                        process: {$in: processIds},
                         noSteps: false,
                         status: constProposalStatus.PENDING
                     };
+
+                    if (processIds && processIds.length > 0) {
+                        queryObj.process = {$in: processIds};
+                    }
 
                     if (proposalTypesId && proposalTypesId.length > 0) {
                         queryObj.type = {$in: proposalTypesId};
