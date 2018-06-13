@@ -9302,6 +9302,7 @@ define(['js/app'], function (myApp) {
                     result.forEach((item, index) => {
                         item['unlockTime'] = vm.dateReformat(item.unlockTime);
                         item['targetProviderGroup'] = $translate(item.targetProviderGroup);
+                        item.creator.name = $translate(item.creator.name);
                     });
 
                     $scope.$evalAsync(vm.drawRewardTaskUnlockedTable(newSearch, result, vm.playerRewardTaskLog.totalCount));
