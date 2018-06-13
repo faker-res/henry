@@ -274,14 +274,16 @@ var partnerPostFindUpdate = function (result, bOne) {
         }
 
         //add default permission
-        if( result && (!result.permission || result.permission == "null") ){
-            result.permission = {
-                applyBonus: true,
-                forbidPartnerFromLogin: false,
-                phoneCallFeedback: true,
-                SMSFeedBack: true,
-                disableCommSettlement: false
-            };
+        if(result._doc){
+            if( !result._doc.permission || result._doc.permission == "null" ){
+                result._doc.permission = {
+                    applyBonus: true,
+                    forbidPartnerFromLogin: false,
+                    phoneCallFeedback: true,
+                    SMSFeedBack: true,
+                    disableCommSettlement: false
+                };
+            }
         }
     }
 }
@@ -297,6 +299,7 @@ partnerSchema.post('find', function(result) {
 
 partnerSchema.post('findOne', function (result) {
     partnerPostFindUpdate(result, true);
+    return result;
 });
 
 partnerSchema.pre('save', function (next) {
