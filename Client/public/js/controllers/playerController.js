@@ -8316,7 +8316,8 @@ define(['js/app'], function (myApp) {
                 $('.referralValidFalse').hide();
                 editObj.referral = null;
             }
-        }
+        };
+        
         vm.getPartnerinPlayer = function (editObj, type) {
             var sendData = null;
             if (type === 'change' && editObj.partnerName == '') {
@@ -8345,8 +8346,12 @@ define(['js/app'], function (myApp) {
                         editObj.partner = null;
                     }
                 })
+            } else {
+                $('.partnerValidTrue').hide();
+                $('.partnerValidFalse').hide();
+                editObj.partner = null;
             }
-        }
+        };
 
         function buildTopUpGroupChangesString(updateData, oldData) {
             var bankGroup = {};
