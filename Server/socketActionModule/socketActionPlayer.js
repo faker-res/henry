@@ -1233,6 +1233,11 @@ function socketActionPlayer(socketIO, socket) {
             let isValidData = Boolean(data && data.period && data.selectedDate && data.platformId && data.status);
             socketUtil.emitter(self.socket, dbDemoPlayer.getDemoPlayerLog, [ObjectId(data.platformId), data.period, data.status, data.selectedDate, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
+        getPlayerConsumptionSummary: function getPlayerConsumptionSummary(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionDaySummary.getPlayerConsumptionSummary, [data.playerId], actionName, isValidData);
+        }
     };
     socketActionPlayer.actions = this.actions;
 }
