@@ -7568,14 +7568,17 @@ let dbPlayerInfo = {
                                                 function (data) {
                                                     dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", false).catch(errorUtils.reportError);
                                                     return data;
-                                                },
-                                                function (err) {
+                                                }
+                                            ).catch(
+                                                err => {
                                                     if (err.status === constServerCode.CONCURRENT_DETECTED) {
                                                         // Ignore concurrent request for now
                                                     } else {
+                                                        // Set BState back to false
                                                         dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", false).catch(errorUtils.reportError);
                                                     }
-                                                    return Promise.reject(err)
+
+                                                    throw err;
                                                 }
                                             );
                                         } else {
