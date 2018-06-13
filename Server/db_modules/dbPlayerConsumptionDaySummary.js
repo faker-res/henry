@@ -232,8 +232,13 @@ var dbPlayerConsumptionDaySummary = {
                 return dbconfig.collection_platform.populate(data, {path: '_id', model: dbconfig.collection_platform})
             }
         );
-    }
+    },
 
+    getPlayerConsumptionSummary: (playerObjId) => {
+        return dbconfig.collection_playerConsumptionSummary.find({
+            playerId: playerObjId
+        }).sort({createTime: -1}).limit(10).lean();
+    },
 };
 
 //module.exports = dbPlayerConsumptionDaySummary;
