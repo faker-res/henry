@@ -7412,7 +7412,7 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return getPartnerCrewsData(platformId, partnerId, null, null, startDate, endDate).then(
+        return getPartnerCrewsData(platformId, partnerId).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7477,7 +7477,7 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount, startDate, endDate).then(
+        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7567,7 +7567,7 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount, startDate, endDate).then(
+        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7797,7 +7797,7 @@ let dbPartner = {
         let downLines = [];
         let providerGroup;
 
-        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount, startDate, endDate).then(
+        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7903,7 +7903,7 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return getPartnerCrewsData(platformId, partnerId, null, null, startDate, endDate).then(
+        return getPartnerCrewsData(platformId, partnerId).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -8150,6 +8150,44 @@ let dbPartner = {
             }
         );
     },
+
+    deleteAllMail: (partnerId, hasBeenRead) => {
+        return dbconfig.collection_partner.findOne({partnerId: partnerId}).then(
+            partnerData => {
+                if (partnerData) {
+                    let qObj = {recipientId: partnerData._id, bDelete: false};
+                    if (hasBeenRead !== undefined) {
+                        qObj.hasBeenRead = Boolean(hasBeenRead);
+                    }
+                    return dbconfig.collection_playerMail.update(
+                        qObj,
+                        {bDelete: true},
+                        {multi: true}
+                    );
+                }
+                else {
+                    return Q.reject({name: "DBError", message: "Invalid partner data"});
+                }
+            }
+        );
+    },
+
+    deleteMail: (partnerId, mailObjId) => {
+        return dbconfig.collection_playerMail.findOne({_id: mailObjId}).populate(
+            {path: "recipientId", model: dbconfig.collection_partner}
+        ).then(
+            mailData => {
+                if (mailData && mailData.recipientId && mailData.recipientId.partnerId == partnerId) {
+                    mailData.bDelete = true;
+                    return mailData.save();
+                }
+                else {
+                    return Q.reject({name: "DBError", message: "Invalid Mail id"});
+                }
+            }
+        );
+    },
+
 };
 
 
@@ -9356,7 +9394,7 @@ function getCrewsInfo (players, startTime, endTime, activePlayerRequirement, pro
     return Promise.all(playerDetailsProm);
 }
 
-function getPartnerCrewsData (platformId, partnerId, playerId, crewAccount, startTime, endTime) {
+function getPartnerCrewsData (platformId, partnerId, playerId, crewAccount) {
     let platform = {};
     let partner = {};
     let downLines = [];
@@ -9393,18 +9431,8 @@ function getPartnerCrewsData (platformId, partnerId, playerId, crewAccount, star
                 return dbconfig.collection_players.find({platform: platform._id, partner: partner._id, name: crewAccount}).lean();
             }
             else{
-                let query = {
-                    platform: platform._id,
-                    partner: partner._id
-                }
-
-                if(startTime && endTime){
-                    query.registrationTime = {$gte: startTime, $lt: endTime}
-                }
-
-                return dbconfig.collection_players.find(query).lean();
+                return dbconfig.collection_players.find({platform: platform._id, partner: partner._id}).lean();
             }
-
         }
     ).then(
         downLineData => {

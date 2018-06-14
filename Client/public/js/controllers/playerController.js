@@ -24662,6 +24662,8 @@ define(['js/app'], function (myApp) {
             return $scope.$socketPromise('getCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}).then(
                 data => {
                     vm.credibilityRemarks = data.data;
+                    vm.filterCredibilityRemarks = data.data ? JSON.parse(JSON.stringify(data.data)) : [];
+                    vm.filterCredibilityRemarks.push({'_id':'', 'name':'N/A'});
                     $scope.safeApply();
                     vm.setupRemarksMultiInput();
                     vm.setupRemarksMultiInputFeedback();
