@@ -23,6 +23,7 @@ define(['js/app'], function (myApp) {
             vm.rewardPointsChange = {};
             vm.rewardPointsConvert = {};
             vm.platformPageName = 'Player';
+            vm.platformToReplicate = "";
 
             // constants declaration
             vm.constPartnerCommisionType = {
@@ -9302,6 +9303,7 @@ define(['js/app'], function (myApp) {
                     result.forEach((item, index) => {
                         item['unlockTime'] = vm.dateReformat(item.unlockTime);
                         item['targetProviderGroup'] = $translate(item.targetProviderGroup);
+                        item.creator.name = $translate(item.creator.name);
                     });
 
                     $scope.$evalAsync(vm.drawRewardTaskUnlockedTable(newSearch, result, vm.playerRewardTaskLog.totalCount));
@@ -29197,9 +29199,28 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 });
+            };
 
+            vm.openReplicatePlatformSettingModal = () => {
+                $('#modalReplicatePlatformSetting').modal('show');
+            };
 
-            }
+            vm.replicatePlatformSetting = function (isConfirm) {
+                if (!isConfirm) {
+                    vm.modalYesNo = {};
+                    vm.modalYesNo.modalTitle = $translate("Replicate Other Platform Setting");
+                    vm.modalYesNo.modalText = $translate("Warning! Once replicate, there is no revert option. Are you sure you want to replicate platform setting?");
+                    vm.modalYesNo.actionYes = () => vm.replicatePlatformSetting(true);
+                    $('#modalYesNo').modal();
+                    return;
+                }
+
+                $scope.$socketPromise("replicatePlatformSetting", {replicateFrom: vm.platformToReplicate, replicateTo: vm.selectedPlatform.id}).then(data => {
+                    console.log(data);
+                    $socket.showConfirmMessage("Replication succeed.");
+                    loadPlatformData();
+                });
+            };
 
             vm.resetPlayerAddTable = function () {
                 //reset the adding table
