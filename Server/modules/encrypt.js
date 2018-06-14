@@ -147,7 +147,24 @@ var encrypt = {
             query["loginIps"] = new RegExp('.*' + loginIps + '.*');
         }
         if (credibilityRemarks && credibilityRemarks !== '' && credibilityRemarks.length !== 0) {
-            query["credibilityRemarks"] = {$in: credibilityRemarks};
+            let tempArr = [];
+            let isNoneExist = false;
+
+            credibilityRemarks.forEach(remark => {
+                if (remark == "") {
+                    isNoneExist = true;
+                } else {
+                    tempArr.push(remark);
+                }
+            });
+
+            if (isNoneExist && tempArr.length > 0) {
+                query.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
+            } else if (isNoneExist && !tempArr.length) {
+                query.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}];
+            } else if (tempArr.length > 0 && !isNoneExist) {
+                query["credibilityRemarks"] = {$in: tempArr};
+            }
         }
         if (referral !== '') {
             query["referral"] = referral;

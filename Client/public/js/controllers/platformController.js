@@ -26031,8 +26031,8 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
                         console.log('credibilityRemarks', data);
                         vm.credibilityRemarks = data.data;
-                        vm.feedbackCredibilityRemarks = data.data;
-                        vm.feedbackCredibilityRemarks.push({'_id':'', 'name':'N/A'});
+                        vm.filterCredibilityRemarks = data.data ? JSON.parse(JSON.stringify(data.data)) : [];
+                        vm.filterCredibilityRemarks.push({'_id':'', 'name':'N/A'});
                         $scope.safeApply();
                         vm.setupRemarksMultiInput();
                         vm.setupRemarksMultiInputFeedback();
@@ -27864,7 +27864,7 @@ define(['js/app'], function (myApp) {
                 vm.deletePlayerFeedbackTopicData = {};
                 // vm.allGameStatusString = {};
                 vm.credibilityRemarks = [];
-                vm.feedbackCredibilityRemarks = [];
+                vm.filterCredibilityRemarks = [];
                 vm.gameStatus = {};
                 vm.gameSmallShow = {};
                 vm.ctiData = {};
