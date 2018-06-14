@@ -280,7 +280,9 @@ var dbPlatformBankCardGroup = {
     },
 
     syncBankCardGroupData: function (platformObjId) {
-        var platformId = null;
+        let platformId = null;
+        let cardList = [];
+        let newCards = [];
         return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
             platform => {
                 if (platform) {
@@ -295,8 +297,64 @@ var dbPlatformBankCardGroup = {
             }
         ).then(
             data => {
-                if (data && data.data && data.data.length > 0) {
-                    var bankCards = data.data.map(card => card.accountNumber);
+                if (data && data.data) {
+                    let cards = data.data;
+                    let updateCardProm = [];
+                    cardList = cards;
+                    return dbconfig.collection_platformBankCardList.find({platformId: platformId}).lean().then(oldCards => {
+                        cards.forEach(card => {
+                            if(oldCards && oldCards.length > 0) {
+                                let match = false;
+                                oldCards.forEach(oldCard => {
+                                    if (card.accountNumber == oldCard.accountNumber) {
+                                        match = true;
+                                    }
+                                });
+                                if (!match) {
+                                    newCards.push(card.accountNumber);
+                                }
+                            }
+                            if(card && card.accountNumber) {
+                                let quota = Number(card.quota);
+                                updateCardProm.push(
+                                    dbconfig.collection_platformBankCardList.findOneAndUpdate(
+                                        {
+                                            accountNumber: card.accountNumber
+                                        },
+                                        {
+                                            accountNumber: card.accountNumber,
+                                            bankTypeId: card.bankTypeId || '',
+                                            name: card.name || '',
+                                            platformId: card.platformId || '',
+                                            quota: isNaN(quota) ? 0 : quota,
+                                            status: card.status || '',
+                                            provinceName: card.provinceName || '',
+                                            cityName: card.cityName || '',
+                                            openingPoint: card.openingPoint || '',
+                                            level: card.level || ''
+                                        },
+                                        {upsert: true}
+                                    )
+                                );
+                            }
+                        });
+                        return Promise.all(updateCardProm);
+                    });
+                }
+            }
+        ).then(
+            () => {
+                if(newCards && newCards.length > 0) {
+                    return dbconfig.collection_platformBankCardGroup.update(
+                        {platform: platformObjId, bDefault: true},
+                        {$push: {banks: {$each: newCards}}}
+                    );
+                }
+            }
+        ).then(
+            () => {
+                if (cardList && cardList.length > 0) {
+                    let bankCards = cardList.map(card => card.accountNumber);
                     return dbconfig.collection_platformBankCardGroup.update(
                         {platform: platformObjId},
                         {$pull: {banks: {$nin: bankCards}}},

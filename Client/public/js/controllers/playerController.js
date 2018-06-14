@@ -8316,7 +8316,8 @@ define(['js/app'], function (myApp) {
                 $('.referralValidFalse').hide();
                 editObj.referral = null;
             }
-        }
+        };
+        
         vm.getPartnerinPlayer = function (editObj, type) {
             var sendData = null;
             if (type === 'change' && editObj.partnerName == '') {
@@ -8345,8 +8346,12 @@ define(['js/app'], function (myApp) {
                         editObj.partner = null;
                     }
                 })
+            } else {
+                $('.partnerValidTrue').hide();
+                $('.partnerValidFalse').hide();
+                editObj.partner = null;
             }
-        }
+        };
 
         function buildTopUpGroupChangesString(updateData, oldData) {
             var bankGroup = {};
@@ -9270,6 +9275,7 @@ define(['js/app'], function (myApp) {
                 result.forEach((item, index) => {
                     item['unlockTime'] = vm.dateReformat(item.unlockTime);
                     item['targetProviderGroup'] = $translate(item.targetProviderGroup);
+                    item.creator.name = $translate(item.creator.name);
                 });
 
                 $scope.$evalAsync(vm.drawRewardTaskUnlockedTable(newSearch, result, vm.playerRewardTaskLog.totalCount));
