@@ -16593,7 +16593,64 @@ let dbPlayerInfo = {
                 }
             }
         );
-    }
+    },
+
+    getPagedSimilarPhoneForPlayers: function (playerId, platformId, phoneNumber, isRealPlayer, index, limit, sortCol) {
+        let playerObjId = playerId ? ObjectId(playerId) : "";
+        let platformObjId = platformId ? ObjectId(platformId) : "";
+        let encryptedPhoneNumber = phoneNumber ? {$in: [rsaCrypto.encrypt(phoneNumber), phoneNumber]} : "";
+
+        let similarPhoneCountProm = dbconfig.collection_players.find({
+            _id: {$ne: playerObjId},
+            platform: platformObjId,
+            phoneNumber: encryptedPhoneNumber,
+            isRealPlayer: isRealPlayer,
+        }).count();
+
+        let similarPhoneProm = dbconfig.collection_players.find({
+            _id: {$ne: playerObjId},
+            platform: platformObjId,
+            phoneNumber: encryptedPhoneNumber,
+            isRealPlayer: isRealPlayer,
+        }).populate({
+            path: 'playerLevel',
+            model: dbconfig.collection_playerLevel
+        }).sort(sortCol).skip(index).limit(limit).lean();
+
+        return Promise.all([similarPhoneCountProm, similarPhoneProm]).then(
+            data => {
+                return {total: data[0], data: data[1]};
+            }
+        );
+    },
+
+    getPagedSimilarIpForPlayers: function (playerId, platformId, lastLoginIp, isRealPlayer, index, limit, sortCol) {
+        let playerObjId = playerId ? ObjectId(playerId) : "";
+        let platformObjId = platformId ? ObjectId(platformId) : "";
+
+        let similarIpCountProm = dbconfig.collection_players.find({
+            _id: {$ne: playerObjId},
+            platform: platformObjId,
+            loginIps: {$in: [lastLoginIp]},
+            isRealPlayer: isRealPlayer,
+        }).count();
+
+        let similarIpProm = dbconfig.collection_players.find({
+            _id: {$ne: playerObjId},
+            platform: platformObjId,
+            loginIps: {$in: [lastLoginIp]},
+            isRealPlayer: isRealPlayer,
+        }).populate({
+            path: 'playerLevel',
+            model: dbconfig.collection_playerLevel
+        }).sort(sortCol).skip(index).limit(limit).lean();
+
+        return Promise.all([similarIpCountProm, similarIpProm]).then(
+            data => {
+                return {total: data[0], data: data[1]};
+            }
+        );
+    },
 
 };
 
