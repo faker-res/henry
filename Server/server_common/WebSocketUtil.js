@@ -362,6 +362,23 @@ var WebSocketUtility = {
                 }
             }
         }
+    },
+
+    notifyMessagePartner: function (service, functionName, data) {
+        if (service._wss && service._wss._wss && service._wss._wss.clients.length > 0) {
+            var wss = service._wss._wss;
+            for (let client of wss.clients) {
+                if ((client.partnerId && String(client.partnerId) == String(data.partnerId)) ||
+                    (client.partnerId && String(client.partnerId) == String(data.recipientId)) ||
+                    (client.partnerObjId && String(client.partnerObjId) == String(data.partnerId)) ||
+                    (client.partnerObjId && String(client.partnerObjId) == String(data.recipientId))
+                ) {
+                    if (service[functionName]) {
+                        service[functionName].response(client, {status: 200, data: data});
+                    }
+                }
+            }
+        }
     }
 
 };

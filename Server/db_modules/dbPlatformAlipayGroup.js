@@ -108,21 +108,109 @@ var dbPlatformAlipayGroup = {
     },
 
     getAllAlipaysByAlipayGroupWithIsInGroup: function(platformId, alipayGroupId){
-        let allAlipays = [];
-        return pmsAPI.alipay_getAlipayList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
+        let platformObjId = null;
+        let alipayList = [];
+        let newAlipays = [];
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platform => {
+                if (platform) {
+                    platformObjId = platform._id;
+                    return pmsAPI.alipay_getAlipayList(
+                        {
+                            platformId: platformId,
+                            queryId: serverInstance.getQueryId()
+                        }
+                    )
+                }
             }
         ).then(
-            data=> {
-                allAlipays = data.data || [];
+            data => {
+                if (data && data.data) {
+                    let alipays = data.data;
+                    let updateAlipayProm = [];
+                    alipayList = alipays;
+                    return dbconfig.collection_platformAlipayList.find({platformId: platformId}).lean().then(oldAlipays => {
+                        alipays.forEach(alipay => {
+                            if(oldAlipays && oldAlipays.length > 0) {
+                                let match = false;
+                                oldAlipays.forEach(oldAlipay => {
+                                    if (alipay.accountNumber == oldAlipay.accountNumber) {
+                                        match = true;
+                                    }
+                                });
+                                if (!match) {
+                                    newAlipays.push(alipay.accountNumber);
+                                }
+                            }
+                            if(alipay && alipay.accountNumber) {
+                                let quota = Number(alipay.quota);
+                                let singleLimit = Number(alipay.singleLimit);
+                                updateAlipayProm.push(
+                                    dbconfig.collection_platformAlipayList.findOneAndUpdate(
+                                        {
+                                            accountNumber: alipay.accountNumber
+                                        },
+                                        {
+                                            accountNumber: alipay.accountNumber,
+                                            name: alipay.name || '',
+                                            platformId: alipay.platformId || '',
+                                            quota: isNaN(quota) ? 0 : quota,
+                                            state: alipay.state || '',
+                                            singleLimit : isNaN(singleLimit) ? 0 : singleLimit,
+                                            bankTypeId: alipay.bankTypeId || ''
+                                        },
+                                        {upsert: true}
+                                    )
+                                );
+                            }
+                        });
+                        return Promise.all(updateAlipayProm);
+                    });
+                }
+            }
+        ).then(
+            () => {
+                let alipayAccountNumbers = alipayList.map(alipay => alipay.accountNumber);
+                return dbconfig.collection_platformAlipayList.find({accountNumber: {$nin: alipayAccountNumbers}}).lean().then(
+                    deletedAlipays => {
+                        if(deletedAlipays && deletedAlipays.length > 0) {
+                            let deletedAccountNumbers = [];
+                            deletedAlipays.forEach(alipay => {deletedAccountNumbers.push(alipay.accountNumber);});
+                            return dbconfig.collection_platformAlipayList.remove({'accountNumber':{'$in': deletedAccountNumbers}})
+                        }
+                    }
+                )
+            }
+        ).then(
+            () => {
+                if(newAlipays && newAlipays.length > 0) {
+                    return dbconfig.collection_platformAlipayGroup.update(
+                        {platform: platformObjId, bDefault: true},
+                        {$push: {
+                            alipays: {$each: newAlipays}
+                        }}
+                    );
+                }
+            }
+        ).then(
+            () => {
+                if (alipayList && alipayList.length > 0) {
+                    let alipays = alipayList.map(alipay => alipay.accountNumber);
+                    return dbconfig.collection_platformAlipayGroup.update(
+                        {platform: platformObjId},
+                        {$pull: {alipays: {$nin: alipays}}},
+                        {multi: true}
+                    );
+                }
+            }
+        ).then(
+            () => {
                 return dbconfig.collection_platformAlipayGroup.findOne({_id: alipayGroupId})
             }
         ).then(
             data=> {
                 var alipaysGroup = data.alipays || [];
-                return allAlipays.map(a=> {
+                return alipayList.map(a=> {
                      if (alipaysGroup.indexOf(a.accountNumber) != -1) {
                          //in group
                          a.isInGroup = true;
