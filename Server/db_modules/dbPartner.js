@@ -1729,6 +1729,7 @@ let dbPartner = {
     updatePartnerBankInfo: function (userAgent, partnerId, updateData) {
         let partnerData;
         let partnerQuery = null;
+        let duplicatedRealNameCount = 0;
         return dbconfig.collection_partner.findOne({partnerId: partnerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .then(
@@ -1738,17 +1739,24 @@ let dbPartner = {
                         platform: partnerResult.platform
                     }
                     partnerData = partnerResult;
-                    if (partnerData && partnerData.platform) {
-                        // Check if partner sms verification is required
-                        if (!partnerData.platform.partnerRequireSMSVerificationForPaymentUpdate) {
-                            // SMS verification not required
-                            return Q.resolve(true);
-                        } else {
-                            return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, partnerData.platform, updateData.smsCode, partnerData.partnerName, true);
+                    
+                    return dbconfig.collection_partner.find({realName : updateData.bankAccountName, platform: partnerResult.platform._id}).lean().count().then(
+                        count => {
+                            duplicatedRealNameCount = count || 0;
+
+                            if (partnerData && partnerData.platform) {
+                                // Check if partner sms verification is required
+                                if (!partnerData.platform.partnerRequireSMSVerificationForPaymentUpdate) {
+                                    // SMS verification not required
+                                    return Q.resolve(true);
+                                } else {
+                                    return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, partnerData.platform, updateData.smsCode, partnerData.partnerName, true);
+                                }
+                            } else {
+                                return Q.reject({name: "DataError", message: "Cannot find partner"});
+                            }
                         }
-                    } else {
-                        return Q.reject({name: "DataError", message: "Cannot find partner"});
-                    }
+                    )
                 }
             ).then(
                 isVerified => {
@@ -1783,6 +1791,15 @@ let dbPartner = {
                                     message: "Invalid bank account type"
                                 });
                             }
+                        }
+
+                        // check if same real name can be used for registration
+                        if (updateData.realName && duplicatedRealNameCount > 0 && !partnerData.platform.partnerAllowSameRealNameToRegister){
+                            return Q.reject({
+                                name: "DataError",
+                                code: constServerCode.INVALID_DATA,
+                                message: "The name has been registered, please change a new bank card or contact our cs."
+                            });
                         }
 
                         // if(!partnerData.bankAccountName){

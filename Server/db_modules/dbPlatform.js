@@ -3367,6 +3367,7 @@ var dbPlatform = {
                 "partnerNameMaxLength",
                 "partnerNameMinLength",
                 "partnerAllowSamePhoneNumberToRegister",
+                "partnerAllowSameRealNameToRegister",
                 "partnerSamePhoneNumberRegisterCount",
                 "partnerRequireSMSVerification",
                 "partnerRequireSMSVerificationForPasswordUpdate",
