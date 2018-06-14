@@ -14059,7 +14059,24 @@ let dbPlayerInfo = {
                 playerQuery.playerLevel = query.playerLevel;
             }
             if (query.credibilityRemarks && query.credibilityRemarks.length !== 0) {
-                playerQuery.credibilityRemarks = {$in: query.credibilityRemarks};
+                let tempArr = [];
+                let isNoneExist = false;
+
+                query.credibilityRemarks.forEach(remark => {
+                    if (remark == "") {
+                        isNoneExist = true;
+                    } else {
+                        tempArr.push(remark);
+                    }
+                });
+
+                if (isNoneExist && tempArr.length > 0) {
+                    playerQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
+                } else if (isNoneExist && !tempArr.length) {
+                    playerQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}];
+                } else if (tempArr.length > 0 && !isNoneExist) {
+                    playerQuery.credibilityRemarks = {$in: query.credibilityRemarks};
+                }
             }
             if (query.hasOwnProperty('isRealPlayer')) {
                 playerQuery.isRealPlayer = query.isRealPlayer;

@@ -1248,6 +1248,7 @@
                 div
                     label {{"CREDIBILITY"|translate}}
                     select.spicker.form-control(ng-model='vm.feedbackQuery.credibility', multiple, data-actions-box='true')
+                        option(value='') {{'N/A' | translate}}
                         option(ng-repeat='(i,v) in vm.credibilityRemarks;', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
                 div
                     label {{"PLAYER_VALUE"|translate}}
