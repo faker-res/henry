@@ -180,7 +180,7 @@ let dbPlayerRewardPoints = {
 
                     rewardPointsRemainder = convertRewardPointsAmount - actualConvertRewardPointsAmount;
 
-                    if(actualConvertRewardPointsAmount < playerLvlRewardPointsConfig.pointToCreditManualRate){
+                    if(!Number.isInteger(actualConvertRewardPointsAmount) || actualConvertRewardPointsAmount < playerLvlRewardPointsConfig.pointToCreditManualRate){
                         return Q.reject({
                             status: constServerCode.REWARD_POINTS_CONVERT_FAIL,
                             name: "DataError",
@@ -295,6 +295,8 @@ let dbPlayerRewardPoints = {
         let oldPoint;
         let afterChangedRewardPoints;
         let playerInfo;
+        updateAmount = updateAmount && Number.isInteger(updateAmount) ? updateAmount : 0;
+
         return dbConfig.collection_players.findOne({_id: playerObjId, platform: platformObjId})
             .populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean()
             .then(
