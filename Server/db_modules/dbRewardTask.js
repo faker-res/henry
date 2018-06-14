@@ -2421,6 +2421,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                             }
 
                             if (statusUpdObj.status) {
+                                console.log("debug RTG1", consumptionRecord.playerId, createTime);
                                 // update the rewardTaskGroupUnlockRecord
 
                                let updateProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
@@ -2457,7 +2458,10 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                                     curConsumption: -consumptionAmt
                                                 }
                                             }
-                                        ).then(() => false);
+                                        ).then(() => {
+                                            console.log("debug RTG2", consumptionRecord.playerId, retryCount);
+                                            return false;
+                                        });
                                     }
                                 )
                             }
