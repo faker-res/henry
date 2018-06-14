@@ -344,6 +344,19 @@ var dbPlatformBankCardGroup = {
             }
         ).then(
             () => {
+                let cardNumbers = cardList.map(card => card.accountNumber);
+                return dbconfig.collection_platformBankCardList.find({accountNumber: {$nin: cardNumbers}}).lean().then(
+                    deletedCards => {
+                        if(deletedCards && deletedCards.length > 0) {
+                            let deletedCardNumbers = [];
+                            deletedCards.forEach(card => {deletedCardNumbers.push(card.accountNumber);});
+                            return dbconfig.collection_platformBankCardList.remove({'accountNumber':{'$in': deletedCardNumbers}})
+                        }
+                    }
+                )
+            }
+        ).then(
+            () => {
                 if(newCards && newCards.length > 0) {
                     return dbconfig.collection_platformBankCardGroup.update(
                         {platform: platformObjId, bDefault: true},

@@ -489,6 +489,28 @@ var PartnerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.checkAllCrewDetail, [data.platformId, conn.partnerId, data.playerId, data.crewAccount, data.singleSearchMode, data.sortMode, data.startTime, data.endTime, data.startIndex, data.count], isValidData);
     };
 
+    this.notifyNewMail.addListener(
+        function (data) {
+            WebSocketUtil.notifyMessagePartner(self, "notifyNewMail", data);
+        }
+    );
+
+    this.getMailList.expectsData = '';
+    this.getMailList.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.partnerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.getPlayerMailsByPartnerId, [conn.partnerId, false], isValidData);
+    };
+
+    this.deleteAllMail.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.partnerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.deleteAllMail, [conn.partnerId, data.hasBeenRead], isValidData, false, false, true);
+    };
+
+    this.deleteMail.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.partnerId && data && data.mailObjId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.deleteMail, [conn.partnerId, data.mailObjId], isValidData, false, false, true);
+    };
+
 };
 var proto = PartnerServiceImplement.prototype = Object.create(PartnerService.prototype);
 proto.constructor = PartnerServiceImplement;

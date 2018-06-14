@@ -98,7 +98,7 @@ const dbPlayerMail = {
                     // from mongoose object to js object
                     result = result.toObject();
                     delete result.senderName;
-                    notifyProm.push(notifyPlayerOfNewMessage(result));
+                    notifyProm.push(notifyPartnerOfNewMessage(result));
                 });
                 return Q.all(notifyProm);
             }
@@ -233,6 +233,62 @@ const dbPlayerMail = {
             }
         );
     },
+
+    getPlayerMailsByPartnerId: function (partnerId) {
+        return dbconfig.collection_partner.findOne({partnerId: partnerId})
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+                partnerData => {
+                    if (partnerData) {
+                        let returnArr = [];
+                        let mailQ = {
+                            recipientId: partnerData._id,
+                            bDelete: false
+                        };
+
+                        if (partnerData.platform.partnerUnreadMailMaxDuration) {
+                            let duration = partnerData.platform.partnerUnreadMailMaxDuration;
+                            let todayDate = new Date();
+                            // get today end time
+                            let todayEndDate = new Date(new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate(), 0, 0, 0).getTime() + 24 * 3600 * 1000);
+
+                            let endDate = todayEndDate.toISOString();
+                            let startDate = new Date(new Date(todayEndDate.setMonth(todayEndDate.getMonth() - duration))).toISOString();
+
+                            mailQ.createTime = {$gte: startDate, $lt: endDate};
+                        }
+
+                        return dbconfig.collection_playerMail.find(mailQ).lean().then(
+                            playerMailData => {
+                                if(playerMailData && playerMailData.length > 0) {
+                                    returnArr = playerMailData.map(playerMail => {
+                                        if(playerMail){
+                                            if(playerMail.senderType){
+                                                delete playerMail.senderType;
+                                            }
+
+                                            if(playerMail.senderName){
+                                                delete playerMail.senderName;
+                                            }
+
+                                            return playerMail;
+                                        }
+                                    });
+                                }
+
+                                return returnArr;
+                            }
+                        );
+                    }
+                    else {
+                        return Promise.reject({name: "DataError", message: "Partner is not found"});
+                    }
+                },
+                function (error) {
+                    return Promise.reject({name: "DBError", message: "Error in getting partner data", error: error});
+                }
+            );
+    },
+
     sendSMStoNumber: function (adminObjId, adminName, data) {
         var sendObj = {
             tel: data.phoneNumber,
@@ -917,6 +973,14 @@ const notifyPlayerOfNewMessage = (data) => {
     var wsMessageClient = serverInstance.getWebSocketMessageClient();
     if (wsMessageClient) {
         wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "player", "notifyNewMail", data);
+    }
+    return data;
+};
+
+const notifyPartnerOfNewMessage = (data) => {
+    var wsMessageClient = serverInstance.getWebSocketMessageClient();
+    if (wsMessageClient) {
+        wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "partner", "notifyNewMail", data);
     }
     return data;
 };

@@ -8,7 +8,7 @@ var playerCreditTransferLogSchema = new Schema({
     //platform
     platformObjId: {type: Schema.ObjectId, index: true},
     //Player name
-    playerName: {type: String},
+    playerName: {type: String, index: true},
     //admin name
     adminName: {type: String},
     //Player Id

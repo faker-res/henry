@@ -290,6 +290,40 @@
         this.partnerService.checkAllCrewDetail.once(callback);
     };
 
+    proto.notifyNewMail = function (callback, requestData) {
+        //var data = requestData || {};
+        //this.partnerService.notifyNewMail.request(data);
+        //var self = this;
+        var responseFunc = function(data){
+            // if( data.data.runTimeStatus >= 3 ){
+            //     self.gameService.notifyProviderStatusUpdate.removeListener(responseFunc);
+            // }
+            callback(data);
+        };
+        this.partnerService.notifyNewMail.addListener(responseFunc);
+    };
+
+    proto.getMailList = function(callback, requestData) {
+        var data = requestData || {}
+
+        this.partnerService.getMailList.request(data);
+        this.partnerService.getMailList.once(callback);
+    };
+
+    proto.deleteAllMail = function(callback, requestData) {
+        var data = requestData || {}
+
+        this.partnerService.deleteAllMail.request(data);
+        this.partnerService.deleteAllMail.once(callback);
+    };
+
+    proto.deleteMail = function(callback, requestData) {
+        var data = requestData || {}
+
+        this.partnerService.deleteMail.request(data);
+        this.partnerService.deleteMail.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPartnerAPITest;
     } else {

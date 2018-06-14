@@ -150,8 +150,14 @@ var platformMerchantListModel = db_admin.model('platformMerchantList', platformM
 var platformAlipayGroupSchema = require('./../schema/platformAlipayGroup');
 var platformAlipayGroupModel = db_admin.model('platformAlipayGroup', platformAlipayGroupSchema, 'platformAlipayGroup');
 
+var platformAlipayListSchema = require('./../schema/platformAlipayList');
+var platformAlipayListModel = db_admin.model('platformAlipayList', platformAlipayListSchema, 'platformAlipayList');
+
 var platformWechatPayGroupSchema = require('./../schema/platformWechatPayGroup');
 var platformWechatPayGroupModel = db_admin.model('platformWechatPayGroup', platformWechatPayGroupSchema, 'platformWechatPayGroup');
+
+var platformWechatPayListSchema = require('./../schema/platformWechatPayList');
+var platformWechatPayListModel = db_admin.model('platformWechatPayList', platformWechatPayListSchema, 'platformWechatPayList');
 
 var partnerCommissionConfigSchema = require('./../schema/partnerCommissionConfig');
 var partnerCommissionConfigModel = db_admin.model('partnerCommissionConfig', partnerCommissionConfigSchema, 'partnerCommissionConfig');
@@ -460,7 +466,9 @@ var dbProperties = {
     collection_platformMerchantGroup: platformMerchantGroupModel,
     collection_platformMerchantList: platformMerchantListModel,
     collection_platformAlipayGroup: platformAlipayGroupModel,
+    collection_platformAlipayList: platformAlipayListModel,
     collection_platformWechatPayGroup: platformWechatPayGroupModel,
+    collection_platformWechatPayList: platformWechatPayListModel,
     collection_platformQuickPayGroup: platformQuickPayGroupModel,
 
     collection_gameType: gameTypeModel,
