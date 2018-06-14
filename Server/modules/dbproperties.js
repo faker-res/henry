@@ -138,8 +138,14 @@ var platformGameGroupModel = db_admin.model('platformGameGroup', platformGameGro
 var platformBankCardGroupSchema = require('./../schema/platformBankCardGroup');
 var platformBankCardGroupModel = db_admin.model('platformBankCardGroup', platformBankCardGroupSchema, 'platformBankCardGroup');
 
+var platformBankCardListSchema = require('./../schema/platformBankCardList');
+var platformBankCardListModel = db_admin.model('platformBankCardList', platformBankCardListSchema, 'platformBankCardList');
+
 var platformMerchantGroupSchema = require('./../schema/platformMerchantGroup');
 var platformMerchantGroupModel = db_admin.model('platformMerchantGroup', platformMerchantGroupSchema, 'platformMerchantGroup');
+
+var platformMerchantListSchema = require('./../schema/platformMerchantList');
+var platformMerchantListModel = db_admin.model('platformMerchantList', platformMerchantListSchema, 'platformMerchantList');
 
 var platformAlipayGroupSchema = require('./../schema/platformAlipayGroup');
 var platformAlipayGroupModel = db_admin.model('platformAlipayGroup', platformAlipayGroupSchema, 'platformAlipayGroup');
@@ -450,7 +456,9 @@ var dbProperties = {
     collection_platformGameStatus: platformGameStatusModel,
     collection_platformGameGroup: platformGameGroupModel,
     collection_platformBankCardGroup: platformBankCardGroupModel,
+    collection_platformBankCardList: platformBankCardListModel,
     collection_platformMerchantGroup: platformMerchantGroupModel,
+    collection_platformMerchantList: platformMerchantListModel,
     collection_platformAlipayGroup: platformAlipayGroupModel,
     collection_platformWechatPayGroup: platformWechatPayGroupModel,
     collection_platformQuickPayGroup: platformQuickPayGroupModel,

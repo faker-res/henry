@@ -534,6 +534,97 @@ const dbRewardTask = {
                 };
             });
     },
+    getRewardTasksRecord: function (rewards, rewardTaskGroup) {
+
+        if (!rewards && !rewardTaskGroup) {
+            return Q.reject("Record is not found");
+        }
+        
+        let totalAmount = rewardTaskGroup.currentAmt - rewardTaskGroup.initAmt; // for winlost count
+        let totalConsumption = rewardTaskGroup.curConsumption;
+
+        rewards.forEach((item, index) => {
+
+            let requiredUnlockedAmount = item.data.amount || item.data.spendingAmount; // amount from topUp Type; spendingAmount from reward Type
+            // check if there is comsumptionProgress && bonusProgress
+            if (item.data && item.data.consumptionProgress){
+                totalConsumption -= item.data.consumptionProgress;
+
+                if (item.data.consumptionProgress < requiredUnlockedAmount){
+                    if(totalConsumption > requiredUnlockedAmount - item.data.consumptionProgress){
+                        item.data.consumptionProgress = requiredUnlockedAmount;
+                        totalConsumption = totalConsumption - (requiredUnlockedAmount - item.data.consumptionProgress);
+                    }
+                    else{
+                        item.data.consumptionProgress += totalConsumption;
+                        totalConsumption = 0;
+                    }
+                    item.data.bonusProgress = totalAmount;
+                    totalAmount =0;
+                }
+                else{
+                    // already surpass the unlocked gate
+                     totalAmount -= item.data.bonusProgress;
+
+                }
+            }
+            else{
+                if (totalConsumption > requiredUnlockedAmount){
+                    item.data.consumptionProgress = requiredUnlockedAmount;
+                    totalConsumption -= requiredUnlockedAmount;
+                }
+                else{
+                    item.data.consumptionProgress = totalConsumption;
+                    totalConsumption = 0;
+                }
+                item.data.bonusProgress = totalAmount;
+                totalAmount =0;
+            }
+           
+            dbconfig.collection_proposal.findOneAndUpdate({_id: ObjectId(item._id), createTime: item.createTime}, {'data.bonusProgress': item.data.bonusProgress, 'data.consumptionProgress': item.data.consumptionProgress}, {new: true}).exec();
+        });
+
+        return rewards;
+
+    },
+    updateUnlockedRewardTasksRecord: function (rewards, status, playerId, platformId) {
+
+        if (rewards && rewards.length > 0){
+            rewards.forEach( rewardTask => {
+
+                let sendData = {
+                    platformId: platformId,
+                    playerId: playerId,
+                    unlockTime: new Date(),
+                    creator: {
+                        type: "System",
+                        name: "System",
+                    },
+                    rewardTask: {
+                        type: rewardTask.type.name,
+                        id: rewardTask.type._id,
+                    },
+                    currentConsumption: rewardTask.data.consumptionProgress,
+                    maxConsumption: rewardTask.data.amount || rewardTask.data.spendingAmount,
+                    currentAmount: rewardTask.data.bonusProgress,
+                    targetAmount: rewardTask.data.amount || rewardTask.data.spendingAmount,
+                    topupAmount: rewardTask.data.topUpAmount,
+                    proposalId: rewardTask._id,
+                    proposalNumber: rewardTask.proposalId || rewardTask.data.proposalId,
+                    topupProposalNumber: rewardTask.data.topUpProposalId ? rewardTask.data.topUpProposalId : rewardTask.data.topUpProposal,
+                    bonusAmount: rewardTask.bonusAmount,
+                    targetProviderGroup: rewardTask.data.provider$,
+                    status: status,
+                    useConsumption: rewardTask.data.useConsumption,
+                    inProvider: rewardTask.inProvider,
+
+                };
+
+                dbRewardTaskGroup.createRewardTaskGroupUnlockedRecord(sendData);
+            })
+        }
+
+    },
     getRewardTaskGroupProposalById: function (query) {
 
         return dbconfig.collection_rewardTaskGroup.find(
@@ -594,8 +685,12 @@ const dbRewardTask = {
                     {'data.providerGroup': {$exists: false}},
                     {'data.providerGroup': ""},
                 ]
-            } else {
+            }
+            else if (reward.providerGroup._id) {
                 rewardTaskProposalQuery['data.providerGroup'] = {$in: [ObjectId(reward.providerGroup._id), String(reward.providerGroup._id)]};
+            }
+            else{
+                rewardTaskProposalQuery['data.providerGroup'] = {$in: [ObjectId(reward.providerGroup), String(reward.providerGroup)]};
             }
 
             return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
@@ -2251,6 +2346,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                     }
                 }
 
+                let rewardTaskUnlockedProgress;
                 let statusChange = false;
                 let updObj = {
                     $inc: {
@@ -2263,10 +2359,18 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                     {_id: rewardTaskGroup._id},
                     updObj,
                     {new: true}
-                ).then(
+                ).populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup}).then(
                     updatedRTG => {
                         // RTG updated successfully
                         if (updatedRTG) {
+                            // update the locked reward tasks
+                            rewardTaskUnlockedProgress = dbRewardTask.unlockRewardTaskInRewardTaskGroup(updatedRTG, updatedRTG.playerId).then( rewards => {
+                                if (rewards){
+
+                                    return dbRewardTask.getRewardTasksRecord(rewards, updatedRTG);
+                                }
+                            });
+
                             updatedRTG.targetConsumption = updatedRTG.targetConsumption || 0;
                             updatedRTG.forbidXIMAAmt = updatedRTG.forbidXIMAAmt || 0;
                             // Check boundary case - RTG still overflow, try again
@@ -2317,15 +2421,32 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                             }
 
                             if (statusUpdObj.status) {
-                                return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
-                                    {_id: updatedRTG._id, status: constRewardTaskStatus.STARTED},
-                                    statusUpdObj,
-                                    {new: true}
-                                ).then(
+                                console.log("debug RTG1", consumptionRecord.playerId, createTime);
+                                // update the rewardTaskGroupUnlockRecord
+
+                               let updateProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                                   {_id: updatedRTG._id, status: constRewardTaskStatus.STARTED},
+                                   statusUpdObj,
+                                   {new: true}
+                               );
+
+                               return Promise.all([rewardTaskUnlockedProgress, updateProm]).then(
+
+
+                                // return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                                //     {_id: updatedRTG._id, status: constRewardTaskStatus.STARTED},
+                                //     statusUpdObj,
+                                //     {new: true}
+                                // ).then(
                                     res => {
-                                        if (res) {
-                                            dbRewardTask.completeRewardTaskGroup(res, res.status).catch(errorUtils.reportError);
-                                            return res;
+                                        
+                                        if (res[0]){
+                                            dbRewardTask.updateUnlockedRewardTasksRecord(res[0], statusUpdObj.status, updatedRTG.playerId, updatedRTG.platformId);
+                                        }
+
+                                        if (res[1]) {
+                                            dbRewardTask.completeRewardTaskGroup(res[1], res[1].status).catch(errorUtils.reportError);
+                                            return res[1];
                                         }
 
                                         // The status change is not updated, try again
@@ -2337,7 +2458,10 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                                     curConsumption: -consumptionAmt
                                                 }
                                             }
-                                        ).then(() => false);
+                                        ).then(() => {
+                                            console.log("debug RTG2", consumptionRecord.playerId, retryCount);
+                                            return false;
+                                        });
                                     }
                                 )
                             }
