@@ -2773,6 +2773,15 @@ input[type='number'].leftALignNumber {
     border: 1px solid #337AB7;
     border-bottom: none;
 }
+
+#similarPlayersTable .nav-tabs>li {
+    cursor: pointer;
+}
+#similarPlayersTable .nav-tabs>li.active>a {
+    border: 1px solid #337AB7;
+    border-bottom: none;
+}
+
 .text-disabled{
     color: red;
 }
