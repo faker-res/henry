@@ -489,6 +489,12 @@ var PartnerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.checkAllCrewDetail, [data.platformId, conn.partnerId, data.playerId, data.crewAccount, data.singleSearchMode, data.sortMode, data.startTime, data.endTime, data.startIndex, data.count], isValidData);
     };
 
+    this.notifyNewMail.addListener(
+        function (data) {
+            WebSocketUtil.notifyMessagePartner(self, "notifyNewMail", data);
+        }
+    );
+
 };
 var proto = PartnerServiceImplement.prototype = Object.create(PartnerService.prototype);
 proto.constructor = PartnerServiceImplement;

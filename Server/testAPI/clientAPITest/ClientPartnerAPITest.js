@@ -290,6 +290,19 @@
         this.partnerService.checkAllCrewDetail.once(callback);
     };
 
+    proto.notifyNewMail = function (callback, requestData) {
+        //var data = requestData || {};
+        //this.partnerService.notifyNewMail.request(data);
+        //var self = this;
+        var responseFunc = function(data){
+            // if( data.data.runTimeStatus >= 3 ){
+            //     self.gameService.notifyProviderStatusUpdate.removeListener(responseFunc);
+            // }
+            callback(data);
+        };
+        this.partnerService.notifyNewMail.addListener(responseFunc);
+    };
+
     if (isNode) {
         module.exports = ClientPartnerAPITest;
     } else {

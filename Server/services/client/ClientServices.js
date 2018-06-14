@@ -429,7 +429,8 @@
                 "preditCommission",
                 "getCommissionProposalList",
                 "getPartnerConfig",
-                "checkAllCrewDetail"
+                "checkAllCrewDetail",
+                "notifyNewMail"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

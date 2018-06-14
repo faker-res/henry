@@ -98,7 +98,7 @@ const dbPlayerMail = {
                     // from mongoose object to js object
                     result = result.toObject();
                     delete result.senderName;
-                    notifyProm.push(notifyPlayerOfNewMessage(result));
+                    notifyProm.push(notifyPartnerOfNewMessage(result));
                 });
                 return Q.all(notifyProm);
             }
@@ -917,6 +917,14 @@ const notifyPlayerOfNewMessage = (data) => {
     var wsMessageClient = serverInstance.getWebSocketMessageClient();
     if (wsMessageClient) {
         wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "player", "notifyNewMail", data);
+    }
+    return data;
+};
+
+const notifyPartnerOfNewMessage = (data) => {
+    var wsMessageClient = serverInstance.getWebSocketMessageClient();
+    if (wsMessageClient) {
+        wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "partner", "notifyNewMail", data);
     }
     return data;
 };
