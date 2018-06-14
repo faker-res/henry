@@ -2299,70 +2299,74 @@ let dbPlayerInfo = {
         let smsLogData;
         let duplicatedRealNameCount = 0;
 
-        // Get platform
-        let playerCount = dbconfig.collection_players.find({realName:updateData.bankAccountName}).lean().count();
-        let playerInfo =  dbconfig.collection_players.findOne(query).lean();
-
-        return Promise.all([playerCount, playerInfo]).then ( data => {
-            duplicatedRealNameCount = data[0] || 0;
-            let playerData = data[1];
-
-            if (playerData && !playerData.isRealPlayer) {
-                return Q.reject({
-                    name: "DataError",
-                    message: "Demo player cannot perform this action"
-                })
-            }
-            if (playerData) {
-                playerObj = playerData;
-                platformObjId = playerData.platform;
-                if (playerData.bankAccountName) {
-                    delete updateData.bankAccountName;
+        return dbconfig.collection_players.findOne(query).lean().then(
+            playerData => {
+                if (!playerData){
+                    return Promise.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find player"
+                    })
                 }
-                //check if bankAccountName in update data is the same as player's real name
-                if (updateData.bankAccountName && !playerData.realName) {
-                    // return Q.reject({
-                    //     name: "DataError",
-                    //     code: constServerCode.INVALID_DATA,
-                    //     message: "Bank account name is different from real name"
-                    // });
-                    if (updateData.bankAccountName.indexOf('*') > -1)
-                        delete updateData.bankAccountName;
-                    else
-                        updateData.realName = updateData.bankAccountName;
-                }
-                if (!updateData.bankAccountName && !playerData.realName) {
+
+
+                if (playerData && !playerData.isRealPlayer) {
                     return Q.reject({
                         name: "DataError",
-                        code: constServerCode.INVALID_DATA,
-                        message: "Please enter bank account name or contact cs"
-                    });
+                        message: "Demo player cannot perform this action"
+                    })
                 }
 
-                if (updateData.bankAccountType) {
-                    let tempBankAccountType = updateData.bankAccountType;
-                    let isValidBankType = Number.isInteger(Number(tempBankAccountType));
-                    if (!isValidBankType) {
-                        return Q.reject({
-                            name: "DataError",
-                            code: constServerCode.INVALID_DATA,
-                            message: "Please enter bank account name or contact cs"
-                        });
+                playerObj = playerData;
+                platformObjId = playerData.platform;
+
+                return dbconfig.collection_players.find({realName : updateData.bankAccountName, platform: platformObjId}).lean().count().then(
+                    count => {
+                        duplicatedRealNameCount = count || 0;
+
+                        if (playerData.bankAccountName) {
+                            delete updateData.bankAccountName;
+                        }
+                        //check if bankAccountName in update data is the same as player's real name
+                        if (updateData.bankAccountName && !playerData.realName) {
+                            // return Q.reject({
+                            //     name: "DataError",
+                            //     code: constServerCode.INVALID_DATA,
+                            //     message: "Bank account name is different from real name"
+                            // });
+                            if (updateData.bankAccountName.indexOf('*') > -1)
+                                delete updateData.bankAccountName;
+                            else
+                                updateData.realName = updateData.bankAccountName;
+                        }
+                        if (!updateData.bankAccountName && !playerData.realName) {
+                            return Q.reject({
+                                name: "DataError",
+                                code: constServerCode.INVALID_DATA,
+                                message: "Please enter bank account name or contact cs"
+                            });
+                        }
+
+                        if (updateData.bankAccountType) {
+                            let tempBankAccountType = updateData.bankAccountType;
+                            let isValidBankType = Number.isInteger(Number(tempBankAccountType));
+                            if (!isValidBankType) {
+                                return Q.reject({
+                                    name: "DataError",
+                                    code: constServerCode.INVALID_DATA,
+                                    message: "Please enter bank account name or contact cs"
+                                });
+                            }
+                        }
+
+                        return dbconfig.collection_platform.findOne({
+                            _id: playerData.platform
+                        })
+
                     }
-                }
-
-                return dbconfig.collection_platform.findOne({
-                    _id: playerData.platform
-                })
+                )
             }
-            else {
-                return Q.reject({
-                    name: "DataError",
-                    code: constServerCode.DOCUMENT_NOT_FOUND,
-                    message: "Unable to find player"
-                });
-            }
-        }).then(
+        ).then(
             platformData => {
                 if (platformData) {
                     // check if same real name can be used for registration
