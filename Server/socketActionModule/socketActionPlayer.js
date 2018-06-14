@@ -1237,7 +1237,19 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId);
             socketUtil.emitter(self.socket, dbPlayerConsumptionDaySummary.getPlayerConsumptionSummary, [data.playerId], actionName, isValidData);
-        }
+        },
+
+        getPagedSimilarPhoneForPlayers: function getPagedSimilarPhoneForPlayers(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId && data.platformId && data.phoneNumber && data.isRealPlayer);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPagedSimilarPhoneForPlayers, [data.playerId, data.platformId, data.phoneNumber, data.isRealPlayer, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
+        getPagedSimilarIpForPlayers: function getPagedSimilarIpForPlayers(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId && data.platformId && data.lastLoginIp && data.isRealPlayer);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPagedSimilarIpForPlayers, [data.playerId, data.platformId, data.lastLoginIp, data.isRealPlayer, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
     };
     socketActionPlayer.actions = this.actions;
 }
