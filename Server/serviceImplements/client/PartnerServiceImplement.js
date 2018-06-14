@@ -495,6 +495,12 @@ var PartnerServiceImplement = function () {
         }
     );
 
+    this.getMailList.expectsData = '';
+    this.getMailList.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.partnerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.getPlayerMailsByPartnerId, [conn.partnerId, false], isValidData);
+    };
+
 };
 var proto = PartnerServiceImplement.prototype = Object.create(PartnerService.prototype);
 proto.constructor = PartnerServiceImplement;

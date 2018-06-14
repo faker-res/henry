@@ -303,6 +303,13 @@
         this.partnerService.notifyNewMail.addListener(responseFunc);
     };
 
+    proto.getMailList = function(callback, requestData) {
+        var data = requestData || {}
+
+        this.partnerService.getMailList.request(data);
+        this.partnerService.getMailList.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPartnerAPITest;
     } else {

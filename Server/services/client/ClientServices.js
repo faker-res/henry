@@ -430,7 +430,8 @@
                 "getCommissionProposalList",
                 "getPartnerConfig",
                 "checkAllCrewDetail",
-                "notifyNewMail"
+                "notifyNewMail",
+                "getMailList"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
