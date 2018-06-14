@@ -5015,7 +5015,7 @@ let dbPlayerReward = {
                                     return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
                                 }
                             );
-                            asyncProms = asyncProms.then(prom);
+                            asyncProms = asyncProms.then(() => prom);
                         }
 
                         return asyncProms;
