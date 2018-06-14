@@ -6724,7 +6724,7 @@ let dbPartner = {
                                 }
                             })
                             let commissionObj = {
-                                providerGroupId: oriCommission[j].provider.providerGroupId ? oriCommission[j].provider.providerGroupId : "",
+                                providerGroupId: oriCommission[j].provider.hasOwnProperty("providerGroupId") ? oriCommission[j].provider.providerGroupId : "",
                                 providerGroupName: oriCommission[j].provider.name ? oriCommission[j].provider.name : "",
                                 list: oriCommission[j].commissionSetting
                             };
