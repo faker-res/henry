@@ -628,7 +628,13 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.commissionType && data.startTime && data.endTime);
             socketUtil.emitter(self.socket, dbPlatform.getPlatformPartnerSettlementStatus, [ObjectId(data.platformObjId), data.commissionType, data.startTime, data.endTime], actionName, isValidData);
-        }
+        },
+
+        replicatePlatformSetting: function replicatePlatformSetting(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.replicateFrom && data.replicateTo);
+            socketUtil.emitter(self.socket, dbPlatform.replicatePlatformSetting, [data.replicateFrom, data.replicateTo], actionName, isValidData);
+        },
     };
     socketActionPlatform.actions = this.actions;
 }
