@@ -2299,70 +2299,74 @@ let dbPlayerInfo = {
         let smsLogData;
         let duplicatedRealNameCount = 0;
 
-        // Get platform
-        let playerCount = dbconfig.collection_players.find({realName:updateData.bankAccountName}).lean().count();
-        let playerInfo =  dbconfig.collection_players.findOne(query).lean();
-
-        return Promise.all([playerCount, playerInfo]).then ( data => {
-            duplicatedRealNameCount = data[0] || 0;
-            let playerData = data[1];
-
-            if (playerData && !playerData.isRealPlayer) {
-                return Q.reject({
-                    name: "DataError",
-                    message: "Demo player cannot perform this action"
-                })
-            }
-            if (playerData) {
-                playerObj = playerData;
-                platformObjId = playerData.platform;
-                if (playerData.bankAccountName) {
-                    delete updateData.bankAccountName;
+        return dbconfig.collection_players.findOne(query).lean().then(
+            playerData => {
+                if (!playerData){
+                    return Promise.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find player"
+                    })
                 }
-                //check if bankAccountName in update data is the same as player's real name
-                if (updateData.bankAccountName && !playerData.realName) {
-                    // return Q.reject({
-                    //     name: "DataError",
-                    //     code: constServerCode.INVALID_DATA,
-                    //     message: "Bank account name is different from real name"
-                    // });
-                    if (updateData.bankAccountName.indexOf('*') > -1)
-                        delete updateData.bankAccountName;
-                    else
-                        updateData.realName = updateData.bankAccountName;
-                }
-                if (!updateData.bankAccountName && !playerData.realName) {
+
+
+                if (playerData && !playerData.isRealPlayer) {
                     return Q.reject({
                         name: "DataError",
-                        code: constServerCode.INVALID_DATA,
-                        message: "Please enter bank account name or contact cs"
-                    });
+                        message: "Demo player cannot perform this action"
+                    })
                 }
 
-                if (updateData.bankAccountType) {
-                    let tempBankAccountType = updateData.bankAccountType;
-                    let isValidBankType = Number.isInteger(Number(tempBankAccountType));
-                    if (!isValidBankType) {
-                        return Q.reject({
-                            name: "DataError",
-                            code: constServerCode.INVALID_DATA,
-                            message: "Please enter bank account name or contact cs"
-                        });
+                playerObj = playerData;
+                platformObjId = playerData.platform;
+
+                return dbconfig.collection_players.find({realName : updateData.bankAccountName, platform: platformObjId}).lean().count().then(
+                    count => {
+                        duplicatedRealNameCount = count || 0;
+
+                        if (playerData.bankAccountName) {
+                            delete updateData.bankAccountName;
+                        }
+                        //check if bankAccountName in update data is the same as player's real name
+                        if (updateData.bankAccountName && !playerData.realName) {
+                            // return Q.reject({
+                            //     name: "DataError",
+                            //     code: constServerCode.INVALID_DATA,
+                            //     message: "Bank account name is different from real name"
+                            // });
+                            if (updateData.bankAccountName.indexOf('*') > -1)
+                                delete updateData.bankAccountName;
+                            else
+                                updateData.realName = updateData.bankAccountName;
+                        }
+                        if (!updateData.bankAccountName && !playerData.realName) {
+                            return Q.reject({
+                                name: "DataError",
+                                code: constServerCode.INVALID_DATA,
+                                message: "Please enter bank account name or contact cs"
+                            });
+                        }
+
+                        if (updateData.bankAccountType) {
+                            let tempBankAccountType = updateData.bankAccountType;
+                            let isValidBankType = Number.isInteger(Number(tempBankAccountType));
+                            if (!isValidBankType) {
+                                return Q.reject({
+                                    name: "DataError",
+                                    code: constServerCode.INVALID_DATA,
+                                    message: "Please enter bank account name or contact cs"
+                                });
+                            }
+                        }
+
+                        return dbconfig.collection_platform.findOne({
+                            _id: playerData.platform
+                        })
+
                     }
-                }
-
-                return dbconfig.collection_platform.findOne({
-                    _id: playerData.platform
-                })
+                )
             }
-            else {
-                return Q.reject({
-                    name: "DataError",
-                    code: constServerCode.DOCUMENT_NOT_FOUND,
-                    message: "Unable to find player"
-                });
-            }
-        }).then(
+        ).then(
             platformData => {
                 if (platformData) {
                     // check if same real name can be used for registration
@@ -7494,39 +7498,38 @@ let dbPlayerInfo = {
                                             let inputDevice = dbUtility.getInputDevice(userAgent, false);
                                             let promResolve = Promise.resolve();
 
-                                            // return dbconfig.collection_playerState.findOne({player: playerObj._id}).lean().then(
-                                            //     stateRec => {
-                                            //         if (!stateRec) {
-                                            //             return new dbconfig.collection_playerState({
-                                            //                 player: playerObj._id,
-                                            //                 lastApplyLevelUpReward: Date.now()
-                                            //             }).save();
-                                            //         } else {
-                                            //             // State exist
-                                            //             if (stateRec.lastApplyLevelUpReward) {
-                                            //                 // update rec
-                                            //                 return dbconfig.collection_playerState.findOneAndUpdate({
-                                            //                     player: playerObj._id,
-                                            //                     lastApplyLevelUpReward: {$lt: new Date() - 1000}
-                                            //                 }, {
-                                            //                     $currentDate: {lastApplyLevelUpReward: true}
-                                            //                 }, {
-                                            //                     new: true
-                                            //                 });
-                                            //             } else {
-                                            //                 // update rec with new field
-                                            //                 return dbconfig.collection_playerState.findOneAndUpdate({
-                                            //                     player: playerObj._id,
-                                            //                 }, {
-                                            //                     $currentDate: {lastApplyLevelUpReward: true}
-                                            //                 }, {
-                                            //                     new: true
-                                            //                 });
-                                            //             }
-                                            //         }
-                                            //     }
-                                            // )
-                                            return dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", true).then(
+                                            return dbconfig.collection_playerState.findOne({player: playerObj._id}).lean().then(
+                                                stateRec => {
+                                                    if (!stateRec) {
+                                                        return new dbconfig.collection_playerState({
+                                                            player: playerObj._id,
+                                                            lastApplyLevelUpReward: Date.now()
+                                                        }).save();
+                                                    } else {
+                                                        // State exist
+                                                        if (stateRec.lastApplyLevelUpReward) {
+                                                            // update rec
+                                                            return dbconfig.collection_playerState.findOneAndUpdate({
+                                                                player: playerObj._id,
+                                                                lastApplyLevelUpReward: {$lt: new Date() - 1000}
+                                                            }, {
+                                                                $currentDate: {lastApplyLevelUpReward: true}
+                                                            }, {
+                                                                new: true
+                                                            });
+                                                        } else {
+                                                            // update rec with new field
+                                                            return dbconfig.collection_playerState.findOneAndUpdate({
+                                                                player: playerObj._id,
+                                                            }, {
+                                                                $currentDate: {lastApplyLevelUpReward: true}
+                                                            }, {
+                                                                new: true
+                                                            });
+                                                        }
+                                                    }
+                                                }
+                                            ).then(
                                                 playerState => {
                                                     if (playerState) {
                                                         if (checkLevelUp) {
@@ -7564,22 +7567,6 @@ let dbPlayerInfo = {
                                                             message: "level change fail, please contact cs"
                                                         })
                                                     }
-                                                }
-                                            ).then(
-                                                function (data) {
-                                                    dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", false).catch(errorUtils.reportError);
-                                                    return data;
-                                                }
-                                            ).catch(
-                                                err => {
-                                                    if (err.status === constServerCode.CONCURRENT_DETECTED) {
-                                                        // Ignore concurrent request for now
-                                                    } else {
-                                                        // Set BState back to false
-                                                        dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", false).catch(errorUtils.reportError);
-                                                    }
-
-                                                    throw err;
                                                 }
                                             );
                                         } else {
@@ -14072,7 +14059,24 @@ let dbPlayerInfo = {
                 playerQuery.playerLevel = query.playerLevel;
             }
             if (query.credibilityRemarks && query.credibilityRemarks.length !== 0) {
-                playerQuery.credibilityRemarks = {$in: query.credibilityRemarks};
+                let tempArr = [];
+                let isNoneExist = false;
+
+                query.credibilityRemarks.forEach(remark => {
+                    if (remark == "") {
+                        isNoneExist = true;
+                    } else {
+                        tempArr.push(remark);
+                    }
+                });
+
+                if (isNoneExist && tempArr.length > 0) {
+                    playerQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
+                } else if (isNoneExist && !tempArr.length) {
+                    playerQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}];
+                } else if (tempArr.length > 0 && !isNoneExist) {
+                    playerQuery.credibilityRemarks = {$in: query.credibilityRemarks};
+                }
             }
             if (query.hasOwnProperty('isRealPlayer')) {
                 playerQuery.isRealPlayer = query.isRealPlayer;
