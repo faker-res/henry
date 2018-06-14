@@ -261,7 +261,10 @@ var dbPlatformMerchantGroup = {
     },
 
     syncMerchantGroupData: function (platformObjId) {
-        var platformId = null;
+        let platformId = null;
+        let merchantList = [];
+        let newMerchants = [];
+        let newMerchantNames = [];
         return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
             platform => {
                 if (platform) {
@@ -276,11 +279,80 @@ var dbPlatformMerchantGroup = {
             }
         ).then(
             data => {
-                if (data && data.merchants && data.merchants.length > 0) {
-                    var merchants = data.merchants.map(merchant => merchant.merchantNo);
+                if (data && data.merchants) {
+                    let merchants = data.merchants;
+                    let updateMerchantProm = [];
+                    merchantList = merchants;
+                    return dbconfig.collection_platformMerchantList.find({platformId: platformId}).lean().then(oldMerchants => {
+                        merchants.forEach(merchant => {
+                            if(oldMerchants && oldMerchants.length > 0) {
+                                let match = false;
+                                oldMerchants.forEach(oldMerchant => {
+                                    if (merchant.merchantNo == oldMerchant.merchantNo) {
+                                        match = true;
+                                    }
+                                });
+                                if (!match) {
+                                    newMerchants.push(merchant.merchantNo);
+                                    newMerchantNames.push(merchant.name);
+                                }
+                            }
+                            if(merchant && merchant.merchantNo) {
+                                let permerchantLimits = Number(merchant.permerchantLimits);
+                                let transactionForPlayerOneDay = Number(merchant.transactionForPlayerOneDay);
+                                let permerchantminLimits = Number(merchant.permerchantminLimits);
+                                updateMerchantProm.push(
+                                    dbconfig.collection_platformMerchantList.findOneAndUpdate(
+                                        {
+                                            merchantNo: merchant.merchantNo,
+                                            name: merchant.name
+                                        },
+                                        {
+                                            merchantNo: merchant.merchantNo,
+                                            name: merchant.name || '',
+                                            topupType: merchant.topupType || '',
+                                            targetDevices: merchant.targetDevices || '',
+                                            merchantUse: merchant.merchantUse || '',
+                                            merchantTypeId: merchant.merchantTypeId || '',
+                                            remark: merchant.remark || '',
+                                            platformId: merchant.platformId || '',
+                                            permerchantLimits: isNaN(permerchantLimits) ? 0 : permerchantLimits,
+                                            transactionForPlayerOneDay: isNaN(transactionForPlayerOneDay) ? 0 : transactionForPlayerOneDay,
+                                            permerchantminLimits: isNaN(permerchantminLimits) ? 0 : permerchantminLimits,
+                                            status: merchant.status || ''
+                                        },
+                                        {upsert: true}
+                                    )
+                                );
+                            }
+                        });
+                        return Promise.all(updateMerchantProm);
+                    });
+                }
+            }
+        ).then(
+            () => {
+                if(newMerchants && newMerchants.length > 0) {
+                    return dbconfig.collection_platformMerchantGroup.update(
+                        {platform: platformObjId, bDefault: true},
+                        {$push: {
+                            merchants: {$each: newMerchants},
+                            merchantNames: {$each: newMerchantNames}
+                        }}
+                    );
+                }
+            }
+        ).then(
+            () => {
+                if (merchantList && merchantList.length > 0) {
+                    let merchants = merchantList.map(merchant => merchant.merchantNo);
+                    let merchantNames = merchantList.map(merchant => merchant.name);
                     return dbconfig.collection_platformMerchantGroup.update(
                         {platform: platformObjId},
-                        {$pull: {merchants: {$nin: merchants}}},
+                        {$pull: {
+                            merchants: {$nin: merchants},
+                            name: {$nin: merchantNames},
+                        }},
                         {multi: true}
                     );
                 }
