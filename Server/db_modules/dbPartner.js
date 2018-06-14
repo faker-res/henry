@@ -8133,6 +8133,44 @@ let dbPartner = {
             }
         );
     },
+
+    deleteAllMail: (partnerId, hasBeenRead) => {
+        return dbconfig.collection_partner.findOne({partnerId: partnerId}).then(
+            partnerData => {
+                if (partnerData) {
+                    let qObj = {recipientId: partnerData._id, bDelete: false};
+                    if (hasBeenRead !== undefined) {
+                        qObj.hasBeenRead = Boolean(hasBeenRead);
+                    }
+                    return dbconfig.collection_playerMail.update(
+                        qObj,
+                        {bDelete: true},
+                        {multi: true}
+                    );
+                }
+                else {
+                    return Q.reject({name: "DBError", message: "Invalid partner data"});
+                }
+            }
+        );
+    },
+
+    deleteMail: (partnerId, mailObjId) => {
+        return dbconfig.collection_playerMail.findOne({_id: mailObjId}).populate(
+            {path: "recipientId", model: dbconfig.collection_partner}
+        ).then(
+            mailData => {
+                if (mailData && mailData.recipientId && mailData.recipientId.partnerId == partnerId) {
+                    mailData.bDelete = true;
+                    return mailData.save();
+                }
+                else {
+                    return Q.reject({name: "DBError", message: "Invalid Mail id"});
+                }
+            }
+        );
+    },
+
 };
 
 
