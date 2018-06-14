@@ -586,19 +586,10 @@ function removeDeletedGroupCommissionConfig (platformObjId, commissionType) {
             let proms = [];
 
             commissionConfigs.map(commissionConfig => {
-                if (String(platformObjId) == "ded6825ae03d8b18ad29a228") { // todo :: debug used, remove later
-                    console.log('commissionConfig debug', commissionConfig._id, String(commissionConfig.provider));
-                }
                 if (!providerGroupObjIds.includes(String(commissionConfig.provider)) || existedProvider.includes(String(commissionConfig.provider))) {
-                    if (String(platformObjId) == "ded6825ae03d8b18ad29a228") { // todo :: debug used, remove later
-                        console.log('commissionConfig debug - removed triggered');
-                    }
                     let prom = dbconfig.collection_partnerCommissionConfig.remove({_id: commissionConfig._id}).catch(errorUtils.reportError);
                     proms.push(prom);
                 } else {
-                    if (String(platformObjId) == "ded6825ae03d8b18ad29a228") { // todo :: debug used, remove later
-                        console.log('commissionConfig debug - add to existed provider');
-                    }
                     existedProvider.push(String(commissionConfig.provider));
                 }
             });
