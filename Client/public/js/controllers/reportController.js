@@ -1148,6 +1148,8 @@ define(['js/app'], function (myApp) {
             return new Promise(function (resolve) {
                 socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: id}, function (data) {
                     vm.credibilityRemarks = data.data;
+                    vm.filterCredibilityRemarks = data.data ? JSON.parse(JSON.stringify(data.data)) : [];
+                    vm.filterCredibilityRemarks.push({'_id':'', 'name':'N/A'});
                     console.log("vm.credibilityRemarks", vm.credibilityRemarks);
                     resolve(vm.credibilityRemarks);
                     $scope.safeApply();
