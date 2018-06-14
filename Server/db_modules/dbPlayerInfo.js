@@ -13473,7 +13473,7 @@ let dbPlayerInfo = {
                 return dbconfig.collection_playerConsumptionRecord.aggregate([
                     {$match: relevantPlayerQuery},
                     {$group: {_id: "$playerId"}}
-                ]).then(
+                ]).read("secondaryPreferred").then(
                     consumptionData => {
                         if (consumptionData && consumptionData.length) {
                             playerObjArr = consumptionData.map(function (playerIdObj) {
@@ -13493,7 +13493,7 @@ let dbPlayerInfo = {
                         return dbconfig.collection_proposal.aggregate([
                             {$match: proposalQuery},
                             {$group: {_id: "$data.playerObjId"}}
-                        ])
+                        ]).read("secondaryPreferred");
                     }
                 ).then(
                     proposalData => {
