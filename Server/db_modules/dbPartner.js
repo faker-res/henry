@@ -6718,13 +6718,16 @@ let dbPartner = {
                                 if (ori.activePlayerValueTo == null) {
                                     ori.activePlayerValueTo = "-";
                                 }
+                                if (ori.playerConsumptionAmountTo == null) {
+                                    ori.playerConsumptionAmountTo = "-";
+                                }
                                 if (!ori.hasOwnProperty("defaultCommissionRate")) {
                                     ori.defaultCommissionRate = ori.commissionRate;
                                     delete ori.commissionRate;
                                 }
                             })
                             let commissionObj = {
-                                providerGroupId: oriCommission[j].provider.providerGroupId ? oriCommission[j].provider.providerGroupId : "",
+                                providerGroupId: oriCommission[j].provider.hasOwnProperty("providerGroupId") ? oriCommission[j].provider.providerGroupId : "",
                                 providerGroupName: oriCommission[j].provider.name ? oriCommission[j].provider.name : "",
                                 list: oriCommission[j].commissionSetting
                             };
@@ -6734,13 +6737,16 @@ let dbPartner = {
                         for (let i = 0; i < commissionData.length; i++) {
                             if (!commissionData[i].provider) continue;
                             let commissionObj = {
-                                providerGroupId: commissionData[i].provider.providerGroupId ? commissionData[i].provider.providerGroupId : "",
+                                providerGroupId: commissionData[i].provider.hasOwnProperty("providerGroupId") ? commissionData[i].provider.providerGroupId : "",
                                 providerGroupName: commissionData[i].provider.name ? commissionData[i].provider.name : ""
                             };
                             if (commissionData[i].commissionSetting && commissionData[i].commissionSetting.length) {
                                 for (let j = 0; j < commissionData[i].commissionSetting.length; j++) {
                                     if (commissionData[i].commissionSetting[j].activePlayerValueTo == null) {
                                         commissionData[i].commissionSetting[j].activePlayerValueTo = "-";
+                                    }
+                                    if (commissionData[i].commissionSetting[j].playerConsumptionAmountTo == null) {
+                                        commissionData[i].commissionSetting[j].playerConsumptionAmountTo = "-";
                                     }
                                     commissionData[i].commissionSetting[j].defaultCommissionRate = commissionData[i].commissionSetting[j].commissionRate;
                                     delete commissionData[i].commissionSetting[j].commissionRate;
@@ -7389,7 +7395,7 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return getPartnerCrewsData(platformId, partnerId).then(
+        return getPartnerCrewsData(platformId, partnerId, null, null, startDate, endDate).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7454,7 +7460,7 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount).then(
+        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount, startDate, endDate).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7544,7 +7550,7 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount).then(
+        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount, startDate, endDate).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7658,7 +7664,7 @@ let dbPartner = {
         ).then(
             allDownLinesData => {
                 let selectedDownLines = [];
-                totalDownLines = allDownLinesData && allDownLinesData.length? allDownLinesData.length: 0;
+                // totalDownLines = allDownLinesData && allDownLinesData.length? allDownLinesData.length: 0;
                 if (playerId || crewAccount) {
                     let fieldName;
                     let compareData;
@@ -7695,6 +7701,8 @@ let dbPartner = {
                 } else {
                     selectedDownLines = allDownLinesData;
                 }
+
+                totalDownLines = selectedDownLines && selectedDownLines.length? selectedDownLines.length: 0;
 
                 return getCrewsDetail(selectedDownLines, startTime, endTime).then(
                     playerDetails => {
@@ -7772,7 +7780,7 @@ let dbPartner = {
         let downLines = [];
         let providerGroup;
 
-        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount).then(
+        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount, startDate, endDate).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7878,7 +7886,7 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return getPartnerCrewsData(platformId, partnerId).then(
+        return getPartnerCrewsData(platformId, partnerId, null, null, startDate, endDate).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -9331,7 +9339,7 @@ function getCrewsInfo (players, startTime, endTime, activePlayerRequirement, pro
     return Promise.all(playerDetailsProm);
 }
 
-function getPartnerCrewsData (platformId, partnerId, playerId, crewAccount) {
+function getPartnerCrewsData (platformId, partnerId, playerId, crewAccount, startTime, endTime) {
     let platform = {};
     let partner = {};
     let downLines = [];
@@ -9368,7 +9376,16 @@ function getPartnerCrewsData (platformId, partnerId, playerId, crewAccount) {
                 return dbconfig.collection_players.find({platform: platform._id, partner: partner._id, name: crewAccount}).lean();
             }
             else{
-                return dbconfig.collection_players.find({platform: platform._id, partner: partner._id}).lean();
+                let query = {
+                    platform: platform._id,
+                    partner: partner._id
+                }
+
+                if(startTime && endTime){
+                    query.registrationTime = {$gte: startTime, $lt: endTime}
+                }
+
+                return dbconfig.collection_players.find(query).lean();
             }
 
         }

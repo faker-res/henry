@@ -238,6 +238,7 @@ var roleChecker = {
                 Create: ['createPlatform', 'getDepartmentTreeById'],
                 Delete: ['deletePlatformById'],
                 Edit: ['updatePlatform'],
+                ReplicateSetting: ['replicatePlatformSetting'],
                 DailySettlement: ['startPlatformDailySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformDailySettlement'],
                 WeeklySettlement: ['startPlatformWeeklySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformWeeklySettlement'],
                 RewardSettlement: ['startPlatformRewardEventSettlement', 'startPlatformRTGEventSettlement'],

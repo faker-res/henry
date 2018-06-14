@@ -23,6 +23,7 @@ define(['js/app'], function (myApp) {
             vm.rewardPointsChange = {};
             vm.rewardPointsConvert = {};
             vm.platformPageName = 'Player';
+            vm.platformToReplicate = "";
 
             // constants declaration
             vm.constPartnerCommisionType = {
@@ -9302,6 +9303,7 @@ define(['js/app'], function (myApp) {
                     result.forEach((item, index) => {
                         item['unlockTime'] = vm.dateReformat(item.unlockTime);
                         item['targetProviderGroup'] = $translate(item.targetProviderGroup);
+                        item.creator.name = $translate(item.creator.name);
                     });
 
                     $scope.$evalAsync(vm.drawRewardTaskUnlockedTable(newSearch, result, vm.playerRewardTaskLog.totalCount));
@@ -15149,7 +15151,17 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.playerFeedbackQuery.credibilityRemarks && vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
-                    sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
+                    let tempArr = [];
+                    if (vm.playerFeedbackQuery.credibilityRemarks.includes("")) {
+                        vm.playerFeedbackQuery.credibilityRemarks.forEach(remark => {
+                            if(remark != "") {
+                                tempArr.push(remark);
+                            }
+                        });
+                        sendQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
+                    } else {
+                        sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
+                    }
                 }
 
                 if (vm.playerFeedbackQuery.lastAccess === "range") {
@@ -25828,6 +25840,8 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
                         console.log('credibilityRemarks', data);
                         vm.credibilityRemarks = data.data;
+                        vm.feedbackCredibilityRemarks = data.data;
+                        vm.feedbackCredibilityRemarks.push({'_id':'', 'name':'N/A'});
                         $scope.safeApply();
                         vm.setupRemarksMultiInput();
                         vm.setupRemarksMultiInputFeedback();
@@ -27659,6 +27673,7 @@ define(['js/app'], function (myApp) {
                 vm.deletePlayerFeedbackTopicData = {};
                 // vm.allGameStatusString = {};
                 vm.credibilityRemarks = [];
+                vm.feedbackCredibilityRemarks = [];
                 vm.gameStatus = {};
                 vm.gameSmallShow = {};
                 vm.ctiData = {};
@@ -29197,9 +29212,28 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 });
+            };
 
+            vm.openReplicatePlatformSettingModal = () => {
+                $('#modalReplicatePlatformSetting').modal('show');
+            };
 
-            }
+            vm.replicatePlatformSetting = function (isConfirm) {
+                if (!isConfirm) {
+                    vm.modalYesNo = {};
+                    vm.modalYesNo.modalTitle = $translate("Replicate Other Platform Setting");
+                    vm.modalYesNo.modalText = $translate("Warning! Once replicate, there is no revert option. Are you sure you want to replicate platform setting?");
+                    vm.modalYesNo.actionYes = () => vm.replicatePlatformSetting(true);
+                    $('#modalYesNo').modal();
+                    return;
+                }
+
+                $scope.$socketPromise("replicatePlatformSetting", {replicateFrom: vm.platformToReplicate, replicateTo: vm.selectedPlatform.id}).then(data => {
+                    console.log(data);
+                    $socket.showConfirmMessage("Replication succeed.");
+                    loadPlatformData();
+                });
+            };
 
             vm.resetPlayerAddTable = function () {
                 //reset the adding table

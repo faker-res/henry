@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="jquery-3.3.1.min.js"></script>
+    <meta charset="UTF-8">
+    <title>M1</title>
+</head>
+<body>
+
+<h1>Runtime SSL</h1>
+<form>
+
+</form>
+<label>Enter code:</label>
+<input id="code" type='password' />
+<button formmethod="post" onclick="useCode()">Save</button>
+
+</body>
+</html>
+
+<script>
+    function useCode() {
+        let code = "";
+
+        $.ajax({
+            data: $('#code').val(),
+            method: "POST",
+            success: (data) => {
+                console.log(data)
+                // outputs "SUCESSSSS"
+            }
+        });
+    }
+</script>
