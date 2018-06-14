@@ -25842,7 +25842,6 @@ define(['js/app'], function (myApp) {
                         vm.credibilityRemarks = data.data;
                         vm.feedbackCredibilityRemarks = data.data;
                         vm.feedbackCredibilityRemarks.push({'_id':'', 'name':'N/A'});
-                        $scope.safeApply();
                         vm.setupRemarksMultiInput();
                         vm.setupRemarksMultiInputFeedback();
                         resolve();
@@ -28139,6 +28138,7 @@ define(['js/app'], function (myApp) {
                     displayValues: false,
                     countSelected: $translate('# of % selected')
                 });
+                remarkSelect.multipleSelect('refresh');
             };
 
             vm.setupRemarksMultiInput = function () {
@@ -28153,6 +28153,7 @@ define(['js/app'], function (myApp) {
                     displayValues: false,
                     countSelected: $translate('# of % selected')
                 });
+                remarkSelect.multipleSelect('refresh');
             };
 
             utilService.actionAfterLoaded('#resetPlayerQuery', function () {

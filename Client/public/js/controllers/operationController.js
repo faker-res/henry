@@ -93,7 +93,6 @@ define(['js/app'], function (myApp) {
                 vm.showOperationList = false;
             }
             $cookies.put("operationShowLeft", vm.showOperationList);
-            $scope.safeApply();
         };
 
         ///////////////////////////////////Proposal related functions///////////////////////////////////
@@ -137,7 +136,6 @@ define(['js/app'], function (myApp) {
             });
             vm.getPlatformProviderGroup();
             vm.getAllGameTypes();
-            $scope.safeApply();
         };
 
         vm.renderMultipleSelectDropDownList = function(elem) {
@@ -164,6 +162,7 @@ define(['js/app'], function (myApp) {
                 }).join(',');
                 $($multi).find('span').text(upText)
             });
+            dropDownElement.multipleSelect("refresh");
             dropDownElement.multipleSelect("checkAll");
             vm.proposalTypeClicked("total");
         };
@@ -183,6 +182,7 @@ define(['js/app'], function (myApp) {
                 }).join(',');
                 $($multi).find('span').text(upText)
             });
+            selectRewardType.multipleSelect("refresh");
             selectRewardType.multipleSelect("checkAll");
         };
 
@@ -201,6 +201,7 @@ define(['js/app'], function (myApp) {
                 }).join(',');
                 $($multi).find('span').text(upText)
             });
+            selectPromoType.multipleSelect("refresh");
             selectPromoType.multipleSelect("checkAll");
         };
 
@@ -245,8 +246,6 @@ define(['js/app'], function (myApp) {
                 vm.multiProposalSelected = [];
                 vm.loadProposalAuditQueryData(true);
             }
-
-            $scope.safeApply();
         }
         // vm.loadProposalByType = function () {
         //     if (vm.proposalCategorySelected == 'total') {
@@ -509,8 +508,6 @@ define(['js/app'], function (myApp) {
 
                 vm.queryProposal.totalCount = data.data.size;
                 vm.drawProposalTable(vm.proposals, data.data.size, data.data.summary, newSearch);
-
-                $scope.safeApply();
             });
         }
 
@@ -589,7 +586,6 @@ define(['js/app'], function (myApp) {
                 // vm.proposalTable.destroy();
                 vm.queryProposal.totalCount = data.data.size;
                 vm.drawProposalAuditTable(vm.proposals, data.data.size, data.data.summary, newSearch); //, "#proposalAuditDataTable"
-                $scope.safeApply();
                 // vm.proposalTable.draw();
                 // if (callback) {
                 //     callback();
@@ -963,8 +959,6 @@ define(['js/app'], function (myApp) {
                     }
                 );
 
-                console.log('vm.rewardList', vm.rewardList);
-                $scope.safeApply();
                 if (callback) {
                     callback();
                 }
@@ -973,9 +967,7 @@ define(['js/app'], function (myApp) {
 
         vm.getPromotionTypeList = function (callback) {
             socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: {$in: vm.allPlatformId}, deleteFlag: false}, function (data) {
-                console.log('getPromoCodeTypes', data);
                 vm.promoTypeList = data.data;
-                $scope.safeApply();
                 if (callback) {
                     callback();
                 }
@@ -989,7 +981,6 @@ define(['js/app'], function (myApp) {
 
             $scope.$socketPromise('getPlatformProviderGroup', query).then(function (data) {
                 vm.gameProviderGroup = data.data;
-                $scope.safeApply();
             });
         };
 
@@ -1461,7 +1452,6 @@ define(['js/app'], function (myApp) {
             $('#proposalDataTable').on('order.dt', function (event, a, b) {
                 vm.commonSortChangeHandler(a, 'queryProposal', vm.loadProposalQueryData);
             });
-            $scope.safeApply();
         };
 
         vm.drawProposalAuditTable = function (data, size, summary, newSearch) {
@@ -1868,7 +1858,6 @@ define(['js/app'], function (myApp) {
             $('#proposalAuditDataTable').on('order.dt', function (event, a, b) {
                 vm.commonSortChangeHandler(a, 'queryAuditProposal', vm.loadProposalAuditQueryData);
             });
-            $scope.safeApply();
         };
 
         vm.updateMultiselectProposal = function () {
@@ -2551,7 +2540,6 @@ define(['js/app'], function (myApp) {
             $('#gettingOnlinePlayer').addClass('fa-spin');
             $('#operPlayerList').next(".fa-spin").show().attr('isHidden', false);
             socketService.$socket($scope.AppSocket, 'getLoggedInPlayers', sendData, function (data) {
-                console.log(data);
                 vm.loggedPlayers = data.data;
                 vm.activePlayerDataPropertyList = [
                     {key: 'realName', func: vm.self},
@@ -2560,7 +2548,6 @@ define(['js/app'], function (myApp) {
                     {key: 'lastLoginIp', func: vm.self},
                     {key: 'topUpTimes', func: vm.self},
                 ];
-                $scope.safeApply();
                 $('#operPlayerList').next(".fa-spin").hide().attr('isHidden', true);
                 $('#gettingOnlinePlayer').removeClass('fa-spin');
                 utilService.setupPopover({
@@ -2629,9 +2616,7 @@ define(['js/app'], function (myApp) {
         }
         vm.getLoggedInPlayerCount = function () {
             socketService.$socket($scope.AppSocket, 'getLoggedInPlayersCount', {platform: vm.allPlatformId}, function (data) {
-                console.log("getLoggedInPlayerCount", data.data);
                 vm.loggedInPlayerCount = data.data;
-                $scope.safeApply();
             });
         }
         ///////players panel///////////////////// end
@@ -2849,7 +2834,6 @@ define(['js/app'], function (myApp) {
                         return 0;
                     }
                 );
-                $scope.safeApply();
                 deferred.resolve(true);
             }, function (error) {
                 deferred.reject(error);
