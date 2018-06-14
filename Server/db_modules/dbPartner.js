@@ -6718,6 +6718,9 @@ let dbPartner = {
                                 if (ori.activePlayerValueTo == null) {
                                     ori.activePlayerValueTo = "-";
                                 }
+                                if (ori.playerConsumptionAmountTo == null) {
+                                    ori.playerConsumptionAmountTo = "-";
+                                }
                                 if (!ori.hasOwnProperty("defaultCommissionRate")) {
                                     ori.defaultCommissionRate = ori.commissionRate;
                                     delete ori.commissionRate;
@@ -6741,6 +6744,9 @@ let dbPartner = {
                                 for (let j = 0; j < commissionData[i].commissionSetting.length; j++) {
                                     if (commissionData[i].commissionSetting[j].activePlayerValueTo == null) {
                                         commissionData[i].commissionSetting[j].activePlayerValueTo = "-";
+                                    }
+                                    if (commissionData[i].commissionSetting[j].playerConsumptionAmountTo == null) {
+                                        commissionData[i].commissionSetting[j].playerConsumptionAmountTo = "-";
                                     }
                                     commissionData[i].commissionSetting[j].defaultCommissionRate = commissionData[i].commissionSetting[j].commissionRate;
                                     delete commissionData[i].commissionSetting[j].commissionRate;
