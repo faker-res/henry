@@ -332,6 +332,19 @@ var dbPlatformMerchantGroup = {
             }
         ).then(
             () => {
+                let merchantNumbers = merchantList.map(merchant => merchant.merchantNo);
+                return dbconfig.collection_platformMerchantList.find({merchantNo: {$nin: merchantNumbers}}).lean().then(
+                    deletedMerchants => {
+                        if(deletedMerchants && deletedMerchants.length > 0) {
+                            let deletedMerchantNumbers = [];
+                            deletedMerchants.forEach(merchant => {deletedMerchantNumbers.push(merchant.merchantNo);});
+                            return dbconfig.collection_platformMerchantList.remove({'merchantNo':{'$in': deletedMerchantNumbers}})
+                        }
+                    }
+                )
+            }
+        ).then(
+            () => {
                 if(newMerchants && newMerchants.length > 0) {
                     return dbconfig.collection_platformMerchantGroup.update(
                         {platform: platformObjId, bDefault: true},
@@ -351,7 +364,7 @@ var dbPlatformMerchantGroup = {
                         {platform: platformObjId},
                         {$pull: {
                             merchants: {$nin: merchants},
-                            name: {$nin: merchantNames},
+                            merchantNames: {$nin: merchantNames},
                         }},
                         {multi: true}
                     );

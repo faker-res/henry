@@ -15151,7 +15151,17 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.playerFeedbackQuery.credibilityRemarks && vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
-                    sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
+                    let tempArr = [];
+                    if (vm.playerFeedbackQuery.credibilityRemarks.includes("")) {
+                        vm.playerFeedbackQuery.credibilityRemarks.forEach(remark => {
+                            if(remark != "") {
+                                tempArr.push(remark);
+                            }
+                        });
+                        sendQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
+                    } else {
+                        sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
+                    }
                 }
 
                 if (vm.playerFeedbackQuery.lastAccess === "range") {
@@ -25830,6 +25840,8 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
                         console.log('credibilityRemarks', data);
                         vm.credibilityRemarks = data.data;
+                        vm.feedbackCredibilityRemarks = data.data;
+                        vm.feedbackCredibilityRemarks.push({'_id':'', 'name':'N/A'});
                         $scope.safeApply();
                         vm.setupRemarksMultiInput();
                         vm.setupRemarksMultiInputFeedback();
@@ -27661,6 +27673,7 @@ define(['js/app'], function (myApp) {
                 vm.deletePlayerFeedbackTopicData = {};
                 // vm.allGameStatusString = {};
                 vm.credibilityRemarks = [];
+                vm.feedbackCredibilityRemarks = [];
                 vm.gameStatus = {};
                 vm.gameSmallShow = {};
                 vm.ctiData = {};
