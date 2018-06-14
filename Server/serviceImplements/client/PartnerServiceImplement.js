@@ -501,6 +501,16 @@ var PartnerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.getPlayerMailsByPartnerId, [conn.partnerId, false], isValidData);
     };
 
+    this.deleteAllMail.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.partnerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.deleteAllMail, [conn.partnerId, data.hasBeenRead], isValidData, false, false, true);
+    };
+
+    this.deleteMail.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.partnerId && data && data.mailObjId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.deleteMail, [conn.partnerId, data.mailObjId], isValidData, false, false, true);
+    };
+
 };
 var proto = PartnerServiceImplement.prototype = Object.create(PartnerService.prototype);
 proto.constructor = PartnerServiceImplement;

@@ -431,7 +431,9 @@
                 "getPartnerConfig",
                 "checkAllCrewDetail",
                 "notifyNewMail",
-                "getMailList"
+                "getMailList",
+                "deleteAllMail",
+                "deleteMail"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

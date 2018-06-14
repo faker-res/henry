@@ -310,6 +310,20 @@
         this.partnerService.getMailList.once(callback);
     };
 
+    proto.deleteAllMail = function(callback, requestData) {
+        var data = requestData || {}
+
+        this.partnerService.deleteAllMail.request(data);
+        this.partnerService.deleteAllMail.once(callback);
+    };
+
+    proto.deleteMail = function(callback, requestData) {
+        var data = requestData || {}
+
+        this.partnerService.deleteMail.request(data);
+        this.partnerService.deleteMail.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPartnerAPITest;
     } else {
