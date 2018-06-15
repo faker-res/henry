@@ -2740,7 +2740,7 @@ let dbPlayerReward = {
                 }
 
                 // if player apply for topup return , then he cannot apply promo code
-                if (topUpProp.data.topUpReturnCode) {
+                if (topUpProp && topUpProp.data && topUpProp.data.topUpReturnCode) {
                     return Q.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",

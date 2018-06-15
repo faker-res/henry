@@ -697,62 +697,56 @@ const dbRewardTask = {
                 path: "type",
                 model: dbconfig.collection_proposalType
             }).lean().sort(sortCol).then(udata => {
-            udata.map(item => {
-                if(!item.data.topUpProposal) {
-                    item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
-                }
+                udata.map(item => {
+                    if(!item.data.topUpProposal) {
+                        item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                    }
 
-                if (item.type.name) {
-                    item.data.rewardType = item.type.name;
-                }
-            });
-
-                let prom = dbRewardTask.getTopUpProposal(udata);
-                let propCount = dbconfig.collection_proposal.aggregate({
-                        $match: rewardTaskProposalQuery
-                    },
-                    {
-                        $group: {
-                            '_id': null,
-                            bonusAmountSum: {$sum: "$data.rewardAmount"},
-                            requiredBonusAmountSum: {$sum: "$data.spendingAmount"},
-                            currentAmountSum: {$sum: "$data.rewardAmount"},
-                        }
-                    });
-                    return Q.all([prom, propCount]);
-            }).then(result => {
-
-                result[0].map(item => {
-                    if (reward) {
-                        item.data['createTime$'] = item.createTime;
-                        item.data.useConsumption = reward.useConsumption;
-                        if(!item.data.topUpProposal) {
-                            item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
-                        }
-                        item.data.curConsumption = reward.curConsumption;
-                        if (reward.providerGroup) {
-                            item.data.provider$ = reward.providerGroup ? reward.providerGroup.name :"" ;
-                        }
-                        else{
-
-                            item.data.topUpProposalId = item.data ? item.data.proposalId : '';
-                            item.data.bonusAmount = 0;
-                            item.data.currentAmount = item.data.currentAmt;
-                            item.data.requiredBonusAmount = 0;
-                            item.data['provider$'] = 'LOCAL_CREDIT'
-                        }
-                        item.data.topUpAmount= 0;
-                        if (item.data) {
-                            item.data.topUpAmount = item.data.topUpRecordId && item.data.applyAmount ? item.data.applyAmount:item.data.amount? item.data.amount : 0;
-                        }
-                        if(reward.providerGroup === ''){
-                            item.data.providerGroup = null;
-                        }
-                        return item;
+                    if (item.type.name) {
+                        item.data.rewardType = item.type.name;
                     }
                 });
 
-                return result[0] ? result[0] : []
+                return dbRewardTask.getTopUpProposal(udata);
+
+            }).then(result => {
+
+                if (result){
+                    result.map(item => {
+                        if (reward) {
+                            item.data['createTime$'] = item.createTime;
+                            item.data.useConsumption = reward.useConsumption;
+                            if(!item.data.topUpProposal) {
+                                item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                            }
+                            item.data.curConsumption = reward.curConsumption;
+                            if (reward.providerGroup) {
+                                item.data.provider$ = reward.providerGroup ? reward.providerGroup.name :"" ;
+                            }
+                            else{
+
+                                item.data.topUpProposalId = item.data ? item.data.proposalId : '';
+                                item.data.bonusAmount = 0;
+                                item.data.currentAmount = item.data.currentAmt;
+                                item.data.requiredBonusAmount = 0;
+                                item.data['provider$'] = 'LOCAL_CREDIT'
+                            }
+                            item.data.topUpAmount= 0;
+                            if (item.data) {
+                                item.data.topUpAmount = item.data.topUpRecordId && item.data.applyAmount ? item.data.applyAmount:item.data.amount? item.data.amount : 0;
+                            }
+                            if(reward.providerGroup === ''){
+                                item.data.providerGroup = null;
+                            }
+                            return item;
+                        }
+                    });
+
+
+                }
+
+                return result ? result : []
+
             });
     },
 
@@ -2421,6 +2415,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                             }
 
                             if (statusUpdObj.status) {
+                                console.log("debug RTG1", consumptionRecord.playerId, createTime);
                                 // update the rewardTaskGroupUnlockRecord
 
                                let updateProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
@@ -2457,7 +2452,10 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                                     curConsumption: -consumptionAmt
                                                 }
                                             }
-                                        ).then(() => false);
+                                        ).then(() => {
+                                            console.log("debug RTG2", consumptionRecord.playerId, retryCount);
+                                            return false;
+                                        });
                                     }
                                 )
                             }

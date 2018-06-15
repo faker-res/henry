@@ -7452,9 +7452,200 @@ define(['js/app'], function (myApp) {
 
             vm.getEncPhoneNumber = function (playerData) {
                 return (playerData && playerData.phoneNumber) ? (playerData.phoneNumber.substring(0, 3) + "******" + playerData.phoneNumber.slice(-4)) : ''
-            }
+            };
+
+            /**** Similar Player ****/
+            vm.showSimilarPlayerTab = function (tabName) {
+                vm.selectedSimilarPlayerTab = tabName == null ? "similar-phone" : tabName;
+
+                if (vm.selectedSimilarPlayerTab === 'similar-phone') {
+                    vm.showPagedSimilarPhoneForPlayer();
+                }
+                if (vm.selectedSimilarPlayerTab === 'similar-ip') {
+                    vm.showPagedSimilarIpForPlayer();
+                }
+            };
+
+            /**** Similar Phone tab ****/
+            vm.showPagedSimilarPhoneForPlayer = function () {
+                vm.similarPhoneForPlayer = {};
+                vm.similarPhoneForPlayer.index = 0;
+                vm.similarPhoneForPlayer.limit = vm.similarPhoneForPlayer && vm.similarPhoneForPlayer.limit ? vm.similarPhoneForPlayer.limit : 50;
+                utilService.actionAfterLoaded(('#similarPhoneForPlayer'), function () {
+                    vm.similarPhoneForPlayer.pageObj = utilService.createPageForPagingTable("#similarPhoneForPlayerTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "similarPhoneForPlayer", vm.getPagedSimilarPhoneForPlayer)
+                    });
+                    vm.getPagedSimilarPhoneForPlayer(true);
+                });
+            };
+
+            vm.getPagedSimilarPhoneForPlayer = function (newSearch) {
+                vm.similarPhoneForPlayer.loading = true;
+                let sendQuery = {
+                    playerId: vm.selectedSinglePlayer._id,
+                    platformId: vm.selectedSinglePlayer.platform,
+                    phoneNumber: vm.selectedSinglePlayer.phoneNumber,
+                    index: newSearch ? 0 : vm.similarPhoneForPlayer.index,
+                    limit: newSearch ? 50 : vm.similarPhoneForPlayer.limit,
+                    sortCol: {registrationTime: -1},
+                    isRealPlayer: true,
+                };
+                socketService.$socket($scope.AppSocket, "getPagedSimilarPhoneForPlayers", sendQuery, function (data) {
+                    vm.similarPhoneForPlayers = data.data.data;
+                    vm.similarPhoneForPlayer.totalCount = data.data.total || 0;
+                    vm.similarPhoneForPlayer.loading = false;
+                    vm.drawPagedSimilarPhoneForPlayerTable(vm.similarPhoneForPlayers, vm.similarPhoneForPlayer.totalCount, newSearch);
+                })
+            };
+
+            vm.drawPagedSimilarPhoneForPlayerTable = function (data, size, newSearch) {
+                let tableData = data ? data.map(item => {
+                    let remarks = '';
+                    let breakLine = "<br>";
+
+                    if (item.credibilityRemarks && item.credibilityRemarks.length > 0) {
+                        item.credibilityRemarks = vm.credibilityRemarks.filter(remark => {
+                            return item.credibilityRemarks.includes(remark._id);
+                        })
+                        item.credibilityRemarks.forEach(function (value, index) {
+                            remarks += value.name + breakLine;
+                        });
+                        item.credibilityRemarksName = remarks;
+                    } else {
+                        item.credibilityRemarksName = "--";
+                    }
+                    item.playerLevelName = item.playerLevel ? item.playerLevel.name : "";
+                    item.lastAccessTime = item.lastAccessTime ? vm.dateReformat(item.lastAccessTime) : "";
+                    item.registrationTime = item.registrationTime ? vm.dateReformat(item.registrationTime) : "";
+                    return item;
+                }) : [];
+
+                let option = $.extend({}, vm.generalDataTableOptions, {
+                    data: tableData,
+                    order: vm.similarPhoneForPlayer.aaSorting || [[5, 'desc']],
+                    columnDefs: [
+                        {'sortCol': 'lastAccessTime', bSortable: true, 'aTargets': [5]},
+                        {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [6]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {'title': $translate('PLAYER_NAME'), data: 'name'},
+                        {'title': $translate('realName'), data: 'realName'},
+                        {'title': $translate('PLAYER_VALUE'), data: 'valueScore'},
+                        {'title': $translate('CREDIBILITY_REMARK'), data: 'credibilityRemarksName'},
+                        {'title': $translate('LEVEL'), data: 'playerLevelName'},
+                        {'title': $translate('registrationTime'), data: 'registrationTime'},
+                        {'title': $translate('lastAccessTime'), data: 'lastAccessTime'},
+                        {'title': $translate('LOGIN_TIMES'), data: 'loginTimes'},
+                        {'title': $translate('topUpTimes'), data: 'topUpTimes'},
+                    ],
+                    paging: false,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    }
+                });
+                let a = utilService.createDatatableWithFooter('#similarPhoneForPlayerTable', option, {});
+                vm.similarPhoneForPlayer.pageObj.init({maxCount: size}, newSearch);
+
+                $('#similarPhoneForPlayerTable').off('order.dt');
+                $('#similarPhoneForPlayerTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'similarPhoneForPlayer', vm.getPagedSimilarPhoneForPlayer);
+                });
+                $("#similarPhoneForPlayerTable").resize();
+                $scope.safeApply();
+            };
+
+            /**** Similar IP tab ****/
+            vm.showPagedSimilarIpForPlayer = function () {
+                vm.similarIpForPlayer = {};
+                vm.similarIpForPlayer.index = 0;
+                vm.similarIpForPlayer.limit = vm.similarIpForPlayer && vm.similarIpForPlayer.limit ? vm.similarIpForPlayer.limit : 50;
+                utilService.actionAfterLoaded(('#similarIpForPlayer'), function () {
+                    vm.similarIpForPlayer.pageObj = utilService.createPageForPagingTable("#similarIpForPlayerTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "similarIpForPlayer", vm.getPagedSimilarIpForPlayer)
+                    });
+                    vm.getPagedSimilarIpForPlayer(true);
+                });
+            };
+
+            vm.getPagedSimilarIpForPlayer = function (newSearch) {
+                vm.similarIpForPlayer.loading = true;
+                let sendQuery = {
+                    playerId: vm.selectedSinglePlayer._id,
+                    platformId: vm.selectedSinglePlayer.platform,
+                    lastLoginIp: vm.selectedSinglePlayer.lastLoginIp,
+                    index: newSearch ? 0 : vm.similarIpForPlayer.index,
+                    limit: newSearch ? 50 : vm.similarIpForPlayer.limit,
+                    sortCol: {registrationTime: -1},
+                    isRealPlayer: true,
+                };
+                socketService.$socket($scope.AppSocket, "getPagedSimilarIpForPlayers", sendQuery, function (data) {
+                    vm.similarIpForPlayers = data.data.data;
+                    vm.similarIpForPlayer.totalCount = data.data.total || 0;
+                    vm.similarIpForPlayer.loading = false;
+                    vm.drawPagedSimilarIpForPlayerTable(vm.similarIpForPlayers, vm.similarIpForPlayer.totalCount, newSearch);
+                })
+            };
+
+            vm.drawPagedSimilarIpForPlayerTable = function (data, size, newSearch) {
+                let tableData = data ? data.map(item => {
+                    let remarks = '';
+                    let breakLine = "<br>";
+
+                    if (item.credibilityRemarks && item.credibilityRemarks.length > 0) {
+                        item.credibilityRemarks = vm.credibilityRemarks.filter(remark => {
+                            return item.credibilityRemarks.includes(remark._id);
+                        })
+                        item.credibilityRemarks.forEach(function (value, index) {
+                            remarks += value.name + breakLine;
+                        });
+                        item.credibilityRemarksName = remarks;
+                    } else {
+                        item.credibilityRemarksName = "--";
+                    }
+                    item.playerLevelName = item.playerLevel ? item.playerLevel.name : "";
+                    item.lastAccessTime = vm.dateReformat(item.lastAccessTime);
+                    item.registrationTime = vm.dateReformat(item.registrationTime);
+                    return item;
+                }) : [];
+
+                let option = $.extend({}, vm.generalDataTableOptions, {
+                    data: tableData,
+                    order: vm.similarIpForPlayer.aaSorting || [[5, 'desc']],
+                    columnDefs: [
+                        {'sortCol': 'lastAccessTime', bSortable: true, 'aTargets': [5]},
+                        {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [6]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {'title': $translate('PLAYER_NAME'), data: 'name'},
+                        {'title': $translate('realName'), data: 'realName'},
+                        {'title': $translate('PLAYER_VALUE'), data: 'valueScore'},
+                        {'title': $translate('CREDIBILITY_REMARK'), data: 'credibilityRemarksName'},
+                        {'title': $translate('LEVEL'), data: 'playerLevelName'},
+                        {'title': $translate('registrationTime'), data: 'registrationTime'},
+                        {'title': $translate('lastAccessTime'), data: 'lastAccessTime'},
+                        {'title': $translate('LOGIN_TIMES'), data: 'loginTimes'},
+                        {'title': $translate('topUpTimes'), data: 'topUpTimes'},
+                    ],
+                    paging: false,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    }
+                });
+                let a = utilService.createDatatableWithFooter('#similarIpForPlayerTable', option, {});
+                vm.similarIpForPlayer.pageObj.init({maxCount: size}, newSearch);
+
+                $('#similarIpForPlayerTable').off('order.dt');
+                $('#similarIpForPlayerTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'similarIpForPlayer', vm.getPagedSimilarIpForPlayer);
+                });
+                $("#similarIpForPlayerTable").resize();
+                $scope.safeApply();
+            };
 
             vm.showPlayerInfoModal = function (playerName) {
+                vm.showSimilarPlayersTable = false;
                 vm.similarPlayersForPlayer = null;
                 var watch = $scope.$watch(function () {
                     return vm.selectedSinglePlayer
@@ -11683,7 +11874,7 @@ define(['js/app'], function (myApp) {
                                         },
                                         currentConsumption: rewardTask.curConsumption$,
                                         maxConsumption: rewardTask.maxConsumption$,
-                                        currentAmount: rewardTask.archivedAmt$,
+                                        currentAmount: -rewardTask.archivedAmt$,
                                         targetAmount: rewardTask.availableAmt$,
                                         topupAmount: rewardTask.topUpAmount,
                                         proposalId: rewardTask._id,
@@ -12800,7 +12991,7 @@ define(['js/app'], function (myApp) {
                             },
                             currentConsumption: vm.rewardTaskGroupProposalList[indexNO].curConsumption$,
                             maxConsumption: vm.rewardTaskGroupProposalList[indexNO].maxConsumption$,
-                            currentAmount: vm.rewardTaskGroupProposalList[indexNO].archivedAmt$,
+                            currentAmount: -vm.rewardTaskGroupProposalList[indexNO].archivedAmt$,
                             targetAmount: vm.rewardTaskGroupProposalList[indexNO].availableAmt$,
                             topupAmount: vm.rewardTaskGroupProposalList[indexNO].topUpAmount,
                             proposalId: vm.rewardTaskGroupProposalList[indexNO]._id,
@@ -15151,7 +15342,17 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.playerFeedbackQuery.credibilityRemarks && vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
-                    sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
+                    let tempArr = [];
+                    if (vm.playerFeedbackQuery.credibilityRemarks.includes("")) {
+                        vm.playerFeedbackQuery.credibilityRemarks.forEach(remark => {
+                            if(remark != "") {
+                                tempArr.push(remark);
+                            }
+                        });
+                        sendQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
+                    } else {
+                        sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
+                    }
                 }
 
                 if (vm.playerFeedbackQuery.lastAccess === "range") {
@@ -25830,7 +26031,8 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
                         console.log('credibilityRemarks', data);
                         vm.credibilityRemarks = data.data;
-                        $scope.safeApply();
+                        vm.filterCredibilityRemarks = data.data ? JSON.parse(JSON.stringify(data.data)) : [];
+                        vm.filterCredibilityRemarks.push({'_id':'', 'name':'N/A'});
                         vm.setupRemarksMultiInput();
                         vm.setupRemarksMultiInputFeedback();
                         resolve();
@@ -27661,6 +27863,7 @@ define(['js/app'], function (myApp) {
                 vm.deletePlayerFeedbackTopicData = {};
                 // vm.allGameStatusString = {};
                 vm.credibilityRemarks = [];
+                vm.filterCredibilityRemarks = [];
                 vm.gameStatus = {};
                 vm.gameSmallShow = {};
                 vm.ctiData = {};
@@ -28126,6 +28329,7 @@ define(['js/app'], function (myApp) {
                     displayValues: false,
                     countSelected: $translate('# of % selected')
                 });
+                remarkSelect.multipleSelect('refresh');
             };
 
             vm.setupRemarksMultiInput = function () {
@@ -28140,6 +28344,7 @@ define(['js/app'], function (myApp) {
                     displayValues: false,
                     countSelected: $translate('# of % selected')
                 });
+                remarkSelect.multipleSelect('refresh');
             };
 
             utilService.actionAfterLoaded('#resetPlayerQuery', function () {

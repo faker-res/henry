@@ -11648,7 +11648,7 @@ define(['js/app'], function (myApp) {
                                     },
                                     currentConsumption: rewardTask.curConsumption$,
                                     maxConsumption: rewardTask.maxConsumption$,
-                                    currentAmount: rewardTask.archivedAmt$,
+                                    currentAmount: -rewardTask.archivedAmt$,
                                     targetAmount: rewardTask.availableAmt$,
                                     topupAmount: rewardTask.topUpAmount,
                                     proposalId: rewardTask._id,
@@ -12765,7 +12765,7 @@ define(['js/app'], function (myApp) {
                         },
                         currentConsumption: vm.rewardTaskGroupProposalList[indexNO].curConsumption$,
                         maxConsumption: vm.rewardTaskGroupProposalList[indexNO].maxConsumption$,
-                        currentAmount: vm.rewardTaskGroupProposalList[indexNO].archivedAmt$,
+                        currentAmount: -vm.rewardTaskGroupProposalList[indexNO].archivedAmt$,
                         targetAmount: vm.rewardTaskGroupProposalList[indexNO].availableAmt$,
                         topupAmount: vm.rewardTaskGroupProposalList[indexNO].topUpAmount,
                         proposalId: vm.rewardTaskGroupProposalList[indexNO]._id,
@@ -24661,6 +24661,8 @@ define(['js/app'], function (myApp) {
             return $scope.$socketPromise('getCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}).then(
                 data => {
                     vm.credibilityRemarks = data.data;
+                    vm.filterCredibilityRemarks = data.data ? JSON.parse(JSON.stringify(data.data)) : [];
+                    vm.filterCredibilityRemarks.push({'_id':'', 'name':'N/A'});
                     $scope.safeApply();
                     vm.setupRemarksMultiInput();
                     vm.setupRemarksMultiInputFeedback();

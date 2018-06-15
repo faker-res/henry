@@ -6718,13 +6718,16 @@ let dbPartner = {
                                 if (ori.activePlayerValueTo == null) {
                                     ori.activePlayerValueTo = "-";
                                 }
+                                if (ori.playerConsumptionAmountTo == null) {
+                                    ori.playerConsumptionAmountTo = "-";
+                                }
                                 if (!ori.hasOwnProperty("defaultCommissionRate")) {
                                     ori.defaultCommissionRate = ori.commissionRate;
                                     delete ori.commissionRate;
                                 }
                             })
                             let commissionObj = {
-                                providerGroupId: oriCommission[j].provider.providerGroupId ? oriCommission[j].provider.providerGroupId : "",
+                                providerGroupId: oriCommission[j].provider.hasOwnProperty("providerGroupId") ? oriCommission[j].provider.providerGroupId : "",
                                 providerGroupName: oriCommission[j].provider.name ? oriCommission[j].provider.name : "",
                                 list: oriCommission[j].commissionSetting
                             };
@@ -6734,13 +6737,16 @@ let dbPartner = {
                         for (let i = 0; i < commissionData.length; i++) {
                             if (!commissionData[i].provider) continue;
                             let commissionObj = {
-                                providerGroupId: commissionData[i].provider.providerGroupId ? commissionData[i].provider.providerGroupId : "",
+                                providerGroupId: commissionData[i].provider.hasOwnProperty("providerGroupId") ? commissionData[i].provider.providerGroupId : "",
                                 providerGroupName: commissionData[i].provider.name ? commissionData[i].provider.name : ""
                             };
                             if (commissionData[i].commissionSetting && commissionData[i].commissionSetting.length) {
                                 for (let j = 0; j < commissionData[i].commissionSetting.length; j++) {
                                     if (commissionData[i].commissionSetting[j].activePlayerValueTo == null) {
                                         commissionData[i].commissionSetting[j].activePlayerValueTo = "-";
+                                    }
+                                    if (commissionData[i].commissionSetting[j].playerConsumptionAmountTo == null) {
+                                        commissionData[i].commissionSetting[j].playerConsumptionAmountTo = "-";
                                     }
                                     commissionData[i].commissionSetting[j].defaultCommissionRate = commissionData[i].commissionSetting[j].commissionRate;
                                     delete commissionData[i].commissionSetting[j].commissionRate;
@@ -8127,6 +8133,44 @@ let dbPartner = {
             }
         );
     },
+
+    deleteAllMail: (partnerId, hasBeenRead) => {
+        return dbconfig.collection_partner.findOne({partnerId: partnerId}).then(
+            partnerData => {
+                if (partnerData) {
+                    let qObj = {recipientId: partnerData._id, bDelete: false};
+                    if (hasBeenRead !== undefined) {
+                        qObj.hasBeenRead = Boolean(hasBeenRead);
+                    }
+                    return dbconfig.collection_playerMail.update(
+                        qObj,
+                        {bDelete: true},
+                        {multi: true}
+                    );
+                }
+                else {
+                    return Q.reject({name: "DBError", message: "Invalid partner data"});
+                }
+            }
+        );
+    },
+
+    deleteMail: (partnerId, mailObjId) => {
+        return dbconfig.collection_playerMail.findOne({_id: mailObjId}).populate(
+            {path: "recipientId", model: dbconfig.collection_partner}
+        ).then(
+            mailData => {
+                if (mailData && mailData.recipientId && mailData.recipientId.partnerId == partnerId) {
+                    mailData.bDelete = true;
+                    return mailData.save();
+                }
+                else {
+                    return Q.reject({name: "DBError", message: "Invalid Mail id"});
+                }
+            }
+        );
+    },
+
 };
 
 
@@ -9372,7 +9416,6 @@ function getPartnerCrewsData (platformId, partnerId, playerId, crewAccount) {
             else{
                 return dbconfig.collection_players.find({platform: platform._id, partner: partner._id}).lean();
             }
-
         }
     ).then(
         downLineData => {

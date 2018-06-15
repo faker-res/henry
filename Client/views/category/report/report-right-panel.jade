@@ -209,7 +209,7 @@
             .block-query.col-md-12.well
                 div
                     label(style='min-width:130px') {{"CREDIBILITY"|translate}}
-                    select.form-control#selectCredibilityRemarks(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name for remark in vm.credibilityRemarks', ng-model="vm.playerQuery.credibilityRemarks")
+                    select.form-control#selectCredibilityRemarks(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model="vm.playerQuery.credibilityRemarks")
                 div
                     label {{'LEVEL' | translate}}
                     select.form-control(ng-model="vm.playerQuery.level", ng-options='a as b.name for (a,b) in vm.playerLvlData')
@@ -1248,6 +1248,7 @@
                 div
                     label {{"CREDIBILITY"|translate}}
                     select.spicker.form-control(ng-model='vm.feedbackQuery.credibility', multiple, data-actions-box='true')
+                        option(value='') {{'N/A' | translate}}
                         option(ng-repeat='(i,v) in vm.credibilityRemarks;', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
                 div
                     label {{"PLAYER_VALUE"|translate}}

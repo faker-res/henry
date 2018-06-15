@@ -122,21 +122,110 @@ let dbPlatformWechatPayGroup = {
     },
 
     getAllWechatpaysByWechatpayGroupWithIsInGroup: function(platformId, wechatPayGroupId){
-        let allWechats = [];
-        return pmsAPI.weChat_getWechatList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
+        let platformObjId = null;
+        let wechatList = [];
+        let newWechats = [];
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platform => {
+                if (platform) {
+                    platformObjId = platform._id;
+                    return pmsAPI.weChat_getWechatList(
+                        {
+                            platformId: platformId,
+                            queryId: serverInstance.getQueryId()
+                        }
+                    );
+                }
             }
         ).then(
             data => {
-                allWechats = data.data || [];
+                if (data && data.data) {
+                    let wechats = data.data;
+                    let updateWechatProm = [];
+                    wechatList = wechats;
+                    return dbconfig.collection_platformWechatPayList.find({platformId: platformId}).lean().then(oldWechats => {
+                        wechats.forEach(wechat => {
+                            if(oldWechats && oldWechats.length > 0) {
+                                let match = false;
+                                oldWechats.forEach(oldWechat => {
+                                    if (wechat.accountNumber == oldWechat.accountNumber) {
+                                        match = true;
+                                    }
+                                });
+                                if (!match) {
+                                    newWechats.push(wechat.accountNumber);
+                                }
+                            }
+                            if(wechat && wechat.accountNumber) {
+                                let quota = Number(wechat.quota);
+                                let singleLimit = Number(wechat.singleLimit);
+                                updateWechatProm.push(
+                                    dbconfig.collection_platformWechatPayList.findOneAndUpdate(
+                                        {
+                                            accountNumber: wechat.accountNumber
+                                        },
+                                        {
+                                            accountNumber: wechat.accountNumber,
+                                            name: wechat.name || '',
+                                            platformId: wechat.platformId || '',
+                                            quota: isNaN(quota) ? 0 : quota,
+                                            state: wechat.state || '',
+                                            singleLimit : isNaN(singleLimit) ? 0 : singleLimit,
+                                            bankTypeId: wechat.bankTypeId || '',
+                                            nickName: wechat.nickName || ''
+                                        },
+                                        {upsert: true}
+                                    )
+                                );
+                            }
+                        });
+                        return Promise.all(updateWechatProm);
+                    });
+                }
+            }
+        ).then(
+            () => {
+                let wechatAccountNumbers = wechatList.map(wechat => wechat.accountNumber);
+                return dbconfig.collection_platformWechatPayList.find({accountNumber: {$nin: wechatAccountNumbers}}).lean().then(
+                    deletedWechats => {
+                        if(deletedWechats && deletedWechats.length > 0) {
+                            let deletedAccountNumbers = [];
+                            deletedWechats.forEach(wechat => {deletedAccountNumbers.push(wechat.accountNumber);});
+                            return dbconfig.collection_platformWechatPayList.remove({'accountNumber':{'$in': deletedAccountNumbers}})
+                        }
+                    }
+                )
+            }
+        ).then(
+            () => {
+                if(newWechats && newWechats.length > 0) {
+                    return dbconfig.collection_platformWechatPayGroup.update(
+                        {platform: platformObjId, bDefault: true},
+                        {$push: {
+                            wechats: {$each: newWechats}
+                        }}
+                    );
+                }
+            }
+        ).then(
+            () => {
+                if (wechatList && wechatList.length > 0) {
+                    let wechats = wechatList.map(wechat => wechat.accountNumber);
+                    return dbconfig.collection_platformWechatPayGroup.update(
+                        {platform: platformObjId},
+                        {$pull: {wechats: {$nin: wechats}}},
+                        {multi: true}
+                    );
+                }
+            }
+        ).then(
+            () => {
                 return dbconfig.collection_platformWechatPayGroup.findOne({_id: wechatPayGroupId})
             }
         ).then(
             data => {
                 let wechatsGroup = data.wechats || [];
-                return allWechats.map(a=> {
+                return wechatList.map(a=> {
                     if (wechatsGroup.indexOf(a.accountNumber) != -1) {
                         //in group
                         a.isInGroup = true;
