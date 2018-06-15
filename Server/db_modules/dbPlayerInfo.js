@@ -9483,12 +9483,16 @@ let dbPlayerInfo = {
             ).then(
                 RTG => {
                     if (RTG) {
-                        if(RTG.curConsumption >= RTG.targetConsumption) {
-                            return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
-                                _id: RTG._id
-                            }, {
-                                status: constRewardTaskStatus.SYSTEM_UNLOCK
-                            }, {new: true}).lean().then(
+                        let consumptionOffset = Number.isFinite(Number(platform.autoApproveConsumptionOffset)) ? Number(platform.autoApproveConsumptionOffset) : 0;
+                        let curConsumption = Number.isFinite(Number(RTG.curConsumption)) ? Number(RTG.curConsumption) : 0;
+                        let currentConsumption = curConsumption + consumptionOffset;
+
+                        let targetConsumption = Number.isFinite(Number(RTG.targetConsumption)) ? Number(RTG.targetConsumption) : 0;
+                        let forbidXIMAAmt = Number.isFinite(Number(RTG.forbidXIMAAmt)) ? Number(RTG.forbidXIMAAmt) : 0;
+                        let totalTargetConsumption = targetConsumption + forbidXIMAAmt;
+
+                        if(currentConsumption >= totalTargetConsumption) {
+                            return dbRewardTaskGroup.unlockRewardTaskGroupByObjId(RTG) .then(
                                 () => {
                                     return findStartedRewardTaskGroup(player.platform, player._id);
                                 }
