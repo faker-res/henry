@@ -576,7 +576,7 @@ var proposal = {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 proposalObj = proposalData;
-                if (proposalData && proposalData.data && proposalData.data.bankCardType != null) {
+                if (proposalData && proposalData.data && (proposalData.data.bankCardType != null || proposalData.data.bankTypeId != null || proposalData.data.bankCardNo != null)) {
                     type = constPlayerTopUpType.MANUAL;
                 }
                 if (proposalData && proposalData.data && (proposalData.data.alipayAccount != null || proposalData.data.alipayQRCode != null)) {
