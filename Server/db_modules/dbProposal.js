@@ -906,6 +906,7 @@ var proposal = {
                                     return dbconfig.collection_proposal.findOneAndUpdate(
                                         {_id: proposalData._id, createTime: proposalData.createTime},
                                         {
+                                            "data.lastSettleTime": Date.now(),
                                             settleTime: Date.now(),
                                             noSteps: true,
                                             process: null,
