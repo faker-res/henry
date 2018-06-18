@@ -324,6 +324,13 @@
         this.partnerService.deleteMail.once(callback);
     };
 
+    proto.readMail = function(callback, requestData) {
+        var data = requestData || {}
+
+        this.partnerService.readMail.request(data);
+        this.partnerService.readMail.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPartnerAPITest;
     } else {
