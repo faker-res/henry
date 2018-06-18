@@ -510,6 +510,10 @@ var PartnerServiceImplement = function () {
         var isValidData = Boolean(conn.partnerId && data && data.mailObjId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.deleteMail, [conn.partnerId, data.mailObjId], isValidData, false, false, true);
     };
+    this.readMail.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.partnerId && data && data.mailObjId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.readMail, [conn.partnerId, data.mailObjId], isValidData, false, false, true);
+    };
 
 };
 var proto = PartnerServiceImplement.prototype = Object.create(PartnerService.prototype);
