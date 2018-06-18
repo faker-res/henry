@@ -4295,7 +4295,6 @@ function getProviderCredit(providers, playerName, platformId) {
                     providerCredit += !isNaN(provider.credit) ? parseFloat(provider.credit) : 0;
                 }
             });
-
         });
 
     return providerCredit;
