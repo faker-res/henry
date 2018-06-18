@@ -190,10 +190,10 @@ var weeklyPlatformSettlement = {
             //         errArr.push(error);
             //         console.error(new Date(), "startWeeklyPlatformRewardEventSettlement failed!", error);
             //     }
-        ).then(
-            function () {
-                return partnerSummary.performPartnerLevelMigration(platformId).catch(errorUtils.reportError);
-            }
+            // ).then(
+            //     function () {
+            //         return partnerSummary.performPartnerLevelMigration(platformId).catch(errorUtils.reportError);
+            //     }
             // ).catch(
             //     function (error) {
             //         errArr.push(error);
