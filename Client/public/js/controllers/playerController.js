@@ -24432,6 +24432,7 @@ define(['js/app'], function (myApp) {
             vm.partnerBasic.partnerNameMinLength = vm.selectedPlatform.data.partnerNameMinLength;
             vm.partnerBasic.partnerAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.partnerAllowSamePhoneNumberToRegister;
             vm.partnerBasic.partnerSamePhoneNumberRegisterCount = vm.selectedPlatform.data.partnerSamePhoneNumberRegisterCount;
+            vm.partnerBasic.partnerAllowSameRealNameToRegister = vm.selectedPlatform.data.partnerAllowSameRealNameToRegister;
             vm.partnerBasic.whiteListingPhoneNumbers = "";
             vm.partnerBasic.blackListingPhoneNumbers = "";
             vm.partnerBasic.partnerRequireSMSVerification = vm.selectedPlatform.data.partnerRequireSMSVerification;
@@ -25111,6 +25112,7 @@ define(['js/app'], function (myApp) {
                     partnerNameMinLength: srcData.partnerNameMinLength,
                     partnerAllowSamePhoneNumberToRegister: srcData.partnerAllowSamePhoneNumberToRegister,
                     partnerSamePhoneNumberRegisterCount: srcData.partnerSamePhoneNumberRegisterCount,
+                    partnerAllowSameRealNameToRegister: srcData.partnerAllowSameRealNameToRegister,
                     whiteListingPhoneNumbers: whiteListingPhoneNumbers,
                     blackListingPhoneNumbers: blackListingPhoneNumbers,
                     partnerRequireSMSVerification: srcData.partnerRequireSMSVerification,
