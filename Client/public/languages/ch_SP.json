@@ -2757,6 +2757,7 @@
   "partnerNameMinLength": "(代理帐号)最低长度",
   "partnerAllowSamePhoneNumberToRegister": "（代理帐号）允许相同电话号码前端开户",
   "partnerSamePhoneNumberRegisterCount": "（承上-代理帐号）相同电话号码开户次数",
+  "partnerAllowSameRealNameToRegister": "（代理帐号）允许相同真实姓名前端开户",
   "partnerRequireSMSVerification": "（代理帐号）注册需短信验证",
   "partnerRequireSMSVerificationForPasswordUpdate": "（代理帐号）修改密码需短信验证",
   "partnerRequireSMSVerificationForPaymentUpdate": "（代理帐号）修改支付资料需短信验证",

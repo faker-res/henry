@@ -258,6 +258,8 @@ var platformSchema = new Schema({
     partnerNameMinLength: {type: Number, default: 0},
     // allow partner same phone number to register
     partnerAllowSamePhoneNumberToRegister: {type: Boolean, default: true},
+    // allow partner same real name to register
+    partnerAllowSameRealNameToRegister: {type: Boolean, default: true},
     // same partner phone number to register count
     partnerSamePhoneNumberRegisterCount: {type: Number, default: 1},
     // partner white listing phone number
