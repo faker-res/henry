@@ -20,6 +20,7 @@ var dbutility = require("../modules/dbutility.js");
 const rewardUtil = require("../modules/rewardUtility");
 const constSettlementPeriod = require("../const/constSettlementPeriod");
 var platformRewardSettlement = require("./platformRewardSettlement");
+var errorUtils = require("../modules/errorUtils.js");
 
 var weeklyPlatformSettlement = {
 
@@ -172,7 +173,7 @@ var weeklyPlatformSettlement = {
         return Q.resolve(a).then(
             function (a) {
                 settlementTime = a.startTime;
-                return weeklyPlatformSettlement.generateWeeklyPlatformSummaries(platformId);
+                return weeklyPlatformSettlement.generateWeeklyPlatformSummaries(platformId).catch(errorUtils.reportError);
             }
             // ).catch(
             //     function (error) {
@@ -191,7 +192,7 @@ var weeklyPlatformSettlement = {
             //     }
         ).then(
             function () {
-                return partnerSummary.performPartnerLevelMigration(platformId);
+                return partnerSummary.performPartnerLevelMigration(platformId).catch(errorUtils.reportError);
             }
             // ).catch(
             //     function (error) {
