@@ -1180,6 +1180,22 @@
     </div>
 </div>
 
+<h3>Read mail (读站内信)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Mail ObjectId
+            <input type="text" name="mailObjId">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="readMail">Read</button>
+        <div>
+            <textarea></textarea>
+        </div>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPartnerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
         function (ClientServices, WebSocketClient, TestHelper, ClientPartnerAPITest, ClientConnectionAPITest) {
