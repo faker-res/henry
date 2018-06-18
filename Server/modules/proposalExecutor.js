@@ -4284,6 +4284,7 @@ function getProviderCredit(providers, playerName, platformId) {
                 ).then(
                     data => data,
                     error => {
+                        console.log("error when getting provider credit", error);
                         return {credit: 0};
                     }
                 )
