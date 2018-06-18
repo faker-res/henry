@@ -3474,18 +3474,47 @@ var dbPlatform = {
 
             // 短信组设置
             // smsGroup
+            let oldNewSmsId = {};
             let copySmsGroupProm = dbconfig.collection_smsGroup.remove({platformObjId: replicateTo._id}).then(
                 () => {
                     return dbconfig.collection_smsGroup.find({platformObjId: replicateFrom._id}).lean();
                 }
             ).then(
                 smsGroups => {
-                    let proms = [];
+                    let asyncProms = Promise.resolve();
                     smsGroups.map(smsGroup => {
+                        let oldSmsId = smsGroup.smsId;
                         delete smsGroup._id;
+                        delete smsGroup.smsId;
                         smsGroup.platformObjId = replicateTo._id;
-                        let prom = dbconfig.collection_smsGroup(smsGroup).save().catch(errorUtils.reportError);
-                        proms.push(prom);
+                        asyncProms = asyncProms.then(() => {
+                            return dbconfig.collection_smsGroup(smsGroup).save();
+                        }).then(
+                            newSmsGroup => {
+                                if (newSmsGroup && newSmsGroup.smsId) {
+                                    oldNewSmsId[oldSmsId] = newSmsGroup.smsId;
+                                }
+                            }
+                        ).catch(errorUtils.reportError);
+                    });
+
+                    return asyncProms;
+                }
+            ).then(
+                () => dbconfig.collection_smsGroup.find({platformObjId: replicateTo._id}).lean()
+            ).then(
+                newGroups => {
+                    if (!newGroups || newGroups.length < 1) {
+                        return [];
+                    }
+
+                    let proms = [];
+
+                    newGroups.map(newGroup => {
+                        if (newGroup.smsParentSmsId != -1 && oldNewSmsId[newGroup.smsParentSmsId]) {
+                            let prom = dbconfig.collection_smsGroup.update({_id: newGroup._id}, {smsParentSmsId: oldNewSmsId[newGroup.smsParentSmsId]});
+                            proms.push(prom);
+                        }
                     });
 
                     return Promise.all(proms);
@@ -3494,7 +3523,6 @@ var dbPlatform = {
 
             // 敏感词设置
             // keywordFilter
-
             let copyKeywordFilterProm = dbconfig.collection_keywordFilter.remove({platform: replicateTo._id}).then(
                 () => dbconfig.collection_keywordFilter.find({platform: replicateFrom._id}).lean()
             ).then(
@@ -3549,19 +3577,64 @@ var dbPlatform = {
 
             // 游戏组 // 不用包含的游戏，只要组的设置
             // platformGameGroup (where games should be empty array)
+            let oldNewPlatformGameGroupId = {};
             let copyPlatformGameGroupProm = dbconfig.collection_platformGameGroup.remove({platform: replicateTo._id}).then(
                 () => dbconfig.collection_platformGameGroup.find({platform: replicateFrom._id}).lean()
             ).then(
                 platformGameGroups => {
-                    let proms = [];
+                    let asyncProms = Promise.resolve();
                     platformGameGroups.map(platformGameGroup => {
+                        let platformGameGroupId = String(platformGameGroup._id);
                         delete platformGameGroup._id;
                         delete platformGameGroup.groupId;
                         delete platformGameGroup.code;
                         platformGameGroup.games = [];
                         platformGameGroup.platform = replicateTo._id;
-                        let prom = dbconfig.collection_platformGameGroup(platformGameGroup).save().catch(errorUtils.reportError);
-                        proms.push(prom);
+                        asyncProms = asyncProms.then(() => {
+                            return dbconfig.collection_platformGameGroup(platformGameGroup).save();
+                        }).then(newPlatformGameGroup => {
+                            oldNewPlatformGameGroupId[platformGameGroupId] = newPlatformGameGroup._id;
+                        }).catch(errorUtils.reportError);
+                    });
+
+                    return asyncProms;
+                }
+            ).then(
+                () => dbconfig.collection_platformGameGroup.find({platform: replicateTo._id}).lean()
+            ).then(
+                newGameGroups => {
+                    let proms = [];
+
+                    newGameGroups.map(newGameGroup => {
+                        let childrenIds = [];
+                        let parentId = "";
+                        let needUpdate = false;
+                        if (newGameGroup.children && newGameGroup.children.length > 0) {
+                            needUpdate = true;
+                            newGameGroup.children.map(child => {
+                                if (oldNewPlatformGameGroupId[String(child)]) {
+                                    childrenIds.push(oldNewPlatformGameGroupId[String(child)]);
+                                }
+                            });
+                        }
+
+                        if (newGameGroup.parent && oldNewPlatformGameGroupId[String(newGameGroup.parent)]) {
+                            needUpdate = true;
+                            parentId = oldNewPlatformGameGroupId[String(newGameGroup.parent)]
+                        }
+
+                        if (needUpdate) {
+                            let updateData = {};
+                            if (childrenIds.length > 0) {
+                                updateData.children = childrenIds;
+                            }
+                            if (parentId) {
+                                updateData.parent = parentId;
+                            }
+
+                            let prom = dbconfig.collection_platformGameGroup.update({_id: newGameGroup._id}, updateData);
+                            proms.push(prom)
+                        }
                     });
 
                     return Promise.all(proms);
@@ -3577,11 +3650,12 @@ var dbPlatform = {
                 rewardEvents => {
                     let proms = [];
                     rewardEvents.map(rewardEvent => {
+                        let rewardEventId = String(rewardEvent._id);
                         delete rewardEvent._id;
                         if (rewardEvent.condition) delete rewardEvent.condition.providerGroup;
                         rewardEvent.platform = replicateTo._id;
                         let prom = dbconfig.collection_rewardEvent(rewardEvent).save().then(newRewardEvent => {
-                            oldNewEventObjId[String(rewardEvent._id)] = String(newRewardEvent._id);
+                            oldNewEventObjId[rewardEventId] = String(newRewardEvent._id);
                             return newRewardEvent;
                         }).catch(errorUtils.reportError);
                         proms.push(prom);

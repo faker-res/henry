@@ -9483,12 +9483,16 @@ let dbPlayerInfo = {
             ).then(
                 RTG => {
                     if (RTG) {
-                        if(RTG.curConsumption >= RTG.targetConsumption) {
-                            return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
-                                _id: RTG._id
-                            }, {
-                                status: constRewardTaskStatus.SYSTEM_UNLOCK
-                            }, {new: true}).lean().then(
+                        let consumptionOffset = Number.isFinite(Number(platform.autoApproveConsumptionOffset)) ? Number(platform.autoApproveConsumptionOffset) : 0;
+                        let curConsumption = Number.isFinite(Number(RTG.curConsumption)) ? Number(RTG.curConsumption) : 0;
+                        let currentConsumption = curConsumption + consumptionOffset;
+
+                        let targetConsumption = Number.isFinite(Number(RTG.targetConsumption)) ? Number(RTG.targetConsumption) : 0;
+                        let forbidXIMAAmt = Number.isFinite(Number(RTG.forbidXIMAAmt)) ? Number(RTG.forbidXIMAAmt) : 0;
+                        let totalTargetConsumption = targetConsumption + forbidXIMAAmt;
+
+                        if(currentConsumption >= totalTargetConsumption) {
+                            return dbRewardTaskGroup.unlockRewardTaskGroupByObjId(RTG) .then(
                                 () => {
                                     return findStartedRewardTaskGroup(player.platform, player._id);
                                 }
@@ -16597,7 +16601,64 @@ let dbPlayerInfo = {
                 }
             }
         );
-    }
+    },
+
+    getPagedSimilarPhoneForPlayers: function (playerId, platformId, phoneNumber, isRealPlayer, index, limit, sortCol) {
+        let playerObjId = playerId ? ObjectId(playerId) : "";
+        let platformObjId = platformId ? ObjectId(platformId) : "";
+        let encryptedPhoneNumber = phoneNumber ? {$in: [rsaCrypto.encrypt(phoneNumber), phoneNumber]} : "";
+
+        let similarPhoneCountProm = dbconfig.collection_players.find({
+            _id: {$ne: playerObjId},
+            platform: platformObjId,
+            phoneNumber: encryptedPhoneNumber,
+            isRealPlayer: isRealPlayer,
+        }).count();
+
+        let similarPhoneProm = dbconfig.collection_players.find({
+            _id: {$ne: playerObjId},
+            platform: platformObjId,
+            phoneNumber: encryptedPhoneNumber,
+            isRealPlayer: isRealPlayer,
+        }).populate({
+            path: 'playerLevel',
+            model: dbconfig.collection_playerLevel
+        }).sort(sortCol).skip(index).limit(limit).lean();
+
+        return Promise.all([similarPhoneCountProm, similarPhoneProm]).then(
+            data => {
+                return {total: data[0], data: data[1]};
+            }
+        );
+    },
+
+    getPagedSimilarIpForPlayers: function (playerId, platformId, lastLoginIp, isRealPlayer, index, limit, sortCol) {
+        let playerObjId = playerId ? ObjectId(playerId) : "";
+        let platformObjId = platformId ? ObjectId(platformId) : "";
+
+        let similarIpCountProm = dbconfig.collection_players.find({
+            _id: {$ne: playerObjId},
+            platform: platformObjId,
+            loginIps: {$in: [lastLoginIp]},
+            isRealPlayer: isRealPlayer,
+        }).count();
+
+        let similarIpProm = dbconfig.collection_players.find({
+            _id: {$ne: playerObjId},
+            platform: platformObjId,
+            loginIps: {$in: [lastLoginIp]},
+            isRealPlayer: isRealPlayer,
+        }).populate({
+            path: 'playerLevel',
+            model: dbconfig.collection_playerLevel
+        }).sort(sortCol).skip(index).limit(limit).lean();
+
+        return Promise.all([similarIpCountProm, similarIpProm]).then(
+            data => {
+                return {total: data[0], data: data[1]};
+            }
+        );
+    },
 
 };
 
