@@ -16883,16 +16883,16 @@ function getProviderCredit(providers, playerName, platformId) {
         }
     });
 
-    Promise.all(promArr)
+    return Promise.all(promArr)
         .then(providerCreditData => {
             providerCreditData.forEach(provider => {
                 if (provider && provider.hasOwnProperty("credit")) {
                     providerCredit += !isNaN(provider.credit) ? parseFloat(provider.credit) : 0;
                 }
             });
+            return providerCredit;
         });
 
-    return providerCredit;
 }
 
 function isRandomRewardConsumption (rewardEvent) {
