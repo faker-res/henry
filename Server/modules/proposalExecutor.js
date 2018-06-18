@@ -3615,9 +3615,6 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                             if (isHitAutoUnlockThreshold) {
                                 if (rtg && rtg._id) {
                                     console.log("before system unlock - providerCredit ", providerCredit);
-                                    console.log("before system unlock - validCredit ", validCredit);
-                                    console.log("before system unlock - playerId", rtg.playerId || "");
-                                    console.log("before system unlock - rewardTaskGroup", rtg);
                                     rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
 
                                 }
@@ -4284,7 +4281,6 @@ function getProviderCredit(providers, playerName, platformId) {
                 ).then(
                     data => data,
                     error => {
-                        console.log("error when getting provider credit", error);
                         return {credit: 0};
                     }
                 )
@@ -4292,15 +4288,17 @@ function getProviderCredit(providers, playerName, platformId) {
         }
     });
 
-    return Promise.all(promArr)
+    Promise.all(promArr)
         .then(providerCreditData => {
             providerCreditData.forEach(provider => {
                 if (provider && provider.hasOwnProperty("credit")) {
                     providerCredit += !isNaN(provider.credit) ? parseFloat(provider.credit) : 0;
                 }
             });
-            return providerCredit;
+
         });
+
+    return providerCredit;
 }
 
 var proto = proposalExecutorFunc.prototype;
