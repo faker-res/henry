@@ -8188,6 +8188,22 @@ let dbPartner = {
         );
     },
 
+    readMail: (partnerId, mailObjId) => {
+        return dbconfig.collection_playerMail.findOne({_id: mailObjId}).populate(
+            {path: "recipientId", model: dbconfig.collection_partner}
+        ).then(
+            mailData => {
+                if (mailData && mailData.recipientId && mailData.recipientId.partnerId == partnerId) {
+                    mailData.hasBeenRead = true;
+                    return mailData.save();
+                }
+                else {
+                    return Q.reject({name: "DBError", message: "Invalid Mail id"});
+                }
+            }
+        );
+    },
+
 };
 
 
