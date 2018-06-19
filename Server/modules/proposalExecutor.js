@@ -3614,7 +3614,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
 
                             if (isHitAutoUnlockThreshold) {
                                 if (rtg && rtg._id) {
-                                    console.log("LH Check providerCredit before system unlock", providerCredit);
+                                    console.log("before system unlock - providerCredit ", providerCredit);
                                     rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
 
                                 }

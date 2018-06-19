@@ -4504,12 +4504,28 @@ let dbPlayerInfo = {
                     var geoInfo = {};
                     if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
                         geoInfo = {
-                            country: geo ? geo.country : null,
-                            city: geo ? geo.city : null,
+                            // country: geo ? geo.country : null,
+                            // city: geo ? geo.city : null,
                             longitude: geo && geo.ll ? geo.ll[1] : null,
                             latitude: geo && geo.ll ? geo.ll[0] : null
                         }
                     }
+
+                    if(playerData.lastLoginIp && playerData.lastLoginIp != "undefined"){
+                        var ipData = dbUtility.getIpLocationByIPIPDotNet(playerData.lastLoginIp);
+                        if(ipData){
+                            geoInfo.ipArea = ipData;
+                            geoInfo.country = ipData.country || null;
+                            geoInfo.city = ipData.city || null;
+                            geoInfo.province = ipData.province || null;
+                        }else{
+                            geoInfo.ipArea = {'province':'', 'city':''};
+                            geoInfo.country = "";
+                            geoInfo.city = "";
+                            geoInfo.province = "";
+                        }
+                    }
+
                     Object.assign(updateData, geoInfo);
                     if (playerData.lastLoginIp && !playerObj.loginIps.includes(playerData.lastLoginIp)) {
                         updateData.$push = {loginIps: playerData.lastLoginIp};
