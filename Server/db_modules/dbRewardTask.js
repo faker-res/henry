@@ -366,7 +366,7 @@ const dbRewardTask = {
                 }
                 else {
                     // Failed create reward task group or increase amount
-                    return Q.reject({name: "DBError", message: "Error creating reward task", error: error})
+                    return Q.reject({name: "DBError", message: "Error creating reward task"})
                 }
             }
         )
