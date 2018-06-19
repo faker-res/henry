@@ -420,7 +420,7 @@ var dbPlayerConsumptionWeekSummary = {
                                                             consumedValidAmount = doneXIMAConsumption["GameType:" + el._id].consumeValidAmount;
                                                         }
 
-                                                        let freeConsumption = el.validAmount - consumedValidAmount;
+                                                        let freeConsumption = parseFloat(el.validAmount - consumedValidAmount).toFixed(2);
                                                         let consumpDiff = el.validAmount - curValidAmt - curNonXIMAAmt - consumedValidAmount;
                                                         let returnRatio = proposalData.data.returnDetail["GameType:" + el._id] ? proposalData.data.returnDetail["GameType:" + el._id].ratio : 0;
 
