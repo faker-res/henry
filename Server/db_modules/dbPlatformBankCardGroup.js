@@ -280,11 +280,13 @@ var dbPlatformBankCardGroup = {
     },
 
     syncBankCardGroupData: function (platformObjId) {
+        console.log("20180619 syncBankCardGroupData");
         let platformId = null;
         let cardList = [];
         let newCards = [];
         return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
             platform => {
+                console.log("platform",platform);
                 if (platform) {
                     platformId = platform.platformId;
                     return pmsAPI.bankcard_getBankcardList(
@@ -297,11 +299,13 @@ var dbPlatformBankCardGroup = {
             }
         ).then(
             data => {
+                console.log("pmsAPI.bankcard_getBankcardList",data);
                 if (data && data.data) {
                     let cards = data.data;
                     let updateCardProm = [];
                     cardList = cards;
                     return dbconfig.collection_platformBankCardList.find({platformId: platformId}).lean().then(oldCards => {
+                        console.log("oldCards",oldCards);
                         cards.forEach(card => {
                             if(oldCards && oldCards.length > 0) {
                                 let match = false;
@@ -347,6 +351,7 @@ var dbPlatformBankCardGroup = {
                 let cardNumbers = cardList.map(card => card.accountNumber);
                 return dbconfig.collection_platformBankCardList.find({accountNumber: {$nin: cardNumbers}}).lean().then(
                     deletedCards => {
+                        console.log("deletedCards",deletedCards);
                         if(deletedCards && deletedCards.length > 0) {
                             let deletedCardNumbers = [];
                             deletedCards.forEach(card => {deletedCardNumbers.push(card.accountNumber);});
@@ -357,6 +362,7 @@ var dbPlatformBankCardGroup = {
             }
         ).then(
             () => {
+                console.log("newCards",newCards);
                 if(newCards && newCards.length > 0) {
                     return dbconfig.collection_platformBankCardGroup.update(
                         {platform: platformObjId, bDefault: true},
@@ -366,6 +372,7 @@ var dbPlatformBankCardGroup = {
             }
         ).then(
             () => {
+                console.log("cardList",merchantList);
                 if (cardList && cardList.length > 0) {
                     let bankCards = cardList.map(card => card.accountNumber);
                     return dbconfig.collection_platformBankCardGroup.update(
