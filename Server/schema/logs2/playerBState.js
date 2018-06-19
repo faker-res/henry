@@ -10,6 +10,8 @@ let playerBStateSchema = new Schema({
     transferToProvider: {type: Boolean, default: false},
     // Player Level
     playerLevelMigration: {type: Boolean, default: false},
+    // last update player level time
+    lastApplyLevelUp: {type: Date, default: new Date()},
     // Player convert reward point
     convertRewardPointsToCredit: {type: Boolean, default: false}
 });
