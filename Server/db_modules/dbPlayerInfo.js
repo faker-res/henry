@@ -3024,56 +3024,73 @@ let dbPlayerInfo = {
                 return Promise.all([platformProm]).then(platformData => {
                     if (platformData && platformData[0]) {
                         platform = platformData[0];
-
+                        let calCreditArr = [];
                         return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: player._id})
                             .then(rtgData => {
                                 if (rtgData && rtgData.length) {
-                                    let rtgArr = [];
                                     rtgData.forEach(rtg => {
-                                    let totalCredit = 0;
-                                    let providerCredit = 0
-                                    let isHitAutoUnlockThreshold = false;
+                                        if(rtg) {
+                                            if (rtg.providerGroup && rtg.providerGroup._id) {
+                                                rtg.totalCredit = rtg.rewardAmt || 0;
+                                                let calCreditProm = dbconfig.collection_gameProviderGroup.findOne({_id: rtg.providerGroup._id})
+                                                    .populate({path: "providers", model: dbconfig.collection_gameProvider}).lean().then(
+                                                        providerGroup => {
+                                                            if (providerGroup && providerGroup.providers && providerGroup.providers.length) {
+                                                                return getProviderCredit(providerGroup.providers, player.name, platform.platformId).then(
+                                                                    credit => {
+                                                                        if(credit){
+                                                                            rtg.totalCredit += credit;
+                                                                        }
 
-                                        if (rtg.providerGroup && rtg.providerGroup._id) {
-                                            let rewardAmount = rtg && rtg.rewardAmt ? rtg.rewardAmt : 0;
-                                            let gameProviderGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: rtg.providerGroup._id})
-                                                .populate({path: "providers", model: dbconfig.collection_gameProvider}).lean();
+                                                                        return rtg;
+                                                                    }
+                                                                )
+                                                            }
+                                                        }
+                                                );
 
-                                            Promise.all([gameProviderGroupProm]).then(providerGroup => {
-                                                if (providerGroup && providerGroup[0] && providerGroup[0].providers && providerGroup[0].providers.length) {
-                                                    providerCredit = getProviderCredit(providerGroup[0].providers, player.name, platform.platformId);
-                                                }
-                                            });
+                                                calCreditArr.push(calCreditProm);
+                                            } else if (!rtg.providerGroup) {
+                                                rtg.totalCredit = player && player.validCredit ? player.validCredit : 0;
+                                                let calCreditProm = getProviderCredit(platform.gameProviders, player.name, platform.platformId).then(
+                                                    credit => {
+                                                        if(credit){
+                                                            rtg.totalCredit += credit;
+                                                        }
 
-                                            totalCredit = providerCredit + rewardAmount;
+                                                        return rtg;
+                                                    }
+                                                );
 
-                                        } else if (!rtg.providerGroup) {
-                                            let validCredit = player && player.validCredit ? player.validCredit : 0;
-                                            providerCredit = getProviderCredit(platform.gameProviders, player.name, platform.platformId);
-                                            totalCredit = providerCredit + validCredit;
-
-                                        }
-
-                                        if (platform && platform.autoUnlockWhenInitAmtLessThanLostThreshold && platform.autoApproveLostThreshold) {
-                                            if (totalCredit <= platform.autoApproveLostThreshold) {
-                                                isHitAutoUnlockThreshold = true;
+                                                calCreditArr.push(calCreditProm);
                                             }
-                                        }
-
-                                        if (isHitAutoUnlockThreshold) {
-                                            if (rtg && rtg._id) {
-                                                rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
-                                            }
-                                        }
+                                    }
                                     });
-                                    return Promise.all(rtgArr);
+                                    return Promise.all(calCreditArr);
                                 }
                             });
                     }
                 });
 
             }
-        }).then(() => {
+        }).then(
+            rewardTaskGroup => {
+                if(rewardTaskGroup){
+                    let rtgArr = [];
+                    rewardTaskGroup.forEach(
+                        rtg => {
+                            if(rtg && platform && rtg._id && rtg.totalCredit && platform.autoUnlockWhenInitAmtLessThanLostThreshold
+                                && platform.autoApproveLostThreshold && rtg.totalCredit <= platform.autoApproveLostThreshold){
+
+                                rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
+                            }
+                        }
+                    )
+
+                    return Promise.all(rtgArr);
+                }
+            }
+        ).then(() => {
 
             dbUtility.findOneAndUpdateForShard(
                 dbconfig.collection_players,
@@ -17129,6 +17146,7 @@ function getProviderCredit(providers, playerName, platformId) {
                 ).then(
                     data => data,
                     error => {
+                        console.log("error when getting provider credit", error);
                         return {credit: 0};
                     }
                 )
@@ -17136,16 +17154,17 @@ function getProviderCredit(providers, playerName, platformId) {
         }
     });
 
-    Promise.all(promArr)
+    return Promise.all(promArr)
         .then(providerCreditData => {
             providerCreditData.forEach(provider => {
                 if (provider && provider.hasOwnProperty("credit")) {
                     providerCredit += !isNaN(provider.credit) ? parseFloat(provider.credit) : 0;
                 }
             });
+            return providerCredit;
         });
 
-    return providerCredit;
+
 }
 
 function isRandomRewardConsumption (rewardEvent) {
