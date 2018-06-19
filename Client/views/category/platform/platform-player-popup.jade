@@ -248,7 +248,7 @@
                                                     .col-sm-4(style='white-space: nowrap;')
                                                         label {{"REGISTRATION_IP" | translate}}
                                                     .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.lastLoginIp || 'Unknown' | translate}}
+                                                        text {{vm.selectedSinglePlayer.loginIps && vm.selectedSinglePlayer.loginIps[0] || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
                                                     .col-sm-4(style='white-space: nowrap;')
