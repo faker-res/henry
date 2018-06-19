@@ -4569,6 +4569,9 @@ let dbPlayerInfo = {
                             ).then(
                                 () => {
                                     dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
+                                        path: "platform",
+                                        model: dbconfig.collection_platform
+                                    }).populate({
                                         path: "playerLevel",
                                         model: dbconfig.collection_playerLevel
                                     }).populate({
