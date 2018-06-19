@@ -348,7 +348,7 @@ var dbPlatformMerchantGroup = {
                 if(newMerchants && newMerchants.length > 0) {
                     return dbconfig.collection_platformMerchantGroup.update(
                         {platform: platformObjId, bDefault: true},
-                        {$push: {
+                        {$addToSet: {
                             merchants: {$each: newMerchants},
                             merchantNames: {$each: newMerchantNames}
                         }}
