@@ -201,7 +201,7 @@ let dbPlatformWechatPayGroup = {
                 if(newWechats && newWechats.length > 0) {
                     return dbconfig.collection_platformWechatPayGroup.update(
                         {platform: platformObjId, bDefault: true},
-                        {$push: {
+                        {$addToSet: {
                             wechats: {$each: newWechats}
                         }}
                     );
