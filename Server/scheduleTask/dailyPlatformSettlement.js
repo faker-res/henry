@@ -195,7 +195,7 @@ var dailyPlatformSettlement = {
         console.log("calculateDailyPlatformSettlement");
         return Q.resolve().then(
             () => playerSummary.calculateYesterdayPlayerConsumptionSummary(platformId).catch(
-                error => Q.reject({
+                error => console.log({
                     name: "DBError",
                     message: "Error calculating player consumption summary!",
                     error: error
@@ -203,11 +203,11 @@ var dailyPlatformSettlement = {
             )
         ).then(
             () => playerSummary.calculateYesterdayPlayerTopUpSummary(platformId).catch(
-                error => Q.reject({name: "DBError", message: "Error calculating player top up summary!", error: error})
+                error => console.log({name: "DBError", message: "Error calculating player top up summary!", error: error})
             )
         ).then(
             () => playerSummary.calculateYesterdayActiveValidPlayerSummary(platformId).catch(
-                error => Q.reject({name: "DBError", message: "Error calculating platform day summary!", error: error})
+                error => console.log({name: "DBError", message: "Error calculating platform day summary!", error: error})
             )
         // ).then(
         //     () => platformRewardSettlement.startPlatformRewardEventSettlement(platformId, constSettlementPeriod.DAILY).catch(
@@ -220,11 +220,11 @@ var dailyPlatformSettlement = {
         ).then(
             // We want to do this before the player level data is reset below
             () => dbPlatform.checkPlayerLevelDownForPlatform(platformId).catch(
-                error => Q.reject({name: "DBError", message: "Error checking player level down!", error: error})
+                error => console.log({name: "DBError", message: "Error checking player level down!", error: error})
             )
         ).then(
             () => dbPlatform.resetPlatformPlayerLevelData(platformId).catch(
-                error => Q.reject({
+                error => console.log({
                     name: "DBError",
                     message: "Error resetting platform player level data!",
                     error: error

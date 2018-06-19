@@ -4197,6 +4197,10 @@ define(['js/app'], function (myApp) {
                 let city = ipArea.city ? ipArea.city : '';
                 if (province && city) {
                     result = province + ', ' + city;
+                }else if(province){
+                    result = province;
+                }else if(city){
+                    result = city;
                 }
                 return result
             }

@@ -308,7 +308,7 @@ let dbPlayerRewardPoints = {
                         });
                     }
                     playerInfo = player;
-                    return dbRewardPoints.getPlayerRewardPoints(ObjectId(player._id));
+                    return dbRewardPoints.getPlayerRewardPoints(ObjectId(player._id), playerInfo);
                 },
                 error => {
                     return Q.reject({name: "DBError", message: "Error updating player.", error: error});

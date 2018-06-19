@@ -433,7 +433,8 @@
                 "notifyNewMail",
                 "getMailList",
                 "deleteAllMail",
-                "deleteMail"
+                "deleteMail",
+                "readMail"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

@@ -30,13 +30,16 @@ let dbRewardPoints = {
                 if (!rewardPointsData) {
                     return dbRewardPoints.createRewardPoints(playerObjId, playerData);
                 }
-                else if (playerData && playerData.playerLevel && rewardPointsData.playerLevel && rewardPointsData.playerLevel.toString() !== playerData.playerLevel.toString()) {
-                    return dbRewardPoints.updateRewardPointsPlayerLevel(rewardPointsData._id, playerData.playerLevel);
+                else if (playerData && playerData.playerLevel && rewardPointsData.playerLevel && rewardPointsData.playerLevel.toString() !== (playerData.playerLevel._id || playerData.playerLevel).toString()) {
+                    return dbRewardPoints.updateRewardPointsPlayerLevel(rewardPointsData._id, (playerData.playerLevel._id || playerData.playerLevel));
+                }
+                else if (playerData && String(playerData.rewardPointsObjId) != String(rewardPointsData._id)) {
+                    dbRewardPoints.updatePlayerRewardPointObjectId(playerObjId, playerData.platform, rewardPointsData._id).catch(errorUtils.reportError);
                 }
 
                 return rewardPointsData;
             }
-        )
+        );
     },
 
     updateRewardPointsPlayerLevel: (rewardPointsObjId, playerLevelObjId) => {
@@ -58,6 +61,7 @@ let dbRewardPoints = {
     createRewardPoints: (playerObjId, playerData) => {
         // playerData is an optional parameter
         let playerDataProm = Promise.resolve(playerData);
+        let player;
 
         if (!playerData) {
             playerDataProm = dbConfig.collection_players.findOne({_id: playerObjId}, {
@@ -68,13 +72,15 @@ let dbRewardPoints = {
         }
 
         return playerDataProm.then(
-            player => {
-                if (!player) {
+            playerData => {
+                if (!playerData) {
                     return Promise.reject({
                         name: "DataError",
                         message: "Invalid player."
                     });
                 }
+
+                player = playerData;
 
                 let newRewardPointsData = {
                     platformObjId: player.platform,
@@ -86,7 +92,18 @@ let dbRewardPoints = {
                 let newRewardPoints = new dbConfig.collection_rewardPoints(newRewardPointsData);
                 return newRewardPoints.save();
             }
+        ).then(
+            newRewardPoints => {
+                if (newRewardPoints && newRewardPoints._id) {
+                    dbRewardPoints.updatePlayerRewardPointObjectId(player._id, player.platform, newRewardPoints._id).catch(errorUtils.reportError);
+                }
+                return newRewardPoints;
+            }
         );
+    },
+
+    updatePlayerRewardPointObjectId: (playerObjId, platformObjId, rewardPointObjectId) => {
+        return dbConfig.collection_players.findOneAndUpdate({_id: playerObjId, platform: platformObjId}, {rewardPointsObjId: rewardPointObjectId}, {new: true}).lean();
     },
 
     updateLoginRewardPointProgress: (playerData, provider, inputDevice) => {
