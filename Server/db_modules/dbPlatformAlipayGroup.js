@@ -148,7 +148,8 @@ var dbPlatformAlipayGroup = {
                                 updateAlipayProm.push(
                                     dbconfig.collection_platformAlipayList.findOneAndUpdate(
                                         {
-                                            accountNumber: alipay.accountNumber
+                                            accountNumber: alipay.accountNumber,
+                                            platformId: platformId
                                         },
                                         {
                                             accountNumber: alipay.accountNumber,
@@ -171,12 +172,12 @@ var dbPlatformAlipayGroup = {
         ).then(
             () => {
                 let alipayAccountNumbers = alipayList.map(alipay => alipay.accountNumber);
-                return dbconfig.collection_platformAlipayList.find({accountNumber: {$nin: alipayAccountNumbers}}).lean().then(
+                return dbconfig.collection_platformAlipayList.find({platformId: platformId, accountNumber: {$nin: alipayAccountNumbers}}).lean().then(
                     deletedAlipays => {
                         if(deletedAlipays && deletedAlipays.length > 0) {
                             let deletedAccountNumbers = [];
                             deletedAlipays.forEach(alipay => {deletedAccountNumbers.push(alipay.accountNumber);});
-                            return dbconfig.collection_platformAlipayList.remove({'accountNumber':{'$in': deletedAccountNumbers}})
+                            return dbconfig.collection_platformAlipayList.remove({platformId: platformId, accountNumber:{'$in': deletedAccountNumbers}})
                         }
                     }
                 )
