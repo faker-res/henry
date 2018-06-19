@@ -11,28 +11,6 @@ function callCPMSAPI(service, functionName, data) {
     if (!data) {
         return Q.reject(new Error("Invalid data!"));
     }
-
-    //CPMS API functions that do not allow access to demo player / test player
-    const demoPlayerDisallowedFunctions = [
-        "queryCredit",
-        "transferIn",
-        "transferOut",
-        "getLoginURL"
-    ];
-    const demoPlayerDisallowedFunctionsErrorMessage = {
-        queryCredit: "Unable to check game credit for demo player",
-        transferIn: "Unable to transfer credit for demo player",
-        transferOut: "Unable to transfer credit for demo player",
-        getLoginURL: "Unable to get login URL for demo player"
-    };
-    //verify if it is demo player / test player by checking whether first character is 'f', and check if it is calling to disallowed function
-    if(data && typeof data.username === "string" && data.username.charAt(0).toLowerCase() === "f" && demoPlayerDisallowedFunctions.indexOf(functionName) >= 0) {
-        return Q.reject({
-            name: "DataError",
-            message: demoPlayerDisallowedFunctionsErrorMessage[functionName]
-        })
-    }
-
     // var wsClient = serverInstance.getCPAPIClient();
     // if (!wsClient || !wsClient.isOpen()) {
     //     return Q.reject({
