@@ -147,16 +147,12 @@ var dbPlayerConsumptionWeekSummary = {
         var settleTime = period == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         var balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
-            // This collects players who have dirty records in the time range, although dirty records will not actually be used during processing.
-            // var stream = dbPlayerConsumptionRecord.streamPlayersWithConsumptionSummaryInTimeFrame(startTime, endTime, platformId);
-
-            var query = dbconfig.collection_playerConsumptionSummary.aggregate(
+            let query = dbconfig.collection_playerConsumptionRecord.aggregate(
                 [
                     {
                         $match: {
                             platformId: platformId,
-                            summaryDay: {$gte: settleTime.startTime, $lt: settleTime.endTime},
-                            bDirty: false
+                            createTime: {$gte: settleTime.startTime, $lt: settleTime.endTime}
                         }
                     },
                     {
@@ -580,6 +576,7 @@ var dbPlayerConsumptionWeekSummary = {
                                                             );
                                                         }
                                                         else {
+                                                            summary.dirtyDate = Date.now();
                                                             var dirtySummary = new dbconfig.collection_playerConsumptionSummary(summary);
                                                             return dirtySummary.save();
                                                         }
