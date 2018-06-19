@@ -323,7 +323,8 @@ var dbPlatformBankCardGroup = {
                                 updateCardProm.push(
                                     dbconfig.collection_platformBankCardList.findOneAndUpdate(
                                         {
-                                            accountNumber: card.accountNumber
+                                            accountNumber: card.accountNumber,
+                                            platformId: platformId
                                         },
                                         {
                                             accountNumber: card.accountNumber,
@@ -349,13 +350,13 @@ var dbPlatformBankCardGroup = {
         ).then(
             () => {
                 let cardNumbers = cardList.map(card => card.accountNumber);
-                return dbconfig.collection_platformBankCardList.find({accountNumber: {$nin: cardNumbers}}).lean().then(
+                return dbconfig.collection_platformBankCardList.find({platformId: platformId, accountNumber: {$nin: cardNumbers}}).lean().then(
                     deletedCards => {
                         console.log("deletedCards",deletedCards);
                         if(deletedCards && deletedCards.length > 0) {
                             let deletedCardNumbers = [];
                             deletedCards.forEach(card => {deletedCardNumbers.push(card.accountNumber);});
-                            return dbconfig.collection_platformBankCardList.remove({'accountNumber':{'$in': deletedCardNumbers}})
+                            return dbconfig.collection_platformBankCardList.remove({platformId: platformId, accountNumber:{'$in': deletedCardNumbers}})
                         }
                     }
                 )
