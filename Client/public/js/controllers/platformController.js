@@ -19585,6 +19585,10 @@ define(['js/app'], function (myApp) {
             vm.platformRewardTypeChanged = function () {
                 $.each(vm.allRewardTypes, function (i, v) {
                     if (v._id === vm.showRewardTypeId) {
+                        if (v && v.params && v.params.condition && v.params.condition.generalCond
+                            && v.params.condition.generalCond.imageUrl && v.params.condition.generalCond.imageUrl.value) {
+                            v.params.condition.generalCond.imageUrl.value = [""];
+                        }
                         vm.showRewardTypeData = v;
                         console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                         return true;
