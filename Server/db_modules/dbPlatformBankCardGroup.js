@@ -360,7 +360,7 @@ var dbPlatformBankCardGroup = {
                 if(newCards && newCards.length > 0) {
                     return dbconfig.collection_platformBankCardGroup.update(
                         {platform: platformObjId, bDefault: true},
-                        {$push: {banks: {$each: newCards}}}
+                        {$addToSet: {banks: {$each: newCards}}}
                     );
                 }
             }

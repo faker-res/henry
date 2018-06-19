@@ -186,7 +186,7 @@ var dbPlatformAlipayGroup = {
                 if(newAlipays && newAlipays.length > 0) {
                     return dbconfig.collection_platformAlipayGroup.update(
                         {platform: platformObjId, bDefault: true},
-                        {$push: {
+                        {$addToSet: {
                             alipays: {$each: newAlipays}
                         }}
                     );
