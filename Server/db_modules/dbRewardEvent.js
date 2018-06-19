@@ -371,6 +371,10 @@ var dbRewardEvent = {
                             playerData = player;
                             platformData = player.platform;
 
+                            if (player.isTestPlayer) {
+                                return true;
+                            }
+
                             // Check whether player already have record for yesterday
                             return dbconfig.collection_playerCreditsDailyLog.findOne({
                                 playerObjId: playerData._id,

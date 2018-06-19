@@ -59,11 +59,31 @@ const dbPlayerUtility = {
      * @param stateName
      * @param bFlag - on/off flag
      */
-    setPlayerBState: (playerObjId, stateName, bFlag) => {
+    setPlayerBState: (playerObjId, stateName, bFlag, lastUpdateTime) => {
         let matchQ = {player: playerObjId};
         let updateQChild = {};
         updateQChild[stateName] = bFlag;
         let updateQ = {$set: updateQChild};
+        //update time when set flag to false only
+        if (lastUpdateTime) {
+            if (bFlag) {
+                matchQ.$or = [];
+                let searchQ1 = {};
+                searchQ1[lastUpdateTime] = {$lt: new Date() - 1200000};
+                matchQ.$or.push(searchQ1);
+
+                let searchQ2 = {};
+                searchQ2[lastUpdateTime] = {$exists: false};
+                matchQ.$or.push(searchQ2);
+
+                let searchQ3 = {};
+                searchQ3[stateName] = false;
+                matchQ.$or.push(searchQ3);
+
+                updateQ.$currentDate = {};
+                updateQ.$currentDate[lastUpdateTime] = true;
+            }
+        }
         let allowExec = true;
 
         return dbconfig.collection_playerBState.findOneAndUpdate(
@@ -77,9 +97,16 @@ const dbPlayerUtility = {
             beforeRec => {
                 if (beforeRec && beforeRec[stateName] === bFlag) {
                     allowExec = false;
+                    // if state locked more than 20 minutes, allow execute (prevent state locked forever)
+                    if (lastUpdateTime && bFlag && beforeRec[lastUpdateTime] && (beforeRec[lastUpdateTime].getTime() <= new Date() - 1200000)) {
+                        allowExec = true;
+                    }
                 }
-
                 return allowExec;
+            },
+            err => {
+                // errorUtils.reportError(err);
+                return false;
             }
         );
     },
@@ -321,7 +348,7 @@ const dbPlayerUtility = {
             model: dbconfig.collection_platform
         }).then(
             data => {
-                if (data) {
+                if (data && data.isRealPlayer) {
                     return cpmsAPI.player_queryCredit(
                         {
                             username: data.name,

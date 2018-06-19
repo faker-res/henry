@@ -4586,6 +4586,9 @@ let dbPlayerInfo = {
                             ).then(
                                 () => {
                                     dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
+                                        path: "platform",
+                                        model: dbconfig.collection_platform
+                                    }).populate({
                                         path: "playerLevel",
                                         model: dbconfig.collection_playerLevel
                                     }).populate({
@@ -6167,7 +6170,7 @@ let dbPlayerInfo = {
                                     }
                                 }
                                 returnObj.pendingRewardAmount = sumAmount;
-                                if (playerData.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE) {
+                                if (playerData.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE && playerData.isRealPlayer) {
                                     return cpmsAPI.player_queryCredit(
                                         {
                                             username: playerData.name,
@@ -6217,7 +6220,7 @@ let dbPlayerInfo = {
                     }).lean().then(
                         taskData => {
                             creditData.taskData = taskData;
-                            if (playerData.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE) {
+                            if (playerData.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE && playerData.isRealPlayer) {
                                 return cpmsAPI.player_queryCredit(
                                     {
                                         username: playerData.name,
@@ -6755,7 +6758,7 @@ let dbPlayerInfo = {
         //var providerProm = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         return playerProm.then(
             function (data) {
-                if (data) {
+                if (data && data.isRealPlayer) {
                     return cpmsAPI.player_queryCredit(
                         {
                             username: data.name,
@@ -7723,38 +7726,39 @@ let dbPlayerInfo = {
                                         let inputDevice = dbUtility.getInputDevice(userAgent, false);
                                         let promResolve = Promise.resolve();
 
-                                        return dbconfig.collection_playerState.findOne({player: playerObj._id}).lean().then(
-                                            stateRec => {
-                                                if (!stateRec) {
-                                                    return new dbconfig.collection_playerState({
-                                                        player: playerObj._id,
-                                                        lastApplyLevelUpReward: Date.now()
-                                                    }).save();
-                                                } else {
-                                                    // State exist
-                                                    if (stateRec.lastApplyLevelUpReward) {
-                                                        // update rec
-                                                        return dbconfig.collection_playerState.findOneAndUpdate({
-                                                            player: playerObj._id,
-                                                            lastApplyLevelUpReward: {$lt: new Date() - 1000}
-                                                        }, {
-                                                            $currentDate: {lastApplyLevelUpReward: true}
-                                                        }, {
-                                                            new: true
-                                                        });
-                                                    } else {
-                                                        // update rec with new field
-                                                        return dbconfig.collection_playerState.findOneAndUpdate({
-                                                            player: playerObj._id,
-                                                        }, {
-                                                            $currentDate: {lastApplyLevelUpReward: true}
-                                                        }, {
-                                                            new: true
-                                                        });
-                                                    }
-                                                }
-                                            }
-                                        ).then(
+                                        // return dbconfig.collection_playerState.findOne({player: playerObj._id}).lean().then(
+                                        //     stateRec => {
+                                        //         if (!stateRec) {
+                                        //             return new dbconfig.collection_playerState({
+                                        //                 player: playerObj._id,
+                                        //                 lastApplyLevelUpReward: Date.now()
+                                        //             }).save();
+                                        //         } else {
+                                        //             // State exist
+                                        //             if (stateRec.lastApplyLevelUpReward) {
+                                        //                 // update rec
+                                        //                 return dbconfig.collection_playerState.findOneAndUpdate({
+                                        //                     player: playerObj._id,
+                                        //                     lastApplyLevelUpReward: {$lt: new Date() - 1000}
+                                        //                 }, {
+                                        //                     $currentDate: {lastApplyLevelUpReward: true}
+                                        //                 }, {
+                                        //                     new: true
+                                        //                 });
+                                        //             } else {
+                                        //                 // update rec with new field
+                                        //                 return dbconfig.collection_playerState.findOneAndUpdate({
+                                        //                     player: playerObj._id,
+                                        //                 }, {
+                                        //                     $currentDate: {lastApplyLevelUpReward: true}
+                                        //                 }, {
+                                        //                     new: true
+                                        //                 });
+                                        //             }
+                                        //         }
+                                        //     }
+                                        // )
+                                        return dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", true, "lastApplyLevelUp").then(
                                             playerState => {
                                                 if (playerState) {
                                                     if (checkLevelUp) {
@@ -7790,6 +7794,22 @@ let dbPlayerInfo = {
                                                         message: "level change fail, please contact cs"
                                                     })
                                                 }
+                                            }
+                                        ).then(
+                                            function (data) {
+                                                dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", false, "lastApplyLevelUp").catch(errorUtils.reportError);
+                                                return data;
+                                            }
+                                        ).catch(
+                                            err => {
+                                                if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                                                    // Ignore concurrent request for now
+                                                } else {
+                                                    // Set BState back to false
+                                                    dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", false, "lastApplyLevelUp").catch(errorUtils.reportError);
+                                                }
+
+                                                throw err;
                                             }
                                         );
                                     } else {
@@ -10338,6 +10358,13 @@ let dbPlayerInfo = {
             data => {
                 if (data && data[0] && data[1]) {
                     playerData = data[0];
+                    if (playerData.isTestPlayer) {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Unable to transfer credit for demo player"
+                        });
+                    }
+
                     gameData = data[1];
                     //check if player's platform has this game
                     return dbconfig.collection_platformGameStatus.findOne({
@@ -15373,6 +15400,7 @@ let dbPlayerInfo = {
             gameCreditList: [],
             lockedCreditList: []
         };
+        let isRealPlayer = true;
         let playerDetails = {};
         let gameData = [];
         let usedTaskGroup = [];
@@ -15380,6 +15408,7 @@ let dbPlayerInfo = {
         return dbconfig.collection_players.findOne({_id: playerObjId}, {
             platform: 1,
             validCredit: 1,
+            isRealPlayer: 1,
             name: 1,
             _id: 0,
             forbidProviders: 1
@@ -15390,6 +15419,7 @@ let dbPlayerInfo = {
                 select: ['_id', 'platformId']
             }).lean().then(
                 (playerData) => {
+                    isRealPlayer = playerData.isRealPlayer;
                     playerDetails.name = playerData.name;
                     playerDetails.validCredit = playerData.validCredit;
                     playerDetails.platformId = playerData.platform.platformId;
@@ -15437,7 +15467,7 @@ let dbPlayerInfo = {
                 }
             ).then(
                 providerList => {
-                    if (providerList && providerList.gameCreditList && providerList.gameCreditList.length > 0) {
+                    if (providerList && providerList.gameCreditList && providerList.gameCreditList.length > 0 && isRealPlayer) {
                         let promArray = [];
                         for (let i = 0; i < providerList.gameCreditList.length; i++) {
                             let queryObj = {
@@ -15588,6 +15618,12 @@ let dbPlayerInfo = {
         ).then(
             playerDetails => {
                 playerData = playerDetails;
+                if (playerData.isTestPlayer) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Unable to transfer credit for demo player"
+                    });
+                }
                 if (playerDetails && playerDetails._id) {
                     returnData.localFreeCredit = playerDetails.validCredit;
                     return dbconfig.collection_gameProvider.findOne({providerId: providerId}).lean();

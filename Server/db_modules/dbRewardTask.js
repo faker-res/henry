@@ -2111,6 +2111,9 @@ const dbRewardTask = {
                 if (playerData) {
                     playerObj = playerData;
                     var providerProm = dbconfig.collection_gameProvider.find({_id: {$in: playerData.platform.gameProviders}}).lean();
+                    if (playerObj.isTestPlayer) {
+                        providerProm = Promise.resolve([]);
+                    }
                     var taskProm = dbconfig.collection_rewardTask.findOne({
                         playerId: playerObjId,
                         status: constRewardTaskStatus.STARTED,
