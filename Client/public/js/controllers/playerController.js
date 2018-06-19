@@ -9345,7 +9345,7 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row, meta) {
                             // let spendingAmt = vm.calSpendingAmt(meta.row);
                             // let isSubmit = vm.isSubmitProposal(meta.row);
-                            let text = -row.currentAmount + "/-" + row.targetAmount;
+                            let text = row.currentAmount + "/-" + row.targetAmount;
 
                             return "<div>" + text + "</div>";
                         }

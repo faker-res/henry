@@ -543,46 +543,52 @@ const dbRewardTask = {
         let totalAmount = rewardTaskGroup.currentAmt - rewardTaskGroup.initAmt; // for winlost count
         let totalConsumption = rewardTaskGroup.curConsumption;
 
-        rewards.forEach((item, index) => {
+        let usedTopUp = [];
+        rewards.forEach(item => {
 
-            let requiredUnlockedAmount = item.data.amount || item.data.spendingAmount; // amount from topUp Type; spendingAmount from reward Type
-            // check if there is comsumptionProgress && bonusProgress
-            if (item.data && item.data.consumptionProgress){
-                totalConsumption -= item.data.consumptionProgress;
+            item.topUpProposal = item.data.topUpProposalId ? item.data.topUpProposalId : item.data.topUpProposal;
 
-                if (item.data.consumptionProgress < requiredUnlockedAmount){
-                    if(totalConsumption > requiredUnlockedAmount - item.data.consumptionProgress){
-                        item.data.consumptionProgress = requiredUnlockedAmount;
-                        totalConsumption = totalConsumption - (requiredUnlockedAmount - item.data.consumptionProgress);
-                    }
-                    else{
-                        item.data.consumptionProgress += totalConsumption;
-                        totalConsumption = 0;
-                    }
-                    item.data.bonusProgress = totalAmount;
-                    totalAmount =0;
-                }
-                else{
-                    // already surpass the unlocked gate
-                     totalAmount -= item.data.bonusProgress;
+            let requiredUnlockedConsumption = item.data.amount ?  item.data.amount : item.data.spendingAmount || item.data.requiredUnlockAmount; // amount from topUp Type; spendingAmount from reward Type
+            let applyAmount = item.data.applyAmount || item.data.amount;
+            let bonusAmount = item.data.rewardAmount;
+            let requiredUnlockedAmount = (applyAmount || 0) +  (bonusAmount || 0);
 
-                }
+            // check if consumption reached unlocked limit
+            if (totalConsumption >= requiredUnlockedConsumption){
+                item.data.consumptionProgress = requiredUnlockedConsumption;
+                totalConsumption -= requiredUnlockedConsumption;
             }
             else{
-                if (totalConsumption > requiredUnlockedAmount){
-                    item.data.consumptionProgress = requiredUnlockedAmount;
-                    totalConsumption -= requiredUnlockedAmount;
-                }
-                else{
-                    item.data.consumptionProgress = totalConsumption;
-                    totalConsumption = 0;
-                }
-                item.data.bonusProgress = totalAmount;
-                totalAmount =0;
+                item.data.consumptionProgress = totalConsumption;
+                totalConsumption = 0;
             }
-           
+
+            // check if amount reached unlocked limit
+            if(totalAmount <= -requiredUnlockedAmount){
+                item.data.bonusProgress = -requiredUnlockedAmount;
+                totalAmount -= -requiredUnlockedAmount;
+            }
+            else{
+                item.data.bonusProgress = totalAmount;
+                totalAmount = 0;
+            }
+
+            if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3)) {
+                usedTopUp.push(item.topUpProposal)
+            }
+
             dbconfig.collection_proposal.findOneAndUpdate({_id: ObjectId(item._id), createTime: item.createTime}, {'data.bonusProgress': item.data.bonusProgress, 'data.consumptionProgress': item.data.consumptionProgress}, {new: true}).exec();
         });
+
+        if (usedTopUp.length > 0) {
+            rewards = rewards.filter(rewardItem => {
+
+                if (usedTopUp.indexOf(rewardItem.proposalId) < 0) {
+                    return rewardItem;
+                }
+
+            });
+        }
 
         return rewards;
 
@@ -591,6 +597,9 @@ const dbRewardTask = {
 
         if (rewards && rewards.length > 0){
             rewards.forEach( rewardTask => {
+
+                let applyAmount = rewardTask.data.applyAmount || rewardTask.data.amount;
+                let bonusAmount = rewardTask.data.rewardAmount;
 
                 let sendData = {
                     platformId: platformId,
@@ -605,21 +614,22 @@ const dbRewardTask = {
                         id: rewardTask.type._id,
                     },
                     currentConsumption: rewardTask.data.consumptionProgress,
-                    maxConsumption: rewardTask.data.amount || rewardTask.data.spendingAmount,
+                    maxConsumption: rewardTask.data.amount ? rewardTask.data.amount : rewardTask.data.spendingAmount || rewardTask.data.requiredUnlockAmount,
                     currentAmount: rewardTask.data.bonusProgress,
-                    targetAmount: rewardTask.data.amount || rewardTask.data.spendingAmount,
+                    targetAmount: (applyAmount || 0) +  (bonusAmount || 0),
                     topupAmount: rewardTask.data.topUpAmount,
                     proposalId: rewardTask._id,
                     proposalNumber: rewardTask.proposalId || rewardTask.data.proposalId,
                     topupProposalNumber: rewardTask.data.topUpProposalId ? rewardTask.data.topUpProposalId : rewardTask.data.topUpProposal,
-                    bonusAmount: rewardTask.bonusAmount,
+                    bonusAmount: bonusAmount || 0,
+                    applyAmount: applyAmount || 0,
                     targetProviderGroup: rewardTask.data.provider$,
                     status: status,
                     useConsumption: rewardTask.data.useConsumption,
                     inProvider: rewardTask.inProvider,
+                    isUnlock: true
 
                 };
-
                 dbRewardTaskGroup.createRewardTaskGroupUnlockedRecord(sendData);
             })
         }
@@ -670,7 +680,7 @@ const dbRewardTask = {
 
 
             rewardTaskProposalQuery = {
-                'data.playerObjId': playerObjId,
+                'data.playerObjId': {$in: [ObjectId(playerObjId), String(playerObjId)]},
                 settleTime: {
                     $gte: new Date(lastSecond),
                     $lt: new Date()
@@ -742,9 +752,7 @@ const dbRewardTask = {
                         }
                     });
 
-
                 }
-
                 return result ? result : []
 
             });
