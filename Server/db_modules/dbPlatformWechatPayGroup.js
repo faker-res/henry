@@ -162,7 +162,8 @@ let dbPlatformWechatPayGroup = {
                                 updateWechatProm.push(
                                     dbconfig.collection_platformWechatPayList.findOneAndUpdate(
                                         {
-                                            accountNumber: wechat.accountNumber
+                                            accountNumber: wechat.accountNumber,
+                                            platformId: platformId
                                         },
                                         {
                                             accountNumber: wechat.accountNumber,
@@ -186,12 +187,12 @@ let dbPlatformWechatPayGroup = {
         ).then(
             () => {
                 let wechatAccountNumbers = wechatList.map(wechat => wechat.accountNumber);
-                return dbconfig.collection_platformWechatPayList.find({accountNumber: {$nin: wechatAccountNumbers}}).lean().then(
+                return dbconfig.collection_platformWechatPayList.find({platformId: platformId, accountNumber: {$nin: wechatAccountNumbers}}).lean().then(
                     deletedWechats => {
                         if(deletedWechats && deletedWechats.length > 0) {
                             let deletedAccountNumbers = [];
                             deletedWechats.forEach(wechat => {deletedAccountNumbers.push(wechat.accountNumber);});
-                            return dbconfig.collection_platformWechatPayList.remove({'accountNumber':{'$in': deletedAccountNumbers}})
+                            return dbconfig.collection_platformWechatPayList.remove({platformId: platformId, accountNumber:{'$in': deletedAccountNumbers}})
                         }
                     }
                 )
