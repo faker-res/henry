@@ -247,10 +247,10 @@ var weeklyPlatformSettlement = {
             //     function (error) {
             //         console.error(new Date(), "calculateLastWeekPlayerTopUpSummary failed!", error);
             //     }
-        ).then(
-            () => {
-                return partnerSummary.calculateWeekSummary(platformId);
-            }
+        // ).then(
+        //     () => {
+        //         return partnerSummary.calculateWeekSummary(platformId);
+        //     }
             // ).catch(
             //     function (error) {
             //         console.error(new Date(), "calculateWeekSummary failed!", error);
@@ -259,12 +259,12 @@ var weeklyPlatformSettlement = {
             //     () => {
             //         return dbPlatform.resetPlatformPlayerLevelData(platformId, true);
             //     }
-        );
+        // );
         //     .catch(
         //     function (error) {
         //         console.error(new Date(), "resetPlatformPlayerLevelData failed!", error);
         //     }
-        // );
+        );
     },
 
     /*
