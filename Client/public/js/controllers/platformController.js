@@ -20836,19 +20836,19 @@ define(['js/app'], function (myApp) {
                         curReward.param.rewardParam.push(levelParam);
                     });
 
-                    if (vm.showReward && vm.showReward.display) {
-                        for (let i=0; i < vm.showReward.display.length; i++) {
-                            if (vm.showReward.display[i].displayId == "" && vm.showReward.display[i].displayTitle == "" && vm.showReward.display[i].displayTextContent == "") {
-                                vm.showReward.display.splice(i, 1);
-                            }
-                        }
-
-                        curReward.display = vm.showReward.display || [];
-                    }
                 } else {
 
                 }
 
+                if (vm.showReward && vm.showReward.display) {
+                    for (let i=0; i < vm.showReward.display.length; i++) {
+                        if (vm.showReward.display[i].displayId == "" && vm.showReward.display[i].displayTitle == "" && vm.showReward.display[i].displayTextContent == "") {
+                            vm.showReward.display.splice(i, 1);
+                        }
+                    }
+
+                    curReward.display = vm.showReward.display || [];
+                }
 
                 var sendData = {
                     query: {_id: vm.showReward._id},
@@ -20943,15 +20943,6 @@ define(['js/app'], function (myApp) {
                         sendData.param.rewardParam.push(levelParam);
                     });
 
-                    if (vm.showReward && vm.showReward.display) {
-                        for (let i=0; i < vm.showReward.display.length; i++) {
-                            if (vm.showReward.display[i].displayId == "" && vm.showReward.display[i].displayTitle == "" && vm.showReward.display[i].displayTextContent == "") {
-                                vm.showReward.display.splice(i, 1);
-                            }
-                        }
-
-                        sendData.display = vm.showReward.display || [];
-                    }
                 } else {
                     if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == "PlayerConsumptionReturn"
                         && vm.showReward && vm.showReward.param && vm.showReward.param.imageUrl && vm.showReward.param.imageUrl.length) {
@@ -20970,6 +20961,17 @@ define(['js/app'], function (myApp) {
                     sendData.validEndTime = vm.showReward.validEndTime || null;
 
                 }
+
+                if (vm.showReward && vm.showReward.display) {
+                    for (let i=0; i < vm.showReward.display.length; i++) {
+                        if (vm.showReward.display[i].displayId == "" && vm.showReward.display[i].displayTitle == "" && vm.showReward.display[i].displayTextContent == "") {
+                            vm.showReward.display.splice(i, 1);
+                        }
+                    }
+
+                    sendData.display = vm.showReward.display || [];
+                }
+
                 console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                 console.log('vm.rewardMainCondition', vm.rewardMainCondition);
                 console.log("newReward", sendData);
