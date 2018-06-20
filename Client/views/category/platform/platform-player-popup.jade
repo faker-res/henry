@@ -248,7 +248,7 @@
                                                     .col-sm-4(style='white-space: nowrap;')
                                                         label {{"REGISTRATION_IP" | translate}}
                                                     .col-sm-8
-                                                        text {{vm.selectedSinglePlayer.lastLoginIp || 'Unknown' | translate}}
+                                                        text {{vm.selectedSinglePlayer.loginIps && vm.selectedSinglePlayer.loginIps[0] || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
                                                     .col-sm-4(style='white-space: nowrap;')
@@ -1306,6 +1306,7 @@
                             .form-group(ng-show='vm.showApplyRewardEvent')
                                 label.control-label {{"REWARD_EVENT" | translate}}
                                 select.form-control(ng-model='vm.playerApplyRewardPara.rewardObj',ng-change='vm.playerApplyRewardCodeChange(vm.playerApplyRewardPara.rewardObj)', required)
+                                    option(value='{"name": "系统升级优惠", "code": "MANUAL_PLAYER_LEVEL_UP_REWARD"}') {{"系统升级优惠"}}
                                     option(ng-repeat='(i,v) in vm.allRewardEvent', ng-if='v.needApply || v.condition.applyType == 1', value='{{v}}') {{v.name}}({{v.code}})
                             .form-group(ng-if='vm.playerApplyRewardShow.TopupRecordSelect')
                                 label.control-label {{'TOP_UP_LIST' | translate}}

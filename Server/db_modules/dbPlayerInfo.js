@@ -3024,56 +3024,87 @@ let dbPlayerInfo = {
                 return Promise.all([platformProm]).then(platformData => {
                     if (platformData && platformData[0]) {
                         platform = platformData[0];
-
+                        let calCreditArr = [];
                         return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: player._id})
                             .then(rtgData => {
                                 if (rtgData && rtgData.length) {
-                                    let rtgArr = [];
                                     rtgData.forEach(rtg => {
-                                    let totalCredit = 0;
-                                    let providerCredit = 0
-                                    let isHitAutoUnlockThreshold = false;
+                                        if(rtg) {
+                                            if (rtg.providerGroup && rtg.providerGroup._id) {
+                                                rtg.totalCredit = rtg.rewardAmt || 0;
+                                                let calCreditProm = dbconfig.collection_gameProviderGroup.findOne({_id: rtg.providerGroup._id})
+                                                    .populate({path: "providers", model: dbconfig.collection_gameProvider}).lean().then(
+                                                        providerGroup => {
+                                                            if (providerGroup && providerGroup.providers && providerGroup.providers.length) {
+                                                                return getProviderCredit(providerGroup.providers, player.name, platform.platformId).then(
+                                                                    credit => {
+                                                                        if(credit){
+                                                                            rtg.totalCredit += credit;
+                                                                        }
 
-                                        if (rtg.providerGroup && rtg.providerGroup._id) {
-                                            let rewardAmount = rtg && rtg.rewardAmt ? rtg.rewardAmt : 0;
-                                            let gameProviderGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: rtg.providerGroup._id})
-                                                .populate({path: "providers", model: dbconfig.collection_gameProvider}).lean();
+                                                                        return rtg;
+                                                                    }
+                                                                )
+                                                            }
+                                                        }
+                                                );
 
-                                            Promise.all([gameProviderGroupProm]).then(providerGroup => {
-                                                if (providerGroup && providerGroup[0] && providerGroup[0].providers && providerGroup[0].providers.length) {
-                                                    providerCredit = getProviderCredit(providerGroup[0].providers, player.name, platform.platformId);
-                                                }
-                                            });
+                                                calCreditArr.push(calCreditProm);
+                                            } else if (!rtg.providerGroup) {
+                                                rtg.totalCredit = player && player.validCredit ? player.validCredit : 0;
+                                                let calCreditProm = getProviderCredit(platform.gameProviders, player.name, platform.platformId).then(
+                                                    credit => {
+                                                        if(credit){
+                                                            rtg.totalCredit += credit;
+                                                        }
 
-                                            totalCredit = providerCredit + rewardAmount;
+                                                        return rtg;
+                                                    }
+                                                );
 
-                                        } else if (!rtg.providerGroup) {
-                                            let validCredit = player && player.validCredit ? player.validCredit : 0;
-                                            providerCredit = getProviderCredit(platform.gameProviders, player.name, platform.platformId);
-                                            totalCredit = providerCredit + validCredit;
-
-                                        }
-
-                                        if (platform && platform.autoUnlockWhenInitAmtLessThanLostThreshold && platform.autoApproveLostThreshold) {
-                                            if (totalCredit <= platform.autoApproveLostThreshold) {
-                                                isHitAutoUnlockThreshold = true;
+                                                calCreditArr.push(calCreditProm);
                                             }
-                                        }
-
-                                        if (isHitAutoUnlockThreshold) {
-                                            if (rtg && rtg._id) {
-                                                rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
-                                            }
-                                        }
+                                    }
                                     });
-                                    return Promise.all(rtgArr);
+                                    return Promise.all(calCreditArr);
                                 }
                             });
                     }
                 });
 
             }
-        }).then(() => {
+        }).then(
+            rewardTaskGroup => {
+                if(rewardTaskGroup){
+                    let rtgArr = [];
+                    let unlockRewardsArr = [];
+                    rewardTaskGroup.forEach(
+                        rtg => {
+                            if(rtg && platform && rtg._id && rtg.totalCredit && platform.autoUnlockWhenInitAmtLessThanLostThreshold
+                                && platform.autoApproveLostThreshold && rtg.totalCredit <= platform.autoApproveLostThreshold){
+
+                                rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
+                                unlockRewardsArr.push(dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then( rewards => {
+                                    if (rewards){
+
+                                        return dbRewardTask.getRewardTasksRecord(rewards, rtg, proposalData);
+                                    }
+                                }).then( records => {
+
+                                        if (records){
+                                            dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId);
+                                        }
+                                    })
+                                )
+
+                            }
+                        }
+                    )
+
+                    return Promise.all([rtgArr, unlockRewardsArr]);
+                }
+            }
+        ).then(() => {
 
             dbUtility.findOneAndUpdateForShard(
                 dbconfig.collection_players,
@@ -4569,6 +4600,9 @@ let dbPlayerInfo = {
                             ).then(
                                 () => {
                                     dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
+                                        path: "platform",
+                                        model: dbconfig.collection_platform
+                                    }).populate({
                                         path: "playerLevel",
                                         model: dbconfig.collection_playerLevel
                                     }).populate({
@@ -6150,7 +6184,7 @@ let dbPlayerInfo = {
                                     }
                                 }
                                 returnObj.pendingRewardAmount = sumAmount;
-                                if (playerData.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE) {
+                                if (playerData.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE && playerData.isRealPlayer) {
                                     return cpmsAPI.player_queryCredit(
                                         {
                                             username: playerData.name,
@@ -6200,7 +6234,7 @@ let dbPlayerInfo = {
                     }).lean().then(
                         taskData => {
                             creditData.taskData = taskData;
-                            if (playerData.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE) {
+                            if (playerData.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE && playerData.isRealPlayer) {
                                 return cpmsAPI.player_queryCredit(
                                     {
                                         username: playerData.name,
@@ -6738,7 +6772,7 @@ let dbPlayerInfo = {
         //var providerProm = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         return playerProm.then(
             function (data) {
-                if (data) {
+                if (data && data.isRealPlayer) {
                     return cpmsAPI.player_queryCredit(
                         {
                             username: data.name,
@@ -10355,6 +10389,13 @@ let dbPlayerInfo = {
             data => {
                 if (data && data[0] && data[1]) {
                     playerData = data[0];
+                    if (playerData.isTestPlayer) {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Unable to transfer credit for demo player"
+                        });
+                    }
+
                     gameData = data[1];
                     //check if player's platform has this game
                     return dbconfig.collection_platformGameStatus.findOne({
@@ -12237,6 +12278,14 @@ let dbPlayerInfo = {
                                 //check if player's reward task is no credit now
                                 return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
                                     taskStatus => {
+                                        if (code == "MANUAL_PLAYER_LEVEL_UP_REWARD") {
+                                            return {
+                                                _id: "MANUAL_PLAYER_LEVEL_UP_REWARD",
+                                                type: {
+                                                    name: constRewardType.PLAYER_LEVEL_UP
+                                                }
+                                            }
+                                        }
                                         return dbconfig.collection_rewardEvent.findOne({
                                             platform: playerData.platform,
                                             code: code
@@ -12414,6 +12463,9 @@ let dbPlayerInfo = {
                                     break;
                                 case constRewardType.PLAYER_PACKET_RAIN_REWARD:
                                     return dbPlayerReward.applyPacketRainReward(playerId, code, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_LEVEL_UP:
+                                    return manualPlayerLevelUpReward(playerInfo._id, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                                 case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
@@ -15390,6 +15442,7 @@ let dbPlayerInfo = {
             gameCreditList: [],
             lockedCreditList: []
         };
+        let isRealPlayer = true;
         let playerDetails = {};
         let gameData = [];
         let usedTaskGroup = [];
@@ -15397,6 +15450,7 @@ let dbPlayerInfo = {
         return dbconfig.collection_players.findOne({_id: playerObjId}, {
             platform: 1,
             validCredit: 1,
+            isRealPlayer: 1,
             name: 1,
             _id: 0,
             forbidProviders: 1
@@ -15407,6 +15461,7 @@ let dbPlayerInfo = {
                 select: ['_id', 'platformId']
             }).lean().then(
                 (playerData) => {
+                    isRealPlayer = playerData.isRealPlayer;
                     playerDetails.name = playerData.name;
                     playerDetails.validCredit = playerData.validCredit;
                     playerDetails.platformId = playerData.platform.platformId;
@@ -15454,7 +15509,7 @@ let dbPlayerInfo = {
                 }
             ).then(
                 providerList => {
-                    if (providerList && providerList.gameCreditList && providerList.gameCreditList.length > 0) {
+                    if (providerList && providerList.gameCreditList && providerList.gameCreditList.length > 0 && isRealPlayer) {
                         let promArray = [];
                         for (let i = 0; i < providerList.gameCreditList.length; i++) {
                             let queryObj = {
@@ -15605,6 +15660,12 @@ let dbPlayerInfo = {
         ).then(
             playerDetails => {
                 playerData = playerDetails;
+                if (playerData.isTestPlayer) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Unable to transfer credit for demo player"
+                    });
+                }
                 if (playerDetails && playerDetails._id) {
                     returnData.localFreeCredit = playerDetails.validCredit;
                     return dbconfig.collection_gameProvider.findOne({providerId: providerId}).lean();
@@ -17163,6 +17224,7 @@ function getProviderCredit(providers, playerName, platformId) {
                 ).then(
                     data => data,
                     error => {
+                        console.log("error when getting provider credit", error);
                         return {credit: 0};
                     }
                 )
@@ -17170,16 +17232,17 @@ function getProviderCredit(providers, playerName, platformId) {
         }
     });
 
-    Promise.all(promArr)
+    return Promise.all(promArr)
         .then(providerCreditData => {
             providerCreditData.forEach(provider => {
                 if (provider && provider.hasOwnProperty("credit")) {
                     providerCredit += !isNaN(provider.credit) ? parseFloat(provider.credit) : 0;
                 }
             });
+            return providerCredit;
         });
 
-    return providerCredit;
+
 }
 
 function isRandomRewardConsumption (rewardEvent) {
@@ -17369,6 +17432,91 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
             }
         }
     )
+}
+
+function manualPlayerLevelUpReward (playerObjId, adminInfo) {
+    let player, proposalType, playerLevel, platform = {};
+
+    return dbconfig.collection_players.findOne({_id: playerObjId}).populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+        playerData => {
+            player = playerData;
+            if (!player) {
+                return Promise.reject({message: "Player not found."});
+            }
+            platform = player.platform;
+
+            playerLevel = player.playerLevel;
+
+            if (player.permission && player.permission.banReward) {
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: "Player do not have permission for reward"
+                });
+            }
+
+            return dbconfig.collection_proposalType.findOne({
+                platformId: platform._id,
+                name: constProposalType.PLAYER_LEVEL_UP
+            }).lean();
+        }
+    ).then(
+        proposalTypeData => {
+            proposalType = proposalTypeData;
+
+            return dbconfig.collection_proposal.findOne({
+                'data.playerObjId': {$in: [ObjectId(player._id), String(player._id)]},
+                'data.platformObjId': {$in: [ObjectId(platform._id), String(platform._id)]},
+                'data.levelValue': playerLevel.value,
+                type: proposalTypeData._id,
+                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.PENDING]}
+            }).lean();
+        }
+    ).then(
+        rewardProposal => {
+            if (!rewardProposal) {
+                // if this is level up and player has not reach this level before
+                // create level up reward proposal
+
+                let proposalData = {
+                    levelName: playerLevel.name,
+                    levelObjId: playerLevel._id,
+                    levelValue: playerLevel.value,
+                    proposalPlayerLevel: playerLevel.name,
+                    playerLevelName: playerLevel.name,
+                    proposalPlayerLevelValue: playerLevel.value,
+                    platformId: platform._id,
+                    platformObjId: String(platform._id),
+                    playerId: player.playerId,
+                    playerName: player.name,
+                    playerObjId: String(player._id),
+                    upOrDown: "LEVEL_UP"
+                };
+
+                if (playerLevel && playerLevel.reward && playerLevel.reward.bonusCredit) {
+                    proposalData.rewardAmount = playerLevel.reward.bonusCredit;
+                    proposalData.isRewardTask = playerLevel.reward.isRewardTask;
+                    if (proposalData.isRewardTask) {
+                        if (playerLevel.reward.providerGroup && playerLevel.reward.providerGroup !== "free") {
+                            proposalData.providerGroup = playerLevel.reward.providerGroup;
+                        }
+                        proposalData.requiredUnlockAmount = playerLevel.reward.requiredUnlockTimes * playerLevel.reward.bonusCredit;
+                    }
+
+                    let proposal = {data: proposalData};
+                    if (adminInfo) {
+                        proposal.creator = adminInfo;
+                        proposal.entryType = constProposalEntryType.ADMIN;
+                    }
+
+                    return dbProposal.createProposalWithTypeName(platform._id, constProposalType.PLAYER_LEVEL_UP, proposal);
+                }
+
+            } else {
+                return Promise.reject({message: "该玩家已经领取『"+ playerLevel.name +"』的升级优惠。"});
+            }
+        }
+    );
 }
 
 var proto = dbPlayerInfoFunc.prototype;

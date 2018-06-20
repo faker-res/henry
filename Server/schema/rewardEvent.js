@@ -42,7 +42,8 @@ var rewardEventSchema = new Schema({
         _id: false,
         displayId: {type: String},
         displayTitle: {type: String},
-        displayTextContent: {type: String}
+        displayTextContent: {type: String},
+        btnOrImageList: []
     }]
 });
 

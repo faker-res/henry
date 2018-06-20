@@ -348,7 +348,7 @@ const dbPlayerUtility = {
             model: dbconfig.collection_platform
         }).then(
             data => {
-                if (data) {
+                if (data && data.isRealPlayer) {
                     return cpmsAPI.player_queryCredit(
                         {
                             username: data.name,
