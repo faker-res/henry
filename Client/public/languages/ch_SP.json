@@ -1547,6 +1547,7 @@
   "SIMILAR_PLAYERS": "相似玩家",
   "PLAYER_SIMILAR_PHONE": "电话重复",
   "PLAYER_SIMILAR_IP": "注册IP重复",
+  "RICH_TEXT_EDITOR": "富文本编辑器",
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
