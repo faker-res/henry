@@ -552,6 +552,20 @@ function socketActionProposal(socketIO, socket) {
             socketUtil.emitter(self.socket, dbProposal.approveCsPendingAndChangeStatus, [data.proposalObjId, data.createTime, data.adminName], actionName, isDataValid);
         },
 
+        getWithdrawalProposal: function getWithdrawalProposal(data) {
+            let actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.startDate && data.endDate && data.period);
+            var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
+            var endTime = data.endDate ? new Date(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbProposal.getWithdrawalProposal, [startTime, endTime, data.period], actionName, isValidData);
+        },
+
+        getProposalByObjId: function getProposalByObjId(data) {
+            let actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.proposalObjId && data.proposalObjId.length);
+            socketUtil.emitter(self.socket, dbProposal.getProposalByObjId, [data.proposalObjId], actionName, isValidData);
+        },
+
         getManualApprovalRecords: function getManualApprovalRecords(data) {
             let actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.startDate && data.endDate && data.period && data.playerBonus && data.updatePlayerList && data.updatePartnerList && data.reward && data.others && data.all);
