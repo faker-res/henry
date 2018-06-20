@@ -3084,24 +3084,23 @@ let dbPlayerInfo = {
                                 && platform.autoApproveLostThreshold && rtg.totalCredit <= platform.autoApproveLostThreshold){
 
                                 rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
-                                unlockRewardsArr.push(dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then( rewards => {
+
+                                dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then( rewards => {
                                     if (rewards){
 
                                         return dbRewardTask.getRewardTasksRecord(rewards, rtg, proposalData);
                                     }
                                 }).then( records => {
 
-                                        if (records){
-                                            dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId);
-                                        }
-                                    })
-                                )
-
+                                    if (records){
+                                        return dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId).catch(errorUtils.reportError);
+                                    }
+                                })
                             }
                         }
                     )
 
-                    return Promise.all([rtgArr, unlockRewardsArr]);
+                    return Promise.all(rtgArr);
                 }
             }
         ).then(() => {
