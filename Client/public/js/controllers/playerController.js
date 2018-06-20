@@ -3679,7 +3679,7 @@ define(['js/app'], function (myApp) {
                 startTime: vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate(),
                 index: newSearch ? 0 : vm.platformCreditTransferLog.index,
-                limit: newSearch ? 50 : vm.platformCreditTransferLog.limit,
+                limit: newSearch ? vm.platformCreditTransferLog.limit : (vm.platformCreditTransferLog.limit || 50),
                 sortCol: vm.platformCreditTransferLog.sortCol
             };
 
@@ -9002,6 +9002,8 @@ define(['js/app'], function (myApp) {
             $('#modalPlayerCreditChangeLog').modal().show();
             vm.playerCreditChangeLog = {};
             vm.playerCreditChangeLog.type = 'none';
+            vm.playerCreditChangeLog.index = 0;
+            vm.playerCreditChangeLog.limit = vm.playerCreditChangeLog && vm.playerCreditChangeLog.limit ? vm.playerCreditChangeLog.limit : 50;
             utilService.actionAfterLoaded(('#playerCreditChangeLog .endTime'), function () {
                 vm.playerCreditChangeLog.startTime = utilService.createDatePicker('#playerCreditChangeLog .startTime');
                 vm.playerCreditChangeLog.endTime = utilService.createDatePicker('#playerCreditChangeLog .endTime');
@@ -9016,15 +9018,15 @@ define(['js/app'], function (myApp) {
 
         vm.getPagedPlayerCreditChangeLog = function (newSearch) {
             vm.playerCreditChangeLog.loading = true;
-            var sendQuery = {
+            let sendQuery = {
                 playerId: vm.isOneSelectedPlayer()._id,
                 startTime: vm.playerCreditChangeLog.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.playerCreditChangeLog.endTime.data('datetimepicker').getLocalDate(),
                 type: vm.playerCreditChangeLog.type,
                 index: newSearch ? 0 : vm.playerCreditChangeLog.index,
-                limit: newSearch ? 10 : vm.playerCreditChangeLog.limit,
+                limit: newSearch ? vm.playerCreditChangeLog.limit : (vm.playerCreditChangeLog.limit || 50),
                 sortCol: vm.playerCreditChangeLog.sortCol,
-            }
+            };
             socketService.$socket($scope.AppSocket, "getPagedPlayerCreditChangeLogs", sendQuery, function (data) {
                 vm.playerCreditChangeLogs = vm.processCreditChangeLogData(data.data.data);
                 vm.playerCreditChangeLog.totalCount = data.data.total || 0;
@@ -9244,6 +9246,8 @@ define(['js/app'], function (myApp) {
             // $('#modalPlayerCreditChangeLog').modal().show();
             vm.playerRewardTaskLog = {};
             vm.playerRewardTaskLog.type = 'none';
+            vm.playerRewardTaskLog.index = 0;
+            vm.playerRewardTaskLog.limit = vm.playerRewardTaskLog && vm.playerRewardTaskLog.limit ? vm.playerRewardTaskLog.limit : 50;
             utilService.actionAfterLoaded(('#playerRewardTaskLog .endTime'), function () {
                 vm.playerRewardTaskLog.startTime = utilService.createDatePicker('#playerRewardTaskLog .startTime');
                 vm.playerRewardTaskLog.endTime = utilService.createDatePicker('#playerRewardTaskLog .endTime');
@@ -9258,14 +9262,14 @@ define(['js/app'], function (myApp) {
 
         vm.getPagedPlayerRewardTaskLog = function (newSearch) {
             vm.playerRewardTaskLog.loading = true;
-            var sendQuery = {
+            let sendQuery = {
                 playerId: vm.isOneSelectedPlayer()._id,
                 startTime: vm.playerRewardTaskLog.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.playerRewardTaskLog.endTime.data('datetimepicker').getLocalDate(),
                 index: newSearch ? 0 : vm.playerRewardTaskLog.index,
-                limit: newSearch ? 10 : vm.playerRewardTaskLog.limit,
+                limit: newSearch ? vm.playerRewardTaskLog.limit : (vm.playerRewardTaskLog.limit || 50),
                 sortCol: vm.playerRewardTaskLog.sortCol,
-            }
+            };
 
             socketService.$socket($scope.AppSocket, 'getPlayerRewardTaskUnlockedRecord', sendQuery, function (data) {
 
@@ -9276,6 +9280,7 @@ define(['js/app'], function (myApp) {
                     item['unlockTime'] = vm.dateReformat(item.unlockTime);
                     item['targetProviderGroup'] = $translate(item.targetProviderGroup);
                     item.creator.name = $translate(item.creator.name);
+                    item.status = $translate(item.status == 'NoCredit' ? 'NoCreditUnlock' : item.status == 'Achieved' ? 'AchievedUnlock': item.status);
                 });
 
                 $scope.$evalAsync(vm.drawRewardTaskUnlockedTable(newSearch, result, vm.playerRewardTaskLog.totalCount));
@@ -9360,6 +9365,10 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         "title": $translate('creator'), data: "creator.name",
+
+                    },
+                    {
+                        "title": $translate('UNLOCK_REASON'), data: "status",
 
                     },
                 ],
@@ -10724,7 +10733,8 @@ define(['js/app'], function (myApp) {
         vm.prepareShowProposal = function () {
             vm.playerProposal = {totalCount: 0};
             vm.proposalFilterstatus = 'all';
-
+            vm.playerProposal.index = 0;
+            vm.playerProposal.limit = vm.playerProposal && vm.playerProposal.limit ? vm.playerProposal.limit : 50;
             utilService.actionAfterLoaded(('#playerProposalData .endTime'), function () {
                 vm.playerProposal.startTime = utilService.createDatePicker('#playerProposalData .startTime');
                 vm.playerProposal.endTime = utilService.createDatePicker('#playerProposalData .endTime');
@@ -10836,7 +10846,7 @@ define(['js/app'], function (myApp) {
                 adminId: authService.adminId,
                 platformId: vm.selectedSinglePlayer.platform,
                 type: newproposalQuery.proposalTypeName,
-                size: vm.playerProposal.limit || 10,
+                size: vm.playerProposal.limit || 50,
                 index: newSearch ? 0 : (vm.playerProposal.index || 0),
                 sortCol: vm.playerProposal.sortCol,
                 status: newproposalQuery.status,
@@ -11025,6 +11035,8 @@ define(['js/app'], function (myApp) {
 
         vm.prepareShowPlayerExpense = function () {
             vm.playerExpenseLog = {totalCount: 0};
+            vm.playerExpenseLog.index = 0;
+            vm.playerExpenseLog.limit = vm.playerExpenseLog && vm.playerExpenseLog.limit ? vm.playerExpenseLog.limit : 50;
             vm.initQueryTimeFilter('playerExpense', function () {
                 $('#modalPlayerExpenses').modal();
                 vm.playerExpenseLog.pageObj = utilService.createPageForPagingTable("#playerExpenseTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
@@ -11032,14 +11044,14 @@ define(['js/app'], function (myApp) {
                 });
                 vm.getPlayerExpenseByFilter(true);
             });
-        }
+        };
         vm.getPlayerExpenseByFilter = function (newSearch) {
-            var sendData = {
+            let sendData = {
                 startTime: vm.queryPara.playerExpense.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.queryPara.playerExpense.endTime.data('datetimepicker').getLocalDate(),
                 playerId: vm.isOneSelectedPlayer()._id,
                 index: newSearch ? 0 : (vm.playerExpenseLog.index || 0),
-                limit: newSearch ? 10 : (vm.playerExpenseLog.limit || 10),
+                limit: newSearch ? vm.playerExpenseLog.limit : (vm.playerExpenseLog.limit || 50),
                 sortCol: vm.playerExpenseLog.sortCol || null
             };
             // if (vm.queryPara.playerExpense.dirty == 'Y') {
@@ -13976,7 +13988,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.initPlayerCreditLog = function () {
-            vm.playerCreditLog = vm.playerCreditLog || {totalCount: 0, limit: 10, index: 0, query: {}};
+            vm.playerCreditLog = vm.playerCreditLog || {totalCount: 0, limit: 50, index: 0, query: {}};
             // utilService.actionAfterLoaded('#modalPlayerCreditLog.in #playerCreditLogQuery .endTime', function () {
             utilService.actionAfterLoaded('#modalPlayerAccountingDetail #playerCreditLogQuery .endTime', function () {
                 vm.playerCreditLog.query.startTime = utilService.createDatePicker('#playerCreditLogQuery .startTime');
@@ -13994,14 +14006,14 @@ define(['js/app'], function (myApp) {
             if (!authService.checkViewPermission('Platform', 'Player', 'playerDailyCreditLog')) {
                 return;
             }
-            var sendQuery = {
+            let sendQuery = {
                 playerId: vm.selectedSinglePlayer._id,
                 from: vm.playerCreditLog.query.startTime.data('datetimepicker').getLocalDate(),
                 to: vm.playerCreditLog.query.endTime.data('datetimepicker').getLocalDate(),
                 index: newSearch ? 0 : vm.playerCreditLog.index,
-                limit: newSearch ? 10 : vm.playerCreditLog.limit,
+                limit: newSearch ? vm.playerCreditLog.limit : (vm.playerCreditLog.limit || 50),
                 sortCol: vm.playerCreditLog.sortCol || null
-            }
+            };
             socketService.$socket($scope.AppSocket, 'getPlayerCreditsDaily', sendQuery, function (data) {
                 console.log('getPlayerDailyCredit', data);
                 var tblData = data && data.data ? data.data.data.map(item => {

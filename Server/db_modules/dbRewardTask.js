@@ -6,7 +6,7 @@ module.exports = new dbRewardTaskFunc();
 
 const messageDispatcher = require("../modules/messageDispatcher.js");
 const SMSSender = require('../modules/SMSSender');
-
+var constProposalStatus = require('./../const/constProposalStatus');
 var dbconfig = require('./../modules/dbproperties');
 var Q = require("q");
 var constRewardType = require('./../const/constRewardType');
@@ -455,6 +455,7 @@ const dbRewardTask = {
                         $lt: new Date(query.to)
                     },
                     mainType: {$in: ["TopUp","Reward"]},
+                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                 };
 
                 if (!query._id) {
@@ -534,7 +535,7 @@ const dbRewardTask = {
                 };
             });
     },
-    getRewardTasksRecord: function (rewards, rewardTaskGroup) {
+    getRewardTasksRecord: function (rewards, rewardTaskGroup, proposalData) {
 
         if (!rewards && !rewardTaskGroup) {
             return Q.reject("Record is not found");
@@ -544,8 +545,13 @@ const dbRewardTask = {
         let totalConsumption = rewardTaskGroup.curConsumption;
 
         let usedTopUp = [];
-        rewards.forEach(item => {
 
+        // remove the latest top up/ reward record for the case of platform.autoUnlockWhenInitAmtLessThanLostThreshold
+        if (proposalData && proposalData.proposalId){
+            rewards = rewards.filter(item => proposalData.proposalId != item.proposalId);
+        }
+
+        rewards.forEach(item => {
             item.topUpProposal = item.data.topUpProposalId ? item.data.topUpProposalId : item.data.topUpProposal;
 
             let requiredUnlockedConsumption = item.data.amount ?  item.data.amount : item.data.spendingAmount || item.data.requiredUnlockAmount; // amount from topUp Type; spendingAmount from reward Type
@@ -595,6 +601,7 @@ const dbRewardTask = {
     },
     updateUnlockedRewardTasksRecord: function (rewards, status, playerId, platformId) {
 
+        let proms = [];
         if (rewards && rewards.length > 0){
             rewards.forEach( rewardTask => {
 
@@ -630,9 +637,11 @@ const dbRewardTask = {
                     isUnlock: true
 
                 };
-                dbRewardTaskGroup.createRewardTaskGroupUnlockedRecord(sendData);
+                proms.push(dbRewardTaskGroup.createRewardTaskGroupUnlockedRecord(sendData));
             })
         }
+
+        return Promise.all(proms);
 
     },
     getRewardTaskGroupProposalById: function (query) {
@@ -686,6 +695,7 @@ const dbRewardTask = {
                     $lt: new Date()
                 },
                 mainType: {$in: ["TopUp","Reward"]},
+                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
             };
 
             if (!reward.providerGroup) {
@@ -2446,7 +2456,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                     res => {
                                         
                                         if (res[0]){
-                                            dbRewardTask.updateUnlockedRewardTasksRecord(res[0], statusUpdObj.status, updatedRTG.playerId, updatedRTG.platformId);
+                                            dbRewardTask.updateUnlockedRewardTasksRecord(res[0], statusUpdObj.status, updatedRTG.playerId, updatedRTG.platformId).catch(errorUtils.reportError);
                                         }
 
                                         if (res[1]) {

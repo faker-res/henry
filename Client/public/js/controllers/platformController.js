@@ -3699,7 +3699,7 @@ define(['js/app'], function (myApp) {
                     startTime: vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate(),
                     index: newSearch ? 0 : vm.platformCreditTransferLog.index,
-                    limit: newSearch ? 50 : vm.platformCreditTransferLog.limit,
+                    limit: newSearch ? vm.platformCreditTransferLog.limit : (vm.platformCreditTransferLog.limit || 50),
                     sortCol: vm.platformCreditTransferLog.sortCol
                 };
 
@@ -7491,7 +7491,7 @@ define(['js/app'], function (myApp) {
                     platformId: vm.selectedSinglePlayer.platform,
                     phoneNumber: vm.selectedSinglePlayer.phoneNumber,
                     index: newSearch ? 0 : vm.similarPhoneForPlayer.index,
-                    limit: newSearch ? 50 : vm.similarPhoneForPlayer.limit,
+                    limit: newSearch ? vm.similarPhoneForPlayer.limit : (vm.similarPhoneForPlayer.limit || 50),
                     sortCol: {registrationTime: -1},
                     isRealPlayer: true,
                 };
@@ -7580,7 +7580,7 @@ define(['js/app'], function (myApp) {
                     platformId: vm.selectedSinglePlayer.platform,
                     lastLoginIp: vm.selectedSinglePlayer.lastLoginIp,
                     index: newSearch ? 0 : vm.similarIpForPlayer.index,
-                    limit: newSearch ? 50 : vm.similarIpForPlayer.limit,
+                    limit: newSearch ? vm.similarIpForPlayer.limit : (vm.similarIpForPlayer.limit || 50),
                     sortCol: {registrationTime: -1},
                     isRealPlayer: true,
                 };
@@ -9238,15 +9238,15 @@ define(['js/app'], function (myApp) {
 
             vm.getPagedPlayerCreditChangeLog = function (newSearch) {
                 vm.playerCreditChangeLog.loading = true;
-                var sendQuery = {
+                let sendQuery = {
                     playerId: vm.isOneSelectedPlayer()._id,
                     startTime: vm.playerCreditChangeLog.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.playerCreditChangeLog.endTime.data('datetimepicker').getLocalDate(),
                     type: vm.playerCreditChangeLog.type,
                     index: newSearch ? 0 : vm.playerCreditChangeLog.index,
-                    limit: newSearch ? 50 : vm.playerCreditChangeLog.limit,
+                    limit: newSearch ? vm.playerCreditChangeLog.limit : (vm.playerCreditChangeLog.limit || 50),
                     sortCol: vm.playerCreditChangeLog.sortCol,
-                }
+                };
                 socketService.$socket($scope.AppSocket, "getPagedPlayerCreditChangeLogs", sendQuery, function (data) {
                     vm.playerCreditChangeLogs = vm.processCreditChangeLogData(data.data.data);
                     vm.playerCreditChangeLog.totalCount = data.data.total || 0;
@@ -9478,18 +9478,18 @@ define(['js/app'], function (myApp) {
                     });
                     vm.getPagedPlayerRewardTaskLog(true);
                 });
-            }
+            };
 
             vm.getPagedPlayerRewardTaskLog = function (newSearch) {
                 vm.playerRewardTaskLog.loading = true;
-                var sendQuery = {
+                let sendQuery = {
                     playerId: vm.isOneSelectedPlayer()._id,
                     startTime: vm.playerRewardTaskLog.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.playerRewardTaskLog.endTime.data('datetimepicker').getLocalDate(),
                     index: newSearch ? 0 : vm.playerRewardTaskLog.index,
-                    limit: newSearch ? 50 : vm.playerRewardTaskLog.limit,
+                    limit: newSearch ? vm.playerRewardTaskLog.limit : (vm.playerRewardTaskLog.limit || 50),
                     sortCol: vm.playerRewardTaskLog.sortCol,
-                }
+                };
 
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardTaskUnlockedRecord', sendQuery, function (data) {
 
@@ -9500,6 +9500,7 @@ define(['js/app'], function (myApp) {
                         item['unlockTime'] = vm.dateReformat(item.unlockTime);
                         item['targetProviderGroup'] = $translate(item.targetProviderGroup);
                         item.creator.name = $translate(item.creator.name);
+                        item.status = $translate(item.status == 'NoCredit' ? 'NoCreditUnlock' : item.status == 'Achieved' ? 'AchievedUnlock': item.status);
                     });
 
                     $scope.$evalAsync(vm.drawRewardTaskUnlockedTable(newSearch, result, vm.playerRewardTaskLog.totalCount));
@@ -9584,6 +9585,10 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             "title": $translate('creator'), data: "creator.name",
+
+                        },
+                        {
+                            "title": $translate('UNLOCK_REASON'), data: "status",
 
                         },
                     ],
@@ -11264,14 +11269,14 @@ define(['js/app'], function (myApp) {
                 $scope.$socketPromise('getPlayerConsumptionSummary', {playerId: vm.selectedSinglePlayer._id}).then(
                     data => console.log('Consumption summary', data.data)
                 )
-            }
+            };
             vm.getPlayerExpenseByFilter = function (newSearch) {
-                var sendData = {
+                let sendData = {
                     startTime: vm.queryPara.playerExpense.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.queryPara.playerExpense.endTime.data('datetimepicker').getLocalDate(),
                     playerId: vm.isOneSelectedPlayer()._id,
                     index: newSearch ? 0 : (vm.playerExpenseLog.index || 0),
-                    limit: newSearch ? 50 : (vm.playerExpenseLog.limit || 50),
+                    limit: newSearch ? vm.playerExpenseLog.limit : (vm.playerExpenseLog.limit || 50),
                     sortCol: vm.playerExpenseLog.sortCol || null
                 };
                 // if (vm.queryPara.playerExpense.dirty == 'Y') {
@@ -14234,14 +14239,14 @@ define(['js/app'], function (myApp) {
                 if (!authService.checkViewPermission('Platform', 'Player', 'playerDailyCreditLog')) {
                     return;
                 }
-                var sendQuery = {
+                let sendQuery = {
                     playerId: vm.selectedSinglePlayer._id,
                     from: vm.playerCreditLog.query.startTime.data('datetimepicker').getLocalDate(),
                     to: vm.playerCreditLog.query.endTime.data('datetimepicker').getLocalDate(),
                     index: newSearch ? 0 : vm.playerCreditLog.index,
-                    limit: newSearch ? 50 : vm.playerCreditLog.limit,
+                    limit: newSearch ? vm.playerCreditLog.limit : (vm.playerCreditLog.limit || 50),
                     sortCol: vm.playerCreditLog.sortCol || null
-                }
+                };
                 socketService.$socket($scope.AppSocket, 'getPlayerCreditsDaily', sendQuery, function (data) {
                     console.log('getPlayerDailyCredit', data);
                     var tblData = data && data.data ? data.data.data.map(item => {
@@ -19556,6 +19561,10 @@ define(['js/app'], function (myApp) {
                 vm.platformRewardPageName = 'showReward';
                 //vm.highlightRewardEvent = {};
                 //vm.highlightRewardEvent[v.name] = 'bg-bright';
+                if (v && v.type && v.type.name
+                    && v.type.name == "PlayerConsumptionReturn" && v.param && !v.param.imageUrl) {
+                    v.param.imageUrl = [""];
+                }
                 vm.showReward = v;
                 if (vm.showReward && vm.showReward.condition && vm.showReward.condition.imageUrl && typeof vm.showReward.condition.imageUrl == 'string') {
                     vm.showReward.condition.imageUrl = [""];
@@ -19590,6 +19599,23 @@ define(['js/app'], function (myApp) {
                             && v.params.condition.generalCond.imageUrl && v.params.condition.generalCond.imageUrl.value) {
                             v.params.condition.generalCond.imageUrl.value = [""];
                         }
+
+                        if (v && v.name && v.name == "PlayerConsumptionReturn") {
+                            if(vm.showReward && (!vm.showReward.param || !vm.showReward.param.imageUrl)) {
+                                if (!vm.showReward.param) {
+                                    vm.showReward.param = {};
+                                }
+                                vm.showReward.param.imageUrl = [""];
+                            }
+
+                            if (vm.showReward && !vm.showReward.display) {
+                                vm.showReward.display = [];
+                                vm.showReward.display.push({displayId:"", displayTitle:"", displayTextContent: "", btnOrImageList: []});
+                            }
+                        }
+
+
+
                         vm.showRewardTypeData = v;
                         console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                         return true;
@@ -20740,6 +20766,12 @@ define(['js/app'], function (myApp) {
             vm.editReward = function (i) {
                 console.log('vm.showReward', vm.showReward);
 
+                if (vm.showReward && vm.showReward.type && vm.showReward.type.name
+                    && vm.showReward.type.name == "PlayerConsumptionReturn" && vm.showReward.param
+                    && vm.showReward.param.imageUrl && vm.showReward.param.imageUrl.length) {
+                    vm.rewardParams.imageUrl = vm.showReward.param.imageUrl;
+                }
+
                 var curReward = {
                     name: vm.showReward.name,
                     code: vm.showReward.code,
@@ -20813,19 +20845,19 @@ define(['js/app'], function (myApp) {
                         curReward.param.rewardParam.push(levelParam);
                     });
 
-                    if (vm.showReward && vm.showReward.display) {
-                        for (let i=0; i < vm.showReward.display.length; i++) {
-                            if (vm.showReward.display[i].displayId == "" && vm.showReward.display[i].displayTitle == "" && vm.showReward.display[i].displayTextContent == "") {
-                                vm.showReward.display.splice(i, 1);
-                            }
-                        }
-
-                        curReward.display = vm.showReward.display || [];
-                    }
                 } else {
 
                 }
 
+                if (vm.showReward && vm.showReward.display) {
+                    for (let i=0; i < vm.showReward.display.length; i++) {
+                        if (vm.showReward.display[i].displayId == "" && vm.showReward.display[i].displayTitle == "" && vm.showReward.display[i].displayTextContent == "") {
+                            vm.showReward.display.splice(i, 1);
+                        }
+                    }
+
+                    curReward.display = vm.showReward.display || [];
+                }
 
                 var sendData = {
                     query: {_id: vm.showReward._id},
@@ -20920,16 +20952,12 @@ define(['js/app'], function (myApp) {
                         sendData.param.rewardParam.push(levelParam);
                     });
 
-                    if (vm.showReward && vm.showReward.display) {
-                        for (let i=0; i < vm.showReward.display.length; i++) {
-                            if (vm.showReward.display[i].displayId == "" && vm.showReward.display[i].displayTitle == "" && vm.showReward.display[i].displayTextContent == "") {
-                                vm.showReward.display.splice(i, 1);
-                            }
-                        }
-
-                        sendData.display = vm.showReward.display || [];
-                    }
                 } else {
+                    if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == "PlayerConsumptionReturn"
+                        && vm.showReward && vm.showReward.param && vm.showReward.param.imageUrl && vm.showReward.param.imageUrl.length) {
+                        vm.rewardParams.imageUrl = vm.showReward.param.imageUrl;
+                    }
+
                     sendData = vm.showReward;
                     sendData.name = vm.showReward.name;
                     sendData.platform = vm.selectedPlatform.id;
@@ -20942,6 +20970,17 @@ define(['js/app'], function (myApp) {
                     sendData.validEndTime = vm.showReward.validEndTime || null;
 
                 }
+
+                if (vm.showReward && vm.showReward.display) {
+                    for (let i=0; i < vm.showReward.display.length; i++) {
+                        if (vm.showReward.display[i].displayId == "" && vm.showReward.display[i].displayTitle == "" && vm.showReward.display[i].displayTextContent == "") {
+                            vm.showReward.display.splice(i, 1);
+                        }
+                    }
+
+                    sendData.display = vm.showReward.display || [];
+                }
+
                 console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                 console.log('vm.rewardMainCondition', vm.rewardMainCondition);
                 console.log("newReward", sendData);
@@ -24463,6 +24502,7 @@ define(['js/app'], function (myApp) {
                 vm.playerIDArr = [];
                 vm.autoCheckPlayerLevelUp = null;
                 vm.manualPlayerLevelUp = null;
+                vm.playerLevelDisplayList = [];
                 return $scope.$socketPromise('getPlayerLevelByPlatformId', {platformId: vm.selectedPlatform.id})
                     .then(function (data) {
                         $scope.$evalAsync(() => {
@@ -24476,6 +24516,12 @@ define(['js/app'], function (myApp) {
                             vm.allPlayerLvlReordered = false;
                             vm.sortPlayerLevels();
                             console.log("vm.allPlayerLvl", data.data);
+                            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.display && vm.selectedPlatform.data.display.length > 0) {
+                                vm.playerLevelDisplayList = vm.selectedPlatform.data.display;
+                            } else {
+                                vm.playerLevelDisplayList.push({displayId:"", displayTitle:"", displayTextContent: "", btnOrImageList: []});
+                            }
+
                             vm.playerLvlData = {};
                             if (vm.allPlayerLvl) {
                                 $.each(vm.allPlayerLvl, function (i, v) {
@@ -26142,6 +26188,7 @@ define(['js/app'], function (myApp) {
                 switch (choice) {
                     case 'player':
                         vm.allPlayerLvlBeforeEdit = Lodash.cloneDeep(vm.allPlayerLvl);
+                        vm.playerLevelDisplayListBeforeEdit = Lodash.cloneDeep(vm.playerLevelDisplayList);
                         break;
                     case 'announcement':
                         vm.allPlatformAnnouncementsBeforeEdit = Lodash.cloneDeep(vm.allPlatformAnnouncements);
@@ -26181,6 +26228,14 @@ define(['js/app'], function (myApp) {
                             vm.allPlayerLvl = vm.allPlayerLvlBeforeEdit;
                         }
                         vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
+
+                        if (vm.playerLevelDisplayListBeforeEdit && vm.playerLevelDisplayListBeforeEdit.length > 0) {
+                            vm.playerLevelDisplayList = vm.playerLevelDisplayListBeforeEdit;
+                        } else {
+                            if (vm.playerLevelDisplayList && !vm.playerLevelDisplayList.length) {
+                                vm.playerLevelDisplayList.push({displayId:"", displayTitle:"", displayTextContent: "", btnOrImageList: []});
+                            }
+                        }
                         break;
                     case 'announcement':
                         // If cancelling an edit, we should restore the state before the edit
@@ -26214,12 +26269,23 @@ define(['js/app'], function (myApp) {
                             }
                         }
 
+                        if (vm.playerLevelDisplayList && vm.playerLevelDisplayList.length > 0) {
+                            for (let i=0; i < vm.playerLevelDisplayList.length; i++) {
+                                if (vm.playerLevelDisplayList[i].displayId == "" && vm.playerLevelDisplayList[i].displayTitle == "" && vm.playerLevelDisplayList[i].displayTextContent == "") {
+                                    vm.playerLevelDisplayList.splice(i, 1);
+                                }
+                            }
+
+                            vm.playerLevelDisplayList = vm.playerLevelDisplayList || [];
+                        }
+
                         updatePlatformBasic({
                             autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp,
                             manualPlayerLevelUp: vm.manualPlayerLevelUp,
                             playerLevelUpPeriod: vm.playerLevelPeriod.playerLevelUpPeriod,
                             playerLevelDownPeriod: vm.playerLevelPeriod.playerLevelDownPeriod,
-                            platformBatchLevelUp: vm.platformBatchLevelUp
+                            platformBatchLevelUp: vm.platformBatchLevelUp,
+                            display: vm.playerLevelDisplayList
                         });
                         if (vm.allPlayerLvlReordered) {
                             // Number the levels correctly.  (This should only really be needed if something went wrong on a previous attempt.)
@@ -26462,6 +26528,7 @@ define(['js/app'], function (myApp) {
                         playerForbidApplyBonusNeedCsApproval: srcData.playerForbidApplyBonusNeedCsApproval,
                         unreadMailMaxDuration: srcData.unreadMailMaxDuration,
                         manualRewardSkipAuditAmount: srcData.manualRewardSkipAuditAmount,
+                        display: srcData.display,
                     }
                 };
                 let isProviderGroupOn = false;
