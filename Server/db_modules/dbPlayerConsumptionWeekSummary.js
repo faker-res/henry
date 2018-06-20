@@ -395,6 +395,14 @@ var dbPlayerConsumptionWeekSummary = {
                                 }
                             }
                         }
+                    ).catch(
+                        err => {
+                            if (!bRequest) {
+                                return Promise.resolve();
+                            } else {
+                                throw err;
+                            }
+                        }
                     )
                 )
             });
