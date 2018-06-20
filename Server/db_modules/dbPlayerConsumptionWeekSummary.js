@@ -416,7 +416,7 @@ var dbPlayerConsumptionWeekSummary = {
                                                             consumedValidAmount = doneXIMAConsumption["GameType:" + el._id].consumeValidAmount;
                                                         }
 
-                                                        let freeConsumption = parseFloat(el.validAmount - consumedValidAmount).toFixed(2);
+                                                        let freeConsumption = el.validAmount - consumedValidAmount;
                                                         let consumpDiff = el.validAmount - curValidAmt - curNonXIMAAmt - consumedValidAmount;
                                                         let returnRatio = proposalData.data.returnDetail["GameType:" + el._id] ? proposalData.data.returnDetail["GameType:" + el._id].ratio : 0;
 
@@ -433,7 +433,7 @@ var dbPlayerConsumptionWeekSummary = {
 
                                                         // Handling for inconsistent consumption summary
                                                         // Sometime the summary has more consumption than it should
-                                                        if (freeConsumption < curValidAmt + curNonXIMAAmt) {
+                                                        if (parseFloat(freeConsumption).toFixed(2) < parseFloat(curValidAmt + curNonXIMAAmt).toFixed(2)) {
                                                             proposalData.data.rewardAmount -= proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount * returnRatio;
                                                             proposalData.data.spendingAmount -= proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount * eventData.param.consumptionTimesRequired;
                                                             proposalData.data.consumeValidAmount -= proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount;
@@ -529,7 +529,7 @@ var dbPlayerConsumptionWeekSummary = {
             }
         ).then(
             function (data) {
-                if (data) {
+                if (data && !isLessAmtAfterOffset) {
                     // Mark the summaries we have just processed as dirty
                     // Concern: It is possible that a consumptionSummary record has been updated in the time that we have been processing this batch.
                     //          That update amount will be lost (removed from this week, not counted for next week).
