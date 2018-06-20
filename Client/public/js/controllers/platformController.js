@@ -1147,6 +1147,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case "batchPermit":
                         vm.initBatchPermit();
+                        vm.initBulkCreditClearOut();
                     // setTimeout(() => {
                     //     $('#partnerDataTable').resize();
                     // }, 300);
@@ -30333,8 +30334,67 @@ define(['js/app'], function (myApp) {
                 }
                 // add to record which is selected to edit
                 $('#c-' + id).html($translate("ModifyIt"));
-            }
+            };
 
+            vm.initBulkCreditClearOut = function() {
+                vm.bulkCreditClearOut = {};
+                vm.bulkCreditClearOut.total = 0;
+                vm.bulkCreditClearOut.success = 0;
+                vm.bulkCreditClearOut.failure = 0;
+                vm.bulkCreditClearOut.pending = 0;
+                vm.bulkCreditClearOut.data = [];
+            };
+            vm.displayBulkCreditClearOutList = function() {
+                console.log("vm.displayBulkCreditClearOutList");
+                vm.bulkCreditClearOut.total = 0;
+                vm.bulkCreditClearOut.success = 0;
+                vm.bulkCreditClearOut.failure = 0;
+                vm.bulkCreditClearOut.pending = 0;
+                vm.bulkCreditClearOut.data = [];
+                let playerNames = vm.splitBatchPermit();
+                let prom = Promise.resolve();
+                playerNames.forEach((playerName, i) => {
+                    vm.bulkCreditClearOut.data.push({
+                        playerName: playerName,
+                        gameProviderTotalCredit: "? (" + $translate("Requesting Data") + ")",
+                        localTotalCredit: "? (" + $translate("Requesting Data") + ")",
+                        totalCredit: "? (" + $translate("Requesting Data") + ")",
+                        status: "-",
+                        proposalId: "-"
+                    });
+                    vm.bulkCreditClearOut.total += 1;
+
+                    prom = prom.then(() => {
+                        let sendData = {
+                            platformObjId: vm.selectedPlatform.id,
+                            playerName: playerName
+                        };
+                        return $scope.$socketPromise("getPlayersCredit", sendData).then(data => {
+                            console.log(data.data);
+                            console.log(i);
+                            if(data && data.data && data.data.playerName) {
+                                $scope.$evalAsync(() => {
+                                    vm.bulkCreditClearOut.data[i].gameProviderTotalCredit = data.data.gameProviderTotalCredit;
+                                    vm.bulkCreditClearOut.data[i].localTotalCredit = data.data.localTotalCredit;
+                                    vm.bulkCreditClearOut.data[i].totalCredit = data.data.gameProviderTotalCredit + data.data.localTotalCredit;
+                                    vm.bulkCreditClearOut.data[i].status = "PENDINGTOPROCESS";
+                                    vm.bulkCreditClearOut.pending += 1;
+                                });
+                            }
+                        });
+                    });
+                });
+                return prom;
+            };
+            vm.singleCreditClearOut = function () {
+                console.log("vm.singleCreditClearOut");
+            };
+            vm.removePlayerFromCreditClearOutList = function () {
+                console.log("vm.removePlayerFromCreditClearOutList");
+            };
+            vm.refreshPlayerCreditInCreditClearOutList = function () {
+                console.log("vm.refreshPlayerCreditInCreditClearOutList");
+            };
             ///
             //Partner Advertisement
             vm.addNewPartnerAdvertisementRecord = function () {

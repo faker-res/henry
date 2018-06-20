@@ -16922,6 +16922,27 @@ let dbPlayerInfo = {
         );
     },
 
+    getPlayersCredit: function(playerName, platformObjId) {
+        let platformId = null, providers = [], localCredit = 0;
+        return dbconfig.collection_platform.findOne({
+            _id: platformObjId
+        }).populate({
+            path: 'gameProviders',
+            model: dbconfig.collection_gameProvider
+        }).then(platform => {
+            platformId = platform.id;
+            providers = platform.gameProviders;
+            return dbconfig.collection_players.findOne({name: playerName});
+        }).then(player => {
+            localCredit = player.validCredit;
+            return getProviderCredit(providers,playerName,platformId);
+        }).then(providerCredit => {
+            return {playerName: playerName, gameProviderTotalCredit: providerCredit, localTotalCredit: localCredit};
+        }).catch(err => {
+            errorUtils.reportError(err);
+            return {};
+        });
+    }
 };
 
 function censoredPlayerName(name) {

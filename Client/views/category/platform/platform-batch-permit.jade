@@ -9,6 +9,39 @@ style.
                 label {{"Batch Setting" | translate}}
             .panel-body.common-right-sub-panel-body
                 table#batchPlayerDataTable(style="width:100%")
+                div(style="text-align:right")
+                    button.btn.btn-primary.common-button(ng-click="vm.displayBulkCreditClearOutList()") {{"Bulk Credit Clear Out" | translate}}
+                div
+                    span(style="margin-right: 10px; font-weight: bold") {{'Total Players' | translate}} : {{vm.bulkCreditClearOut.total}}
+                    span(style="margin-right: 10px; font-weight: bold") {{'Success' | translate}} : {{vm.bulkCreditClearOut.success}}
+                    span(style="margin-right: 10px; font-weight: bold") {{'Failure' | translate}} : {{vm.bulkCreditClearOut.failure}}
+                    span(style="margin-right: 10px; font-weight: bold") {{'PENDINGTOPROCESS' | translate}} : {{vm.bulkCreditClearOut.pending}}
+                table.simple-table#bulkCreditClearOutTable(style="width:100%")
+                    thead
+                        tr
+                            th {{'Display Order' | translate}}
+                            th {{'Player Name' | translate}}
+                            th {{'Total Credit (Game Provider)' | translate}}
+                            th {{'Total Credit (Local)' | translate}}
+                            th {{'Totalsum' | translate}}
+                            th {{'Clear Out Status' | translate}}
+                            th {{'UpdatePlayerCredit' | translate}} ({{'Proposal No.' | translate}})
+                            th {{'ACTION_BUTTON' | translate}}
+                    tbody
+                        tr(ng-repeat='(i,v) in vm.bulkCreditClearOut.data')
+                            td {{i+1}}
+                            td {{v.playerName}}
+                            td {{v.gameProviderTotalCredit}}
+                            td {{v.localTotalCredit}}
+                            td {{v.totalCredit}}
+                            td {{v.status | translate}}
+                            td {{v.proposalId}}
+                            td
+                                a(ng-click="vm.singleCreditClearOut()") {{"Single Clear Out" | translate}}
+                                span &nbsp;&nbsp;/&nbsp;&nbsp;
+                                a(ng-click="vm.removePlayerFromCreditClearOutList()") {{"Remove From List" | translate}}
+                                span &nbsp;&nbsp;/&nbsp;&nbsp;
+                                a(ng-click="vm.refreshPlayerCreditInCreditClearOutList()") {{"Refresh Credit" | translate}}
                 .well(ng-show='vm.batchPermitModifySucc')
                     label.text-success {{'SUCCESS' | translate}}
                 .well(ng-if='vm.errorListMsg')
