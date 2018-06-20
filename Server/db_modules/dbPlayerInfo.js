@@ -3077,17 +3077,31 @@ let dbPlayerInfo = {
             rewardTaskGroup => {
                 if(rewardTaskGroup){
                     let rtgArr = [];
+                    let unlockRewardsArr = [];
                     rewardTaskGroup.forEach(
                         rtg => {
                             if(rtg && platform && rtg._id && rtg.totalCredit && platform.autoUnlockWhenInitAmtLessThanLostThreshold
                                 && platform.autoApproveLostThreshold && rtg.totalCredit <= platform.autoApproveLostThreshold){
 
                                 rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
+                                unlockRewardsArr.push(dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then( rewards => {
+                                    if (rewards){
+
+                                        return dbRewardTask.getRewardTasksRecord(rewards, rtg, proposalData);
+                                    }
+                                }).then( records => {
+
+                                        if (records){
+                                            dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId);
+                                        }
+                                    })
+                                )
+
                             }
                         }
                     )
 
-                    return Promise.all(rtgArr);
+                    return Promise.all([rtgArr, unlockRewardsArr]);
                 }
             }
         ).then(() => {
