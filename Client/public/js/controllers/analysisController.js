@@ -42,6 +42,19 @@ define(['js/app'], function (myApp) {
             QUICKPAY: "QUICKPAY"
         };
 
+        vm.proposalStatusList = { // removed APPROVED and REJECTED
+            PREPENDING: "PrePending",
+            PENDING: "Pending",
+            PROCESSING: "Processing",
+            SUCCESS: "Success",
+            FAIL: "Fail",
+            CANCEL: "Cancel",
+            EXPIRED: "Expired",
+            UNDETERMINED: "Undetermined",
+            CSPENDING: "CsPending",
+            NOVERIFY: "NoVerify"
+        };
+
         vm.constDepositMethod = {
             Online: 1 ,
             ATM: 2,
@@ -5252,7 +5265,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.dateReformat = function (data) {
-            return utilService.$getDateFromStdTimeFormat(data);
+            return utilService.$getTimeFromStdTimeFormat(data);
         };
 
         vm.setGraphName = function (data, ltr, num) {
