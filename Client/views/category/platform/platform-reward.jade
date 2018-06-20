@@ -31,6 +31,18 @@
                     .full-width-input-block(ng-if='vm.rewardAttrConst.canApply.indexOf(vm.showRewardTypeData.name)>-1')
                         label {{"REWARD_NEED_APPLY" | translate}}
                         input.form-control(type='checkbox', ng-model='vm.showReward.needApply', ng-change='vm.clearCanApplyFromClient()' ng-disabled='vm.platformRewardShowEdit()')
+                    .full-width-input-block(ng-if='(vm.showRewardTypeData && vm.showRewardTypeData.name ==="PlayerConsumptionReturn") ||(vm.showReward.type && vm.showReward.type.name ==="PlayerConsumptionReturn")')
+                        label {{"Display imageUrl" | translate}}
+
+                        div(style="display:inline-block")
+                            table(style="width:100%")
+                                tbody
+                                    tr(ng-repeat='val in vm.showReward.param.imageUrl track by $index')
+                                        td
+                                            input.form-control(type="text" ng-model="vm.showReward.param.imageUrl[$index]", ng-disabled='vm.platformRewardShowEdit()', style="width:100%;margin:0;margin-bottom:5px;padding-right:50px;")
+                                        td(style="display:block;position:absolute;right:20px;padding:7px;")
+                                            i.fa.fa-plus(ng-click='vm.rewardImageUrlNewRow(vm.showReward.param.imageUrl)' ng-show='!vm.platformRewardShowEdit()' style="margin-right:5px;")
+                                            i.fa.fa-minus(ng-click='vm.rewardImageUrlDeleteRow($index, vm.showReward.param.imageUrl)' ng-show='!vm.platformRewardShowEdit()')
                     .full-width-input-block
                         label {{"REWARD_CLIENT_APPLY" | translate}}
                         input.form-control(type='checkbox', ng-model='vm.showReward.canApplyFromClient', ng-disabled='vm.platformRewardShowEdit() || !vm.showReward.needApply')

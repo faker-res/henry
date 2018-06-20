@@ -19555,6 +19555,10 @@ define(['js/app'], function (myApp) {
                 vm.platformRewardPageName = 'showReward';
                 //vm.highlightRewardEvent = {};
                 //vm.highlightRewardEvent[v.name] = 'bg-bright';
+                if (v && v.type && v.type.name
+                    && v.type.name == "PlayerConsumptionReturn" && v.param && !v.param.imageUrl) {
+                    v.param.imageUrl = [""];
+                }
                 vm.showReward = v;
                 if (vm.showReward && vm.showReward.condition && vm.showReward.condition.imageUrl && typeof vm.showReward.condition.imageUrl == 'string') {
                     vm.showReward.condition.imageUrl = [""];
@@ -19589,6 +19593,15 @@ define(['js/app'], function (myApp) {
                             && v.params.condition.generalCond.imageUrl && v.params.condition.generalCond.imageUrl.value) {
                             v.params.condition.generalCond.imageUrl.value = [""];
                         }
+
+                        if (v && v.name && v.name == "PlayerConsumptionReturn"
+                            && vm.showReward && (!vm.showReward.param || !vm.showReward.param.imageUrl)) {
+                            if (!vm.showReward.param){
+                                vm.showReward.param = {};
+                            }
+                            vm.showReward.param.imageUrl = [""];
+                        }
+
                         vm.showRewardTypeData = v;
                         console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                         return true;
@@ -20739,6 +20752,12 @@ define(['js/app'], function (myApp) {
             vm.editReward = function (i) {
                 console.log('vm.showReward', vm.showReward);
 
+                if (vm.showReward && vm.showReward.type && vm.showReward.type.name
+                    && vm.showReward.type.name == "PlayerConsumptionReturn" && vm.showReward.param
+                    && vm.showReward.param.imageUrl && vm.showReward.param.imageUrl.length) {
+                    vm.rewardParams.imageUrl = vm.showReward.param.imageUrl;
+                }
+
                 var curReward = {
                     name: vm.showReward.name,
                     code: vm.showReward.code,
@@ -20929,6 +20948,11 @@ define(['js/app'], function (myApp) {
                         sendData.display = vm.showReward.display || [];
                     }
                 } else {
+                    if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == "PlayerConsumptionReturn"
+                        && vm.showReward && vm.showReward.param && vm.showReward.param.imageUrl && vm.showReward.param.imageUrl.length) {
+                        vm.rewardParams.imageUrl = vm.showReward.param.imageUrl;
+                    }
+
                     sendData = vm.showReward;
                     sendData.name = vm.showReward.name;
                     sendData.platform = vm.selectedPlatform.id;
