@@ -3834,7 +3834,12 @@
   "LINE_ID_CUSTOM": "线路ID（自定义）",
   "LINE_NAME_CPMS": "线路名称（与运维确认）",
   "MIN_LEVEL_ABOVE": "最低等级限制（以上皆可）",
-  "Player not found": "查无此下线"
-
+  "Player not found": "查无此下线",
+  "WithdrawalSpeed": "提款速度分析",
+  "WITHDRAWAL_SPEED": "提款速度分析",
+  "WITHDRAWAL_SPEED_SUCCESS": "成功提款速度分析",
+  "WITHDRAWAL_SPEED_FAILED": "失败、已取消提款速度分析",
+  "WITHDRAWAL_SUCCESS_TOTAL_TIMES": "总成功提款笔数（代理、玩家）",
+  "WITHDRAWAL_FAILED_TOTAL_TIMES": "总失败、取消提款笔数（代理、玩家）"
 
 }
