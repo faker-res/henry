@@ -373,7 +373,7 @@ var dbPlatformBankCardGroup = {
             }
         ).then(
             () => {
-                console.log("cardList",merchantList);
+                console.log("cardList",cardList);
                 if (cardList && cardList.length > 0) {
                     let bankCards = cardList.map(card => card.accountNumber);
                     return dbconfig.collection_platformBankCardGroup.update(
