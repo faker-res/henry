@@ -81,7 +81,26 @@ var dbQualityInspection = {
                 queryQA.createTime = {'$lte':new Date(query.endTime),
                     '$gte': new Date(query.startTime)}
             }
-            console.log(queryQA);
+
+            if (query.operatorId && query.operatorId.length > 0) {
+                if(Array.isArray(query.operatorId)){
+                    operatorId = dbQualityInspection.splitOperatorId(query.operatorId);
+                    companyId = dbQualityInspection.splitOperatorIdByCompanyId(query.operatorId)
+                }else{
+                    operatorId = query.operatorId;
+                }
+
+                if(operatorId!='all'){
+                    queryQA.live800Acc.name = {$in: operatorId};
+                }
+
+                queryQA.companyId = {$in: companyId};
+                query.companyId = companyId;
+            }else{
+                if (query.companyId && query.companyId.length > 0) {
+                    queryQA.companyId = {$in: query.companyId};
+                }
+            }
 
             return dbconfig.collection_qualityInspection.find(queryQA).count().then(data=>{
                 console.log(data);

@@ -9345,7 +9345,7 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row, meta) {
                             // let spendingAmt = vm.calSpendingAmt(meta.row);
                             // let isSubmit = vm.isSubmitProposal(meta.row);
-                            let text = -row.currentAmount + "/-" + row.targetAmount;
+                            let text = row.currentAmount + "/-" + row.targetAmount;
 
                             return "<div>" + text + "</div>";
                         }
@@ -9844,11 +9844,11 @@ define(['js/app'], function (myApp) {
             });
             $scope.AppSocket.removeAllListeners('_' + sendStr);
             $scope.AppSocket.on('_' + sendStr, function (data) {
-                console.log('Received Credit for Provider', data);
                 if (data.success) {
-                    var provId = data.data.providerId;
-                    targetObj[provId] = data.data || 0;
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {
+                        var provId = data.data.providerId;
+                        targetObj[provId] = data.data || 0;
+                    })
                 }
             });
         };

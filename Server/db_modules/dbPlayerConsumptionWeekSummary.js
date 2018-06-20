@@ -147,16 +147,12 @@ var dbPlayerConsumptionWeekSummary = {
         var settleTime = period == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         var balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
-            // This collects players who have dirty records in the time range, although dirty records will not actually be used during processing.
-            // var stream = dbPlayerConsumptionRecord.streamPlayersWithConsumptionSummaryInTimeFrame(startTime, endTime, platformId);
-
-            var query = dbconfig.collection_playerConsumptionSummary.aggregate(
+            let query = dbconfig.collection_playerConsumptionRecord.aggregate(
                 [
                     {
                         $match: {
                             platformId: platformId,
-                            summaryDay: {$gte: settleTime.startTime, $lt: settleTime.endTime},
-                            bDirty: false
+                            createTime: {$gte: settleTime.startTime, $lt: settleTime.endTime}
                         }
                     },
                     {
@@ -437,7 +433,7 @@ var dbPlayerConsumptionWeekSummary = {
 
                                                         // Handling for inconsistent consumption summary
                                                         // Sometime the summary has more consumption than it should
-                                                        if (freeConsumption < curValidAmt + curNonXIMAAmt) {
+                                                        if (parseFloat(freeConsumption).toFixed(2) < parseFloat(curValidAmt + curNonXIMAAmt).toFixed(2)) {
                                                             proposalData.data.rewardAmount -= proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount * returnRatio;
                                                             proposalData.data.spendingAmount -= proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount * eventData.param.consumptionTimesRequired;
                                                             proposalData.data.consumeValidAmount -= proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount;
@@ -533,7 +529,7 @@ var dbPlayerConsumptionWeekSummary = {
             }
         ).then(
             function (data) {
-                if (data) {
+                if (data && !isLessAmtAfterOffset) {
                     // Mark the summaries we have just processed as dirty
                     // Concern: It is possible that a consumptionSummary record has been updated in the time that we have been processing this batch.
                     //          That update amount will be lost (removed from this week, not counted for next week).
@@ -580,6 +576,7 @@ var dbPlayerConsumptionWeekSummary = {
                                                             );
                                                         }
                                                         else {
+                                                            summary.dirtyDate = Date.now();
                                                             var dirtySummary = new dbconfig.collection_playerConsumptionSummary(summary);
                                                             return dirtySummary.save();
                                                         }

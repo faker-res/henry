@@ -9568,7 +9568,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row, meta) {
                                 // let spendingAmt = vm.calSpendingAmt(meta.row);
                                 // let isSubmit = vm.isSubmitProposal(meta.row);
-                                let text = -row.currentAmount + "/-" + row.targetAmount;
+                                let text = row.currentAmount + "/-" + row.targetAmount;
 
                                 return "<div>" + text + "</div>";
                             }
@@ -19514,7 +19514,7 @@ define(['js/app'], function (myApp) {
                         vm.curContentRewardType = {};
                         vm.settlementRewardGroupEvent = [];
                         if (vm.showReward && vm.showReward.display && !vm.showReward.display.length) {
-                            vm.showReward.display.push({displayId:"", displayTitle:"", displayTextContent: ""});
+                            vm.showReward.display.push({displayId:"", displayTitle:"", displayTextContent: "", btnOrImageList: []});
                         }
                         $.each(vm.allRewardEvent, function (i, v) {
                             $.each(vm.allRewardTypes, function (a, b) {
@@ -19576,7 +19576,7 @@ define(['js/app'], function (myApp) {
                     vm.disableAllRewardInput(true);
                 });
                 if (vm.showReward && vm.showReward.display && !vm.showReward.display.length) {
-                    vm.showReward.display.push({displayId:"", displayTitle:"", displayTextContent: ""});
+                    vm.showReward.display.push({displayId:"", displayTitle:"", displayTextContent: "", btnOrImageList: []});
                 }
                 console.log('vm.rewardParams', vm.rewardParams);
                 //$scope.safeApply();
@@ -19585,6 +19585,10 @@ define(['js/app'], function (myApp) {
             vm.platformRewardTypeChanged = function () {
                 $.each(vm.allRewardTypes, function (i, v) {
                     if (v._id === vm.showRewardTypeId) {
+                        if (v && v.params && v.params.condition && v.params.condition.generalCond
+                            && v.params.condition.generalCond.imageUrl && v.params.condition.generalCond.imageUrl.value) {
+                            v.params.condition.generalCond.imageUrl.value = [""];
+                        }
                         vm.showRewardTypeData = v;
                         console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                         return true;
@@ -19616,7 +19620,7 @@ define(['js/app'], function (myApp) {
 
                     if (vm.showReward && !vm.showReward.display) {
                         vm.showReward.display = [];
-                        vm.showReward.display.push({displayId: "", displayTitle: "", displayTextContent: ""});
+                        vm.showReward.display.push({displayId: "", displayTitle: "", displayTextContent: "", btnOrImageList: []});
                     }
 
                     // Set condition value
@@ -20171,16 +20175,34 @@ define(['js/app'], function (myApp) {
                     valueCollection.push("");
                 }
             };
+
+            vm.rewardImageOrButtonUrlNewRow = (valueCollection) => {
+                valueCollection.push({btnName: "", btnSourceFrom: "", btnLinksTo: ""});
+            };
+
+            vm.rewardImageOrButtonUrlDeleteRow = (idx, valueCollection) => {
+                valueCollection.splice(idx, 1);
+
+                if (valueCollection.length == 0) {
+                    valueCollection.push({btnName: "", btnSourceFrom: "", btnLinksTo: ""});
+                }
+            };
+
+            vm.showBtnOrImageTable = (idx, valueCollection) => {
+                if (valueCollection && valueCollection[idx] && valueCollection[idx].btnOrImageList) {
+                    valueCollection[idx].btnOrImageList.push({btnName: "", btnSourceFrom: "", btnLinksTo: ""});
+                }
+            };
             
             vm.rewardDisplayNewRow = (valueCollection) => {
-                valueCollection.push({displayId: "", displayTitle: "", displayTextContent: ""});
+                valueCollection.push({displayId: "", displayTitle: "", displayTextContent: "", btnOrImageList: []});
             };
 
             vm.rewardDisplayDeleteRow = (idx, valueCollection) => {
                 valueCollection.splice(idx, 1);
 
                 if (valueCollection.length == 0) {
-                    valueCollection.push({displayId: "", displayTitle: "", displayTextContent: ""});
+                    valueCollection.push({displayId: "", displayTitle: "", displayTextContent: "", btnOrImageList: []});
                 }
             };
 
