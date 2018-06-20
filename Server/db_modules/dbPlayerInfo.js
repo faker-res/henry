@@ -3077,17 +3077,31 @@ let dbPlayerInfo = {
             rewardTaskGroup => {
                 if(rewardTaskGroup){
                     let rtgArr = [];
+                    let unlockRewardsArr = [];
                     rewardTaskGroup.forEach(
                         rtg => {
                             if(rtg && platform && rtg._id && rtg.totalCredit && platform.autoUnlockWhenInitAmtLessThanLostThreshold
                                 && platform.autoApproveLostThreshold && rtg.totalCredit <= platform.autoApproveLostThreshold){
 
                                 rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
+                                unlockRewardsArr.push(dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then( rewards => {
+                                    if (rewards){
+
+                                        return dbRewardTask.getRewardTasksRecord(rewards, rtg, proposalData);
+                                    }
+                                }).then( records => {
+
+                                        if (records){
+                                            dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId);
+                                        }
+                                    })
+                                )
+
                             }
                         }
                     )
 
-                    return Promise.all(rtgArr);
+                    return Promise.all([rtgArr, unlockRewardsArr]);
                 }
             }
         ).then(() => {
@@ -12264,6 +12278,14 @@ let dbPlayerInfo = {
                                 //check if player's reward task is no credit now
                                 return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
                                     taskStatus => {
+                                        if (code == "MANUAL_PLAYER_LEVEL_UP_REWARD") {
+                                            return {
+                                                _id: "MANUAL_PLAYER_LEVEL_UP_REWARD",
+                                                type: {
+                                                    name: constRewardType.PLAYER_LEVEL_UP
+                                                }
+                                            }
+                                        }
                                         return dbconfig.collection_rewardEvent.findOne({
                                             platform: playerData.platform,
                                             code: code
@@ -12441,6 +12463,9 @@ let dbPlayerInfo = {
                                     break;
                                 case constRewardType.PLAYER_PACKET_RAIN_REWARD:
                                     return dbPlayerReward.applyPacketRainReward(playerId, code, adminInfo);
+                                    break;
+                                case constRewardType.PLAYER_LEVEL_UP:
+                                    return manualPlayerLevelUpReward(playerInfo._id, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                                 case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
@@ -17407,6 +17432,91 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
             }
         }
     )
+}
+
+function manualPlayerLevelUpReward (playerObjId, adminInfo) {
+    let player, proposalType, playerLevel, platform = {};
+
+    return dbconfig.collection_players.findOne({_id: playerObjId}).populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+        playerData => {
+            player = playerData;
+            if (!player) {
+                return Promise.reject({message: "Player not found."});
+            }
+            platform = player.platform;
+
+            playerLevel = player.playerLevel;
+
+            if (player.permission && player.permission.banReward) {
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: "Player do not have permission for reward"
+                });
+            }
+
+            return dbconfig.collection_proposalType.findOne({
+                platformId: platform._id,
+                name: constProposalType.PLAYER_LEVEL_UP
+            }).lean();
+        }
+    ).then(
+        proposalTypeData => {
+            proposalType = proposalTypeData;
+
+            return dbconfig.collection_proposal.findOne({
+                'data.playerObjId': {$in: [ObjectId(player._id), String(player._id)]},
+                'data.platformObjId': {$in: [ObjectId(platform._id), String(platform._id)]},
+                'data.levelValue': playerLevel.value,
+                type: proposalTypeData._id,
+                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.PENDING]}
+            }).lean();
+        }
+    ).then(
+        rewardProposal => {
+            if (!rewardProposal) {
+                // if this is level up and player has not reach this level before
+                // create level up reward proposal
+
+                let proposalData = {
+                    levelName: playerLevel.name,
+                    levelObjId: playerLevel._id,
+                    levelValue: playerLevel.value,
+                    proposalPlayerLevel: playerLevel.name,
+                    playerLevelName: playerLevel.name,
+                    proposalPlayerLevelValue: playerLevel.value,
+                    platformId: platform._id,
+                    platformObjId: String(platform._id),
+                    playerId: player.playerId,
+                    playerName: player.name,
+                    playerObjId: String(player._id),
+                    upOrDown: "LEVEL_UP"
+                };
+
+                if (playerLevel && playerLevel.reward && playerLevel.reward.bonusCredit) {
+                    proposalData.rewardAmount = playerLevel.reward.bonusCredit;
+                    proposalData.isRewardTask = playerLevel.reward.isRewardTask;
+                    if (proposalData.isRewardTask) {
+                        if (playerLevel.reward.providerGroup && playerLevel.reward.providerGroup !== "free") {
+                            proposalData.providerGroup = playerLevel.reward.providerGroup;
+                        }
+                        proposalData.requiredUnlockAmount = playerLevel.reward.requiredUnlockTimes * playerLevel.reward.bonusCredit;
+                    }
+
+                    let proposal = {data: proposalData};
+                    if (adminInfo) {
+                        proposal.creator = adminInfo;
+                        proposal.entryType = constProposalEntryType.ADMIN;
+                    }
+
+                    return dbProposal.createProposalWithTypeName(platform._id, constProposalType.PLAYER_LEVEL_UP, proposal);
+                }
+
+            } else {
+                return Promise.reject({message: "该玩家已经领取『"+ playerLevel.name +"』的升级优惠。"});
+            }
+        }
+    );
 }
 
 var proto = dbPlayerInfoFunc.prototype;
