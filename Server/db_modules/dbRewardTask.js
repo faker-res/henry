@@ -601,6 +601,7 @@ const dbRewardTask = {
     },
     updateUnlockedRewardTasksRecord: function (rewards, status, playerId, platformId) {
 
+        let proms = [];
         if (rewards && rewards.length > 0){
             rewards.forEach( rewardTask => {
 
@@ -636,9 +637,11 @@ const dbRewardTask = {
                     isUnlock: true
 
                 };
-                dbRewardTaskGroup.createRewardTaskGroupUnlockedRecord(sendData);
+                proms.push(dbRewardTaskGroup.createRewardTaskGroupUnlockedRecord(sendData));
             })
         }
+
+        return Promise.all(proms);
 
     },
     getRewardTaskGroupProposalById: function (query) {
@@ -2453,7 +2456,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                     res => {
                                         
                                         if (res[0]){
-                                            dbRewardTask.updateUnlockedRewardTasksRecord(res[0], statusUpdObj.status, updatedRTG.playerId, updatedRTG.platformId);
+                                            dbRewardTask.updateUnlockedRewardTasksRecord(res[0], statusUpdObj.status, updatedRTG.playerId, updatedRTG.platformId).catch(errorUtils.reportError);
                                         }
 
                                         if (res[1]) {
