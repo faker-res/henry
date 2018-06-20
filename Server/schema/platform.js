@@ -386,6 +386,14 @@ var platformSchema = new Schema({
         lineId: {type: Number},
         lineName: {type: String},
         minLevel: {type: String}
+    }],
+    //playerLevel display list- displayId, displayTitle, displayTextContent, and btnOrImageList
+    display: [{
+        _id: false,
+        displayId: {type: String},
+        displayTitle: {type: String},
+        displayTextContent: {type: String},
+        btnOrImageList: []
     }]
 });
 

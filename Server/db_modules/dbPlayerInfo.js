@@ -8524,42 +8524,50 @@ let dbPlayerInfo = {
         return dbconfig.collection_players.findOne({playerId: playerId}).then(
             function (data) {
                 if (data && data.platform) {
-                    return dbconfig.collection_playerLevel.find({platform: data.platform}).sort({value: 1}).lean().then(
-                        playerLevel => {
-                            return dbconfig.collection_gameProvider.find({}).lean().then(
-                                gameProvider => {
+                    return dbconfig.collection_platform.findOne({_id: data.platform}).then(
+                        platformData => {
+                            return dbconfig.collection_playerLevel.find({platform: data.platform}).sort({value: 1}).lean().then(
+                                playerLevel => {
+                                    return dbconfig.collection_gameProvider.find({}).lean().then(
+                                        gameProvider => {
 
-                                    playerLevel.forEach(level => {
-                                        level.levelUpConfig.forEach(levelUp => {
-                                            let levelUpProviderId = [];
-                                            if (levelUp.consumptionSourceProviderId && levelUp.consumptionSourceProviderId.length) {
-                                                levelUp.consumptionSourceProviderId.forEach(levelUpProvider => {
-                                                    gameProvider.forEach(providerdata => {
-                                                        if (levelUpProvider.toString() == providerdata._id.toString()) {
-                                                            levelUpProviderId.push(providerdata.providerId);
-                                                        }
-                                                    });
+                                            playerLevel.forEach(level => {
+                                                level.levelUpConfig.forEach(levelUp => {
+                                                    let levelUpProviderId = [];
+                                                    if (levelUp.consumptionSourceProviderId && levelUp.consumptionSourceProviderId.length) {
+                                                        levelUp.consumptionSourceProviderId.forEach(levelUpProvider => {
+                                                            gameProvider.forEach(providerdata => {
+                                                                if (levelUpProvider.toString() == providerdata._id.toString()) {
+                                                                    levelUpProviderId.push(providerdata.providerId);
+                                                                }
+                                                            });
+                                                        })
+                                                    }
+                                                    levelUp.consumptionSourceProviderId = levelUpProviderId;
                                                 })
-                                            }
-                                            levelUp.consumptionSourceProviderId = levelUpProviderId;
-                                        })
-                                        // level.levelDownConfig.forEach(levelDown => {
-                                        //     let levelDownProviderId = [];
-                                        //     levelDown.consumptionSourceProviderId.forEach(levelDownProvider => {
-                                        //         gameProvider.forEach(providerdata => {
-                                        //             if (levelDownProvider.toString() == providerdata._id.toString()) {
-                                        //                 levelDownProviderId.push(providerdata.providerId);
-                                        //             }
-                                        //         });
-                                        //     })
-                                        //     levelDown.consumptionSourceProviderId = levelDownProviderId;
-                                        // })
-                                    });
+                                                // level.levelDownConfig.forEach(levelDown => {
+                                                //     let levelDownProviderId = [];
+                                                //     levelDown.consumptionSourceProviderId.forEach(levelDownProvider => {
+                                                //         gameProvider.forEach(providerdata => {
+                                                //             if (levelDownProvider.toString() == providerdata._id.toString()) {
+                                                //                 levelDownProviderId.push(providerdata.providerId);
+                                                //             }
+                                                //         });
+                                                //     })
+                                                //     levelDown.consumptionSourceProviderId = levelDownProviderId;
+                                                // })
+                                            });
 
-                                    return playerLevel;
-                                });
-                        }
-                    );
+                                            if (platformData && platformData.display) {
+                                                playerLevel.push({list: platformData.display});
+                                            }
+
+                                            return playerLevel;
+                                        });
+                                }
+                            );
+                    });
+
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Cannot find player"});
