@@ -9499,6 +9499,7 @@ define(['js/app'], function (myApp) {
                         item['unlockTime'] = vm.dateReformat(item.unlockTime);
                         item['targetProviderGroup'] = $translate(item.targetProviderGroup);
                         item.creator.name = $translate(item.creator.name);
+                        item.status = $translate(item.status == 'NoCredit' ? 'NoCreditUnlock' : item.status == 'Achieved' ? 'AchievedUnlock': item.status);
                     });
 
                     $scope.$evalAsync(vm.drawRewardTaskUnlockedTable(newSearch, result, vm.playerRewardTaskLog.totalCount));
@@ -9583,6 +9584,10 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             "title": $translate('creator'), data: "creator.name",
+
+                        },
+                        {
+                            "title": $translate('UNLOCK_REASON'), data: "status",
 
                         },
                     ],
