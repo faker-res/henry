@@ -3637,13 +3637,12 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                             unlockRewardsArr.push(dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then( rewards => {
                                     if (rewards){
 
-                                        console.log("CHeCKING----proposalData", proposalData)
                                         return dbRewardTask.getRewardTasksRecord(rewards, rtg, proposalData);
                                     }
                                 }).then( records => {
 
                                     if (records){
-                                        console.log("CHeCKING----", records)
+                                       
                                         dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId);
                                     }
                                 })
