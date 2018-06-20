@@ -3091,12 +3091,10 @@ let dbPlayerInfo = {
                                     }
                                 }).then( records => {
 
-                                        if (records){
-                                            dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId);
-                                        }
-                                    })
-                                )
-
+                                    if (records){
+                                        return dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId);
+                                    }
+                                }))
                             }
                         }
                     )

@@ -3642,8 +3642,8 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                                 }).then( records => {
 
                                     if (records){
-                                       
-                                        dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId);
+
+                                        return dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId);
                                     }
                                 })
                             )
