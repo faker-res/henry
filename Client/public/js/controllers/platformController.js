@@ -19599,13 +19599,21 @@ define(['js/app'], function (myApp) {
                             v.params.condition.generalCond.imageUrl.value = [""];
                         }
 
-                        if (v && v.name && v.name == "PlayerConsumptionReturn"
-                            && vm.showReward && (!vm.showReward.param || !vm.showReward.param.imageUrl)) {
-                            if (!vm.showReward.param){
-                                vm.showReward.param = {};
+                        if (v && v.name && v.name == "PlayerConsumptionReturn") {
+                            if(vm.showReward && (!vm.showReward.param || !vm.showReward.param.imageUrl)) {
+                                if (!vm.showReward.param) {
+                                    vm.showReward.param = {};
+                                }
+                                vm.showReward.param.imageUrl = [""];
                             }
-                            vm.showReward.param.imageUrl = [""];
+
+                            if (vm.showReward && !vm.showReward.display) {
+                                vm.showReward.display = [];
+                                vm.showReward.display.push({displayId:"", displayTitle:"", displayTextContent: "", btnOrImageList: []});
+                            }
                         }
+
+
 
                         vm.showRewardTypeData = v;
                         console.log('vm.showRewardTypeData', vm.showRewardTypeData);
