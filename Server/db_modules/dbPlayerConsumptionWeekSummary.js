@@ -270,11 +270,11 @@ var dbPlayerConsumptionWeekSummary = {
                                         if (prop.data && prop.data.returnDetail) {
                                             Object.keys(prop.data.returnDetail).forEach(el => {
                                                 doneXIMAConsumption[el] && doneXIMAConsumption[el].consumeValidAmount
-                                                    ? doneXIMAConsumption[el].consumeValidAmount += prop.data.returnDetail[el].consumeValidAmount
+                                                    ? doneXIMAConsumption[el].consumeValidAmount = Number(doneXIMAConsumption[el].consumeValidAmount) + Number(prop.data.returnDetail[el].consumeValidAmount)
                                                     : doneXIMAConsumption[el] = prop.data.returnDetail[el];
 
                                                 if (prop.data.nonXIMADetail && prop.data.nonXIMADetail[el] && prop.data.nonXIMADetail[el].nonXIMAAmt) {
-                                                    doneXIMAConsumption[el].consumeValidAmount += prop.data.nonXIMADetail[el].nonXIMAAmt;
+                                                    doneXIMAConsumption[el].consumeValidAmount = Number(doneXIMAConsumption[el].consumeValidAmount) + Number(prop.data.nonXIMADetail[el].nonXIMAAmt);
                                                 }
                                             });
                                         }
@@ -285,7 +285,7 @@ var dbPlayerConsumptionWeekSummary = {
                                 if (recSumm && recSumm.length) {
                                     recSumm.forEach(el => {
                                         let gameType = el._id;
-                                        let totalValidConsumption = el.validAmount;
+                                        let totalValidConsumption = el.validAmount ? el.validAmount : 0;
                                         let nonXIMAAmt = 0;
                                         let consumedValidAmount = 0;
                                         let ratio = eventRatios && eventRatios[gameType];
@@ -298,7 +298,7 @@ var dbPlayerConsumptionWeekSummary = {
 
                                         if (ratio > 0) {
                                             // Get amount that done xima for this provider
-                                            if (doneXIMAConsumption["GameType:" + el._id]) {
+                                            if (doneXIMAConsumption["GameType:" + el._id] && doneXIMAConsumption["GameType:" + el._id].consumeValidAmount) {
                                                 consumedValidAmount = doneXIMAConsumption["GameType:" + el._id].consumeValidAmount;
                                             }
 
@@ -807,13 +807,14 @@ var dbPlayerConsumptionWeekSummary = {
                 };
 
                 let pastProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ);
+                let gameTypesProm = dbGameType.getAllGameTypes();
 
-                return Promise.all([Promise.resolve(playerData), recProm, summaryProm, pastProm]);
+                return Promise.all([Promise.resolve(playerData), recProm, summaryProm, pastProm, gameTypesProm]);
             }
         ).then(
             promArrRes => {
                 if (promArrRes) {
-                    let [playerData, recSumm, consumptionSumm, pastProps] = promArrRes;
+                    let [playerData, recSumm, consumptionSumm, pastProps, allGameTypes] = promArrRes;
 
                     let returnAmount = 0;
                     let returnDetail = {};
@@ -833,11 +834,11 @@ var dbPlayerConsumptionWeekSummary = {
                             if (prop.data && prop.data.returnDetail) {
                                 Object.keys(prop.data.returnDetail).forEach(el => {
                                     doneXIMAConsumption[el] && doneXIMAConsumption[el].consumeValidAmount
-                                        ? doneXIMAConsumption[el].consumeValidAmount += prop.data.returnDetail[el].consumeValidAmount
+                                        ? doneXIMAConsumption[el].consumeValidAmount = Number(doneXIMAConsumption[el].consumeValidAmount) + Number(prop.data.returnDetail[el].consumeValidAmount)
                                         : doneXIMAConsumption[el] = prop.data.returnDetail[el];
 
                                     if (prop.data.nonXIMADetail && prop.data.nonXIMADetail[el] && prop.data.nonXIMADetail[el].nonXIMAAmt) {
-                                        doneXIMAConsumption[el].consumeValidAmount += prop.data.nonXIMADetail[el].nonXIMAAmt;
+                                        doneXIMAConsumption[el].consumeValidAmount = Number(doneXIMAConsumption[el].consumeValidAmount) + Number(prop.data.nonXIMADetail[el].nonXIMAAmt);
                                     }
                                 });
                             }
@@ -853,7 +854,7 @@ var dbPlayerConsumptionWeekSummary = {
                     if (recSumm && recSumm.length) {
                         recSumm.forEach(el => {
                             let gameType = el._id;
-                            let totalValidConsumption = el.validAmount;
+                            let totalValidConsumption = el.validAmount ? el.validAmount : 0;
                             let nonXIMAAmt = 0;
                             let consumedValidAmount = 0;
                             let ratio = eventRatios && eventRatios[gameType];
@@ -866,7 +867,7 @@ var dbPlayerConsumptionWeekSummary = {
 
                             if (ratio > 0) {
                                 // Get amount that done xima for this provider
-                                if (doneXIMAConsumption["GameType:" + el._id]) {
+                                if (doneXIMAConsumption["GameType:" + el._id] && doneXIMAConsumption["GameType:" + el._id].consumeValidAmount) {
                                     consumedValidAmount = doneXIMAConsumption["GameType:" + el._id].consumeValidAmount;
                                 }
 
@@ -884,8 +885,12 @@ var dbPlayerConsumptionWeekSummary = {
                                     }
                                 }
 
+                                console.log('totalValidConsumption', totalValidConsumption);
+                                console.log('nonXIMAAmt', nonXIMAAmt);
+                                console.log('consumedValidAmount', consumedValidAmount);
+
                                 // Get amount that are available to xima
-                                let freeConsumption = totalValidConsumption - nonXIMAAmt - consumedValidAmount;
+                                let freeConsumption = Number(totalValidConsumption) - Number(nonXIMAAmt) - Number(consumedValidAmount);
                                 applyAmount += freeConsumption;
 
                                 // Get return detail of this game type
@@ -919,6 +924,25 @@ var dbPlayerConsumptionWeekSummary = {
                         res.playerId = playerData.playerId;
                         res.playerName = playerData.name;
                     }
+
+                    // Add in others provider as placeholder
+                    Object.keys(allGameTypes).forEach(gameType => {
+                        let ratio = eventRatios && eventRatios[gameType];
+
+                        // Process return ratio
+                        if (!eventRatios || typeof ratio !== 'number') {
+                            ratio = 0;
+                        }
+
+                        if (!res[gameType] && ratio >= 0) {
+                            res[gameType] = {
+                                consumptionAmount: 0,
+                                returnAmount: 0,
+                                nonXIMAAmt: 0,
+                                ratio: ratio
+                            };
+                        }
+                    });
 
                     return res;
                 } else {

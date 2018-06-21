@@ -485,7 +485,7 @@ let dbPlayerInfo = {
             ).then(
                 validData => {
                     if (validData && validData.isPlayerNameValid) {
-                        if (isAutoCreate) { // todo :: add a platform setting to allow or deny auto create
+                        if (isAutoCreate || !inputData.userAgent) { // todo :: add a platform setting to allow or deny auto create
                             return {isPhoneNumberValid: true};
                         }
 
@@ -1195,7 +1195,7 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data.isPlayerNameValid) {
-                    if (isAutoCreate || playerdata.isTestPlayer) {
+                    if (isAutoCreate || playerdata.isTestPlayer || !playerdata.userAgent) {
                         return {isPhoneNumberValid: true};
                     }
 
@@ -8544,7 +8544,7 @@ let dbPlayerInfo = {
                                                         })
                                                     }
                                                     levelUp.consumptionSourceProviderId = levelUpProviderId;
-                                                })
+                                                });
                                                 // level.levelDownConfig.forEach(levelDown => {
                                                 //     let levelDownProviderId = [];
                                                 //     levelDown.consumptionSourceProviderId.forEach(levelDownProvider => {
@@ -8556,11 +8556,16 @@ let dbPlayerInfo = {
                                                 //     })
                                                 //     levelDown.consumptionSourceProviderId = levelDownProviderId;
                                                 // })
-                                            });
 
-                                            if (platformData && platformData.display) {
-                                                playerLevel.push({list: platformData.display});
-                                            }
+                                                if (platformData && platformData.display && platformData.display.length > 0) {
+                                                    level.list = [];
+                                                    platformData.display.forEach(el => {
+                                                        if (level._id && el.playerLevel && (level._id.toString() == el.playerLevel.toString())) {
+                                                            level.list.push(el);
+                                                        }
+                                                    });
+                                                }
+                                            });
 
                                             return playerLevel;
                                         });

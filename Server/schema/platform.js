@@ -393,7 +393,8 @@ var platformSchema = new Schema({
         displayId: {type: String},
         displayTitle: {type: String},
         displayTextContent: {type: String},
-        btnOrImageList: []
+        btnOrImageList: [],
+        playerLevel: {type: Schema.ObjectId, ref: 'playerLevel', index: true}
     }]
 });
 
