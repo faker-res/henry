@@ -2428,6 +2428,7 @@ var dbPlatform = {
 
             let returnedObj;
             let listName;
+            let platformData;
 
             if (subject == 'player'){
                 returnedObj= {
@@ -2491,8 +2492,38 @@ var dbPlatform = {
                 data => {
                     if (data) {
 
+                        platformData = data;
                         listName.forEach( list => {
                             if(data[list[0]]){
+
+                                // check if the "http/ https" exits or not
+                                if (data[list[0]].length > 0){
+                                    data[list[0]].forEach( pair => {
+                                        let splitString = [];
+                                        if (pair.content.indexOf(',') != -1) {
+                                            splitString = pair.content.split(',');
+
+                                            if (splitString && splitString.length > 0) {
+                                                let comString = [];
+                                                splitString.forEach(indString => {
+                                                    if (pair.isImg == 1 && indString.indexOf("http") == -1 && data.playerRouteSetting) {
+                                                        comString.push(data.playerRouteSetting.trim() + indString.trim());
+                                                    }
+                                                    else{
+                                                        comString.push(indString.trim());
+                                                    }
+                                                })
+                                                pair.content = comString.join(', ');
+                                            }
+                                        }
+                                        else{
+                                            if (pair.isImg == 1 && pair.content.indexOf("http") == -1 && data.playerRouteSetting){
+                                                pair.content = data.playerRouteSetting.trim() + pair.content.trim();
+                                            }
+                                        }
+
+                                    })
+                                }
                                 returnedObj[list[1]] = data[list[0]];
 
                             }
@@ -2538,7 +2569,12 @@ var dbPlatform = {
                                 }
 
                                 if (info.backgroundBannerImage && info.backgroundBannerImage.url) {
-                                    activityListObj.bannerImg = info.backgroundBannerImage.url;
+                                    if (info.backgroundBannerImage.url.indexOf("http") == -1 && platformData.playerRouteSetting){
+                                        activityListObj.bannerImg = platformData.playerRouteSetting.trim() + info.backgroundBannerImage.url.trim();
+                                    }else{
+                                        activityListObj.bannerImg = info.backgroundBannerImage.url.trim();
+                                    }
+
                                 }
 
                                 if (info.imageButton && info.imageButton.length > 0) {
@@ -2550,7 +2586,13 @@ var dbPlatform = {
                                                 buttonObj.btn = b.buttonName;
                                             }
                                             if(b.url){
-                                                buttonObj.btnImg = b.url;
+                                                if (b.url.indexOf("http") == -1){
+                                                    buttonObj.btnImg = platformData.playerRouteSetting.trim() + b.url.trim();
+                                                }
+                                                else{
+                                                    buttonObj.btnImg = b.url.trim();
+                                                }
+
                                             }
                                             if (b.hyperLink) {
                                                 buttonObj.extString = b.hyperLink;
