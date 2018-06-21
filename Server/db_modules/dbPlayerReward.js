@@ -5002,20 +5002,21 @@ let dbPlayerReward = {
                                 )
                             }
 
-                            let prom = Promise.all([addUsedEventToConsumptionProm, addUsedEventToTopUpProm]).then(
-                                data => {
-                                    if (data[0] && data[0].length > 0) {
-                                        proposalData.data.usedConsumption = data[0];
-                                    }
+                            asyncProms = asyncProms.then(() => {
+                                return Promise.all([addUsedEventToConsumptionProm, addUsedEventToTopUpProm]).then(
+                                    data => {
+                                        if (data[0] && data[0].length > 0) {
+                                            proposalData.data.usedConsumption = data[0];
+                                        }
 
-                                    if (data[1] && data[1].length > 0) {
-                                        proposalData.data.usedTopUp = data[1];
-                                    }
+                                        if (data[1] && data[1].length > 0) {
+                                            proposalData.data.usedTopUp = data[1];
+                                        }
 
-                                    return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
-                                }
-                            );
-                            asyncProms = asyncProms.then(() => prom);
+                                        return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
+                                    }
+                                );
+                            });
                         }
 
                         return asyncProms;

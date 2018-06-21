@@ -1578,6 +1578,7 @@ define(['js/app'], function (myApp) {
                 period: vm.queryPara.withdrawalSpeed.periodText,
                 startDate: vm.queryPara.withdrawalSpeed.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.withdrawalSpeed.endTime.data('datetimepicker').getLocalDate(),
+                platformObjId: vm.selectedPlatform._id
             }
 
             socketService.$socket($scope.AppSocket, 'getWithdrawalProposal', sendData, function (data) {
