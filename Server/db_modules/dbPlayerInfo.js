@@ -891,6 +891,9 @@ let dbPlayerInfo = {
             partner: data.partner ? data.partner : null
         };
         var record = new dbconfig.collection_playerLoginRecord(recordData);
+        if(data.userAgent){
+            recordData.inputDeviceType = dbUtil.getInputDeviceType(data.userAgent);
+        }
         record.save().then().catch(errorUtils.reportError);
     },
 
@@ -2818,7 +2821,7 @@ let dbPlayerInfo = {
                         }
                     ]
                 }
-                
+
                 var a = dbconfig.collection_playerConsumptionRecord
                     .find(queryObject).sort(sortCol).skip(index).limit(limit)
                     .populate({
@@ -4585,6 +4588,11 @@ let dbPlayerInfo = {
                             }
 
                             Object.assign(recordData, geoInfo);
+
+                            if(recordData.userAgent){
+                                recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+                            }
+
                             var record = new dbconfig.collection_playerLoginRecord(recordData);
                             return record.save().then(
                                 function () {
@@ -4872,6 +4880,9 @@ let dbPlayerInfo = {
                                 // partner: playerObj.partner ? playerObj.partner : null
                             };
                             Object.assign(recordData, geoInfo);
+                            if(recordData.userAgent){
+                                recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+                            }
                             let record = new dbconfig.collection_playerLoginRecord(recordData);
                             return record.save().then(
                                 function () {

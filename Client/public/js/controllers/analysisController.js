@@ -164,6 +164,7 @@ define(['js/app'], function (myApp) {
                     case "LOGIN_PLAYER":
                         vm.platformLoginPlayerAnalysisSort = {};
                         vm.initSearchParameter('loginPlayer', 'day', 3);
+                        vm.initSearchParameter('loginPlayerDevice', 'day', 3);
                         vm.queryPara.loginPlayer.userType='all';
                         $scope.safeApply();
                         //vm.plotLoginPlayerLine();
@@ -3551,6 +3552,116 @@ define(['js/app'], function (myApp) {
         };
         // login Player end= =========================================
 
+        // Login Player Device start= =========================================
+        vm.plotLoginPlayerDeviceLine = function () {
+            //todo::add graph code here
+            vm.isShowLoadingSpinner('#loginPlayerAnalysis', true);
+            var placeholder = "#line-loginPlayer";
+            var sendData = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.loginPlayer.periodText,
+                // startDate: vm.queryPara.loginPlayer.startTime,
+                // endDate: vm.queryPara.loginPlayer.endTime,
+                startDate: vm.queryPara.loginPlayerDevice.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.loginPlayerDevice.endTime.data('datetimepicker').getLocalDate(),
+            };
+
+            switch (vm.queryPara.loginPlayer.userType) {
+                case 'all':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    break;
+                case 'individual':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = false;
+                    break;
+                case 'underPartner':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = true;
+                    break;
+                case 'test':
+                    sendData.isRealPlayer = false;
+                    sendData.isTestPlayer = true;
+                    break;
+            }
+
+            if (typeof sendData.hasPartner !== 'boolean'){
+                sendData.hasPartner = null;
+            }
+
+            socketService.$socket($scope.AppSocket, 'countLoginPlayerDevicebyPlatform', sendData, function success(data1) {
+                console.log(data1);
+                vm.platformLoginPlayerDeviceAnalysisData = vm.sumPartialDeviceType(data1);
+                var data = vm.sumTotalDeviceType(data1);
+                var pieData = []
+                Object.keys(data).forEach(item=>{
+                    if(item!='total'){
+                        pieData.push({label: vm.setGraphName(item), data: data[item]});
+                    }
+
+                })
+                // var data = data1.data.filter(function (obj) {
+                //     return (obj._id);
+                // }).map(function (obj) {
+                //     return {label: vm.setGraphName(obj._id.name), data: obj.number};
+                // }).sort(function (a, b) {
+                //     return b.data - a.data;
+                // })
+                var placeholderBar = "#pie-loginPlayerDevice";
+                socketService.$plotPie(placeholderBar, pieData, {}, 'activePlayerPieClickData');
+
+                // socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(pieData), vm.newOptions, vm.getXlabelsFromdata(pieData));
+
+                var listen = $scope.$watch(function () {
+                    return socketService.getValue('activePlayerPieClickData');
+                }, function (newV, oldV) {
+                    if (newV !== oldV) {
+                        vm.allPlatformActivePie = newV.series.label;
+                        console.log('pie clicked', newV);
+                        if (vm.showPageName !== "PLATFORM_OVERVIEW") {
+                            listen();
+                        }
+                    }
+                });
+            });
+        };
+        // login player device end
+        vm.sumTotalDeviceType = function(data){
+            let dataList = {
+              'WEB':0,
+              'H5':0,
+              'APP-ANDROID':0,
+              'APP-IOS':0,
+              'PC-DOWNLOAD':0,
+              'total':0
+            }
+            data.data.forEach(item=>{
+                let keys = Object.keys(item);
+                keys.forEach(key=>{
+                  if(key!='_id'){
+                      dataList[key] += item[key];
+                      dataList['total'] += item[key];
+                  }
+                })
+            })
+            return dataList;
+        }
+        vm.sumPartialDeviceType = function(data){
+            let result = [];
+            result = data.data.map(item=>{
+                let keys = Object.keys(item);
+                item['subTotal'] = 0;
+                keys.forEach(key=>{
+                  if(key!='_id'){
+                      item['subTotal'] += item[key];
+                  }
+                })
+                return item;
+            })
+            return result;
+        }
         // peak hour start        =================================================
         vm.plotPeakhourOnlinePlayerLine = function () {
             var placeholder = "#line-peakhour-onlinePlayer";

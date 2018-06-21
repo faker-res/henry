@@ -990,7 +990,7 @@ var dbUtility = {
             device: ua.device.name || '',
             os: ua.os.name || ''
         }];
-        
+
         let inputDevice="";
 
         if (userAgentInput && userAgentInput[0] && inputUserAgent) {
@@ -1024,7 +1024,67 @@ var dbUtility = {
         }
         return inputDevice;
     },
+    getInputDeviceType: function (inputUserAgent) {
+        console.log(inputUserAgent);
+        if (Number.isInteger(inputUserAgent)) {
+            return inputUserAgent;
+        }
+        let ua;
+        // userAgent string already parse outside if parse again will always set to WEB
+        if (inputUserAgent && (inputUserAgent.browser || inputUserAgent.device || inputUserAgent.os)) {
+            ua = inputUserAgent;
+        } else {
+            ua = uaParser(inputUserAgent);
+        }
 
+        let userAgentInput = [{
+            // browser: ua.browser.name || '',
+            // device: ua.device.name || '',
+            // os: ua.os.name || ''
+            browser: ua.browser || '',
+            device: ua.device || '',
+            os: ua.os || ''
+        }];
+        console.log(userAgentInput);
+
+        let inputDevice="";
+
+        if (userAgentInput && userAgentInput[0] && inputUserAgent) {
+            let userAgent = userAgentInput[0];
+            console.log(userAgent.os);
+            console.log(userAgent.os.indexOf("iOS"));
+            if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
+                console.log('----3/4-----')
+                if (userAgent.os.indexOf("iOS") !== -1){
+                    inputDevice = 4;
+                }else if(userAgent.os.indexOf("ndroid") !== -1){
+                    inputDevice = 3;
+                }
+            }
+            else if (userAgent.os.indexOf("iOS") !== -1 || userAgent.os.indexOf("ndroid") !== -1 || userAgent.browser.indexOf("obile") !== -1) {
+                    console.log('----2-----')
+                    inputDevice = 2;
+            }
+            else {
+
+                if(userAgent.browser.indexOf("Trident") !== -1  || userAgent.browser.indexOf("Presto")  !== -1 || userAgent.browser.indexOf("AppleWebKit") !== -1 || userAgent.browser.indexOf("Gecko") !== -1 ){
+                    // check if it's Browser WEB
+                    console.log('----1-----')
+                    inputDevice = 1;
+
+                }else{
+                    // check if it's PC DOWNLOAD
+                    if (/(iPhone|iPad|iPod|iOS|Android)/i.test(userAgent)) {
+                        // do nothing if it's from ios / android
+                    }else{
+                        inputDevice = 5;
+                    }
+                }
+            }
+        }
+        console.log(inputDevice);
+        return inputDevice;
+    },
     decryptPhoneNumber: (phoneNumberRaw) => {
         let decryptedPhoneNo = phoneNumberRaw;
 

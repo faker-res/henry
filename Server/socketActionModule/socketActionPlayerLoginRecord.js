@@ -48,7 +48,17 @@ function socketActionPartner(socketIO, socket) {
             var endTime = data.endTime ? new Date(data.endTime) : new Date();
             socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerLoginLocationInCountry, [ObjectId(data.platform), data.country, startTime, endTime, data.player, data.date, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
         },
-
+        /**
+         * Get login player device count
+         * @param {json} data - data contains _id
+         */
+        countLoginPlayerDevicebyPlatform: function countLoginPlayerDevicebyPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.period && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
+            var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+            var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbPlayerLoginRecord.countLoginPlayerDevicebyPlatform, [ObjectId(data.platformId), startTime, endTime, data.period, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
+        },
         /**
          * Get login player count
          * @param {json} data - data contains _id

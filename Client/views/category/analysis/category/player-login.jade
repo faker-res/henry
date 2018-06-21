@@ -62,4 +62,72 @@
                                 td
                                     span {{ vm.platformLoginPlayerAverage }}
 
+        #loginPlayerDeviceAnalysis
+            .col-md-12.block-query.well(style='margin-bottom:3px;')
+                div
+                    label {{'PERIOD' | translate}}
+                    select.form-control(ng-model='vm.queryPara.loginPlayer.periodText')
+                        option(value='day') {{"DAY"|translate}}
+                        option(value='week') {{"WEEK"|translate}}
+                        option(value='month') {{"MONTH"|translate}}
+                div
+                    label {{"Start date"|translate}}
+                    .startTime
+                div
+                    label {{"End date"|translate}}
+                    .endTime
+                div
+                    label {{'USER_TYPE' | translate}}
+                    select.form-control(ng-model='vm.queryPara.loginPlayer.userType')
+                        option(value='all') {{"REAL_PLAYER_ALL"|translate}}
+                        option(value='individual') {{"REAL_PLAYER_INDIVIDUAL"|translate}}
+                        option(value='underPartner') {{"REAL_PLAYER_UNDER_PARTNER"|translate}}
+                        option(value='test') {{"Test Player"|translate}}
+                //div
+                //    label {{"Start date"|translate}}
+                //    input.form-control(type='date', ng-model='vm.queryPara.loginPlayer.startTime')
+                //div
+                //    label {{"End date"|translate}}
+                //    input.form-control(type='date', ng-model='vm.queryPara.loginPlayer.endTime')
+                div
+                    label &nbsp;
+                    button.btn.btn-primary.common-button(ng-click='vm.plotLoginPlayerDeviceLine()') {{'SEARCH' | translate}}
+            .row
+                .col-md-6
+                    .graph
+                        .panel.panel-default
+                              #pie-loginPlayerDevice.graphDiv
+                .col-md-6
+                    .graph
+                        //table#loginPlayerAnalysisTable.display.tableDiv(style='min-width:100%')
+                        table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                            thead
+                                tr
+                                    th(ng-click='vm.platformLoginPlayerAnalysisSort.loginPlayerSort = vm.platformLoginPlayerAnalysisSort.loginPlayerSort == "date" ? "-date":"date"') {{ vm.platformLoginPlayerDataPeriodText | translate}}
+                                    th(ng-click='vm.platformLoginPlayerAnalysisSort.loginPlayerSort = vm.platformLoginPlayerAnalysisSort.loginPlayerSort == "number" ? "-number":"number"') {{ "amount" | translate}}
+                                    th H5
+                                    th WEB
+                                    th APP-ANDROID
+                                    th APP-IOS
+                                    th {{ "PC-Download" | translate }}
+
+                            tbody
+                                tr(ng-repeat='(i, v) in vm.platformLoginPlayerDeviceAnalysisData | orderBy: vm.platformLoginPlayerDeviceAnalysisData.loginPlayerSort')
+                                    td
+                                        span {{ v._id | date:"yyyy-MM-dd" }}
+                                    td
+                                        span {{ v['subTotal'] }}
+                                    td
+                                        span {{ v['WEB'] }}
+                                    td
+                                        span {{ v['H5'] }}
+                                    td
+                                        span {{ v['APP-ANDROID'] }}
+                                    td
+                                        span {{ v['APP-IOS'] }}
+                                    td
+                                        span {{ v['PC-DOWNLOAD'] }}
+
+
+
 p(ng-init="vm.loadPageFunc('LOGIN_PLAYER')")

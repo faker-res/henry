@@ -33,6 +33,8 @@ var playerLoginRecordSchema = new Schema({
         os: {type: String},
         device: {type: String}
     },
+    // save a type for implementing aggregate (same content with userAgent)
+    inputDeviceType: {type: String},
     // is test player
     isTestPlayer: {type: Boolean, default: false},
     //is real player
