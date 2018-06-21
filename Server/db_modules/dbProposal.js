@@ -3814,7 +3814,7 @@ var proposal = {
             .populate({path: "type", model: dbconfig.collection_proposalType}).lean();
     },
 
-    getWithdrawalProposal: (startDate, endDate, period) => {
+    getWithdrawalProposal: (startDate, endDate, period, platformObjId) => {
         let withdrawSuccessArr = [];
         let withdrawFailedArr = [];
 
@@ -3895,6 +3895,7 @@ var proposal = {
             };
 
             let matchObj1 = {
+                "data.platformId": ObjectId(platformObjId),
                 mainType: constProposalMainType.PlayerBonus,
                 createTime: {$gte: dayStartTime, $lt: dayEndTime},
                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
@@ -3921,6 +3922,7 @@ var proposal = {
 
 
             let matchObj2 = {
+                "data.platformId": ObjectId(platformObjId),
                 mainType: constProposalMainType.PlayerBonus,
                 createTime: {$gte: dayStartTime, $lt: dayEndTime},
                 status: {$in: [constProposalStatus.FAIL, constProposalStatus.REJECTED, constProposalStatus.CANCEL]}
