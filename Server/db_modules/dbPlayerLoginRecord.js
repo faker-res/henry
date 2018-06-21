@@ -130,6 +130,9 @@ var dbPlayerLoginRecord = {
 
     countLoginPlayerDevicebyPlatform: function (platformId, startDate, endDate, period, isRealPlayer, isTestPlayer, hasPartner) {
         var proms = [];
+        var playerLoginProms = [];
+        var deviceLoginProms = [];
+
         var dayStartTime = startDate;
         var getNextDate;
         switch (period) {
@@ -189,10 +192,32 @@ var dbPlayerLoginRecord = {
                     }
                 }
             }
-            console.log(startDate);
-            console.log(matchObj);
+            //console.log(startDate);
+            //console.log(matchObj);
             var specifyField = {'_id':1,  'platform:1':1, 'inputDeviceType':1, 'loginTime':1};
-            proms.push(
+
+            var playerProm = dbconfig.collection_playerLoginRecord.aggregate(
+                    [{
+                        $match: matchObj
+                    },
+                    {
+                        $group: {
+                            _id: "$player",
+                            number: { $sum:1 },
+                            loginTime:{ '$first': '$loginTime'}
+                        }
+                    },
+                    {
+                        $project: {
+                            _id:1,
+                            number:1,
+                            loginTime:{ $dateToString: { format: "%Y-%m-%d", date: "$loginTime" } }
+
+                        }
+                    }]
+                )
+            playerLoginProms.push(playerProm);
+
               //  dbconfig.collection_playerLoginRecord.distinct("player", matchObj)
               //   dbconfig.collection_playerLoginRecord.aggregate(
               //      [{
@@ -203,19 +228,44 @@ var dbPlayerLoginRecord = {
               //          }
               //      }]
               //  )
-              dbconfig.collection_playerLoginRecord.find(matchObj, specifyField)
-            )
+            //var deviceProm = dbconfig.collection_playerLoginRecord.find(matchObj, specifyField);
+
+
+            var deviceProm = dbconfig.collection_playerLoginRecord.aggregate(
+              [{
+                    $match: matchObj
+                },
+                {
+                    $group: {
+                        _id: '$inputDeviceType',
+                        count: { $sum:1 },
+                        loginTime:{ '$first': '$loginTime'}
+                    }
+                },
+                {
+                    $project: {
+                        _id:1,
+                        count:1,
+                        loginTime:{ $dateToString: { format: "%Y-%m-%d", date: "$loginTime" } }
+
+                    }
+                }])
+
+            deviceLoginProms.push(deviceProm)
+
             dayStartTime = dayEndTime;
         }
-        return Q.all(proms).then(
+        return Q.all([Q.all(playerLoginProms), Q.all(deviceLoginProms)]).then(
             data => {
-                console.log(data);
+                console.log(data[0]);
+                console.log(data[1]);
                 let prom = [];
                 var i = 0;
                 var tempDate = startDate;
-                var res = data.map(
+                var res = data[1].map(
                       dayData =>{
-                          console.log(tempDate);
+                          // console.log(dayData);
+                          // console.log(tempDate);
                           var date = tempDate;
                           var obj = {
                               '_id': date,
@@ -225,7 +275,7 @@ var dbPlayerLoginRecord = {
                               'APP-IOS':0,
                               'PC-DOWNLOAD':0
                           }
-                          console.log(dayData);
+                          // console.log(dayData);
                           let dayItem = dayData.map(item=>{
                               switch (item.inputDeviceType) {
                                   case '1':
@@ -247,7 +297,7 @@ var dbPlayerLoginRecord = {
                                       break;
                                 }
                             })
-                          console.log(obj);
+                          // console.log(obj);
                           tempDate = getNextDate(tempDate);
                           return obj
                 })
@@ -271,7 +321,6 @@ var dbPlayerLoginRecord = {
 
     countLoginPlayerbyPlatform: function (platformId, startDate, endDate, period, isRealPlayer, isTestPlayer, hasPartner) {
         var proms = [];
-        var 
         var dayStartTime = startDate;
         var getNextDate;
         switch (period) {
