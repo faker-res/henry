@@ -24501,6 +24501,7 @@ define(['js/app'], function (myApp) {
                 vm.playerIDArr = [];
                 vm.autoCheckPlayerLevelUp = null;
                 vm.manualPlayerLevelUp = null;
+                vm.playerLevelDisplayList = [];
                 return $scope.$socketPromise('getPlayerLevelByPlatformId', {platformId: vm.selectedPlatform.id})
                     .then(function (data) {
                         $scope.$evalAsync(() => {
@@ -24514,6 +24515,12 @@ define(['js/app'], function (myApp) {
                             vm.allPlayerLvlReordered = false;
                             vm.sortPlayerLevels();
                             console.log("vm.allPlayerLvl", data.data);
+                            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.display && vm.selectedPlatform.data.display.length > 0) {
+                                vm.playerLevelDisplayList = vm.selectedPlatform.data.display;
+                            } else {
+                                vm.playerLevelDisplayList.push({displayId:"", displayTitle:"", displayTextContent: "", btnOrImageList: []});
+                            }
+
                             vm.playerLvlData = {};
                             if (vm.allPlayerLvl) {
                                 $.each(vm.allPlayerLvl, function (i, v) {
@@ -26180,6 +26187,7 @@ define(['js/app'], function (myApp) {
                 switch (choice) {
                     case 'player':
                         vm.allPlayerLvlBeforeEdit = Lodash.cloneDeep(vm.allPlayerLvl);
+                        vm.playerLevelDisplayListBeforeEdit = Lodash.cloneDeep(vm.playerLevelDisplayList);
                         break;
                     case 'announcement':
                         vm.allPlatformAnnouncementsBeforeEdit = Lodash.cloneDeep(vm.allPlatformAnnouncements);
@@ -26219,6 +26227,14 @@ define(['js/app'], function (myApp) {
                             vm.allPlayerLvl = vm.allPlayerLvlBeforeEdit;
                         }
                         vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
+
+                        if (vm.playerLevelDisplayListBeforeEdit && vm.playerLevelDisplayListBeforeEdit.length > 0) {
+                            vm.playerLevelDisplayList = vm.playerLevelDisplayListBeforeEdit;
+                        } else {
+                            if (vm.playerLevelDisplayList && !vm.playerLevelDisplayList.length) {
+                                vm.playerLevelDisplayList.push({displayId:"", displayTitle:"", displayTextContent: "", btnOrImageList: []});
+                            }
+                        }
                         break;
                     case 'announcement':
                         // If cancelling an edit, we should restore the state before the edit
@@ -26252,12 +26268,23 @@ define(['js/app'], function (myApp) {
                             }
                         }
 
+                        if (vm.playerLevelDisplayList && vm.playerLevelDisplayList.length > 0) {
+                            for (let i=0; i < vm.playerLevelDisplayList.length; i++) {
+                                if (vm.playerLevelDisplayList[i].displayId == "" && vm.playerLevelDisplayList[i].displayTitle == "" && vm.playerLevelDisplayList[i].displayTextContent == "") {
+                                    vm.playerLevelDisplayList.splice(i, 1);
+                                }
+                            }
+
+                            vm.playerLevelDisplayList = vm.playerLevelDisplayList || [];
+                        }
+
                         updatePlatformBasic({
                             autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp,
                             manualPlayerLevelUp: vm.manualPlayerLevelUp,
                             playerLevelUpPeriod: vm.playerLevelPeriod.playerLevelUpPeriod,
                             playerLevelDownPeriod: vm.playerLevelPeriod.playerLevelDownPeriod,
-                            platformBatchLevelUp: vm.platformBatchLevelUp
+                            platformBatchLevelUp: vm.platformBatchLevelUp,
+                            display: vm.playerLevelDisplayList
                         });
                         if (vm.allPlayerLvlReordered) {
                             // Number the levels correctly.  (This should only really be needed if something went wrong on a previous attempt.)
@@ -26500,6 +26527,7 @@ define(['js/app'], function (myApp) {
                         playerForbidApplyBonusNeedCsApproval: srcData.playerForbidApplyBonusNeedCsApproval,
                         unreadMailMaxDuration: srcData.unreadMailMaxDuration,
                         manualRewardSkipAuditAmount: srcData.manualRewardSkipAuditAmount,
+                        display: srcData.display,
                     }
                 };
                 let isProviderGroupOn = false;

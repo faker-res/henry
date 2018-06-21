@@ -185,122 +185,155 @@ var dbPlayerConsumptionWeekSummary = {
     },
 
     checkPlatformWeeklyConsumptionReturnForPlayers: function (platformId, eventData, proposalTypeId, startTime, endTime, playerIds, bRequest, userAgent, adminId=null, adminName=null, isForceApply) {
-        var deferred = Q.defer();
-        let isLessAmtAfterOffset = false;
+        let isLessThanEnoughReward = false;
+        let processedSummaries = [];
+        let promArr = [];
 
-        console.log('JY check eventData:',eventData);
-        console.log('JY check startTime:',startTime);
-        console.log('JY check endTime:',endTime);
-
-        var summaryProm = dbconfig.collection_playerConsumptionSummary.find(
-            {
-                platformId: platformId,
-                playerId: {$in: playerIds},
-                summaryDay: {$gte: startTime, $lt: endTime},
-                bDirty: false
-            }
-        ).lean();
-        var playerLevelProm = dbconfig.collection_players.find({_id: {$in: playerIds}})
-            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
-
-        var gameTypesProm = dbGameType.getAllGameTypes();
-
-        var processedSummaries = [];
-        let platformProm = dbconfig.collection_platform.findOne({_id: platformId}).lean();
-
-        Q.all([summaryProm, playerLevelProm, gameTypesProm, platformProm]).spread(
-            function (consumptionSummaries, players, allGameTypes, platformData) {
-
-                console.log('JY check consumptionSummaries:',consumptionSummaries);
-                console.log('JY check players:',players);
-
-                if (consumptionSummaries && players) {
-                    // Process the data into key map
-                    var consumptionSummariesByKey = {};
-                    consumptionSummaries.forEach(
-                        function (summary) {
-                            var key = String(summary.playerId + ':' + summary.gameType);
-                            if (consumptionSummariesByKey[key]) {
-                                // This is not supposed to happen: There are not supposed to be multiple summaries with the same key.
-                                // But just in case this does happen, let's not lose the player's consumption!
-                                consumptionSummariesByKey[key].amount += summary.amount;
-                                consumptionSummariesByKey[key].validAmount += summary.validAmount;
-                            } else {
-                                consumptionSummariesByKey[key] = summary;
+        if (playerIds && playerIds.length) {
+            // Loop through players
+            playerIds.forEach(player => {
+                promArr.push(
+                    dbconfig.collection_players.findById(player).populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean().then(
+                        playerData => {
+                            // Skip banned player when batch settlement
+                            if (playerData && playerData.permission && playerData.permission.banReward) {
+                                return;
                             }
+
+                            if (dbPlayerReward.isRewardEventForbidden(playerData, eventData._id)) {
+                                return;
+                            }
+
+                            // Get player consumption records
+                            let recProm = dbconfig.collection_playerConsumptionRecord.aggregate(
+                                {
+                                    $match: {
+                                        platformId: platformId,
+                                        createTime: {
+                                            $gte: startTime,
+                                            $lt: endTime
+                                        },
+                                        playerId: playerData._id
+                                    }
+                                },
+                                {
+                                    $group: {
+                                        _id: "$gameType",
+                                        validAmount: {$sum: "$validAmount"}
+                                    }
+                                }
+                            );
+
+                            // Get player consumption summary
+                            let summaryProm = dbconfig.collection_playerConsumptionSummary.find(
+                                {
+                                    platformId: platformId,
+                                    playerId: playerData._id,
+                                    summaryDay: {$gte: startTime, $lt: endTime},
+                                    bDirty: false
+                                }
+                            ).lean();
+
+                            // Get player done xima proposal
+                            let proposalQ = {
+                                createTime: {$gte: startTime, $lt: endTime},
+                                'data.platformId': platformId,
+                                'data.playerObjId': playerData._id,
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                'data.bConsumptionReturnRequest': true,
+                            };
+
+                            let pastProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ);
+
+                            return Promise.all([Promise.resolve(playerData), recProm, summaryProm, pastProm]);
                         }
-                    );
+                    ).then(
+                        promArrRes => {
+                            if (promArrRes) {
+                                let [playerData, recSumm, consumptionSumm, pastProps] = promArrRes;
 
-                    var proms = [];
-                    players.forEach(
-                        function (playerData) {
-                            if (playerData && playerData.permission && !(playerData.permission.banReward)) {
-                                //check if platform only allow new system users
-                                if( platformData && platformData.onlyNewCanLogin && !playerData.isNewSystem ){
-                                    return;
-                                }
-
-                                if (dbPlayerReward.isRewardEventForbidden(playerData, eventData._id)) {
-                                    return;
-                                }
-
-                                var returnAmount = 0;
-
-                                // Check all game types and calculate return amount
-                                let thisPlayersConsumptionSummaries = [];
-                                let returnDetail = {}, nonXIMADetail = {};
+                                let returnAmount = 0;
+                                let returnDetail = {};
+                                let doneXIMAConsumption = {};
+                                let nonXIMADetail = {};
+                                let summaryIds = [];
                                 let applyAmount = 0;
                                 let totalNonXIMAAmt = 0;
+                                let thisPlayerSummaries = [];
 
-                                for (var type in allGameTypes) {
-                                    var playerLevel = playerData.playerLevel;
-                                    var gameType = allGameTypes[type];
-                                    var typeKey = String(playerData._id + ':' + gameType);
-                                    var consumptionSummary = consumptionSummariesByKey[typeKey];
-                                    var eventRatios = eventData.param.ratio[playerLevel.value];
-                                    var ratio = eventRatios && eventRatios[gameType];
+                                let playerLevel = playerData.playerLevel;
+                                let eventRatios = eventData.param.ratio[playerLevel.value];
 
+                                // Done xima proposals
+                                if (pastProps && pastProps.length) {
+                                    pastProps.map(prop => {
+                                        if (prop.data && prop.data.returnDetail) {
+                                            Object.keys(prop.data.returnDetail).forEach(el => {
+                                                doneXIMAConsumption[el] && doneXIMAConsumption[el].consumeValidAmount
+                                                    ? doneXIMAConsumption[el].consumeValidAmount += prop.data.returnDetail[el].consumeValidAmount
+                                                    : doneXIMAConsumption[el] = prop.data.returnDetail[el];
 
-                                    if (!eventRatios) {
-                                        // var msg = util.format("Reward event has no ratios for PlayerLevel \"%s\".  eventData: %j", playerLevel.name, eventData.param);
-                                        //deferred.reject(Error(msg));
-                                        // console.warn(msg);
-                                        // Do not create a reward for this game type.  Proceed to the next game type.
-                                        ratio = 0;
-                                    }
-                                    if (typeof ratio !== 'number') {
-                                        // var msg = util.format("Reward event has no ratio for gameType=%s at PlayerLevel \"%s\".  eventData: %j", gameType, playerLevel.name, eventData.param);
-                                        //deferred.reject(Error(msg));
-                                        // console.warn(msg);
-                                        // Do not create a reward for this game type.  Proceed to the next game type.
-                                        ratio = 0;
-                                    }
-
-                                    if (consumptionSummary && playerLevel && ratio > 0) {
-                                        let consumeValidAmount = consumptionSummary.validAmount || 0;
-                                        let nonXIMAAmt = consumptionSummary.nonXIMAAmt || 0;
-                                        returnAmount += consumeValidAmount * ratio;
-                                        returnDetail["GameType:" + gameType] = {
-                                            consumeValidAmount: consumeValidAmount,
-                                            ratio: ratio
-                                        };
-                                        nonXIMADetail["GameType:" + gameType] = {
-                                            nonXIMAAmt: nonXIMAAmt
-                                        };
-                                        applyAmount += consumeValidAmount;
-                                        totalNonXIMAAmt += nonXIMAAmt;
-                                    }
-
-                                    if (consumptionSummary && ratio > 0) {
-                                        thisPlayersConsumptionSummaries.push(consumptionSummary);
-                                    }
+                                                if (prop.data.nonXIMADetail && prop.data.nonXIMADetail[el] && prop.data.nonXIMADetail[el].nonXIMAAmt) {
+                                                    doneXIMAConsumption[el].consumeValidAmount += prop.data.nonXIMADetail[el].nonXIMAAmt;
+                                                }
+                                            });
+                                        }
+                                    })
                                 }
 
-                                console.log('JY check thisPlayersConsumptionSummaries:',thisPlayersConsumptionSummaries);
+                                // Go through record summaries
+                                if (recSumm && recSumm.length) {
+                                    recSumm.forEach(el => {
+                                        let gameType = el._id;
+                                        let totalValidConsumption = el.validAmount;
+                                        let nonXIMAAmt = 0;
+                                        let consumedValidAmount = 0;
+                                        let ratio = eventRatios && eventRatios[gameType];
+                                        let consumptionSummary = consumptionSumm.find(summ => summ.gameType === gameType);
 
-                                let summaryIds = thisPlayersConsumptionSummaries.map(summary => summary._id);
-                                let spendingAmount = returnAmount < 0.01 ? 0 : returnAmount;
+                                        // Process return ratio
+                                        if (!eventRatios || typeof ratio !== 'number') {
+                                            ratio = 0;
+                                        }
 
+                                        if (ratio > 0) {
+                                            // Get amount that done xima for this provider
+                                            if (doneXIMAConsumption["GameType:" + el._id]) {
+                                                consumedValidAmount = doneXIMAConsumption["GameType:" + el._id].consumeValidAmount;
+                                            }
+
+                                            // Get non xima detail of this game type
+                                            if (consumptionSummary) {
+                                                nonXIMAAmt = consumptionSummary.nonXIMAAmt ? consumptionSummary.nonXIMAAmt : 0;
+                                                summaryIds.push(consumptionSummary._id);
+                                                thisPlayerSummaries.push(consumptionSummary);
+
+                                                if (nonXIMAAmt) {
+                                                    totalNonXIMAAmt += nonXIMAAmt;
+                                                    nonXIMADetail["GameType:" + gameType] = {
+                                                        nonXIMAAmt: nonXIMAAmt
+                                                    };
+                                                }
+                                            }
+
+                                            // Get amount that are available to xima
+                                            let freeConsumption = totalValidConsumption - nonXIMAAmt - consumedValidAmount;
+                                            applyAmount += freeConsumption;
+
+                                            // Get return detail of this game type
+                                            returnDetail["GameType:" + gameType] = {
+                                                consumeValidAmount: freeConsumption,
+                                                ratio: ratio
+                                            };
+
+                                            returnAmount += freeConsumption * ratio;
+                                        }
+
+
+                                    });
+                                }
+
+                                // Generate xima proposal
                                 let proposalData = {
                                     type: proposalTypeId,
                                     entryType: bRequest ? constProposalEntryType.CLIENT : constProposalEntryType.SYSTEM,
@@ -326,7 +359,7 @@ var dbPlayerConsumptionWeekSummary = {
                                 };
 
                                 if (eventData.param.consumptionTimesRequired && eventData.param.consumptionTimesRequired > 0) {
-                                    proposalData.data.spendingAmount = spendingAmount * eventData.param.consumptionTimesRequired;
+                                    proposalData.data.spendingAmount = proposalData.data.rewardAmount * eventData.param.consumptionTimesRequired;
                                 }
 
                                 if (adminId && adminName) {
@@ -345,274 +378,113 @@ var dbPlayerConsumptionWeekSummary = {
                                     }
                                 }
 
-                                let postProm = Promise.resolve();
+                                // Check whether ignore audit
+                                proposalData.data.isIgnoreAudit = eventData.param
+                                    && Number.isInteger(eventData.param.isIgnoreAudit)
+                                    && eventData.param.isIgnoreAudit >= proposalData.data.rewardAmount;
 
-                                if (platformData.useProviderGroup) {
-                                    let proposalQ = {
-                                        createTime: {$gte: startTime, $lt: endTime},
-                                        'data.platformId': platformId,
-                                        'data.playerObjId': playerData._id,
-                                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                        'data.bConsumptionReturnRequest': true,
-                                    };
+                                // Check minimum xima amount
+                                if (eventData && eventData.param && eventData.param.earlyXimaMinAmount
+                                    && bRequest && !isForceApply && proposalData.data.rewardAmount < eventData.param.earlyXimaMinAmount)
+                                {
+                                    // Not enough xima amount
+                                    isLessThanEnoughReward = true;
+                                } else {
+                                    processedSummaries = processedSummaries.concat(thisPlayerSummaries);
+                                    return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
+                                }
+                            }
+                        }
+                    ).catch(
+                        err => {
+                            if (!bRequest) {
+                                return Promise.resolve();
+                            } else {
+                                throw err;
+                            }
+                        }
+                    )
+                )
+            });
 
-                                    let doneXIMAConsumption = {};
-
-                                    postProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ).then(
-                                        props => {
-                                            if (props && props.length > 0) {
-                                                props.map(prop => {
-                                                    if (prop.data && prop.data.returnDetail) {
-                                                        Object.keys(prop.data.returnDetail).forEach(el => {
-                                                            doneXIMAConsumption[el] && doneXIMAConsumption[el].consumeValidAmount
-                                                                ? doneXIMAConsumption[el].consumeValidAmount += prop.data.returnDetail[el].consumeValidAmount
-                                                                : doneXIMAConsumption[el] = prop.data.returnDetail[el];
-
-                                                            if (prop.data.nonXIMADetail[el] && prop.data.nonXIMADetail[el].nonXIMAAmt) {
-                                                                doneXIMAConsumption[el].consumeValidAmount += prop.data.nonXIMADetail[el].nonXIMAAmt;
+            return Promise.all(promArr).then(
+                function (data) {
+                    if (data) {
+                        if (isLessThanEnoughReward) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DBError",
+                                message: eventData && eventData.param && eventData.param.earlyXimaMinAmount ? "您的洗码额度不足"+eventData.param.earlyXimaMinAmount+"元，无法提前结算洗码，谢谢": "您的洗码额度不足，无法提前结算洗码，谢谢"
+                            });;
+                        } else {
+                            let summaryIds = processedSummaries.map(summary => summary._id);
+                            // mark record as dirty, remove them if proposal is approved, reset as clean record if proposal is rejected
+                            return dbconfig.collection_playerConsumptionSummary.find(
+                                {_id: {$in: summaryIds}}
+                            ).lean().then(
+                                summaryRecords => {
+                                    //only mark summary dirty if they are not removed , which means the proposal is not approved
+                                    if (summaryRecords && summaryRecords.length > 0) {
+                                        return dbOps.removeWithRetry(dbconfig.collection_playerConsumptionSummary, {_id: {$in: summaryIds}})
+                                    }
+                                }
+                            ).then(
+                                () => {
+                                    let summaryProms = processedSummaries.map(
+                                        summary => {
+                                            summary.bDirty = true;
+                                            return dbconfig.collection_playerConsumptionSummary.findOne(
+                                                {
+                                                    playerId: summary.playerId,
+                                                    platformId: summary.platformId,
+                                                    gameType: summary.gameType,
+                                                    summaryDay: summary.summaryDay,
+                                                    bDirty: summary.bDirty
+                                                }
+                                            ).lean().then(
+                                                summaryData => {
+                                                    if (summaryData) {
+                                                        // summaryData.amount += summary.amount;
+                                                        // summaryData.validAmount += summary.validAmount;
+                                                        // summaryData.consumptionRecords.concat(summary.consumptionRecords);
+                                                        return dbconfig.collection_playerConsumptionSummary.findOneAndUpdate(
+                                                            {
+                                                                _id: summaryData._id,
+                                                                platformId: summaryData.platformId,
+                                                                playerId: summaryData.playerId,
+                                                                gameType: summaryData.gameType,
+                                                                summaryDay: summaryData.summaryDay,
+                                                                bDirty: true
+                                                            },
+                                                            {
+                                                                $inc: {amount: summary.amount, validAmount: summary.validAmount},
                                                             }
-                                                        });
+                                                        );
                                                     }
-                                                })
-                                            }
-
-                                            return dbconfig.collection_playerConsumptionRecord.aggregate(
-                                                {
-                                                    $match: {
-                                                        platformId: platformId,
-                                                        createTime: {
-                                                            $gte: startTime,
-                                                            $lt: endTime
-                                                        },
-                                                        playerId: playerData._id
-                                                    }
-                                                },
-                                                {
-                                                    $group: {
-                                                        _id: "$gameType",
-                                                        validAmount: {$sum: "$validAmount"}
+                                                    else {
+                                                        summary.dirtyDate = Date.now();
+                                                        var dirtySummary = new dbconfig.collection_playerConsumptionSummary(summary);
+                                                        return dirtySummary.save();
                                                     }
                                                 }
-                                            )
+                                            );
                                         }
-                                    ).then(
-                                        rec => {
-                                            console.log('JY check rec:',rec);
-
-                                            let totalConsumptionRec = rec && rec.length > 0 ? rec.reduce((a, b) => a + b.validAmount, 0) : 0;
-                                            let totalConsumptionSummary = proposalData.data.consumeValidAmount + proposalData.data.totalNonXIMAAmt;
-
-                                            if (totalConsumptionRec != totalConsumptionSummary) {
-                                                // Recalculate consumption return amount
-                                                rec.forEach(el => {
-                                                    // Offset consumption return dirty amount
-                                                    // Skip when return amount is 0
-                                                    if (proposalData.data.returnDetail["GameType:" + el._id] && proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount) {
-                                                        let consumedValidAmount = 0;
-                                                        let curValidAmt = proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount;
-                                                        let curNonXIMAAmt = proposalData.data.nonXIMADetail["GameType:" + el._id].nonXIMAAmt;
-
-                                                        if (doneXIMAConsumption["GameType:" + el._id]) {
-                                                            consumedValidAmount = doneXIMAConsumption["GameType:" + el._id].consumeValidAmount;
-                                                        }
-
-                                                        let freeConsumption = el.validAmount - consumedValidAmount;
-                                                        let consumpDiff = el.validAmount - curValidAmt - curNonXIMAAmt - consumedValidAmount;
-                                                        let returnRatio = proposalData.data.returnDetail["GameType:" + el._id] ? proposalData.data.returnDetail["GameType:" + el._id].ratio : 0;
-
-                                                        // Solve computed very small amount issue
-                                                        consumpDiff = consumpDiff > -0.01 && consumpDiff < 0.01 ? 0 : consumpDiff;
-
-                                                        // Log this operation
-                                                        proposalData.data.devCheckMsg = proposalData.data.devCheckMsg || "";
-                                                        proposalData.data.devCheckMsg +=
-                                                            "GameType: " + el._id + ", " +
-                                                            "Original: " + proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount + ", " +
-                                                            "Current: " + el.validAmount + ", " +
-                                                            "Free: " + freeConsumption + ", ";
-
-                                                        // Handling for inconsistent consumption summary
-                                                        // Sometime the summary has more consumption than it should
-                                                        if (parseFloat(freeConsumption).toFixed(2) < parseFloat(curValidAmt + curNonXIMAAmt).toFixed(2)) {
-                                                            proposalData.data.rewardAmount -= proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount * returnRatio;
-                                                            proposalData.data.spendingAmount -= proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount * eventData.param.consumptionTimesRequired;
-                                                            proposalData.data.consumeValidAmount -= proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount;
-                                                            proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount = freeConsumption;
-                                                            proposalData.data.rewardAmount += freeConsumption * returnRatio;
-                                                            proposalData.data.spendingAmount += freeConsumption * eventData.param.consumptionTimesRequired;
-                                                            proposalData.data.consumeValidAmount += freeConsumption;
-
-                                                            proposalData.data.devCheckMsg +=
-                                                                "Negative Offset: " + freeConsumption + "<" + curValidAmt + "+" + curNonXIMAAmt + "; "
-                                                        }
-
-                                                        // Offset if it matters
-                                                        else if (proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount + consumpDiff >= 0) {
-                                                            proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount += consumpDiff;
-                                                            proposalData.data.rewardAmount += consumpDiff * returnRatio;
-                                                            proposalData.data.spendingAmount += consumpDiff * eventData.param.consumptionTimesRequired;
-                                                            proposalData.data.consumeValidAmount += consumpDiff;
-
-                                                            proposalData.data.devCheckMsg +=
-                                                                "Offset: " + el.validAmount + "-" + curValidAmt + "-" + curNonXIMAAmt + "-" + consumedValidAmount + "; "
-                                                        }
-                                                    }
-                                                });
-                                            }
-
-                                            // Check whether ignore audit
-                                            proposalData.data.isIgnoreAudit = eventData.param
-                                                && Number.isInteger(eventData.param.isIgnoreAudit)
-                                                && eventData.param.isIgnoreAudit >= proposalData.data.rewardAmount;
-
-                                            // Check minimum xima amount
-                                            if (eventData && eventData.param && eventData.param.earlyXimaMinAmount
-                                                && bRequest && !isForceApply && proposalData.data.rewardAmount < eventData.param.earlyXimaMinAmount) {
-                                                isLessAmtAfterOffset = true;
-                                                deferred.resolve(null);
-                                            } else {
-                                                return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
-                                            }
-                                        }
-                                    )
-                                } else {
-                                    // Check minimum xima amount
-                                    if (eventData && eventData.param && eventData.param.earlyXimaMinAmount
-                                        && bRequest && !isForceApply && proposalData.data.rewardAmount < eventData.param.earlyXimaMinAmount) {
-                                        isLessAmtAfterOffset = true;
-                                        deferred.resolve(null);
-                                    } else {
-                                        return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
-                                    }
+                                    );
+                                    return Q.all(summaryProms);
                                 }
-
-                                proms.push(postProm);
-                                //only if proposal is created then add summary ids
-                                processedSummaries = processedSummaries.concat(thisPlayersConsumptionSummaries);
-                            }
+                            );
                         }
-                    );
-
-                    if (proms.length > 0) {
-                        return Q.all(proms).then(
-                            data => {
-                                console.log('JY check data:',data);
-
-                                return data;
-                            },
-                            err => {
-                                if(bRequest){
-                                    deferred.reject({
-                                        name: "DBError",
-                                        message: "Error creating player consumption return proposal",
-                                        error: err
-                                    });
-                                }
-                            }
-                        );
-                    } else {
-                        //todo::update the error message here for client
-                        //no consumption return
-                        deferred.resolve(null);
                     }
-                } else {
-                    //no consumption records
-                    deferred.resolve(null);
+                },
+                function (error) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Error creating player consumption return proposal",
+                        error: error
+                    });
                 }
-            },
-            function (error) {
-                deferred.reject({
-                    name: "DBError",
-                    message: "Error finding player consumption week summary",
-                    error: error
-                });
-            }
-        ).then(
-            function (data) {
-                if (data && !isLessAmtAfterOffset) {
-                    // Mark the summaries we have just processed as dirty
-                    // Concern: It is possible that a consumptionSummary record has been updated in the time that we have been processing this batch.
-                    //          That update amount will be lost (removed from this week, not counted for next week).
-                    //          To avoid that, this process should be part of a transaction queue that will lock the record from being updated.
-                    var summaryIds = processedSummaries.map(summary => summary._id);
-                    // mark record as dirty, remove them if proposal is approved, reset as clean record if proposal is rejected
-                    return dbconfig.collection_playerConsumptionSummary.find(
-                        {_id: {$in: summaryIds}}
-                    ).lean().then(
-                        summaryRecords => {
-                            //only mark summary dirty if they are not removed , which means the proposal is not approved
-                            if (summaryRecords && summaryRecords.length > 0) {
-                                return dbOps.removeWithRetry(dbconfig.collection_playerConsumptionSummary, {_id: {$in: summaryIds}}).then(
-                                    () => {
-                                        var summaryProms = processedSummaries.map(
-                                            summary => {
-                                                summary.bDirty = true;
-                                                return dbconfig.collection_playerConsumptionSummary.findOne(
-                                                    {
-                                                        playerId: summary.playerId,
-                                                        platformId: summary.platformId,
-                                                        gameType: summary.gameType,
-                                                        summaryDay: summary.summaryDay,
-                                                        bDirty: summary.bDirty
-                                                    }
-                                                ).lean().then(
-                                                    summaryData => {
-                                                        if (summaryData) {
-                                                            // summaryData.amount += summary.amount;
-                                                            // summaryData.validAmount += summary.validAmount;
-                                                            // summaryData.consumptionRecords.concat(summary.consumptionRecords);
-                                                            return dbconfig.collection_playerConsumptionSummary.findOneAndUpdate(
-                                                                {
-                                                                    _id: summaryData._id,
-                                                                    platformId: summaryData.platformId,
-                                                                    playerId: summaryData.playerId,
-                                                                    gameType: summaryData.gameType,
-                                                                    summaryDay: summaryData.summaryDay,
-                                                                    bDirty: true
-                                                                },
-                                                                {
-                                                                    $inc: {amount: summary.amount, validAmount: summary.validAmount},
-                                                                }
-                                                            );
-                                                        }
-                                                        else {
-                                                            summary.dirtyDate = Date.now();
-                                                            var dirtySummary = new dbconfig.collection_playerConsumptionSummary(summary);
-                                                            return dirtySummary.save();
-                                                        }
-                                                    }
-                                                );
-                                            }
-                                        );
-                                        return Q.all(summaryProms);
-                                    }
-                                );
-                            }
-                        }
-                    );
-                }
-            },
-            function (error) {
-                deferred.reject({
-                    name: "DBError",
-                    message: "Error creating player consumption return proposal",
-                    error: error
-                });
-            }
-        ).then(
-            function (data) {
-                if (!isLessAmtAfterOffset) {
-                    deferred.resolve(true);
-                }
-            },
-            function (error) {
-                deferred.reject({name: "DBError", message: "Error marking player consumption record", error: error});
-            }
-        ).catch(
-            error => console.log(error)
-        );
-
-        return deferred.promise;
+            )
+        }
     },
 
     /**
@@ -620,34 +492,24 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {ObjectId} playerId
      */
     startCalculatePlayerConsumptionReturn: function (playerId, bRequest, bAdmin, eventCode,userAgent, adminName, isForceApply) {
-        var deferred = Q.defer();
-        var platformData = null;
-        var playerData = null;
+        let platformData = null;
+        let playerData = null;
         let eventData = null;
+
         //check if player platform has consumption return reward event
-        dbconfig.collection_players.findOne({playerId: playerId})
+        return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
             .populate({path: "platform", model: dbconfig.collection_platform}).then(
             function (data) {
                 if (data && data.platform && data.playerLevel) {
                     playerData = data;
                     if (playerData.permission && playerData.permission.banReward || !playerData.playerLevel.canApplyConsumptionReturn) {
-                        deferred.reject({
+                        return Promise.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
                             name: "DataError",
                             errorMessage: "Player does not have this permission"
                         });
-                        return;
                     }
-
-                    // if (playerData.forbidRewardEvents && playerData.forbidRewardEvents.indexOf("advanceConsumptionReward") !== -1) {
-                    //     deferred.reject({
-                    //         status: constServerCode.PLAYER_NO_PERMISSION,
-                    //         name: "DataError",
-                    //         errorMessage: "Player does not have this permission"
-                    //     });
-                    //     return;
-                    // }
 
                     platformData = data.platform;
                     if( eventCode ){
@@ -658,11 +520,11 @@ var dbPlayerConsumptionWeekSummary = {
                     }
                 }
                 else {
-                    deferred.reject({name: "DataError", message: "Incorrect player data"});
+                    return Promise.reject({name: "DataError", message: "Incorrect player data"});
                 }
             },
             function (error) {
-                deferred.reject({name: "DBError", message: "Error finding player", error: error});
+                return Promise.reject({name: "DBError", message: "Error finding player", error: error});
             }
         ).then(
             function (eventsData) {
@@ -674,7 +536,7 @@ var dbPlayerConsumptionWeekSummary = {
                     }, {isConsumptionReturn: true}).then(
                         updatePlayer => {
                             if (playerData.forbidRewardEvents.includes(eventData._id.toString())) {
-                                deferred.reject({
+                                return Promise.reject({
                                     status: constServerCode.PLAYER_NO_PERMISSION,
                                     name: "DataError",
                                     errorMessage: "Player do not have permission to apply consumption return"
@@ -684,7 +546,7 @@ var dbPlayerConsumptionWeekSummary = {
                                 return dbconfig.collection_proposalType.findOne({platformId: platformData._id, name: constProposalType.PLAYER_CONSUMPTION_RETURN}).lean();
                             }
                             else {
-                                deferred.reject({
+                                return Promise.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
                                     message: "Player is applying consumption return"
@@ -695,7 +557,7 @@ var dbPlayerConsumptionWeekSummary = {
                         proposalType => {
                             if (!proposalType) {
                                 eventsData = [];
-                                deferred.reject({
+                                return Promise.reject({
                                     name: "DataError",
                                     message: "Error in getting proposal type"
                                 });
@@ -711,7 +573,7 @@ var dbPlayerConsumptionWeekSummary = {
                         rewardProposal => {
                             if (rewardProposal) {
                                 eventsData = [];
-                                deferred.reject({
+                                return Promise.reject({
                                     name: "DataError",
                                     message: "Player or partner already has a pending proposal for this type"
                                 });
@@ -740,14 +602,14 @@ var dbPlayerConsumptionWeekSummary = {
                                         _id: playerData._id,
                                         platform: playerData.platform._id
                                     }, {isConsumptionReturn: false}).then();
-                                    return Q.reject(error);
+                                    return Promise.reject(error);
                                 }
                             );
                         }
                     );
                 }
                 else {
-                    deferred.reject({
+                    return Promise.reject({
                         status: constServerCode.REWARD_EVENT_INVALID,
                         name: "DataError",
                         message: "Incorrect reward event data"
@@ -755,38 +617,14 @@ var dbPlayerConsumptionWeekSummary = {
                 }
             },
             function (error) {
-                deferred.reject({
+                return Promise.reject({
                     status: constServerCode.REWARD_EVENT_INVALID,
                     name: "DBError",
                     message: "Error finding reward event",
                     error: error
                 });
             }
-        ).then(
-            function (data) {
-                console.log('XIMAAA data', data);
-                if (data && data[0]) {
-                    deferred.resolve(true);
-                }
-                else {
-                    deferred.reject({
-                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                        name: "DBError",
-                        message: eventData && eventData.param && eventData.param.earlyXimaMinAmount ? "您的洗码额度不足"+eventData.param.earlyXimaMinAmount+"元，无法提前结算洗码，谢谢": "您的洗码额度不足，无法提前结算洗码，谢谢"
-                    });
-                }
-            },
-            function (error) {
-                deferred.reject({
-                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                    name: "DBError",
-                    message: "Error calculating player consumption return",
-                    error: error
-                });
-            }
-        );
-
-        return deferred.promise;
+        )
     },
 
     /**
@@ -930,54 +768,15 @@ var dbPlayerConsumptionWeekSummary = {
             summaryDay["$lt"] = settleTime.endTime;
         }
 
-        console.log('JY check event:',event);
-        console.log('JY check summaryDay:',summaryDay);
-
-        let summaryProm = dbconfig.collection_playerConsumptionSummary.find(
-            {
-                platformId: platformId,
-                playerId: playerId,
-                summaryDay: summaryDay,
-                bDirty: false
-            }
-        ).lean();
-        let playerLevelProm = dbconfig.collection_players.findOne({_id: playerId}).select("playerLevel playerId name")
-            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean().exec();
-
-        let gameTypesProm = dbGameType.getAllGameTypes();
-
-        let doneXIMAConsumption = {};
-        let proposalQ = {
-            createTime: summaryDay,
-            'data.platformId': platformId,
-            'data.playerObjId': playerId,
-            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-            'data.bConsumptionReturnRequest': true,
-        };
-        let consumptionRecProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ).then(
-            props => {
-                if (props && props.length > 0) {
-                    props.map(prop => {
-                        if (prop.data && prop.data.returnDetail) {
-                            Object.keys(prop.data.returnDetail).forEach(el => {
-                                doneXIMAConsumption[el] && doneXIMAConsumption[el].consumeValidAmount
-                                    ? doneXIMAConsumption[el].consumeValidAmount += prop.data.returnDetail[el].consumeValidAmount
-                                    : doneXIMAConsumption[el] = prop.data.returnDetail[el];
-
-                                if (prop.data.nonXIMADetail && prop.data.nonXIMADetail[el] && prop.data.nonXIMADetail[el].nonXIMAAmt) {
-                                    doneXIMAConsumption[el].consumeValidAmount += prop.data.nonXIMADetail[el].nonXIMAAmt;
-                                }
-                            });
-                        }
-                    });
-                }
-
-                return dbconfig.collection_playerConsumptionRecord.aggregate(
+        return dbconfig.collection_players.findById(playerId).populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean().then(
+            playerData => {
+                // Get player consumption records
+                let recProm = dbconfig.collection_playerConsumptionRecord.aggregate(
                     {
                         $match: {
                             platformId: platformId,
                             createTime: summaryDay,
-                            playerId: playerId
+                            playerId: playerData._id
                         }
                     },
                     {
@@ -986,124 +785,140 @@ var dbPlayerConsumptionWeekSummary = {
                             validAmount: {$sum: "$validAmount"}
                         }
                     }
-                )
+                );
+
+                // Get player consumption summary
+                let summaryProm = dbconfig.collection_playerConsumptionSummary.find(
+                    {
+                        platformId: platformId,
+                        playerId: playerData._id,
+                        summaryDay: summaryDay,
+                        bDirty: false
+                    }
+                ).lean();
+
+                // Get player done xima proposal
+                let proposalQ = {
+                    createTime: summaryDay,
+                    'data.platformId': platformId,
+                    'data.playerObjId': playerData._id,
+                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                    'data.bConsumptionReturnRequest': true,
+                };
+
+                let pastProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ);
+
+                return Promise.all([Promise.resolve(playerData), recProm, summaryProm, pastProm]);
             }
-        );
+        ).then(
+            promArrRes => {
+                if (promArrRes) {
+                    let [playerData, recSumm, consumptionSumm, pastProps] = promArrRes;
 
-        let platformProm = dbconfig.collection_platform.findOne({_id: platformId}).lean();
-
-        return Q.all([summaryProm, playerLevelProm, gameTypesProm, consumptionRecProm, platformProm]).spread(
-            function (consumptionSummaries, playerData, allGameTypes, consumptionRecSumm, platformData) {
-                // Why is it that sometimes playerData is not found?
-                // Perhaps the player was requested because he had consumption records, but the player himself has been removed from the system
-
-                console.log('JY check consumptionSummaries:',consumptionSummaries);
-
-                if (consumptionSummaries && playerData) {
-                    // Process the data into key map
-                    let consumptionSummariesByKey = {};
-                    consumptionSummaries.forEach(
-                        function (summary) {
-                            let key = String(summary.playerId + ':' + summary.gameType);
-                            if (consumptionSummariesByKey[key]) {
-                                // This is not supposed to happen: There are not supposed to be multiple summaries with the same key.
-                                // But just in case this does happen, let's not lose the player's consumption!
-                                consumptionSummariesByKey[key].amount += summary.amount;
-                                consumptionSummariesByKey[key].validAmount += summary.validAmount;
-                            } else {
-                                consumptionSummariesByKey[key] = summary;
-                            }
-                        }
-                    );
                     let returnAmount = 0;
+                    let returnDetail = {};
+                    let doneXIMAConsumption = {};
+                    let nonXIMADetail = {};
+                    let summaryIds = [];
+                    let applyAmount = 0;
+                    let totalNonXIMAAmt = 0;
+                    let thisPlayerSummaries = [];
 
-                    // Check all game types and calculate return amount
+                    let playerLevel = playerData.playerLevel;
+                    let eventRatios = eventData.ratio[playerLevel.value];
+
+                    // Done xima proposals
+                    if (pastProps && pastProps.length) {
+                        pastProps.map(prop => {
+                            if (prop.data && prop.data.returnDetail) {
+                                Object.keys(prop.data.returnDetail).forEach(el => {
+                                    doneXIMAConsumption[el] && doneXIMAConsumption[el].consumeValidAmount
+                                        ? doneXIMAConsumption[el].consumeValidAmount += prop.data.returnDetail[el].consumeValidAmount
+                                        : doneXIMAConsumption[el] = prop.data.returnDetail[el];
+
+                                    if (prop.data.nonXIMADetail && prop.data.nonXIMADetail[el] && prop.data.nonXIMADetail[el].nonXIMAAmt) {
+                                        doneXIMAConsumption[el].consumeValidAmount += prop.data.nonXIMADetail[el].nonXIMAAmt;
+                                    }
+                                });
+                            }
+                        })
+                    }
+
+                    // Go through record summaries
+                    // Generate return summary
                     let res = {};
                     res.settleTime = settleTime;
                     res.totalConsumptionAmount = 0;
-                    for (let type in allGameTypes) {
-                        let playerLevel = playerData.playerLevel;
-                        let gameType = allGameTypes[type];
-                        let typeKey = String(playerData._id + ':' + gameType);
-                        let consumptionSummary = consumptionSummariesByKey[typeKey];
-                        let eventRatios = eventData.ratio[playerLevel.value];
-                        let ratio = eventRatios && eventRatios[gameType];
 
-                        if (!eventRatios) {
-                            let msg = util.format("Reward event has no ratios for PlayerLevel \"%s\".  eventData: %j", playerLevel.name, eventData);
-                            //return Q.reject(Error(msg));
-                            console.warn(msg);
-                            ratio = 0;
-                        }
-                        if (typeof ratio !== 'number') {
-                            let msg = util.format("Reward event has no ratio for gameType=%s at PlayerLevel \"%s\".  eventData: %j", gameType, playerLevel.name, eventData);
-                            //return Q.reject(Error(msg));
-                            console.warn(msg);
-                            ratio = 0;
-                        }
-                        if (consumptionSummary && playerLevel && ratio >= 0) {
-                            let consumeValidAmount = consumptionSummary.validAmount;
-                            let returnForThisGameType = consumeValidAmount * ratio;
-                            let nonXIMAAmt = consumptionSummary.nonXIMAAmt ? consumptionSummary.nonXIMAAmt : 0;
+                    if (recSumm && recSumm.length) {
+                        recSumm.forEach(el => {
+                            let gameType = el._id;
+                            let totalValidConsumption = el.validAmount;
+                            let nonXIMAAmt = 0;
+                            let consumedValidAmount = 0;
+                            let ratio = eventRatios && eventRatios[gameType];
+                            let consumptionSummary = consumptionSumm.find(summ => summ.gameType === gameType);
 
-                            returnAmount += returnForThisGameType;
-                            res.totalConsumptionAmount += consumeValidAmount;
-                            res[type] = {
-                                consumptionAmount: consumeValidAmount,
-                                returnAmount: returnForThisGameType,
-                                nonXIMAAmt: nonXIMAAmt,
-                                ratio: ratio
-                            };
-                        }
-                        else {
-                            res[type] =
-                                {
+                            // Process return ratio
+                            if (!eventRatios || typeof ratio !== 'number') {
+                                ratio = 0;
+                            }
+
+                            if (ratio > 0) {
+                                // Get amount that done xima for this provider
+                                if (doneXIMAConsumption["GameType:" + el._id]) {
+                                    consumedValidAmount = doneXIMAConsumption["GameType:" + el._id].consumeValidAmount;
+                                }
+
+                                // Get non xima detail of this game type
+                                if (consumptionSummary) {
+                                    nonXIMAAmt = consumptionSummary.nonXIMAAmt ? consumptionSummary.nonXIMAAmt : 0;
+                                    summaryIds.push(consumptionSummary._id);
+                                    thisPlayerSummaries.push(consumptionSummary);
+
+                                    if (nonXIMAAmt) {
+                                        totalNonXIMAAmt += nonXIMAAmt;
+                                        nonXIMADetail["GameType:" + gameType] = {
+                                            nonXIMAAmt: nonXIMAAmt
+                                        };
+                                    }
+                                }
+
+                                // Get amount that are available to xima
+                                let freeConsumption = totalValidConsumption - nonXIMAAmt - consumedValidAmount;
+                                applyAmount += freeConsumption;
+
+                                // Get return detail of this game type
+                                returnDetail["GameType:" + gameType] = {
+                                    consumeValidAmount: freeConsumption,
+                                    ratio: ratio
+                                };
+
+                                returnAmount += freeConsumption * ratio;
+                                res.totalConsumptionAmount += freeConsumption;
+                                res[gameType] = {
+                                    consumptionAmount: freeConsumption,
+                                    returnAmount: freeConsumption * ratio,
+                                    nonXIMAAmt: nonXIMAAmt,
+                                    ratio: ratio
+                                };
+                            } else {
+                                res[gameType] = {
                                     consumptionAmount: 0,
                                     returnAmount: 0,
                                     nonXIMAAmt: 0,
                                     ratio: ratio
                                 };
-                        }
+                            }
+                        });
                     }
+
                     res.totalAmount = returnAmount < 1 ? 0 : returnAmount;
-
-                    // DO NOT REMOVE - DEBUG USE
-                    // console.log('consumptionSummariesByKey', consumptionSummariesByKey);
-                    // console.log('consumptionRecSumm', consumptionRecSumm);
-                    // console.log('res', res);
-                    // console.log('proposalQ', proposalQ);
-                    // console.log('doneXIMAConsumption', doneXIMAConsumption);
-
-                    if (platformData.useProviderGroup) {
-                        let totalConsumptionRec = consumptionRecSumm && consumptionRecSumm.length > 0 ? consumptionRecSumm.reduce((a, b) => a + b.validAmount, 0) : 0;
-
-                        if (totalConsumptionRec != res.totalConsumptionAmount) {
-                            // Recalculate consumption return amount
-                            let totalAmtDiff = 0;
-
-                            consumptionRecSumm.forEach(el => {
-                                // Offset consumption return dirty amount
-                                el.validAmount -= doneXIMAConsumption["GameType:" + el._id] ? doneXIMAConsumption["GameType:" + el._id].consumeValidAmount : 0;
-
-                                let consumpDiff = el.validAmount - res[el._id].consumptionAmount - res[el._id].nonXIMAAmt;
-
-                                if (res[el._id].consumptionAmount + consumpDiff >= 0) {
-                                    res[el._id].consumptionAmount += consumpDiff;
-                                    res[el._id].returnAmount += consumpDiff * res[el._id].ratio;
-                                    totalAmtDiff += consumpDiff * res[el._id].ratio;
-                                }
-                            });
-
-                            res.totalAmount += totalAmtDiff;
-                        }
-                    }
 
                     if (bDetail) {
                         res.playerId = playerData.playerId;
                         res.playerName = playerData.name;
                     }
-
-                    console.log('JY check res:',res);
 
                     return res;
                 } else {
@@ -1112,25 +927,14 @@ var dbPlayerConsumptionWeekSummary = {
                         return {
                             settleTime: settleTime,
                             playerId: playerId,
-                            playerName: playerData ? playerData.name : 'Player Not Found',
+                            playerName: 'Player Not Found',
                             totalAmount: 0
                         };
                     }
-                    else {
-                        console.log("LH check consumption return reward 8-3", {settleTime: settleTime, totalAmount: 0});
-                    }
                 }
-            },
-            function (error) {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Error finding player consumption week summary",
-                    error: error
-                });
             }
-        );
+        )
     }
-
 };
 
 //module.exports = dbPlayerConsumptionWeekSummary;
