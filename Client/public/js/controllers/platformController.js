@@ -21396,9 +21396,12 @@ define(['js/app'], function (myApp) {
                             vm.promoCodeAnalysis.pageObj = utilService.createPageForPagingTable("#promoCodeAnalysisTablePage", {}, $translate, function (curP, pageSize) {
                                 vm.commonPageChangeHandler(curP, pageSize, "promoCodeAnalysis", vm.getPromoCodeAnalysis)
                             });
+                            vm.promoCodeAnalysis.searchType = 1;
+                            vm.getPromoCodeAnalysis(true)
                             vm.promoCodeAnalysis2.pageObj = utilService.createPageForPagingTable("#promoCodeAnalysis2TablePage", {}, $translate, function (curP, pageSize) {
-                                vm.commonPageChangeHandler(curP, pageSize, "promoCodeAnalysis2", vm.getPromoCodeAnalysis)
+                                vm.commonPageChangeHandler(curP, pageSize, "promoCodeAnalysis2", vm.getPromoCodeAnalysis2)
                             });
+                            vm.getPromoCodeAnalysis2(true)
                         });
                 }
             };
@@ -23741,13 +23744,36 @@ define(['js/app'], function (myApp) {
             vm.drawTable = function (tblOptions, tblId, qObj, qName, fnSortChange, data, size, summary, newSearch) {
                 tblOptions = $.extend(true, {}, vm.generalDataTableOptions, tblOptions);
 
-                utilService.createDatatableWithFooter(tblId, tblOptions, {}, true);
+                if (summary) {
+                    let summaryRate = "0%";
+                    if (summary.hasOwnProperty("acceptedCount") && summary.hasOwnProperty("sendCount")) {
+                        summaryRate = String(parseFloat(summary.acceptedCount / summary.sendCount * 100).toFixed(2)) + "%";
+                    }
+                    if (qName == "promoCodeAnalysis2") {
+                        utilService.createDatatableWithFooter(tblId, tblOptions, {
+                            1: summary.sendCount,
+                            2: summary.acceptedCount,
+                            3: summaryRate,
+                            4: summary.acceptedAmount,
+                            5: summary.topUpAmount
+                        });
+                    } else {
+                        utilService.createDatatableWithFooter(tblId, tblOptions, {
+                            1: summary.sendCount,
+                            2: summary.acceptedCount,
+                            3: summaryRate,
+                            4: summary.acceptedAmount
+                        });
+                    }
+                } else {
+                    utilService.createDatatableWithFooter(tblId, tblOptions, {}, true);
+                }
 
                 qObj.pageObj.init({maxCount: size}, newSearch);
 
                 $(tblId).off('order.dt');
                 $(tblId).on('order.dt', function (event, a, b) {
-                    vm.commonSortChangeHandler(a, 'promoCodeQuery', fnSortChange);
+                    vm.commonSortChangeHandler(a, qName, fnSortChange);
                 });
                 $(tblId).resize();
 
@@ -23922,18 +23948,15 @@ define(['js/app'], function (myApp) {
 
                 console.log('sendObj', sendObj);
 
-                socketService.$socket($scope.AppSocket, 'getPromoCodesAnalysis', sendObj, function (data) {
+                socketService.$socket($scope.AppSocket, 'getPromoCodesAnalysisByType', sendObj, function (data) {
                     $('#promoCodeAnaysisTableSpin').hide();
                     console.log('getPromoCodesAnalysis', data);
 
                     let table1Data = data.data[0];
-                    let table2Data = data.data[1];
+                    vm.promoCodeAnalysis.totalCount = data.data[1].length;
+                    let summary = data.data[2].length? data.data[2][0]: null;
 
                     let p = Promise.resolve();
-                    let p1 = Promise.resolve();
-
-                    vm.promoCodeAnalysis.totalCount = table1Data.length;
-                    vm.promoCodeAnalysis2.totalCount = table2Data.length;
 
                     table1Data.forEach((elem, idx, arr) => {
                         p = p.then(function () {
@@ -23943,19 +23966,13 @@ define(['js/app'], function (myApp) {
                         });
                     });
 
-                    table2Data.forEach((elem, idx, arr) => {
-                        p1 = p1.then(function () {
-                            return $scope.$socketPromise('getPlayerInfo', {_id: elem._id}).then(res => {
-                                elem.player = res.data;
-                            })
-                        });
-                    });
-
-                    return Promise.all([p, p1]).then(res => {
+                    return p.then(res => {
                         let table1Options = {
                             data: table1Data,
-                            "order": vm.promoCodeAnalysis.aaSorting || [[0, 'desc']],
+                            // "order": vm.promoCodeAnalysis.aaSorting || [[0, 'desc']], //skip and limit cannot be done in this query if sort by name
                             aoColumnDefs: [
+                                {'sortCol': 'sendCount', bSortable: true, 'aTargets': [1]},
+                                {'sortCol': 'acceptedCount', bSortable: true, 'aTargets': [2]},
                                 {targets: '_all', defaultContent: ' ', bSortable: false}
                             ],
                             columns: [
@@ -23987,16 +24004,73 @@ define(['js/app'], function (myApp) {
                             "paging": false
                         };
 
+                        vm.drawTable(table1Options, '#promoCodeAnalysisTable', vm.promoCodeAnalysis, 'promoCodeAnalysis', vm.getPromoCodeAnalysis, table1Data, vm.promoCodeAnalysis.totalCount, summary, isNewSearch);
+                    })
+                }, function (err) {
+                    console.error(err);
+                }, true);
+
+            };
+
+            vm.getPromoCodeAnalysis2 = function (isNewSearch) {
+                vm.promoCodeAnalysis.platformId = vm.selectedPlatform.id;
+                $('#promoCodeAnaysis2TableSpin').show();
+
+                vm.promoCodeAnalysis.index = isNewSearch ? 0 : (vm.promoCodeAnalysis.index || 0);
+
+                let sendObj = {
+                    startCreateTime: vm.promoCodeAnalysis.startCreateTime.data('datetimepicker').getLocalDate(),
+                    endCreateTime: vm.promoCodeAnalysis.endCreateTime.data('datetimepicker').getLocalDate(),
+                    playerName: vm.promoCodeAnalysis.playerName,
+                    platformObjId: vm.promoCodeAnalysis.platformId,
+                    index: vm.promoCodeAnalysis2.index || 0,
+                    limit: vm.promoCodeAnalysis2.limit || 10,
+                    sortCol: vm.promoCodeAnalysis2.sortCol
+                };
+
+                if (vm.promoCodeAnalysis.promoCodeType) {
+                    sendObj.promoCodeType = vm.promoCodeAnalysis.promoCodeType;
+                }
+
+                if (vm.promoCodeAnalysis.promoCodeSubType) {
+                    sendObj.promoCodeSubType = vm.promoCodeAnalysis.promoCodeSubType;
+                }
+
+                console.log('sendObj2', sendObj);
+
+                socketService.$socket($scope.AppSocket, 'getPromoCodesAnalysisByPlayer', sendObj, function (data) {
+                    $('#promoCodeAnaysis2TableSpin').hide();
+                    console.log('getPromoCodesAnalysis2', data);
+
+                    let table2Data = data.data[0];
+                    vm.promoCodeAnalysis2.totalCount = data.data[1].length;
+                    let summary = data.data[2].length? data.data[2][0]: null;
+
+                    let p1 = Promise.resolve();
+
+                    table2Data.forEach((elem, idx, arr) => {
+                        p1 = p1.then(function () {
+                            return $scope.$socketPromise('getPlayerInfo', {_id: elem._id}).then(res => {
+                                elem.player = res.data;
+                            })
+                        });
+                    });
+
+                    return p1.then(res => {
+
                         let table2Options = {
                             data: table2Data,
-                            "order": vm.promoCodeAnalysis2.aaSorting || [[0, 'desc']],
+                            // "order": vm.promoCodeAnalysis2.aaSorting || [[0, 'desc']],
                             aoColumnDefs: [
+                                {'sortCol': 'sendCount', bSortable: true, 'aTargets': [1]},
+                                {'sortCol': 'acceptedCount', bSortable: true, 'aTargets': [2]},
                                 {targets: '_all', defaultContent: ' ', bSortable: false}
                             ],
                             columns: [
                                 {
                                     title: $translate('playerAccount'),
-                                    data: "player.name"
+                                    data: "player.name",
+                                    sClass: "sumText",
                                 },
                                 {
                                     title: $translate('sendCount'),
@@ -24027,8 +24101,7 @@ define(['js/app'], function (myApp) {
                             "paging": false
                         };
 
-                        vm.drawTable(table1Options, '#promoCodeAnalysisTable', vm.promoCodeAnalysis, 'promoCodeAnalysis', vm.getPromoCodeAnalysis, table1Data, vm.promoCodeAnalysis.totalCount, null, isNewSearch);
-                        vm.drawTable(table2Options, '#promoCodeAnalysis2Table', vm.promoCodeAnalysis2, 'promoCodeAnalysis2', vm.getPromoCodeAnalysis, table2Data, vm.promoCodeAnalysis2.totalCount, null, isNewSearch);
+                        vm.drawTable(table2Options, '#promoCodeAnalysis2Table', vm.promoCodeAnalysis2, 'promoCodeAnalysis2', vm.getPromoCodeAnalysis2, table2Data, vm.promoCodeAnalysis2.totalCount, summary, isNewSearch);
 
                     })
                 }, function (err) {
@@ -24036,6 +24109,8 @@ define(['js/app'], function (myApp) {
                 }, true);
 
             };
+
+
 
             // If any of the levels are holding the old data structure, migrate them to the new data structure.
             // (This code can be removed in the future.)
