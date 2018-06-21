@@ -270,11 +270,11 @@ var dbPlayerConsumptionWeekSummary = {
                                         if (prop.data && prop.data.returnDetail) {
                                             Object.keys(prop.data.returnDetail).forEach(el => {
                                                 doneXIMAConsumption[el] && doneXIMAConsumption[el].consumeValidAmount
-                                                    ? doneXIMAConsumption[el].consumeValidAmount += prop.data.returnDetail[el].consumeValidAmount
+                                                    ? doneXIMAConsumption[el].consumeValidAmount = Number(doneXIMAConsumption[el].consumeValidAmount) + Number(prop.data.returnDetail[el].consumeValidAmount)
                                                     : doneXIMAConsumption[el] = prop.data.returnDetail[el];
 
                                                 if (prop.data.nonXIMADetail && prop.data.nonXIMADetail[el] && prop.data.nonXIMADetail[el].nonXIMAAmt) {
-                                                    doneXIMAConsumption[el].consumeValidAmount += prop.data.nonXIMADetail[el].nonXIMAAmt;
+                                                    doneXIMAConsumption[el].consumeValidAmount = Number(doneXIMAConsumption[el].consumeValidAmount) + Number(prop.data.nonXIMADetail[el].nonXIMAAmt);
                                                 }
                                             });
                                         }
@@ -834,11 +834,11 @@ var dbPlayerConsumptionWeekSummary = {
                             if (prop.data && prop.data.returnDetail) {
                                 Object.keys(prop.data.returnDetail).forEach(el => {
                                     doneXIMAConsumption[el] && doneXIMAConsumption[el].consumeValidAmount
-                                        ? doneXIMAConsumption[el].consumeValidAmount += prop.data.returnDetail[el].consumeValidAmount
+                                        ? doneXIMAConsumption[el].consumeValidAmount = Number(doneXIMAConsumption[el].consumeValidAmount) + Number(prop.data.returnDetail[el].consumeValidAmount)
                                         : doneXIMAConsumption[el] = prop.data.returnDetail[el];
 
                                     if (prop.data.nonXIMADetail && prop.data.nonXIMADetail[el] && prop.data.nonXIMADetail[el].nonXIMAAmt) {
-                                        doneXIMAConsumption[el].consumeValidAmount += prop.data.nonXIMADetail[el].nonXIMAAmt;
+                                        doneXIMAConsumption[el].consumeValidAmount = Number(doneXIMAConsumption[el].consumeValidAmount) + Number(prop.data.nonXIMADetail[el].nonXIMAAmt);
                                     }
                                 });
                             }
