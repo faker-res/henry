@@ -318,6 +318,7 @@
                                     th(style="width: 250px;") {{"Display Title" | translate}}
                                     th(style="width: 250px;") {{"Display Content" | translate}}
                                     th {{"BTN_OR_IMAGE" | translate}}
+                                    th(style="width: 150px;") {{"Correspondence level" | translate}}
                             tbody
                                 tr(ng-repeat='(idx, val) in vm.playerLevelDisplayList')
                                     td
@@ -369,6 +370,9 @@
                                                                         label {{'ButtonOrImageHyperlink' | translate}}
                                                                     td
                                                                         input(type='text' , ng-model='v.btnLinksTo', ng-disabled='!vm.configTableEdit', style="margin-bottom: 2px;")
+                                    td
+                                        select.form-control(ng-model="val.playerLevel" ng-disabled='!vm.configTableEdit' style="width: 150px;")
+                                            option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
 
                     .pull-right
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelCreate')", ng-click='vm.configTableAdd=true; vm.initNewPlayerLvl(); vm.focusNewPlayerLevelUI(); vm.initPlayerLevelPeriod(); vm.endLoadWeekDay();')
