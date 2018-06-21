@@ -885,8 +885,12 @@ var dbPlayerConsumptionWeekSummary = {
                                     }
                                 }
 
+                                console.log('totalValidConsumption', totalValidConsumption);
+                                console.log('nonXIMAAmt', nonXIMAAmt);
+                                console.log('consumedValidAmount', consumedValidAmount);
+
                                 // Get amount that are available to xima
-                                let freeConsumption = totalValidConsumption - nonXIMAAmt - consumedValidAmount;
+                                let freeConsumption = Number(totalValidConsumption) - Number(nonXIMAAmt) - Number(consumedValidAmount);
                                 applyAmount += freeConsumption;
 
                                 // Get return detail of this game type
