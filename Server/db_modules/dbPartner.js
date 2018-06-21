@@ -7455,6 +7455,7 @@ let dbPartner = {
                                 return {
                                     date: startTime,
                                     activeCrewNumbers: getActiveDownLineCount(playerActiveDetails),
+                                    startIndex: startIndex,
                                     list: playerActiveDetails[0] && playerActiveDetails[0].needsDetail && (playerActiveDetails[0].needsDetail === true || playerActiveDetails[0].needsDetail === "true") ? playerActiveDetails.filter(player => player.active) : []
                                 }
                             }
@@ -7480,6 +7481,7 @@ let dbPartner = {
                                 return {
                                     date: startTime,
                                     activeCrewNumbers: getActiveDownLineCount(playerActiveDetails),
+                                    startIndex: startIndex,
                                     list: playerActiveDetails[0] && playerActiveDetails[0].needsDetail && (playerActiveDetails[0].needsDetail === true || playerActiveDetails[0].needsDetail === "true") ? playerActiveDetails.filter(player => player.active) : []
                                 }
                             }
@@ -7561,6 +7563,7 @@ let dbPartner = {
                                     date: startTime,
                                     depositCrewNumber: count,
                                     totalDepositAmount: totalDepositAmount,
+                                    startIndex: startIndex,
                                     list: playerDetails[0] && playerDetails[0].needsDetail && (playerDetails[0].needsDetail === true || playerDetails[0].needsDetail === "true") ? relevantCrews : []
                                 }
                             }
@@ -7602,6 +7605,7 @@ let dbPartner = {
                                     date: startTime,
                                     depositCrewNumber: count,
                                     totalDepositAmount: totalDepositAmount,
+                                    startIndex: startIndex,
                                     list: playerDetails[0] && playerDetails[0].needsDetail && (playerDetails[0].needsDetail === true || playerDetails[0].needsDetail === "true") ? relevantCrews : []
                                 }
                             }
@@ -7686,6 +7690,7 @@ let dbPartner = {
                                     date: startTime,
                                     withdrawCrewNumbers: count,
                                     totalWithdrawAmount: totalWithdrawAmount,
+                                    startIndex: startIndex,
                                     list: playerDetails[0] && playerDetails[0].needsDetail && (playerDetails[0].needsDetail === true || playerDetails[0].needsDetail === "true") ? relevantCrews : []
                                 }
                             }
@@ -7725,6 +7730,7 @@ let dbPartner = {
                                     date: startTime,
                                     withdrawCrewNumbers: count,
                                     totalWithdrawAmount: totalWithdrawAmount,
+                                    startIndex: startIndex,
                                     list: playerDetails[0] && playerDetails[0].needsDetail && (playerDetails[0].needsDetail === true || playerDetails[0].needsDetail === "true") ? relevantCrews : []
                                 }
                             }
@@ -7961,6 +7967,7 @@ let dbPartner = {
                                     betCrewNumbers: count,
                                     totalValidBet: totalValidBet,
                                     totalCrewProfit: totalCrewProfit,
+                                    startIndex: startIndex,
                                     list: playerDetails[0] && playerDetails[0].needsDetail && (playerDetails[0].needsDetail === true || playerDetails[0].needsDetail === "true") ? relevantCrews : []
                                 }
                             }
@@ -8004,6 +8011,7 @@ let dbPartner = {
                                     betCrewNumbers: count,
                                     totalValidBet: totalValidBet,
                                     totalCrewProfit: totalCrewProfit,
+                                    startIndex: startIndex,
                                     list: playerDetails[0] && playerDetails[0].needsDetail && (playerDetails[0].needsDetail === true || playerDetails[0].needsDetail === "true") ? relevantCrews : []
                                 }
                             }
@@ -8068,6 +8076,7 @@ let dbPartner = {
                                 return {
                                     date: startTime,
                                     newCrewNumbers: newDownLines.length,
+                                    startIndex: startIndex,
                                     list: playerDetails[0] && playerDetails[0].needsDetail && (playerDetails[0].needsDetail === true || playerDetails[0].needsDetail === "true") ? playerDetails : []
                                 }
                             }
@@ -8093,6 +8102,7 @@ let dbPartner = {
                                 return {
                                     date: startTime,
                                     newCrewNumbers: newDownLines.length,
+                                    startIndex: startIndex,
                                     list: playerDetails[0] && playerDetails[0].needsDetail && (playerDetails[0].needsDetail === true || playerDetails[0].needsDetail === "true") ? playerDetails : []
                                 }
                             }
