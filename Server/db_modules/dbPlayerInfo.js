@@ -8544,7 +8544,7 @@ let dbPlayerInfo = {
                                                         })
                                                     }
                                                     levelUp.consumptionSourceProviderId = levelUpProviderId;
-                                                })
+                                                });
                                                 // level.levelDownConfig.forEach(levelDown => {
                                                 //     let levelDownProviderId = [];
                                                 //     levelDown.consumptionSourceProviderId.forEach(levelDownProvider => {
@@ -8556,11 +8556,16 @@ let dbPlayerInfo = {
                                                 //     })
                                                 //     levelDown.consumptionSourceProviderId = levelDownProviderId;
                                                 // })
-                                            });
 
-                                            if (platformData && platformData.display) {
-                                                playerLevel.push({list: platformData.display});
-                                            }
+                                                if (platformData && platformData.display && platformData.display.length > 0) {
+                                                    level.list = [];
+                                                    platformData.display.forEach(el => {
+                                                        if (level._id && el.playerLevel && (level._id.toString() == el.playerLevel.toString())) {
+                                                            level.list.push(el);
+                                                        }
+                                                    });
+                                                }
+                                            });
 
                                             return playerLevel;
                                         });
