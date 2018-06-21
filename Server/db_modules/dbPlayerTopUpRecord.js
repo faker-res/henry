@@ -982,7 +982,7 @@ var dbPlayerTopUpRecord = {
                 }
                 if (merchantResponse.result && merchantResponse.result.revisedAmount) {
                     updateData.data.inputAmount = topupRequest.amount;
-                    updateData.data.amount = request.result.revisedAmount;
+                    updateData.data.amount = merchantResponse.result.revisedAmount;
                 }
 
                 let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};

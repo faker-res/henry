@@ -3628,11 +3628,25 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
         rewardTaskGroup => {
             if(rewardTaskGroup){
                 let rtgArr = [];
+
                 rewardTaskGroup.forEach(
                     rtg => {
                         if(rtg && platform && rtg._id && rtg.totalCredit && platform.autoUnlockWhenInitAmtLessThanLostThreshold
                             && platform.autoApproveLostThreshold && rtg.totalCredit <= platform.autoApproveLostThreshold){
                             rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
+                            dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then( rewards => {
+                                if (rewards){
+
+                                    return dbRewardTask.getRewardTasksRecord(rewards, rtg, proposalData);
+                                }
+                            }).then( records => {
+
+                                if (records){
+
+                                    return dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId).catch(errorUtils.reportError);
+                                }
+                            })
+
                         }
                     }
                 )
