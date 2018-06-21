@@ -3848,5 +3848,8 @@
   "Single Clear Out": "单一清空",
   "Remove From List": "列表中移除",
   "Refresh Credit": "更新馀额",
-  "Requesting Data": "读取中"
+  "Requesting Data": "读取中",
+  "Remove Empty Credit and Sort": "移除馀额＝0且排序馀额",
+  "Start Clear Out": "开始清空上表馀额",
+  "Cancel Clear Out": "取消清空任务"
 }

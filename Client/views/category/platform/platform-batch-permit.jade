@@ -10,13 +10,14 @@ style.
             .panel-body.common-right-sub-panel-body
                 table#batchPlayerDataTable(style="width:100%")
                 div(style="text-align:right")
-                    button.btn.btn-primary.common-button(ng-click="vm.displayBulkCreditClearOutList()") {{"Bulk Credit Clear Out" | translate}}
-                div
-                    span(style="margin-right: 10px; font-weight: bold") {{'Total Players' | translate}} : {{vm.bulkCreditClearOut.total}}
-                    span(style="margin-right: 10px; font-weight: bold") {{'Success' | translate}} : {{vm.bulkCreditClearOut.success}}
-                    span(style="margin-right: 10px; font-weight: bold") {{'Failure' | translate}} : {{vm.bulkCreditClearOut.failure}}
-                    span(style="margin-right: 10px; font-weight: bold") {{'PENDINGTOPROCESS' | translate}} : {{vm.bulkCreditClearOut.pending}}
-                table.simple-table#bulkCreditClearOutTable(style="width:100%")
+                    button.btn.btn-primary.common-button#bulkCreditClearOutButton(ng-click="vm.initiateBulkCreditClearOutList()" ng-disabled="vm.bulkCreditClearOut.initiating") {{"Bulk Credit Clear Out" | translate}}
+                div(style="margin-bottom:10px;" ng-show="vm.bulkCreditClearOutTriggered")
+                    span(style="margin-right:10px; font-weight:bold;") {{'Total Players' | translate}} : {{vm.bulkCreditClearOut.total}}
+                    span(style="margin-right:10px; font-weight:bold;") {{'Success' | translate}} : {{vm.bulkCreditClearOut.success}}
+                    span(style="margin-right:10px; font-weight:bold;") {{'Failure' | translate}} : {{vm.bulkCreditClearOut.failure}}
+                    span(style="margin-right:10px; font-weight:bold;") {{'PENDINGTOPROCESS' | translate}} : {{vm.bulkCreditClearOut.pending}}
+                    i#bulkCreditClearOutTableSpin.fa.fa-spin.fa-refresh.margin-left-5.text-danger(ng-show="vm.bulkCreditClearOut.initiating")
+                table.simple-table#bulkCreditClearOutTable(style="width:100%" ng-show="vm.bulkCreditClearOutTriggered")
                     thead
                         tr
                             th {{'Display Order' | translate}}
@@ -37,11 +38,21 @@ style.
                             td {{v.status | translate}}
                             td {{v.proposalId}}
                             td
-                                a(ng-click="vm.singleCreditClearOut()") {{"Single Clear Out" | translate}}
-                                span &nbsp;&nbsp;/&nbsp;&nbsp;
-                                a(ng-click="vm.removePlayerFromCreditClearOutList()") {{"Remove From List" | translate}}
-                                span &nbsp;&nbsp;/&nbsp;&nbsp;
-                                a(ng-click="vm.refreshPlayerCreditInCreditClearOutList()") {{"Refresh Credit" | translate}}
+                                div(style="display:inline-block")
+                                    text(ng-show="v.processing") {{"Single Clear Out" | translate}}
+                                    a(ng-click="vm.singleCreditClearOut()" ng-hide="v.processing") {{"Single Clear Out" | translate}}
+                                    span &nbsp;&nbsp;/&nbsp;&nbsp;
+                                div(style="display:inline-block")
+                                    text(ng-show="v.processing") {{"Remove From List" | translate}}
+                                    a(ng-click="vm.removePlayerFromCreditClearOutList(i)" ng-hide="v.processing") {{"Remove From List" | translate}}
+                                div(style="display:inline-block")
+                                    span &nbsp;&nbsp;/&nbsp;&nbsp;
+                                    text(ng-show="v.processing") {{"Refresh Credit" | translate}}
+                                    a(ng-click="vm.refreshPlayerCreditInCreditClearOutList()" ng-hide="v.processing") {{"Refresh Credit" | translate}}
+                div(style="text-align:right; margin-top:20px;" ng-show="vm.bulkCreditClearOutTriggered")
+                    button.btn.btn-success.common-button#filterAndSortClearOutListButton(ng-click="vm.filterAndSortBulkCreditClearOutList()" ng-disabled="vm.bulkCreditClearOut.initiating") {{"Remove Empty Credit and Sort" | translate}}
+                    button.btn.btn-primary.common-button#startClearOutButton(ng-click="vm.startBulkCreditClearOut()" ng-disabled="vm.bulkCreditClearOut.initiating") {{"Start Clear Out" | translate}}
+                    button.btn.btn-danger.common-button#cancelClearOutButton(ng-click="vm.cancelBulkCreditClearOut()" ng-disabled="vm.bulkCreditClearOut.initiating") {{"Cancel Clear Out" | translate}}
                 .well(ng-show='vm.batchPermitModifySucc')
                     label.text-success {{'SUCCESS' | translate}}
                 .well(ng-if='vm.errorListMsg')

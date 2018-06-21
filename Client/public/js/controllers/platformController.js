@@ -30404,15 +30404,19 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initBulkCreditClearOut = function() {
+                vm.bulkCreditClearOutTriggered = false;
                 vm.bulkCreditClearOut = {};
                 vm.bulkCreditClearOut.total = 0;
                 vm.bulkCreditClearOut.success = 0;
                 vm.bulkCreditClearOut.failure = 0;
                 vm.bulkCreditClearOut.pending = 0;
                 vm.bulkCreditClearOut.data = [];
+                vm.bulkCreditClearOut.initiating = false;
             };
-            vm.displayBulkCreditClearOutList = function() {
-                console.log("vm.displayBulkCreditClearOutList");
+            vm.initiateBulkCreditClearOutList = function() {
+                console.log("vm.initiateBulkCreditClearOutList");
+                vm.bulkCreditClearOut.initiating = true;
+                vm.bulkCreditClearOutTriggered = true;
                 vm.bulkCreditClearOut.total = 0;
                 vm.bulkCreditClearOut.success = 0;
                 vm.bulkCreditClearOut.failure = 0;
@@ -30427,7 +30431,9 @@ define(['js/app'], function (myApp) {
                         localTotalCredit: "? (" + $translate("Requesting Data") + ")",
                         totalCredit: "? (" + $translate("Requesting Data") + ")",
                         status: "-",
-                        proposalId: "-"
+                        proposalId: "-",
+                        actionable: false,
+                        processing: true
                     });
                     vm.bulkCreditClearOut.total += 1;
 
@@ -30444,20 +30450,71 @@ define(['js/app'], function (myApp) {
                                     vm.bulkCreditClearOut.data[i].gameProviderTotalCredit = data.data.gameProviderTotalCredit;
                                     vm.bulkCreditClearOut.data[i].localTotalCredit = data.data.localTotalCredit;
                                     vm.bulkCreditClearOut.data[i].totalCredit = data.data.gameProviderTotalCredit + data.data.localTotalCredit;
-                                    vm.bulkCreditClearOut.data[i].status = "PENDINGTOPROCESS";
-                                    vm.bulkCreditClearOut.pending += 1;
+                                    vm.bulkCreditClearOut.data[i].actionable = true;
                                 });
                             }
+                            vm.bulkCreditClearOut.data[i].status = "PENDINGTOPROCESS";
+                            vm.bulkCreditClearOut.data[i].processing = false;
+                            vm.bulkCreditClearOut.pending += 1;
+                        }, err => {
+                            console.log(i);
+                            $scope.$evalAsync(() => {
+                                vm.bulkCreditClearOut.data[i].gameProviderTotalCredit = $translate("Incorrect data!");
+                                vm.bulkCreditClearOut.data[i].localTotalCredit = $translate("Incorrect data!");
+                                vm.bulkCreditClearOut.data[i].totalCredit = $translate("Incorrect data!");
+                                vm.bulkCreditClearOut.data[i].status = "PENDINGTOPROCESS";
+                                vm.bulkCreditClearOut.data[i].processing = false;
+                                vm.bulkCreditClearOut.pending += 1;
+                            });
                         });
                     });
                 });
-                return prom;
+                return prom.then(() => {
+                    $scope.$evalAsync(() => {
+                        vm.bulkCreditClearOut.initiating = false;
+                    });
+                });
+            };
+            vm.filterAndSortBulkCreditClearOutList = function () {
+                let playerList = vm.bulkCreditClearOut.data;
+                if(playerList && playerList.length > 0) {
+                    playerList = playerList.filter(player => {
+                        let totalCredit = Number(player.totalCredit);
+                        return isNaN(totalCredit) || totalCredit > 0;
+                    });
+                    playerList.sort((a,b) => {
+                        if(isNaN(Number(a.totalCredit)) && isNaN(Number(b.totalCredit))) {
+                            if(a.totalCredit < b.totalCredit)
+                                return -1;
+                            if(a.totalCredit > b.totalCredit)
+                                return 1;
+                            if(a.totalCredit == b.totalCredit)
+                                return 0;
+                        }
+                        if(isNaN(Number(a.totalCredit)))
+                            return 1;
+                        if(isNaN(Number(b.totalCredit)))
+                            return -1;
+                        return b.totalCredit - a.totalCredit;
+                    });
+                    vm.bulkCreditClearOut.data = playerList;
+                }
+            };
+            vm.startBulkCreditClearOut = function () {};
+            vm.cancelBulkCreditClearOut = function () {
+                vm.bulkCreditClearOutTriggered = false;
+                vm.bulkCreditClearOut.total = 0;
+                vm.bulkCreditClearOut.success = 0;
+                vm.bulkCreditClearOut.failure = 0;
+                vm.bulkCreditClearOut.pending = 0;
+                vm.bulkCreditClearOut.data = [];
             };
             vm.singleCreditClearOut = function () {
                 console.log("vm.singleCreditClearOut");
             };
-            vm.removePlayerFromCreditClearOutList = function () {
+            vm.removePlayerFromCreditClearOutList = function (index) {
                 console.log("vm.removePlayerFromCreditClearOutList");
+                vm.bulkCreditClearOut.data.splice(index,1);
             };
             vm.refreshPlayerCreditInCreditClearOutList = function () {
                 console.log("vm.refreshPlayerCreditInCreditClearOutList");
