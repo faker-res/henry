@@ -76,7 +76,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                         tr(ng-repeat="conversation in unreadEvaluation.conversation", style="border: 1px solid; word-wrap: break-word; background-color:{{conversation.colors}};")
                                                             td(style="width: 78.18px; border: 1px solid black;") {{conversation.roleName}}
                                                             td(style="width: 77.27px; border: 1px solid black;") {{conversation.createTime | date:"yyyy-MM-dd HH:mm:ss"}}
-                                                            td(style="width: 250px; border: 1px solid black;") {{conversation.content}}
+                                                            td(style="width: 250px; border: 1px solid black; text-align: left;") {{conversation.content}}
                                                             td(style="width: 77.27px; border: 1px solid black;") {{conversation.timeoutRate}}
                                                             td(style="width: 77.27px; border: 1px solid black;") {{conversation.inspectionRate}}
                                                             td(style="width: 180px; border: 1px solid black;") {{conversation.review}}
@@ -150,7 +150,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                         tr(ng-repeat="conversation in readEvaluation.conversation", style="border: 1px solid; word-wrap: break-word; background-color:{{conversation.colors}};")
                                                             td.col-sm-1(style="border: 1px solid black;") {{conversation.roleName}}
                                                             td.col-sm-1(style="border: 1px solid black;") {{conversation.createTime | date:"yyyy-MM-dd HH:mm:ss"}}
-                                                            td.col-sm-4(style="border: 1px solid black;") {{conversation.content}}
+                                                            td.col-sm-4(style="border: 1px solid black; text-align: left;") {{conversation.content}}
                                                             td.col-sm-1(style="border: 1px solid black;") {{conversation.timeoutRate}}
                                                             td.col-sm-1(style="border: 1px solid black;") {{conversation.inspectionRate}}
                                                             td.col-sm-3(style="border: 1px solid black;") {{conversation.review}}
@@ -240,7 +240,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                         tr(ng-repeat="conversation in appealEvaluation.conversation", style="border: 1px solid; word-wrap: break-word; background-color:{{conversation.colors}};")
                                                             td(style="width: 80px; border: 1px solid black;") {{conversation.roleName}}
                                                             td(style="width: 89px; border: 1px solid black;") {{conversation.createTime | date:"yyyy-MM-dd HH:mm:ss"}}
-                                                            td(style="width: 250px; border: 1px solid black;") {{conversation.content}}
+                                                            td(style="width: 250px; border: 1px solid black; text-align: left;") {{conversation.content}}
                                                             td(style="width: 80px; border: 1px solid black;") {{conversation.timeoutRate}}
                                                             td(style="width: 80px; border: 1px solid black;") {{conversation.inspectionRate}}
                                                             td(style="width: 180px border: 1px solid black;") {{conversation.review}}
