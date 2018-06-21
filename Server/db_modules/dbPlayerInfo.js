@@ -485,7 +485,7 @@ let dbPlayerInfo = {
             ).then(
                 validData => {
                     if (validData && validData.isPlayerNameValid) {
-                        if (isAutoCreate) { // todo :: add a platform setting to allow or deny auto create
+                        if (isAutoCreate || !inputData.userAgent) { // todo :: add a platform setting to allow or deny auto create
                             return {isPhoneNumberValid: true};
                         }
 
@@ -1195,7 +1195,7 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data.isPlayerNameValid) {
-                    if (isAutoCreate || playerdata.isTestPlayer) {
+                    if (isAutoCreate || playerdata.isTestPlayer || !playerdata.userAgent) {
                         return {isPhoneNumberValid: true};
                     }
 
