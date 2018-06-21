@@ -3806,6 +3806,167 @@ var proposal = {
         )
     },
 
+    getProposalByObjId: (proposalObjId) => {
+        for (let i = 0; i < proposalObjId.length; i++) {
+            proposalObjId[i] = ObjectId(proposalObjId[i]);
+        }
+        return dbconfig.collection_proposal.find({_id: {$in: proposalObjId}})
+            .populate({path: "type", model: dbconfig.collection_proposalType}).lean();
+    },
+
+    getWithdrawalProposal: (startDate, endDate, period) => {
+        let withdrawSuccessArr = [];
+        let withdrawFailedArr = [];
+
+        var dayStartTime = startDate;
+        var getNextDate;
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+
+
+        let groupObj = {
+            $group: {
+                _id: null,
+                totalCount: {$sum: 1},
+                count1: {$sum: {$cond: [{"$lt": ["$_id.timeUsed", 60000]}, 1, 0]}},
+                count2: {$sum: {$cond: [{$and: [{"$gte": ["$_id.timeUsed", 60000]}, {"$lt": ["$_id.timeUsed", 180000]}]}, 1, 0]}},
+                count3: {$sum: {$cond: [{$and: [{"$gte": ["$_id.timeUsed", 180000]}, {"$lt": ["$_id.timeUsed", 300000]}]}, 1, 0]}},
+                count4: {$sum: {$cond: [{$and: [{"$gte": ["$_id.timeUsed", 300000]}, {"$lt": ["$_id.timeUsed", 600000]}]}, 1, 0]}},
+                count5: {$sum: {$cond: [{$and: [{"$gte": ["$_id.timeUsed", 600000]}, {"$lt": ["$_id.timeUsed", 1200000]}]}, 1, 0]}},
+                count6: {$sum: {$cond: [{$and: [{"$gte": ["$_id.timeUsed", 1200000]}, {"$lt": ["$_id.timeUsed", 1800000]}]}, 1, 0]}},
+                count7: {$sum: {$cond: [{$and: [{"$gte": ["$_id.timeUsed", 1800000]}, {"$lt": ["$_id.timeUsed", 2700000]}]}, 1, 0]}},
+                count8: {$sum: {$cond: [{$and: [{"$gte": ["$_id.timeUsed", 2700000]}, {"$lt": ["$_id.timeUsed", 3600000]}]}, 1, 0]}},
+                count9: {$sum: {$cond: [{"$gte": ["$_id.timeUsed", 3600000]}, 1, 0]}},
+                proposal1: {$addToSet: {$cond: [{"$lt": ["$_id.timeUsed", 60000]}, "$_id.id", "$null"]}},
+                proposal2: {$addToSet: {$cond: [{$and: [{"$gte": ["$_id.timeUsed", 60000]}, {"$lt": ["$_id.timeUsed", 180000]}]}, "$_id.id", "$null"]}},
+                proposal3: {$addToSet: {$cond: [{$and: [{"$gte": ["$_id.timeUsed", 180000]}, {"$lt": ["$_id.timeUsed", 300000]}]}, "$_id.id", "$null"]}},
+                proposal4: {$addToSet: {$cond: [{$and: [{"$gte": ["$_id.timeUsed", 300000]}, {"$lt": ["$_id.timeUsed", 600000]}]}, "$_id.id", "$null"]}},
+                proposal5: {$addToSet: {$cond: [{$and: [{"$gte": ["$_id.timeUsed", 600000]}, {"$lt": ["$_id.timeUsed", 1200000]}]}, "$_id.id", "$null"]}},
+                proposal6: {$addToSet: {$cond: [{$and: [{"$gte": ["$_id.timeUsed", 1200000]}, {"$lt": ["$_id.timeUsed", 1800000]}]}, "$_id.id", "$null"]}},
+                proposal7: {$addToSet: {$cond: [{$and: [{"$gte": ["$_id.timeUsed", 1800000]}, {"$lt": ["$_id.timeUsed", 2700000]}]}, "$_id.id", "$null"]}},
+                proposal8: {$addToSet: {$cond: [{$and: [{"$gte": ["$_id.timeUsed", 2700000]}, {"$lt": ["$_id.timeUsed", 3600000]}]}, "$_id.id", "$null"]}},
+                proposal9: {$addToSet: {$cond: [{"$gte": ["$_id.timeUsed", 3600000]}, "$_id.id", "$null"]}}
+            }
+        }
+
+        // while (dayStartTime.getTime() < endDate.getTime()) {
+        for ( ; dayStartTime.getTime() < endDate.getTime(); dayStartTime = dayEndTime) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+
+            let nullObj = {
+                totalCount: 0,
+                count1: 0,
+                count2: 0,
+                count3: 0,
+                count4: 0,
+                count5: 0,
+                count6: 0,
+                count7: 0,
+                count8: 0,
+                count9: 0,
+                proposal1: [],
+                proposal2: [],
+                proposal3: [],
+                proposal4: [],
+                proposal5: [],
+                proposal6: [],
+                proposal7: [],
+                proposal8: [],
+                proposal9: []
+            };
+
+            let matchObj1 = {
+                mainType: constProposalMainType.PlayerBonus,
+                createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+            };
+
+            withdrawSuccessArr.push(dbconfig.collection_proposal.aggregate([
+                {
+                    $match: matchObj1
+                },
+                {
+                    $group: {
+                        _id: {id: "$_id", timeUsed: {"$subtract": ["$settleTime", "$createTime"]}}
+                    }
+                },
+                groupObj
+                ]).read("secondaryPreferred").then(result => {
+
+                if (result && result.length > 0) {
+                    return result[0];
+                } else {
+                    return nullObj;
+                }
+            }));
+
+
+            let matchObj2 = {
+                mainType: constProposalMainType.PlayerBonus,
+                createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                status: {$in: [constProposalStatus.FAIL, constProposalStatus.REJECTED, constProposalStatus.CANCEL]}
+            };
+
+            withdrawFailedArr.push(dbconfig.collection_proposal.aggregate([
+                {
+                    $match: matchObj2
+                },
+                {
+                    $group: {
+                        _id: {id: "$_id", timeUsed: {"$subtract": ["$settleTime", "$createTime"]}}
+                    }
+                },
+                groupObj
+                ]).read("secondaryPreferred").then(result => {
+
+                if (result && result.length > 0) {
+                    return result[0];
+                } else {
+                    return nullObj;
+                }
+            }));
+        }
+        return Promise.all([Promise.all(withdrawSuccessArr), Promise.all(withdrawFailedArr)]).then(data => {
+            if (!data && !data[0] && !data[1]) {
+                return Q.reject({name: 'DataError', message: 'Can not find the proposal data'})
+            }
+            let tempDate = startDate;
+
+            if (data[0].length == data[1].length){
+                for (let i = 0; i < data[0].length; i++) {  // number of date
+                    data[0][i].date = new Date(tempDate);
+                    data[1][i].date = new Date(tempDate);
+                    tempDate = getNextDate(tempDate);
+                }
+            }
+            else{
+                return Q.reject({name: 'DataError', message: 'The data mismatched'})
+            }
+
+            return [data[0], data[1]];
+
+        });
+    },
+
     getManualApprovalRecords: (startDate, endDate, period, playerBonusList, updatePlayerList, updatePartnerList, rewardList, othersList, allList) => {
 
         let playerBonusArr = [];

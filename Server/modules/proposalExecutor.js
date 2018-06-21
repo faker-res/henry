@@ -3628,30 +3628,30 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
         rewardTaskGroup => {
             if(rewardTaskGroup){
                 let rtgArr = [];
-                let unlockRewardsArr = [];
+
                 rewardTaskGroup.forEach(
                     rtg => {
                         if(rtg && platform && rtg._id && rtg.totalCredit && platform.autoUnlockWhenInitAmtLessThanLostThreshold
                             && platform.autoApproveLostThreshold && rtg.totalCredit <= platform.autoApproveLostThreshold){
                             rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
-                            unlockRewardsArr.push(dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then( rewards => {
-                                    if (rewards){
+                            dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then( rewards => {
+                                if (rewards){
 
-                                        return dbRewardTask.getRewardTasksRecord(rewards, rtg, proposalData);
-                                    }
-                                }).then( records => {
+                                    return dbRewardTask.getRewardTasksRecord(rewards, rtg, proposalData);
+                                }
+                            }).then( records => {
 
-                                    if (records){
-                                       
-                                        dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId);
-                                    }
-                                })
-                            )
+                                if (records){
+
+                                    return dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId).catch(errorUtils.reportError);
+                                }
+                            })
+
                         }
                     }
                 )
 
-                return Promise.all([rtgArr, unlockRewardsArr]);
+                return Promise.all(rtgArr);
             }
         }
     ).then(() => {
