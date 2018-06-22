@@ -326,6 +326,7 @@ var simplifiedChinese = {
     "Sending failed, phone number is invalid": "发送失败, 该电话无效",
     "Reset all commission rate": "恢复所有佣金比例",
     "Invalid line ID": "线路ID不存在",
+    "Cannot find reward event for platform and type name": "优惠不存在",
     //todo::add missing messages here
 
     /*
