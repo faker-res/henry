@@ -2558,7 +2558,7 @@ var dbPlatform = {
                                                 buttonObj.btn = b.buttonName;
                                             }
                                             if(b.url){
-                                                if (b.url.indexOf("http") == -1){
+                                                if (b.url.indexOf("http") == -1 && platformData.playerRouteSetting){
                                                     buttonObj.btnImg = platformData.playerRouteSetting.trim() + b.url.trim();
                                                 }
                                                 else{
