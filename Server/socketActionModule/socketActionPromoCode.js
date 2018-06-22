@@ -128,10 +128,16 @@ function socketActionPromoCode(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodesMonitor, [ObjectId(data.platformObjId), data.startAcceptedTime, data.endAcceptedTime, data.promoCodeType3Name], actionName, isValidData);
         },
 
-        getPromoCodesAnalysis: function getPromoCodesAnalysis(data) {
+        getPromoCodesAnalysisByType: function getPromoCodesAnalysisByType(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodeAnalysis, [ObjectId(data.platformObjId), data], actionName, isValidData);
+        },
+
+        getPromoCodesAnalysisByPlayer: function getPromoCodesAnalysisByPlayer(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodeAnalysis, [ObjectId(data.platformObjId), data, true], actionName, isValidData);
         },
 
         updatePromoCodesActive: function updatePromoCodesActive(data) {

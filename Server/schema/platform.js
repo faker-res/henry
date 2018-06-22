@@ -395,7 +395,10 @@ var platformSchema = new Schema({
         displayTextContent: {type: String},
         btnOrImageList: [],
         playerLevel: {type: Schema.ObjectId, ref: 'playerLevel', index: true}
-    }]
+    }],
+    // CDN/FTP route setting
+    playerRouteSetting:{type: String},
+    partnerRouteSetting:{type: String}
 });
 
 //add platform id before save

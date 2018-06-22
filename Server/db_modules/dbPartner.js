@@ -7443,11 +7443,19 @@ let dbPartner = {
                         let endTime = dbUtil.getDayStartTime(new Date(startTime));
                         endTime.setDate(startTime.getDate() + 1);
 
-                        if(typeof detailCircle != 'undefined' && detailCircleCount <= detailCircle) {
-                            needsDetailCheck = true;
-                            detailCircleCount ++;
+                        if(typeof detailCircle != 'undefined'){
+                            if(detailCircleCount <= detailCircle){
+                                needsDetailCheck = true;
+                                detailCircleCount ++;
+                            }else{
+                                needsDetailCheck = false;
+                            }
                         }else{
-                            needsDetailCheck = typeof needsDetail != "undefined" ? needsDetail : false;
+                            if(typeof needsDetail != "undefined"){
+                                needsDetailCheck = needsDetail
+                            }else{
+                                needsDetailCheck = true;
+                            }
                         }
 
                         prom = getCrewsInfo(downLines, startTime, endTime, activePlayerRequirement, null, needsDetailCheck, "getCrewActiveInfo").then(
@@ -7469,11 +7477,19 @@ let dbPartner = {
                         let startTime = new Date(nextPeriod.startTime);
                         let endTime = new Date(nextPeriod.endTime);
 
-                        if(typeof detailCircle != 'undefined' && detailCircleCount <= detailCircle) {
-                            needsDetailCheck = true;
-                            detailCircleCount ++;
+                        if(typeof detailCircle != 'undefined'){
+                            if(detailCircleCount <= detailCircle){
+                                needsDetailCheck = true;
+                                detailCircleCount ++;
+                            }else{
+                                needsDetailCheck = false;
+                            }
                         }else{
-                            needsDetailCheck = typeof needsDetail != "undefined" ? needsDetail : false;
+                            if(typeof needsDetail != "undefined"){
+                                needsDetailCheck = needsDetail
+                            }else{
+                                needsDetailCheck = true;
+                            }
                         }
 
                         prom = getCrewsInfo(downLines, startTime, endTime, activePlayerRequirement, null, needsDetailCheck, "getCrewActiveInfo").then(
@@ -7536,11 +7552,19 @@ let dbPartner = {
 
                         if(playerId || crewAccount) {
                             needsDetailCheck = true;
-                        }else if(typeof detailCircle != 'undefined' && detailCircleCount <= detailCircle) {
-                            needsDetailCheck = true;
-                            detailCircleCount ++;
+                        }else if(typeof detailCircle != 'undefined'){
+                            if(detailCircleCount <= detailCircle){
+                                needsDetailCheck = true;
+                                detailCircleCount ++;
+                            }else{
+                                needsDetailCheck = false;
+                            }
                         }else{
-                            needsDetailCheck = typeof needsDetail != "undefined" ? needsDetail : false;
+                            if(typeof needsDetail != "undefined"){
+                                needsDetailCheck = needsDetail
+                            }else{
+                                needsDetailCheck = true;
+                            }
                         }
 
 
@@ -7579,11 +7603,19 @@ let dbPartner = {
 
                         if(playerId || crewAccount) {
                             needsDetailCheck = true;
-                        }else if(typeof detailCircle != 'undefined' && detailCircleCount <= detailCircle) {
-                            needsDetailCheck = true;
-                            detailCircleCount ++;
+                        }else if(typeof detailCircle != 'undefined'){
+                            if(detailCircleCount <= detailCircle){
+                                needsDetailCheck = true;
+                                detailCircleCount ++;
+                            }else{
+                                needsDetailCheck = false;
+                            }
                         }else{
-                            needsDetailCheck = typeof needsDetail != "undefined" ? needsDetail : false;
+                            if(typeof needsDetail != "undefined"){
+                                needsDetailCheck = needsDetail
+                            }else{
+                                needsDetailCheck = true;
+                            }
                         }
 
                         prom = getCrewsInfo(downLines, startTime, endTime, null, null, needsDetailCheck, "getCrewDepositInfo").then(
@@ -7665,11 +7697,19 @@ let dbPartner = {
 
                         if(playerId || crewAccount) {
                             needsDetailCheck = true;
-                        }else if(typeof detailCircle != 'undefined' && detailCircleCount <= detailCircle) {
-                            needsDetailCheck = true;
-                            detailCircleCount ++;
+                        }else if(typeof detailCircle != 'undefined'){
+                            if(detailCircleCount <= detailCircle){
+                                needsDetailCheck = true;
+                                detailCircleCount ++;
+                            }else{
+                                needsDetailCheck = false;
+                            }
                         }else{
-                            needsDetailCheck = typeof needsDetail != "undefined" ? needsDetail : false;
+                            if(typeof needsDetail != "undefined"){
+                                needsDetailCheck = needsDetail
+                            }else{
+                                needsDetailCheck = true;
+                            }
                         }
 
                         prom = getCrewsInfo(downLines, startTime, endTime, null, null, needsDetailCheck, "getCrewWithdrawInfo").then(
@@ -7705,11 +7745,19 @@ let dbPartner = {
 
                         if(playerId || crewAccount) {
                             needsDetailCheck = true;
-                        }else if(typeof detailCircle != 'undefined' && detailCircleCount <= detailCircle) {
-                            needsDetailCheck = true;
-                            detailCircleCount ++;
+                        }else if(typeof detailCircle != 'undefined'){
+                            if(detailCircleCount <= detailCircle){
+                                needsDetailCheck = true;
+                                detailCircleCount ++;
+                            }else{
+                                needsDetailCheck = false;
+                            }
                         }else{
-                            needsDetailCheck = typeof needsDetail != "undefined" ? needsDetail : false;
+                            if(typeof needsDetail != "undefined"){
+                                needsDetailCheck = needsDetail
+                            }else{
+                                needsDetailCheck = true;
+                            }
                         }
 
                         prom = getCrewsInfo(downLines, startTime, endTime, null, null, needsDetailCheck, "getCrewWithdrawInfo").then(
@@ -7938,11 +7986,19 @@ let dbPartner = {
 
                         if(playerId || crewAccount) {
                             needsDetailCheck = true;
-                        }else if(typeof detailCircle != 'undefined' && detailCircleCount <= detailCircle) {
-                            needsDetailCheck = true;
-                            detailCircleCount ++;
+                        }else if(typeof detailCircle != 'undefined'){
+                            if(detailCircleCount <= detailCircle){
+                                needsDetailCheck = true;
+                                detailCircleCount ++;
+                            }else{
+                                needsDetailCheck = false;
+                            }
                         }else{
-                            needsDetailCheck = typeof needsDetail != "undefined" ? needsDetail : false;
+                            if(typeof needsDetail != "undefined"){
+                                needsDetailCheck = needsDetail
+                            }else{
+                                needsDetailCheck = true;
+                            }
                         }
 
                         prom = getCrewsInfo(downLines, startTime, endTime, null, providerGroups, needsDetailCheck, "getCrewBetInfo").then(
@@ -7982,11 +8038,19 @@ let dbPartner = {
 
                         if(playerId || crewAccount) {
                             needsDetailCheck = true;
-                        }else if(typeof detailCircle != 'undefined' && detailCircleCount <= detailCircle) {
-                            needsDetailCheck = true;
-                            detailCircleCount ++;
+                        }else if(typeof detailCircle != 'undefined'){
+                            if(detailCircleCount <= detailCircle){
+                                needsDetailCheck = true;
+                                detailCircleCount ++;
+                            }else{
+                                needsDetailCheck = false;
+                            }
                         }else{
-                            needsDetailCheck = typeof needsDetail != "undefined" ? needsDetail : false;
+                            if(typeof needsDetail != "undefined"){
+                                needsDetailCheck = needsDetail
+                            }else{
+                                needsDetailCheck = true;
+                            }
                         }
 
                         prom = getCrewsInfo(downLines, startTime, endTime, null, providerGroups, needsDetailCheck, "getCrewBetInfo").then(
@@ -8064,11 +8128,19 @@ let dbPartner = {
                         endTime.setDate(startTime.getDate() + 1);
                         let newDownLines = downLines.filter(player => player.registrationTime >= startTime && player.registrationTime <= endTime);
 
-                        if(typeof detailCircle != 'undefined' && detailCircleCount <= detailCircle) {
-                            needsDetailCheck = true;
-                            detailCircleCount ++;
+                        if(typeof detailCircle != 'undefined'){
+                            if(detailCircleCount <= detailCircle){
+                                needsDetailCheck = true;
+                                detailCircleCount ++;
+                            }else{
+                                needsDetailCheck = false;
+                            }
                         }else{
-                            needsDetailCheck = typeof needsDetail != "undefined" ? needsDetail : false;
+                            if(typeof needsDetail != "undefined"){
+                                needsDetailCheck = needsDetail
+                            }else{
+                                needsDetailCheck = true;
+                            }
                         }
 
                         prom = getCrewsInfo(newDownLines, startTime, endTime, null, null, needsDetailCheck, "getNewCrewInfo").then(
@@ -8090,11 +8162,19 @@ let dbPartner = {
                         let endTime = new Date(nextPeriod.endTime);
                         let newDownLines = downLines.filter(player => player.registrationTime >= startTime && player.registrationTime <= endTime);
 
-                        if(typeof detailCircle != 'undefined' && detailCircleCount <= detailCircle) {
-                            needsDetailCheck = true;
-                            detailCircleCount ++;
+                        if(typeof detailCircle != 'undefined'){
+                            if(detailCircleCount <= detailCircle){
+                                needsDetailCheck = true;
+                                detailCircleCount ++;
+                            }else{
+                                needsDetailCheck = false;
+                            }
                         }else{
-                            needsDetailCheck = typeof needsDetail != "undefined" ? needsDetail : false;
+                            if(typeof needsDetail != "undefined"){
+                                needsDetailCheck = needsDetail
+                            }else{
+                                needsDetailCheck = true;
+                            }
                         }
 
                         prom = getCrewsInfo(newDownLines, startTime, endTime, null, null, needsDetailCheck, "getNewCrewInfo").then(
