@@ -716,18 +716,26 @@ define(['js/app'], function (myApp) {
                     'partnerWebLogoUrlList'
                 ];
 
+                // check if using new data list, else show up the old data
+                let newListBoolean = false;
+                for(let i = 0; i <newList.length; i++){
+                    if (platformData[newList[i]].length > 0) {
+                        newListBoolean = true;
+                        break;
+                    }
+                }
+
                 newList.forEach( listName => {
-                    if (!platformData[listName]){
-                        platformData[listName] = [];
-                    }
 
-                    //check the platform data is old or new
-                    let nativeFieldName = listName.substr(0, listName.length-4);
-                    if (platformData[nativeFieldName] && platformData[nativeFieldName].length > 0 && (!platformData[listName] || platformData[listName].length == 0)){
-                        let oldData = platformData[nativeFieldName];
-                        platformData[listName] = [{content: oldData}];
+                    if (!newListBoolean){
+                        //check the platform data is old or new
+                        let nativeFieldName = listName.substr(0, listName.length-4);
+                        if (platformData[nativeFieldName] && platformData[nativeFieldName].length > 0 && (!platformData[listName] || platformData[listName].length == 0)){
+                            let oldData = platformData[nativeFieldName];
+                            platformData[listName] = [{content: oldData}];
+                        }
                     }
-
+                    
                     if(platformData[listName] && platformData[listName].length > 0){
                         platformData[listName].forEach(p => {
                             p.isImg = typeof p.isImg === 'number' ? p.isImg.toString() : null ;
