@@ -2496,35 +2496,7 @@ var dbPlatform = {
                         listName.forEach( list => {
                             if(data[list[0]]){
 
-                                // check if the "http/ https" exits or not
-                                if (data[list[0]].length > 0){
-                                    data[list[0]].forEach( pair => {
-                                        let splitString = [];
-                                        if (pair.content.indexOf(',') != -1) {
-                                            splitString = pair.content.split(',');
-
-                                            if (splitString && splitString.length > 0) {
-                                                let comString = [];
-                                                splitString.forEach(indString => {
-                                                    if (pair.isImg == 1 && indString.indexOf("http") == -1 && data.playerRouteSetting) {
-                                                        comString.push(data.playerRouteSetting.trim() + indString.trim());
-                                                    }
-                                                    else{
-                                                        comString.push(indString.trim());
-                                                    }
-                                                })
-                                                pair.content = comString.join(', ');
-                                            }
-                                        }
-                                        else{
-                                            if (pair.isImg == 1 && pair.content.indexOf("http") == -1 && data.playerRouteSetting){
-                                                pair.content = data.playerRouteSetting.trim() + pair.content.trim();
-                                            }
-                                        }
-
-                                    })
-                                }
-                                returnedObj[list[1]] = data[list[0]];
+                                returnedObj[list[1]] = dbPlatform.appendRouteSetting(data, list[0]);
 
                             }
                         })
@@ -2624,6 +2596,43 @@ var dbPlatform = {
             );
         } else {
             return Q.reject({name: "DBError", message: "Invalid platformId: " + platformId});
+        }
+    },
+
+    appendRouteSetting: function (data, list) {
+        if (data && list){
+
+            // check if the "http/ https" exits or not
+            if (data[list].length > 0){
+                data[list].forEach( pair => {
+
+                    if (pair.content.indexOf(',') != -1) {
+                        let splitString = pair.content.split(',');
+
+                        if (splitString && splitString.length > 0 && data.playerRouteSetting) {
+                            let comString = [];
+                            splitString.forEach(indString => {
+
+                                if (pair.isImg == 1 && indString.indexOf("http") == -1) {
+                                    comString.push(data.playerRouteSetting.trim() + indString.trim());
+                                }
+                                else{
+                                    comString.push(indString.trim());
+                                }
+
+                            })
+                            pair.content = comString.join(', ');
+                        }
+                    }
+                    else{
+                        if (pair.isImg == 1 && pair.content.indexOf("http") == -1 && data.playerRouteSetting){
+                            pair.content = data.playerRouteSetting.trim() + pair.content.trim();
+                        }
+                    }
+
+                })
+            }
+            return data[list];
         }
     },
 
