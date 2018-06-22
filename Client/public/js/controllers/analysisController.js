@@ -3638,11 +3638,11 @@ define(['js/app'], function (myApp) {
               'total':0
             }
             data.data.forEach(item=>{
-                let keys = Object.keys(item);
+                let keys = Object.keys(item.device);
                 keys.forEach(key=>{
                   if(key!='_id'){
-                      dataList[key] += item[key];
-                      dataList['total'] += item[key];
+                      dataList[key] += item['device'][key];
+                      dataList['total'] += item['device'][key];
                   }
                 })
             })
