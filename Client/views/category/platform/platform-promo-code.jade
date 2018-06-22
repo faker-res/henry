@@ -803,8 +803,10 @@
                                 option(value='') {{'any' | translate}}
                         div
                             label &nbsp;
-                            button.btn.btn-success(ng-click='vm.promoCodeAnalysis.searchType = 1; vm.getPromoCodeAnalysis(true)') {{'SEARCH_CREATETIME' | translate}}
+                            button.btn.btn-success(ng-click='vm.promoCodeAnalysis.searchType = 1; vm.getPromoCodeAnalysis(true); vm.getPromoCodeAnalysis2(true)') {{'SEARCH_CREATETIME' | translate}}
                             span#promoCodeAnaysisTableSpin.collapse
+                                i.fa.fa-spinner.fa-spin
+                            span#promoCodeAnaysis2TableSpin.collapse
                                 i.fa.fa-spinner.fa-spin
                     .clearfix
                     label(ng-if="vm.promoCodeAnalysis.totalCount") {{"Promo Anaysis" | translate}} : {{"Total" | translate}} {{vm.promoCodeAnalysis.totalCount}} {{"records" | translate}}
