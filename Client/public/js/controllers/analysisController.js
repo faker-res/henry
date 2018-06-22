@@ -1989,7 +1989,26 @@ define(['js/app'], function (myApp) {
             }).sort(function (a, b) {
                 return b.data - a.data;
             })
-            socketService.$plotPie(placeholder, pieData, {}, '');
+            socketService.$plotPie(placeholder, pieData, {
+                series: {
+                    pie: {
+                        show: true,
+                        radius: 1,
+                        //tilt: 0.5,
+                        label: {
+                            show: true,
+                            radius: 1,
+                            formatter: labelFormatter,
+                            background: {
+                                opacity: 0.80
+                            }
+                        },
+                        combine: {
+                            color: "#999",
+                            threshold: 0
+                        }
+                    }
+                }}, '');
         };
         // manual approval rate end =====================================================
 
