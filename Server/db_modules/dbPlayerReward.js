@@ -2952,6 +2952,7 @@ let dbPlayerReward = {
                 "sendCount": -1
             }
         }
+        querySort._id = 1;
 
         let promoTypeQ = {
             platformObjId: platformObjId,

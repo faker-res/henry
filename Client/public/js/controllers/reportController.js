@@ -1149,7 +1149,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: id}, function (data) {
                     vm.credibilityRemarks = data.data;
                     vm.filterCredibilityRemarks = data.data ? JSON.parse(JSON.stringify(data.data)) : [];
-                    vm.filterCredibilityRemarks.push({'_id':'', 'name':'N/A'});
+                    vm.filterCredibilityRemarks.push({'_id':'', 'name':$translate('N/A')});
                     console.log("vm.credibilityRemarks", vm.credibilityRemarks);
                     resolve(vm.credibilityRemarks);
                     $scope.safeApply();
@@ -6394,7 +6394,6 @@ define(['js/app'], function (myApp) {
             if (showLeft === 'true') {
                 vm.setPanel(true)
             }
-
             socketService.$socket($scope.AppSocket, 'getAllGameTypes', {}, function (data) {
                 vm.gameAllTypes = data.data;
                 //console.log("getAllGameTypfes",vm.gameAllTypes);
@@ -6909,85 +6908,64 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             } else if (choice == "FEEDBACK_REPORT") {
                 utilService.actionAfterLoaded('#feedbackReportTable', function () {
-                    let yesterday = utilService.setNDaysAgo(new Date(), 1);
-                    let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
-                    let todayEndTime = utilService.getTodayEndTime();
+                    $scope.$evalAsync(async () => {
+                        let yesterday = utilService.setNDaysAgo(new Date(), 1);
+                        let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
+                        let todayEndTime = utilService.getTodayEndTime();
 
-                    vm.allFeedbackResults = {};
-                    vm.allFeedbackTopics = {};
+                        vm.allFeedbackResults = {};
+                        vm.allFeedbackTopics = {};
 
-                    $scope.$socketPromise('getAllPlayerFeedbackResults').then(
-                        function (data) {
-                            vm.allFeedbackResults = data.data;
-                            console.log("vm.allFeedbackResults", data.data);
-                            $scope.safeApply();
-                        },
-                        function (err) {
-                            console.log("vm.allFeedbackResults", err);
-                        }
-                    ).catch(function (err) {
-                        console.log("vm.allFeedbackResults", err)
-                    });
+                        vm.allFeedbackResults = await commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([]));
+                        vm.allFeedbackTopics = await commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform._id).catch(err => Promise.resolve([]));
 
-                    $scope.$socketPromise('getAllPlayerFeedbackTopics').then(
-                        function (data) {
-                            vm.allFeedbackTopics = data.data;
-                            console.log("vm.allFeedbackTopics", data.data);
-                            $scope.safeApply();
-                        },
-                        function (err) {
-                            console.log("vm.allFeedbackTopics", err);
-                        }
-                    ).catch(function (err) {
-                        console.log("vm.allFeedbackTopics", err)
-                    });
+                        // Get Departments Detail
+                        socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
+                            console.log('getDepartmentTreeById', data);
+                            let parentId;
+                            vm.queryDepartments = [];
+                            vm.queryRoles = [];
 
-                    // Get Departments Detail
-                    socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
-                        console.log('getDepartmentTreeById', data);
-                        let parentId;
-                        vm.queryDepartments = [];
-                        vm.queryRoles = [];
+                            data.data.map(e => {
+                                if (e.departmentName == vm.selectedPlatform.name) {
+                                    vm.queryDepartments.push(e);
+                                    parentId = e._id;
+                                }
+                            });
 
-                        data.data.map(e => {
-                            if (e.departmentName == vm.selectedPlatform.name) {
-                                vm.queryDepartments.push(e);
-                                parentId = e._id;
+                            data.data.map(e => {
+                                if (String(parentId) == String(e.parent)) {
+                                    vm.queryDepartments.push(e);
+                                }
+                            });
+
+                            $scope.$digest();
+                            if (typeof(callback) == 'function') {
+                                callback(data.data);
                             }
                         });
 
-                        data.data.map(e => {
-                            if (String(parentId) == String(e.parent)) {
-                                vm.queryDepartments.push(e);
-                            }
+                        vm.feedbackQuery = {
+                            userType: 'Real Player (all)',
+                            result: [],
+                            topic: [],
+                            days: 1,
+                            valueScoreOperator: ">=",
+                            topUpTimesOperator: ">=",
+                            bonusTimesOperator: ">=",
+                            topUpAmountOperator: ">="
+                        };
+                        vm.feedbackQuery.start = utilService.createDatePicker('#feedbackReportQuery .startTime');
+                        vm.feedbackQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                        vm.feedbackQuery.end = utilService.createDatePicker('#feedbackReportQuery .endTime');
+                        vm.feedbackQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                        vm.feedbackQuery.limit = 10;
+                        vm.feedbackQuery.index = 0;
+                        vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "feedbackQuery", vm.drawFeedbackReport)
                         });
+                    })
 
-                        $scope.$digest();
-                        if (typeof(callback) == 'function') {
-                            callback(data.data);
-                        }
-                    });
-
-                    vm.feedbackQuery = {
-                        userType: 'Real Player (all)',
-                        result: [],
-                        topic: [],
-                        days: 1,
-                        valueScoreOperator: ">=",
-                        topUpTimesOperator: ">=",
-                        bonusTimesOperator: ">=",
-                        topUpAmountOperator: ">="
-                    };
-                    vm.feedbackQuery.start = utilService.createDatePicker('#feedbackReportQuery .startTime');
-                    vm.feedbackQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
-                    vm.feedbackQuery.end = utilService.createDatePicker('#feedbackReportQuery .endTime');
-                    vm.feedbackQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                    vm.feedbackQuery.limit = 10;
-                    vm.feedbackQuery.index = 0;
-                    vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "feedbackQuery", vm.drawFeedbackReport)
-                    });
-                    $scope.safeApply();
                 });
 
             } else if (choice == "ONLINE_PAYMENT_MISMATCH_REPORT") {
