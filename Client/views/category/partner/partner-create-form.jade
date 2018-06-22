@@ -1,0 +1,69 @@
+form(name="form_new_partner", novalidate)
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"PARTNER_NAME" | translate}}
+            input.form-control(type="text", placeholder="{{'PARTNER_NAME' | translate}}", ng-model="vm.newPartner.partnerName", required)
+        .form-group.col-md-6
+            label.control-label {{"EMAIL" | translate}}
+            input.form-control(type="email", name="email", placeholder='{{"EMAIL" | translate}}', ng-model="vm.newPartner.email")
+            span.help-block(ng-show="form_new_partner.email.$dirty && form_new_partner.email.$error.email") {{"EMAIL_INVALID" | translate}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"PASSWORD" | translate}}
+            input.form-control(type="password", placeholder="{{'PASSWORD' | translate}}", name="password1", ng-model="vm.newPartner.password",match="vm.tempPassword", required)
+            span.help-block(style='color: #b94a48',ng-show="form_new_partner.password1.$dirty && vm.passwordLengthCheck(vm.newPartner.password)") {{'Minimum Password length is' | translate}}&nbsp; 6.
+        .form-group.col-md-6
+            label.control-label *{{"PASSWORD_RETYPE" | translate}}
+            input.form-control(type="password", placeholder="{{'REPEAT_PASSWORD' | translate}}", name="password2",ng-model="vm.tempPassword",match="vm.newPartner.password", required)
+            span.help-block(ng-show="form_new_partner.password2.$dirty && form_new_partner.password2.$error.match && !form_new_partner.password2.$error.required") {{"PASSWORD_NOT_MATCH" | translate}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label {{"REAL_NAME" | translate}}
+            input.form-control(type="text", placeholder="{{'REAL_NAME' | translate}}", ng-model="vm.newPartner.realName")
+        .form-group.col-md-6
+            label.control-label *{{"TELEPHONE" | translate}}
+            input.form-control(ng-mouseleave="vm.duplicatePhoneNumberDetector(true,false)", type="telephone", name="telephone", placeholder="{{'TELEPHONE' | translate}}", maxlength="11", ng-pattern="vm.phonePattern", ng-model="vm.newPartner.phoneNumber",required)
+            div(ng-show="vm.existPhone", style='color:red;display:inline-block') {{"Phone Number Already Exists" | translate}}
+            div.btn.btn-primary.btn-sm(ng-show="vm.existPhone", ng-click="vm.initPhoneNumberRecord(vm.newPartner.phoneNumber)", data-toggle="modal", data-target="#duplicatePhoneNumberLog", style='display:inline-block;margin-left:10px;')  {{'DETAIL_INFO' | translate}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label {{"GENDER" | translate}}
+            div
+                input#genderMalePartner(style="margin-right:8px;" type="radio", name="gender",value='{{true}}', ng-model="vm.newPartner.gender")
+                label(for="genderMalePartner", style="margin-right:20px;") {{"Male" | translate}}
+                input#genderFemalePartner(style="margin-right:8px;" type="radio", name="gender",value='{{false}}', ng-model="vm.newPartner.gender")
+                label(for="genderFemalePartner") {{"Female" | translate}}
+        .form-group.col-md-6
+            label.control-label {{"DOB" | translate}}
+            #datepickerPartnerDOB
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label {{"WECHAT" | translate}}
+            input.form-control(type="text", placeholder="{{'WECHAT' | translate}}", ng-model="vm.newPartner.wechat")
+        .form-group.col-md-6
+            label.control-label {{"QQ" | translate}}
+            input.form-control(type="text", placeholder='{{"QQ" | translate}}', ng-model="vm.newPartner.qq")
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label {{"Bind Player" | translate}} {{"partnerBindPlayerText" | translate}}
+            input.form-control(type="text", placeholder="{{'Bind Player' | translate}}", ng-model="vm.newPartner.bindPlayer", ng-change="vm.checkPartnerField('player',vm.newPartner.bindPlayer, form_new_partner)")
+            span.help-block(style='color: #b94a48', ng-show='vm.partnerValidity.player.validPlayerName===false && !vm.partnerValidity.player.exists') {{'Invalid PlayerName' | translate}}
+            span.help-block(style='color: #b94a48', ng-show='vm.partnerValidity.player.exists===true') {{'playerName' | translate}}&nbsp;{{'existed already' | translate}}
+        .form-group.col-md-6
+            label.control-label {{"own domain" | translate}}
+            input.form-control(type="text", placeholder='{{"own domain" | translate}}', ng-model="vm.newPartner.ownDomain")
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label {{"Registration Domain" | translate}}
+            label.form-control {{vm.newPartner.domain}}
+        .form-group.col-md-6(ng-if = "vm.selectedPlatform.data.partnerDefaultCommissionGroup == vm.constPartnerCommisionType.OPTIONAL_REGISTRATION")
+            label.control-label {{"COMMISSION_TYPE" | translate}}
+            select.form-control(ng-model = "vm.newPartner.commissionType")
+                option(ng-repeat='(i,j) in vm.constPartnerCommisionTypeOption', value= '{{j}}') {{i | translate}}
+    p
+    .form-group.col-md-12
+        label.control-label {{"REMARKS" | translate}}
+        .textareaDetail
+            textarea.form-control(type = "textarea",name = "remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.newPartner.remarks")
+
+

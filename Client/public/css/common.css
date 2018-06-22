@@ -392,6 +392,14 @@ ul.roleList {
     margin: 0 10px;
 }
 
+.nav-statistic {
+    text-align: center;
+    background-color: #222222;
+    margin-bottom: 5px;
+    color: lightgray;
+    font-size: 12px;
+}
+
 .search-box {
     border: 2px solid #337AB7;
     border-radius: 14px;
