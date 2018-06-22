@@ -4255,7 +4255,6 @@ define(['js/app'], function (myApp) {
 
                                 link.append($('<input>', {
                                     type: 'text',
-                                    // "ng-init": "vm.phoneNumberInfo.remark['" + row._id + "'] = '" + row.remark$ + "'",
                                     "ng-init": "vm.changePlayerMsgTableRemark(" + JSON.stringify(row) + ")",
                                     "ng-show": '!vm.showPhoneNumberRemark',
                                     "ng-model": "vm.phoneNumberInfo.remark['" + row._id + "']",
@@ -4388,7 +4387,6 @@ define(['js/app'], function (myApp) {
                     }
                 }
                 console.log("update phone number remark status", data)
-                $scope.safeApply();
             }, function (error) {
                 console.log("error", error);
             })
