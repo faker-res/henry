@@ -1421,12 +1421,12 @@ let dbDXMission = {
     },
 
     updatePhoneNumberRemark: function(platform, dxMission, remarkObj) {
-
+        let promArr = []
         if(remarkObj){
-            for (var phoneNumber in remarkObj) {
-                if (remarkObj.hasOwnProperty(phoneNumber)) {
-                    var remark = remarkObj[phoneNumber];
-                    dbconfig.collection_dxPhone.findOneAndUpdate({platform: platform, dxMission: dxMission, phoneNumber: phoneNumber},{remark: remark}).then(
+            for (var objId in remarkObj) {
+                if (remarkObj.hasOwnProperty(objId)) {
+                    var remark = remarkObj[objId];
+                    let prom = dbconfig.collection_dxPhone.findOneAndUpdate({platform: platform, dxMission: dxMission, _id: ObjectId(objId)},{remark: remark}).then(
                         () => {
                             return;
                         },error => {
@@ -1436,9 +1436,11 @@ let dbDXMission = {
                             });
                         }
                     );
+                    promArr.push(prom);
                 }
             }
         }
+        return Promise.all(promArr);
     }
 };
 

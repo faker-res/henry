@@ -4174,6 +4174,13 @@ define(['js/app'], function (myApp) {
                     });
                 }
                 vm.loadingTelePlayerSendingSMSTable = false;
+                vm.teleSendSmsDataholder = {};
+                if (vm.teleMarketingSendSMS && vm.teleMarketingSendSMS.data) {
+                    vm.teleMarketingSendSMS.data.map(record => {
+                        vm.teleSendSmsDataholder[record._id] = record;
+                    })
+                }
+
                 $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, vm.teleMarketingSendSMS.data));
                 // $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, vm.teleMarketingSendSMS.data, vm.teleMarketingSendSMS.count));
             })
@@ -4245,11 +4252,13 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row, index) {
                             var link = $('<div>', {});
                             if (!row.isLocked) {
+
                                 link.append($('<input>', {
                                     type: 'text',
-                                    "ng-init": "vm.phoneNumberInfo.remark[" + row.phoneNumber + "] = '" + row.remark$ + "'",
+                                    // "ng-init": "vm.phoneNumberInfo.remark['" + row._id + "'] = '" + row.remark$ + "'",
+                                    "ng-init": "vm.changePlayerMsgTableRemark(" + JSON.stringify(row) + ")",
                                     "ng-show": '!vm.showPhoneNumberRemark',
-                                    "ng-model": "vm.phoneNumberInfo.remark[" + row.phoneNumber + "]",
+                                    "ng-model": "vm.phoneNumberInfo.remark['" + row._id + "']",
                                     "disabled": "true",
                                     'style': "margin-right: 5px;",
                                 }));
@@ -4264,7 +4273,7 @@ define(['js/app'], function (myApp) {
 
                                 link.append($('<input>', {
                                     type: 'text',
-                                    "ng-model": "vm.phoneNumberInfo.remark[" + row.phoneNumber + "]",
+                                    "ng-model": "vm.phoneNumberInfo.remark['" + row._id + "']",
                                     "ng-show": 'vm.showPhoneNumberRemark',
                                     "data-_id": row._id,
                                     'style': "margin-right: 5px;",
@@ -4350,6 +4359,14 @@ define(['js/app'], function (myApp) {
 
         }
 
+        vm.changePlayerMsgTableRemark = function (obj) {
+            let remark = "";
+            if (vm.teleSendSmsDataholder && vm.teleSendSmsDataholder.hasOwnProperty(obj._id) && vm.teleSendSmsDataholder[obj._id].hasOwnProperty("remark$")) {
+                remark = vm.teleSendSmsDataholder[obj._id].remark$;
+            }
+            vm.phoneNumberInfo.remark[obj._id] = remark;
+        }
+
         vm.savePhoneNumberInfoRemark = function (data){
 
             var sendObj = {
@@ -4359,7 +4376,19 @@ define(['js/app'], function (myApp) {
             }
 
             socketService.$socket($scope.AppSocket, 'updatePhoneNumberRemark', sendObj, function (data) {
+                //assign remark to old data
+                if (vm.teleMarketingSendSMS && vm.teleMarketingSendSMS.data && vm.phoneNumberInfo && vm.phoneNumberInfo.remark) {
+                    for (let i = 0; i < vm.teleMarketingSendSMS.data.length; i++) {
+                        for (let dxPhoneObjId in vm.phoneNumberInfo.remark) {
+                            if (vm.teleMarketingSendSMS.data[i]._id && dxPhoneObjId == String(vm.teleMarketingSendSMS.data[i]._id)) {
+                                vm.teleMarketingSendSMS.data[i].remark = vm.phoneNumberInfo.remark[dxPhoneObjId];
+                                vm.teleMarketingSendSMS.data[i].remark$ = vm.phoneNumberInfo.remark[dxPhoneObjId];
+                            }
+                        }
+                    }
+                }
                 console.log("update phone number remark status", data)
+                $scope.safeApply();
             }, function (error) {
                 console.log("error", error);
             })
