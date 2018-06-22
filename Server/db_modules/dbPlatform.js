@@ -2497,10 +2497,10 @@ var dbPlatform = {
                         listName.forEach( list => {
                             if(data[list[0]]){
 
-                                returnedObj[list[1]] = dbPlatform.appendRouteSetting(data, list[0]);
+                                returnedObj[list[1]] = dbPlatform.appendRouteSetting(data, list[0], subject);
 
                             }
-                        })
+                        });
 
                         if (data.platformId) {
                             if (subject == 'player'){
@@ -2542,9 +2542,16 @@ var dbPlatform = {
                                 }
 
                                 if (info.backgroundBannerImage && info.backgroundBannerImage.url) {
-                                    if (info.backgroundBannerImage.url.indexOf("http") == -1 && platformData.playerRouteSetting){
-                                        activityListObj.bannerImg = platformData.playerRouteSetting.trim() + info.backgroundBannerImage.url.trim();
-                                    }else{
+
+                                    if (info.backgroundBannerImage.url.indexOf("http") === -1) {
+                                        if (subject === 'player' && platformData.playerRouteSetting) {
+                                            activityListObj.bannerImg = platformData.playerRouteSetting.trim() + info.backgroundBannerImage.url.trim();
+                                        } else if (subject === 'partner' && platformData.partnerRouteSetting) {
+                                            activityListObj.bannerImg = platformData.partnerRouteSetting.trim() + info.backgroundBannerImage.url.trim();
+                                        } else {
+                                            activityListObj.bannerImg = info.backgroundBannerImage.url.trim();
+                                        }
+                                    } else {
                                         activityListObj.bannerImg = info.backgroundBannerImage.url.trim();
                                     }
 
@@ -2558,11 +2565,16 @@ var dbPlatform = {
                                             if (b.buttonName) {
                                                 buttonObj.btn = b.buttonName;
                                             }
-                                            if(b.url){
-                                                if (b.url.indexOf("http") == -1 && platformData.playerRouteSetting){
-                                                    buttonObj.btnImg = platformData.playerRouteSetting.trim() + b.url.trim();
-                                                }
-                                                else{
+                                            if(b.url) {
+                                                if (b.url.indexOf("http") === -1) {
+                                                    if (subject === 'player' && platformData.playerRouteSetting) {
+                                                        buttonObj.btnImg = platformData.playerRouteSetting.trim() + b.url.trim();
+                                                    } else if (subject === 'partner' && platformData.partnerRouteSetting) {
+                                                        buttonObj.btnImg = platformData.partnerRouteSetting.trim() + b.url.trim();
+                                                    } else {
+                                                        buttonObj.btnImg = b.url.trim();
+                                                    }
+                                                } else {
                                                     buttonObj.btnImg = b.url.trim();
                                                 }
 
@@ -2572,7 +2584,7 @@ var dbPlatform = {
                                             }
                                             buttonList.push(buttonObj);
                                         }
-                                    })
+                                    });
                                     activityListObj.btnList = buttonList;
                                 } else {
                                     if (info.backgroundBannerImage && info.backgroundBannerImage.hyperLink) {
@@ -2600,34 +2612,48 @@ var dbPlatform = {
         }
     },
 
-    appendRouteSetting: function (data, list) {
+    appendRouteSetting: function (data, list, subject) {
         if (data && list){
 
-            // check if the "http/ https" exits or not
+            // check if the "http / https" exist or not
             if (data[list].length > 0){
                 data[list].forEach( pair => {
 
-                    if (pair.content.indexOf(',') != -1) {
+                    if (pair.content.indexOf(',') !== -1) {
                         let splitString = pair.content.split(',');
 
-                        if (splitString && splitString.length > 0 && data.playerRouteSetting) {
+                        if (splitString && splitString.length > 0) {
                             let comString = [];
                             splitString.forEach(indString => {
 
-                                if (pair.isImg == 1 && indString.indexOf("http") == -1) {
-                                    comString.push(data.playerRouteSetting.trim() + indString.trim());
+                                if (pair.isImg === 1 && indString.indexOf("http") === -1 ) {
+                                    if (subject === 'player' && data.playerRouteSetting) {
+                                        comString.push(data.playerRouteSetting.trim() + indString.trim());
+                                    } else if (subject === 'partner' && data.partnerRouteSetting) {
+                                        comString.push(data.partnerRouteSetting.trim() + indString.trim());
+                                    } else {
+                                        comString.push(indString.trim());
+                                    }
                                 }
-                                else{
+                                else {
                                     comString.push(indString.trim());
                                 }
 
-                            })
+                            });
                             pair.content = comString.join(', ');
                         }
                     }
-                    else{
-                        if (pair.isImg == 1 && pair.content.indexOf("http") == -1 && data.playerRouteSetting){
-                            pair.content = data.playerRouteSetting.trim() + pair.content.trim();
+                    else {
+                        if (pair.isImg === 1 && pair.content.indexOf("http") === -1 ) {
+                            if (subject === 'player' && data.playerRouteSetting) {
+                                pair.content = data.playerRouteSetting.trim() + pair.content.trim();
+                            } else if (subject === 'partner' && data.partnerRouteSetting) {
+                                pair.content = data.partnerRouteSetting.trim() + pair.content.trim();
+                            } else {
+                                pair.content = pair.content.trim();
+                            }
+                        } else {
+                            pair.content = pair.content.trim();
                         }
                     }
 
