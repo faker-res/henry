@@ -1227,29 +1227,22 @@
                     input.form-control.span.input-sm(type="Number" ng-model="vm.feedbackQuery.days")
                 div
                     label {{"FEEDBACK_RESULT"|translate}}
-                    select.spicker.form-control(ng-model='vm.feedbackQuery.result', multiple, data-actions-box='true')
-                        option(ng-repeat='(i,v) in vm.allFeedbackResults', value='{{v.key}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.value}}
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.result', multiple, data-actions-box='true', ng-options='a.key as a.value for (i,a) in vm.allFeedbackResults', bsp)
                 div
                     label {{"FEEDBACK_TOPIC"|translate}}
-                    select.spicker.form-control(ng-model='vm.feedbackQuery.topic', multiple, data-actions-box='true')
-                        option(ng-repeat='(i,v) in vm.allFeedbackTopics', value='{{v.key}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.value}}
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.topic', multiple, data-actions-box='true', ng-options='a.key as a.value for (i,a) in vm.allFeedbackTopics', bsp)
                 div
                     label {{"FEEDBACK_DEPARTMENT"|translate}}
-                    select.spicker.form-control(ng-model='vm.feedbackQuery.departments', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryRole(vm.feedbackQuery)")
-                        option(ng-repeat='(i,v) in vm.queryDepartments', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.departmentName}}
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.departments', multiple, data-actions-box='true' data-width="200px", ng-change="vm.setQueryRole(vm.feedbackQuery)", ng-options='a._id as a.departmentName for (i,a) in vm.queryDepartments', bsp)
                 div
                     label {{"FEEDBACK_ROLE"|translate}}
-                    select.spicker.form-control(ng-model='vm.feedbackQuery.roles', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryAdmins(vm.feedbackQuery)")
-                        option(ng-repeat='(i,v) in vm.queryRoles', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.roleName}}
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.roles', multiple, data-actions-box='true' data-width="200px", ng-change="vm.setQueryAdmins(vm.feedbackQuery)", ng-options='a._id as a.roleName for (i,a) in vm.queryRoles', bsp)
                 div
                     label {{"FEEDBACK_ADMIN"|translate}}
-                    select.spicker.form-control(ng-model='vm.feedbackQuery.admins', multiple, data-actions-box='true' data-width="200px")
-                        option(ng-repeat='(i,v) in vm.queryAdmins', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.adminName}}
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.admins', multiple, data-actions-box='true', data-width="200px", ng-options='a._id as a.adminName for (i,a) in vm.queryAdmins', bsp)
                 div
                     label {{"CREDIBILITY"|translate}}
-                    select.spicker.form-control(ng-model='vm.feedbackQuery.credibility', multiple, data-actions-box='true')
-                        option(value='') {{'N/A' | translate}}
-                        option(ng-repeat='(i,v) in vm.credibilityRemarks;', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.credibility', multiple, data-actions-box='true', ng-options='a._id as a.name for (i,a) in vm.filterCredibilityRemarks', bsp)
                 div
                     label {{"PLAYER_VALUE"|translate}}
                     select.form-control(ng-model="vm.feedbackQuery.valueOperator" style="width:75px;display:inline-block")
