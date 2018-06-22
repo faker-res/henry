@@ -6396,13 +6396,15 @@ let dbPlayerInfo = {
                         rewardEventItem.platformId = platformId;
 
                         let imageUrlArr = [];
-                        if (rewardEventItem && rewardEventItem.param && rewardEventItem.param.imageUrl && rewardEventItem.param.imageUrl.length > 0) {
+                        if (rewardEventItem && rewardEventItem.param && rewardEventItem.param.imageUrl
+                            && typeof rewardEventItem.param.imageUrl != 'string' && rewardEventItem.param.imageUrl.length > 0) {
                             rewardEventItem.param.imageUrl.forEach(imageUrlString => {
                                 imageUrlArr.push(checkRouteSetting(imageUrlString, routeSetting));
                             })
                             rewardEventItem.param.imageUrl = imageUrlArr;
 
-                        } else if (rewardEventItem && rewardEventItem.condition && rewardEventItem.condition.imageUrl && rewardEventItem.condition.imageUrl.length > 0) {
+                        } else if (rewardEventItem && rewardEventItem.condition && rewardEventItem.condition.imageUrl
+                            && typeof rewardEventItem.condition.imageUrl != 'string' && rewardEventItem.condition.imageUrl.length > 0) {
                             rewardEventItem.condition.imageUrl.forEach(imageUrlString => {
                                 imageUrlArr.push(checkRouteSetting(imageUrlString, routeSetting));
                             })
