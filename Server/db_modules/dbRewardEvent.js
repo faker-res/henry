@@ -526,7 +526,7 @@ var dbRewardEvent = {
                     });
                 }
 
-                let settleTime =  getIntervalPeriodFromEvent(event);
+                let settleTime =  getIntervalPeriodFromEvent(event, getIntervalPeriodFromEvent(event).startTime.setMinutes(getIntervalPeriodFromEvent(event).startTime.getMinutes() - 10));
 
                 if (event && event.condition && ["1", "2", "3", "4"].includes(event.condition.interval)) {
                     let currentPeriodStartTime = getIntervalPeriodFromEvent(event).startTime;
