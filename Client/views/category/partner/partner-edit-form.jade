@@ -1,0 +1,40 @@
+form(name="form_edit_partner", novalidate)
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label {{"PARTNER_ID" | translate}}
+            input.form-control(type="text", disabled, ng-model="newPartner.partnerId")
+        .form-group.col-md-6
+            label.control-label {{"REGISTRATION_TIME" | translate}}
+            input.form-control(type="text", disabled, ng-model="newPartner.registrationTime")
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label {{"REAL_NAME" | translate}}
+            input.form-control(ng-model="newPartner.realName")
+            //input.form-control(type="text")
+        .form-group.col-md-6
+            label.control-label {{"PARTNER_NAME" | translate}}
+            input.form-control(type="text",disabled, ng-model="newPartner.partnerName")
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label {{"GENDER" | translate}}
+            div
+                label.radio-inline {{"Male" | translate}}
+                    input.pull-left.relative(style="margin-right:8px;" type="radio", name="gender",ng-value="true", ng-model="newPartner.gender")
+                label.radio-inline {{"Female" | translate}}
+                    input.pull-left.relative(style="margin-right:8px;" type="radio", name="gender",ng-value="false", ng-model="newPartner.gender")
+        .form-group.col-md-6
+            label.control-label {{"DOB" | translate}}
+            input.form-control(style='width:calc(100% - 20px);display: inline-block', type="date",name="DOBInput", ng-model="newPartner.DOB", max="{{today}}")
+            i.margin-left-5.fa.fa-times.text-danger(style='width:10px;', ng-show="form_edit_partner.DOBInput.$invalid")
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label {{"Bind Player" | translate}}
+            span &nbsp;{{"partnerBindPlayerText" | translate}}
+            input.form-control(type="text", ng-if="!newPartner.player", placeholder="{{'playerName' | translate}}", ng-model="newPartner.playerName", ng-change='checkPartnerField("player",newPartner.playerName, form_edit_partner)')
+            span.help-block(style='color: #b94a48', ng-show='partnerValidity.player.validPlayerName===false && !partnerValidity.player.exists') {{'Invalid PlayerName' | translate}}
+            span.help-block(style='color: #b94a48', ng-show='partnerValidity.player.exists===true') {{'playerName' | translate}}&nbsp;{{'existed already' | translate}}
+            label.form-control(type="text", ng-if="newPartner.player", disabled) {{newPartner.player.name}}
+        .form-group.col-md-6
+            label.control-label {{"own domain" | translate}}
+            textarea.form-control(type="text", name='ownDomain', ng-model="newPartner.ownDomain", ng-change='checkOwnDomain(newPartner.ownDomain, form_edit_partner);')
+            span.help-block(style='color: #b94a48', ng-show='partnerValidity.ownDomainDuplicate==true') {{partnerValidity.ownDomainName}}&nbsp;{{'existed already' | translate}}
