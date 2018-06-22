@@ -6361,10 +6361,12 @@ let dbPlayerInfo = {
 
     getRewardEventForPlatform: function (platformId) {
         var playerPlatformId = null;
+        let routeSetting;
         return dbconfig.collection_platform.findOne({platformId: platformId}).then(
             function (platform) {
                 if (platform) {
                     playerPlatformId = platform._id;
+                    routeSetting = platform.playerRouteSetting ? platform.playerRouteSetting : null;
                     return dbconfig.collection_rewardEvent.find({platform: playerPlatformId})
                         .populate({
                             path: "type",
@@ -6393,7 +6395,29 @@ let dbPlayerInfo = {
                         delete rewardEventItem.platform;
                         rewardEventItem.platformId = platformId;
 
+                        let imageUrlArr = [];
+                        if (rewardEventItem && rewardEventItem.param && rewardEventItem.param.imageUrl && rewardEventItem.param.imageUrl.length > 0) {
+                            rewardEventItem.param.imageUrl.forEach(imageUrlString => {
+                                imageUrlArr.push(checkRouteSetting(imageUrlString, routeSetting));
+                            })
+                            rewardEventItem.param.imageUrl = imageUrlArr;
+
+                        } else if (rewardEventItem && rewardEventItem.condition && rewardEventItem.condition.imageUrl && rewardEventItem.condition.imageUrl.length > 0) {
+                            rewardEventItem.condition.imageUrl.forEach(imageUrlString => {
+                                imageUrlArr.push(checkRouteSetting(imageUrlString, routeSetting));
+                            })
+                            rewardEventItem.condition.imageUrl = imageUrlArr;
+                        }
+
                         if (rewardEventItem && rewardEventItem.display && rewardEventItem.display.length > 0) {
+                            rewardEventItem.display.forEach(el => {
+                                if (el.btnOrImageList && el.btnOrImageList.length > 0) {
+                                    el.btnOrImageList.forEach(btnOrImage => {
+                                        btnOrImage.btnSourceFrom = checkRouteSetting(btnOrImage.btnSourceFrom, routeSetting);
+                                    });
+                                }
+
+                            });
                             rewardEventItem.list = rewardEventItem.display;
                         }
                         delete rewardEventItem.display;
@@ -8561,6 +8585,12 @@ let dbPlayerInfo = {
                                                     level.list = [];
                                                     platformData.display.forEach(el => {
                                                         if (level._id && el.playerLevel && (level._id.toString() == el.playerLevel.toString())) {
+                                                            if (el.btnOrImageList && el.btnOrImageList.length > 0) {
+                                                                el.btnOrImageList.forEach(btnOrImage => {
+                                                                    btnOrImage.btnSourceFrom = checkRouteSetting(btnOrImage.btnSourceFrom, platformData.playerRouteSetting);
+                                                                });
+                                                            }
+
                                                             level.list.push(el);
                                                         }
                                                     });
@@ -17255,6 +17285,14 @@ function getProviderCredit(providers, playerName, platformId) {
         });
 
 
+}
+
+function checkRouteSetting(url, setting) {
+    if (url && (url.indexOf("http") == -1 || url.indexOf("https") == -1 || url.indexOf("") == -1) && setting) {
+        url = setting.concat(url.trim());
+    }
+
+    return url;
 }
 
 function isRandomRewardConsumption (rewardEvent) {
