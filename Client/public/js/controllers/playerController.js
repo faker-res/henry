@@ -872,8 +872,8 @@ define(['js/app'], function (myApp) {
             ] = await Promise.all([
                 commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
-                commonService.getAllAlipaysByAlipayGroup($scope, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
-                commonService.getAllWechatpaysByWechatpayGroup($scope, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
+                commonService.getAllAlipaysByAlipayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
+                commonService.getAllWechatpaysByWechatpayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
                 commonService.getBankTypeList($scope).catch(err => Promise.resolve({})),
                 commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -24666,29 +24666,18 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getCredibilityRemarks = () => {
-            // return new Promise((resolve, reject) => {
-            //     socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
-            //         console.log('credibilityRemarks', data);
-            //         vm.credibilityRemarks = data.data;
-            //         $scope.safeApply();
-            //         vm.setupRemarksMultiInput();
-            //         vm.setupRemarksMultiInputFeedback();
-            //         resolve();
-            //     }, function (err) {
-            //         reject(err);
-            //     });
-            // });
-
-            return $scope.$socketPromise('getCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}).then(
-                data => {
+            return new Promise((resolve, reject) => {
+                socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
                     vm.credibilityRemarks = data.data;
                     vm.filterCredibilityRemarks = data.data ? JSON.parse(JSON.stringify(data.data)) : [];
                     vm.filterCredibilityRemarks.push({'_id':'', 'name':'N/A'});
-                    $scope.safeApply();
                     vm.setupRemarksMultiInput();
                     vm.setupRemarksMultiInputFeedback();
-                }
-            )
+                    resolve();
+                }, function (err) {
+                    reject(err);
+                });
+            });
         };
 
         vm.getPlatformProviderGroup = () => {
@@ -27029,7 +27018,6 @@ define(['js/app'], function (myApp) {
                 countSelected: $translate('# of % selected')
             });
             remarkSelect.multipleSelect("uncheckAll");
-            $scope.safeApply();
         };
         vm.setupGameProviderMultiInputFeedback = function () {
             let gameProviderSelect = $('select#selectGameProvider');
@@ -27041,7 +27029,6 @@ define(['js/app'], function (myApp) {
                 countSelected: $translate('# of % selected')
             });
             gameProviderSelect.multipleSelect("uncheckAll");
-            $scope.safeApply();
         };
 
 
