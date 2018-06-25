@@ -393,7 +393,7 @@
                                 td(ng-if="!vm.promoCodeSMSContentEdit")
                                     div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
                                 td(ng-if='vm.promoCodeSMSContentEdit')
-                                    input.form-control(type='text', value='{{type.smsTitle}}', ng-model='type.smsTitle')
+                                    input.form-control(type='text', value='{{type.smsTitle}}', ng-model='type.smsTitle', ng-blur="vm.validateInput(type.smsTitle, 1, 'edit')")
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     input.form-control(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
                                 td(ng-if='vm.promoCodeSMSContentEdit')
@@ -404,11 +404,11 @@
                                 td
                                     input(type='text' , ng-model='vm.newPromoCodeSMSContentType1.name')
                                 td
-                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType1.smsTitle")
+                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType1.smsTitle", ng-blur="vm.validateInput(vm.newPromoCodeSMSContentType1.smsTitle)")
                                 td
                                     input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType1.smsContent")
                                 td
-                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType1, {name: vm.newPromoCodeSMSContentType1.name,smsTitle: vm.newPromoCodeSMSContentType1.smsTitle,smsContent: vm.newPromoCodeSMSContentType1.smsContent}); vm.newPromoCodeSMSContentType1={}')
+                                    i.fa.fa-plus(ng-if='!vm.smsTitleDuplicationBoolean', ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType1, {name: vm.newPromoCodeSMSContentType1.name,smsTitle: vm.newPromoCodeSMSContentType1.smsTitle,smsContent: vm.newPromoCodeSMSContentType1.smsContent}, vm.promoCodeType1BeforeEdit); vm.newPromoCodeSMSContentType1={}')
                     br
                     table.common-table.playerLvlTable
                         thead
@@ -426,7 +426,7 @@
                                 td(ng-if="!vm.promoCodeSMSContentEdit")
                                     div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
                                 td(ng-if='vm.promoCodeSMSContentEdit')
-                                    input.form-control(type='text', value='{{type.smsTitle}}', ng-model='type.smsTitle')
+                                    input.form-control(type='text', value='{{type.smsTitle}}', ng-model='type.smsTitle', ng-blur="vm.validateInput(type.smsTitle, 2, 'edit')")
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     input.form-control(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
                                 td(ng-if='vm.promoCodeSMSContentEdit')
@@ -437,11 +437,11 @@
                                 td
                                     input(type='text' , ng-model='vm.newPromoCodeSMSContentType2.name')
                                 td
-                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType2.smsTitle")
+                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType2.smsTitle", ng-blur="vm.validateInput(vm.newPromoCodeSMSContentType2.smsTitle)")
                                 td
                                     input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType2.smsContent")
                                 td
-                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType2, {name: vm.newPromoCodeSMSContentType2.name, smsTitle: vm.newPromoCodeSMSContentType2.smsTitle, smsContent: vm.newPromoCodeSMSContentType2.smsContent}); vm.newPromoCodeSMSContentType2={}')
+                                    i.fa.fa-plus(ng-if='!vm.smsTitleDuplicationBoolean', ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType2, {name: vm.newPromoCodeSMSContentType2.name, smsTitle: vm.newPromoCodeSMSContentType2.smsTitle, smsContent: vm.newPromoCodeSMSContentType2.smsContent}, vm.promoCodeType2BeforeEdit); vm.newPromoCodeSMSContentType2={}')
                     br
                     table.common-table.playerLvlTable
                         thead
@@ -459,7 +459,7 @@
                                 td(ng-if="!vm.promoCodeSMSContentEdit")
                                     div(style="display:block;white-space:pre-wrap;word-wrap:break-word;") {{type.smsContent}}
                                 td(ng-if='vm.promoCodeSMSContentEdit')
-                                    input.form-control(type='text', value='{{type.smsTitle}}', ng-model='type.smsTitle')
+                                    input.form-control(type='text', value='{{type.smsTitle}}', ng-model='type.smsTitle', ng-blur="vm.validateInput(type.smsTitle, 3, 'edit')")
                                 td(ng-if='vm.promoCodeSMSContentEdit')
                                     input.form-control(type='text', value='{{type.smsContent}}', ng-model='type.smsContent')
                                 td(ng-if='vm.promoCodeSMSContentEdit')
@@ -470,19 +470,19 @@
                                 td
                                     input(type='text' , ng-model='vm.newPromoCodeSMSContentType3.name')
                                 td
-                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType3.smsTitle")
+                                    input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType3.smsTitle", ng-blur="vm.validateInput(vm.newPromoCodeSMSContentType3.smsTitle)")
                                 td
                                     input.form-control(type="text", ng-model="vm.newPromoCodeSMSContentType3.smsContent")
                                 td
-                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType3, {name: vm.newPromoCodeSMSContentType3.name, smsTitle: vm.newPromoCodeSMSContentType3.smsTitle, smsContent: vm.newPromoCodeSMSContentType3.smsContent}); vm.newPromoCodeSMSContentType3={}')
+                                    i.fa.fa-plus(ng-if='!vm.smsTitleDuplicationBoolean', ng-click='vm.updateCollectionInEdit("add", vm.promoCodeType3, {name: vm.newPromoCodeSMSContentType3.name, smsTitle: vm.newPromoCodeSMSContentType3.smsTitle, smsContent: vm.newPromoCodeSMSContentType3.smsContent}, vm.promoCodeType3BeforeEdit); vm.newPromoCodeSMSContentType3={}')
 
                     br
                     .pull-right
                         button.btn.btn-primary.common-button(ng-if="!vm.promoCodeSMSContentEdit && checkViewPermission('Platform', 'promoCode', 'smsContentConfig')", ng-click='vm.promoCodeSMSContentEdit=!vm.promoCodeSMSContentEdit')
                             text {{'EDIT' | translate}}
                             img.img-edit
-                        button.btn.btn-danger.common-button(ng-if='vm.promoCodeSMSContentEdit', ng-click='vm.promoCodeSMSContentEdit=false') {{"CANCEL" | translate}}
-                        button.btn.btn-primary.common-button(ng-if='vm.promoCodeSMSContentEdit', ng-click='vm.promoCodeSMSContentEdit=!vm.promoCodeSMSContentEdit;vm.configSubmitUpdate("promoSMSContent")') {{"CONFIRM" | translate}}
+                        button.btn.btn-danger.common-button(ng-if='vm.promoCodeSMSContentEdit', ng-click='vm.promoCodeSMSContentEdit=false; vm.promoCodeTabClicked("smsContent")') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.promoCodeSMSContentEdit', ng-disabled='vm.smsTitleDuplicationBoolean', ng-click='vm.promoCodeSMSContentEdit=!vm.promoCodeSMSContentEdit;vm.configSubmitUpdate("promoSMSContent")') {{"CONFIRM" | translate}}
                     br
                     table.playerLvlTable(style="width:10%")
                         thead
@@ -803,8 +803,10 @@
                                 option(value='') {{'any' | translate}}
                         div
                             label &nbsp;
-                            button.btn.btn-success(ng-click='vm.promoCodeAnalysis.searchType = 1; vm.getPromoCodeAnalysis(true)') {{'SEARCH_CREATETIME' | translate}}
+                            button.btn.btn-success(ng-click='vm.promoCodeAnalysis.searchType = 1; vm.getPromoCodeAnalysis(true); vm.getPromoCodeAnalysis2(true)') {{'SEARCH_CREATETIME' | translate}}
                             span#promoCodeAnaysisTableSpin.collapse
+                                i.fa.fa-spinner.fa-spin
+                            span#promoCodeAnaysis2TableSpin.collapse
                                 i.fa.fa-spinner.fa-spin
                     .clearfix
                     label(ng-if="vm.promoCodeAnalysis.totalCount") {{"Promo Anaysis" | translate}} : {{"Total" | translate}} {{vm.promoCodeAnalysis.totalCount}} {{"records" | translate}}

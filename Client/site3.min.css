@@ -1452,6 +1452,14 @@ ul.roleList {
     margin: 0 10px;
 }
 
+.nav-statistic {
+    text-align: center;
+    background-color: #222222;
+    margin-bottom: 5px;
+    color: lightgray;
+    font-size: 12px;
+}
+
 .search-box {
     border: 2px solid #337AB7;
     border-radius: 14px;
@@ -3833,6 +3841,15 @@ input[type='number'].leftALignNumber {
     border: 1px solid #337AB7;
     border-bottom: none;
 }
+
+#similarPlayersTable .nav-tabs>li {
+    cursor: pointer;
+}
+#similarPlayersTable .nav-tabs>li.active>a {
+    border: 1px solid #337AB7;
+    border-bottom: none;
+}
+
 .text-disabled{
     color: red;
 }
@@ -4093,7 +4110,7 @@ table.simple-table.platformFrontEndDisplayTable tbody td {
 #cssmenu {
     margin: 0;
     /*padding: 10px;*/
-    padding: 12px;
+    padding: 7px;
     border: 0;
     list-style: none;
     line-height: 1;
@@ -4191,13 +4208,10 @@ table.simple-table.platformFrontEndDisplayTable tbody td {
     background-image: -o-linear-gradient(#f2f2f2, #ebebeb 85%, #aaaaaa);
     background-image: linear-gradient(#f2f2f2, #ebebeb 80%, #aaaaaa);
     background-repeat: no-repeat;
-    border-radius: 6px 6px 0 0;
-    width: 80px;
     text-align: center;
-    margin-right: 1px;
-    padding-bottom: 0px;
-    border-radius: 6px 6px 0 0;
-    height: 73px;
+    margin-right: 2px;
+    border-radius: 6px 6px 6px 6px;
+    height: 68px;
 }
 
 #cssmenu > ul > li.active {
@@ -4250,7 +4264,7 @@ table.simple-table.platformFrontEndDisplayTable tbody td {
 
 #cssmenu > ul > li > a {
     padding: 4px 4px;
-    font-size: 11px;
+    font-size: 12px;
     text-decoration: none;
     color: #4d4d4d;
     text-align: center;

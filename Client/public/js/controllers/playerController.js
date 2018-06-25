@@ -719,16 +719,24 @@ define(['js/app'], function (myApp) {
                 'partnerWebLogoUrlList'
             ];
 
-            newList.forEach( listName => {
-                if (!platformData[listName]){
-                    platformData[listName] = [];
+            // check if using new data list, else show up the old data
+            let newListBoolean = false;
+            for(let i = 0; i <newList.length; i++){
+                if (platformData[newList[i]].length > 0) {
+                    newListBoolean = true;
+                    break;
                 }
+            }
 
-                //check the platform data is old or new
-                let nativeFieldName = listName.substr(0, listName.length-4);
-                if (platformData[nativeFieldName] && platformData[nativeFieldName].length > 0 && (!platformData[listName] || platformData[listName].length == 0)){
-                    let oldData = platformData[nativeFieldName];
-                    platformData[listName] = [{content: oldData}];
+            newList.forEach( listName => {
+
+                if (!newListBoolean) {
+                    //check the platform data is old or new
+                    let nativeFieldName = listName.substr(0, listName.length - 4);
+                    if (platformData[nativeFieldName] && platformData[nativeFieldName].length > 0 && (!platformData[listName] || platformData[listName].length == 0)) {
+                        let oldData = platformData[nativeFieldName];
+                        platformData[listName] = [{content: oldData}];
+                    }
                 }
 
                 if(platformData[listName] && platformData[listName].length > 0){
@@ -864,8 +872,8 @@ define(['js/app'], function (myApp) {
             ] = await Promise.all([
                 commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
-                commonService.getAllAlipaysByAlipayGroup($scope, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
-                commonService.getAllWechatpaysByWechatpayGroup($scope, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
+                commonService.getAllAlipaysByAlipayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
+                commonService.getAllWechatpaysByWechatpayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
                 commonService.getBankTypeList($scope).catch(err => Promise.resolve({})),
                 commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -20253,13 +20261,36 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        vm.updateCollectionInEdit = function (type, collection, data) {
+        vm.updateCollectionInEdit = function (type, collection, data, collectionCopy) {
             if (type == 'add') {
                 let newObj = {};
+
+                // check again if there is duplication of sms title after updating the promoCodeType
+                if (data.smsTitle && vm.promoCodeType1BeforeEdit && vm.promoCodeType2BeforeEdit && vm.promoCodeType3BeforeEdit){
+
+                    let filterPromoCodeType1 = vm.promoCodeType1BeforeEdit.map(p => p.smsTitle);
+                    let filterPromoCodeType2 = vm.promoCodeType2BeforeEdit.map(p => p.smsTitle);
+                    let filterPromoCodeType3 = vm.promoCodeType3BeforeEdit.map(p => p.smsTitle);
+
+                    let promoCodeSMSTitleCheckList = filterPromoCodeType1.concat(filterPromoCodeType2, filterPromoCodeType3);
+
+                    if (promoCodeSMSTitleCheckList.indexOf(data.smsTitle) != -1){
+                        vm.smsTitleDuplicationBoolean = true;
+                        return socketService.showErrorMessage($translate("Banner title cannot be repeated!"));
+                    }
+                    else{
+                        vm.smsTitleDuplicationBoolean = false;
+                    }
+                }
 
                 Object.keys(data).forEach(e => {
                     newObj[e] = data[e];
                 });
+
+                // update the copy to check for duplication
+                if (collectionCopy){
+                    collectionCopy.push(newObj);
+                }
 
                 collection.push(newObj);
                 collection.forEach((elem, index, arr) => {
@@ -20921,6 +20952,7 @@ define(['js/app'], function (myApp) {
             vm.promoCode1HasMoreThanOne = false;
             vm.promoCode2HasMoreThanOne = false;
             vm.promoCode3HasMoreThanOne = false;
+            vm.smsTitleDuplicationBoolean = false;
 
             vm.newPromoCode1 = [];
             vm.newPromoCode2 = [];
@@ -20929,6 +20961,10 @@ define(['js/app'], function (myApp) {
             vm.promoCodeType1 = [];
             vm.promoCodeType2 = [];
             vm.promoCodeType3 = [];
+
+            vm.promoCodeType1BeforeEdit = [];
+            vm.promoCodeType2BeforeEdit = [];
+            vm.promoCodeType3BeforeEdit = [];
 
             vm.removeSMSContent = [];
 
@@ -22059,10 +22095,13 @@ define(['js/app'], function (myApp) {
                     vm.promoCodeTypes.forEach(entry => {
                         if (entry.type == 1) {
                             vm.promoCodeType1.push(entry);
+                            vm.promoCodeType1BeforeEdit.push($.extend({}, entry));
                         } else if (entry.type == 2) {
                             vm.promoCodeType2.push(entry);
+                            vm.promoCodeType2BeforeEdit.push($.extend({}, entry));
                         } else if (entry.type == 3) {
                             vm.promoCodeType3.push(entry);
+                            vm.promoCodeType3BeforeEdit.push($.extend({}, entry));
                         }
                     });
                 })
@@ -24658,29 +24697,18 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getCredibilityRemarks = () => {
-            // return new Promise((resolve, reject) => {
-            //     socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
-            //         console.log('credibilityRemarks', data);
-            //         vm.credibilityRemarks = data.data;
-            //         $scope.safeApply();
-            //         vm.setupRemarksMultiInput();
-            //         vm.setupRemarksMultiInputFeedback();
-            //         resolve();
-            //     }, function (err) {
-            //         reject(err);
-            //     });
-            // });
-
-            return $scope.$socketPromise('getCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}).then(
-                data => {
+            return new Promise((resolve, reject) => {
+                socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
                     vm.credibilityRemarks = data.data;
                     vm.filterCredibilityRemarks = data.data ? JSON.parse(JSON.stringify(data.data)) : [];
                     vm.filterCredibilityRemarks.push({'_id':'', 'name':'N/A'});
-                    $scope.safeApply();
                     vm.setupRemarksMultiInput();
                     vm.setupRemarksMultiInputFeedback();
-                }
-            )
+                    resolve();
+                }, function (err) {
+                    reject(err);
+                });
+            });
         };
 
         vm.getPlatformProviderGroup = () => {
@@ -25239,6 +25267,42 @@ define(['js/app'], function (myApp) {
                     vm.prepareCredibilityConfig();
                 }
             );
+        }
+
+        vm.validateInput = function (smsTitle, type, mode){
+
+            if(smsTitle && vm.promoCodeType1BeforeEdit && vm.promoCodeType2BeforeEdit && vm.promoCodeType3BeforeEdit){
+
+                let filterPromoCodeType1 = vm.promoCodeType1BeforeEdit.map(p => p.smsTitle);
+                let filterPromoCodeType2 = vm.promoCodeType2BeforeEdit.map(p => p.smsTitle);
+                let filterPromoCodeType3 = vm.promoCodeType3BeforeEdit.map(p => p.smsTitle);
+
+                let promoCodeSMSTitleCheckList = filterPromoCodeType1.concat(filterPromoCodeType2, filterPromoCodeType3);
+
+                if (promoCodeSMSTitleCheckList.indexOf(smsTitle) != -1){
+                    vm.smsTitleDuplicationBoolean = true;
+                    return socketService.showErrorMessage($translate("Banner title cannot be repeated!"));
+                }
+                else{
+                    vm.smsTitleDuplicationBoolean = false;
+                }
+
+                //  update if there is editing on previous data
+                if (type && mode && !vm.smsTitleDuplicationBoolean){
+                    if (type == 1 && mode == 'edit' ){
+                        vm.promoCodeType1BeforeEdit = vm.promoCodeType1.map(p => $.extend({}, p));
+                    }
+                    else if (type == 2 && mode == 'edit' ){
+                        vm.promoCodeType2BeforeEdit = vm.promoCodeType2.map(p => $.extend({}, p));
+                    }
+                    else if (type == 3 && mode == 'edit' ){
+                        vm.promoCodeType3BeforeEdit = vm.promoCodeType3.map(p => $.extend({}, p));
+                    }
+                    else{
+
+                    }
+                }
+            }
         }
 
         function updatePromoSMSContent(srcData) {
@@ -27021,7 +27085,6 @@ define(['js/app'], function (myApp) {
                 countSelected: $translate('# of % selected')
             });
             remarkSelect.multipleSelect("uncheckAll");
-            $scope.safeApply();
         };
         vm.setupGameProviderMultiInputFeedback = function () {
             let gameProviderSelect = $('select#selectGameProvider');
@@ -27033,7 +27096,6 @@ define(['js/app'], function (myApp) {
                 countSelected: $translate('# of % selected')
             });
             gameProviderSelect.multipleSelect("uncheckAll");
-            $scope.safeApply();
         };
 
 

@@ -161,6 +161,29 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                         }
                     }
                 })
+                .state('partner', {
+                    url: '/partner',
+                    templateUrl: 'category/partner/platform-partner',
+                    controller: 'partnerCtrl',
+                    controllerAs: 'vm',
+                    resolve: {
+                        load: function ($q, $rootScope) {
+                            var deferred = $q.defer();
+
+                            var dependencies = [
+                                "/js/controllers/partnerController.js"
+                            ];
+
+                            require(dependencies, function () {
+                                $rootScope.$apply(function () {
+                                    deferred.resolve();
+                                });
+                            });
+
+                            return deferred.promise;
+                        }
+                    }
+                })
                 .state('payment', {
                     url: '/payment',
                     templateUrl: 'category/payment/payment-home',
