@@ -32,23 +32,31 @@ style.
                         tr(ng-repeat='(i,v) in vm.bulkCreditClearOut.data')
                             td {{i+1}}
                             td {{v.playerName}}
-                            td {{v.gameProviderTotalCredit}}
-                            td {{v.localTotalCredit}}
-                            td {{v.totalCredit}}
+                            td
+                                text(ng-show="!v.actionable") {{v.gameProviderTotalCredit}}
+                                text(ng-show="v.actionable") {{v.gameProviderTotalCredit.toFixed(2)}}
+                            td
+                                text(ng-show="!v.actionable") {{v.localTotalCredit}}
+                                text(ng-show="v.actionable") {{v.localTotalCredit.toFixed(2)}}
+                            td
+                                text(ng-show="!v.actionable") {{v.totalCredit}}
+                                text(ng-show="v.actionable") {{v.totalCredit.toFixed(2)}}
                             td {{v.status | translate}}
-                            td {{v.proposalId}}
+                            td
+                                text(ng-show="v.status != 'SUCCESS'") -
+                                text(ng-show="v.status == 'SUCCESS'") {{v.updateAmount}}{{"YEN" | translate}} ({{v.proposalId}})
                             td
                                 div(style="display:inline-block")
-                                    text(ng-show="v.processing") {{"Single Clear Out" | translate}}
-                                    a(ng-click="vm.singleCreditClearOut()" ng-hide="v.processing") {{"Single Clear Out" | translate}}
+                                    text(ng-show="vm.bulkCreditClearOut.initiating || !v.actionable") {{"Single Clear Out" | translate}}
+                                    a(ng-click="vm.singleCreditClearOut(i)" ng-hide="vm.bulkCreditClearOut.initiating || !v.actionable") {{"Single Clear Out" | translate}}
                                     span &nbsp;&nbsp;/&nbsp;&nbsp;
                                 div(style="display:inline-block")
-                                    text(ng-show="v.processing") {{"Remove From List" | translate}}
-                                    a(ng-click="vm.removePlayerFromCreditClearOutList(i)" ng-hide="v.processing") {{"Remove From List" | translate}}
+                                    text(ng-show="vm.bulkCreditClearOut.initiating") {{"Remove From List" | translate}}
+                                    a(ng-click="vm.removePlayerFromCreditClearOutList(i)" ng-hide="vm.bulkCreditClearOut.initiating") {{"Remove From List" | translate}}
                                 div(style="display:inline-block")
                                     span &nbsp;&nbsp;/&nbsp;&nbsp;
-                                    text(ng-show="v.processing") {{"Refresh Credit" | translate}}
-                                    a(ng-click="vm.refreshPlayerCreditInCreditClearOutList()" ng-hide="v.processing") {{"Refresh Credit" | translate}}
+                                    text(ng-show="vm.bulkCreditClearOut.initiating") {{"Refresh Credit" | translate}}
+                                    a(ng-click="vm.refreshPlayerCreditInCreditClearOutList(i)" ng-hide="vm.bulkCreditClearOut.initiating") {{"Refresh Credit" | translate}}
                 div(style="text-align:right; margin-top:20px;" ng-show="vm.bulkCreditClearOutTriggered")
                     button.btn.btn-success.common-button#filterAndSortClearOutListButton(ng-click="vm.filterAndSortBulkCreditClearOutList()" ng-disabled="vm.bulkCreditClearOut.initiating") {{"Remove Empty Credit and Sort" | translate}}
                     button.btn.btn-primary.common-button#startClearOutButton(ng-click="vm.startBulkCreditClearOut()" ng-disabled="vm.bulkCreditClearOut.initiating") {{"Start Clear Out" | translate}}

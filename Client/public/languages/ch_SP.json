@@ -3855,5 +3855,6 @@
   "Requesting Data": "读取中",
   "Remove Empty Credit and Sort": "移除馀额＝0且排序馀额",
   "Start Clear Out": "开始清空上表馀额",
-  "Cancel Clear Out": "取消清空任务"
+  "Cancel Clear Out": "取消清空任务",
+  "Transferring Out": "转出中"
 }
