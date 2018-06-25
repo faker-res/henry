@@ -853,7 +853,10 @@ var proposalExecutor = {
                     ).then(
                         dbUtil.findOneAndUpdateForShard(
                             dbconfig.collection_partner,
-                            {partnerName: proposalData.data.partnerName},
+                            {
+                                partnerName: proposalData.data.partnerName,
+                                platform: proposalData.data.platformId
+                            },
                             proposalData.data.updateData,
                             constShardKeys.collection_partner
                         ).then(
@@ -876,11 +879,14 @@ var proposalExecutor = {
              */
             executeUpdatePartnerPhone: function (proposalData, deferred) {
                 //data validation
-                if (proposalData && proposalData.data && proposalData.data.partnerName && proposalData.data.updateData && proposalData.data.updateData.phoneNumber) {
+                if (proposalData && proposalData.data && proposalData.data.partnerName && proposalData.data.updateData && proposalData.data.updateData.phoneNumber && proposalData.data.platformId) {
                     proposalData.data.updateData.phoneNumber = rsaCrypto.encrypt(proposalData.data.updateData.phoneNumber);
                     dbUtil.findOneAndUpdateForShard(
                         dbconfig.collection_partner,
-                        {partnerName: proposalData.data.partnerName},
+                        {
+                            partnerName: proposalData.data.partnerName,
+                            platform: proposalData.data.platformId
+                        },
                         proposalData.data.updateData,
                         constShardKeys.collection_partner
                     ).then(
@@ -906,10 +912,13 @@ var proposalExecutor = {
              */
             executeUpdatePartnerEmail: function (proposalData, deferred) {
                 //data validation
-                if (proposalData && proposalData.data && proposalData.data.partnerName && proposalData.data.updateData && proposalData.data.updateData.email) {
+                if (proposalData && proposalData.data && proposalData.data.partnerName && proposalData.data.updateData && proposalData.data.updateData.email && proposalData.data.platformId) {
                     dbUtil.findOneAndUpdateForShard(
                         dbconfig.collection_partner,
-                        {partnerName: proposalData.data.partnerName},
+                        {
+                            partnerName: proposalData.data.partnerName,
+                            platform: proposalData.data.platformId
+                        },
                         proposalData.data.updateData,
                         constShardKeys.collection_partner
                     ).then(
@@ -931,10 +940,13 @@ var proposalExecutor = {
              */
             executeUpdatePartnerQQ: function (proposalData, deferred) {
                 //data validation
-                if (proposalData && proposalData.data && proposalData.data.partnerName && proposalData.data.updateData && proposalData.data.updateData.qq) {
+                if (proposalData && proposalData.data && proposalData.data.partnerName && proposalData.data.updateData && proposalData.data.updateData.qq && proposalData.data.platformId) {
                     dbUtil.findOneAndUpdateForShard(
                         dbconfig.collection_partner,
-                        {partnerName: proposalData.data.partnerName},
+                        {
+                            partnerName: proposalData.data.partnerName,
+                            platform: proposalData.data.platformId
+                        },
                         proposalData.data.updateData,
                         constShardKeys.collection_partner
                     ).then(
@@ -956,10 +968,13 @@ var proposalExecutor = {
              */
             executeUpdatePartnerWeChat: function (proposalData, deferred) {
                 //valid data
-                if (proposalData && proposalData.data && proposalData.data.partnerName && proposalData.data.updateData && proposalData.data.updateData.wechat) {
+                if (proposalData && proposalData.data && proposalData.data.partnerName && proposalData.data.updateData && proposalData.data.updateData.wechat && proposalData.data.platformId) {
                     dbUtil.findOneAndUpdateForShard(
                         dbconfig.collection_partner,
-                        {partnerName: proposalData.data.partnerName},
+                        {
+                            partnerName: proposalData.data.partnerName,
+                            platform: proposalData.data.platformId
+                        },
                         proposalData.data.updateData,
                         constShardKeys.collection_partner
                     ).then(
