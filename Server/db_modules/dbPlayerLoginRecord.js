@@ -21,6 +21,42 @@ var dbPlayerLoginRecord = {
         }
         return playerLoginRecord.save();
     },
+    getPlayerLoginRecord: function(platformId, startTime, endTime, period, type){
+
+        var dayStartTime = startTime;
+        var getNextDate;
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+
+        var dayEndTime = getNextDate(dayStartTime);
+        var matchObj = {
+            platform: platformId,
+            loginTime: {$gte: dayStartTime, $lt: dayEndTime},
+            inputDeviceType: type
+        };
+        
+        return dbconfig.collection_playerLoginRecord.find(matchObj, {'loginTime':1, 'player':1, 'inputDeviceType':1})
+                .populate({path: 'player', model: dbconfig.collection_players})
+
+    },
     getIpHistory: function (playerId) {
         var p1 = dbconfig.collection_playerLoginRecord.find({
             'player': playerId,
@@ -192,8 +228,6 @@ var dbPlayerLoginRecord = {
                     }
                 }
             }
-            //console.log(startDate);
-            //console.log(matchObj);
             var specifyField = {'_id':1,  'platform:1':1, 'inputDeviceType':1, 'loginTime':1};
 
             var playerProm = dbconfig.collection_playerLoginRecord.aggregate(
@@ -217,19 +251,6 @@ var dbPlayerLoginRecord = {
                     }]
                 )
             playerLoginProms.push(playerProm);
-
-              //  dbconfig.collection_playerLoginRecord.distinct("player", matchObj)
-              //   dbconfig.collection_playerLoginRecord.aggregate(
-              //      [{
-              //          $match: matchObj,
-              //      }, {
-              //          $group: {
-              //              _id: {$dateToString: {format: "%Y-%m-%d", date: "$loginTime"}}
-              //          }
-              //      }]
-              //  )
-            //var deviceProm = dbconfig.collection_playerLoginRecord.find(matchObj, specifyField);
-
 
             var deviceProm = dbconfig.collection_playerLoginRecord.aggregate(
               [{
@@ -311,43 +332,8 @@ var dbPlayerLoginRecord = {
                     })
                     tempDate = getNextDate(tempDate);
                     res.push(obj);
-                      // obj['playerLogin'] data[0].
                 }
-                // var res = data[1].map(
-                //       dayData =>{
-                //           var date = tempDate;
-                //           var obj = {
-                //               '_id': date,
-                //               'WEB':0,
-                //               'H5':0,
-                //               'APP-ANDROID':0,
-                //               'APP-IOS':0,
-                //               'PC-DOWNLOAD':0
-                //           }
-                //           let dayItem = dayData.map(item=>{
-                //               switch (item.inputDeviceType) {
-                //                   case '1':
-                //                       obj['WEB'] += 1;
-                //                       break;
-                //                   case '2':
-                //                       obj['H5'] += 1;
-                //                       break;
-                //                   case '3':
-                //                       obj['APP-ANDROID'] += 1;
-                //                       break;
-                //                   case '4':
-                //                       obj['APP-IOS'] += 1;
-                //                       break;
-                //                   case '5':
-                //                       obj['PC-DOWNLOAD'] += 1;
-                //                       break;
-                //                   default:
-                //                       break;
-                //                 }
-                //             })
-                //           tempDate = getNextDate(tempDate);
-                //           return obj
-                // })
+
                 console.log(res);
                 return res;
 

@@ -121,7 +121,25 @@ function socketActionPartner(socketIO, socket) {
             var isValidData = Boolean(data && data.platform && data.startTime && data.endTime && data.days && diffDays && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
             var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : new Date(0);
             socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerRetention, [ObjectId(data.platform), startTime, data.days, data.playerType, diffDays, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
-        }
+        },
+        /**
+         * getPlayerLoginRecord
+         * @param {json} data - It has to contain platform and retention parameters
+         */
+
+        getPlayerLoginRecord: function getPlayerLoginRecord(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.startDate && data.endDate);
+            var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+            var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+            var platform = data.platform ? ObjectId(data.platform) : 'all';
+            var inputDeviceType = data.inputDeviceType;
+            var period = data.period;
+            console.log(period);
+            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerLoginRecord, [platform, startTime, endTime, period, inputDeviceType], actionName, isValidData);
+       },
+
+
     };
     socketActionPartner.actions = this.actions;
 };

@@ -28,12 +28,6 @@
                     option(value='individual') {{"REAL_PLAYER_INDIVIDUAL"|translate}}
                     option(value='underPartner') {{"REAL_PLAYER_UNDER_PARTNER"|translate}}
                     option(value='test') {{"Test Player"|translate}}
-            //div
-            //    label {{"Start date"|translate}}
-            //    input.form-control(type='date', ng-model='vm.queryPara.loginPlayer.startTime')
-            //div
-            //    label {{"End date"|translate}}
-            //    input.form-control(type='date', ng-model='vm.queryPara.loginPlayer.endTime')
             div
                 label &nbsp;
                 button.btn.btn-primary.common-button(ng-click='vm.plotLoginPlayerLine()') {{'SEARCH' | translate}}
@@ -49,24 +43,58 @@
                         thead
                             tr
                                 th(ng-click='vm.platformLoginPlayerAnalysisSort.loginPlayerSort = vm.platformLoginPlayerAnalysisSort.loginPlayerSort == "date" ? "-date":"date"') {{ vm.platformLoginPlayerDataPeriodText | translate}}
-                                th(ng-click='vm.platformLoginPlayerAnalysisSort.loginPlayerSort = vm.platformLoginPlayerAnalysisSort.loginPlayerSort == "number" ? "-number":"number"') {{ "amount" | translate}}
+                                th(ng-click='vm.platformLoginPlayerAnalysisSort.loginPlayerSort = vm.platformLoginPlayerAnalysisSort.loginPlayerSort == "number" ? "-number":"number"')
+                                    | {{ "Total Login Players" | translate}}
+                                    br
+                                    | {{ "Exclude Duplicate Login" | translate}}
+                                th H5
+                                th WEB
+                                th APP-ANDROID
+                                th APP-IOS
+                                th {{ "PC-Download" | translate }}
                         tbody
-                            tr(ng-repeat='(i, v) in vm.platformLoginPlayerAnalysisData | orderBy: vm.platformLoginPlayerAnalysisSort.loginPlayerSort')
-                                td
-                                    span {{ v.date | date:"yyyy-MM-dd" }}
-                                td
-                                    span {{ v.number }}
-                            tr
-                                td
-                                    span {{ "average value" | translate }}
-                                td
-                                    span {{ vm.platformLoginPlayerAverage }}
+                        tr(ng-repeat='(i, v) in vm.platformLoginPlayerAnalysisData | orderBy: vm.platformLoginPlayerAnalysisData.loginPlayerSort')
+                            td
+                                span {{ v._id | date:"yyyy-MM-dd" }}
+                            td
+                                span {{ v['playerLogin'] }}
+                            td
+                                span(ng-show="v['device']['WEB'] == 0") 0
+                                a(ng-show="v['device']['WEB'] > 0",ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayer.periodText, 1)') {{ v['device']['WEB'] }}
+                            td
+                                span(ng-show="v['device']['H5'] == 0") 0
+                                a(ng-show="v['device']['H5'] > 0",ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayer.periodText, 2)') {{ v['device']['H5'] }}
+                            td
+                                span(ng-show="v['device']['APP-ANDROID'] == 0") 0
+                                a(ng-show="v['device']['APP-ANDROID'] > 0",ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayer.periodText, 3)') {{ v['device']['APP-ANDROID'] }}
+                            td
+                                span(ng-show="v['device']['APP-IOS'] == 0") 0
+                                a(ng-show="v['device']['APP-IOS'] > 0",ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayer.periodText, 4)') {{ v['device']['APP-IOS'] }}
+                            td
+                                span(ng-show="v['device']['PC-DOWNLOAD'] == 0") 0
+                                a(ng-show="v['device']['PC-DOWNLOAD'] > 0",ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayer.periodText, 5)') {{ v['device']['PC-DOWNLOAD'] }}
+
+                        tr
+                            td
+                                span 平均值
+                            td
+                                span {{ vm.avgPlayerLogin }}
+                            td
+                                span {{ vm.avgTotalDevice['device']['WEB'] }}
+                            td
+                                span {{ vm.avgTotalDevice['device']['H5'] }}
+                            td
+                                span {{ vm.avgTotalDevice['device']['APP-ANDROID'] }}
+                            td
+                                span {{ vm.avgTotalDevice['device']['APP-IOS'] }}
+                            td
+                                span {{ vm.avgTotalDevice['device']['PC-DOWNLOAD'] }}
 
         #loginPlayerDeviceAnalysis
             .col-md-12.block-query.well(style='margin-bottom:3px;')
                 div
                     label {{'PERIOD' | translate}}
-                    select.form-control(ng-model='vm.queryPara.loginPlayer.periodText')
+                    select.form-control(ng-model='vm.queryPara.loginPlayerDevice.periodText')
                         option(value='day') {{"DAY"|translate}}
                         option(value='week') {{"WEEK"|translate}}
                         option(value='month') {{"MONTH"|translate}}
@@ -78,17 +106,11 @@
                     .endTime
                 div
                     label {{'USER_TYPE' | translate}}
-                    select.form-control(ng-model='vm.queryPara.loginPlayer.userType')
+                    select.form-control(ng-model='vm.queryPara.loginPlayerDevice.userType')
                         option(value='all') {{"REAL_PLAYER_ALL"|translate}}
                         option(value='individual') {{"REAL_PLAYER_INDIVIDUAL"|translate}}
                         option(value='underPartner') {{"REAL_PLAYER_UNDER_PARTNER"|translate}}
                         option(value='test') {{"Test Player"|translate}}
-                //div
-                //    label {{"Start date"|translate}}
-                //    input.form-control(type='date', ng-model='vm.queryPara.loginPlayer.startTime')
-                //div
-                //    label {{"End date"|translate}}
-                //    input.form-control(type='date', ng-model='vm.queryPara.loginPlayer.endTime')
                 div
                     label &nbsp;
                     button.btn.btn-primary.common-button(ng-click='vm.plotLoginPlayerDeviceLine()') {{'SEARCH' | translate}}
@@ -104,7 +126,10 @@
                             thead
                                 tr
                                     th(ng-click='vm.platformLoginPlayerAnalysisSort.loginPlayerSort = vm.platformLoginPlayerAnalysisSort.loginPlayerSort == "date" ? "-date":"date"') {{ vm.platformLoginPlayerDataPeriodText | translate}}
-                                    th(ng-click='vm.platformLoginPlayerAnalysisSort.loginPlayerSort = vm.platformLoginPlayerAnalysisSort.loginPlayerSort == "number" ? "-number":"number"') {{ "amount" | translate}}
+                                    th(ng-click='vm.platformLoginPlayerAnalysisSort.loginPlayerSort = vm.platformLoginPlayerAnalysisSort.loginPlayerSort == "number" ? "-number":"number"')
+                                        | {{ "Total Login Players" | translate}}
+                                        br
+                                        | {{ "Include Duplicate Player Login" | translate}}
                                     th H5
                                     th WEB
                                     th APP-ANDROID
@@ -118,16 +143,71 @@
                                     td
                                         span {{ v['subTotal'] }}
                                     td
-                                        span {{ v['device']['WEB'] }}
+                                        span(ng-show="v['device']['WEB'] <= 0") 0
+                                        a(ng-show="v['device']['WEB'] > 0", ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayerDevice.periodText, 1)') {{ v['device']['WEB'] }}
                                     td
-                                        span {{ v['device']['H5'] }}
+                                        span(ng-show="v['device']['H5'] <= 0") 0
+                                        a(ng-show="v['device']['H5'] > 0", ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayerDevice.periodText, 2)') {{ v['device']['H5'] }}
                                     td
-                                        span {{ v['device']['APP-ANDROID'] }}
+                                        span(ng-show="v['device']['APP-ANDROID'] <= 0") 0
+                                        a(ng-show="v['device']['APP-ANDROID'] > 0", ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayerDevice.periodText, 3)') {{ v['device']['APP-ANDROID'] }}
                                     td
-                                        span {{ v['device']['APP-IOS'] }}
+                                        span(ng-show="v['device']['APP-IOS'] <= 0") 0
+                                        a(ng-show="v['device']['APP-IOS'] > 0", ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayerDevice.periodText, 4)') {{ v['device']['APP-IOS'] }}
                                     td
-                                        span {{ v['device']['PC-DOWNLOAD'] }}
+                                        span(ng-show="v['device']['PC-DOWNLOAD'] <= 0") 0
+                                        a(ng-show="v['device']['PC-DOWNLOAD'] > 0", ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayerDevice.periodText, 5)') {{ v['device']['PC-DOWNLOAD'] }}
+                                tr
+                                    td
+                                        span 平均值
+                                    td
+                                        span {{ vm.avgTotalDevice['avg'] }}
+                                    td
+                                        span {{ vm.avgTotalDevice['device']['WEB'] }}
+                                    td
+                                        span {{ vm.avgTotalDevice['device']['H5'] }}
+                                    td
+                                        span {{ vm.avgTotalDevice['device']['APP-ANDROID'] }}
+                                    td
+                                        span {{ vm.avgTotalDevice['device']['APP-IOS'] }}
+                                    td
+                                        span {{ vm.avgTotalDevice['device']['PC-DOWNLOAD'] }}
 
+
+#modalLoginDevice.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                span
+                    ul.nav.nav-tabs
+                        li
+                            label {{vm.selectedProposal.type.name | translate}}
+                        li.active
+                            a(data-toggle="tab", href="#ProposalDetail", ng-click="")
+                                .fa.fa-user
+                                | {{ 'DETAIL' | translate }}
+                        li(ng-if='vm.chartData')
+                            a(data-toggle="tab", href="#Workflow", ng-click="")
+                                .fa.fa-user
+                                | {{ 'WORKFLOW' | translate }}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .tab-content
+                            div
+                                table.table.table-striped.table-bordered
+                                    thead
+                                        th 排序编号
+                                        th 会员帐号
+                                        th 登入日期（随上表周期显示）
+                                        th 登入装置
+                                    tbody
+                                        tr(ng-repeat='(i, v) in vm.playerLoginRecords')
+                                            td {{ i+1 }}
+                                            td {{ v.player.name }}
+                                            td {{ v.loginTime | date:"yyyy-MM-dd"}}
+                                            td {{ vm.deviceType[v.inputDeviceType] }}
 
 
 p(ng-init="vm.loadPageFunc('LOGIN_PLAYER')")
