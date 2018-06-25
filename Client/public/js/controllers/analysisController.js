@@ -1989,7 +1989,65 @@ define(['js/app'], function (myApp) {
             }).sort(function (a, b) {
                 return b.data - a.data;
             })
-            socketService.$plotPie(placeholder, pieData, {}, '');
+            function labelFormatter(label, series) {
+                return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
+            }
+            socketService.$plotPie(placeholder, pieData, {
+                series: {
+                    pie: {
+                        show: true,
+                        radius: 1,
+                        //tilt: 0.5,
+                        label: {
+                            show: true,
+                            radius: 1,
+                            formatter: labelFormatter,
+                            background: {
+                                opacity: 0.80
+                            }
+                        },
+                        combine: {
+                            color: "#999",
+                            threshold: 0
+                        }
+                    }
+                },
+                grid: {
+                    hoverable: true,
+                    clickable: true
+                },
+                legend: {
+                    show: false
+                },
+                colors: [
+                    '#e6194b',
+                    '#3cb44b',
+                    '#ffe119',
+                    '#0082c8',
+                    '#f58231',
+                    '#911eb4',
+                    '#46f0f0',
+                    '#f032e6',
+                    '#d2f53c',
+                    '#fabebe',
+                    '#008080',
+                    '#10ff10',
+                    '#10ffbc',
+                    '#bc10ff',
+                    '#1010ff',
+                    '#c49102',
+                    '#e6beff',
+                    '#aa6e28',
+                    '#fffac8',
+                    '#800000',
+                    '#aaffc3',
+                    '#808000',
+                    '#ffd8b1',
+                    '#ff1010',
+                    '#000080',
+                    '#99ee34',
+                ],
+            }, '');
         };
         // manual approval rate end =====================================================
 

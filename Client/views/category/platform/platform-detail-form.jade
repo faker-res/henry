@@ -63,6 +63,10 @@ form(name="form_new_platform" ,novalidate)
                             text.span {{"ADVERTISEMENT" | translate}}
 
                 #customerServicePanel.panel-body(ng-if="vm.playerDisplayDataTab === 'customerServicePanel'", style="background-color: white;")
+                    div.col-md-12
+                        div.form-group.col-md-6(style="padding-left: 0px;")
+                            label.control-label {{"PLAYER'S CDN/FTP ROUTE SETTING" | translate}}
+                            input.form-control(type="text", placeholder="{{'CDN/FTP ROUTE SETTING' | translate}}", ng-model="vm.showPlatform.playerRouteSetting", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_EMAIL" | translate}} ({{"IMAGE_URL" | translate}})
                         table.simple-table.platformFrontEndDisplayTable
@@ -739,6 +743,10 @@ form(name="form_new_platform" ,novalidate)
                             text.span {{"ADVERTISEMENT" | translate}}
 
                 #partnerPanel.panel-body(ng-if="vm.partnerDisplayDataTab === 'partnerPanel'", style="background-color: white;")
+                    div.col-md-12
+                        div.form-group.col-md-6(style="padding-left: 0px;")
+                            label.control-label {{"PARTNER'S CDN/FTP ROUTE SETTING" | translate}}
+                            input.form-control(type="text", placeholder="{{'CDN/FTP ROUTE SETTING' | translate}}", ng-model="vm.showPlatform.partnerRouteSetting", ng-disabled="vm.isNotAllowEdit")
                     div.form-group.col-md-6
                         label.control-label {{"CUSTOMER_SERVICE_PARTNER_EMAIL" | translate}} ({{"IMAGE_URL" | translate}})
                         table.simple-table.platformFrontEndDisplayTable

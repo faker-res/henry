@@ -595,16 +595,17 @@ var dbPlayerConsumptionWeekSummary = {
                                         platform: playerData.platform._id
                                     }, {isConsumptionReturn: false}).then();
                                     return data;
-                                },
-                                error => {
-                                    //reset consumption return status
-                                    dbconfig.collection_players.findOneAndUpdate({
-                                        _id: playerData._id,
-                                        platform: playerData.platform._id
-                                    }, {isConsumptionReturn: false}).then();
-                                    return Promise.reject(error);
                                 }
                             );
+                        }
+                    ).catch(
+                        error => {
+                            //reset consumption return status
+                            dbconfig.collection_players.findOneAndUpdate({
+                                _id: playerData._id,
+                                platform: playerData.platform._id
+                            }, {isConsumptionReturn: false}).then();
+                            return Promise.reject(error);
                         }
                     );
                 }

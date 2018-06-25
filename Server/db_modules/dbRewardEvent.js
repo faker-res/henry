@@ -497,7 +497,9 @@ var dbRewardEvent = {
  
         let eventProm = dbconfig.collection_rewardEvent.findOne({code: eventCode}).lean();
 
-        return Promise.all([platformProm, eventProm]).then(
+        let rewardTypesProm = dbconfig.collection_rewardType.find({isGrouped: true}).lean();
+
+        return Promise.all([platformProm, eventProm, rewardTypesProm]).then(
             data => {
                 if (!data) {
                     return Promise.reject({
@@ -508,6 +510,7 @@ var dbRewardEvent = {
 
                 let platform = data[0];
                 let event = data[1];
+                let rewardTypes = data[2] || [];
 
                 if (!platform) {
                     return Promise.reject({
@@ -523,6 +526,8 @@ var dbRewardEvent = {
                     });
                 }
 
+                let settleTime =  getIntervalPeriodFromEvent(event, getIntervalPeriodFromEvent(event).startTime.setMinutes(getIntervalPeriodFromEvent(event).startTime.getMinutes() - 10));
+
                 if (event && event.condition && ["1", "2", "3", "4"].includes(event.condition.interval)) {
                     let currentPeriodStartTime = getIntervalPeriodFromEvent(event).startTime;
                     applyTargetDate = currentPeriodStartTime.setMinutes(currentPeriodStartTime.getMinutes() - 10);
@@ -532,28 +537,110 @@ var dbRewardEvent = {
                     applyTargetDate = validEndTime.setMinutes(validEndTime.getMinutes() - 10);
                 }
 
-                let stream = dbconfig.collection_players.find({platform: platformObjId}).cursor({batchSize: 10});
+                let streamProm;
+                let rewardTypeName = {};
+                if (rewardTypes && rewardTypes.length > 0) {
+                    rewardTypes.map(rewardType => {
+                        switch (rewardType.name) {
+                            case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
+                            case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
+                            case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
+                            case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
+                                rewardTypeName[String(rewardType._id)] = rewardType.name;
+                        }
+                    });
+                }
 
-                let balancer = new SettlementBalancer();
-                return balancer.initConns().then(function () {
-                    return Q(
-                        balancer.processStream(
-                            {
-                                stream: stream,
-                                batchSize: constSystemParam.BATCH_SIZE,
-                                makeRequest: function (players, request) {
-                                    request("player", "bulkPlayerApplyReward", {
-                                        playerIdArray: players.map(function (playerIdObj) {
-                                            return playerIdObj.playerId;
-                                        }),
-                                        eventCode,
-                                        applyTargetDate
-                                    });
-                                }
+                let aggregateParam = [
+                    {
+                        $match: {
+                            platformId: platform._id,
+                            createTime: {$gte: settleTime.startTime, $lt: settleTime.endTime}
+                        }
+                    },
+                    {
+                        $group: {_id: '$playerId'}
+                    }
+                ];
+
+                switch (rewardTypeName[String(event.type)]) {
+                    case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
+                        // need top up
+                        streamProm = dbconfig.collection_playerTopUpRecord.aggregate(aggregateParam).then(
+                            players => {
+                                let playerObjIds = [];
+                                players.map(player => {
+                                    playerObjIds.push(player._id);
+                                });
+                                return dbconfig.collection_players.find({_id: {$in: playerObjIds}}, {playerId: 1}).cursor({batchSize: 10});
                             }
-                        )
-                    );
-                });
+                        );
+                        break;
+                    case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
+                    case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
+                        // need consumption
+                        streamProm = dbconfig.collection_playerConsumptionRecord.aggregate(aggregateParam).then(
+                            players => {
+                                let playerObjIds = [];
+                                players.map(player => {
+                                    playerObjIds.push(player._id);
+                                });
+                                return dbconfig.collection_players.find({_id: {$in: playerObjIds}}, {playerId: 1}).cursor({batchSize: 10});
+                            }
+                        );
+                        break;
+                    case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
+                        // need either consumption or top up
+                        let consumptionPlayerProm = dbconfig.collection_playerConsumptionRecord.aggregate(aggregateParam);
+                        let topUpPlayerProm = dbconfig.collection_playerTopUpRecord.aggregate(aggregateParam);
+
+                        streamProm = Promise.all([consumptionPlayerProm, topUpPlayerProm]).then(
+                            data => {
+                                let consumptionPlayers, topUpPlayers;
+                                ([consumptionPlayers, topUpPlayers] = data);
+
+                                let playerObjIds = [];
+                                consumptionPlayers.map(player => {
+                                    playerObjIds.push(String(player._id));
+                                });
+                                topUpPlayers.map(player => {
+                                    playerObjIds.push(String(player._id));
+                                });
+
+                                playerObjIds = Array.from(new Set(playerObjIds)); // remove duplicated values
+                                return dbconfig.collection_players.find({_id: {$in: playerObjIds}}, {playerId: 1}).cursor({batchSize: 10});
+                            }
+                        );
+
+                        break;
+                    default:
+                        streamProm = Promise.resolve(dbconfig.collection_players.find({platform: platformObjId}).cursor({batchSize: 10}));
+                }
+
+                streamProm.then(
+                    stream => {
+                        let balancer = new SettlementBalancer();
+                        return balancer.initConns().then(function () {
+                            return Q(
+                                balancer.processStream(
+                                    {
+                                        stream: stream,
+                                        batchSize: constSystemParam.BATCH_SIZE,
+                                        makeRequest: function (players, request) {
+                                            request("player", "bulkPlayerApplyReward", {
+                                                playerIdArray: players.map(function (playerIdObj) {
+                                                    return playerIdObj.playerId;
+                                                }),
+                                                eventCode,
+                                                applyTargetDate
+                                            });
+                                        }
+                                    }
+                                )
+                            );
+                        });
+                    }
+                );
             }
         );
     },
