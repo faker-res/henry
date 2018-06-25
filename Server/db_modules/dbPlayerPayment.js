@@ -215,7 +215,7 @@ const dbPlayerPayment = {
                     let proposalQuery = {
                         'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
                         'data.platformId': {$in: [ObjectId(playerObj.platform._id), String(playerObj.platform._id)]},
-                        'data.depositMethod': {$in: [depositMethod, parseInt(playerObj._id)]},
+                        'data.depositMethod': {$in: [depositMethod, parseInt(depositMethod)]},
                     };
 
                     return dbconfig.collection_proposalType.findOne({

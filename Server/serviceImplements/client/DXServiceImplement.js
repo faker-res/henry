@@ -4,6 +4,7 @@ var dbDxMission = require('./../../db_modules/dbDXMission');
 var constServerCode = require('./../../const/constServerCode');
 const uaParser = require('ua-parser-js');
 const geoip = require('geoip-lite');
+const dbutility = require('./../../modules/dbutility');
 
 var DXMissionServiceImplement = function () {
     DXMissionService.call(this);
@@ -46,15 +47,16 @@ var DXMissionServiceImplement = function () {
         }
         var loginIps = [lastLoginIp];
 
-        var country, city, longitude, latitude;
-        var geo = geoip.lookup(data.lastLoginIp);
+        var country, city, province, longitude, latitude;
+        var geo = dbutility.getIpLocationByIPIPDotNet(lastLoginIp);
         if (geo) {
             country = geo.country;
             city = geo.city;
+            province = geo.province;
             longitude = geo.ll ? geo.ll[1] : null;
             latitude = geo.ll ? geo.ll[0] : null;
         }
-        var deviceData = {userAgent, lastLoginIp, loginIps, country, city, longitude, latitude};
+        var deviceData = {userAgent, lastLoginIp, loginIps, country, city, province, longitude, latitude};
 
         if (data.domain) {
             data.domain = data.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
