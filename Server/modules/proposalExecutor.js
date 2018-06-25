@@ -801,8 +801,8 @@ var proposalExecutor = {
             executeUpdatePartnerBankInfo: function (proposalData, deferred) {
                 //data validation
                 //todo::update by using partner name for now since it is unique
-                if (proposalData && proposalData.data && proposalData.data.partnerName && proposalData.data.updateData) {
-                    dbconfig.collection_partner.findOne({partnerName: proposalData.data.partnerName}).then(
+                if (proposalData && proposalData.data && proposalData.data.partnerName && proposalData.data.updateData && proposalData.data.platformId) {
+                    dbconfig.collection_partner.findOne({partnerName: proposalData.data.partnerName, platform: proposalData.data.platformId}).then(
                         function (data) {
                             if (data) {
                                 var partnerUpdate = Object.assign({}, proposalData.data);
