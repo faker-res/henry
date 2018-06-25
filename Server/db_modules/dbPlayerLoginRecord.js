@@ -52,7 +52,7 @@ var dbPlayerLoginRecord = {
             loginTime: {$gte: dayStartTime, $lt: dayEndTime},
             inputDeviceType: type
         };
-        
+
         return dbconfig.collection_playerLoginRecord.find(matchObj, {'loginTime':1, 'player':1, 'inputDeviceType':1})
                 .populate({path: 'player', model: dbconfig.collection_players})
 
@@ -249,7 +249,7 @@ var dbPlayerLoginRecord = {
 
                         }
                     }]
-                )
+                ).read("secondaryPreferred")
             playerLoginProms.push(playerProm);
 
             var deviceProm = dbconfig.collection_playerLoginRecord.aggregate(
@@ -270,7 +270,7 @@ var dbPlayerLoginRecord = {
                         loginTime:{ $dateToString: { format: "%Y-%m-%d", date: "$loginTime" } }
 
                     }
-                }])
+                }]).read("secondaryPreferred")
 
             deviceLoginProms.push(deviceProm)
 

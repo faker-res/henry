@@ -3621,7 +3621,7 @@ define(['js/app'], function (myApp) {
                     vm.avgTotalDevice = { avg:0, device:{ 'WEB':0,'H5':0, 'APP-ANDROID':0,'APP-IOS':0,'PC-DOWNLOAD':0 } };
                     vm.avgPlayerLogin = 0;
 
-                    vm.platformLoginPlayerDeviceAnalysisData = data1;
+                    vm.platformLoginPlayerDeviceAnalysisData = data1.data;
                     var data = vm.sumTotalDeviceType(data1, true);
                     var pieData = []
                     Object.keys(data).forEach(item=>{
@@ -3649,7 +3649,7 @@ define(['js/app'], function (myApp) {
         };
         // login player device end
 
-        // calculate the (avg/sum) of (playerlogin/devicelogin) times 
+        // calculate the (avg/sum) of (playerlogin/devicelogin) times
         vm.sumTotalDeviceType = function(data, isPieChart){
             let dataList = {
               'WEB':0,
