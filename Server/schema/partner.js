@@ -257,9 +257,9 @@ var partnerPostFindUpdate = function (result, bOne) {
         }
 
         //temp disable bankaccount encode for partner
-        // if (!bOne && result && result.bankAccount) {
-        //     result.bankAccount = dbUtil.encodeBankAcc(result.bankAccount);
-        // }
+        if (!bOne && result && result.bankAccount) {
+            result.bankAccount = dbUtil.encodeBankAcc(result.bankAccount);
+        }
 
         //hide last 4 digits for qq
         if (result && result.qq) {
