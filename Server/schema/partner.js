@@ -299,7 +299,6 @@ partnerSchema.post('find', function(result) {
 
 partnerSchema.post('findOne', function (result) {
     partnerPostFindUpdate(result, true);
-    return result;
 });
 
 partnerSchema.pre('save', function (next) {
