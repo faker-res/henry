@@ -256,9 +256,10 @@ var partnerPostFindUpdate = function (result, bOne) {
             result.email = emailParts.join('@');
         }
 
-        if (!bOne && result && result.bankAccount) {
-            result.bankAccount = dbUtil.encodeBankAcc(result.bankAccount);
-        }
+        //temp disable bankaccount encode for partner
+        // if (!bOne && result && result.bankAccount) {
+        //     result.bankAccount = dbUtil.encodeBankAcc(result.bankAccount);
+        // }
 
         //hide last 4 digits for qq
         if (result && result.qq) {
