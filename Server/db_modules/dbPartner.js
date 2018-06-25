@@ -7455,14 +7455,14 @@ let dbPartner = {
 
                                     return {
                                         date: startTime,
-                                        activeCrewNumber: activePlayerSummary.totalActiveCrew || 0,
+                                        activeCrewNumbers: activePlayerSummary.totalActiveCrew || 0,
                                         startIndex: startIndex,
                                         list: (isNeedDetails === true || isNeedDetails === "true") ? relevantCrews.slice(startIndex, startIndex + count) : []
                                     }
                                 }else{
                                     return {
                                         date: startTime,
-                                        activeCrewNumber: 0,
+                                        activeCrewNumbers: 0,
                                         startIndex: startIndex,
                                         list: []
                                     }
@@ -7499,14 +7499,14 @@ let dbPartner = {
 
                                     return {
                                         date: startTime,
-                                        activeCrewNumber: activePlayerSummary.totalActiveCrew || 0,
+                                        activeCrewNumbers: activePlayerSummary.totalActiveCrew || 0,
                                         startIndex: startIndex,
                                         list: (isNeedDetails === true || isNeedDetails === "true") ? relevantCrews.slice(startIndex, startIndex + count) : []
                                     }
                                 }else{
                                     return {
                                         date: startTime,
-                                        activeCrewNumber: 0,
+                                        activeCrewNumbers: 0,
                                         startIndex: startIndex,
                                         list: []
                                     }
