@@ -10272,6 +10272,9 @@ let dbPlayerInfo = {
                             }
                         ).then(
                             updateProposal => {
+                                // Debug credit missing after top up issue
+                                console.log('updatePlayerTopupProposal updateProposal', updateProposal);
+
                                 if (updateProposal && updateProposal.status != constProposalStatus.SUCCESS
                                     && updateProposal.status != constProposalStatus.FAIL) {
                                     return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
