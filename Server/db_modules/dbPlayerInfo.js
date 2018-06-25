@@ -6396,13 +6396,15 @@ let dbPlayerInfo = {
                         rewardEventItem.platformId = platformId;
 
                         let imageUrlArr = [];
-                        if (rewardEventItem && rewardEventItem.param && rewardEventItem.param.imageUrl && rewardEventItem.param.imageUrl.length > 0) {
+                        if (rewardEventItem && rewardEventItem.param && rewardEventItem.param.imageUrl
+                            && typeof rewardEventItem.param.imageUrl != 'string' && rewardEventItem.param.imageUrl.length > 0) {
                             rewardEventItem.param.imageUrl.forEach(imageUrlString => {
                                 imageUrlArr.push(checkRouteSetting(imageUrlString, routeSetting));
                             })
                             rewardEventItem.param.imageUrl = imageUrlArr;
 
-                        } else if (rewardEventItem && rewardEventItem.condition && rewardEventItem.condition.imageUrl && rewardEventItem.condition.imageUrl.length > 0) {
+                        } else if (rewardEventItem && rewardEventItem.condition && rewardEventItem.condition.imageUrl
+                            && typeof rewardEventItem.condition.imageUrl != 'string' && rewardEventItem.condition.imageUrl.length > 0) {
                             rewardEventItem.condition.imageUrl.forEach(imageUrlString => {
                                 imageUrlArr.push(checkRouteSetting(imageUrlString, routeSetting));
                             })
@@ -10270,6 +10272,9 @@ let dbPlayerInfo = {
                             }
                         ).then(
                             updateProposal => {
+                                // Debug credit missing after top up issue
+                                console.log('updatePlayerTopupProposal updateProposal', updateProposal);
+
                                 if (updateProposal && updateProposal.status != constProposalStatus.SUCCESS
                                     && updateProposal.status != constProposalStatus.FAIL) {
                                     return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
@@ -15304,7 +15309,14 @@ let dbPlayerInfo = {
                 message: "Generate dian xiao code failure."
             })
         }
-        let randomString = Math.random().toString(36).substring(4, 11); // generate random String
+        let randomString = Math.random().toString(36).substring(4, 9); // generate random String
+        if (randomString && randomString.charAt(0) == "p") {
+            let text = "";
+            let possible = "abcdefghijklmnoqrstuvwxyz0123456789";
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+            randomString = text + randomString.substr(1, randomString.length);
+        }
+
         let dxCode = "";
 
         let platformProm = Promise.resolve({platformId: platformId});

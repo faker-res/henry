@@ -7401,17 +7401,9 @@ let dbPartner = {
         )
     },
 
-    getCrewActiveInfo: (platformId, partnerId, periodCycle, circleTimes, startDate, endDate, needsDetail, detailCircle, startIndex, count) => {
+    getCrewActiveInfo: (platformId, partnerId, periodCycle, circleTimes, startDate, endDate, needsDetail= true, detailCircle = 0, startIndex = 0, count = 10) => {
         if (!circleTimes && !(periodCycle == 1 && startDate && endDate)) {
             return {};
-        }
-
-        if(!startIndex){
-            startIndex = 0;
-        }
-
-        if(!count){
-            count = 10;
         }
 
         circleTimes = circleTimes > 30 ? 30 : circleTimes;
@@ -7420,7 +7412,7 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return getPartnerCrewsData(platformId, partnerId, null, null, startIndex, count, needsDetail, detailCircle, startIndex, count).then(
+        return getPartnerCrewsData(platformId, partnerId, null, null).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7432,7 +7424,6 @@ let dbPartner = {
                 let outputProms = [];
                 let prom;
                 let detailCircleCount = 0;
-                let needsDetailCheck = true;
 
                 if(periodCycle == 1 && !circleTimes){
                     startDate = new Date(startDate);
@@ -7443,28 +7434,37 @@ let dbPartner = {
                         let endTime = dbUtil.getDayStartTime(new Date(startTime));
                         endTime.setDate(startTime.getDate() + 1);
 
-                        if(typeof detailCircle != 'undefined'){
-                            if(detailCircleCount <= detailCircle){
-                                needsDetailCheck = true;
-                                detailCircleCount ++;
-                            }else{
-                                needsDetailCheck = false;
-                            }
+                        if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
+                            needsDetail = true;
+                            detailCircleCount ++;
                         }else{
-                            if(typeof needsDetail != "undefined"){
-                                needsDetailCheck = needsDetail
-                            }else{
-                                needsDetailCheck = true;
-                            }
+                            needsDetail = false;
                         }
 
-                        prom = getCrewsInfo(downLines, startTime, endTime, activePlayerRequirement, null, needsDetailCheck, "getCrewActiveInfo").then(
+                        prom = getCrewsInfo(downLines, startTime, endTime, activePlayerRequirement, null, needsDetail, "getCrewActiveInfo", platformId, partnerId).then(
                             playerActiveDetails => {
-                                return {
-                                    date: startTime,
-                                    activeCrewNumbers: getActiveDownLineCount(playerActiveDetails),
-                                    startIndex: startIndex,
-                                    list: playerActiveDetails[0] && playerActiveDetails[0].needsDetail && (playerActiveDetails[0].needsDetail === true || playerActiveDetails[0].needsDetail === "true") ? playerActiveDetails.filter(player => player.active) : []
+                                if(playerActiveDetails && playerActiveDetails.length > 1){
+                                    let activePlayerSummary = playerActiveDetails[0];
+                                    let relevantCrews = playerActiveDetails[1];
+                                    let isNeedDetails = needsDetail;
+                                    if(relevantCrews && relevantCrews.length > 0){
+                                        relevantCrews = relevantCrews.filter(player => player.active);
+                                        isNeedDetails = relevantCrews[0] && relevantCrews[0].needsDetail ||  needsDetail;
+                                    }
+
+                                    return {
+                                        date: startTime,
+                                        activeCrewNumbers: activePlayerSummary.totalActiveCrew || 0,
+                                        startIndex: startIndex,
+                                        list: (isNeedDetails === true || isNeedDetails === "true") ? relevantCrews.slice(startIndex, startIndex + count) : []
+                                    }
+                                }else{
+                                    return {
+                                        date: startTime,
+                                        activeCrewNumbers: 0,
+                                        startIndex: startIndex,
+                                        list: []
+                                    }
                                 }
                             }
                         );
@@ -7477,28 +7477,38 @@ let dbPartner = {
                         let startTime = new Date(nextPeriod.startTime);
                         let endTime = new Date(nextPeriod.endTime);
 
-                        if(typeof detailCircle != 'undefined'){
-                            if(detailCircleCount <= detailCircle){
-                                needsDetailCheck = true;
-                                detailCircleCount ++;
-                            }else{
-                                needsDetailCheck = false;
-                            }
+                        if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
+                            needsDetail = true;
+                            detailCircleCount ++;
                         }else{
-                            if(typeof needsDetail != "undefined"){
-                                needsDetailCheck = needsDetail
-                            }else{
-                                needsDetailCheck = true;
-                            }
+                            needsDetail = false;
                         }
 
-                        prom = getCrewsInfo(downLines, startTime, endTime, activePlayerRequirement, null, needsDetailCheck, "getCrewActiveInfo").then(
+                        prom = getCrewsInfo(downLines, startTime, endTime, activePlayerRequirement, null, needsDetail, "getCrewActiveInfo", platformId, partnerId).then(
                             playerActiveDetails => {
-                                return {
-                                    date: startTime,
-                                    activeCrewNumbers: getActiveDownLineCount(playerActiveDetails),
-                                    startIndex: startIndex,
-                                    list: playerActiveDetails[0] && playerActiveDetails[0].needsDetail && (playerActiveDetails[0].needsDetail === true || playerActiveDetails[0].needsDetail === "true") ? playerActiveDetails.filter(player => player.active) : []
+                                if(playerActiveDetails && playerActiveDetails.length > 1){
+                                    let activePlayerSummary = playerActiveDetails[0];
+                                    let relevantCrews = playerActiveDetails[1];
+                                    let isNeedDetails = needsDetail;
+
+                                    if(relevantCrews && relevantCrews.length > 0){
+                                        relevantCrews = relevantCrews.filter(player => player.active);
+                                        isNeedDetails = relevantCrews[0] && relevantCrews[0].needsDetail ||  needsDetail;
+                                    }
+
+                                    return {
+                                        date: startTime,
+                                        activeCrewNumbers: activePlayerSummary.totalActiveCrew || 0,
+                                        startIndex: startIndex,
+                                        list: (isNeedDetails === true || isNeedDetails === "true") ? relevantCrews.slice(startIndex, startIndex + count) : []
+                                    }
+                                }else{
+                                    return {
+                                        date: startTime,
+                                        activeCrewNumbers: 0,
+                                        startIndex: startIndex,
+                                        list: []
+                                    }
                                 }
                             }
                         );
@@ -7512,17 +7522,9 @@ let dbPartner = {
         );
     },
 
-    getCrewDepositInfo: (platformId, partnerId, periodCycle, circleTimes, playerId, startDate, endDate, crewAccount, needsDetail, detailCircle, startIndex, count) => {
+    getCrewDepositInfo: (platformId, partnerId, periodCycle, circleTimes, playerId, startDate, endDate, crewAccount, needsDetail= true, detailCircle = 0, startIndex = 0, count = 10) => {
         if (!circleTimes && !(periodCycle == 1 && startDate && endDate)) {
             return {};
-        }
-
-        if(!startIndex){
-            startIndex = 0;
-        }
-
-        if(!count){
-            count = 10;
         }
 
         circleTimes = circleTimes > 30 ? 30 : circleTimes;
@@ -7531,7 +7533,7 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount, startIndex, count).then(
+        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7539,7 +7541,6 @@ let dbPartner = {
                 let outputProms = [];
                 let prom;
                 let detailCircleCount = 0;
-                let needsDetailCheck = true;
 
                 if(periodCycle == 1 && !circleTimes){
                     startDate = new Date(startDate);
@@ -7551,44 +7552,45 @@ let dbPartner = {
                         endTime.setDate(startTime.getDate() + 1);
 
                         if(playerId || crewAccount) {
-                            needsDetailCheck = true;
-                        }else if(typeof detailCircle != 'undefined'){
-                            if(detailCircleCount <= detailCircle){
-                                needsDetailCheck = true;
-                                detailCircleCount ++;
-                            }else{
-                                needsDetailCheck = false;
-                            }
+                            needsDetail = true;
+                        }else if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
+                            needsDetail = true;
+                            detailCircleCount ++;
                         }else{
-                            if(typeof needsDetail != "undefined"){
-                                needsDetailCheck = needsDetail
-                            }else{
-                                needsDetailCheck = true;
-                            }
+                            needsDetail = false;
                         }
 
-
-                        prom = getCrewsInfo(downLines, startTime, endTime, null, null, needsDetailCheck, "getCrewDepositInfo").then(
+                        prom = getCrewsInfo(downLines, startTime, endTime, null, null, needsDetail, "getCrewDepositInfo", platformId, partnerId).then(
                             playerDetails => {
-                                let relevantCrews = playerDetails.filter(player => player.depositAmount);
-                                let count = 0;
-                                let totalDepositAmount = 0;
+                                if(playerDetails && playerDetails.length > 1){
+                                    let topUpSummary = playerDetails[0];
+                                    let relevantCrews = playerDetails[1];
+                                    let isNeedDetails = needsDetail;
 
-                                relevantCrews.map(player => {
-                                    count++;
-                                    totalDepositAmount += player.depositAmount;
-                                })
+                                    if(relevantCrews && relevantCrews.length > 0){
+                                        relevantCrews = relevantCrews.filter(crew => crew.depositAmount);
+                                        isNeedDetails = relevantCrews[0] && relevantCrews[0].needsDetail ||  needsDetail;
+                                    }
 
-                                if((playerId || crewAccount) && relevantCrews.length <= 0){
-                                    relevantCrews = playerDetails
-                                }
+                                    if((playerId || crewAccount) && relevantCrews.length <= 0){
+                                        relevantCrews = playerDetails[1];
+                                    }
 
-                                return {
-                                    date: startTime,
-                                    depositCrewNumber: count,
-                                    totalDepositAmount: totalDepositAmount,
-                                    startIndex: startIndex,
-                                    list: playerDetails[0] && playerDetails[0].needsDetail && (playerDetails[0].needsDetail === true || playerDetails[0].needsDetail === "true") ? relevantCrews : []
+                                    return {
+                                        date: startTime,
+                                        depositCrewNumber: topUpSummary && topUpSummary.totalDepositCrew ? topUpSummary.totalDepositCrew : 0,
+                                        totalDepositAmount: topUpSummary && topUpSummary.totalDepositAmount ? topUpSummary.totalDepositAmount : 0,
+                                        startIndex: startIndex,
+                                        list: (isNeedDetails === true || isNeedDetails === "true") ? relevantCrews.slice(startIndex, startIndex + count) : []
+                                    }
+                                }else{
+                                    return {
+                                        date: startTime,
+                                        depositCrewNumber: 0,
+                                        totalDepositAmount: 0,
+                                        startIndex: startIndex,
+                                        list: []
+                                    }
                                 }
                             }
                         );
@@ -7602,43 +7604,45 @@ let dbPartner = {
                         let endTime = new Date(nextPeriod.endTime);
 
                         if(playerId || crewAccount) {
-                            needsDetailCheck = true;
-                        }else if(typeof detailCircle != 'undefined'){
-                            if(detailCircleCount <= detailCircle){
-                                needsDetailCheck = true;
-                                detailCircleCount ++;
-                            }else{
-                                needsDetailCheck = false;
-                            }
+                            needsDetail = true;
+                        }else if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
+                            needsDetail = true;
+                            detailCircleCount ++;
                         }else{
-                            if(typeof needsDetail != "undefined"){
-                                needsDetailCheck = needsDetail
-                            }else{
-                                needsDetailCheck = true;
-                            }
+                            needsDetail = false;
                         }
 
-                        prom = getCrewsInfo(downLines, startTime, endTime, null, null, needsDetailCheck, "getCrewDepositInfo").then(
+                        prom = getCrewsInfo(downLines, startTime, endTime, null, null, needsDetail, "getCrewDepositInfo", platformId, partnerId).then(
                             playerDetails => {
-                                let relevantCrews = playerDetails.filter(player => player.depositAmount);
-                                let count = 0;
-                                let totalDepositAmount = 0;
+                                if(playerDetails && playerDetails.length > 1){
+                                    let topUpSummary = playerDetails[0];
+                                    let relevantCrews = playerDetails[1];
+                                    let isNeedDetails = needsDetail;
 
-                                relevantCrews.map(player => {
-                                    count++;
-                                    totalDepositAmount += player.depositAmount;
-                                })
+                                    if(relevantCrews && relevantCrews.length > 0){
+                                        relevantCrews = relevantCrews.filter(crew => crew.depositAmount);
+                                        isNeedDetails = relevantCrews[0] && relevantCrews[0].needsDetail ||  needsDetail;
+                                    }
 
-                                if(playerId && relevantCrews.length <= 0){
-                                    relevantCrews = playerDetails
-                                }
+                                    if((playerId || crewAccount) && relevantCrews.length <= 0){
+                                        relevantCrews = playerDetails[1];
+                                    }
 
-                                return {
-                                    date: startTime,
-                                    depositCrewNumber: count,
-                                    totalDepositAmount: totalDepositAmount,
-                                    startIndex: startIndex,
-                                    list: playerDetails[0] && playerDetails[0].needsDetail && (playerDetails[0].needsDetail === true || playerDetails[0].needsDetail === "true") ? relevantCrews : []
+                                    return {
+                                        date: startTime,
+                                        depositCrewNumber: topUpSummary && topUpSummary.totalDepositCrew ? topUpSummary.totalDepositCrew : 0,
+                                        totalDepositAmount: topUpSummary && topUpSummary.totalDepositAmount ? topUpSummary.totalDepositAmount : 0,
+                                        startIndex: startIndex,
+                                        list: (isNeedDetails === true || isNeedDetails === "true") ? relevantCrews.slice(startIndex, startIndex + count) : []
+                                    }
+                                }else{
+                                    return {
+                                        date: startTime,
+                                        depositCrewNumber: 0,
+                                        totalDepositAmount: 0,
+                                        startIndex: startIndex,
+                                        list: []
+                                    }
                                 }
                             }
                         );
@@ -7653,21 +7657,9 @@ let dbPartner = {
         );
     },
 
-    getCrewWithdrawInfo: (platformId, partnerId, periodCycle, circleTimes, playerId, startDate, endDate, crewAccount, needsDetail, detailCircle, startIndex, count) => {
+    getCrewWithdrawInfo: (platformId, partnerId, periodCycle, circleTimes, playerId, startDate, endDate, crewAccount, needsDetail= true, detailCircle = 0, startIndex = 0, count = 10) => {
         if (!circleTimes && !(periodCycle == 1 && startDate && endDate)) {
             return {};
-        }
-
-        if(!startIndex){
-            startIndex = 0;
-        }
-
-        if(!count){
-            count = 10;
-        }
-
-        if(typeof needsDetail == "undefined"){
-            needsDetail = true;
         }
 
         circleTimes = circleTimes > 30 ? 30 : circleTimes;
@@ -7676,7 +7668,7 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount, startIndex, count).then(
+        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7684,7 +7676,6 @@ let dbPartner = {
                 let outputProms = [];
                 let prom;
                 let detailCircleCount = 0;
-                let needsDetailCheck = true;
 
                 if(periodCycle == 1 && !circleTimes){
                     startDate = new Date(startDate);
@@ -7696,42 +7687,45 @@ let dbPartner = {
                         endTime.setDate(startTime.getDate() + 1);
 
                         if(playerId || crewAccount) {
-                            needsDetailCheck = true;
-                        }else if(typeof detailCircle != 'undefined'){
-                            if(detailCircleCount <= detailCircle){
-                                needsDetailCheck = true;
-                                detailCircleCount ++;
-                            }else{
-                                needsDetailCheck = false;
-                            }
+                            needsDetail = true;
+                        }else if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
+                            needsDetail = true;
+                            detailCircleCount ++;
                         }else{
-                            if(typeof needsDetail != "undefined"){
-                                needsDetailCheck = needsDetail
-                            }else{
-                                needsDetailCheck = true;
-                            }
+                            needsDetail = false;
                         }
 
-                        prom = getCrewsInfo(downLines, startTime, endTime, null, null, needsDetailCheck, "getCrewWithdrawInfo").then(
+                        prom = getCrewsInfo(downLines, startTime, endTime, null, null, needsDetail, "getCrewWithdrawInfo", platformId, partnerId).then(
                             playerDetails => {
-                                let relevantCrews = playerDetails.filter(player => player.withdrawAmount);
-                                let count = 0;
-                                let totalWithdrawAmount = 0;
-                                relevantCrews.map(player => {
-                                    count++;
-                                    totalWithdrawAmount += player.withdrawAmount;
-                                });
+                                if(playerDetails && playerDetails.length > 1){
+                                    let withdrawalSummary = playerDetails[0];
+                                    let relevantCrews = playerDetails[1];
+                                    let isNeedDetails = needsDetail;
 
-                                if ((playerId || crewAccount) && relevantCrews.length <= 0) {
-                                    relevantCrews = playerDetails
-                                }
+                                    if(relevantCrews && relevantCrews.length > 0){
+                                        relevantCrews = relevantCrews.filter(crew => crew.withdrawAmount);
+                                        isNeedDetails = relevantCrews[0] && relevantCrews[0].needsDetail ||  needsDetail;
+                                    }
 
-                                return {
-                                    date: startTime,
-                                    withdrawCrewNumbers: count,
-                                    totalWithdrawAmount: totalWithdrawAmount,
-                                    startIndex: startIndex,
-                                    list: playerDetails[0] && playerDetails[0].needsDetail && (playerDetails[0].needsDetail === true || playerDetails[0].needsDetail === "true") ? relevantCrews : []
+                                    if((playerId || crewAccount) && relevantCrews.length <= 0){
+                                        relevantCrews = playerDetails[1];
+                                    }
+
+                                    return {
+                                        date: startTime,
+                                        withdrawCrewNumbers: withdrawalSummary && withdrawalSummary.totalWithdrawCrew ? withdrawalSummary.totalWithdrawCrew : 0,
+                                        totalWithdrawAmount: withdrawalSummary && withdrawalSummary.totalWithdrawAmount ? withdrawalSummary.totalWithdrawAmount : 0,
+                                        startIndex: startIndex,
+                                        list: (isNeedDetails === true || isNeedDetails === "true") ? relevantCrews.slice(startIndex, startIndex + count) : []
+                                    }
+                                }else{
+                                    return {
+                                        date: startTime,
+                                        withdrawCrewNumbers: 0,
+                                        totalWithdrawAmount: 0,
+                                        startIndex: startIndex,
+                                        list: []
+                                    }
                                 }
                             }
                         );
@@ -7744,42 +7738,45 @@ let dbPartner = {
                         let endTime = new Date(nextPeriod.endTime);
 
                         if(playerId || crewAccount) {
-                            needsDetailCheck = true;
-                        }else if(typeof detailCircle != 'undefined'){
-                            if(detailCircleCount <= detailCircle){
-                                needsDetailCheck = true;
-                                detailCircleCount ++;
-                            }else{
-                                needsDetailCheck = false;
-                            }
+                            needsDetail = true;
+                        }else if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
+                            needsDetail = true;
+                            detailCircleCount ++;
                         }else{
-                            if(typeof needsDetail != "undefined"){
-                                needsDetailCheck = needsDetail
-                            }else{
-                                needsDetailCheck = true;
-                            }
+                            needsDetail = false;
                         }
 
-                        prom = getCrewsInfo(downLines, startTime, endTime, null, null, needsDetailCheck, "getCrewWithdrawInfo").then(
+                        prom = getCrewsInfo(downLines, startTime, endTime, null, null, needsDetail, "getCrewWithdrawInfo", platformId, partnerId).then(
                             playerDetails => {
-                                let relevantCrews = playerDetails.filter(player => player.withdrawAmount);
-                                let count = 0;
-                                let totalWithdrawAmount = 0;
-                                relevantCrews.map(player => {
-                                    count++;
-                                    totalWithdrawAmount += player.withdrawAmount;
-                                });
+                                if(playerDetails && playerDetails.length > 1){
+                                    let withdrawalSummary = playerDetails[0];
+                                    let relevantCrews = playerDetails[1];
+                                    let isNeedDetails = needsDetail;
 
-                                if (playerId && relevantCrews.length <= 0) {
-                                    relevantCrews = playerDetails
-                                }
+                                    if(relevantCrews && relevantCrews.length > 0){
+                                        relevantCrews = relevantCrews.filter(crew => crew.withdrawAmount);
+                                        isNeedDetails = relevantCrews[0] && relevantCrews[0].needsDetail ||  needsDetail;
+                                    }
 
-                                return {
-                                    date: startTime,
-                                    withdrawCrewNumbers: count,
-                                    totalWithdrawAmount: totalWithdrawAmount,
-                                    startIndex: startIndex,
-                                    list: playerDetails[0] && playerDetails[0].needsDetail && (playerDetails[0].needsDetail === true || playerDetails[0].needsDetail === "true") ? relevantCrews : []
+                                    if((playerId || crewAccount) && relevantCrews.length <= 0){
+                                        relevantCrews = playerDetails[1];
+                                    }
+
+                                    return {
+                                        date: startTime,
+                                        withdrawCrewNumbers: withdrawalSummary && withdrawalSummary.totalWithdrawCrew ? withdrawalSummary.totalWithdrawCrew : 0,
+                                        totalWithdrawAmount: withdrawalSummary && withdrawalSummary.totalWithdrawAmount ? withdrawalSummary.totalWithdrawAmount : 0,
+                                        startIndex: startIndex,
+                                        list: (isNeedDetails === true || isNeedDetails === "true") ? relevantCrews.slice(startIndex, startIndex + count) : []
+                                    }
+                                }else{
+                                    return {
+                                        date: startTime,
+                                        withdrawCrewNumbers: 0,
+                                        totalWithdrawAmount: 0,
+                                        startIndex: startIndex,
+                                        list: []
+                                    }
                                 }
                             }
                         );
@@ -7934,17 +7931,9 @@ let dbPartner = {
         )
     },
 
-    getCrewBetInfo: (platformId, partnerId, periodCycle, circleTimes, providerGroupId, playerId, startDate, endDate, crewAccount, needsDetail, detailCircle, startIndex, count) => {
+    getCrewBetInfo: (platformId, partnerId, periodCycle, circleTimes, providerGroupId, playerId, startDate, endDate, crewAccount, needsDetail= true, detailCircle = 0, startIndex = 0, count = 10) => {
         if (!circleTimes && !(periodCycle == 1 && startDate && endDate)) {
             return {};
-        }
-
-        if(!startIndex){
-            startIndex = 0;
-        }
-
-        if(!count){
-            count = 10;
         }
 
         circleTimes = circleTimes > 30 ? 30 : circleTimes;
@@ -7954,7 +7943,7 @@ let dbPartner = {
         let downLines = [];
         let providerGroup;
 
-        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount, startIndex, count).then(
+        return getPartnerCrewsData(platformId, partnerId, playerId, crewAccount).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -7973,7 +7962,6 @@ let dbPartner = {
                 let providerGroups = providerGroup ? [providerGroup] : null;
                 let prom;
                 let detailCircleCount = 0;
-                let needsDetailCheck = true;
 
                 if(periodCycle == 1 && !circleTimes){
                     startDate = new Date(startDate);
@@ -7985,46 +7973,47 @@ let dbPartner = {
                         endTime.setDate(startTime.getDate() + 1);
 
                         if(playerId || crewAccount) {
-                            needsDetailCheck = true;
-                        }else if(typeof detailCircle != 'undefined'){
-                            if(detailCircleCount <= detailCircle){
-                                needsDetailCheck = true;
-                                detailCircleCount ++;
-                            }else{
-                                needsDetailCheck = false;
-                            }
+                            needsDetail = true;
+                        }else if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
+                            needsDetail = true;
+                            detailCircleCount ++;
                         }else{
-                            if(typeof needsDetail != "undefined"){
-                                needsDetailCheck = needsDetail
-                            }else{
-                                needsDetailCheck = true;
-                            }
+                            needsDetail = false;
                         }
 
-                        prom = getCrewsInfo(downLines, startTime, endTime, null, providerGroups, needsDetailCheck, "getCrewBetInfo").then(
+                        prom = getCrewsInfo(downLines, startTime, endTime, null, providerGroups, needsDetail, "getCrewBetInfo", platformId, partnerId).then(
                             playerDetails => {
-                                let relevantCrews = playerDetails.filter(player => player.betCounts);
-                                let count = 0;
-                                let totalValidBet = 0;
-                                let totalCrewProfit = 0;
+                                if(playerDetails && playerDetails.length > 1){
+                                    let betSummary = playerDetails[0];
+                                    let relevantCrews = playerDetails[1];
+                                    let isNeedDetails = needsDetail;
 
-                                relevantCrews.map(player => {
-                                    count++;
-                                    totalValidBet += player.validBet;
-                                    totalCrewProfit += player.crewProfit;
-                                });
+                                    if(relevantCrews && relevantCrews.length > 0){
+                                        relevantCrews = relevantCrews.filter(crew => crew.betCounts);
+                                        isNeedDetails = relevantCrews[0] && relevantCrews[0].needsDetail ||  needsDetail;
+                                    }
 
-                                if ((playerId || crewAccount) && relevantCrews.length <= 0) {
-                                    relevantCrews = playerDetails
-                                }
+                                    if ((playerId || crewAccount) && relevantCrews.length <= 0) {
+                                        relevantCrews = playerDetails[1];
+                                    }
 
-                                return {
-                                    date: startTime,
-                                    betCrewNumbers: count,
-                                    totalValidBet: totalValidBet,
-                                    totalCrewProfit: totalCrewProfit,
-                                    startIndex: startIndex,
-                                    list: playerDetails[0] && playerDetails[0].needsDetail && (playerDetails[0].needsDetail === true || playerDetails[0].needsDetail === "true") ? relevantCrews : []
+                                    return {
+                                        date: startTime,
+                                        betCrewNumbers: betSummary && betSummary.totalBetCrew ? betSummary.totalBetCrew : 0,
+                                        totalValidBet: betSummary && betSummary.totalValidBet ? betSummary.totalValidBet : 0,
+                                        totalCrewProfit: betSummary && betSummary.totalCrewProfit ? betSummary.totalCrewProfit : 0,
+                                        startIndex: startIndex,
+                                        list: (isNeedDetails === true || isNeedDetails === "true") ? relevantCrews.slice(startIndex, startIndex + count) : []
+                                    }
+                                }else{
+                                    return {
+                                        date: startTime,
+                                        betCrewNumbers: 0,
+                                        totalValidBet: 0,
+                                        totalCrewProfit: 0,
+                                        startIndex: startIndex,
+                                        list: []
+                                    }
                                 }
                             }
                         );
@@ -8037,46 +8026,47 @@ let dbPartner = {
                         let endTime = new Date(nextPeriod.endTime);
 
                         if(playerId || crewAccount) {
-                            needsDetailCheck = true;
-                        }else if(typeof detailCircle != 'undefined'){
-                            if(detailCircleCount <= detailCircle){
-                                needsDetailCheck = true;
-                                detailCircleCount ++;
-                            }else{
-                                needsDetailCheck = false;
-                            }
+                            needsDetail = true;
+                        }else if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
+                            needsDetail = true;
+                            detailCircleCount ++;
                         }else{
-                            if(typeof needsDetail != "undefined"){
-                                needsDetailCheck = needsDetail
-                            }else{
-                                needsDetailCheck = true;
-                            }
+                            needsDetail = false;
                         }
 
-                        prom = getCrewsInfo(downLines, startTime, endTime, null, providerGroups, needsDetailCheck, "getCrewBetInfo").then(
+                        prom = getCrewsInfo(downLines, startTime, endTime, null, providerGroups, needsDetail, "getCrewBetInfo", platformId, partnerId).then(
                             playerDetails => {
-                                let relevantCrews = playerDetails.filter(player => player.betCounts);
-                                let count = 0;
-                                let totalValidBet = 0;
-                                let totalCrewProfit = 0;
+                                if(playerDetails && playerDetails.length > 1){
+                                    let betSummary = playerDetails[0];
+                                    let relevantCrews = playerDetails[1];
+                                    let isNeedDetails = needsDetail;
 
-                                relevantCrews.map(player => {
-                                    count++;
-                                    totalValidBet += player.validBet;
-                                    totalCrewProfit += player.crewProfit;
-                                });
+                                    if(relevantCrews && relevantCrews.length > 0){
+                                        relevantCrews = relevantCrews.filter(crew => crew.betCounts);
+                                        isNeedDetails = relevantCrews[0] && relevantCrews[0].needsDetail ||  needsDetail;
+                                    }
 
-                                if (playerId && relevantCrews.length <= 0) {
-                                    relevantCrews = playerDetails
-                                }
+                                    if ((playerId || crewAccount) && relevantCrews.length <= 0) {
+                                        relevantCrews = playerDetails[1];
+                                    }
 
-                                return {
-                                    date: startTime,
-                                    betCrewNumbers: count,
-                                    totalValidBet: totalValidBet,
-                                    totalCrewProfit: totalCrewProfit,
-                                    startIndex: startIndex,
-                                    list: playerDetails[0] && playerDetails[0].needsDetail && (playerDetails[0].needsDetail === true || playerDetails[0].needsDetail === "true") ? relevantCrews : []
+                                    return {
+                                        date: startTime,
+                                        betCrewNumbers: betSummary && betSummary.totalBetCrew ? betSummary.totalBetCrew : 0,
+                                        totalValidBet: betSummary && betSummary.totalValidBet ? betSummary.totalValidBet : 0,
+                                        totalCrewProfit: betSummary && betSummary.totalCrewProfit ? betSummary.totalCrewProfit : 0,
+                                        startIndex: startIndex,
+                                        list: (isNeedDetails === true || isNeedDetails === "true") ? relevantCrews.slice(startIndex, startIndex + count) : []
+                                    }
+                                }else{
+                                    return {
+                                        date: startTime,
+                                        betCrewNumbers: 0,
+                                        totalValidBet: 0,
+                                        totalCrewProfit: 0,
+                                        startIndex: startIndex,
+                                        list: []
+                                    }
                                 }
                             }
                         );
@@ -8089,17 +8079,9 @@ let dbPartner = {
         );
     },
 
-    getNewCrewInfo: (platformId, partnerId, periodCycle, circleTimes, startDate, endDate, needsDetail, detailCircle, startIndex, count) => {
+    getNewCrewInfo: (platformId, partnerId, periodCycle, circleTimes, startDate, endDate, needsDetail= true, detailCircle = 0, startIndex = 0, count = 10) => {
         if (!circleTimes && !(periodCycle == 1 && startDate && endDate)) {
             return {};
-        }
-
-        if(!startIndex){
-            startIndex = 0;
-        }
-
-        if(!count){
-            count = 10;
         }
 
         circleTimes = circleTimes > 30 ? 30 : circleTimes;
@@ -8108,7 +8090,7 @@ let dbPartner = {
         let partner = {};
         let downLines = [];
 
-        return getPartnerCrewsData(platformId, partnerId, null, null, startIndex, count).then(
+        return getPartnerCrewsData(platformId, partnerId, null, null).then(
             crewsData => {
                 ({platform, partner, downLines} = crewsData);
 
@@ -8116,7 +8098,6 @@ let dbPartner = {
                 let outputProms = [];
                 let prom;
                 let detailCircleCount = 0;
-                let needsDetailCheck = true;
 
                 if(periodCycle == 1 && !circleTimes){
                     startDate = new Date(startDate);
@@ -8128,28 +8109,32 @@ let dbPartner = {
                         endTime.setDate(startTime.getDate() + 1);
                         let newDownLines = downLines.filter(player => player.registrationTime >= startTime && player.registrationTime <= endTime);
 
-                        if(typeof detailCircle != 'undefined'){
-                            if(detailCircleCount <= detailCircle){
-                                needsDetailCheck = true;
-                                detailCircleCount ++;
-                            }else{
-                                needsDetailCheck = false;
-                            }
+                        if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
+                            needsDetail = true;
+                            detailCircleCount ++;
                         }else{
-                            if(typeof needsDetail != "undefined"){
-                                needsDetailCheck = needsDetail
-                            }else{
-                                needsDetailCheck = true;
-                            }
+                            needsDetail = false;
                         }
 
-                        prom = getCrewsInfo(newDownLines, startTime, endTime, null, null, needsDetailCheck, "getNewCrewInfo").then(
+                        prom = getCrewsInfo(newDownLines, startTime, endTime, null, null, needsDetail, "getNewCrewInfo").then(
                             playerDetails => {
-                                return {
-                                    date: startTime,
-                                    newCrewNumbers: newDownLines.length,
-                                    startIndex: startIndex,
-                                    list: playerDetails[0] && playerDetails[0].needsDetail && (playerDetails[0].needsDetail === true || playerDetails[0].needsDetail === "true") ? playerDetails : []
+                                if(playerDetails && playerDetails.length > 1){
+                                    let relevantCrewDetails = playerDetails[1];
+                                    return {
+                                        date: startTime,
+                                        newCrewNumbers: newDownLines.length,
+                                        startIndex: startIndex,
+                                        list: relevantCrewDetails && relevantCrewDetails.length > 0 && relevantCrewDetails[0].needsDetail
+                                        && (relevantCrewDetails[0].needsDetail === true || relevantCrewDetails[0].needsDetail === "true")
+                                        ? relevantCrewDetails.slice(startIndex, startIndex + count) : []
+                                    }
+                                }else{
+                                    return {
+                                        date: startTime,
+                                        newCrewNumbers: newDownLines.length,
+                                        startIndex: startIndex,
+                                        list: []
+                                    }
                                 }
                             }
                         );
@@ -8162,28 +8147,32 @@ let dbPartner = {
                         let endTime = new Date(nextPeriod.endTime);
                         let newDownLines = downLines.filter(player => player.registrationTime >= startTime && player.registrationTime <= endTime);
 
-                        if(typeof detailCircle != 'undefined'){
-                            if(detailCircleCount <= detailCircle){
-                                needsDetailCheck = true;
-                                detailCircleCount ++;
-                            }else{
-                                needsDetailCheck = false;
-                            }
+                        if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
+                            needsDetail = true;
+                            detailCircleCount ++;
                         }else{
-                            if(typeof needsDetail != "undefined"){
-                                needsDetailCheck = needsDetail
-                            }else{
-                                needsDetailCheck = true;
-                            }
+                            needsDetail = false;
                         }
 
-                        prom = getCrewsInfo(newDownLines, startTime, endTime, null, null, needsDetailCheck, "getNewCrewInfo").then(
+                        prom = getCrewsInfo(newDownLines, startTime, endTime, null, null, needsDetail, "getNewCrewInfo").then(
                             playerDetails => {
-                                return {
-                                    date: startTime,
-                                    newCrewNumbers: newDownLines.length,
-                                    startIndex: startIndex,
-                                    list: playerDetails[0] && playerDetails[0].needsDetail && (playerDetails[0].needsDetail === true || playerDetails[0].needsDetail === "true") ? playerDetails : []
+                                if(playerDetails && playerDetails.length > 1){
+                                    let relevantCrewDetails = playerDetails[1];
+                                    return {
+                                        date: startTime,
+                                        newCrewNumbers: newDownLines.length,
+                                        startIndex: startIndex,
+                                        list: relevantCrewDetails && relevantCrewDetails.length > 0 && relevantCrewDetails[0].needsDetail
+                                        && (relevantCrewDetails[0].needsDetail === true || relevantCrewDetails[0].needsDetail === "true")
+                                            ? relevantCrewDetails.slice(startIndex, startIndex + count) : []
+                                    }
+                                }else{
+                                    return {
+                                        date: startTime,
+                                        newCrewNumbers: newDownLines.length,
+                                        startIndex: startIndex,
+                                        list: []
+                                    }
                                 }
                             }
                         );
@@ -8730,6 +8719,194 @@ function getPlayerCommissionWithdrawDetail (playerObjId, startTime, endTime) {
                 withdrawalTimes: withdrawalTotal.count || 0,
                 withdrawalAmount: withdrawalTotal.amount || 0,
             }
+        }
+    );
+}
+
+function getAllPlayersCommissionTopUpDetail (partnerId, platformId, startTime, endTime, topUpTypes) {
+    let platform = {};
+    let downLines = [];
+    return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+        platformData => {
+            if (!platformData) {
+                return Promise.reject({
+                    code: constServerCode.INVALID_PLATFORM,
+                    name: "DataError",
+                    message: "Cannot find platform"
+                });
+            }
+
+            platform = platformData;
+
+            return dbconfig.collection_partner.findOne({platform: platform._id, partnerId: partnerId}).lean();
+        }
+    ).then(
+        partnerData => {
+            if (!partnerData) {
+                return Promise.reject({
+                    code: constServerCode.PARTNER_NAME_INVALID,
+                    name: "DataError",
+                    message: "Cannot find partner"
+                });
+            }
+
+            return dbconfig.collection_players.find({platform: platform._id, partner: partnerData._id}).lean();
+
+
+        }
+    ).then(
+        players => {
+            let playerIds = [];
+            if(players && players.length > 0){
+                players.map(player => {
+                    playerIds.push(ObjectId(player._id));
+                    playerIds.push(String(player._id));
+                })
+            }
+            return dbconfig.collection_proposal.aggregate([
+                {
+                    "$match": {
+                        "data.playerObjId": {$in: playerIds},
+                        "createTime": {
+                            "$gte": new Date(startTime),
+                            "$lte": new Date(endTime)
+                        },
+                        "mainType": "TopUp",
+                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                    }
+                },
+                {
+                    "$group": {
+                        "_id": {type: "$type", playerId: "$data.playerObjId"},
+                        "typeId": {"$first": "$type"},
+                        "topUpTimes": {"$sum": 1},
+                        "topUpAmount": {"$sum": "$data.amount"}
+                    }
+                }
+            ]).read("secondaryPreferred")
+        }
+    );
+}
+
+function getAllPlayersCommissionConsumptionDetail (partnerId, platformId, startTime, endTime, providerGroups) {
+    let platform = {};
+    let downLines = [];
+    return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+        platformData => {
+            if (!platformData) {
+                return Promise.reject({
+                    code: constServerCode.INVALID_PLATFORM,
+                    name: "DataError",
+                    message: "Cannot find platform"
+                });
+            }
+
+            platform = platformData;
+            return dbconfig.collection_partner.findOne({platform: platform._id, partnerId: partnerId}).lean();
+        }
+    ).then(
+        partnerData => {
+            if (!partnerData) {
+                return Promise.reject({
+                    code: constServerCode.PARTNER_NAME_INVALID,
+                    name: "DataError",
+                    message: "Cannot find partner"
+                });
+            }
+            return dbconfig.collection_players.find({platform: platform._id, partner: partnerData._id}).lean();
+        }
+    ).then(
+        players => {
+            let playerIds = [];
+            if(players && players.length > 0){
+                players.map(player => {
+                    playerIds.push(ObjectId(player._id));
+                })
+            }
+            return dbconfig.collection_playerConsumptionRecord.aggregate([
+                {
+                    $match: {
+                        playerId: {$in: playerIds},
+                        createTime: {
+                            $gte: new Date(startTime),
+                            $lt: new Date(endTime)
+                        },
+                    }
+                },
+                {
+                    $group: {
+                        _id: {providerId: "$providerId", playerId: "$playerId"},
+                        provider: {$first: "$providerId"},
+                        consumptionTimes: {$sum: {$cond: ["$count", "$count", 1]}},
+                        validAmount: {$sum: "$validAmount"},
+                        bonusAmount: {$sum: "$bonusAmount"},
+                    }
+                }
+            ]).allowDiskUse(true).read("secondaryPreferred")
+        }
+    );
+}
+
+function getAllPlayersCommissionWithdrawDetail (partnerId, platformId, startTime, endTime) {
+    let platform = {};
+    let downLines = [];
+    return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+        platformData => {
+            if (!platformData) {
+                return Promise.reject({
+                    code: constServerCode.INVALID_PLATFORM,
+                    name: "DataError",
+                    message: "Cannot find platform"
+                });
+            }
+
+            platform = platformData;
+
+            return dbconfig.collection_partner.findOne({platform: platform._id, partnerId: partnerId}).lean();
+        }
+    ).then(
+        partnerData => {
+            if (!partnerData) {
+                return Promise.reject({
+                    code: constServerCode.PARTNER_NAME_INVALID,
+                    name: "DataError",
+                    message: "Cannot find partner"
+                });
+            }
+
+            return dbconfig.collection_players.find({platform: platform._id, partner: partnerData._id}).lean();
+
+
+        }
+    ).then(
+        players => {
+            let playerIds = [];
+            if(players && players.length > 0){
+                players.map(player => {
+                    playerIds.push(ObjectId(player._id));
+                    playerIds.push(String(player._id));
+                })
+            }
+            return dbconfig.collection_proposal.aggregate([
+                {
+                    "$match": {
+                        "data.playerObjId": {$in: playerIds},
+                        "createTime": {
+                            "$gte": new Date(startTime),
+                            "$lte": new Date(endTime)
+                        },
+                        "mainType": "PlayerBonus",
+                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                    }
+                },
+                {
+                    "$group": {
+                        "_id": "$data.playerName",
+                        "count": {"$sum": 1},
+                        "withdrawAmount": {"$sum": "$data.amount"}
+                    }
+                }
+            ]).read("secondaryPreferred");
         }
     );
 }
@@ -9606,122 +9783,171 @@ function getCommissionTypeName (commissionType) {
 
 function getCrewInfo (player, startTime, endTime, activePlayerRequirement, providerGroups, needsDetail, apiName) {
     let playerActiveDetail = {};
-    let consumptionDetailProm,topUpDetailProm,withdrawalDetailProm = [];
+    let consumptionDetailProm = getPlayerCommissionConsumptionDetail(player._id, startTime, endTime, providerGroups);
+    let topUpDetailProm = getPlayerCommissionTopUpDetail(player._id, startTime, endTime);
+    let withdrawalDetailProm = getPlayerCommissionWithdrawDetail(player._id, startTime, endTime);
 
-    if (needsDetail && (needsDetail === true || needsDetail === "true")){
-        consumptionDetailProm = getPlayerCommissionConsumptionDetail(player._id, startTime, endTime, providerGroups);
-        topUpDetailProm = getPlayerCommissionTopUpDetail(player._id, startTime, endTime);
-        withdrawalDetailProm = getPlayerCommissionWithdrawDetail(player._id, startTime, endTime);
+    return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm]).then(
+        data => {
+            let consumptionDetail = data[0];
+            let topUpDetail = data[1];
+            let withdrawalDetail = data[2];
 
-        return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm]).then(
-            data => {
-                let consumptionDetail = data[0];
-                let topUpDetail = data[1];
-                let withdrawalDetail = data[2];
+            playerActiveDetail = {
+                crewAccount: player.name,
+                depositAmount: topUpDetail.topUpAmount,
+                depositCount: topUpDetail.topUpTimes,
+                validBet: consumptionDetail.validAmount,
+                betCounts: consumptionDetail.consumptionTimes,
+                withdrawAmount: withdrawalDetail.withdrawalAmount,
+                crewProfit: consumptionDetail.bonusAmount,
+                needsDetail: needsDetail
+            };
 
-                playerActiveDetail = {
-                    crewAccount: player.name,
-                    depositAmount: topUpDetail.topUpAmount,
-                    depositCount: topUpDetail.topUpTimes,
-                    validBet: consumptionDetail.validAmount,
-                    betCounts: consumptionDetail.consumptionTimes,
-                    withdrawAmount: withdrawalDetail.withdrawalAmount,
-                    crewProfit: consumptionDetail.bonusAmount,
-                    needsDetail: needsDetail
-                };
-
-                if (activePlayerRequirement) {
-                    playerActiveDetail.active = isPlayerActive(activePlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount);
-                }
-
-                if (providerGroups && providerGroups[0] && consumptionDetail.consumptionProviderDetail && consumptionDetail.consumptionProviderDetail[providerGroups[0].name]) {
-                    playerActiveDetail.validBet = consumptionDetail.consumptionProviderDetail[providerGroups[0].name].validAmount;
-                    playerActiveDetail.betCounts = consumptionDetail.consumptionProviderDetail[providerGroups[0].name].consumptionTimes;
-                    playerActiveDetail.crewProfit = consumptionDetail.consumptionProviderDetail[providerGroups[0].name].bonusAmount;
-                }
-
-                return playerActiveDetail;
+            if (activePlayerRequirement) {
+                playerActiveDetail.active = isPlayerActive(activePlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount);
             }
-        )
-    }else if(apiName){
-        if(apiName == "getCrewActiveInfo"){
-            consumptionDetailProm = getPlayerCommissionConsumptionDetail(player._id, startTime, endTime, providerGroups);
-            topUpDetailProm = getPlayerCommissionTopUpDetail(player._id, startTime, endTime);
 
-            return Promise.all([consumptionDetailProm, topUpDetailProm]).then(
-                data => {
-                    let consumptionDetail = data[0];
-                    let topUpDetail = data[1];
-                    playerActiveDetail.crewAccount = player.name;
-                    playerActiveDetail.needsDetail = needsDetail;
+            if (providerGroups && providerGroups[0] && consumptionDetail.consumptionProviderDetail && consumptionDetail.consumptionProviderDetail[providerGroups[0].name]) {
+                playerActiveDetail.validBet = consumptionDetail.consumptionProviderDetail[providerGroups[0].name].validAmount;
+                playerActiveDetail.betCounts = consumptionDetail.consumptionProviderDetail[providerGroups[0].name].consumptionTimes;
+                playerActiveDetail.crewProfit = consumptionDetail.consumptionProviderDetail[providerGroups[0].name].bonusAmount;
+            }
 
-                    if (activePlayerRequirement) {
-                        playerActiveDetail.active = isPlayerActive(activePlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount);
-                    }
-
-                    return playerActiveDetail;
-                }
-            )
-        }else if(apiName == "getCrewDepositInfo"){
-            return getPlayerCommissionTopUpDetail(player._id, startTime, endTime).then(
-                topUpDetail => {
-                    playerActiveDetail = {
-                        crewAccount: player.name,
-                        depositAmount: topUpDetail.topUpAmount,
-                        depositCount: topUpDetail.topUpTimes,
-                        needsDetail: needsDetail
-                    };
-
-                    return playerActiveDetail;
-                }
-            )
-        }else if(apiName == "getCrewWithdrawInfo"){
-            return getPlayerCommissionWithdrawDetail(player._id, startTime, endTime).then(
-                withdrawalDetail => {
-                    playerActiveDetail = {
-                        crewAccount: player.name,
-                        withdrawAmount: withdrawalDetail.withdrawalAmount,
-                        needsDetail: needsDetail
-                    };
-
-                    return playerActiveDetail;
-                }
-            )
-        }else if(apiName == "getCrewBetInfo"){
-            return getPlayerCommissionConsumptionDetail(player._id, startTime, endTime).then(
-                consumptionDetail => {
-                    playerActiveDetail.crewAccount = player.name;
-                    playerActiveDetail.needsDetail = needsDetail;
-                    playerActiveDetail.validBet = consumptionDetail.validAmount;
-                    playerActiveDetail.betCounts = consumptionDetail.consumptionTimes;
-                    playerActiveDetail.crewProfit = consumptionDetail.bonusAmount;
-
-                    if (providerGroups && providerGroups[0] && consumptionDetail.consumptionProviderDetail && consumptionDetail.consumptionProviderDetail[providerGroups[0].name]) {
-                        playerActiveDetail.validBet = consumptionDetail.consumptionProviderDetail[providerGroups[0].name].validAmount;
-                        playerActiveDetail.betCounts = consumptionDetail.consumptionProviderDetail[providerGroups[0].name].consumptionTimes;
-                        playerActiveDetail.crewProfit = consumptionDetail.consumptionProviderDetail[providerGroups[0].name].bonusAmount;
-                    }
-
-                    return playerActiveDetail;
-                }
-            )
-        }else if(apiName == "getNewCrewInfo"){
-            return player;
+            return playerActiveDetail;
         }
-    }
+    )
 }
 
-function getCrewsInfo (players, startTime, endTime, activePlayerRequirement, providerGroups, needsDetail, apiName) {
+function getCrewsInfo (players, startTime, endTime, activePlayerRequirement, providerGroups, needsDetail, apiName, platformId, partnerId) {
+    let allPlayerDetailsProm = [] ;
     let playerDetailsProm = [] ;
-    players.map(player => {
-        let prom = getCrewInfo(player, startTime, endTime, activePlayerRequirement, providerGroups, needsDetail, apiName);
-        playerDetailsProm.push(prom);
-    });
 
-    return Promise.all(playerDetailsProm);
+    if(apiName == "getCrewActiveInfo"){
+        let consumptionDetailProm = getAllPlayersCommissionConsumptionDetail(partnerId, platformId, startTime, endTime, providerGroups);
+        let topUpDetailProm = getAllPlayersCommissionTopUpDetail(partnerId, platformId, startTime, endTime);
+
+        allPlayerDetailsProm = Promise.all([consumptionDetailProm,topUpDetailProm]).then(
+            data => {
+                let consumptionDetails = data[0];
+                let topUpDetails = data[1];
+                let newConsumptionDetails = [];
+                let newTopUpDetails = [];
+                newTopUpDetails = topUpDetails;
+                if(consumptionDetails && consumptionDetails.length > 0){
+                    consumptionDetails.map(
+                        consumption => {
+                            if(consumption){
+                                topUpDetails.forEach(
+                                    topUp => {
+                                        if(topUp){
+                                            let newConsumption = {};
+                                            let newTopUp = {};
+                                            newConsumption = consumption;
+
+                                            if(String(consumption._id.playerId) === String(topUp._id.playerId)){
+                                                newConsumption.topUpTimes = topUp.topUpTimes || 0;
+                                                newConsumption.topUpAmount = topUp.topUpAmount || 0;
+                                                newConsumptionDetails.push(newConsumption);
+
+                                                let indexNo = newTopUpDetails.findIndex(n => n._id.playerId);
+                                                newTopUpDetails.splice(indexNo,1)
+                                                delete topUp;
+
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    );
+                }
+
+                let consumpTopUpObj = newConsumptionDetails.concat(newTopUpDetails);
+                let totalActive = 0;
+
+                if(consumpTopUpObj && consumpTopUpObj.length > 0){
+                    if (activePlayerRequirement) {
+                        consumpTopUpObj.forEach(result => {
+                            if(result) {
+                                totalActive += isPlayerActive(activePlayerRequirement, result.consumptionTimes, result.validAmount, result.topUpTimes, result.topUpAmount) ? 1 : 0;
+                            }
+                        })
+                    }
+                }
+
+                return {totalActiveCrew: totalActive};
+            }
+        );
+
+    }else if(apiName == "getCrewDepositInfo"){
+        allPlayerDetailsProm = getAllPlayersCommissionTopUpDetail(partnerId, platformId, startTime, endTime).then(
+            topUpDetail => {
+                let totalDepositAmount = 0;
+                topUpDetail.map(detail => {
+                    totalDepositAmount += detail.topUpAmount || 0;
+                })
+
+                return {totalDepositCrew: topUpDetail.length ||0, totalDepositAmount: totalDepositAmount}
+            }
+        );
+    }else if(apiName == "getCrewWithdrawInfo"){
+        allPlayerDetailsProm = getAllPlayersCommissionWithdrawDetail(partnerId, platformId, startTime, endTime).then(
+            withdrawalDetail => {
+                let totalWithdrawAmount = 0;
+                withdrawalDetail.map(detail => {
+                    totalWithdrawAmount += detail.withdrawAmount || 0;
+                })
+
+                return {totalWithdrawCrew: withdrawalDetail.length ||0, totalWithdrawAmount: totalWithdrawAmount}
+            }
+        );
+    }else if(apiName == "getCrewBetInfo"){
+        allPlayerDetailsProm = getAllPlayersCommissionConsumptionDetail(partnerId, platformId, startTime, endTime, providerGroups).then(
+            consumptionDetail => {
+                let totalValidBet = 0;
+                let totalCrewProfit = 0;
+                let totalCrewNumber = 0;
+
+                if(providerGroups && providerGroups.length > 0){
+                    consumptionDetail.map(providerConsumptionData => {
+                        if (providerGroups && providerGroups.length > 0) {
+                            providerGroups.map(group => {
+                                group.providers.map(groupProviderId => {
+                                    if (String(groupProviderId) === String(providerConsumptionData.provider)) {
+                                        totalCrewNumber ++;
+                                        totalValidBet += providerConsumptionData.validAmount;
+                                        totalCrewProfit += providerConsumptionData.bonusAmount;
+                                    }
+                                });
+                            });
+                        }
+                    });
+                }else{
+                    consumptionDetail.map(detail => {
+                        totalCrewNumber ++;
+                        totalValidBet += detail.validAmount || 0;
+                        totalCrewProfit += detail.bonusAmount || 0;
+                    })
+
+                }
+
+                return {totalBetCrew: totalCrewNumber ||0, totalValidBet: totalValidBet, totalCrewProfit: totalCrewProfit}
+            }
+        );
+    }
+
+    if(needsDetail === true || needsDetail === "true"){
+        players.map(player => {
+            let prom = getCrewInfo(player, startTime, endTime, activePlayerRequirement, providerGroups, needsDetail, apiName);
+            playerDetailsProm.push(prom);
+        });
+    }
+
+    return Promise.all([allPlayerDetailsProm, Promise.all(playerDetailsProm)]);
 }
 
-function getPartnerCrewsData (platformId, partnerId, playerId, crewAccount, index, size) {
+function getPartnerCrewsData (platformId, partnerId, playerId, crewAccount) {
     let platform = {};
     let partner = {};
     let downLines = [];
@@ -9758,7 +9984,7 @@ function getPartnerCrewsData (platformId, partnerId, playerId, crewAccount, inde
                 return dbconfig.collection_players.find({platform: platform._id, partner: partner._id, name: crewAccount}).lean();
             }
             else{
-                return dbconfig.collection_players.find({platform: platform._id, partner: partner._id}).lean().skip(index).limit(size);
+                return dbconfig.collection_players.find({platform: platform._id, partner: partner._id}).lean();
             }
         }
     ).then(

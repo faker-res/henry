@@ -23,7 +23,7 @@
 #cssmenu {
     margin: 0;
     /*padding: 10px;*/
-    padding: 12px;
+    padding: 7px;
     border: 0;
     list-style: none;
     line-height: 1;
@@ -121,13 +121,10 @@
     background-image: -o-linear-gradient(#f2f2f2, #ebebeb 85%, #aaaaaa);
     background-image: linear-gradient(#f2f2f2, #ebebeb 80%, #aaaaaa);
     background-repeat: no-repeat;
-    border-radius: 6px 6px 0 0;
-    width: 80px;
     text-align: center;
-    margin-right: 1px;
-    padding-bottom: 0px;
-    border-radius: 6px 6px 0 0;
-    height: 73px;
+    margin-right: 2px;
+    border-radius: 6px 6px 6px 6px;
+    height: 68px;
 }
 
 #cssmenu > ul > li.active {
@@ -180,7 +177,7 @@
 
 #cssmenu > ul > li > a {
     padding: 4px 4px;
-    font-size: 11px;
+    font-size: 12px;
     text-decoration: none;
     color: #4d4d4d;
     text-align: center;

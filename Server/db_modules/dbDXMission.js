@@ -682,7 +682,10 @@ let dbDXMission = {
             .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
             function (dxPhone) {
                 if (!dxPhone) {
-                    return {redirect: "www.kbl8888.com"};
+                    return Promise.reject({
+                        code: constServerCode.DATA_INVALID,
+                        message: "DX code invalid"
+                    });
                 }
 
                 if (dxPhone.bUsed) {
@@ -1421,12 +1424,12 @@ let dbDXMission = {
     },
 
     updatePhoneNumberRemark: function(platform, dxMission, remarkObj) {
-
+        let promArr = []
         if(remarkObj){
-            for (var phoneNumber in remarkObj) {
-                if (remarkObj.hasOwnProperty(phoneNumber)) {
-                    var remark = remarkObj[phoneNumber];
-                    dbconfig.collection_dxPhone.findOneAndUpdate({platform: platform, dxMission: dxMission, phoneNumber: phoneNumber},{remark: remark}).then(
+            for (var objId in remarkObj) {
+                if (remarkObj.hasOwnProperty(objId)) {
+                    var remark = remarkObj[objId];
+                    let prom = dbconfig.collection_dxPhone.findOneAndUpdate({platform: platform, dxMission: dxMission, _id: ObjectId(objId)},{remark: remark}).then(
                         () => {
                             return;
                         },error => {
@@ -1436,9 +1439,11 @@ let dbDXMission = {
                             });
                         }
                     );
+                    promArr.push(prom);
                 }
             }
         }
+        return Promise.all(promArr);
     }
 };
 
@@ -1615,7 +1620,7 @@ function loginDefaultPasswordPlayer (dxPhone) {
             return new Promise((resolve, reject) => {
                 bcrypt.compare(String(dxMission.password), String(player.password), function (err, isMatch) {
                     if (err || !isMatch) {
-                        return reject({message: "Password changed"});
+                        return reject({code: constServerCode.INVALID_USER_PASSWORD, message: "Password changed"});
                     }
 
                     let profile = {name: player.name, password: player.password};
