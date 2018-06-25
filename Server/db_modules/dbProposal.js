@@ -571,6 +571,9 @@ var proposal = {
         return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate({_id: ObjectId(id)}, updateData, {new: true}).exec();
     },
     updateTopupProposal: function (proposalId, status, requestId, orderStatus, remark) {
+        // Debug credit missing after top up issue
+        console.log('updateTopupProposal', proposalId, status);
+
         var proposalObj = null;
         var type = constPlayerTopUpType.ONLINE;
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
@@ -619,6 +622,9 @@ var proposal = {
         ).then(
             data => {
                 if (status == constProposalStatus.SUCCESS) {
+                    // Debug credit missing after top up issue
+                    console.log('updatePlayerTopupProposal', proposalId);
+
                     return dbPlayerInfo.updatePlayerTopupProposal(proposalId, true, remark);
                 } else if (status == constProposalStatus.FAIL) {
                     return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false, remark);
