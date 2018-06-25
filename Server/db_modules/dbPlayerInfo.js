@@ -15309,7 +15309,14 @@ let dbPlayerInfo = {
                 message: "Generate dian xiao code failure."
             })
         }
-        let randomString = Math.random().toString(36).substring(4, 11); // generate random String
+        let randomString = Math.random().toString(36).substring(4, 9); // generate random String
+        if (randomString && randomString.charAt(0) == "p") {
+            let text = "";
+            let possible = "abcdefghijklmnoqrstuvwxyz0123456789";
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+            randomString = text + randomString.substr(1, randomString.length);
+        }
+
         let dxCode = "";
 
         let platformProm = Promise.resolve({platformId: platformId});
