@@ -20261,13 +20261,36 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        vm.updateCollectionInEdit = function (type, collection, data) {
+        vm.updateCollectionInEdit = function (type, collection, data, collectionCopy) {
             if (type == 'add') {
                 let newObj = {};
+
+                // check again if there is duplication of sms title after updating the promoCodeType
+                if (data.smsTitle && vm.promoCodeType1BeforeEdit && vm.promoCodeType2BeforeEdit && vm.promoCodeType3BeforeEdit){
+
+                    let filterPromoCodeType1 = vm.promoCodeType1BeforeEdit.map(p => p.smsTitle);
+                    let filterPromoCodeType2 = vm.promoCodeType2BeforeEdit.map(p => p.smsTitle);
+                    let filterPromoCodeType3 = vm.promoCodeType3BeforeEdit.map(p => p.smsTitle);
+
+                    let promoCodeSMSTitleCheckList = filterPromoCodeType1.concat(filterPromoCodeType2, filterPromoCodeType3);
+
+                    if (promoCodeSMSTitleCheckList.indexOf(data.smsTitle) != -1){
+                        vm.smsTitleDuplicationBoolean = true;
+                        return socketService.showErrorMessage($translate("Banner title cannot be repeated!"));
+                    }
+                    else{
+                        vm.smsTitleDuplicationBoolean = false;
+                    }
+                }
 
                 Object.keys(data).forEach(e => {
                     newObj[e] = data[e];
                 });
+
+                // update the copy to check for duplication
+                if (collectionCopy){
+                    collectionCopy.push(newObj);
+                }
 
                 collection.push(newObj);
                 collection.forEach((elem, index, arr) => {
@@ -20929,6 +20952,7 @@ define(['js/app'], function (myApp) {
             vm.promoCode1HasMoreThanOne = false;
             vm.promoCode2HasMoreThanOne = false;
             vm.promoCode3HasMoreThanOne = false;
+            vm.smsTitleDuplicationBoolean = false;
 
             vm.newPromoCode1 = [];
             vm.newPromoCode2 = [];
@@ -20937,6 +20961,10 @@ define(['js/app'], function (myApp) {
             vm.promoCodeType1 = [];
             vm.promoCodeType2 = [];
             vm.promoCodeType3 = [];
+
+            vm.promoCodeType1BeforeEdit = [];
+            vm.promoCodeType2BeforeEdit = [];
+            vm.promoCodeType3BeforeEdit = [];
 
             vm.removeSMSContent = [];
 
@@ -22067,10 +22095,13 @@ define(['js/app'], function (myApp) {
                     vm.promoCodeTypes.forEach(entry => {
                         if (entry.type == 1) {
                             vm.promoCodeType1.push(entry);
+                            vm.promoCodeType1BeforeEdit.push($.extend({}, entry));
                         } else if (entry.type == 2) {
                             vm.promoCodeType2.push(entry);
+                            vm.promoCodeType2BeforeEdit.push($.extend({}, entry));
                         } else if (entry.type == 3) {
                             vm.promoCodeType3.push(entry);
+                            vm.promoCodeType3BeforeEdit.push($.extend({}, entry));
                         }
                     });
                 })
@@ -25236,6 +25267,42 @@ define(['js/app'], function (myApp) {
                     vm.prepareCredibilityConfig();
                 }
             );
+        }
+
+        vm.validateInput = function (smsTitle, type, mode){
+
+            if(smsTitle && vm.promoCodeType1BeforeEdit && vm.promoCodeType2BeforeEdit && vm.promoCodeType3BeforeEdit){
+
+                let filterPromoCodeType1 = vm.promoCodeType1BeforeEdit.map(p => p.smsTitle);
+                let filterPromoCodeType2 = vm.promoCodeType2BeforeEdit.map(p => p.smsTitle);
+                let filterPromoCodeType3 = vm.promoCodeType3BeforeEdit.map(p => p.smsTitle);
+
+                let promoCodeSMSTitleCheckList = filterPromoCodeType1.concat(filterPromoCodeType2, filterPromoCodeType3);
+
+                if (promoCodeSMSTitleCheckList.indexOf(smsTitle) != -1){
+                    vm.smsTitleDuplicationBoolean = true;
+                    return socketService.showErrorMessage($translate("Banner title cannot be repeated!"));
+                }
+                else{
+                    vm.smsTitleDuplicationBoolean = false;
+                }
+
+                //  update if there is editing on previous data
+                if (type && mode && !vm.smsTitleDuplicationBoolean){
+                    if (type == 1 && mode == 'edit' ){
+                        vm.promoCodeType1BeforeEdit = vm.promoCodeType1.map(p => $.extend({}, p));
+                    }
+                    else if (type == 2 && mode == 'edit' ){
+                        vm.promoCodeType2BeforeEdit = vm.promoCodeType2.map(p => $.extend({}, p));
+                    }
+                    else if (type == 3 && mode == 'edit' ){
+                        vm.promoCodeType3BeforeEdit = vm.promoCodeType3.map(p => $.extend({}, p));
+                    }
+                    else{
+
+                    }
+                }
+            }
         }
 
         function updatePromoSMSContent(srcData) {
