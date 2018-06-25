@@ -7401,7 +7401,7 @@ let dbPartner = {
         )
     },
 
-    getCrewActiveInfo: (platformId, partnerId, periodCycle, circleTimes, startDate, endDate, detailCircle = 0, startIndex = 0, count = 10) => {
+    getCrewActiveInfo: (platformId, partnerId, periodCycle, circleTimes, startDate, endDate, needsDetail= true, detailCircle = 0, startIndex = 0, count = 10) => {
         if (!circleTimes && !(periodCycle == 1 && startDate && endDate)) {
             return {};
         }
@@ -7424,7 +7424,6 @@ let dbPartner = {
                 let outputProms = [];
                 let prom;
                 let detailCircleCount = 0;
-                let needsDetail = false;
 
                 if(periodCycle == 1 && !circleTimes){
                     startDate = new Date(startDate);
@@ -7435,7 +7434,7 @@ let dbPartner = {
                         let endTime = dbUtil.getDayStartTime(new Date(startTime));
                         endTime.setDate(startTime.getDate() + 1);
 
-                        if(detailCircleCount <= detailCircle){
+                        if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
                             needsDetail = true;
                             detailCircleCount ++;
                         }else{
@@ -7478,7 +7477,7 @@ let dbPartner = {
                         let startTime = new Date(nextPeriod.startTime);
                         let endTime = new Date(nextPeriod.endTime);
 
-                        if(detailCircleCount <= detailCircle){
+                        if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
                             needsDetail = true;
                             detailCircleCount ++;
                         }else{
@@ -7523,7 +7522,7 @@ let dbPartner = {
         );
     },
 
-    getCrewDepositInfo: (platformId, partnerId, periodCycle, circleTimes, playerId, startDate, endDate, crewAccount, detailCircle = 0, startIndex = 0, count = 10) => {
+    getCrewDepositInfo: (platformId, partnerId, periodCycle, circleTimes, playerId, startDate, endDate, crewAccount, needsDetail= true, detailCircle = 0, startIndex = 0, count = 10) => {
         if (!circleTimes && !(periodCycle == 1 && startDate && endDate)) {
             return {};
         }
@@ -7542,7 +7541,6 @@ let dbPartner = {
                 let outputProms = [];
                 let prom;
                 let detailCircleCount = 0;
-                let needsDetail = false;
 
                 if(periodCycle == 1 && !circleTimes){
                     startDate = new Date(startDate);
@@ -7555,7 +7553,7 @@ let dbPartner = {
 
                         if(playerId || crewAccount) {
                             needsDetail = true;
-                        }else if(detailCircleCount <= detailCircle){
+                        }else if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
                             needsDetail = true;
                             detailCircleCount ++;
                         }else{
@@ -7607,7 +7605,7 @@ let dbPartner = {
 
                         if(playerId || crewAccount) {
                             needsDetail = true;
-                        }else if(detailCircleCount <= detailCircle){
+                        }else if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
                             needsDetail = true;
                             detailCircleCount ++;
                         }else{
@@ -7659,7 +7657,7 @@ let dbPartner = {
         );
     },
 
-    getCrewWithdrawInfo: (platformId, partnerId, periodCycle, circleTimes, playerId, startDate, endDate, crewAccount, detailCircle = 0, startIndex = 0, count = 10) => {
+    getCrewWithdrawInfo: (platformId, partnerId, periodCycle, circleTimes, playerId, startDate, endDate, crewAccount, needsDetail= true, detailCircle = 0, startIndex = 0, count = 10) => {
         if (!circleTimes && !(periodCycle == 1 && startDate && endDate)) {
             return {};
         }
@@ -7678,7 +7676,6 @@ let dbPartner = {
                 let outputProms = [];
                 let prom;
                 let detailCircleCount = 0;
-                let needsDetail = false;
 
                 if(periodCycle == 1 && !circleTimes){
                     startDate = new Date(startDate);
@@ -7691,7 +7688,7 @@ let dbPartner = {
 
                         if(playerId || crewAccount) {
                             needsDetail = true;
-                        }else if(detailCircleCount <= detailCircle){
+                        }else if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
                             needsDetail = true;
                             detailCircleCount ++;
                         }else{
@@ -7742,7 +7739,7 @@ let dbPartner = {
 
                         if(playerId || crewAccount) {
                             needsDetail = true;
-                        }else if(detailCircleCount <= detailCircle){
+                        }else if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
                             needsDetail = true;
                             detailCircleCount ++;
                         }else{
@@ -7934,7 +7931,7 @@ let dbPartner = {
         )
     },
 
-    getCrewBetInfo: (platformId, partnerId, periodCycle, circleTimes, providerGroupId, playerId, startDate, endDate, crewAccount, detailCircle = 0, startIndex = 0, count = 10) => {
+    getCrewBetInfo: (platformId, partnerId, periodCycle, circleTimes, providerGroupId, playerId, startDate, endDate, crewAccount, needsDetail= true, detailCircle = 0, startIndex = 0, count = 10) => {
         if (!circleTimes && !(periodCycle == 1 && startDate && endDate)) {
             return {};
         }
@@ -7965,7 +7962,6 @@ let dbPartner = {
                 let providerGroups = providerGroup ? [providerGroup] : null;
                 let prom;
                 let detailCircleCount = 0;
-                let needsDetail = false;
 
                 if(periodCycle == 1 && !circleTimes){
                     startDate = new Date(startDate);
@@ -7978,7 +7974,7 @@ let dbPartner = {
 
                         if(playerId || crewAccount) {
                             needsDetail = true;
-                        }else if(detailCircleCount <= detailCircle){
+                        }else if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
                             needsDetail = true;
                             detailCircleCount ++;
                         }else{
@@ -8031,7 +8027,7 @@ let dbPartner = {
 
                         if(playerId || crewAccount) {
                             needsDetail = true;
-                        }else if(detailCircleCount <= detailCircle){
+                        }else if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
                             needsDetail = true;
                             detailCircleCount ++;
                         }else{
@@ -8083,7 +8079,7 @@ let dbPartner = {
         );
     },
 
-    getNewCrewInfo: (platformId, partnerId, periodCycle, circleTimes, startDate, endDate, detailCircle = 0, startIndex = 0, count = 10) => {
+    getNewCrewInfo: (platformId, partnerId, periodCycle, circleTimes, startDate, endDate, needsDetail= true, detailCircle = 0, startIndex = 0, count = 10) => {
         if (!circleTimes && !(periodCycle == 1 && startDate && endDate)) {
             return {};
         }
@@ -8102,7 +8098,6 @@ let dbPartner = {
                 let outputProms = [];
                 let prom;
                 let detailCircleCount = 0;
-                let needsDetail = false;
 
                 if(periodCycle == 1 && !circleTimes){
                     startDate = new Date(startDate);
@@ -8114,7 +8109,7 @@ let dbPartner = {
                         endTime.setDate(startTime.getDate() + 1);
                         let newDownLines = downLines.filter(player => player.registrationTime >= startTime && player.registrationTime <= endTime);
 
-                        if(detailCircleCount <= detailCircle){
+                        if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
                             needsDetail = true;
                             detailCircleCount ++;
                         }else{
@@ -8152,7 +8147,7 @@ let dbPartner = {
                         let endTime = new Date(nextPeriod.endTime);
                         let newDownLines = downLines.filter(player => player.registrationTime >= startTime && player.registrationTime <= endTime);
 
-                        if(detailCircleCount <= detailCircle){
+                        if((needsDetail === true || needsDetail === "true") && detailCircleCount <= detailCircle){
                             needsDetail = true;
                             detailCircleCount ++;
                         }else{
