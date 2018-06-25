@@ -333,6 +333,8 @@ var simplifiedChinese = {
     "Reset all commission rate": "恢复所有佣金比例",
     "Invalid line ID": "线路ID不存在",
     "Cannot find reward event for platform and type name": "优惠不存在",
+    "DX code invalid": "电销代码不存在",
+    "Password changed": "密码已更换",
     //todo::add missing messages here
 
     /*
