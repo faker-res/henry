@@ -17035,7 +17035,7 @@ let dbPlayerInfo = {
                 }
             }
         )
-    }
+    },
 
     getPlayerCreditByName: function(playerName, platformObjId) {
         let platformId = null, providers = [], localCredit = 0;
