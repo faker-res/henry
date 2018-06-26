@@ -15397,9 +15397,16 @@ define(['js/app'], function (myApp) {
                             $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
                         }
                     };
+
                     sendQueryOr.push(lastFeedbackTimeExist);
                     sendQueryOr.push(lastFeedbackTime);
-                    sendQuery["$or"] = sendQueryOr;
+
+                    if (sendQuery.hasOwnProperty("$or")) {
+                        sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
+                        delete sendQuery.$or;
+                    } else {
+                        sendQuery["$or"] = sendQueryOr;
+                    }
                 }
 
                 if (vm.playerFeedbackQuery.depositCountOperator && vm.playerFeedbackQuery.depositCountFormal != null) {

@@ -1160,6 +1160,7 @@ let dbPlayerCreditTransfer = {
             }
         ).then(
             res => {
+                console.log("res===1", res);
                 if (res) {
                     // CPMS Transfer out success
                     // Update reward task group if available
@@ -1202,6 +1203,7 @@ let dbPlayerCreditTransfer = {
             }
         ).then(
             res => {
+                console.log("res===2", res);
                 if (res) {
                     let updatePlayerObj = {
                         lastPlayedProvider: null,
@@ -1227,6 +1229,7 @@ let dbPlayerCreditTransfer = {
             }
         ).then(
             res => {
+                console.log("res===3", res);
                 if (res) {//create log
                     playerCredit = res.validCredit;
                     let lockedCredit = res.lockedCredit;

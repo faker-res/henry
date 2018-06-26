@@ -15310,6 +15310,13 @@ let dbPlayerInfo = {
             })
         }
         let randomString = Math.random().toString(36).substring(4, 9); // generate random String
+        let index = 0;
+        // prevent infinite loop
+        // prevent randomString all numbers
+        while (!isNaN(randomString) && index < 5) {
+            randomString = Math.random().toString(36).substring(4, 9);
+            index++;
+        }
         if (randomString && randomString.charAt(0) == "p") {
             let text = "";
             let possible = "abcdefghijklmnoqrstuvwxyz0123456789";
