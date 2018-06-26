@@ -51,14 +51,6 @@ let PlayerServiceImplement = function () {
                 device: ua.device.name || (md && md.mobile()) ? md.mobile() : 'PC',
                 os: ua.os.name || ''
             }];
-            var geo = geoip.lookup(data.lastLoginIp);
-            if (geo) {
-                // data.country = geo.country;
-                // data.city = geo.city;
-                // data.province = geo.region;
-                data.longitude = geo.ll ? geo.ll[1] : null;
-                data.latitude = geo.ll ? geo.ll[0] : null;
-            }
 
             if (data.phoneNumber) {
                 var queryRes = queryPhoneLocation(data.phoneNumber);
@@ -233,10 +225,11 @@ let PlayerServiceImplement = function () {
 
             // attach geoip if available
             if (data.lastLoginIp) {
-                let geo = geoip.lookup(data.lastLoginIp);
+                let geo = dbUtility.getIpLocationByIPIPDotNet(data.lastLoginIp);
                 if (geo) {
                     data.country = geo.country;
                     data.city = geo.city;
+                    data.province = geo.province;
                     data.longitude = geo.ll ? geo.ll[1] : null;
                     data.latitude = geo.ll ? geo.ll[0] : null;
                 }
@@ -1170,15 +1163,16 @@ let PlayerServiceImplement = function () {
         }
         let loginIps = [lastLoginIp];
 
-        let country, city, longitude, latitude;
-        let geo = geoip.lookup(data.lastLoginIp);
+        let country, city, province, longitude, latitude;
+        let geo = dbUtility.getIpLocationByIPIPDotNet(lastLoginIp);
         if (geo) {
             country = geo.country;
             city = geo.city;
+            province = ipData.province || null;
             longitude = geo.ll ? geo.ll[1] : null;
             latitude = geo.ll ? geo.ll[0] : null;
         }
-        let deviceData = {userAgent, lastLoginIp, loginIps, country, city, longitude, latitude};
+        let deviceData = {userAgent, lastLoginIp, loginIps, country, city, province, longitude, latitude};
 
         let isValidData = Boolean(data && data.platformId);
         let phoneNumber = data.phoneNumber? data.phoneNumber: null;

@@ -7716,6 +7716,16 @@ define(['js/app'], function (myApp) {
                                 $scope.safeApply();
                             });
                         }
+
+                        socketService.$socket($scope.AppSocket, 'checkIPArea', {_id: vm.selectedSinglePlayer._id}, function (data) {
+                            $scope.$evalAsync(() => {
+                                if(data && data.data){
+                                    vm.selectedSinglePlayer.city = data.data.city || "";
+                                    vm.selectedSinglePlayer.province = data.data.province || "";
+                                }
+                            });
+                        });
+
                         vm.processDataTableinModal('#modalPlayerInfo', '#similarPlayersTable');
                         vm.showProvinceStr = '';
                         vm.showCityStr = '';

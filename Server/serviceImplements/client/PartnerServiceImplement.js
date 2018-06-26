@@ -40,10 +40,11 @@ var PartnerServiceImplement = function () {
                 device: ua.device.name || '',
                 os: ua.os.name || ''
             }];
-            var geo = geoip.lookup(data.lastLoginIp);
+            var geo = dbUtility.getIpLocationByIPIPDotNet(data.lastLoginIp);
             if (geo) {
                 data.country = geo.country;
                 data.city = geo.city;
+                data.province = geo.province;
                 data.longitude = geo.ll ? geo.ll[1] : null;
                 data.latitude = geo.ll ? geo.ll[0] : null;
             }
