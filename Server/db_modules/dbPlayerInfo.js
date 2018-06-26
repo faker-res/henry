@@ -17137,8 +17137,8 @@ let dbPlayerInfo = {
                 data: {
                     playerObjId: player._id,
                     playerName: player.name,
-                    updateAmount: -Number(parseFloat(player.validCredit).toFixed(2)),
-                    curAmount: Number(parseFloat(player.validCredit).toFixed(2)),
+                    updateAmount: -Number(parseFloat(playerData.validCredit).toFixed(2)),
+                    curAmount: Number(parseFloat(playerData.validCredit).toFixed(2)),
                     realName: playerData.realName,
                     remark: '',
                     adminName: adminName
