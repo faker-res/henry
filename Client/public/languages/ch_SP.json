@@ -2757,6 +2757,7 @@
   "PLAYER'S CDN/FTP ROUTE SETTING": "玩家 CDN/FTP 相对路径配置",
   "PARTNER'S CDN/FTP ROUTE SETTING": "代理 CDN/FTP 相对路径配置",
   "CDN/FTP ROUTE SETTING": "相对路径配置",
+  "Banner title cannot be repeated!": "标题不能重复！",
   "UNLOCK_REASON": "解锁原因",
   "ManualUnlock": "强制",
   "AchievedUnlock": "达到流水",
