@@ -261,14 +261,12 @@ var dbPlatformMerchantGroup = {
     },
 
     syncMerchantGroupData: function (platformObjId) {
-        console.log("20180619 syncMerchantGroupData");
         let platformId = null;
         let merchantList = [];
         let newMerchants = [];
         let newMerchantNames = [];
         return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
             platform => {
-                console.log("platform",platform);
                 if (platform) {
                     platformId = platform.platformId;
                     return pmsAPI.merchant_getMerchantList(
@@ -281,13 +279,11 @@ var dbPlatformMerchantGroup = {
             }
         ).then(
             data => {
-                console.log("pmsAPI.merchant_getMerchantList",data);
                 if (data && data.merchants) {
                     let merchants = data.merchants;
                     let updateMerchantProm = [];
                     merchantList = merchants;
                     return dbconfig.collection_platformMerchantList.find({platformId: platformId}).lean().then(oldMerchants => {
-                        console.log("oldMerchants",oldMerchants);
                         merchants.forEach(merchant => {
                             if(oldMerchants && oldMerchants.length > 0) {
                                 let merchantNumberMatch = false;
@@ -346,7 +342,6 @@ var dbPlatformMerchantGroup = {
                 let merchantNumbers = merchantList.map(merchant => merchant.merchantNo);
                 return dbconfig.collection_platformMerchantList.find({platformId: platformId, merchantNo: {$nin: merchantNumbers}}).lean().then(
                     deletedMerchants => {
-                        console.log("deletedMerchants",deletedMerchants);
                         if(deletedMerchants && deletedMerchants.length > 0) {
                             let deletedMerchantNumbers = [];
                             deletedMerchants.forEach(merchant => {deletedMerchantNumbers.push(merchant.merchantNo);});
@@ -357,8 +352,6 @@ var dbPlatformMerchantGroup = {
             }
         ).then(
             () => {
-                console.log("newMerchants",newMerchants);
-                console.log("newMerchantNames",newMerchantNames);
                 if(newMerchants && newMerchants.length > 0 || newMerchantNames && newMerchantNames.length > 0) {
                     return dbconfig.collection_platformMerchantGroup.update(
                         {platform: platformObjId, bDefault: true},
@@ -371,7 +364,6 @@ var dbPlatformMerchantGroup = {
             }
         ).then(
             () => {
-                console.log("merchantList",merchantList);
                 if (merchantList && merchantList.length > 0) {
                     let merchants = merchantList.map(merchant => merchant.merchantNo);
                     let merchantNames = merchantList.map(merchant => merchant.name);
