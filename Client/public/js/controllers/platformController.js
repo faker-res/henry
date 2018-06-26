@@ -30719,6 +30719,7 @@ define(['js/app'], function (myApp) {
                         platformObjId: vm.selectedPlatform.id,
                         playerName: player.playerName
                     }).then(data => {
+                        console.log("playerCreditClearOut ret", data);
                         switch(initialStatus) {
                             case 'PENDINGTOPROCESS':
                                 vm.bulkCreditClearOut.pending -= 1;
@@ -30744,6 +30745,7 @@ define(['js/app'], function (myApp) {
                         });
                         return vm.refreshPlayerCreditInCreditClearOutList(index);
                     }, err => {
+                        console.log("playerCreditClearOut ret", err);
                         if(initialStatus == 'PENDINGTOPROCESS') {
                             vm.bulkCreditClearOut.pending -= 1;
                             vm.bulkCreditClearOut.failure += 1;
