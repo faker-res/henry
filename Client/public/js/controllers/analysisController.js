@@ -3764,7 +3764,7 @@ define(['js/app'], function (myApp) {
             })
         }
 
-        vm.getLoginUserList = function(date, period, inputDeviceType){
+        vm.getLoginUserList = function(date, period, inputDeviceType, graph){
 
             socketService.$socket($scope.AppSocket, 'getPlayerLoginRecord', {
                 startDate:date, endDate:date, platform: vm.selectedPlatform._id, period:period, inputDeviceType: inputDeviceType
@@ -3773,6 +3773,12 @@ define(['js/app'], function (myApp) {
                     vm.playerLoginRecords = (data && data.data) ? data.data:[];
                 });
             });
+            if(graph == 1){
+                vm.displayPeriodText = vm.queryPara.loginPlayer.periodText;
+            }else{
+                vm.displayPeriodText = vm.queryPara.loginPlayerDevice.periodText;
+            }
+
             $('#modalLoginDevice').modal('show');
         }
 

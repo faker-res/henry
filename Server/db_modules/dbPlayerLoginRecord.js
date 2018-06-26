@@ -173,14 +173,20 @@ var dbPlayerLoginRecord = {
 
         var dayStartTime = startDate;
         var getNextDate;
+        var dateRange = 0;
+        var periodRange = 0;
+        dateRange = (new Date(endDate) - new Date(startDate)) || 0;
+
         switch (period) {
             case 'day':
+                periodRange = 24 * 3600 * 1000;
                 getNextDate = function (date) {
                     var newDate = new Date(date);
                     return new Date(newDate.setDate(newDate.getDate() + 1));
                 }
                 break;
             case 'week':
+                periodRange = 24 * 3600 * 7 * 1000;
                 getNextDate = function (date) {
                     var newDate = new Date(date);
                     return new Date(newDate.setDate(newDate.getDate() + 7));
@@ -188,13 +194,16 @@ var dbPlayerLoginRecord = {
                 break;
             case 'month':
             default:
+                periodRange = 24 * 3600 * 30 * 1000;
                 getNextDate = function (date) {
                     var newDate = new Date(date);
                     return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
                 }
         }
 
-        while (dayStartTime.getTime() < endDate.getTime()) {
+        var loopTimes = dateRange / periodRange;
+        for(var i = 0; i < loopTimes; i++){
+          
             var dayEndTime = getNextDate.call(this, dayStartTime);
             var matchObj = {
                 platform: platformId,

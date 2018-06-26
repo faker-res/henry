@@ -3861,5 +3861,9 @@
   "Remove Empty Credit and Sort": "移除馀额＝0且排序馀额",
   "Start Clear Out": "开始清空上表馀额",
   "Cancel Clear Out": "取消清空任务",
-  "Transferring Out": "转出中"
+  "Transferring Out": "转出中",
+  "Seq No": "排序编号",
+  "Login Date": "登入日期",
+  "Login Device": "登入装置"
+
 }
