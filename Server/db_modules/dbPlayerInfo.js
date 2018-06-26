@@ -17008,6 +17008,119 @@ let dbPlayerInfo = {
         );
     },
 
+    getPlayerCreditByName: function(playerName, platformObjId) {
+        let platformId = null, providers = [], localCredit = 0;
+        return dbconfig.collection_platform.findOne({
+            _id: platformObjId
+        }).populate({
+            path: 'gameProviders',
+            model: dbconfig.collection_gameProvider
+        }).then(platform => {
+            platformId = platform.platformId;
+            providers = platform.gameProviders;
+            return dbconfig.collection_players.findOne({name: playerName, platform: platformObjId});
+        }).then(player => {
+            if(player) {
+                localCredit = player.validCredit;
+                return getProviderCredit(providers, playerName, platformId);
+            } else {
+                return Promise.reject({name: "DataError", message: "Player not found during get player credit clear by name"});
+            }
+        }).then(providerCredit => {
+            return {playerName: playerName, gameProviderTotalCredit: providerCredit, localTotalCredit: localCredit};
+        }).catch(err => {
+            errorUtils.reportError(err);
+            return {};
+        });
+    },
+
+    playerCreditClearOut: function(playerName, platformObjId, adminName, adminId) {
+        let platform = null;
+        let providers = [];
+        let player = null;
+        return dbconfig.collection_platform.findOne({_id: platformObjId}).populate({
+            path: 'gameProviders',
+            model: dbconfig.collection_gameProvider
+        }).then(platformData => {
+            platform = platformData;
+            providers = platform.gameProviders;
+            //get player
+            return dbconfig.collection_players.findOne({name: playerName, platform: platformObjId});
+        }).then(playerData => {
+            if(playerData) {
+                player = playerData;
+                //get all opened proposals
+                return dbconfig.collection_proposal.find({
+                    status: {
+                        $nin: [
+                            constProposalStatus.APPROVED,
+                            constProposalStatus.REJECTED,
+                            constProposalStatus.SUCCESS,
+                            constProposalStatus.FAIL,
+                            constProposalStatus.CANCEL,
+                            constProposalStatus.EXPIRED
+                        ]
+                    },
+                    'data.playerName': playerName,
+                    'data.platformId': ObjectId(platformObjId)
+                });
+            } else {
+                return Promise.reject({name: "DataError", message: "Player not found during player credit clear out"});
+            }
+        }).then(proposals => {
+            if(proposals && proposals.length > 0) {
+                // cancel all proposals
+                let cancelProposalProm = [];
+                proposals.forEach(proposal => {
+                    cancelProposalProm.push(
+                        dbProposal.cancelProposal(proposal._id, adminName).then(data => data, err => {
+                            errorUtils.reportError(err);
+                            return Promise.resolve();
+                        })
+                    )
+                });
+                return Promise.all(cancelProposalProm);
+            } else {
+                return Promise.resolve();
+            }
+        }).then(() => {
+            // transfer out
+            let promArr = [];
+            providers.forEach(provider => {
+                promArr.push(
+                    dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(player._id, platformObjId, provider._id, -1,
+                    player.playerId, provider.providerId, playerName, platform.platformId, adminName).then(data => {
+                        return data;
+                    }, err => {
+                        errorUtils.reportError(err);
+                        return Promise.resolve();
+                    })
+                )
+            });
+            return Promise.all(promArr).then(() => {
+                return dbconfig.collection_players.findOne({name: playerName, platform: platformObjId});
+            });
+        }).then(playerData => {
+            // submit proposal to edit credit to 0
+            let proposalData = {
+                platformId: platformObjId,
+                creator: {type: "admin", name: adminName, id: adminId},
+                data: {
+                    playerObjId: player._id,
+                    playerName: player.name,
+                    updateAmount: -playerData.validCredit,
+                    curAmount: playerData.validCredit,
+                    realName: playerData.realName,
+                    remark: '',
+                    adminName: adminName
+                }
+            };
+            return dbProposal.checkUpdateCreditProposal(platformObjId, constProposalType.UPDATE_PLAYER_CREDIT, proposalData);
+        }).catch(err => {
+            errorUtils.reportError(err);
+            return {};
+        });
+    }
 };
 
 function censoredPlayerName(name) {

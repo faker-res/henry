@@ -3845,6 +3845,17 @@
   "WITHDRAWAL_SPEED_SUCCESS": "成功提款速度分析",
   "WITHDRAWAL_SPEED_FAILED": "失败、已取消提款速度分析",
   "WITHDRAWAL_SUCCESS_TOTAL_TIMES": "总成功提款笔数（代理、玩家）",
-  "WITHDRAWAL_FAILED_TOTAL_TIMES": "总失败、取消提款笔数（代理、玩家）"
-
+  "WITHDRAWAL_FAILED_TOTAL_TIMES": "总失败、取消提款笔数（代理、玩家）",
+  "Bulk Credit Clear Out": "批量清空馀额",
+  "Total Credit (Game Provider)": "总馀额（游戏供应商）",
+  "Total Credit (Local)": "总馀额（本地）",
+  "Clear Out Status": "清空状态",
+  "Single Clear Out": "单一清空",
+  "Remove From List": "列表中移除",
+  "Refresh Credit": "更新馀额",
+  "Requesting Data": "读取中",
+  "Remove Empty Credit and Sort": "移除馀额＝0且排序馀额",
+  "Start Clear Out": "开始清空上表馀额",
+  "Cancel Clear Out": "取消清空任务",
+  "Transferring Out": "转出中"
 }

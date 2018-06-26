@@ -1155,6 +1155,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case "batchPermit":
                         vm.initBatchPermit();
+                        vm.initBulkCreditClearOut();
                     // setTimeout(() => {
                     //     $('#partnerDataTable').resize();
                     // }, 300);
@@ -15396,9 +15397,16 @@ define(['js/app'], function (myApp) {
                             $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
                         }
                     };
+
                     sendQueryOr.push(lastFeedbackTimeExist);
                     sendQueryOr.push(lastFeedbackTime);
-                    sendQuery["$or"] = sendQueryOr;
+
+                    if (sendQuery.hasOwnProperty("$or")) {
+                        sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
+                        delete sendQuery.$or;
+                    } else {
+                        sendQuery["$or"] = sendQueryOr;
+                    }
                 }
 
                 if (vm.playerFeedbackQuery.depositCountOperator && vm.playerFeedbackQuery.depositCountFormal != null) {
@@ -30550,8 +30558,231 @@ define(['js/app'], function (myApp) {
                 }
                 // add to record which is selected to edit
                 $('#c-' + id).html($translate("ModifyIt"));
-            }
+            };
 
+            vm.initBulkCreditClearOut = function() {
+                vm.bulkCreditClearOutTriggered = false;
+                vm.bulkCreditClearOut = {};
+                vm.bulkCreditClearOut.total = 0;
+                vm.bulkCreditClearOut.success = 0;
+                vm.bulkCreditClearOut.failure = 0;
+                vm.bulkCreditClearOut.pending = 0;
+                vm.bulkCreditClearOut.data = [];
+                vm.bulkCreditClearOut.initiating = false;
+            };
+            vm.initiateBulkCreditClearOutList = function() {
+                vm.bulkCreditClearOut.initiating = true;
+                vm.bulkCreditClearOutTriggered = true;
+                vm.bulkCreditClearOut.total = 0;
+                vm.bulkCreditClearOut.success = 0;
+                vm.bulkCreditClearOut.failure = 0;
+                vm.bulkCreditClearOut.pending = 0;
+                vm.bulkCreditClearOut.data = [];
+                let playerNames = vm.splitBatchPermit();
+                let prom = Promise.resolve();
+                playerNames.forEach((playerName, i) => {
+                    vm.bulkCreditClearOut.data.push({
+                        playerName: playerName,
+                        gameProviderTotalCredit: "? (" + $translate("Requesting Data") + ")",
+                        localTotalCredit: "? (" + $translate("Requesting Data") + ")",
+                        totalCredit: "? (" + $translate("Requesting Data") + ")",
+                        status: "-",
+                        proposalId: "-",
+                        actionable: false,
+                        processing: true
+                    });
+                    vm.bulkCreditClearOut.total += 1;
+
+                    prom = prom.then(() => {
+                        let sendData = {
+                            platformObjId: vm.selectedPlatform.id,
+                            playerName: playerName
+                        };
+                        return $scope.$socketPromise("getPlayerCreditByName", sendData).then(data => {
+                            if(data && data.data && data.data.playerName) {
+                                $scope.$evalAsync(() => {
+                                    vm.bulkCreditClearOut.data[i].gameProviderTotalCredit = data.data.gameProviderTotalCredit;
+                                    vm.bulkCreditClearOut.data[i].localTotalCredit = data.data.localTotalCredit;
+                                    vm.bulkCreditClearOut.data[i].totalCredit = data.data.gameProviderTotalCredit + data.data.localTotalCredit;
+                                    vm.bulkCreditClearOut.data[i].actionable = !(vm.bulkCreditClearOut.data[i].totalCredit <= 0);
+                                });
+                            }
+                            vm.bulkCreditClearOut.data[i].status = "PENDINGTOPROCESS";
+                            vm.bulkCreditClearOut.data[i].processing = false;
+                            vm.bulkCreditClearOut.pending += 1;
+                        }, err => {
+                            $scope.$evalAsync(() => {
+                                vm.bulkCreditClearOut.data[i].gameProviderTotalCredit = $translate("Incorrect data!");
+                                vm.bulkCreditClearOut.data[i].localTotalCredit = $translate("Incorrect data!");
+                                vm.bulkCreditClearOut.data[i].totalCredit = $translate("Incorrect data!");
+                                vm.bulkCreditClearOut.data[i].status = "PENDINGTOPROCESS";
+                                vm.bulkCreditClearOut.data[i].processing = false;
+                                vm.bulkCreditClearOut.pending += 1;
+                            });
+                        });
+                    });
+                });
+                return prom.then(() => {
+                    $scope.$evalAsync(() => {
+                        vm.bulkCreditClearOut.initiating = false;
+                    });
+                });
+            };
+            vm.filterAndSortBulkCreditClearOutList = function () {
+                let playerList = vm.bulkCreditClearOut.data;
+                if(playerList && playerList.length > 0) {
+                    playerList = playerList.filter(player => {
+                        let totalCredit = Number(player.totalCredit);
+                        return isNaN(totalCredit) || totalCredit > 0;
+                    });
+                    playerList.sort((a,b) => {
+                        if(isNaN(Number(a.totalCredit)) && isNaN(Number(b.totalCredit))) {
+                            if(a.totalCredit < b.totalCredit)
+                                return -1;
+                            if(a.totalCredit > b.totalCredit)
+                                return 1;
+                            if(a.totalCredit == b.totalCredit)
+                                return 0;
+                        }
+                        if(isNaN(Number(a.totalCredit)))
+                            return 1;
+                        if(isNaN(Number(b.totalCredit)))
+                            return -1;
+                        return b.totalCredit - a.totalCredit;
+                    });
+                    vm.bulkCreditClearOut.data = playerList;
+                    vm.bulkCreditClearOut.total = playerList.length;
+                    vm.bulkCreditClearOut.success = 0;
+                    vm.bulkCreditClearOut.failure = 0;
+                    vm.bulkCreditClearOut.pending = 0;
+                    playerList.forEach(player => {
+                        switch(player.status) {
+                            case 'PENDINGTOPROCESS':
+                                vm.bulkCreditClearOut.pending += 1;
+                                break;
+
+                            case 'SUCCESS':
+                                vm.bulkCreditClearOut.success += 1;
+                                break;
+
+                            case 'FAIL':
+                                vm.bulkCreditClearOut.failure += 1;
+                                break;
+                        }
+                    })
+                }
+            };
+            vm.startBulkCreditClearOut = function () {
+                let players = vm.bulkCreditClearOut.data;
+                let prom = Promise.resolve();
+                players.forEach((player, index) => {
+                    prom = prom.then(() => {
+                        return vm.singleCreditClearOut(index);
+                    });
+                });
+                return prom;
+            };
+            vm.cancelBulkCreditClearOut = function () {
+                vm.bulkCreditClearOutTriggered = false;
+                vm.bulkCreditClearOut.total = 0;
+                vm.bulkCreditClearOut.success = 0;
+                vm.bulkCreditClearOut.failure = 0;
+                vm.bulkCreditClearOut.pending = 0;
+                vm.bulkCreditClearOut.data = [];
+            };
+            vm.singleCreditClearOut = function (index) {
+                let player = vm.bulkCreditClearOut.data[index];
+                let initialStatus = player.status;
+                let totalCredit = Number(player.totalCredit);
+                if(!isNaN(totalCredit) && totalCredit > 0) {
+                    $scope.$evalAsync(() => {vm.bulkCreditClearOut.initiating = true;});
+                    player.status = "Transferring Out";
+                    return $scope.$socketPromise("playerCreditClearOut", {
+                        platformObjId: vm.selectedPlatform.id,
+                        playerName: player.playerName
+                    }).then(data => {
+                        switch(initialStatus) {
+                            case 'PENDINGTOPROCESS':
+                                vm.bulkCreditClearOut.pending -= 1;
+                                break;
+
+                            case 'FAIL':
+                                vm.bulkCreditClearOut.failure -= 1;
+                                break;
+                        }
+                        $scope.$evalAsync(() => {
+                            if(data && data.data && data.data.data && data.data.data.playerName) {
+                                let proposal = data.data;
+                                player.updateAmount = proposal.data.updateAmount;
+                                player.proposalId = proposal.proposalId;
+                                player.status = "SUCCESS";
+                                player.actionable = false;
+                                vm.bulkCreditClearOut.success += 1;
+                            } else {
+                                player.status = "FAIL";
+                                vm.bulkCreditClearOut.failure += 1;
+                            }
+                            vm.bulkCreditClearOut.initiating = false;
+                        });
+                        return vm.refreshPlayerCreditInCreditClearOutList(index);
+                    }, err => {
+                        if(initialStatus == 'PENDINGTOPROCESS') {
+                            vm.bulkCreditClearOut.pending -= 1;
+                            vm.bulkCreditClearOut.failure += 1;
+                        }
+                        player.status = "FAIL";
+                        $scope.$evalAsync(() => {vm.bulkCreditClearOut.initiating = false;});
+                        return vm.refreshPlayerCreditInCreditClearOutList(index);
+                    });
+                }
+            };
+            vm.removePlayerFromCreditClearOutList = function (index) {
+                vm.bulkCreditClearOut.total -= 1;
+                switch(vm.bulkCreditClearOut.data[index].status) {
+                    case 'PENDINGTOPROCESS':
+                        vm.bulkCreditClearOut.pending -= 1;
+                        break;
+
+                    case 'SUCCESS':
+                        vm.bulkCreditClearOut.success -= 1;
+                        break;
+
+                    case 'FAIL':
+                        vm.bulkCreditClearOut.failure -= 1;
+                        break;
+                }
+                vm.bulkCreditClearOut.data.splice(index,1);
+            };
+            vm.refreshPlayerCreditInCreditClearOutList = function (index) {
+                $scope.$evalAsync(() => {vm.bulkCreditClearOut.initiating = true;});
+                vm.bulkCreditClearOut.data[index].gameProviderTotalCredit = "? (" + $translate("Requesting Data") + ")";
+                vm.bulkCreditClearOut.data[index].localTotalCredit = "? (" + $translate("Requesting Data") + ")";
+                vm.bulkCreditClearOut.data[index].totalCredit = "? (" + $translate("Requesting Data") + ")";
+                vm.bulkCreditClearOut.data[index].actionable = false;
+                let player = vm.bulkCreditClearOut.data[index];
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    playerName: player.playerName
+                };
+                return $scope.$socketPromise("getPlayerCreditByName", sendData).then(data => {
+                    $scope.$evalAsync(() => {
+                        if(data && data.data && data.data.playerName) {
+                            vm.bulkCreditClearOut.data[index].gameProviderTotalCredit = data.data.gameProviderTotalCredit;
+                            vm.bulkCreditClearOut.data[index].localTotalCredit = data.data.localTotalCredit;
+                            vm.bulkCreditClearOut.data[index].totalCredit = data.data.gameProviderTotalCredit + data.data.localTotalCredit;
+                            vm.bulkCreditClearOut.data[index].actionable = !(vm.bulkCreditClearOut.data[index].status == 'SUCCESS' || vm.bulkCreditClearOut.data[index].totalCredit <= 0);
+                        }
+                        vm.bulkCreditClearOut.initiating = false;
+                    });
+                }, err => {
+                    $scope.$evalAsync(() => {
+                        vm.bulkCreditClearOut.data[index].gameProviderTotalCredit = $translate("Incorrect data!");
+                        vm.bulkCreditClearOut.data[index].localTotalCredit = $translate("Incorrect data!");
+                        vm.bulkCreditClearOut.data[index].totalCredit = $translate("Incorrect data!");
+                        vm.bulkCreditClearOut.initiating = false;
+                    });
+                });
+            };
             ///
             //Partner Advertisement
             vm.addNewPartnerAdvertisementRecord = function () {
