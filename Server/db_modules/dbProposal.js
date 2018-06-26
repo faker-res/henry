@@ -1328,7 +1328,7 @@ var proposal = {
                     //get all proposal process with current step in found steps
                     var processIds = [];
                     for (var i = 0; i < data.length; i++) {
-                        if (!data[i].type || typeArr.indexOf(data[i].type.name) != -1) {
+                        if (!data[i].type || typeArr.indexOf(data[i].type.name) != -1 || !typeArr) {
                             processIds.push(data[i]._id);
                         }
                     }
