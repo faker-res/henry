@@ -375,7 +375,7 @@ define(['js/app'], function (myApp) {
                 let batchEdit = [];
                 vm.batchSaveInProgress = true;
                 vm.conversationForm.forEach(item=>{
-                    if(vm.batchEditList.indexOf(String(item.messageId))!= -1){
+                    if(vm.batchEditList.indexOf(String(item.messageId))!= -1 && (item && item.statusName && item.statusName == vm.constQualityInspectionStatusCN[1])){
                         batchEdit.push(item);
                     };
                 });
