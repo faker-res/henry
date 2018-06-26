@@ -27237,6 +27237,7 @@ define(['js/app'], function (myApp) {
                 displayValues: false,
                 countSelected: $translate('# of % selected')
             });
+            remarkSelect.multipleSelect('refresh');
         };
 
         utilService.actionAfterLoaded('#resetPlayerQuery', function () {
