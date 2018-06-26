@@ -1529,6 +1529,7 @@
   "dailyMaxRewardPoint": "Daily Max Reward Point",
   "PlayerAlipayTopUp": "Player Alipay Topup",
   "Credit_Amount": "Credit Amount",
+  "INSERT_TIME": "Received Time",
 
   "FRONT_END_REGISTRATION_ATTRITION_RATE": "Front-end Registration Attrition Rate",
   "FrontEndRegistrationAttritionRate": "Front-end Registration Attrition Rate",

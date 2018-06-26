@@ -4523,7 +4523,7 @@ let dbPlayerInfo = {
 
                     // Revert due to IP DB not ready
 
-                    var geo = geoip.lookup(playerData.lastLoginIp);
+                    //var geo = geoip.lookup(playerData.lastLoginIp);
                     var updateData = {
                         isLogin: true,
                         lastLoginIp: playerData.lastLoginIp,
@@ -4531,32 +4531,32 @@ let dbPlayerInfo = {
                         lastAccessTime: new Date().getTime(),
                         $inc: {loginTimes: 1}
                     };
-                    var geoInfo = {};
-                    if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
-                        geoInfo = {
-                            // country: geo ? geo.country : null,
-                            // city: geo ? geo.city : null,
-                            longitude: geo && geo.ll ? geo.ll[1] : null,
-                            latitude: geo && geo.ll ? geo.ll[0] : null
-                        }
-                    }
+                    // var geoInfo = {};
+                    // if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                    //     geoInfo = {
+                    //         // country: geo ? geo.country : null,
+                    //         // city: geo ? geo.city : null,
+                    //         longitude: geo && geo.ll ? geo.ll[1] : null,
+                    //         latitude: geo && geo.ll ? geo.ll[0] : null
+                    //     }
+                    // }
 
-                    if(playerData.lastLoginIp && playerData.lastLoginIp != "undefined"){
-                        var ipData = dbUtility.getIpLocationByIPIPDotNet(playerData.lastLoginIp);
-                        if(ipData){
-                            geoInfo.ipArea = ipData;
-                            geoInfo.country = ipData.country || null;
-                            geoInfo.city = ipData.city || null;
-                            geoInfo.province = ipData.province || null;
-                        }else{
-                            geoInfo.ipArea = {'province':'', 'city':''};
-                            geoInfo.country = "";
-                            geoInfo.city = "";
-                            geoInfo.province = "";
-                        }
-                    }
+                    // if(playerData.lastLoginIp && playerData.lastLoginIp != "undefined"){
+                    //     var ipData = dbUtility.getIpLocationByIPIPDotNet(playerData.lastLoginIp);
+                    //     if(ipData){
+                    //         geoInfo.ipArea = ipData;
+                    //         geoInfo.country = ipData.country || null;
+                    //         geoInfo.city = ipData.city || null;
+                    //         geoInfo.province = ipData.province || null;
+                    //     }else{
+                    //         geoInfo.ipArea = {'province':'', 'city':''};
+                    //         geoInfo.country = "";
+                    //         geoInfo.city = "";
+                    //         geoInfo.province = "";
+                    //     }
+                    // }
 
-                    Object.assign(updateData, geoInfo);
+                    //Object.assign(updateData, geoInfo);
                     if (playerData.lastLoginIp && !playerObj.loginIps.includes(playerData.lastLoginIp)) {
                         updateData.$push = {loginIps: playerData.lastLoginIp};
                     }
@@ -4584,7 +4584,7 @@ let dbPlayerInfo = {
                                 dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
                             }
 
-                            Object.assign(recordData, geoInfo);
+                            //Object.assign(recordData, geoInfo);
                             var record = new dbconfig.collection_playerLoginRecord(recordData);
                             return record.save().then(
                                 function () {
@@ -4832,23 +4832,23 @@ let dbPlayerInfo = {
                         bUpdateIp = true;
                     }
 
-                    let geo = geoip.lookup(loginData.lastLoginIp);
+                    //let geo = geoip.lookup(loginData.lastLoginIp);
                     let updateData = {
                         isLogin: true,
                         lastLoginIp: loginData.lastLoginIp,
                         userAgent: newAgentArray,
                         lastAccessTime: new Date().getTime(),
                     };
-                    let geoInfo = {};
-                    if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
-                        geoInfo = {
-                            country: geo ? geo.country : null,
-                            city: geo ? geo.city : null,
-                            longitude: geo && geo.ll ? geo.ll[1] : null,
-                            latitude: geo && geo.ll ? geo.ll[0] : null
-                        }
-                    }
-                    Object.assign(updateData, geoInfo);
+                    // let geoInfo = {};
+                    // if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                    //     geoInfo = {
+                    //         country: geo ? geo.country : null,
+                    //         city: geo ? geo.city : null,
+                    //         longitude: geo && geo.ll ? geo.ll[1] : null,
+                    //         latitude: geo && geo.ll ? geo.ll[0] : null
+                    //     }
+                    // }
+                    //Object.assign(updateData, geoInfo);
                     if (loginData.lastLoginIp && loginData.lastLoginIp != playerObj.lastLoginIp) {
                         updateData.$push = {loginIps: loginData.lastLoginIp};
                     }
@@ -4871,7 +4871,7 @@ let dbPlayerInfo = {
                                 // isTestPlayer: playerObj.isTestPlayer,
                                 // partner: playerObj.partner ? playerObj.partner : null
                             };
-                            Object.assign(recordData, geoInfo);
+                            //Object.assign(recordData, geoInfo);
                             let record = new dbconfig.collection_playerLoginRecord(recordData);
                             return record.save().then(
                                 function () {
@@ -15309,7 +15309,21 @@ let dbPlayerInfo = {
                 message: "Generate dian xiao code failure."
             })
         }
-        let randomString = Math.random().toString(36).substring(4, 11); // generate random String
+        let randomString = Math.random().toString(36).substring(4, 9); // generate random String
+        let index = 0;
+        // prevent infinite loop
+        // prevent randomString all numbers
+        while (!isNaN(randomString) && index < 5) {
+            randomString = Math.random().toString(36).substring(4, 9);
+            index++;
+        }
+        if (randomString && randomString.charAt(0) == "p") {
+            let text = "";
+            let possible = "abcdefghijklmnoqrstuvwxyz0123456789";
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+            randomString = text + randomString.substr(1, randomString.length);
+        }
+
         let dxCode = "";
 
         let platformProm = Promise.resolve({platformId: platformId});
@@ -16994,6 +17008,148 @@ let dbPlayerInfo = {
         );
     },
 
+    checkIPArea: function (playerObjId) {
+        return dbconfig.collection_players.findOne({_id: playerObjId}).then(
+            playerDetails => {
+                if(playerDetails && playerDetails.loginIps && playerDetails.loginIps[0] && playerDetails.loginIps[0] != "undefined"
+                    && playerDetails.loginIps[0] != "127.0.0.1"){
+
+                    var ipData = dbUtility.getIpLocationByIPIPDotNet(playerDetails.loginIps[0]);
+                    let updateData = {};
+
+                    if(ipData){
+                        updateData.city = ipData.city || "";
+                        updateData.province = ipData.province || "";
+                    }
+
+                    if(updateData && (updateData.province || updateData.city) && ((!playerDetails.province || playerDetails.province != updateData.province)
+                        || (!playerDetails.city || playerDetails.city != updateData.city))){
+                        dbconfig.collection_players.findOneAndUpdate(
+                            {_id: playerObjId},
+                            updateData
+                        ).exec();
+
+                    }
+
+                    return updateData;
+                }
+            }
+        )
+    },
+
+    getPlayerCreditByName: function(playerName, platformObjId) {
+        let platformId = null, providers = [], localCredit = 0;
+        return dbconfig.collection_platform.findOne({
+            _id: platformObjId
+        }).populate({
+            path: 'gameProviders',
+            model: dbconfig.collection_gameProvider
+        }).then(platform => {
+            platformId = platform.platformId;
+            providers = platform.gameProviders;
+            return dbconfig.collection_players.findOne({name: playerName, platform: platformObjId});
+        }).then(player => {
+            if(player) {
+                localCredit = player.validCredit;
+                return getProviderCredit(providers, playerName, platformId);
+            } else {
+                return Promise.reject({name: "DataError", message: "Player not found during get player credit clear by name"});
+            }
+        }).then(providerCredit => {
+            return {playerName: playerName, gameProviderTotalCredit: providerCredit, localTotalCredit: localCredit};
+        }).catch(err => {
+            errorUtils.reportError(err);
+            return {};
+        });
+    },
+
+    playerCreditClearOut: function(playerName, platformObjId, adminName, adminId) {
+        let platform = null;
+        let providers = [];
+        let player = null;
+        return dbconfig.collection_platform.findOne({_id: platformObjId}).populate({
+            path: 'gameProviders',
+            model: dbconfig.collection_gameProvider
+        }).then(platformData => {
+            platform = platformData;
+            providers = platform.gameProviders;
+            //get player
+            return dbconfig.collection_players.findOne({name: playerName, platform: platformObjId});
+        }).then(playerData => {
+            if(playerData) {
+                player = playerData;
+                //get all opened proposals
+                return dbconfig.collection_proposal.find({
+                    status: {
+                        $nin: [
+                            constProposalStatus.APPROVED,
+                            constProposalStatus.REJECTED,
+                            constProposalStatus.SUCCESS,
+                            constProposalStatus.FAIL,
+                            constProposalStatus.CANCEL,
+                            constProposalStatus.EXPIRED
+                        ]
+                    },
+                    'data.playerName': playerName,
+                    'data.platformId': ObjectId(platformObjId)
+                });
+            } else {
+                return Promise.reject({name: "DataError", message: "Player not found during player credit clear out"});
+            }
+        }).then(proposals => {
+            if(proposals && proposals.length > 0) {
+                // cancel all proposals
+                let cancelProposalProm = [];
+                proposals.forEach(proposal => {
+                    cancelProposalProm.push(
+                        dbProposal.cancelProposal(proposal._id, adminName).then(data => data, err => {
+                            errorUtils.reportError(err);
+                            return Promise.resolve();
+                        })
+                    )
+                });
+                return Promise.all(cancelProposalProm);
+            } else {
+                return Promise.resolve();
+            }
+        }).then(() => {
+            // transfer out
+            let promArr = [];
+            providers.forEach(provider => {
+                promArr.push(
+                    dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(player._id, platformObjId, provider._id, -1,
+                    player.playerId, provider.providerId, playerName, platform.platformId, adminName).then(data => {
+                        return data;
+                    }, err => {
+                        errorUtils.reportError(err);
+                        return Promise.resolve();
+                    })
+                )
+            });
+            return Promise.all(promArr).then(() => {
+                return dbconfig.collection_players.findOne({name: playerName, platform: platformObjId});
+            });
+        }).then(playerData => {
+            // submit proposal to edit credit to 0
+            let proposalData = {
+                platformId: platformObjId,
+                creator: {type: "admin", name: adminName, id: adminId},
+                data: {
+                    playerObjId: player._id,
+                    playerName: player.name,
+                    updateAmount: -playerData.validCredit,
+                    curAmount: playerData.validCredit,
+                    realName: playerData.realName,
+                    remark: '',
+                    adminName: adminName
+                }
+            };
+            return dbProposal.checkUpdateCreditProposal(platformObjId, constProposalType.UPDATE_PLAYER_CREDIT, proposalData);
+        }).catch(err => {
+            errorUtils.reportError(err);
+            return {};
+        });
+    }
 };
 
 function censoredPlayerName(name) {

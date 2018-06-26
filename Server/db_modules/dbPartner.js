@@ -1393,7 +1393,7 @@ let dbPartner = {
                     if (!bExit) {
                         newAgentArray.push(uaObj);
                     }
-                    var geo = geoip.lookup(partnerData.lastLoginIp);
+                    //var geo = geoip.lookup(partnerData.lastLoginIp);
                     var updateData = {
                         isLogin: true,
                         lastLoginIp: partnerData.lastLoginIp,
@@ -1401,16 +1401,16 @@ let dbPartner = {
                         $inc: {loginTimes: 1},
                         lastAccessTime: new Date().getTime(),
                     };
-                    var geoInfo = {};
-                    if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
-                        geoInfo = {
-                            country: geo ? geo.country : null,
-                            city: geo ? geo.city : null,
-                            longitude: geo && geo.ll ? geo.ll[1] : null,
-                            latitude: geo && geo.ll ? geo.ll[0] : null
-                        }
-                    }
-                    Object.assign(updateData, geoInfo);
+                    // var geoInfo = {};
+                    // if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                    //     geoInfo = {
+                    //         country: geo ? geo.country : null,
+                    //         city: geo ? geo.city : null,
+                    //         longitude: geo && geo.ll ? geo.ll[1] : null,
+                    //         latitude: geo && geo.ll ? geo.ll[0] : null
+                    //     }
+                    // }
+                    //Object.assign(updateData, geoInfo);
                     return dbconfig.collection_partner.findOneAndUpdate({
                         _id: partnerObj._id,
                         platform: platformObjId
@@ -1430,7 +1430,7 @@ let dbPartner = {
                                 clientDomain: partnerData.clientDomain ? partnerData.clientDomain : "",
                                 userAgent: uaObj
                             };
-                            Object.assign(recordData, geoInfo);
+                            //Object.assign(recordData, geoInfo);
                             var record = new dbconfig.collection_partnerLoginRecord(recordData);
                             return record.save().then(
                                 () => {
@@ -1545,23 +1545,23 @@ let dbPartner = {
                     if (!bExit) {
                         newAgentArray.push(uaObj);
                     }
-                    let geo = geoip.lookup(partnerData.lastLoginIp);
+                    //let geo = geoip.lookup(partnerData.lastLoginIp);
                     let updateData = {
                         isLogin: true,
                         lastLoginIp: partnerData.lastLoginIp,
                         userAgent: newAgentArray,
                         lastAccessTime: new Date().getTime(),
                     };
-                    let geoInfo = {};
-                    if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
-                        geoInfo = {
-                            country: geo ? geo.country : null,
-                            city: geo ? geo.city : null,
-                            longitude: geo && geo.ll ? geo.ll[1] : null,
-                            latitude: geo && geo.ll ? geo.ll[0] : null
-                        }
-                    }
-                    Object.assign(updateData, geoInfo);
+                    // let geoInfo = {};
+                    // if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                    //     geoInfo = {
+                    //         country: geo ? geo.country : null,
+                    //         city: geo ? geo.city : null,
+                    //         longitude: geo && geo.ll ? geo.ll[1] : null,
+                    //         latitude: geo && geo.ll ? geo.ll[0] : null
+                    //     }
+                    // }
+                    // Object.assign(updateData, geoInfo);
                     return dbconfig.collection_partner.findOneAndUpdate({
                         _id: partnerObj._id,
                         platform: platformObjId
@@ -1581,7 +1581,7 @@ let dbPartner = {
                                 clientDomain: partnerData.clientDomain ? partnerData.clientDomain : "",
                                 userAgent: uaObj
                             };
-                            Object.assign(recordData, geoInfo);
+                            //Object.assign(recordData, geoInfo);
                             let record = new dbconfig.collection_partnerLoginRecord(recordData);
                             return record.save().then(
                                 () => data
@@ -7578,7 +7578,7 @@ let dbPartner = {
 
                                     return {
                                         date: startTime,
-                                        depositCrewNumber: topUpSummary && topUpSummary.totalDepositCrew ? topUpSummary.totalDepositCrew : 0,
+                                        depositCrewNumbers: topUpSummary && topUpSummary.totalDepositCrew ? topUpSummary.totalDepositCrew : 0,
                                         totalDepositAmount: topUpSummary && topUpSummary.totalDepositAmount ? topUpSummary.totalDepositAmount : 0,
                                         startIndex: startIndex,
                                         list: (isNeedDetails === true || isNeedDetails === "true") ? relevantCrews.slice(startIndex, startIndex + count) : []
@@ -7586,7 +7586,7 @@ let dbPartner = {
                                 }else{
                                     return {
                                         date: startTime,
-                                        depositCrewNumber: 0,
+                                        depositCrewNumbers: 0,
                                         totalDepositAmount: 0,
                                         startIndex: startIndex,
                                         list: []
@@ -7630,7 +7630,7 @@ let dbPartner = {
 
                                     return {
                                         date: startTime,
-                                        depositCrewNumber: topUpSummary && topUpSummary.totalDepositCrew ? topUpSummary.totalDepositCrew : 0,
+                                        depositCrewNumbers: topUpSummary && topUpSummary.totalDepositCrew ? topUpSummary.totalDepositCrew : 0,
                                         totalDepositAmount: topUpSummary && topUpSummary.totalDepositAmount ? topUpSummary.totalDepositAmount : 0,
                                         startIndex: startIndex,
                                         list: (isNeedDetails === true || isNeedDetails === "true") ? relevantCrews.slice(startIndex, startIndex + count) : []
@@ -7638,7 +7638,7 @@ let dbPartner = {
                                 }else{
                                     return {
                                         date: startTime,
-                                        depositCrewNumber: 0,
+                                        depositCrewNumbers: 0,
                                         totalDepositAmount: 0,
                                         startIndex: startIndex,
                                         list: []

@@ -189,7 +189,25 @@ define([], () => {
 
         self.getAllPromoCodeUserGroup = function ($scope, platformObjId) {
             return $scope.$socketPromise("getAllPromoCodeUserGroup", {platformObjId: platformObjId}).then(data => data.data)
-        }
+        };
+
+        self.getPlatformProviderGroup = ($scope, platformObjId) => {
+            return $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: platformObjId}).then(
+                data => {
+                    if (data) {
+                        let gameProviderGroup = data.data;
+                        let gameProviderGroupNames = {};
+
+                        for (let i = 0; i < gameProviderGroup.length; i++) {
+                            let providerGroup = gameProviderGroup[i];
+                            gameProviderGroupNames[providerGroup._id] = providerGroup.name;
+                        }
+
+                        return [gameProviderGroup, gameProviderGroupNames];
+                    }
+                }
+            );
+        };
 
         this.updatePageTile = ($translate, pageName, tabName) => {
             window.document.title = $translate(pageName) + "->" + $translate(tabName);
