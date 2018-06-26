@@ -4523,7 +4523,7 @@ let dbPlayerInfo = {
 
                     // Revert due to IP DB not ready
 
-                    var geo = geoip.lookup(playerData.lastLoginIp);
+                    //var geo = geoip.lookup(playerData.lastLoginIp);
                     var updateData = {
                         isLogin: true,
                         lastLoginIp: playerData.lastLoginIp,
@@ -4531,32 +4531,32 @@ let dbPlayerInfo = {
                         lastAccessTime: new Date().getTime(),
                         $inc: {loginTimes: 1}
                     };
-                    var geoInfo = {};
-                    if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
-                        geoInfo = {
-                            // country: geo ? geo.country : null,
-                            // city: geo ? geo.city : null,
-                            longitude: geo && geo.ll ? geo.ll[1] : null,
-                            latitude: geo && geo.ll ? geo.ll[0] : null
-                        }
-                    }
+                    // var geoInfo = {};
+                    // if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                    //     geoInfo = {
+                    //         // country: geo ? geo.country : null,
+                    //         // city: geo ? geo.city : null,
+                    //         longitude: geo && geo.ll ? geo.ll[1] : null,
+                    //         latitude: geo && geo.ll ? geo.ll[0] : null
+                    //     }
+                    // }
 
-                    if(playerData.lastLoginIp && playerData.lastLoginIp != "undefined"){
-                        var ipData = dbUtility.getIpLocationByIPIPDotNet(playerData.lastLoginIp);
-                        if(ipData){
-                            geoInfo.ipArea = ipData;
-                            geoInfo.country = ipData.country || null;
-                            geoInfo.city = ipData.city || null;
-                            geoInfo.province = ipData.province || null;
-                        }else{
-                            geoInfo.ipArea = {'province':'', 'city':''};
-                            geoInfo.country = "";
-                            geoInfo.city = "";
-                            geoInfo.province = "";
-                        }
-                    }
+                    // if(playerData.lastLoginIp && playerData.lastLoginIp != "undefined"){
+                    //     var ipData = dbUtility.getIpLocationByIPIPDotNet(playerData.lastLoginIp);
+                    //     if(ipData){
+                    //         geoInfo.ipArea = ipData;
+                    //         geoInfo.country = ipData.country || null;
+                    //         geoInfo.city = ipData.city || null;
+                    //         geoInfo.province = ipData.province || null;
+                    //     }else{
+                    //         geoInfo.ipArea = {'province':'', 'city':''};
+                    //         geoInfo.country = "";
+                    //         geoInfo.city = "";
+                    //         geoInfo.province = "";
+                    //     }
+                    // }
 
-                    Object.assign(updateData, geoInfo);
+                    //Object.assign(updateData, geoInfo);
                     if (playerData.lastLoginIp && !playerObj.loginIps.includes(playerData.lastLoginIp)) {
                         updateData.$push = {loginIps: playerData.lastLoginIp};
                     }
@@ -4584,7 +4584,7 @@ let dbPlayerInfo = {
                                 dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
                             }
 
-                            Object.assign(recordData, geoInfo);
+                            //Object.assign(recordData, geoInfo);
                             var record = new dbconfig.collection_playerLoginRecord(recordData);
                             return record.save().then(
                                 function () {
@@ -4832,23 +4832,23 @@ let dbPlayerInfo = {
                         bUpdateIp = true;
                     }
 
-                    let geo = geoip.lookup(loginData.lastLoginIp);
+                    //let geo = geoip.lookup(loginData.lastLoginIp);
                     let updateData = {
                         isLogin: true,
                         lastLoginIp: loginData.lastLoginIp,
                         userAgent: newAgentArray,
                         lastAccessTime: new Date().getTime(),
                     };
-                    let geoInfo = {};
-                    if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
-                        geoInfo = {
-                            country: geo ? geo.country : null,
-                            city: geo ? geo.city : null,
-                            longitude: geo && geo.ll ? geo.ll[1] : null,
-                            latitude: geo && geo.ll ? geo.ll[0] : null
-                        }
-                    }
-                    Object.assign(updateData, geoInfo);
+                    // let geoInfo = {};
+                    // if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                    //     geoInfo = {
+                    //         country: geo ? geo.country : null,
+                    //         city: geo ? geo.city : null,
+                    //         longitude: geo && geo.ll ? geo.ll[1] : null,
+                    //         latitude: geo && geo.ll ? geo.ll[0] : null
+                    //     }
+                    // }
+                    //Object.assign(updateData, geoInfo);
                     if (loginData.lastLoginIp && loginData.lastLoginIp != playerObj.lastLoginIp) {
                         updateData.$push = {loginIps: loginData.lastLoginIp};
                     }
@@ -4871,7 +4871,7 @@ let dbPlayerInfo = {
                                 // isTestPlayer: playerObj.isTestPlayer,
                                 // partner: playerObj.partner ? playerObj.partner : null
                             };
-                            Object.assign(recordData, geoInfo);
+                            //Object.assign(recordData, geoInfo);
                             let record = new dbconfig.collection_playerLoginRecord(recordData);
                             return record.save().then(
                                 function () {
@@ -16993,6 +16993,35 @@ let dbPlayerInfo = {
             }
         );
     },
+
+    checkIPArea: function (playerObjId) {
+        return dbconfig.collection_players.findOne({_id: playerObjId}).then(
+            playerDetails => {
+                if(playerDetails && playerDetails.loginIps && playerDetails.loginIps[0] && playerDetails.loginIps[0] != "undefined"
+                    && playerDetails.loginIps[0] != "127.0.0.1"){
+
+                    var ipData = dbUtility.getIpLocationByIPIPDotNet(playerDetails.loginIps[0]);
+                    let updateData = {};
+
+                    if(ipData){
+                        updateData.city = ipData.city || "";
+                        updateData.province = ipData.province || "";
+                    }
+
+                    if(updateData && (updateData.province || updateData.city) && ((!playerDetails.province || playerDetails.province != updateData.province)
+                        || (!playerDetails.city || playerDetails.city != updateData.city))){
+                        dbconfig.collection_players.findOneAndUpdate(
+                            {_id: playerObjId},
+                            updateData
+                        ).exec();
+
+                    }
+
+                    return updateData;
+                }
+            }
+        )
+    }
 
 };
 

@@ -1250,6 +1250,12 @@ function socketActionPlayer(socketIO, socket) {
             let isValidData = Boolean(data && data.playerId && data.platformId && data.lastLoginIp && data.isRealPlayer);
             socketUtil.emitter(self.socket, dbPlayerInfo.getPagedSimilarIpForPlayers, [data.playerId, data.platformId, data.lastLoginIp, data.isRealPlayer, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
+
+        checkIPArea: function checkIPArea(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data._id);
+            socketUtil.emitter(self.socket, dbPlayerInfo.checkIPArea, [data._id], actionName, isValidData);
+        }
     };
     socketActionPlayer.actions = this.actions;
 }

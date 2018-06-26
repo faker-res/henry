@@ -133,10 +133,11 @@ var dbMigration = {
 
     createPlayer: function (data) {
         if (data.lastLoginIp) {
-            var geo = geoip.lookup(data.lastLoginIp);
+            var geo = dbUtility.getIpLocationByIPIPDotNet(data.lastLoginIp);
             if (geo) {
                 data.country = geo.country;
                 data.city = geo.city;
+                data.province = geo.province;
                 data.longitude = geo.ll ? geo.ll[1] : null;
                 data.latitude = geo.ll ? geo.ll[0] : null;
             }
@@ -1638,17 +1639,17 @@ var dbMigration = {
                     if (promData.lastAccessTime.getTime() < data.loginTime.getTime()) {
                         updateData.lastLoginIp = data.loginIP;
                         updateData.lastAccessTime = data.loginTime;
-                        var geo = geoip.lookup(data.loginIP);
-                        var geoInfo = {};
-                        if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
-                            geoInfo = {
-                                country: geo ? geo.country : null,
-                                city: geo ? geo.city : null,
-                                longitude: geo && geo.ll ? geo.ll[1] : null,
-                                latitude: geo && geo.ll ? geo.ll[0] : null
-                            }
-                        }
-                        Object.assign(updateData, geoInfo);
+                        //var geo = geoip.lookup(data.loginIP);
+                        // var geoInfo = {};
+                        // if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                        //     geoInfo = {
+                        //         country: geo ? geo.country : null,
+                        //         city: geo ? geo.city : null,
+                        //         longitude: geo && geo.ll ? geo.ll[1] : null,
+                        //         latitude: geo && geo.ll ? geo.ll[0] : null
+                        //     }
+                        // }
+                        // Object.assign(updateData, geoInfo);
                     }
                     // if (data.loginIP && data.loginIP != promData.lastLoginIp) {
                     //     updateData.$push = {loginIps: data.loginIP};
@@ -2076,12 +2077,13 @@ var dbMigration = {
                                     os: userAgent.os.name || '',
                                 };
                             }
-                            let geo = geoip.lookup(playerData.lastLoginIp);
+                            let geo = dbUtility.getIpLocationByIPIPDotNet(data.lastLoginIp);
                             let geoInfo = {};
-                            if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                            if (geo) {
                                 geoInfo = {
                                     country: geo ? geo.country : null,
                                     city: geo ? geo.city : null,
+                                    province: geo ? geo.provine : null,
                                     longitude: geo && geo.ll ? geo.ll[1] : null,
                                     latitude: geo && geo.ll ? geo.ll[0] : null
                                 }
