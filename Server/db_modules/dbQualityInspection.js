@@ -13,7 +13,7 @@ const ObjectId = mongoose.Types.ObjectId;
 var dbQualityInspection = {
     connectMysql: function(){
         var connection = mysql.createConnection({
-            host     : '203.192.151.12',
+            host     : 'live800.fpms8.me',
             user     : 'devselect',
             password : '!Q&US3lcT18',
             database : 'live800_im',
@@ -257,10 +257,13 @@ var dbQualityInspection = {
                 let content = [];
                 let he = dom.window.document.getElementsByTagName("he");
                 let i = dom.window.document.getElementsByTagName("i");
+                let file = dom.window.document.getElementsByTagName("file");
 
-                partI = dbQualityInspection.reGroup(i, 1);
-                partHe = dbQualityInspection.reGroup(he, 2);
+                let partI = dbQualityInspection.reGroup(i, 1);
+                let partHe = dbQualityInspection.reGroup(he, 2);
+                let partFile = dbQualityInspection.reGroup(file, 3);
                 content = partI.concat(partHe);
+                content = content.concat(partFile);
                 content.sort(function (a, b) {
                     return a.time - b.time;
                 });
@@ -842,7 +845,7 @@ var dbQualityInspection = {
                 'timeoutRate':0,
                 'inspectionRate':0,
                 'review':'',
-                'content':dbQualityInspection.decodeHtml(dom.window.document.querySelector('body').textContent)
+                'content': type == 3 || type == "3" ? "" : dbQualityInspection.decodeHtml(dom.window.document.querySelector('body').textContent)
             };
             conversation.push(conversationInfo);
         }

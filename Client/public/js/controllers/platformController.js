@@ -7519,7 +7519,7 @@ define(['js/app'], function (myApp) {
                     if (item.credibilityRemarks && item.credibilityRemarks.length > 0) {
                         item.credibilityRemarks = vm.credibilityRemarks.filter(remark => {
                             return item.credibilityRemarks.includes(remark._id);
-                        })
+                        });
                         item.credibilityRemarks.forEach(function (value, index) {
                             remarks += value.name + breakLine;
                         });
@@ -7716,6 +7716,16 @@ define(['js/app'], function (myApp) {
                                 $scope.safeApply();
                             });
                         }
+
+                        socketService.$socket($scope.AppSocket, 'checkIPArea', {_id: vm.selectedSinglePlayer._id}, function (data) {
+                            $scope.$evalAsync(() => {
+                                if(data && data.data){
+                                    vm.selectedSinglePlayer.city = data.data.city || "";
+                                    vm.selectedSinglePlayer.province = data.data.province || "";
+                                }
+                            });
+                        });
+
                         vm.processDataTableinModal('#modalPlayerInfo', '#similarPlayersTable');
                         vm.showProvinceStr = '';
                         vm.showCityStr = '';
@@ -11330,6 +11340,7 @@ define(['js/app'], function (myApp) {
                             amount += Number(record.amount);
                             bonusAmount += Number(record.bonusAmount);
                             record.createTime$ = vm.dateReformat(record.createTime);
+                            record.insertTime$ = vm.dateReformat(record.insertTime);
                             // record.gameType$ = $translate(vm.allGameTypes[record.gameType] || 'Unknown');
                             record.validAmount$ = parseFloat(record.validAmount).toFixed(2);
                             record.amount$ = parseFloat(record.amount).toFixed(2);
@@ -11375,7 +11386,14 @@ define(['js/app'], function (myApp) {
                             {title: $translate('MATCH_ID'), data: "matchId$"},
                             {title: $translate('GAME_TYPE'), data: "gameType$"},
                             {title: $translate('BET_TYPE'), data: "betType$", sClass: 'sumText'},
-                            {title: $translate('BET_TIME'), data: "createTime$"},
+                            {
+                                title: $translate('BET_TIME'),
+                                data: "createTime$",
+                                render: function (data, type, row) {
+                                    let insertTime$ = row && row.insertTime$ || "";
+                                    return "<span title='" + $translate("INSERT_TIME") + ": " + insertTime$ + "'>" + data + "</span>";
+                                }
+                            },
                             {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'alignRight sumFloat'},
                             {
                                 title: $translate('bonusAmount1'),

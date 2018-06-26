@@ -5306,6 +5306,7 @@ define(['js/app'], function (myApp) {
                 vm.providerExpenseTableLoading = false;
                 var tableData = data.data.data ? data.data.data.map(item => {
                     item.createTime$ = vm.dateReformat(item.createTime);
+                    item.insertTime$ = vm.dateReformat(item.insertTime);
                     item.validAmount$ = item.validAmount.toFixed(2);
                     item.amount$ = item.amount.toFixed(2);
                     item.bonusAmount$ = item.bonusAmount.toFixed(2);
@@ -5347,7 +5348,14 @@ define(['js/app'], function (myApp) {
                         {title: $translate('MATCH_ID'), data: "matchId$"},
                         {title: $translate('GAME_TYPE'), data: "gameType$"},
                         {title: $translate('BET_TYPE'), data: "betType$", sClass: 'sumText'},
-                        {title: $translate('BET_TIME'), data: "createTime$"},
+                        {
+                            title: $translate('BET_TIME'),
+                            data: "createTime$",
+                            render: function (data, type, row) {
+                                let insertTime$ = row && row.insertTime$ || "";
+                                return "<span title='" + $translate("INSERT_TIME") + ": " + insertTime$ + "'>" + data + "</span>";
+                            }
+                        },
                         {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'sumFloat textRight'},
                         {title: $translate('bonusAmount'), data: "bonusAmount$", sClass: 'sumFloat textRight'},
                         {title: $translate('Total Amount'), data: "amount$", sClass: 'sumFloat textRight'},
@@ -7441,9 +7449,200 @@ define(['js/app'], function (myApp) {
 
         vm.getEncPhoneNumber = function (playerData) {
             return (playerData && playerData.phoneNumber) ? (playerData.phoneNumber.substring(0, 3) + "******" + playerData.phoneNumber.slice(-4)) : ''
-        }
+        };
+
+        /**** Similar Player ****/
+        vm.showSimilarPlayerTab = function (tabName) {
+            vm.selectedSimilarPlayerTab = tabName == null ? "similar-phone" : tabName;
+
+            if (vm.selectedSimilarPlayerTab === 'similar-phone') {
+                vm.showPagedSimilarPhoneForPlayer();
+            }
+            if (vm.selectedSimilarPlayerTab === 'similar-ip') {
+                vm.showPagedSimilarIpForPlayer();
+            }
+        };
+
+        /**** Similar Phone tab ****/
+        vm.showPagedSimilarPhoneForPlayer = function () {
+            vm.similarPhoneForPlayer = {};
+            vm.similarPhoneForPlayer.index = 0;
+            vm.similarPhoneForPlayer.limit = vm.similarPhoneForPlayer && vm.similarPhoneForPlayer.limit ? vm.similarPhoneForPlayer.limit : 50;
+            utilService.actionAfterLoaded(('#similarPhoneForPlayer'), function () {
+                vm.similarPhoneForPlayer.pageObj = utilService.createPageForPagingTable("#similarPhoneForPlayerTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "similarPhoneForPlayer", vm.getPagedSimilarPhoneForPlayer)
+                });
+                vm.getPagedSimilarPhoneForPlayer(true);
+            });
+        };
+
+        vm.getPagedSimilarPhoneForPlayer = function (newSearch) {
+            vm.similarPhoneForPlayer.loading = true;
+            let sendQuery = {
+                playerId: vm.selectedSinglePlayer._id,
+                platformId: vm.selectedSinglePlayer.platform,
+                phoneNumber: vm.selectedSinglePlayer.phoneNumber,
+                index: newSearch ? 0 : vm.similarPhoneForPlayer.index,
+                limit: newSearch ? vm.similarPhoneForPlayer.limit : (vm.similarPhoneForPlayer.limit || 50),
+                sortCol: {registrationTime: -1},
+                isRealPlayer: true,
+            };
+            socketService.$socket($scope.AppSocket, "getPagedSimilarPhoneForPlayers", sendQuery, function (data) {
+                vm.similarPhoneForPlayers = data.data.data;
+                vm.similarPhoneForPlayer.totalCount = data.data.total || 0;
+                vm.similarPhoneForPlayer.loading = false;
+                vm.drawPagedSimilarPhoneForPlayerTable(vm.similarPhoneForPlayers, vm.similarPhoneForPlayer.totalCount, newSearch);
+            })
+        };
+
+        vm.drawPagedSimilarPhoneForPlayerTable = function (data, size, newSearch) {
+            let tableData = data ? data.map(item => {
+                let remarks = '';
+                let breakLine = "<br>";
+
+                if (item.credibilityRemarks && item.credibilityRemarks.length > 0) {
+                    item.credibilityRemarks = vm.credibilityRemarks.filter(remark => {
+                        return item.credibilityRemarks.includes(remark._id);
+                    });
+                    item.credibilityRemarks.forEach(function (value, index) {
+                        remarks += value.name + breakLine;
+                    });
+                    item.credibilityRemarksName = remarks;
+                } else {
+                    item.credibilityRemarksName = "--";
+                }
+                item.playerLevelName = item.playerLevel ? item.playerLevel.name : "";
+                item.lastAccessTime = item.lastAccessTime ? vm.dateReformat(item.lastAccessTime) : "";
+                item.registrationTime = item.registrationTime ? vm.dateReformat(item.registrationTime) : "";
+                return item;
+            }) : [];
+
+            let option = $.extend({}, vm.generalDataTableOptions, {
+                data: tableData,
+                order: vm.similarPhoneForPlayer.aaSorting || [[5, 'desc']],
+                columnDefs: [
+                    {'sortCol': 'lastAccessTime', bSortable: true, 'aTargets': [5]},
+                    {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [6]},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {'title': $translate('PLAYER_NAME'), data: 'name'},
+                    {'title': $translate('realName'), data: 'realName'},
+                    {'title': $translate('PLAYER_VALUE'), data: 'valueScore'},
+                    {'title': $translate('CREDIBILITY_REMARK'), data: 'credibilityRemarksName'},
+                    {'title': $translate('LEVEL'), data: 'playerLevelName'},
+                    {'title': $translate('registrationTime'), data: 'registrationTime'},
+                    {'title': $translate('lastAccessTime'), data: 'lastAccessTime'},
+                    {'title': $translate('LOGIN_TIMES'), data: 'loginTimes'},
+                    {'title': $translate('topUpTimes'), data: 'topUpTimes'},
+                ],
+                paging: false,
+                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    $compile(nRow)($scope);
+                }
+            });
+            let a = utilService.createDatatableWithFooter('#similarPhoneForPlayerTable', option, {});
+            vm.similarPhoneForPlayer.pageObj.init({maxCount: size}, newSearch);
+
+            $('#similarPhoneForPlayerTable').off('order.dt');
+            $('#similarPhoneForPlayerTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'similarPhoneForPlayer', vm.getPagedSimilarPhoneForPlayer);
+            });
+            $("#similarPhoneForPlayerTable").resize();
+            $scope.safeApply();
+        };
+
+        /**** Similar IP tab ****/
+        vm.showPagedSimilarIpForPlayer = function () {
+            vm.similarIpForPlayer = {};
+            vm.similarIpForPlayer.index = 0;
+            vm.similarIpForPlayer.limit = vm.similarIpForPlayer && vm.similarIpForPlayer.limit ? vm.similarIpForPlayer.limit : 50;
+            utilService.actionAfterLoaded(('#similarIpForPlayer'), function () {
+                vm.similarIpForPlayer.pageObj = utilService.createPageForPagingTable("#similarIpForPlayerTablePage", {pageSize: 50}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "similarIpForPlayer", vm.getPagedSimilarIpForPlayer)
+                });
+                vm.getPagedSimilarIpForPlayer(true);
+            });
+        };
+
+        vm.getPagedSimilarIpForPlayer = function (newSearch) {
+            vm.similarIpForPlayer.loading = true;
+            let sendQuery = {
+                playerId: vm.selectedSinglePlayer._id,
+                platformId: vm.selectedSinglePlayer.platform,
+                lastLoginIp: vm.selectedSinglePlayer.lastLoginIp,
+                index: newSearch ? 0 : vm.similarIpForPlayer.index,
+                limit: newSearch ? vm.similarIpForPlayer.limit : (vm.similarIpForPlayer.limit || 50),
+                sortCol: {registrationTime: -1},
+                isRealPlayer: true,
+            };
+            socketService.$socket($scope.AppSocket, "getPagedSimilarIpForPlayers", sendQuery, function (data) {
+                vm.similarIpForPlayers = data.data.data;
+                vm.similarIpForPlayer.totalCount = data.data.total || 0;
+                vm.similarIpForPlayer.loading = false;
+                vm.drawPagedSimilarIpForPlayerTable(vm.similarIpForPlayers, vm.similarIpForPlayer.totalCount, newSearch);
+            })
+        };
+
+        vm.drawPagedSimilarIpForPlayerTable = function (data, size, newSearch) {
+            let tableData = data ? data.map(item => {
+                let remarks = '';
+                let breakLine = "<br>";
+
+                if (item.credibilityRemarks && item.credibilityRemarks.length > 0) {
+                    item.credibilityRemarks = vm.credibilityRemarks.filter(remark => {
+                        return item.credibilityRemarks.includes(remark._id);
+                    })
+                    item.credibilityRemarks.forEach(function (value, index) {
+                        remarks += value.name + breakLine;
+                    });
+                    item.credibilityRemarksName = remarks;
+                } else {
+                    item.credibilityRemarksName = "--";
+                }
+                item.playerLevelName = item.playerLevel ? item.playerLevel.name : "";
+                item.lastAccessTime = vm.dateReformat(item.lastAccessTime);
+                item.registrationTime = vm.dateReformat(item.registrationTime);
+                return item;
+            }) : [];
+
+            let option = $.extend({}, vm.generalDataTableOptions, {
+                data: tableData,
+                order: vm.similarIpForPlayer.aaSorting || [[5, 'desc']],
+                columnDefs: [
+                    {'sortCol': 'lastAccessTime', bSortable: true, 'aTargets': [5]},
+                    {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [6]},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {'title': $translate('PLAYER_NAME'), data: 'name'},
+                    {'title': $translate('realName'), data: 'realName'},
+                    {'title': $translate('PLAYER_VALUE'), data: 'valueScore'},
+                    {'title': $translate('CREDIBILITY_REMARK'), data: 'credibilityRemarksName'},
+                    {'title': $translate('LEVEL'), data: 'playerLevelName'},
+                    {'title': $translate('registrationTime'), data: 'registrationTime'},
+                    {'title': $translate('lastAccessTime'), data: 'lastAccessTime'},
+                    {'title': $translate('LOGIN_TIMES'), data: 'loginTimes'},
+                    {'title': $translate('topUpTimes'), data: 'topUpTimes'},
+                ],
+                paging: false,
+                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    $compile(nRow)($scope);
+                }
+            });
+            let a = utilService.createDatatableWithFooter('#similarIpForPlayerTable', option, {});
+            vm.similarIpForPlayer.pageObj.init({maxCount: size}, newSearch);
+
+            $('#similarIpForPlayerTable').off('order.dt');
+            $('#similarIpForPlayerTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'similarIpForPlayer', vm.getPagedSimilarIpForPlayer);
+            });
+            $("#similarIpForPlayerTable").resize();
+            $scope.safeApply();
+        };
 
         vm.showPlayerInfoModal = function (playerName) {
+            vm.showSimilarPlayersTable = false;
             vm.similarPlayersForPlayer = null;
             var watch = $scope.$watch(function () {
                 return vm.selectedSinglePlayer
@@ -11105,6 +11304,7 @@ define(['js/app'], function (myApp) {
                         amount += Number(record.amount);
                         bonusAmount += Number(record.bonusAmount);
                         record.createTime$ = vm.dateReformat(record.createTime);
+                        record.insertTime$ = vm.dateReformat(record.insertTime);
                         // record.gameType$ = $translate(vm.allGameTypes[record.gameType] || 'Unknown');
                         record.validAmount$ = parseFloat(record.validAmount).toFixed(2);
                         record.amount$ = parseFloat(record.amount).toFixed(2);
@@ -11150,7 +11350,14 @@ define(['js/app'], function (myApp) {
                         {title: $translate('MATCH_ID'), data: "matchId$"},
                         {title: $translate('GAME_TYPE'), data: "gameType$"},
                         {title: $translate('BET_TYPE'), data: "betType$", sClass: 'sumText'},
-                        {title: $translate('BET_TIME'), data: "createTime$"},
+                        {
+                            title: $translate('BET_TIME'),
+                            data: "createTime$",
+                            render: function (data, type, row) {
+                                let insertTime$ = row && row.insertTime$ || "";
+                                return "<span title='" + $translate("INSERT_TIME") + ": " + insertTime$ + "'>" + data + "</span>";
+                            }
+                        },
                         {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'alignRight sumFloat'},
                         {
                             title: $translate('bonusAmount1'),
@@ -27046,6 +27253,7 @@ define(['js/app'], function (myApp) {
                 displayValues: false,
                 countSelected: $translate('# of % selected')
             });
+            remarkSelect.multipleSelect('refresh');
         };
 
         utilService.actionAfterLoaded('#resetPlayerQuery', function () {
