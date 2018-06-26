@@ -17137,13 +17137,14 @@ let dbPlayerInfo = {
                 data: {
                     playerObjId: player._id,
                     playerName: player.name,
-                    updateAmount: -playerData.validCredit,
-                    curAmount: playerData.validCredit,
+                    updateAmount: -Number(parseFloat(playerData.validCredit).toFixed(2)),
+                    curAmount: Number(parseFloat(playerData.validCredit).toFixed(2)),
                     realName: playerData.realName,
                     remark: '',
                     adminName: adminName
                 }
             };
+            console.log("VP20180626", proposalData);
             return dbProposal.checkUpdateCreditProposal(platformObjId, constProposalType.UPDATE_PLAYER_CREDIT, proposalData);
         }).catch(err => {
             errorUtils.reportError(err);

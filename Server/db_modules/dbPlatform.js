@@ -3911,24 +3911,6 @@ var dbPlatform = {
             //     }
             // );
 
-            // 积分活动 - 登入积分、游戏积分
-            // rewardPointsEvent
-            let copyRewardPointEventProm = dbconfig.collection_rewardPointsEvent.remove({platformObjId: replicateTo._id, category: {$in: [constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, constRewardPointsTaskCategory.TOPUP_REWARD_POINTS]}}).then(
-                () => dbconfig.collection_rewardPointsEvent.find({platformObjId: replicateFrom._id, category: {$in: [constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, constRewardPointsTaskCategory.TOPUP_REWARD_POINTS]}}).lean()
-            ).then(
-                rewardPointsEvents => {
-                    let proms = [];
-                    rewardPointsEvents.map(rewardPointsEvent => {
-                        delete rewardPointsEvent._id;
-                        rewardPointsEvent.platformObjId = replicateTo._id;
-                        let prom = dbconfig.collection_rewardPointsEvent(rewardPointsEvent).save().catch(errorUtils.reportError);
-                        proms.push(prom);
-                    });
-
-                    return Promise.all(proms);
-                }
-            );
-
             // 玩家前端展示 - 广告
             // playerPageAdvertisementInfo
             let copyPlayerPageAdvertisementInfoProm = dbconfig.collection_playerPageAdvertisementInfo.remove({platformId: replicateTo._id}).then(
@@ -3982,7 +3964,6 @@ var dbPlatform = {
                 copyPlatformWechatPayGroupProm,
                 copyPlayerFeedbackTopicProm,
                 // copyPlayerFeedbackResultProm, // temporally feedbackResult is not base on platform
-                copyRewardPointEventProm,
                 copyPlayerPageAdvertisementInfoProm,
                 copyPartnerPageAdvertisementInfoProm,
             ]);
@@ -4016,7 +3997,27 @@ var dbPlatform = {
                     }
                 );
 
-                return Promise.all([copyRewardPointsLvlConfigProm]);
+                // 积分活动 - 登入积分、游戏积分
+                // rewardPointsEvent
+                let copyRewardPointEventProm = dbconfig.collection_rewardPointsEvent.remove({platformObjId: replicateTo._id, category: {$in: [constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, constRewardPointsTaskCategory.TOPUP_REWARD_POINTS]}}).then(
+                    () => dbconfig.collection_rewardPointsEvent.find({platformObjId: replicateFrom._id, category: {$in: [constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, constRewardPointsTaskCategory.TOPUP_REWARD_POINTS]}}).lean()
+                ).then(
+                    rewardPointsEvents => {
+                        let proms = [];
+                        rewardPointsEvents.map(rewardPointsEvent => {
+                            delete rewardPointsEvent._id;
+                            rewardPointsEvent.platformObjId = replicateTo._id;
+                            rewardPointsEvent.level = oldNewPlayerLevelObjId[String(rewardPointsEvent.level)] || rewardPointsEvent.level;
+
+                            let prom = dbconfig.collection_rewardPointsEvent(rewardPointsEvent).save().catch(errorUtils.reportError);
+                            proms.push(prom);
+                        });
+
+                        return Promise.all(proms);
+                    }
+                );
+
+                return Promise.all([copyRewardPointsLvlConfigProm, copyRewardPointEventProm]);
             }
         );
     },
