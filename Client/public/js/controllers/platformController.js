@@ -11340,6 +11340,7 @@ define(['js/app'], function (myApp) {
                             amount += Number(record.amount);
                             bonusAmount += Number(record.bonusAmount);
                             record.createTime$ = vm.dateReformat(record.createTime);
+                            record.insertTime$ = vm.dateReformat(record.insertTime);
                             // record.gameType$ = $translate(vm.allGameTypes[record.gameType] || 'Unknown');
                             record.validAmount$ = parseFloat(record.validAmount).toFixed(2);
                             record.amount$ = parseFloat(record.amount).toFixed(2);
@@ -11385,7 +11386,14 @@ define(['js/app'], function (myApp) {
                             {title: $translate('MATCH_ID'), data: "matchId$"},
                             {title: $translate('GAME_TYPE'), data: "gameType$"},
                             {title: $translate('BET_TYPE'), data: "betType$", sClass: 'sumText'},
-                            {title: $translate('BET_TIME'), data: "createTime$"},
+                            {
+                                title: $translate('BET_TIME'),
+                                data: "createTime$",
+                                render: function (data, type, row) {
+                                    let insertTime$ = row && row.insertTime$ || "";
+                                    return "<span title='" + $translate("INSERT_TIME") + ": " + insertTime$ + "'>" + data + "</span>";
+                                }
+                            },
                             {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'alignRight sumFloat'},
                             {
                                 title: $translate('bonusAmount1'),
