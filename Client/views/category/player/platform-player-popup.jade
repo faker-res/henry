@@ -299,25 +299,61 @@
                                         //    text {{vm.selectedSinglePlayer.bankBranch || 'Unknown' | translate}}
                                     td
                                         button.btn.btn-primary.common-button-sm(ng-click='vm.showIPHistory()') {{"View Details" | translate}}
-                .panel.panel-primary
+
+                .row
+                    .col-md-12
+                        button.pull-right.btn.btn-primary.common-button-sm(ng-click="vm.showSimilarPlayersTable=!vm.showSimilarPlayersTable; vm.showSimilarPlayerTab();") {{"SHOW_SIMILAR_PLAYERS" | translate}}
+                        br
+                        br
+
+                #similarPlayersTable.panel.panel-primary(ng-if="vm.showSimilarPlayersTable")
                     .panel-heading.panel-heading-sm
-                        h5.text-center {{"Similar Players" | translate}}
+                        h5.text-center {{"SIMILAR_PLAYERS" | translate}}
                     .panel-body
-                        table#similarPlayersTable.simple-table.display(style='max-width:100%')
-                            thead(style='overflow-y:auto')
-                                tr
-                                    th {{'PLAYER_Id' | translate}}
-                                    th {{'NAME' | translate}}
-                                    th {{'PROPERTY' | translate}}
-                                    th {{'VALUE' | translate}}
-                            tbody
-                                tr(ng-repeat='(i,v) in vm.similarPlayersForPlayer')
-                                    td {{v.playerObjId.playerId || "NONE" | translate}}
-                                    td {{v.playerObjId.name || "NONE" | translate}}
-                                    td {{v.field || "NONE" | translate}}
-                                    td
-                                        text(ng-if='v.field == "phoneNumber" && v.content.length>30') encrypted
-                                        text(ng-if='!v.field == "phoneNumber" || v.content.length<=30') {{v.content || "NONE" | translate}}
+                        ul.nav.nav-tabs.common-nav-tabs
+                            li(ng-class="vm.selectedSimilarPlayerTab === 'similar-phone' ? 'active' : null")
+                                a.common-tab(data-toggle="tab", ng-click="vm.showSimilarPlayerTab('similar-phone')") {{"PLAYER_SIMILAR_PHONE" | translate}}
+                            li(ng-class="vm.selectedSimilarPlayerTab === 'similar-ip' ? 'active' : null")
+                                a.common-tab(data-toggle="tab", ng-click="vm.showSimilarPlayerTab('similar-ip')") {{"PLAYER_SIMILAR_IP" | translate}}
+
+                        .panel.panel-primary(style="border-radius:0 !important;")
+                            .panel-body
+                                div(ng-show="vm.selectedSimilarPlayerTab === 'similar-phone'")
+                                    #similarPhoneForPlayer.adminLogQueryDiv
+                                    label {{"Total" | translate}} {{vm.similarPhoneForPlayer.totalCount}} {{"records" | translate}}
+                                        .inlineBlk.margin-left-5(ng-if='vm.similarPhoneForPlayer.loading')
+                                            i.fa.fa-spin.fa-spinner
+                                    table#similarPhoneForPlayerTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                                    #similarPhoneForPlayerTablePage
+
+                                div(ng-show="vm.selectedSimilarPlayerTab === 'similar-ip'")
+                                    #similarIpForPlayer.adminLogQueryDiv
+                                    label {{"Total" | translate}} {{vm.similarIpForPlayer.totalCount}} {{"records" | translate}}
+                                        .inlineBlk.margin-left-5(ng-if='vm.similarIpForPlayer.loading')
+                                            i.fa.fa-spin.fa-spinner
+                                    table#similarIpForPlayerTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                                    #similarIpForPlayerTablePage
+
+                    //
+                        .panel.panel-primary
+                            .panel-heading.panel-heading-sm
+                                h5.text-center {{"Similar Players" | translate}}
+                            .panel-body
+                                table#similarPlayersTable.simple-table.display(style='max-width:100%')
+                                    thead(style='overflow-y:auto')
+                                        tr
+                                            th {{'PLAYER_Id' | translate}}
+                                            th {{'NAME' | translate}}
+                                            th {{'PROPERTY' | translate}}
+                                            th {{'VALUE' | translate}}
+                                    tbody
+                                        tr(ng-repeat='(i,v) in vm.similarPlayersForPlayer')
+                                            td {{v.playerObjId.playerId || "NONE" | translate}}
+                                            td {{v.playerObjId.name || "NONE" | translate}}
+                                            td {{v.field || "NONE" | translate}}
+                                            td
+                                                text(ng-if='v.field == "phoneNumber" && v.content.length>30') encrypted
+                                                text(ng-if='!v.field == "phoneNumber" || v.content.length<=30') {{v.content || "NONE" | translate}}
 
 #modalPlayerInfoHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:90%;')

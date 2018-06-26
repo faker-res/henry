@@ -7518,7 +7518,7 @@ define(['js/app'], function (myApp) {
                     if (item.credibilityRemarks && item.credibilityRemarks.length > 0) {
                         item.credibilityRemarks = vm.credibilityRemarks.filter(remark => {
                             return item.credibilityRemarks.includes(remark._id);
-                        })
+                        });
                         item.credibilityRemarks.forEach(function (value, index) {
                             remarks += value.name + breakLine;
                         });
