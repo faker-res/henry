@@ -49,9 +49,11 @@ var dbPlayerLoginRecord = {
         var dayEndTime = getNextDate(dayStartTime);
         var matchObj = {
             platform: platformId,
-            loginTime: {$gte: dayStartTime, $lt: dayEndTime},
-            inputDeviceType: type
+            loginTime: {$gte: dayStartTime, $lt: dayEndTime}
         };
+        if(type){
+            matchObj['inputDeviceType'] = type;
+        }
 
         return dbconfig.collection_playerLoginRecord.find(matchObj, {'loginTime':1, 'player':1, 'inputDeviceType':1})
                 .populate({path: 'player', model: dbconfig.collection_players})

@@ -3620,7 +3620,7 @@ define(['js/app'], function (myApp) {
 
                     let calculatedLoginPlayerData = vm.calculateLineDataAndAverage(vm.platformLoginPlayerGraphData, 'number', 'Login Player');
                     vm.platformLoginPlayerAverage = calculatedLoginPlayerData.average;
-                    vm.plotLineByElementId("#line-loginPlayer", calculatedLoginPlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.newPlayer.periodText.toUpperCase()));
+                    vm.plotLineByElementId("#line-loginPlayer", calculatedLoginPlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.loginPlayer.periodText.toUpperCase()));
                     vm.isShowLoadingSpinner('#loginPlayerAnalysis', false);
                 });
             });

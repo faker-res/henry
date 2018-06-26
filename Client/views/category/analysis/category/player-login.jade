@@ -57,7 +57,9 @@
                             td
                                 span {{ v._id | date:"yyyy-MM-dd" }}
                             td
-                                span {{ v['playerLogin'] }}
+                                span(ng-show="v['playerLogin'] == 0") 0
+                                a(ng-show="v['playerLogin'] > 0",ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayer.periodText)') {{ v['playerLogin'] }}
+
                             td
                                 span(ng-show="v['device']['H5'] == 0") 0
                                 a(ng-show="v['device']['H5'] > 0",ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayer.periodText, 2)') {{ v['device']['H5'] }}
@@ -141,7 +143,8 @@
                                     td
                                         span {{ v._id | date:"yyyy-MM-dd" }}
                                     td
-                                        span {{ v['subTotal'] }}
+                                        span(ng-show="v['subTotal'] <= 0") 0
+                                        a(ng-show="v['subTotal'] > 0", ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayerDevice.periodText, null)') {{ v['subTotal'] }}
                                     td
                                         span(ng-show="v['device']['H5'] <= 0") 0
                                         a(ng-show="v['device']['H5'] > 0", ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayerDevice.periodText, 2)') {{ v['device']['H5'] }}
