@@ -2936,11 +2936,23 @@ let dbPlayerReward = {
         )
     },
 
-    getPromoCodeAnalysis: (platformObjId, data) => {
+    getPromoCodeAnalysis: (platformObjId, data, isByPlayer) => {
         let playerProm = dbConfig.collection_players.findOne({
             platform: platformObjId,
             name: data.playerName
         }).lean();
+
+        let index = data.index || 0;
+        let limit = data.limit || 10;
+        let querySort;
+        if (data.sortCol) {
+            querySort = data.sortCol;
+        } else {
+            querySort = {
+                "sendCount": -1
+            }
+        }
+        querySort._id = 1;
 
         let promoTypeQ = {
             platformObjId: platformObjId,
@@ -2970,56 +2982,116 @@ let dbPlayerReward = {
             if (promoCodeTypeObjIds && promoCodeTypeObjIds.length > 0) {
                 matchObj.promoCodeTypeObjId = {$in: promoCodeTypeObjIds};
             }
+            let aggregateQ;
+            let distinctField;
+            let summaryQ;
+            if (isByPlayer) {
+                aggregateQ =
+                    [{
+                        $match: matchObj
+                    },
+                        {
+                            $project: {
+                                playerObjId: 1,
+                                acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
+                                acceptedAmount: 1,
+                                amount: 1,
+                                topUpAmount: 1,
+                                totalRecord: {$sum: 1}
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$playerObjId",
+                                amount: {$sum: "$amount"},
+                                acceptedCount: {$sum: "$acceptedCount"},
+                                acceptedAmount: {$sum: "$acceptedAmount"},
+                                sendCount: {$sum: 1},
+                                topUpAmount: {$sum: "$topUpAmount"}
+                            }
+                        },
+                        {$sort: querySort},
+                        {$skip: index},
+                        {$limit: limit}];
 
-            let promByType = dbConfig.collection_promoCode.aggregate(
-                {
+                summaryQ = [{
                     $match: matchObj
                 },
-                {
-                    $project: {
-                        promoCodeTypeObjId: 1,
-                        acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
-                        acceptedAmount: 1,
-                        amount: 1
-                    }
-                },
-                {
-                    $group: {
-                        _id: "$promoCodeTypeObjId",
-                        amount: {$sum: "$amount"},
-                        acceptedCount: {$sum: "$acceptedCount"},
-                        acceptedAmount: {$sum: "$acceptedAmount"},
-                        sendCount: {$sum: 1}
-                    }
-                }
-            );
+                    {
+                        $project: {
+                            playerObjId: 1,
+                            acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
+                            acceptedAmount: 1,
+                            amount: 1,
+                            topUpAmount: 1,
+                            totalRecord: {$sum: 1}
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            amount: {$sum: "$amount"},
+                            acceptedCount: {$sum: "$acceptedCount"},
+                            acceptedAmount: {$sum: "$acceptedAmount"},
+                            sendCount: {$sum: 1},
+                            topUpAmount: {$sum: "$topUpAmount"}
+                        }
+                    }];
 
-            let promByPlayer = dbConfig.collection_promoCode.aggregate(
-                {
+                distinctField = "playerObjId";
+            } else {
+                aggregateQ = [{
                     $match: matchObj
                 },
-                {
-                    $project: {
-                        playerObjId: 1,
-                        acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
-                        acceptedAmount: 1,
-                        amount: 1,
-                        topUpAmount: 1
-                    }
-                },
-                {
-                    $group: {
-                        _id: "$playerObjId",
-                        amount: {$sum: "$amount"},
-                        acceptedCount: {$sum: "$acceptedCount"},
-                        acceptedAmount: {$sum: "$acceptedAmount"},
-                        sendCount: {$sum: 1},
-                        topUpAmount: {$sum: "$topUpAmount"}
-                    }
-                }
-            );
+                    {
+                        $project: {
+                            promoCodeTypeObjId: 1,
+                            acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
+                            acceptedAmount: 1,
+                            amount: 1
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: "$promoCodeTypeObjId",
+                            amount: {$sum: "$amount"},
+                            acceptedCount: {$sum: "$acceptedCount"},
+                            acceptedAmount: {$sum: "$acceptedAmount"},
+                            sendCount: {$sum: 1}
+                        }
+                    },
+                    {$sort: querySort},
+                    {$skip: index},
+                    {$limit: limit}];
 
-            return Promise.all([promByType, promByPlayer]);
+                summaryQ = [{
+                    $match: matchObj
+                },
+                    {
+                        $project: {
+                            promoCodeTypeObjId: 1,
+                            acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
+                            acceptedAmount: 1,
+                            amount: 1
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            amount: {$sum: "$amount"},
+                            acceptedCount: {$sum: "$acceptedCount"},
+                            acceptedAmount: {$sum: "$acceptedAmount"},
+                            sendCount: {$sum: 1}
+                        }
+                    }];
+                distinctField = "promoCodeTypeObjId"
+            }
+
+            let prom = dbConfig.collection_promoCode.aggregate(aggregateQ).read("secondaryPreferred");
+            let promCount = dbConfig.collection_promoCode.distinct(distinctField, matchObj);
+            let promSummary = dbConfig.collection_promoCode.aggregate(summaryQ).read("secondaryPreferred");
+
+            return Promise.all([prom, promCount, promSummary]);
         })
     },
 
@@ -5002,20 +5074,21 @@ let dbPlayerReward = {
                                 )
                             }
 
-                            let prom = Promise.all([addUsedEventToConsumptionProm, addUsedEventToTopUpProm]).then(
-                                data => {
-                                    if (data[0] && data[0].length > 0) {
-                                        proposalData.data.usedConsumption = data[0];
-                                    }
+                            asyncProms = asyncProms.then(() => {
+                                return Promise.all([addUsedEventToConsumptionProm, addUsedEventToTopUpProm]).then(
+                                    data => {
+                                        if (data[0] && data[0].length > 0) {
+                                            proposalData.data.usedConsumption = data[0];
+                                        }
 
-                                    if (data[1] && data[1].length > 0) {
-                                        proposalData.data.usedTopUp = data[1];
-                                    }
+                                        if (data[1] && data[1].length > 0) {
+                                            proposalData.data.usedTopUp = data[1];
+                                        }
 
-                                    return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
-                                }
-                            );
-                            asyncProms = asyncProms.then(() => prom);
+                                        return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
+                                    }
+                                );
+                            });
                         }
 
                         return asyncProms;

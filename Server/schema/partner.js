@@ -256,6 +256,7 @@ var partnerPostFindUpdate = function (result, bOne) {
             result.email = emailParts.join('@');
         }
 
+        //temp disable bankaccount encode for partner
         if (!bOne && result && result.bankAccount) {
             result.bankAccount = dbUtil.encodeBankAcc(result.bankAccount);
         }
@@ -299,7 +300,6 @@ partnerSchema.post('find', function(result) {
 
 partnerSchema.post('findOne', function (result) {
     partnerPostFindUpdate(result, true);
-    return result;
 });
 
 partnerSchema.pre('save', function (next) {

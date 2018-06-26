@@ -44,6 +44,7 @@ const constProviderStatus = require("./../const/constProviderStatus");
 const constRewardTaskStatus = require('../const/constRewardTaskStatus');
 const constServerCode = require('../const/constServerCode');
 const constSettlementPeriod = require("../const/constSettlementPeriod");
+const constRewardPointsTaskCategory = require("../const/constRewardPointsTaskCategory");
 const constSystemParam = require('../const/constSystemParam');
 const errorUtils = require('../modules/errorUtils');
 const request = require('request');
@@ -2428,6 +2429,7 @@ var dbPlatform = {
 
             let returnedObj;
             let listName;
+            let platformData;
 
             if (subject == 'player'){
                 returnedObj= {
@@ -2491,12 +2493,14 @@ var dbPlatform = {
                 data => {
                     if (data) {
 
+                        platformData = data;
                         listName.forEach( list => {
                             if(data[list[0]]){
-                                returnedObj[list[1]] = data[list[0]];
+
+                                returnedObj[list[1]] = dbPlatform.appendRouteSetting(data, list[0], subject);
 
                             }
-                        })
+                        });
 
                         if (data.platformId) {
                             if (subject == 'player'){
@@ -2538,7 +2542,19 @@ var dbPlatform = {
                                 }
 
                                 if (info.backgroundBannerImage && info.backgroundBannerImage.url) {
-                                    activityListObj.bannerImg = info.backgroundBannerImage.url;
+
+                                    if (info.backgroundBannerImage.url.indexOf("http") === -1) {
+                                        if (subject === 'player' && platformData.playerRouteSetting) {
+                                            activityListObj.bannerImg = platformData.playerRouteSetting.trim() + info.backgroundBannerImage.url.trim();
+                                        } else if (subject === 'partner' && platformData.partnerRouteSetting) {
+                                            activityListObj.bannerImg = platformData.partnerRouteSetting.trim() + info.backgroundBannerImage.url.trim();
+                                        } else {
+                                            activityListObj.bannerImg = info.backgroundBannerImage.url.trim();
+                                        }
+                                    } else {
+                                        activityListObj.bannerImg = info.backgroundBannerImage.url.trim();
+                                    }
+
                                 }
 
                                 if (info.imageButton && info.imageButton.length > 0) {
@@ -2549,15 +2565,26 @@ var dbPlatform = {
                                             if (b.buttonName) {
                                                 buttonObj.btn = b.buttonName;
                                             }
-                                            if(b.url){
-                                                buttonObj.btnImg = b.url;
+                                            if(b.url) {
+                                                if (b.url.indexOf("http") === -1) {
+                                                    if (subject === 'player' && platformData.playerRouteSetting) {
+                                                        buttonObj.btnImg = platformData.playerRouteSetting.trim() + b.url.trim();
+                                                    } else if (subject === 'partner' && platformData.partnerRouteSetting) {
+                                                        buttonObj.btnImg = platformData.partnerRouteSetting.trim() + b.url.trim();
+                                                    } else {
+                                                        buttonObj.btnImg = b.url.trim();
+                                                    }
+                                                } else {
+                                                    buttonObj.btnImg = b.url.trim();
+                                                }
+
                                             }
                                             if (b.hyperLink) {
                                                 buttonObj.extString = b.hyperLink;
                                             }
                                             buttonList.push(buttonObj);
                                         }
-                                    })
+                                    });
                                     activityListObj.btnList = buttonList;
                                 } else {
                                     if (info.backgroundBannerImage && info.backgroundBannerImage.hyperLink) {
@@ -2582,6 +2609,57 @@ var dbPlatform = {
             );
         } else {
             return Q.reject({name: "DBError", message: "Invalid platformId: " + platformId});
+        }
+    },
+
+    appendRouteSetting: function (data, list, subject) {
+        if (data && list){
+
+            // check if the "http / https" exist or not
+            if (data[list].length > 0){
+                data[list].forEach( pair => {
+
+                    if (pair.content.indexOf(',') !== -1) {
+                        let splitString = pair.content.split(',');
+
+                        if (splitString && splitString.length > 0) {
+                            let comString = [];
+                            splitString.forEach(indString => {
+
+                                if (pair.isImg === 1 && indString.indexOf("http") === -1 ) {
+                                    if (subject === 'player' && data.playerRouteSetting) {
+                                        comString.push(data.playerRouteSetting.trim() + indString.trim());
+                                    } else if (subject === 'partner' && data.partnerRouteSetting) {
+                                        comString.push(data.partnerRouteSetting.trim() + indString.trim());
+                                    } else {
+                                        comString.push(indString.trim());
+                                    }
+                                }
+                                else {
+                                    comString.push(indString.trim());
+                                }
+
+                            });
+                            pair.content = comString.join(', ');
+                        }
+                    }
+                    else {
+                        if (pair.isImg === 1 && pair.content.indexOf("http") === -1 ) {
+                            if (subject === 'player' && data.playerRouteSetting) {
+                                pair.content = data.playerRouteSetting.trim() + pair.content.trim();
+                            } else if (subject === 'partner' && data.partnerRouteSetting) {
+                                pair.content = data.partnerRouteSetting.trim() + pair.content.trim();
+                            } else {
+                                pair.content = pair.content.trim();
+                            }
+                        } else {
+                            pair.content = pair.content.trim();
+                        }
+                    }
+
+                })
+            }
+            return data[list];
         }
     },
 
@@ -3321,6 +3399,7 @@ var dbPlatform = {
 
     replicatePlatformSetting: (fromPlatformObjId, toPlatformObjId) => {
         let replicateFrom, replicateTo;
+        let oldNewPlayerLevelObjId = {};
 
         let replicateFromProm = dbconfig.collection_platform.findOne({_id: fromPlatformObjId}).lean();
         let replicateToProm = dbconfig.collection_platform.findOne({_id: toPlatformObjId}).lean();
@@ -3400,6 +3479,24 @@ var dbPlatform = {
                 "monitorMerchantSoundChoice",
                 "monitorPlayerSoundChoice",
                 "playerValueConfig",
+                "csEmailImageUrlList",
+                "csPhoneList",
+                "csUrlList",
+                "csSkypeList",
+                "csDisplayUrlList",
+                "playerInvitationUrlList",
+                "weixinPhotoUrlList",
+                "playerWebLogoUrlList",
+                "csPartnerEmailList",
+                "csPartnerPhoneList",
+                "csPartnerUrlList",
+                "csPartnerQQList",
+                "csPartnerWeixinList",
+                "csPartnerSkypeList",
+                "csPartnerDisplayUrlList",
+                "partnerInvitationUrlList",
+                "partnerWeixinPhotoUrlList",
+                "partnerWebLogoUrlList",
             ];
 
             let platformDataToCopy = {};
@@ -3422,9 +3519,16 @@ var dbPlatform = {
                 playerLevels => {
                     let proms = [];
                     playerLevels.map(playerLevel => {
+                        let playerLevelId = playerLevel._id;
                         delete playerLevel._id;
                         playerLevel.platform = replicateTo._id;
-                        let prom = dbconfig.collection_playerLevel(playerLevel).save().catch(errorUtils.reportError);
+                        let prom = dbconfig.collection_playerLevel(playerLevel).save().then(
+                            newPlayerLevel => {
+                                if (newPlayerLevel) {
+                                    oldNewPlayerLevelObjId[String(playerLevelId)] = String(newPlayerLevel._id);
+                                }
+                            }
+                        ).catch(errorUtils.reportError);
                         proms.push(prom);
                     });
 
@@ -3454,7 +3558,6 @@ var dbPlatform = {
 
             // 玩家信用
             // playerCredibilityRemark
-
             let copyPlayerCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.remove({platform: replicateTo._id}).then(
                 () => {
                     return dbconfig.collection_playerCredibilityRemark.find({platform: replicateFrom._id}).lean() ;
@@ -3691,6 +3794,159 @@ var dbPlatform = {
                 }
             );
 
+            // 充值分组 - 银行卡组
+            // platformBankCardGroup
+            let copyPlatformBankCardGroupProm = dbconfig.collection_platformBankCardGroup.remove({platform: replicateTo._id}).then(
+                () => dbconfig.collection_platformBankCardGroup.find({platform: replicateFrom._id}).lean()
+            ).then(
+                platformBankCardGroups => {
+                    let proms = [];
+                    platformBankCardGroups.map(platformBankCardGroup => {
+                        delete platformBankCardGroup._id;
+                        platformBankCardGroup.platform = replicateTo._id;
+                        platformBankCardGroup.banks = [];
+                        platformBankCardGroup.groupId = Math.random().toString(36).substring(4, 10);
+                        let prom = dbconfig.collection_platformBankCardGroup(platformBankCardGroup).save().catch(errorUtils.reportError);
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            );
+
+            // 充值分组 - 商户组
+            // platformMerchantGroup
+            let copyPlatformMerchantGroupProm = dbconfig.collection_platformMerchantGroup.remove({platform: replicateTo._id}).then(
+                () => dbconfig.collection_platformMerchantGroup.find({platform: replicateFrom._id}).lean()
+            ).then(
+                platformMerchantGroups => {
+                    let proms = [];
+                    platformMerchantGroups.map(platformMerchantGroup => {
+                        delete platformMerchantGroup._id;
+                        platformMerchantGroup.platform = replicateTo._id;
+                        platformMerchantGroup.merchants = [];
+                        platformMerchantGroup.merchantNames = [];
+                        platformMerchantGroup.groupId = Math.random().toString(36).substring(4, 10);
+                        let prom = dbconfig.collection_platformMerchantGroup(platformMerchantGroup).save().catch(errorUtils.reportError);
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            );
+
+            // 充值分组 - 个人支付宝
+            // platformAlipayGroup
+            let copyPlatformAlipayGroupProm = dbconfig.collection_platformAlipayGroup.remove({platform: replicateTo._id}).then(
+                () => dbconfig.collection_platformAlipayGroup.find({platform: replicateFrom._id}).lean()
+            ).then(
+                platformAlipayGroups => {
+                    let proms = [];
+                    platformAlipayGroups.map(platformAlipayGroup => {
+                        delete platformAlipayGroup._id;
+                        platformAlipayGroup.platform = replicateTo._id;
+                        platformAlipayGroup.alipays = [];
+                        platformAlipayGroup.groupId = Math.random().toString(36).substring(4, 10);
+                        let prom = dbconfig.collection_platformAlipayGroup(platformAlipayGroup).save().catch(errorUtils.reportError);
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            );
+
+            // 充值分组 - 个人微信
+            // platformWechatPayGroup
+            let copyPlatformWechatPayGroupProm = dbconfig.collection_platformWechatPayGroup.remove({platform: replicateTo._id}).then(
+                () => dbconfig.collection_platformWechatPayGroup.find({platform: replicateFrom._id}).lean()
+            ).then(
+                platformWechatPayGroups => {
+                    let proms = [];
+                    platformWechatPayGroups.map(platformWechatPayGroup => {
+                        delete platformWechatPayGroup._id;
+                        platformWechatPayGroup.platform = replicateTo._id;
+                        platformWechatPayGroup.wechats = [];
+                        platformWechatPayGroup.groupId = Math.random().toString(36).substring(4, 10);
+                        let prom = dbconfig.collection_platformWechatPayGroup(platformWechatPayGroup).save().catch(errorUtils.reportError);
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            );
+
+            // 回访主题
+            // playerFeedbackTopic
+            let copyPlayerFeedbackTopicProm = dbconfig.collection_playerFeedbackTopic.remove({platform: replicateTo._id}).then(
+                () => dbconfig.collection_playerFeedbackTopic.find({platform: replicateFrom._id}).lean()
+            ).then(
+                playerFeedbackTopics => {
+                    let proms = [];
+                    playerFeedbackTopics.map(playerFeedbackTopic => {
+                        delete playerFeedbackTopic._id;
+                        playerFeedbackTopic.platform = replicateTo._id;
+                        let prom = dbconfig.collection_playerFeedbackTopic(playerFeedbackTopic).save().catch(errorUtils.reportError);
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            );
+
+            // 回访结果
+            // playerFeedbackResult
+            // let copyPlayerFeedbackResultProm = dbconfig.collection_playerFeedbackResult.remove({platform: replicateTo._id}).then(
+            //     () => dbconfig.collection_playerFeedbackResult.find({platform: replicateFrom._id}).lean()
+            // ).then(
+            //     playerFeedbackResults => {
+            //         let proms = [];
+            //         playerFeedbackResults.map(playerFeedbackResult => {
+            //             delete playerFeedbackResult._id;
+            //             playerFeedbackResult.platform = replicateTo._id;
+            //             let prom = dbconfig.collection_playerFeedbackResult(playerFeedbackResult).save().catch(errorUtils.reportError);
+            //             proms.push(prom);
+            //         });
+            //
+            //         return Promise.all(proms);
+            //     }
+            // );
+
+            // 玩家前端展示 - 广告
+            // playerPageAdvertisementInfo
+            let copyPlayerPageAdvertisementInfoProm = dbconfig.collection_playerPageAdvertisementInfo.remove({platformId: replicateTo._id}).then(
+                () => dbconfig.collection_playerPageAdvertisementInfo.find({platformId: replicateFrom._id}).lean()
+            ).then(
+                playerPageAdvertisementInfos => {
+                    let proms = [];
+                    playerPageAdvertisementInfos.map(playerPageAdvertisementInfo => {
+                        delete playerPageAdvertisementInfo._id;
+                        playerPageAdvertisementInfo.platformId = replicateTo._id;
+                        let prom = dbconfig.collection_playerPageAdvertisementInfo(playerPageAdvertisementInfo).save().catch(errorUtils.reportError);
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            );
+
+            // 代理前端展示 - 广告
+            // playerPageAdvertisementInfo
+            let copyPartnerPageAdvertisementInfoProm = dbconfig.collection_partnerPageAdvertisementInfo.remove({platformId: replicateTo._id}).then(
+                () => dbconfig.collection_partnerPageAdvertisementInfo.find({platformId: replicateFrom._id}).lean()
+            ).then(
+                partnerPageAdvertisementInfos => {
+                    let proms = [];
+                    partnerPageAdvertisementInfos.map(partnerPageAdvertisementInfo => {
+                        delete partnerPageAdvertisementInfo._id;
+                        partnerPageAdvertisementInfo.platformId = replicateTo._id;
+                        let prom = dbconfig.collection_partnerPageAdvertisementInfo(partnerPageAdvertisementInfo).save().catch(errorUtils.reportError);
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            );
+
             return Promise.all([
                 copyPlatformDataProm,
                 copyPlayerLevelProm,
@@ -3701,11 +3957,69 @@ var dbPlatform = {
                 copyMessageTemplateProm,
                 copyPlatformAnnouncemenetProm,
                 copyPlatformGameGroupProm,
-                copyRewardEventProm
+                copyRewardEventProm,
+                copyPlatformBankCardGroupProm,
+                copyPlatformMerchantGroupProm,
+                copyPlatformAlipayGroupProm,
+                copyPlatformWechatPayGroupProm,
+                copyPlayerFeedbackTopicProm,
+                // copyPlayerFeedbackResultProm, // temporally feedbackResult is not base on platform
+                copyPlayerPageAdvertisementInfoProm,
+                copyPartnerPageAdvertisementInfoProm,
             ]);
-        });
+        }).then(
+            () => {
+                // this section will handle those that require other section's data in order to proceed
 
+                // 积分规则
+                // rewardPointsLvlConfig
+                let copyRewardPointsLvlConfigProm = dbconfig.collection_rewardPointsLvlConfig.remove({platformObjId: replicateTo._id}).then(
+                    () => dbconfig.collection_rewardPointsLvlConfig.find({platformObjId: replicateFrom._id}).lean()
+                ).then(
+                    rewardPointsLvlConfigs => {
+                        let proms = [];
+                        rewardPointsLvlConfigs.map(rewardPointsLvlConfig => {
+                            delete rewardPointsLvlConfig._id;
+                            rewardPointsLvlConfig.platformObjId = replicateTo._id;
+                            if (rewardPointsLvlConfig.params && rewardPointsLvlConfig.params.length > 0) {
+                                rewardPointsLvlConfig.params = rewardPointsLvlConfig.params.map(lvlSetting => {
+                                    if (lvlSetting.levelObjId && oldNewPlayerLevelObjId[String(lvlSetting.levelObjId)]) {
+                                        lvlSetting.levelObjId = oldNewPlayerLevelObjId[String(lvlSetting.levelObjId)];
+                                    }
+                                    return lvlSetting;
+                                });
+                            }
+                            let prom = dbconfig.collection_rewardPointsLvlConfig(rewardPointsLvlConfig).save().catch(errorUtils.reportError);
+                            proms.push(prom);
+                        });
 
+                        return Promise.all(proms);
+                    }
+                );
+
+                // 积分活动 - 登入积分、游戏积分
+                // rewardPointsEvent
+                let copyRewardPointEventProm = dbconfig.collection_rewardPointsEvent.remove({platformObjId: replicateTo._id, category: {$in: [constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, constRewardPointsTaskCategory.TOPUP_REWARD_POINTS]}}).then(
+                    () => dbconfig.collection_rewardPointsEvent.find({platformObjId: replicateFrom._id, category: {$in: [constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, constRewardPointsTaskCategory.TOPUP_REWARD_POINTS]}}).lean()
+                ).then(
+                    rewardPointsEvents => {
+                        let proms = [];
+                        rewardPointsEvents.map(rewardPointsEvent => {
+                            delete rewardPointsEvent._id;
+                            rewardPointsEvent.platformObjId = replicateTo._id;
+                            rewardPointsEvent.level = oldNewPlayerLevelObjId[String(rewardPointsEvent.level)] || rewardPointsEvent.level;
+
+                            let prom = dbconfig.collection_rewardPointsEvent(rewardPointsEvent).save().catch(errorUtils.reportError);
+                            proms.push(prom);
+                        });
+
+                        return Promise.all(proms);
+                    }
+                );
+
+                return Promise.all([copyRewardPointsLvlConfigProm, copyRewardPointEventProm]);
+            }
+        );
     },
 };
 

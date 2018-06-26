@@ -95,7 +95,7 @@ div(style='height:50px')
                             tr(ng-repeat="convert in conversationform.conversation", style="border: 1px solid; word-wrap: break-word; background-color:{{convert.colors}};")
                                 td(style="width: 40px; border: 1px solid black;") {{convert.roleName}}
                                 td(style="width: 77.27px; border: 1px solid black;") {{convert.displayTime}}
-                                td(style="width: 350px; border: 1px solid black;") {{convert.content}}
+                                td(style="width: 350px; border: 1px solid black; text-align: left;") {{convert.content}}
                                 td(style="width: 50.27px; border: 1px solid black;")
                                     input(style="width:45px;",type="number",value="{{convert.timeoutRate}}",readonly="readonly", ng-show="convert.roles==1")
                                 td(style="width: 50.27px; border: 1px solid black;")

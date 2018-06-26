@@ -571,6 +571,9 @@ var proposal = {
         return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate({_id: ObjectId(id)}, updateData, {new: true}).exec();
     },
     updateTopupProposal: function (proposalId, status, requestId, orderStatus, remark) {
+        // Debug credit missing after top up issue
+        console.log('updateTopupProposal', proposalId, status);
+
         var proposalObj = null;
         var type = constPlayerTopUpType.ONLINE;
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
@@ -619,6 +622,9 @@ var proposal = {
         ).then(
             data => {
                 if (status == constProposalStatus.SUCCESS) {
+                    // Debug credit missing after top up issue
+                    console.log('updatePlayerTopupProposal', proposalId);
+
                     return dbPlayerInfo.updatePlayerTopupProposal(proposalId, true, remark);
                 } else if (status == constProposalStatus.FAIL) {
                     return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false, remark);
@@ -1254,9 +1260,8 @@ var proposal = {
         return deferred.promise;
     },
 
-    getQueryApprovalProposalsForAdminId: function (adminId, platformId, typeArr, credit, relateUser, startTime, endTime, index, size, sortCol) {//need
+    getQueryApprovalProposalsForAdminId: function (adminId, platformId, typeArr = [], credit, relateUser, startTime, endTime, index, size, sortCol) {//need
         var proposalTypesId = [];
-        var proposalStatus = [];
         var totalCount = 0;
         var finalSummary = [];
         size = Math.min(size, constSystemParam.REPORT_MAX_RECORD_NUM);
@@ -1276,7 +1281,7 @@ var proposal = {
             function (data) {
                 if (data && data[0] && data[1]) {
                     for (var i = 0; i < data[0].length; i++) {
-                        if (typeArr.indexOf(data[0][i].name) != -1) {
+                        if (!typeArr.length || typeArr.indexOf(data[0][i].name) !== -1) {
                             proposalTypesId.push(data[0][i]._id);
                         }
                     }
@@ -1322,7 +1327,7 @@ var proposal = {
                     //get all proposal process with current step in found steps
                     var processIds = [];
                     for (var i = 0; i < data.length; i++) {
-                        if (!data[i].type || typeArr.indexOf(data[i].type.name) != -1) {
+                        if (!data[i].type || typeArr.indexOf(data[i].type.name) != -1 || !typeArr.length) {
                             processIds.push(data[i]._id);
                         }
                     }
@@ -3814,7 +3819,7 @@ var proposal = {
             .populate({path: "type", model: dbconfig.collection_proposalType}).lean();
     },
 
-    getWithdrawalProposal: (startDate, endDate, period) => {
+    getWithdrawalProposal: (startDate, endDate, period, platformObjId) => {
         let withdrawSuccessArr = [];
         let withdrawFailedArr = [];
 
@@ -3895,6 +3900,7 @@ var proposal = {
             };
 
             let matchObj1 = {
+                "data.platformId": ObjectId(platformObjId),
                 mainType: constProposalMainType.PlayerBonus,
                 createTime: {$gte: dayStartTime, $lt: dayEndTime},
                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
@@ -3921,6 +3927,7 @@ var proposal = {
 
 
             let matchObj2 = {
+                "data.platformId": ObjectId(platformObjId),
                 mainType: constProposalMainType.PlayerBonus,
                 createTime: {$gte: dayStartTime, $lt: dayEndTime},
                 status: {$in: [constProposalStatus.FAIL, constProposalStatus.REJECTED, constProposalStatus.CANCEL]}

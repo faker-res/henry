@@ -485,7 +485,7 @@ let dbPlayerInfo = {
             ).then(
                 validData => {
                     if (validData && validData.isPlayerNameValid) {
-                        if (isAutoCreate) { // todo :: add a platform setting to allow or deny auto create
+                        if (isAutoCreate || !inputData.userAgent) { // todo :: add a platform setting to allow or deny auto create
                             return {isPhoneNumberValid: true};
                         }
 
@@ -1199,7 +1199,7 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data.isPlayerNameValid) {
-                    if (isAutoCreate || playerdata.isTestPlayer) {
+                    if (isAutoCreate || playerdata.isTestPlayer || !playerdata.userAgent) {
                         return {isPhoneNumberValid: true};
                     }
 
@@ -4527,7 +4527,7 @@ let dbPlayerInfo = {
 
                     // Revert due to IP DB not ready
 
-                    var geo = geoip.lookup(playerData.lastLoginIp);
+                    //var geo = geoip.lookup(playerData.lastLoginIp);
                     var updateData = {
                         isLogin: true,
                         lastLoginIp: playerData.lastLoginIp,
@@ -4535,32 +4535,32 @@ let dbPlayerInfo = {
                         lastAccessTime: new Date().getTime(),
                         $inc: {loginTimes: 1}
                     };
-                    var geoInfo = {};
-                    if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
-                        geoInfo = {
-                            // country: geo ? geo.country : null,
-                            // city: geo ? geo.city : null,
-                            longitude: geo && geo.ll ? geo.ll[1] : null,
-                            latitude: geo && geo.ll ? geo.ll[0] : null
-                        }
-                    }
+                    // var geoInfo = {};
+                    // if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                    //     geoInfo = {
+                    //         // country: geo ? geo.country : null,
+                    //         // city: geo ? geo.city : null,
+                    //         longitude: geo && geo.ll ? geo.ll[1] : null,
+                    //         latitude: geo && geo.ll ? geo.ll[0] : null
+                    //     }
+                    // }
 
-                    if(playerData.lastLoginIp && playerData.lastLoginIp != "undefined"){
-                        var ipData = dbUtility.getIpLocationByIPIPDotNet(playerData.lastLoginIp);
-                        if(ipData){
-                            geoInfo.ipArea = ipData;
-                            geoInfo.country = ipData.country || null;
-                            geoInfo.city = ipData.city || null;
-                            geoInfo.province = ipData.province || null;
-                        }else{
-                            geoInfo.ipArea = {'province':'', 'city':''};
-                            geoInfo.country = "";
-                            geoInfo.city = "";
-                            geoInfo.province = "";
-                        }
-                    }
+                    // if(playerData.lastLoginIp && playerData.lastLoginIp != "undefined"){
+                    //     var ipData = dbUtility.getIpLocationByIPIPDotNet(playerData.lastLoginIp);
+                    //     if(ipData){
+                    //         geoInfo.ipArea = ipData;
+                    //         geoInfo.country = ipData.country || null;
+                    //         geoInfo.city = ipData.city || null;
+                    //         geoInfo.province = ipData.province || null;
+                    //     }else{
+                    //         geoInfo.ipArea = {'province':'', 'city':''};
+                    //         geoInfo.country = "";
+                    //         geoInfo.city = "";
+                    //         geoInfo.province = "";
+                    //     }
+                    // }
 
-                    Object.assign(updateData, geoInfo);
+                    //Object.assign(updateData, geoInfo);
                     if (playerData.lastLoginIp && !playerObj.loginIps.includes(playerData.lastLoginIp)) {
                         updateData.$push = {loginIps: playerData.lastLoginIp};
                     }
@@ -4590,7 +4590,7 @@ let dbPlayerInfo = {
                             if(recordData.userAgent){
                                 recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
                             }
-                            Object.assign(recordData, geoInfo);
+                            //Object.assign(recordData, geoInfo);
 
                             var record = new dbconfig.collection_playerLoginRecord(recordData);
                             return record.save().then(
@@ -4839,23 +4839,23 @@ let dbPlayerInfo = {
                         bUpdateIp = true;
                     }
 
-                    let geo = geoip.lookup(loginData.lastLoginIp);
+                    //let geo = geoip.lookup(loginData.lastLoginIp);
                     let updateData = {
                         isLogin: true,
                         lastLoginIp: loginData.lastLoginIp,
                         userAgent: newAgentArray,
                         lastAccessTime: new Date().getTime(),
                     };
-                    let geoInfo = {};
-                    if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
-                        geoInfo = {
-                            country: geo ? geo.country : null,
-                            city: geo ? geo.city : null,
-                            longitude: geo && geo.ll ? geo.ll[1] : null,
-                            latitude: geo && geo.ll ? geo.ll[0] : null
-                        }
-                    }
-                    Object.assign(updateData, geoInfo);
+                    // let geoInfo = {};
+                    // if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                    //     geoInfo = {
+                    //         country: geo ? geo.country : null,
+                    //         city: geo ? geo.city : null,
+                    //         longitude: geo && geo.ll ? geo.ll[1] : null,
+                    //         latitude: geo && geo.ll ? geo.ll[0] : null
+                    //     }
+                    // }
+                    //Object.assign(updateData, geoInfo);
                     if (loginData.lastLoginIp && loginData.lastLoginIp != playerObj.lastLoginIp) {
                         updateData.$push = {loginIps: loginData.lastLoginIp};
                     }
@@ -4881,7 +4881,7 @@ let dbPlayerInfo = {
                             if(recordData.userAgent){
                                 recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
                             }
-                            Object.assign(recordData, geoInfo);
+                            //Object.assign(recordData, geoInfo);
 
                             let record = new dbconfig.collection_playerLoginRecord(recordData);
                             return record.save().then(
@@ -6372,10 +6372,12 @@ let dbPlayerInfo = {
 
     getRewardEventForPlatform: function (platformId) {
         var playerPlatformId = null;
+        let routeSetting;
         return dbconfig.collection_platform.findOne({platformId: platformId}).then(
             function (platform) {
                 if (platform) {
                     playerPlatformId = platform._id;
+                    routeSetting = platform.playerRouteSetting ? platform.playerRouteSetting : null;
                     return dbconfig.collection_rewardEvent.find({platform: playerPlatformId})
                         .populate({
                             path: "type",
@@ -6404,7 +6406,31 @@ let dbPlayerInfo = {
                         delete rewardEventItem.platform;
                         rewardEventItem.platformId = platformId;
 
+                        let imageUrlArr = [];
+                        if (rewardEventItem && rewardEventItem.param && rewardEventItem.param.imageUrl
+                            && typeof rewardEventItem.param.imageUrl != 'string' && rewardEventItem.param.imageUrl.length > 0) {
+                            rewardEventItem.param.imageUrl.forEach(imageUrlString => {
+                                imageUrlArr.push(checkRouteSetting(imageUrlString, routeSetting));
+                            })
+                            rewardEventItem.param.imageUrl = imageUrlArr;
+
+                        } else if (rewardEventItem && rewardEventItem.condition && rewardEventItem.condition.imageUrl
+                            && typeof rewardEventItem.condition.imageUrl != 'string' && rewardEventItem.condition.imageUrl.length > 0) {
+                            rewardEventItem.condition.imageUrl.forEach(imageUrlString => {
+                                imageUrlArr.push(checkRouteSetting(imageUrlString, routeSetting));
+                            })
+                            rewardEventItem.condition.imageUrl = imageUrlArr;
+                        }
+
                         if (rewardEventItem && rewardEventItem.display && rewardEventItem.display.length > 0) {
+                            rewardEventItem.display.forEach(el => {
+                                if (el.btnOrImageList && el.btnOrImageList.length > 0) {
+                                    el.btnOrImageList.forEach(btnOrImage => {
+                                        btnOrImage.btnSourceFrom = checkRouteSetting(btnOrImage.btnSourceFrom, routeSetting);
+                                    });
+                                }
+
+                            });
                             rewardEventItem.list = rewardEventItem.display;
                         }
                         delete rewardEventItem.display;
@@ -8555,7 +8581,7 @@ let dbPlayerInfo = {
                                                         })
                                                     }
                                                     levelUp.consumptionSourceProviderId = levelUpProviderId;
-                                                })
+                                                });
                                                 // level.levelDownConfig.forEach(levelDown => {
                                                 //     let levelDownProviderId = [];
                                                 //     levelDown.consumptionSourceProviderId.forEach(levelDownProvider => {
@@ -8567,11 +8593,22 @@ let dbPlayerInfo = {
                                                 //     })
                                                 //     levelDown.consumptionSourceProviderId = levelDownProviderId;
                                                 // })
-                                            });
 
-                                            if (platformData && platformData.display) {
-                                                playerLevel.push({list: platformData.display});
-                                            }
+                                                if (platformData && platformData.display && platformData.display.length > 0) {
+                                                    level.list = [];
+                                                    platformData.display.forEach(el => {
+                                                        if (level._id && el.playerLevel && (level._id.toString() == el.playerLevel.toString())) {
+                                                            if (el.btnOrImageList && el.btnOrImageList.length > 0) {
+                                                                el.btnOrImageList.forEach(btnOrImage => {
+                                                                    btnOrImage.btnSourceFrom = checkRouteSetting(btnOrImage.btnSourceFrom, platformData.playerRouteSetting);
+                                                                });
+                                                            }
+
+                                                            level.list.push(el);
+                                                        }
+                                                    });
+                                                }
+                                            });
 
                                             return playerLevel;
                                         });
@@ -10246,6 +10283,9 @@ let dbPlayerInfo = {
                             }
                         ).then(
                             updateProposal => {
+                                // Debug credit missing after top up issue
+                                console.log('updatePlayerTopupProposal updateProposal', updateProposal);
+
                                 if (updateProposal && updateProposal.status != constProposalStatus.SUCCESS
                                     && updateProposal.status != constProposalStatus.FAIL) {
                                     return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
@@ -15280,7 +15320,21 @@ let dbPlayerInfo = {
                 message: "Generate dian xiao code failure."
             })
         }
-        let randomString = Math.random().toString(36).substring(4, 11); // generate random String
+        let randomString = Math.random().toString(36).substring(4, 9); // generate random String
+        let index = 0;
+        // prevent infinite loop
+        // prevent randomString all numbers
+        while (!isNaN(randomString) && index < 5) {
+            randomString = Math.random().toString(36).substring(4, 9);
+            index++;
+        }
+        if (randomString && randomString.charAt(0) == "p") {
+            let text = "";
+            let possible = "abcdefghijklmnoqrstuvwxyz0123456789";
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+            randomString = text + randomString.substr(1, randomString.length);
+        }
+
         let dxCode = "";
 
         let platformProm = Promise.resolve({platformId: platformId});
@@ -16965,6 +17019,148 @@ let dbPlayerInfo = {
         );
     },
 
+    checkIPArea: function (playerObjId) {
+        return dbconfig.collection_players.findOne({_id: playerObjId}).then(
+            playerDetails => {
+                if(playerDetails && playerDetails.loginIps && playerDetails.loginIps[0] && playerDetails.loginIps[0] != "undefined"
+                    && playerDetails.loginIps[0] != "127.0.0.1"){
+
+                    var ipData = dbUtility.getIpLocationByIPIPDotNet(playerDetails.loginIps[0]);
+                    let updateData = {};
+
+                    if(ipData){
+                        updateData.city = ipData.city || "";
+                        updateData.province = ipData.province || "";
+                    }
+
+                    if(updateData && (updateData.province || updateData.city) && ((!playerDetails.province || playerDetails.province != updateData.province)
+                        || (!playerDetails.city || playerDetails.city != updateData.city))){
+                        dbconfig.collection_players.findOneAndUpdate(
+                            {_id: playerObjId},
+                            updateData
+                        ).exec();
+
+                    }
+
+                    return updateData;
+                }
+            }
+        )
+    },
+
+    getPlayerCreditByName: function(playerName, platformObjId) {
+        let platformId = null, providers = [], localCredit = 0;
+        return dbconfig.collection_platform.findOne({
+            _id: platformObjId
+        }).populate({
+            path: 'gameProviders',
+            model: dbconfig.collection_gameProvider
+        }).then(platform => {
+            platformId = platform.platformId;
+            providers = platform.gameProviders;
+            return dbconfig.collection_players.findOne({name: playerName, platform: platformObjId});
+        }).then(player => {
+            if(player) {
+                localCredit = player.validCredit;
+                return getProviderCredit(providers, playerName, platformId);
+            } else {
+                return Promise.reject({name: "DataError", message: "Player not found during get player credit clear by name"});
+            }
+        }).then(providerCredit => {
+            return {playerName: playerName, gameProviderTotalCredit: providerCredit, localTotalCredit: localCredit};
+        }).catch(err => {
+            errorUtils.reportError(err);
+            return {};
+        });
+    },
+
+    playerCreditClearOut: function(playerName, platformObjId, adminName, adminId) {
+        let platform = null;
+        let providers = [];
+        let player = null;
+        return dbconfig.collection_platform.findOne({_id: platformObjId}).populate({
+            path: 'gameProviders',
+            model: dbconfig.collection_gameProvider
+        }).then(platformData => {
+            platform = platformData;
+            providers = platform.gameProviders;
+            //get player
+            return dbconfig.collection_players.findOne({name: playerName, platform: platformObjId});
+        }).then(playerData => {
+            if(playerData) {
+                player = playerData;
+                //get all opened proposals
+                return dbconfig.collection_proposal.find({
+                    status: {
+                        $nin: [
+                            constProposalStatus.APPROVED,
+                            constProposalStatus.REJECTED,
+                            constProposalStatus.SUCCESS,
+                            constProposalStatus.FAIL,
+                            constProposalStatus.CANCEL,
+                            constProposalStatus.EXPIRED
+                        ]
+                    },
+                    'data.playerName': playerName,
+                    'data.platformId': ObjectId(platformObjId)
+                });
+            } else {
+                return Promise.reject({name: "DataError", message: "Player not found during player credit clear out"});
+            }
+        }).then(proposals => {
+            if(proposals && proposals.length > 0) {
+                // cancel all proposals
+                let cancelProposalProm = [];
+                proposals.forEach(proposal => {
+                    cancelProposalProm.push(
+                        dbProposal.cancelProposal(proposal._id, adminName).then(data => data, err => {
+                            errorUtils.reportError(err);
+                            return Promise.resolve();
+                        })
+                    )
+                });
+                return Promise.all(cancelProposalProm);
+            } else {
+                return Promise.resolve();
+            }
+        }).then(() => {
+            // transfer out
+            let promArr = [];
+            providers.forEach(provider => {
+                promArr.push(
+                    dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(player._id, platformObjId, provider._id, -1,
+                    player.playerId, provider.providerId, playerName, platform.platformId, adminName).then(data => {
+                        return data;
+                    }, err => {
+                        errorUtils.reportError(err);
+                        return Promise.resolve();
+                    })
+                )
+            });
+            return Promise.all(promArr).then(() => {
+                return dbconfig.collection_players.findOne({name: playerName, platform: platformObjId});
+            });
+        }).then(playerData => {
+            // submit proposal to edit credit to 0
+            let proposalData = {
+                platformId: platformObjId,
+                creator: {type: "admin", name: adminName, id: adminId},
+                data: {
+                    playerObjId: player._id,
+                    playerName: player.name,
+                    updateAmount: -playerData.validCredit,
+                    curAmount: playerData.validCredit,
+                    realName: playerData.realName,
+                    remark: '',
+                    adminName: adminName
+                }
+            };
+            return dbProposal.checkUpdateCreditProposal(platformObjId, constProposalType.UPDATE_PLAYER_CREDIT, proposalData);
+        }).catch(err => {
+            errorUtils.reportError(err);
+            return {};
+        });
+    }
 };
 
 function censoredPlayerName(name) {
@@ -17261,6 +17457,14 @@ function getProviderCredit(providers, playerName, platformId) {
         });
 
 
+}
+
+function checkRouteSetting(url, setting) {
+    if (url && (url.indexOf("http") == -1 || url.indexOf("https") == -1 || url.indexOf("") == -1) && setting) {
+        url = setting.concat(url.trim());
+    }
+
+    return url;
 }
 
 function isRandomRewardConsumption (rewardEvent) {
