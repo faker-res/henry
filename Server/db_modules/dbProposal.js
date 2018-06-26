@@ -1338,7 +1338,8 @@ var proposal = {
                             $lt: endTime
                         },
                         noSteps: false,
-                        status: constProposalStatus.PENDING
+                        status: constProposalStatus.PENDING,
+                        "data.platformId": {$in: platformId}
                     };
 
                     if (processIds && processIds.length > 0) {
