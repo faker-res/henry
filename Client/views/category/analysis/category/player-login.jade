@@ -59,11 +59,11 @@
                             td
                                 span {{ v['playerLogin'] }}
                             td
-                                span(ng-show="v['device']['WEB'] == 0") 0
-                                a(ng-show="v['device']['WEB'] > 0",ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayer.periodText, 1)') {{ v['device']['WEB'] }}
-                            td
                                 span(ng-show="v['device']['H5'] == 0") 0
                                 a(ng-show="v['device']['H5'] > 0",ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayer.periodText, 2)') {{ v['device']['H5'] }}
+                            td
+                                span(ng-show="v['device']['WEB'] == 0") 0
+                                a(ng-show="v['device']['WEB'] > 0",ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayer.periodText, 1)') {{ v['device']['WEB'] }}
                             td
                                 span(ng-show="v['device']['APP-ANDROID'] == 0") 0
                                 a(ng-show="v['device']['APP-ANDROID'] > 0",ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayer.periodText, 3)') {{ v['device']['APP-ANDROID'] }}
@@ -80,15 +80,15 @@
                             td
                                 span {{ vm.avgPlayerLogin }}
                             td
-                                span {{ vm.avgTotalDevice['device']['WEB'] }}
+                                span {{ vm.avgTotalPlayerLogin['device']['WEB'] }}
                             td
-                                span {{ vm.avgTotalDevice['device']['H5'] }}
+                                span {{ vm.avgTotalPlayerLogin['device']['H5'] }}
                             td
-                                span {{ vm.avgTotalDevice['device']['APP-ANDROID'] }}
+                                span {{ vm.avgTotalPlayerLogin['device']['APP-ANDROID'] }}
                             td
-                                span {{ vm.avgTotalDevice['device']['APP-IOS'] }}
+                                span {{ vm.avgTotalPlayerLogin['device']['APP-IOS'] }}
                             td
-                                span {{ vm.avgTotalDevice['device']['PC-DOWNLOAD'] }}
+                                span {{ vm.avgTotalPlayerLogin['device']['PC-DOWNLOAD'] }}
 
         #loginPlayerDeviceAnalysis
             .col-md-12.block-query.well(style='margin-bottom:3px;')
@@ -143,11 +143,11 @@
                                     td
                                         span {{ v['subTotal'] }}
                                     td
-                                        span(ng-show="v['device']['WEB'] <= 0") 0
-                                        a(ng-show="v['device']['WEB'] > 0", ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayerDevice.periodText, 1)') {{ v['device']['WEB'] }}
-                                    td
                                         span(ng-show="v['device']['H5'] <= 0") 0
                                         a(ng-show="v['device']['H5'] > 0", ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayerDevice.periodText, 2)') {{ v['device']['H5'] }}
+                                    td
+                                        span(ng-show="v['device']['WEB'] <= 0") 0
+                                        a(ng-show="v['device']['WEB'] > 0", ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayerDevice.periodText, 1)') {{ v['device']['WEB'] }}
                                     td
                                         span(ng-show="v['device']['APP-ANDROID'] <= 0") 0
                                         a(ng-show="v['device']['APP-ANDROID'] > 0", ng-click='vm.getLoginUserList(v._id, vm.queryPara.loginPlayerDevice.periodText, 3)') {{ v['device']['APP-ANDROID'] }}
@@ -194,7 +194,7 @@
             .modal-body
                 .panel.panel-primary
                     .panel-body
-                        .tab-content
+                        .tab-content(style='overflow-y:scroll;')
                             div
                                 table.table.table-striped.table-bordered
                                     thead

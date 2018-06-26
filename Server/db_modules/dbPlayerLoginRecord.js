@@ -402,7 +402,6 @@ var dbPlayerLoginRecord = {
                     }
                 }
             }
-            console.log(matchObj);
             proms.push(
               //  dbconfig.collection_playerLoginRecord.distinct("player", matchObj)
                   dbconfig.collection_playerLoginRecord.aggregate(
@@ -420,14 +419,12 @@ var dbPlayerLoginRecord = {
         }
         return Q.all(proms).then(
             data => {
-                console.log(data);
                 let prom = [];
                 var i = 0;
                 var tempDate = startDate;
 
                 var res = data.map(
                     dayData => {
-                        console.log(dayData);
                         var date = tempDate;//dbUtil.getLocalTimeString(dbUtil.getDayStartTime(tempDate), "YYYY-MM-DD");
                         var obj = {
                             _id: {date: date},
@@ -437,7 +434,6 @@ var dbPlayerLoginRecord = {
                         return obj;
                     }
                 );
-                console.log(res);
                 return res;
             }
         );

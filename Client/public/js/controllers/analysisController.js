@@ -81,23 +81,13 @@ define(['js/app'], function (myApp) {
         };
 
         vm.deviceType = {
-          1:'WEB',
-          2:'H5',
-          3:'APP-ANDROID',
-          4:'APP-IOS',
-          5:'PC-DOWNLOAD',
+            1:'WEB',
+            2:'H5',
+            3:'APP-ANDROID',
+            4:'APP-IOS',
+            5:'PC-DOWNLOAD',
+        }
 
-        }
-        vm.avgTotalDevice = {
-          total:0,
-          device:{
-            'WEB':0,
-            'H5':0,
-            'APP-ANDROID':0,
-            'APP-IOS':0,
-            'PC-DOWNLOAD':0
-          }
-        }
         vm.avgPlayerLogin = 0;
         // For debugging:
         window.VM = vm;
@@ -3556,10 +3546,11 @@ define(['js/app'], function (myApp) {
             }
 
             socketService.$socket($scope.AppSocket, 'countLoginPlayerDevicebyPlatform', sendData, function success(data1) {
-                console.log(data1);
                 $scope.$evalAsync(() => {
+                    vm.avgTotalPlayerLogin = { avg:0, device:{ 'WEB':0,'H5':0, 'APP-ANDROID':0,'APP-IOS':0,'PC-DOWNLOAD':0 } };
+                    vm.avgPlayerLogin = 0;
                     vm.platformLoginPlayerDataPeriodText = vm.queryPara.loginPlayer.periodText;
-                    vm.platformLoginPlayerAnalysisData = vm.sumTotalDeviceType(data1);
+                    vm.platformLoginPlayerAnalysisData = vm.sumTotalDeviceType(data1, false, 1);
                     vm.platformLoginPlayerGraphData = data1.data.map(item => {
                         let graphData = {
                             date:item._id,
@@ -3580,7 +3571,7 @@ define(['js/app'], function (myApp) {
         // Login Player Device start= =========================================
         vm.plotLoginPlayerDeviceLine = function () {
             //todo::add graph code here
-            vm.isShowLoadingSpinner('#loginPlayerAnalysis', true);
+            vm.isShowLoadingSpinner('#loginPlayerDeviceAnalysis', true);
             var placeholder = "#line-loginPlayer";
             var sendData = {
                 platformId: vm.selectedPlatform._id,
@@ -3619,10 +3610,9 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'countLoginPlayerDevicebyPlatform', sendData, function success(data1) {
                 $scope.$evalAsync(() => {
                     vm.avgTotalDevice = { avg:0, device:{ 'WEB':0,'H5':0, 'APP-ANDROID':0,'APP-IOS':0,'PC-DOWNLOAD':0 } };
-                    vm.avgPlayerLogin = 0;
-
                     vm.platformLoginPlayerDeviceAnalysisData = data1.data;
-                    var data = vm.sumTotalDeviceType(data1, true);
+
+                    var data = vm.sumTotalDeviceType(data1, true, 2);
                     var pieData = []
                     Object.keys(data).forEach(item=>{
                         if(item!='total'){
@@ -3644,13 +3634,14 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     });
+                    vm.isShowLoadingSpinner('#loginPlayerDeviceAnalysis', false);
                 });
             });
         };
         // login player device end
 
         // calculate the (avg/sum) of (playerlogin/devicelogin) times
-        vm.sumTotalDeviceType = function(data, isPieChart){
+        vm.sumTotalDeviceType = function(data, isPieChart, graph){
             let dataList = {
               'WEB':0,
               'H5':0,
@@ -3677,9 +3668,17 @@ define(['js/app'], function (myApp) {
 
             if(dataLength > 0){
                 // calculate the avg of device/playerLogin times
-                vm.avgPlayerLogin = (countPlayerLogin / dataLength).toFixed(1);
-                vm.avgTotalDevice.avg = (countTotalDeviceAmt /dataLength).toFixed(1);
-                vm.countAvgDevice(dataLength, dataList);
+                if(graph==1){
+                    // calculate the first avg of table
+                    vm.avgTotalPlayerLogin.avg = (countPlayerLogin / dataLength).toFixed(1);
+                    vm.avgPlayerLogin = (countPlayerLogin / dataLength).toFixed(1);
+                    vm.countAvgDevice(dataLength, dataList, graph);
+                }else{
+                    // calculate the second avg of table
+                    vm.avgTotalDevice.avg = (countTotalDeviceAmt /dataLength).toFixed(1);
+                    vm.countAvgDevice(dataLength, dataList, graph);
+                }
+
             }
 
             if(isPieChart){
@@ -3689,14 +3688,19 @@ define(['js/app'], function (myApp) {
             }
 
         }
-        vm.countAvgDevice = function(dataLength, dataList){
+        vm.countAvgDevice = function(dataLength, dataList, graph){
             if(dataLength <= 0){
                 return;
             }
 
             Object.keys(dataList).forEach(key=>{
                 if(dataList[key]!=0){
-                    vm.avgTotalDevice['device'][key] = (dataList[key] / dataLength).toFixed(1);
+                    if(graph == 1){
+                        vm.avgTotalPlayerLogin['device'][key] = (dataList[key] / dataLength).toFixed(1);
+                    }else{
+                        vm.avgTotalDevice['device'][key] = (dataList[key] / dataLength).toFixed(1);
+                    }
+
                 }
             })
         }
@@ -3712,10 +3716,7 @@ define(['js/app'], function (myApp) {
                     console.log(vm.playerLoginRecords);
                 });
             });
-
-            if(inputDeviceType && inputDeviceType > 0){
-                $('#modalLoginDevice').modal('show');
-            }
+            $('#modalLoginDevice').modal('show');
         }
 
 
