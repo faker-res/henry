@@ -135,7 +135,6 @@ function socketActionPartner(socketIO, socket) {
             var platform = data.platform ? ObjectId(data.platform) : 'all';
             var inputDeviceType = data.inputDeviceType;
             var period = data.period;
-            console.log(period);
             socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerLoginRecord, [platform, startTime, endTime, period, inputDeviceType], actionName, isValidData);
        },
 

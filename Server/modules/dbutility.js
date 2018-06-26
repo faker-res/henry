@@ -1035,7 +1035,6 @@ var dbUtility = {
             os: ua.os || ''
         }];
         let inputDevice="";
-        console.log(userAgentInput);
         if (userAgentInput && userAgentInput[0] && inputUserAgent) {
             let userAgent = userAgentInput[0];
             if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {

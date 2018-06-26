@@ -3765,14 +3765,12 @@ define(['js/app'], function (myApp) {
         }
 
         vm.getLoginUserList = function(date, period, inputDeviceType){
-            console.log('getLoginUserList');
 
             socketService.$socket($scope.AppSocket, 'getPlayerLoginRecord', {
                 startDate:date, endDate:date, platform: vm.selectedPlatform._id, period:period, inputDeviceType: inputDeviceType
             }, function (data) {
                 $scope.$evalAsync(() => {
                     vm.playerLoginRecords = (data && data.data) ? data.data:[];
-                    console.log(vm.playerLoginRecords);
                 });
             });
             $('#modalLoginDevice').modal('show');
