@@ -1282,7 +1282,7 @@ var proposal = {
             function (data) {
                 if (data && data[0] && data[1]) {
                     for (var i = 0; i < data[0].length; i++) {
-                        if (typeArr.indexOf(data[0][i].name) != -1) {
+                        if (typeArr.indexOf(data[0][i].name) != -1 || !typeArr) {
                             proposalTypesId.push(data[0][i]._id);
                         }
                     }
