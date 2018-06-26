@@ -17144,6 +17144,7 @@ let dbPlayerInfo = {
                     adminName: adminName
                 }
             };
+            console.log("VP20180626", proposalData);
             return dbProposal.checkUpdateCreditProposal(platformObjId, constProposalType.UPDATE_PLAYER_CREDIT, proposalData);
         }).catch(err => {
             errorUtils.reportError(err);
