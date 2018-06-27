@@ -299,6 +299,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     };
 
     $scope.curPlatformText = $cookies.get(authService.cookiePlatformKey) || "XBet";
+    console.log("walaocur",$scope.curPlatformText)
     $scope.showPlatformDropDownList = false;
 
     $scope.switchPlatform = ($event) => {
@@ -365,11 +366,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         }
         for (let i = 0; i < data.length; i++) {
             $scope.platformList.push($scope.createPlatformNode(data[i]));
-            if (data[i].name && data[i].platformId && $scope.curPlatformText && $scope.curPlatformText == data[i].name && $scope.curPlatformText !="XBet") {
-                $scope.$evalAsync(() => {
-                    $scope.curPlatformText = data[i].platformId + ". " + $scope.curPlatformText;
-                });
-            }
         }
 
         let searchText = ($scope.platformSearchText || '').toLowerCase();
@@ -410,7 +406,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         //     ignoreCase: false,
         //     exactMatch: true
         // }]);
-        var findNodes = $scope.allPlatformData.filter(e => e.name === text);
+        var findNodes = $scope.platformList.filter(e => e.platformName === text);
+        if (!findNodes.length) {
+            findNodes = [$scope.platformList[0]];
+        }
         if (findNodes && findNodes.length > 0) {
             $scope.selectPlatformNode(findNodes[0], option);
             $('#platformTreeHeader').treeview('selectNode', [findNodes[0], {silent: true}]);
