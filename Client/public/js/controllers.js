@@ -299,7 +299,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     };
 
     $scope.curPlatformText = $cookies.get(authService.cookiePlatformKey) || "XBet";
-    console.log("walaocur",$scope.curPlatformText)
     $scope.showPlatformDropDownList = false;
 
     $scope.switchPlatform = ($event) => {
