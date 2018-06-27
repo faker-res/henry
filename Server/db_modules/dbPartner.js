@@ -1401,15 +1401,21 @@ let dbPartner = {
                         $inc: {loginTimes: 1},
                         lastAccessTime: new Date().getTime(),
                     };
-                    // var geoInfo = {};
-                    // if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
-                    //     geoInfo = {
-                    //         country: geo ? geo.country : null,
-                    //         city: geo ? geo.city : null,
-                    //         longitude: geo && geo.ll ? geo.ll[1] : null,
-                    //         latitude: geo && geo.ll ? geo.ll[0] : null
-                    //     }
-                    // }
+                    var geoInfo = {};
+                    if(partnerData.lastLoginIp && partnerData.lastLoginIp != "undefined"){
+                        var ipData = dbUtil.getIpLocationByIPIPDotNet(partnerData.lastLoginIp);
+                        if(ipData){
+                            geoInfo.ipArea = ipData;
+                            geoInfo.country = ipData.country || null;
+                            geoInfo.city = ipData.city || null;
+                            geoInfo.province = ipData.province || null;
+                        }else{
+                            geoInfo.ipArea = {'province':'', 'city':''};
+                            geoInfo.country = "";
+                            geoInfo.city = "";
+                            geoInfo.province = "";
+                        }
+                    }
                     //Object.assign(updateData, geoInfo);
                     return dbconfig.collection_partner.findOneAndUpdate({
                         _id: partnerObj._id,
@@ -1430,7 +1436,7 @@ let dbPartner = {
                                 clientDomain: partnerData.clientDomain ? partnerData.clientDomain : "",
                                 userAgent: uaObj
                             };
-                            //Object.assign(recordData, geoInfo);
+                            Object.assign(recordData, geoInfo);
                             var record = new dbconfig.collection_partnerLoginRecord(recordData);
                             return record.save().then(
                                 () => {
@@ -6333,6 +6339,7 @@ let dbPartner = {
                     totalPlatformFee += platformFee;
 
                     rawCommissions.push({
+                        crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
                         groupName: groupRate.groupName,
                         groupId: groupRate.groupId,
                         amount: rawCommission,
@@ -6375,11 +6382,14 @@ let dbPartner = {
                     rawCommissions: rawCommissions,
                     totalReward: totalReward,
                     totalRewardFee: totalRewardFee,
+                    rewardFeeRate: partnerCommissionRateConfig.rateAfterRebatePromo / 100,
                     totalPlatformFee: totalPlatformFee,
                     totalTopUp: totalTopUp,
                     totalTopUpFee: totalTopUpFee,
+                    topUpFeeRate: partnerCommissionRateConfig.rateAfterRebateTotalDeposit / 100,
                     totalWithdrawal: totalWithdrawal,
                     totalWithdrawalFee: totalWithdrawalFee,
+                    withdrawFeeRate: partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal / 100,
                     status: constPartnerCommissionLogStatus.PREVIEW,
                     nettCommission: nettCommission,
                 };
@@ -8227,8 +8237,14 @@ let dbPartner = {
                 let output = {};
 
                 output.activeCrewNumbers = commissionDetail.activeDownLines;
+                output.totalDepositAmount = commissionDetail.totalTopUp;
+                output.depositFeeRate = commissionDetail.topUpFeeRate;
                 output.totalDepositFee = commissionDetail.totalTopUpFee;
+                output.totalWithdrawAmount = commissionDetail.totalWithdrawal;
+                output.withdrawFeeRate = commissionDetail.withdrawFeeRate;
                 output.totalWithdrawalFee = commissionDetail.totalWithdrawalFee;
+                output.totalBonusAmount = commissionDetail.totalReward;
+                output.bonusFeeRate = commissionDetail.rewardFeeRate;
                 output.totalBonusFee = commissionDetail.totalRewardFee;
                 output.totalProviderFee = commissionDetail.totalPlatformFee;
                 // output.totalCommission = commissionDetail.nettCommission;
@@ -8242,6 +8258,9 @@ let dbPartner = {
                             providerGroupName: providerCommission.groupName,
                             providerGroupCommission: providerCommission.amount,
                             providerGroupFee: providerCommission.platformFee,
+                            crewProfit: providerCommission.crewProfit,
+                            commissionRate: providerCommission.commissionRate? providerCommission.commissionRate / 100: 0,
+                            providerGroupFeeRate: providerCommission.platformFeeRate? providerCommission.platformFeeRate / 100: 0
                         })
                         if (providerCommission.amount) {
                             output.totalCommission += providerCommission.amount;

@@ -71,123 +71,130 @@ var dbPlatform = {
         if (platformData) {
             platformData._id = randomObjectId();
 
-            if (platformData.platformId) {
-                delete platformData.platformId;
-            }
+            // if (platformData.platformId) {
+            //     delete platformData.platformId;
+            // }
         }
 
         var platform = new dbconfig.collection_platform(platformData);
-        platform.save().then(
-            function (data) {
-                if (data && data._id) {
-                    platformData = data;
-                    var proms = [];
-                    //create default partner level for platform
-                    var value = 0;
-                    for (var key in constPartnerLevel) {
-                        var platformPartnerLevel = {
-                            //todo::update the default data here
-                            name: constPartnerLevel[key],
-                            value: value++,
-                            platform: data._id,
-                            demoteWeeks: 4,
-                            limitPlayers: 10 * (value + 1),
-                            consumptionAmount: 10 * (value + 1),
-                            consumptionReturn: 0.2
-                        };
-                        proms.push(dbPartnerLevel.createPartnerLevel(platformPartnerLevel));
-                    }
-                    //create default player level for platform
-                    value = 0;
-                    for (var key in constPlayerLevel) {
-                        var platformPlayerLevel = {
-                            name: constPlayerLevel[key],
-                            value: value++,
-                            platform: data._id,
-                            levelUpConfig: [
-                                {
-                                    andConditions: true,
-                                    topupLimit: 1000 * (value + 1),
-                                    topupPeriod: "WEEK",
-                                    consumptionLimit: 10000 * (value + 1),
-                                    consumptionPeriod: "WEEK"
-                                },
-                                {
-                                    andConditions: false,
-                                    topupLimit: 1000 * (value + 1),
-                                    topupPeriod: "DAY",
-                                    consumptionLimit: 10000 * (value + 1),
-                                    consumptionPeriod: "DAY"
-                                }
-                            ],
-                            levelDownConfig: [
-                                {
-                                    andConditions: false,
-                                    topupMinimum: 10 * value,
-                                    topupPeriod: "DAY",
-                                    consumptionMinimum: 100 * value,
-                                    consumptionPeriod: "DAY"
-                                }
-                            ]
-                        };
-                        proms.push(dbPlayerLevel.createPlayerLevel(platformPlayerLevel));
-                    }
-                    //create default player trust level for platform
-                    for (var key in constPlayerTrustLevel) {
-                        var platformPlayerTrustLevel = {
-                            name: key,
-                            value: constPlayerTrustLevel[key],
-                            platform: data._id
-                        };
-                        proms.push(dbPlayerTrustLevel.createPlayerTrustLevel(platformPlayerTrustLevel));
-                    }
-                    proms.push(dbPlatform.createPlatformProposalTypes(data._id));
 
-                    // Every platform should have a partnerLevelConfig
-                    // We create a partnerLevelConfig with dummy data here, which the user can update later
-                    partnerLevelConfigData = partnerLevelConfigData || {
-                        //todo::update the default value here
-                        validPlayerTopUpTimes: 5,
-                        validPlayerConsumptionTimes: 10,
-                        activePlayerTopUpTimes: 1,
-                        activePlayerConsumptionTimes: 1
-                    };
-                    partnerLevelConfigData.platform = data._id;
-                    var partnerLevelConfig = new dbconfig.collection_partnerLevelConfig(partnerLevelConfigData);
-                    proms.push(partnerLevelConfig.save());
+        dbconfig.collection_platform.findOne({platformId: platformData.platformId}).then(data => {
+            if (data) {
+                deferred.reject({name: "DataError", message: "Duplicate Platform ID."});
+            } else {
+                platform.save().then(
+                    function (data) {
+                        if (data && data._id) {
+                            platformData = data;
+                            var proms = [];
+                            //create default partner level for platform
+                            var value = 0;
+                            for (var key in constPartnerLevel) {
+                                var platformPartnerLevel = {
+                                    //todo::update the default data here
+                                    name: constPartnerLevel[key],
+                                    value: value++,
+                                    platform: data._id,
+                                    demoteWeeks: 4,
+                                    limitPlayers: 10 * (value + 1),
+                                    consumptionAmount: 10 * (value + 1),
+                                    consumptionReturn: 0.2
+                                };
+                                proms.push(dbPartnerLevel.createPartnerLevel(platformPartnerLevel));
+                            }
+                            //create default player level for platform
+                            value = 0;
+                            for (var key in constPlayerLevel) {
+                                var platformPlayerLevel = {
+                                    name: constPlayerLevel[key],
+                                    value: value++,
+                                    platform: data._id,
+                                    levelUpConfig: [
+                                        {
+                                            andConditions: true,
+                                            topupLimit: 1000 * (value + 1),
+                                            topupPeriod: "WEEK",
+                                            consumptionLimit: 10000 * (value + 1),
+                                            consumptionPeriod: "WEEK"
+                                        },
+                                        {
+                                            andConditions: false,
+                                            topupLimit: 1000 * (value + 1),
+                                            topupPeriod: "DAY",
+                                            consumptionLimit: 10000 * (value + 1),
+                                            consumptionPeriod: "DAY"
+                                        }
+                                    ],
+                                    levelDownConfig: [
+                                        {
+                                            andConditions: false,
+                                            topupMinimum: 10 * value,
+                                            topupPeriod: "DAY",
+                                            consumptionMinimum: 100 * value,
+                                            consumptionPeriod: "DAY"
+                                        }
+                                    ]
+                                };
+                                proms.push(dbPlayerLevel.createPlayerLevel(platformPlayerLevel));
+                            }
+                            //create default player trust level for platform
+                            for (var key in constPlayerTrustLevel) {
+                                var platformPlayerTrustLevel = {
+                                    name: key,
+                                    value: constPlayerTrustLevel[key],
+                                    platform: data._id
+                                };
+                                proms.push(dbPlayerTrustLevel.createPlayerTrustLevel(platformPlayerTrustLevel));
+                            }
+                            proms.push(dbPlatform.createPlatformProposalTypes(data._id));
 
-                    return Q.all(proms);
-                }
-                else {
-                    deferred.reject({name: "DataError", message: "Can't create platform."});
-                }
-            },
-            function (error) {
-                deferred.reject({name: "DBError", message: "Error creating platform.", error: error});
-            }
-        ).then(
-            function (data) {
-                //add platform to PMS
-                if (env.mode != "local" && env.mode != "qa") {
-                    externalUtil.request(pmsAPI.platform_add(
-                        {
-                            platformId: platformData.platformId,
-                            name: platformData.name,
-                            code: platformData.code,
-                            description: platformData.description || ""
+                            // Every platform should have a partnerLevelConfig
+                            // We create a partnerLevelConfig with dummy data here, which the user can update later
+                            partnerLevelConfigData = partnerLevelConfigData || {
+                                //todo::update the default value here
+                                validPlayerTopUpTimes: 5,
+                                validPlayerConsumptionTimes: 10,
+                                activePlayerTopUpTimes: 1,
+                                activePlayerConsumptionTimes: 1
+                            };
+                            partnerLevelConfigData.platform = data._id;
+                            var partnerLevelConfig = new dbconfig.collection_partnerLevelConfig(partnerLevelConfigData);
+                            proms.push(partnerLevelConfig.save());
+
+                            return Q.all(proms);
                         }
-                    ));
-                }
-                deferred.resolve(platformData);
-            },
-            function (error) {
-                deferred.reject({
-                    name: "DBError",
-                    message: "Error creating platform partnerLevel and playerLevel.",
-                    error: error
-                });
+                        else {
+                            deferred.reject({name: "DataError", message: "Can't create platform."});
+                        }
+                    },
+                    function (error) {
+                        deferred.reject({name: "DBError", message: "Error creating platform.", error: error});
+                    }
+                ).then(
+                    function (data) {
+                        //add platform to PMS
+                        if (env.mode != "local" && env.mode != "qa") {
+                            externalUtil.request(pmsAPI.platform_add(
+                                {
+                                    platformId: platformData.platformId,
+                                    name: platformData.name,
+                                    code: platformData.code,
+                                    description: platformData.description || ""
+                                }
+                            ));
+                        }
+                        deferred.resolve(platformData);
+                    },
+                    function (error) {
+                        deferred.reject({
+                            name: "DBError",
+                            message: "Error creating platform partnerLevel and playerLevel.",
+                            error: error
+                        });
+                    }
+                );
             }
-        );
+        });
 
         return deferred.promise;
     },

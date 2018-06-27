@@ -974,7 +974,7 @@ define(['js/app'], function (myApp) {
                         $('#platformRefresh').removeClass('fa-check');
                         $('#platformRefresh').addClass('fa-refresh').fadeIn(100);
                         vm.onGoingLoadPlatformData = false;
-                    }, 1000);
+                    }, 0);
 
                     //select platform from cookies data
                     let storedPlatform = $cookies.get("platform");
@@ -2213,6 +2213,21 @@ define(['js/app'], function (myApp) {
             vm.sendMessageToPartnerBtn = function (type, data) {
                 vm.telphonePartner = data;
                 $('#messagePartnerModal').modal('show');
+            };
+
+            vm.getSMSTemplate = function () {
+                vm.smsTemplate = [];
+                $scope.$socketPromise('getMessageTemplatesForPlatform', {
+                    platform: vm.selectedPlatform.id,
+                    format: 'smstpl'
+                }).then(function (data) {
+                    vm.smsTemplate = data.data;
+                    console.log("vm.smsTemplate", vm.smsTemplate);
+                }).done();
+            };
+
+            vm.changePartnerSMSTemplate = function () {
+                vm.smsPartner.message = vm.smstpl ? vm.smstpl.content : '';
             };
 
             vm.callNewPlayerBtn = function (phoneNumber, data) {
@@ -3995,15 +4010,15 @@ define(['js/app'], function (myApp) {
             vm.initMessageModal = function () {
                 $('#sendMessageToPlayerTab').addClass('active');
                 $('#messageLogTab').removeClass('active');
-                $scope.safeApply();
                 vm.messageModalTab = "sendMessageToPlayerPanel";
+                vm.messageForPlayer = {};
             };
 
             vm.initPartnerMessageModal = function () {
                 $('#sendMessageToPartnerTab').addClass('active');
                 $('#messageLogPartnerTab').removeClass('active');
-                $scope.safeApply();
                 vm.messageModalTab = "sendMessageToPartnerPanel";
+                vm.messageForPartner = {};
             };
 
             vm.initSMSModal = function () {
@@ -6017,7 +6032,6 @@ define(['js/app'], function (myApp) {
                     vm.commonSortChangeHandler(a, 'rewardTaskLog', vm.getRewardTaskLogData);
                 });
                 // $('#rewardTaskLogTbl').resize();
-                // $scope.safeApply();
             }
 
             //////////////////////////// reward task log end
@@ -7157,7 +7171,6 @@ define(['js/app'], function (myApp) {
                     vm.playerFeedbackQuery.lastFeedbackTime2.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 });
                 vm.playerLastLoginRange = '';
-                // $scope.safeApply();
             };
 
             vm.setLastAccessTimeRange = function () {
@@ -8954,7 +8967,7 @@ define(['js/app'], function (myApp) {
 
                 setTimeout(() => {
                     $('#playerDataTable').resize();
-                }, 300);
+                }, 0);
             };
 
             utilService.actionAfterLoaded('#resetPartnerQuery', function () {
@@ -9683,7 +9696,6 @@ define(['js/app'], function (myApp) {
                                 vm.partnerStatusHistory = null;
                                 var data = JSON.parse(this.dataset.row);
                                 vm.partnerStatusPopover = data;
-                                $scope.safeApply();
                                 $('.partnerStatusConfirmation').hide();
                                 return $compile($('#partnerStatusPopover').html())($scope);
                             },
@@ -9693,7 +9705,6 @@ define(['js/app'], function (myApp) {
                                 var rowData = JSON.parse(this.dataset.row);
                                 var status = rowData.status;
 
-                                $scope.safeApply();
                                 $("button.partnerStatusHistory").on('click', function () {
                                     Q.all(vm.getPartnerStatusChangeLog(vm.partnerStatusPopover))
                                         .then(function (data) {
@@ -9736,8 +9747,6 @@ define(['js/app'], function (myApp) {
                                     rowData = JSON.parse(this.dataset.row);
                                     status = this.dataset.status;
                                     console.log('this:partnerStatusChange:onClick', rowData, status);
-                                    $scope.safeApply();
-
                                     console.log($('.partnerStatusConfirmation'));
                                     $('.partnerStatusConfirmation').show();
                                 });
@@ -9764,7 +9773,6 @@ define(['js/app'], function (myApp) {
                                 console.log('data', data);
                                 //hideReferral('valid', data, this);
                                 vm.partnerChildren = data.children;
-                                $scope.safeApply();
                             },
                             content: function () {
                                 console.log('validReferral');
@@ -9805,7 +9813,6 @@ define(['js/app'], function (myApp) {
                             content: function () {
                                 var data = JSON.parse(this.dataset.row);
                                 vm.telphonePartner = data;
-                                $scope.safeApply();
                                 return $('#telPopover').html();
                             },
                             callback: function () {
@@ -9821,7 +9828,6 @@ define(['js/app'], function (myApp) {
                                     }
                                     vm.sendSMSResult = {};
                                     $(".telPopover").popover('hide');
-                                    $scope.safeApply();
                                     $('#smsPartnerModal').modal('show');
 
                                 });
@@ -9837,13 +9843,11 @@ define(['js/app'], function (myApp) {
                                     socketService.$socket($scope.AppSocket, 'getPartnerPhoneNumber', {partnerObjId: vm.telphonePartner._id}, function (data) {
                                         $scope.phoneCall.phone = data.data;
                                         $scope.phoneCall.loadingNumber = false;
-                                        $scope.safeApply();
                                         $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
                                     }, function (err) {
                                         $scope.phoneCall.loadingNumber = false;
                                         $scope.phoneCall.err = err.error.message;
                                         alert($scope.phoneCall.err);
-                                        $scope.safeApply();
                                     }, true);
 
                                 });
@@ -9856,7 +9860,6 @@ define(['js/app'], function (myApp) {
                             content: function () {
                                 var data = JSON.parse(this.dataset.row);
                                 vm.partnerLevelPopover = data;
-                                $scope.safeApply();
                                 return $('#partnerLevelPopover').html();
                             },
                             callback: function () {
@@ -9919,7 +9922,6 @@ define(['js/app'], function (myApp) {
                                         $("#partnerPermissionTable .permitOn." + key).addClass('hide');
                                     }
                                 });
-                                $scope.safeApply();
                                 showPopover(that, '#partnerPermissionTable', row);
                             },
                             callback: function () {
@@ -9969,6 +9971,20 @@ define(['js/app'], function (myApp) {
 
                             }
                         });
+                        vm.sendMessageToPartner = function () {
+                            // Currently we are passing the adminId from the client side, but we should really pick it up on the server side.
+                            let sendData = {
+                                //adminId: authService.adminId,
+                                adminName: authService.adminName,
+                                platformId: vm.selectedPlatform.id,
+                                partnerId: vm.telphonePartner._id,
+                                title: vm.messageForPartner.title,
+                                content: vm.messageForPartner.content
+                            };
+                            $scope.$socketPromise('sendPlayerMailFromAdminToPartner', sendData).then(function () {
+                                // We could show a confirmation message, but currently showConfirmMessage() is doing that for us.
+                            }).done();
+                        };
 
                         $('#partnerDataTable').resize();
                     }
@@ -10061,39 +10077,40 @@ define(['js/app'], function (myApp) {
                 })
                 $(nRow).off('click');
                 $(nRow).on('click', function () {
-                    $('#partnerDataTable tbody tr').removeClass('selected');
-                    $(this).toggleClass('selected');
-                    vm.partnerTableClickedRow = vm.partnerTable.row(this);
-                    vm.selectedSinglePartner = aData;
-                    vm.isOneSelectedPartner = function () {
-                        return vm.selectedSinglePartner;
-                    };
-                    vm.maskPartnerInfo(vm.selectedSinglePartner);
-                    vm.selectedPartnerCount = 1;
-                    console.log('partner selected', vm.selectedSinglePartner);
-                    vm.getProvince();
-                    vm.getCity();
-                    vm.getDistrict();
-                    vm.currentSelectedPartnerObjId = vm.selectedSinglePartner._id;
-                    vm.editPartner = {
-                        partnerName: vm.selectedSinglePartner.partnerName,
-                        partnerId: vm.selectedSinglePartner.partnerId,
-                        registrationTime: vm.selectedSinglePartner.registrationTime,
-                        email: vm.selectedSinglePartner.email,
-                        realName: vm.selectedSinglePartner.realName,
-                        platform: vm.selectedSinglePartner.platform,
-                        phoneNumber: vm.selectedSinglePartner.phoneNumber,
-                        gender: vm.selectedSinglePartner.gender,
-                        DOB: vm.selectedSinglePartner.DOB,
-                        ownDomain: vm.selectedSinglePartner.ownDomain,
-                        bankAccount: vm.selectedSinglePartner.bankAccount,
-                        bankAccountCity: vm.selectedSinglePartner.bankAccountCity,
-                        bankAccountDistrict: vm.selectedSinglePartner.bankAccountDistrict,
-                        bankAccountProvince: vm.selectedSinglePartner.bankAccountProvince,
-                        commissionType: vm.selectedSinglePartner.commissionType,
-                        player: vm.selectedSinglePartner.player,
-                    };
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {
+                        $('#partnerDataTable tbody tr').removeClass('selected');
+                        $(this).toggleClass('selected');
+                        vm.partnerTableClickedRow = vm.partnerTable.row(this);
+                        vm.selectedSinglePartner = aData;
+                        vm.isOneSelectedPartner = function () {
+                            return vm.selectedSinglePartner;
+                        };
+                        vm.maskPartnerInfo(vm.selectedSinglePartner);
+                        vm.selectedPartnerCount = 1;
+                        console.log('partner selected', vm.selectedSinglePartner);
+                        vm.getProvince();
+                        vm.getCity();
+                        vm.getDistrict();
+                        vm.currentSelectedPartnerObjId = vm.selectedSinglePartner._id;
+                        vm.editPartner = {
+                            partnerName: vm.selectedSinglePartner.partnerName,
+                            partnerId: vm.selectedSinglePartner.partnerId,
+                            registrationTime: vm.selectedSinglePartner.registrationTime,
+                            email: vm.selectedSinglePartner.email,
+                            realName: vm.selectedSinglePartner.realName,
+                            platform: vm.selectedSinglePartner.platform,
+                            phoneNumber: vm.selectedSinglePartner.phoneNumber,
+                            gender: vm.selectedSinglePartner.gender,
+                            DOB: vm.selectedSinglePartner.DOB,
+                            ownDomain: vm.selectedSinglePartner.ownDomain,
+                            bankAccount: vm.selectedSinglePartner.bankAccount,
+                            bankAccountCity: vm.selectedSinglePartner.bankAccountCity,
+                            bankAccountDistrict: vm.selectedSinglePartner.bankAccountDistrict,
+                            bankAccountProvince: vm.selectedSinglePartner.bankAccountProvince,
+                            commissionType: vm.selectedSinglePartner.commissionType,
+                            player: vm.selectedSinglePartner.player,
+                        };
+                    });
                 });
             };
             vm.maskPartnerInfo = function (data) {
@@ -11446,14 +11463,13 @@ define(['js/app'], function (myApp) {
                     vm.commonSortChangeHandler(a, 'totalReferralPlayer', vm.getPagePartnerReferralPlayers);
                 });
                 $("#totalReferralPlayersTable").resize();
-                $scope.safeApply();
+
             }
             vm.getPartnerReferralPlayers = function (src, callback) {
                 console.log('src', {partnerObjId: src._id});
                 socketService.$socket($scope.AppSocket, 'getPartnerReferralPlayers', {partnerObjId: src._id}, function (data) {
                     console.log('referral', data);
                     vm.referralPartner = data.data;
-                    $scope.safeApply();
                     if (callback) {
                         callback();
                     }
@@ -11662,7 +11678,6 @@ define(['js/app'], function (myApp) {
                             vm.platformAlipayGroupListCheck[v._id] = v.displayName ? v.displayName : true;
                         })
                     })
-                    // $scope.safeApply();
                 })
             }
 
@@ -12691,9 +12706,6 @@ define(['js/app'], function (myApp) {
                             }
                         });
                     })
-
-
-                    // $scope.safeApply();
                 });
             }
 
@@ -18024,7 +18036,6 @@ define(['js/app'], function (myApp) {
                         vm.tempNodeDepartmentID = newValue.departmentData.id;
                         vm.tempNodeRoleName = newValue.roleData.name;
                         vm.tempNodeRoleID = newValue.roleData.id;
-                        $scope.safeApply();
                     }
                 });
 

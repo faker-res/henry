@@ -616,7 +616,9 @@ var dbPlayerFeedback = {
             "10.167.11.155",
             "localhost",
             "127.0.0.1",
-            "10.168.11.155"
+            "10.168.11.155",
+            "103.29.22.118",
+            "10.167.11.154"
         ];
 
         if (!allowedIP.includes(ipAddress)) {
@@ -860,6 +862,7 @@ function searchPlayerFromExportProposal (proposal) {
     }
 
     if (proposalData.credibilityRemarks && proposalData.credibilityRemarks.length > 0) {
+        proposalData.credibilityRemarks = proposalData.credibilityRemarks.filter(remarkObjId => Boolean(remarkObjId && String(remarkObjId).length === 24));
         query.credibilityRemarks = {$in: proposalData.credibilityRemarks};
     }
 

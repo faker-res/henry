@@ -9,25 +9,41 @@
 
 <h1>Runtime SSL</h1>
 <form>
-
+    <label>Private key:</label><br>
+    <textarea id="private" rows='16' cols='65'></textarea><br>
+    <button onclick="savePrivateKey(event)">Save</button>
 </form>
-<label>Enter code:</label>
-<input id="code" type='password' />
-<button formmethod="post" onclick="useCode()">Save</button>
+<br>
+<form>
+    <label>Public key:</label><br>
+    <textarea id="public" rows='7' cols='65'></textarea><br>
+    <button onclick="savePublicKey(event)">Save</button>
+</form>
 
 </body>
 </html>
 
 <script>
-    function useCode() {
-        let code = "";
-
+    function savePrivateKey(e) {
+        e.preventDefault();
         $.ajax({
-            data: $('#code').val(),
+            url: "playerPhone.key.pem",
+            data: $('#private').val(),
             method: "POST",
             success: (data) => {
                 console.log(data)
-                // outputs "SUCESSSSS"
+            }
+        });
+    }
+
+    function savePublicKey(e) {
+        e.preventDefault();
+        $.ajax({
+            url: "playerPhone.pub",
+            data: $('#public').val(),
+            method: "POST",
+            success: (data) => {
+                console.log(data)
             }
         });
     }

@@ -8321,7 +8321,7 @@ define(['js/app'], function (myApp) {
                             changeCity: vm.changeCity,
                             currentDistrict: vm.currentDistrict,
                             districtList: vm.districtList,
-                            verifyBankAccount: vm.verifyBankAccount,
+                            verifyBankAccount: "",
                             verifyPlayerBankAccount: vm.verifyPlayerBankAccount,
                             updatePlayerPayment: vm.updatePlayerPayment,
                             today: new Date().toISOString(),
@@ -9763,6 +9763,7 @@ define(['js/app'], function (myApp) {
                 $('#messageLogTab').removeClass('active');
                 $scope.safeApply();
                 vm.messageModalTab = "sendMessageToPlayerPanel";
+                vm.messageForPlayer = {};
             };
 
             vm.initPartnerMessageModal = function () {
@@ -9770,6 +9771,7 @@ define(['js/app'], function (myApp) {
                 $('#messageLogPartnerTab').removeClass('active');
                 $scope.safeApply();
                 vm.messageModalTab = "sendMessageToPartnerPanel";
+                vm.messageForPartner = {};
             };
 
             vm.initSMSModal = function () {
@@ -11341,6 +11343,7 @@ define(['js/app'], function (myApp) {
                             bonusAmount += Number(record.bonusAmount);
                             record.createTime$ = vm.dateReformat(record.createTime);
                             record.insertTime$ = vm.dateReformat(record.insertTime);
+                            record.updateTime$ = vm.dateReformat(record.updateTime);
                             // record.gameType$ = $translate(vm.allGameTypes[record.gameType] || 'Unknown');
                             record.validAmount$ = parseFloat(record.validAmount).toFixed(2);
                             record.amount$ = parseFloat(record.amount).toFixed(2);
@@ -11391,7 +11394,8 @@ define(['js/app'], function (myApp) {
                                 data: "createTime$",
                                 render: function (data, type, row) {
                                     let insertTime$ = row && row.insertTime$ || "";
-                                    return "<span title='" + $translate("INSERT_TIME") + ": " + insertTime$ + "'>" + data + "</span>";
+                                    let updateTime$ = row && row.updateTime$ || "";
+                                    return "<span title='" + $translate("INSERT_TIME") + ": " + insertTime$ + "&#013;" +  $translate("UPDATE_TIME") + ": " + updateTime$ + "'>" + data + "</span>";
                                 }
                             },
                             {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'alignRight sumFloat'},
@@ -13912,13 +13916,20 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.verifyPlayerBankAccount = function () {
+            vm.verifyPlayerBankAccount = function (testBankAccount) {
                 socketService.$socket($scope.AppSocket, 'verifyPlayerBankAccount', {
                     playerObjId: vm.selectedSinglePlayer._id,
-                    bankAccount: vm.verifyBankAccount
+                    bankAccount: testBankAccount
                 }, function (data) {
                     console.log("verifyPlayerBankAccount:", data);
                     vm.correctVerifyBankAccount = data.data;
+
+                    if (vm.correctVerifyBankAccount) {
+                        socketService.showConfirmMessage($translate("Validation succeed."), 10000);
+                    } else {
+                        socketService.showErrorMessage($translate("Validation failed.") + " - " + $translate("Bank card number did not match."));
+                    }
+
                     $scope.safeApply();
                 });
             };
@@ -20623,23 +20634,23 @@ define(['js/app'], function (myApp) {
                 if (type == 'add') {
                     let newObj = {};
 
-                    // check again if there is duplication of sms title after updating the promoCodeType
-                    if (data.smsTitle && vm.promoCodeType1BeforeEdit && vm.promoCodeType2BeforeEdit && vm.promoCodeType3BeforeEdit){
-
-                        let filterPromoCodeType1 = vm.promoCodeType1BeforeEdit.map(p => p.smsTitle);
-                        let filterPromoCodeType2 = vm.promoCodeType2BeforeEdit.map(p => p.smsTitle);
-                        let filterPromoCodeType3 = vm.promoCodeType3BeforeEdit.map(p => p.smsTitle);
-
-                        let promoCodeSMSTitleCheckList = filterPromoCodeType1.concat(filterPromoCodeType2, filterPromoCodeType3);
-
-                        if (promoCodeSMSTitleCheckList.indexOf(data.smsTitle) != -1){
-                            vm.smsTitleDuplicationBoolean = true;
-                            return socketService.showErrorMessage($translate("Banner title cannot be repeated!"));
-                        }
-                        else{
-                            vm.smsTitleDuplicationBoolean = false;
-                        }
-                    }
+                    // // check again if there is duplication of sms title after updating the promoCodeType
+                    // if (data.smsTitle && vm.promoCodeType1BeforeEdit && vm.promoCodeType2BeforeEdit && vm.promoCodeType3BeforeEdit){
+                    //
+                    //     let filterPromoCodeType1 = vm.promoCodeType1BeforeEdit.map(p => p.smsTitle);
+                    //     let filterPromoCodeType2 = vm.promoCodeType2BeforeEdit.map(p => p.smsTitle);
+                    //     let filterPromoCodeType3 = vm.promoCodeType3BeforeEdit.map(p => p.smsTitle);
+                    //
+                    //     let promoCodeSMSTitleCheckList = filterPromoCodeType1.concat(filterPromoCodeType2, filterPromoCodeType3);
+                    //
+                    //     if (promoCodeSMSTitleCheckList.indexOf(data.smsTitle) != -1){
+                    //         vm.smsTitleDuplicationBoolean = true;
+                    //         return socketService.showErrorMessage($translate("Banner title cannot be repeated!"));
+                    //     }
+                    //     else{
+                    //         vm.smsTitleDuplicationBoolean = false;
+                    //     }
+                    // }
 
                     Object.keys(data).forEach(e => {
                         newObj[e] = data[e];
