@@ -11341,6 +11341,7 @@ define(['js/app'], function (myApp) {
                             bonusAmount += Number(record.bonusAmount);
                             record.createTime$ = vm.dateReformat(record.createTime);
                             record.insertTime$ = vm.dateReformat(record.insertTime);
+                            record.updateTime$ = vm.dateReformat(record.updateTime);
                             // record.gameType$ = $translate(vm.allGameTypes[record.gameType] || 'Unknown');
                             record.validAmount$ = parseFloat(record.validAmount).toFixed(2);
                             record.amount$ = parseFloat(record.amount).toFixed(2);
@@ -11391,7 +11392,8 @@ define(['js/app'], function (myApp) {
                                 data: "createTime$",
                                 render: function (data, type, row) {
                                     let insertTime$ = row && row.insertTime$ || "";
-                                    return "<span title='" + $translate("INSERT_TIME") + ": " + insertTime$ + "'>" + data + "</span>";
+                                    let updateTime$ = row && row.updateTime$ || "";
+                                    return "<span title='" + $translate("INSERT_TIME") + ": " + insertTime$ + "&#013;" +  $translate("UPDATE_TIME") + ": " + updateTime$ + "'>" + data + "</span>";
                                 }
                             },
                             {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'alignRight sumFloat'},
@@ -30719,6 +30721,7 @@ define(['js/app'], function (myApp) {
                         platformObjId: vm.selectedPlatform.id,
                         playerName: player.playerName
                     }).then(data => {
+                        console.log("playerCreditClearOut ret", data);
                         switch(initialStatus) {
                             case 'PENDINGTOPROCESS':
                                 vm.bulkCreditClearOut.pending -= 1;
@@ -30744,6 +30747,7 @@ define(['js/app'], function (myApp) {
                         });
                         return vm.refreshPlayerCreditInCreditClearOutList(index);
                     }, err => {
+                        console.log("playerCreditClearOut ret", err);
                         if(initialStatus == 'PENDINGTOPROCESS') {
                             vm.bulkCreditClearOut.pending -= 1;
                             vm.bulkCreditClearOut.failure += 1;

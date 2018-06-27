@@ -862,7 +862,7 @@ let dbRewardPoints = {
                         if (rewardPointsProgressData.length > 0) {
                             rewardPointsProgressData.filter(item => {
                                 for (let i = 0; i < returnData.length; i++) {
-                                    if (returnData[i]._id && item.rewardPointsEventObjId && item.rewardPointsEventObjId.toString() === returnData[i]._id.toString()
+                                    if (returnData[i]._id && item && item.rewardPointsEventObjId && item.rewardPointsEventObjId.toString() === returnData[i]._id.toString()
                                         && item.lastUpdateTime >= returnData[i].startTime && item.lastUpdateTime <= returnData[i].endTime) {
                                         delete item.lastUpdateTime;
                                         delete item.rewardPointsEventObjId;

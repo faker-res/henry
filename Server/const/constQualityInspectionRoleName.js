@@ -5,7 +5,6 @@
 constQualityInspectionRoleName = {
     1: '客服',
     2: '访客',
-    3: '系统信息'
-
+    3: '文件',
 };
 module.exports = constQualityInspectionRoleName;

@@ -4535,7 +4535,7 @@ let dbPlayerInfo = {
                         lastAccessTime: new Date().getTime(),
                         $inc: {loginTimes: 1}
                     };
-                    // var geoInfo = {};
+                    var geoInfo = {};
                     // if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
                     //     geoInfo = {
                     //         // country: geo ? geo.country : null,
@@ -4544,21 +4544,20 @@ let dbPlayerInfo = {
                     //         latitude: geo && geo.ll ? geo.ll[0] : null
                     //     }
                     // }
-
-                    // if(playerData.lastLoginIp && playerData.lastLoginIp != "undefined"){
-                    //     var ipData = dbUtility.getIpLocationByIPIPDotNet(playerData.lastLoginIp);
-                    //     if(ipData){
-                    //         geoInfo.ipArea = ipData;
-                    //         geoInfo.country = ipData.country || null;
-                    //         geoInfo.city = ipData.city || null;
-                    //         geoInfo.province = ipData.province || null;
-                    //     }else{
-                    //         geoInfo.ipArea = {'province':'', 'city':''};
-                    //         geoInfo.country = "";
-                    //         geoInfo.city = "";
-                    //         geoInfo.province = "";
-                    //     }
-                    // }
+                    if(playerData.lastLoginIp && playerData.lastLoginIp != "undefined"){
+                        var ipData = dbUtility.getIpLocationByIPIPDotNet(playerData.lastLoginIp);
+                        if(ipData){
+                            geoInfo.ipArea = ipData;
+                            geoInfo.country = ipData.country || null;
+                            geoInfo.city = ipData.city || null;
+                            geoInfo.province = ipData.province || null;
+                        }else{
+                            geoInfo.ipArea = {'province':'', 'city':''};
+                            geoInfo.country = "";
+                            geoInfo.city = "";
+                            geoInfo.province = "";
+                        }
+                    }
 
                     //Object.assign(updateData, geoInfo);
                     if (playerData.lastLoginIp && !playerObj.loginIps.includes(playerData.lastLoginIp)) {
@@ -4587,10 +4586,11 @@ let dbPlayerInfo = {
                             if (platformObj.usePointSystem) {
                                 dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
                             }
+
                             if(recordData.userAgent){
                                 recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
                             }
-                            //Object.assign(recordData, geoInfo);
+                            Object.assign(recordData, geoInfo);
 
                             var record = new dbconfig.collection_playerLoginRecord(recordData);
                             return record.save().then(
@@ -17148,8 +17148,8 @@ let dbPlayerInfo = {
                 data: {
                     playerObjId: player._id,
                     playerName: player.name,
-                    updateAmount: -playerData.validCredit,
-                    curAmount: playerData.validCredit,
+                    updateAmount: -Number(parseFloat(playerData.validCredit).toFixed(2)),
+                    curAmount: Number(parseFloat(playerData.validCredit).toFixed(2)),
                     realName: playerData.realName,
                     remark: '',
                     adminName: adminName

@@ -1401,15 +1401,21 @@ let dbPartner = {
                         $inc: {loginTimes: 1},
                         lastAccessTime: new Date().getTime(),
                     };
-                    // var geoInfo = {};
-                    // if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
-                    //     geoInfo = {
-                    //         country: geo ? geo.country : null,
-                    //         city: geo ? geo.city : null,
-                    //         longitude: geo && geo.ll ? geo.ll[1] : null,
-                    //         latitude: geo && geo.ll ? geo.ll[0] : null
-                    //     }
-                    // }
+                    var geoInfo = {};
+                    if(partnerData.lastLoginIp && partnerData.lastLoginIp != "undefined"){
+                        var ipData = dbUtil.getIpLocationByIPIPDotNet(partnerData.lastLoginIp);
+                        if(ipData){
+                            geoInfo.ipArea = ipData;
+                            geoInfo.country = ipData.country || null;
+                            geoInfo.city = ipData.city || null;
+                            geoInfo.province = ipData.province || null;
+                        }else{
+                            geoInfo.ipArea = {'province':'', 'city':''};
+                            geoInfo.country = "";
+                            geoInfo.city = "";
+                            geoInfo.province = "";
+                        }
+                    }
                     //Object.assign(updateData, geoInfo);
                     return dbconfig.collection_partner.findOneAndUpdate({
                         _id: partnerObj._id,
@@ -1430,7 +1436,7 @@ let dbPartner = {
                                 clientDomain: partnerData.clientDomain ? partnerData.clientDomain : "",
                                 userAgent: uaObj
                             };
-                            //Object.assign(recordData, geoInfo);
+                            Object.assign(recordData, geoInfo);
                             var record = new dbconfig.collection_partnerLoginRecord(recordData);
                             return record.save().then(
                                 () => {
