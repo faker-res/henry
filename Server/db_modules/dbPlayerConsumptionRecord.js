@@ -2301,12 +2301,21 @@ function updateRTG (oldData, newData) {
 
                     dbconfig.collection_platform.findOne({platformId: oldData.platformId}).then(
                         platform => {
+                            // debugging platform is null
+                            if (!platform) {
+                                console.log('PLATFORM IS NULL! FIX THIS!!');
+                                console.log('oldData**', oldData);
+                                console.log('oldData.platformId**', oldData.platformId);
+                                platform = {};
+                            }
+
                             // Check whether RTG status changed
                             let statusUpdObj = {
                                 unlockTime: new Date()
                             };
 
                             // Check whether player has lost all credit
+                            platform.autoApproveLostThreshold = platform.autoApproveLostThreshold || 0;
                             if (updatedRTG.currentAmt <= platform.autoApproveLostThreshold) {
                                 statusUpdObj.status = constRewardTaskStatus.NO_CREDIT;
                             }
