@@ -284,13 +284,6 @@ define(['js/app'], function (myApp) {
                 WEEKLY: 2
             };
 
-            vm.newPlayerListStatus = {
-                SUCCESS: "SUCCESS",
-                ATTEMPT: "ATTEMPT",
-                MANUAL: "MANUAL",
-                NOVERIFY: "NoVerify"
-            };
-
             vm.soundChoice = {
                 "tone1": "1.wav",
                 "tone2": "2.wav",
@@ -304,25 +297,6 @@ define(['js/app'], function (myApp) {
                 // "tone10": "10.wav",
                 // "tone11": "11.wav",
                 // "tone12": "12.wav"
-            };
-
-            vm.allSMSPurpose = {
-                UNKNOWN: 'unknown',
-                REGISTRATION: 'registration',
-                OLD_PHONE_NUMBER: 'oldPhoneNumber',
-                NEW_PHONE_NUMBER: 'newPhoneNumber',
-                UPDATE_PASSWORD: 'updatePassword',
-                UPDATE_BANK_INFO_FIRST: 'updateBankInfoFirst',
-                UPDATE_BANK_INFO: 'updateBankInfo',
-                FREE_TRIAL_REWARD: 'freeTrialReward',
-                DEMO_PLAYER: 'demoPlayer',
-                PARTNER_REGISTRATION: 'Partner_registration',
-                PARTNER_OLD_PHONE_NUMBER: 'Partner_oldPhoneNumber',
-                PARTNER_NEW_PHONE_NUMBER: 'Partner_newPhoneNumber',
-                PARTNER_UPDATE_PASSWORD: 'Partner_updatePassword',
-                PARTNER_UPDATE_BANK_INFO_FIRST: 'Partner_updateBankInfoFirst',
-                PARTNER_UPDATE_BANK_INFO: 'Partner_updateBankInfo',
-                // RESET_PASSWORD: 'resetPassword'
             };
 
             vm.constProposalStatus = {
