@@ -13883,13 +13883,20 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.verifyPlayerBankAccount = function () {
+        vm.verifyPlayerBankAccount = function (testBankAccount) {
             socketService.$socket($scope.AppSocket, 'verifyPlayerBankAccount', {
                 playerObjId: vm.selectedSinglePlayer._id,
-                bankAccount: vm.verifyBankAccount
+                bankAccount: testBankAccount
             }, function (data) {
                 console.log("verifyPlayerBankAccount:", data);
                 vm.correctVerifyBankAccount = data.data;
+
+                if (vm.correctVerifyBankAccount) {
+                    socketService.showConfirmMessage($translate("Validation succeed."), 10000);
+                } else {
+                    socketService.showErrorMessage($translate("Validation failed.") + " - " + $translate("Bank card number did not match."));
+                }
+
                 $scope.safeApply();
             });
         };
