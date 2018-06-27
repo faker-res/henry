@@ -2682,7 +2682,7 @@ var proposal = {
      *
      */
     getProposalsByAdvancedQuery: function (reqData, index, count, sortObj) {
-        count = Math.min(count, constSystemParam.REPORT_MAX_RECORD_NUM)
+        //count = Math.min(count, constSystemParam.REPORT_MAX_RECORD_NUM)
         sortObj = sortObj || {};
         var dataDeferred = Q.defer();
         var deferred = Q.defer();

@@ -2253,7 +2253,10 @@ function updateRTG (oldData, newData) {
 
         return dbRewardTaskGroup.getPlayerRewardTaskGroup(oldData.platformId, oldData.providerId, oldData.playerId, oldData.createTime).then(
             RTG => {
+                // todo :: debug logs, remove later
+                console.log("debug #204CF5 find RTG", oldData.platformId, oldData.providerId, oldData.playerId, oldData.createTime);
                 if (RTG) {
+                    console.log("debug #204CF6 found RTG", oldData.playerId, RTG._id, incBonusAmt, incValidAmt);
                     // Find available RTG to update
                     return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                         _id: RTG._id
@@ -2269,37 +2272,39 @@ function updateRTG (oldData, newData) {
             }
         ).then(
             updatedRTG => {
-                if (updatedRTG) {
-                    let summAdjustXIMAAmt = 0, summAdjustNonXIMAAmt = 0;
+                // Update consumption summary
+                let summAdjustXIMAAmt = 0, summAdjustNonXIMAAmt = 0;
 
-                    if (updatedRTG.forbidXIMAAmt > 0) {
-                        let offsetDiff = updatedRTG.curConsumption - updatedRTG.forbidXIMAAmt;
-                        let curConsumptionBeforeUpdate = updatedRTG.curConsumption - incValidAmt;
+                if (updatedRTG && updatedRTG.forbidXIMAAmt > 0) {
+                    let offsetDiff = updatedRTG.curConsumption - updatedRTG.forbidXIMAAmt;
+                    let curConsumptionBeforeUpdate = updatedRTG.curConsumption - incValidAmt;
 
-                        if (offsetDiff <= 0 && curConsumptionBeforeUpdate <= updatedRTG.forbidXIMAAmt) {
-                            // Scenario 1: curConsumption is less than forbidXIMAAmt before and after update
-                            summAdjustNonXIMAAmt = incValidAmt;
-                        } else if (offsetDiff <= 0 && curConsumptionBeforeUpdate > updatedRTG.forbidXIMAAmt) {
-                            // Scenario 2: curConsumption is more than forbidXIMAAmt before update, but is less than after update
-                            summAdjustXIMAAmt = updatedRTG.forbidXIMAAmt - curConsumptionBeforeUpdate;
-                            summAdjustNonXIMAAmt = incValidAmt - summAdjustNonXIMAAmt;
-                        } else if (offsetDiff > 0 && curConsumptionBeforeUpdate < updatedRTG.forbidXIMAAmt) {
-                            // Scenario 3: curConsumption is less than forbidXIMAAmt before update, but is more than after update
-                            summAdjustNonXIMAAmt = updatedRTG.forbidXIMAAmt - curConsumptionBeforeUpdate;
-                            summAdjustXIMAAmt = incValidAmt - summAdjustNonXIMAAmt;
-                        } else {
-                            // Scenario 4: curConsumption is more than forbidXIMAAmt before and after update
-                            summAdjustXIMAAmt = incValidAmt;
-                        }
+                    if (offsetDiff <= 0 && curConsumptionBeforeUpdate <= updatedRTG.forbidXIMAAmt) {
+                        // Scenario 1: curConsumption is less than forbidXIMAAmt before and after update
+                        summAdjustNonXIMAAmt = incValidAmt;
+                    } else if (offsetDiff <= 0 && curConsumptionBeforeUpdate > updatedRTG.forbidXIMAAmt) {
+                        // Scenario 2: curConsumption is more than forbidXIMAAmt before update, but is less than after update
+                        summAdjustXIMAAmt = updatedRTG.forbidXIMAAmt - curConsumptionBeforeUpdate;
+                        summAdjustNonXIMAAmt = incValidAmt - summAdjustNonXIMAAmt;
+                    } else if (offsetDiff > 0 && curConsumptionBeforeUpdate < updatedRTG.forbidXIMAAmt) {
+                        // Scenario 3: curConsumption is less than forbidXIMAAmt before update, but is more than after update
+                        summAdjustNonXIMAAmt = updatedRTG.forbidXIMAAmt - curConsumptionBeforeUpdate;
+                        summAdjustXIMAAmt = incValidAmt - summAdjustNonXIMAAmt;
                     } else {
-                        // All credit reflect on summary valid credit
+                        // Scenario 4: curConsumption is more than forbidXIMAAmt before and after update
                         summAdjustXIMAAmt = incValidAmt;
                     }
+                } else {
+                    // All credit reflect on summary valid credit
+                    summAdjustXIMAAmt = incValidAmt;
+                }
 
-                    // Update consumption summary upon updating consumption record
-                    updateConsumptionSumamry(oldData, summAdjustXIMAAmt, summAdjustNonXIMAAmt).catch(errorUtils.reportError);
+                // Update consumption summary upon updating consumption record
+                updateConsumptionSumamry(oldData, summAdjustXIMAAmt, summAdjustNonXIMAAmt).catch(errorUtils.reportError);
 
-                    dbconfig.collection_platform.findOne({platformId: oldData.platformId}).then(
+                // Unlock reward task group if necessary
+                if (updatedRTG) {
+                    dbconfig.collection_platform.findOne({_id: oldData.platformId}).then(
                         platform => {
                             // debugging platform is null
                             if (!platform) {
