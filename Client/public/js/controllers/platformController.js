@@ -838,7 +838,7 @@ define(['js/app'], function (myApp) {
                 vm.curPlatformText = node.text;
                 vm.isNotAllowEdit = true;
                 vm.isCreateNewPlatform = false;
-                $cookies.put("walaoplatform", node.text);
+                $cookies.put("platform", node.text);
 
                 vm.showPlatform = commonService.convertDepartment(vm.selectedPlatform.data);
                 beforeUpdatePlatform();
