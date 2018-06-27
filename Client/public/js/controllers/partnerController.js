@@ -2241,6 +2241,18 @@ define(['js/app'], function (myApp) {
                 $('#messagePartnerModal').modal('show');
             };
 
+            vm.getSMSTemplate = function () {
+                vm.smsTemplate = [];
+                $scope.$socketPromise('getMessageTemplatesForPlatform', {
+                    platform: vm.selectedPlatform.id,
+                    format: 'smstpl'
+                }).then(function (data) {
+                    vm.smsTemplate = data.data;
+                    console.log("vm.smsTemplate", vm.smsTemplate);
+                }).done();
+            };
+
+
             vm.callNewPlayerBtn = function (phoneNumber, data) {
 
                 vm.getSMSTemplate();
@@ -4021,7 +4033,6 @@ define(['js/app'], function (myApp) {
             vm.initMessageModal = function () {
                 $('#sendMessageToPlayerTab').addClass('active');
                 $('#messageLogTab').removeClass('active');
-                $scope.safeApply();
                 vm.messageModalTab = "sendMessageToPlayerPanel";
                 vm.messageForPlayer = {};
             };
@@ -4029,7 +4040,6 @@ define(['js/app'], function (myApp) {
             vm.initPartnerMessageModal = function () {
                 $('#sendMessageToPartnerTab').addClass('active');
                 $('#messageLogPartnerTab').removeClass('active');
-                $scope.safeApply();
                 vm.messageModalTab = "sendMessageToPartnerPanel";
                 vm.messageForPartner = {};
             };
@@ -9984,6 +9994,20 @@ define(['js/app'], function (myApp) {
 
                             }
                         });
+                        vm.sendMessageToPartner = function () {
+                            // Currently we are passing the adminId from the client side, but we should really pick it up on the server side.
+                            let sendData = {
+                                //adminId: authService.adminId,
+                                adminName: authService.adminName,
+                                platformId: vm.selectedPlatform.id,
+                                partnerId: vm.telphonePartner._id,
+                                title: vm.messageForPartner.title,
+                                content: vm.messageForPartner.content
+                            };
+                            $scope.$socketPromise('sendPlayerMailFromAdminToPartner', sendData).then(function () {
+                                // We could show a confirmation message, but currently showConfirmMessage() is doing that for us.
+                            }).done();
+                        };
 
                         $('#partnerDataTable').resize();
                     }
