@@ -9763,6 +9763,7 @@ define(['js/app'], function (myApp) {
                 $('#messageLogTab').removeClass('active');
                 $scope.safeApply();
                 vm.messageModalTab = "sendMessageToPlayerPanel";
+                vm.messageForPlayer = {};
             };
 
             vm.initPartnerMessageModal = function () {
@@ -9770,6 +9771,7 @@ define(['js/app'], function (myApp) {
                 $('#messageLogPartnerTab').removeClass('active');
                 $scope.safeApply();
                 vm.messageModalTab = "sendMessageToPartnerPanel";
+                vm.messageForPartner = {};
             };
 
             vm.initSMSModal = function () {

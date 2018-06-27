@@ -1125,12 +1125,13 @@ define(['js/app'], function (myApp) {
 
             $scope.safeApply();
             vm.messageModalTab = "sendMessageToPlayerPanel";
-        }
+            vm.messageForPlayer = {};
+        };
 
         vm.sendMessageToPlayerBtn = function (type, data) {
             vm.telphonePlayer = data;
             $('#messagePlayerModal').modal('show');
-        }
+        };
 
         vm.sendMessageToPlayer = function () {
             // Currently we are passing the adminId from the client side, but we should really pick it up on the server side.
@@ -1160,7 +1161,7 @@ define(['js/app'], function (myApp) {
                 vm.mailLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 vm.searchMailLog();
             });
-        }
+        };
 
         vm.searchMailLog = function () {
             let requestData = {
@@ -1178,7 +1179,7 @@ define(['js/app'], function (myApp) {
                 vm.mailLog.receivedMails = result.data;
                 $scope.safeApply();
             }).catch(console.error);
-        }
+        };
 
         //********************************** end of Message Sending functions **********************************
 
