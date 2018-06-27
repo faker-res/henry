@@ -2256,7 +2256,7 @@ function updateRTG (oldData, newData) {
                 // todo :: debug logs, remove later
                 console.log("debug #204CF5 find RTG", oldData.platformId, oldData.providerId, oldData.playerId, oldData.createTime);
                 if (RTG) {
-                    console.log("debug #204CF6 found RTG", oldData.playerId, RTG._id);
+                    console.log("debug #204CF6 found RTG", oldData.playerId, RTG._id, incBonusAmt, incValidAmt);
                     // Find available RTG to update
                     return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                         _id: RTG._id
