@@ -2299,7 +2299,7 @@ function updateRTG (oldData, newData) {
                     // Update consumption summary upon updating consumption record
                     updateConsumptionSumamry(oldData, summAdjustXIMAAmt, summAdjustNonXIMAAmt).catch(errorUtils.reportError);
 
-                    dbconfig.collection_platform.findOne({platformId: oldData.platformId}).then(
+                    dbconfig.collection_platform.findOne({_id: oldData.platformId}).then(
                         platform => {
                             // debugging platform is null
                             if (!platform) {
