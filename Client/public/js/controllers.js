@@ -371,7 +371,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 });
             }
         }
-        $scope.safeApply();
 
         let searchText = ($scope.platformSearchText || '').toLowerCase();
         let platformsToDisplay = $scope.platformList.filter(platformData => platformData.data.name.toLowerCase().includes(searchText));
