@@ -402,6 +402,6 @@ var platformSchema = new Schema({
 });
 
 //add platform id before save
-platformSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('platformId'));
+//platformSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('platformId'));
 
 module.exports = platformSchema;
