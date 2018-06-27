@@ -365,7 +365,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         }
         for (let i = 0; i < data.length; i++) {
             $scope.platformList.push($scope.createPlatformNode(data[i]));
-            if (data[i].name && data[i].platformId && $scope.curPlatformText && $scope.curPlatformText == data[i].name) {
+            if (data[i].name && data[i].platformId && $scope.curPlatformText && $scope.curPlatformText == data[i].name && $scope.curPlatformText !="XBet") {
                 $scope.$evalAsync(() => {
                     $scope.curPlatformText = data[i].platformId + ". " + $scope.curPlatformText;
                 });
