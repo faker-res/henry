@@ -617,7 +617,8 @@ var dbPlayerFeedback = {
             "localhost",
             "127.0.0.1",
             "10.168.11.155",
-            "103.29.22.118"
+            "103.29.22.118",
+            "10.167.11.154"
         ];
 
         if (!allowedIP.includes(ipAddress)) {
