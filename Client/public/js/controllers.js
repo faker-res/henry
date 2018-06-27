@@ -399,16 +399,18 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 url: v.icon,
                 width: 30,
                 height: 30,
-            }
+            },
+            platformName: v.name
         };
         return obj;
     };
 
     $scope.searchAndSelectPlatform = function (text, option) {
-        var findNodes = $('#platformTreeHeader').treeview('search', [text, {
-            ignoreCase: false,
-            exactMatch: true
-        }]);
+        // var findNodes = $('#platformTreeHeader').treeview('search', [text, {
+        //     ignoreCase: false,
+        //     exactMatch: true
+        // }]);
+        var findNodes = $scope.allPlatformData.filter(e => e.name === text);
         if (findNodes && findNodes.length > 0) {
             $scope.selectPlatformNode(findNodes[0], option);
             $('#platformTreeHeader').treeview('selectNode', [findNodes[0], {silent: true}]);
@@ -418,9 +420,9 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     $scope.selectPlatformNode = function (node, option) {
         $scope.selectedPlatform = node;
         $scope.curPlatformText = node.text;
-        authService.updatePlatform($cookies, node.text);
-        console.log("$scope.selectedPlatform", node.text);
-        $cookies.put("platform", node.text);
+        authService.updatePlatform($cookies, node.platformName);
+        console.log("$scope.selectedPlatform", node.platformName);
+        $cookies.put("platform", node.platformName);
         if (option && !option.loadAll) {
             $scope.safeApply();
             return;
