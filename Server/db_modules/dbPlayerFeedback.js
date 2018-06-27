@@ -861,6 +861,7 @@ function searchPlayerFromExportProposal (proposal) {
     }
 
     if (proposalData.credibilityRemarks && proposalData.credibilityRemarks.length > 0) {
+        proposalData.credibilityRemarks.filter(remarkObjId => Boolean(remarkObjId && String(remarkObjId).length === 24));
         query.credibilityRemarks = {$in: proposalData.credibilityRemarks};
     }
 
