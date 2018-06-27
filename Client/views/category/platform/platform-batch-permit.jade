@@ -33,14 +33,14 @@ style.
                             td {{i+1}}
                             td {{v.playerName}}
                             td
-                                text(ng-show="!v.actionable") {{v.gameProviderTotalCredit}}
-                                text(ng-show="v.actionable") {{v.gameProviderTotalCredit.toFixed(2)}}
+                                text(ng-show="!v.actionable && v.status != 'SUCCESS'") {{v.gameProviderTotalCredit}}
+                                text(ng-show="v.actionable || v.status == 'SUCCESS'") {{v.gameProviderTotalCredit.toFixed(2)}}
                             td
-                                text(ng-show="!v.actionable") {{v.localTotalCredit}}
-                                text(ng-show="v.actionable") {{v.localTotalCredit.toFixed(2)}}
+                                text(ng-show="!v.actionable && v.status != 'SUCCESS'") {{v.localTotalCredit}}
+                                text(ng-show="v.actionable || v.status == 'SUCCESS'") {{v.localTotalCredit.toFixed(2)}}
                             td
-                                text(ng-show="!v.actionable") {{v.totalCredit}}
-                                text(ng-show="v.actionable") {{v.totalCredit.toFixed(2)}}
+                                text(ng-show="!v.actionable && v.status != 'SUCCESS'") {{v.totalCredit}}
+                                text(ng-show="v.actionable || v.status == 'SUCCESS'") {{v.totalCredit.toFixed(2)}}
                             td {{v.status | translate}}
                             td
                                 text(ng-show="v.status != 'SUCCESS'") -

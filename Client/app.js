@@ -12,7 +12,8 @@ var express = require('express'),
     category = require('./routes/category'),
     api = require('./routes/api'),
     http = require('http'),
-    path = require('path');
+    path = require('path'),
+    compression = require('compression');
 
 var app = module.exports = express();
 
@@ -29,6 +30,7 @@ app.set('port', process.env.PORT || 3000);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
 app.use(morgan('dev'));
+app.use(compression());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use(methodOverride());
