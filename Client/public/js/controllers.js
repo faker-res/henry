@@ -350,8 +350,26 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     $scope.buildPlatformList = data => {
         $scope.platformList = [];
+        function sortPlatform(a, b) {
+            if (a.hasOwnProperty("platformId") && b.hasOwnProperty("platformId")) {
+                let dataA = parseInt(a.platformId);
+                let dataB = parseInt(b.platformId);
+                if (!isNaN(dataA) && !isNaN(dataB)) {
+                    return dataA - dataB;
+                }
+            }
+            return 0;
+        }
+        if (data.length) {
+            data = data.sort(sortPlatform);
+        }
         for (let i = 0; i < data.length; i++) {
             $scope.platformList.push($scope.createPlatformNode(data[i]));
+            if (data[i].name && data[i].platformId && $scope.curPlatformText && $scope.curPlatformText == data[i].name) {
+                $scope.$evalAsync(() => {
+                    $scope.curPlatformText = data[i].platformId + ". " + $scope.curPlatformText;
+                });
+            }
         }
 
         let searchText = ($scope.platformSearchText || '').toLowerCase();
@@ -373,7 +391,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     $scope.createPlatformNode = function (v) {
         var obj = {
-            text: v.name,
+            text: v.platformId + ". " + v.name,
             id: v._id,
             selectable: true,
             data: v,

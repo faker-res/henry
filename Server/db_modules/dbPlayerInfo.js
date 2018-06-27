@@ -890,6 +890,10 @@ let dbPlayerInfo = {
             isTestPlayer: data.isTestPlayer,
             partner: data.partner ? data.partner : null
         };
+
+        if(data.userAgent){
+            recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+        }
         var record = new dbconfig.collection_playerLoginRecord(recordData);
         record.save().then().catch(errorUtils.reportError);
     },
@@ -2818,7 +2822,7 @@ let dbPlayerInfo = {
                         }
                     ]
                 }
-                
+
                 var a = dbconfig.collection_playerConsumptionRecord
                     .find(queryObject).sort(sortCol).skip(index).limit(limit)
                     .populate({
@@ -4531,7 +4535,7 @@ let dbPlayerInfo = {
                         lastAccessTime: new Date().getTime(),
                         $inc: {loginTimes: 1}
                     };
-                    // var geoInfo = {};
+                    var geoInfo = {};
                     // if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
                     //     geoInfo = {
                     //         // country: geo ? geo.country : null,
@@ -4540,21 +4544,20 @@ let dbPlayerInfo = {
                     //         latitude: geo && geo.ll ? geo.ll[0] : null
                     //     }
                     // }
-
-                    // if(playerData.lastLoginIp && playerData.lastLoginIp != "undefined"){
-                    //     var ipData = dbUtility.getIpLocationByIPIPDotNet(playerData.lastLoginIp);
-                    //     if(ipData){
-                    //         geoInfo.ipArea = ipData;
-                    //         geoInfo.country = ipData.country || null;
-                    //         geoInfo.city = ipData.city || null;
-                    //         geoInfo.province = ipData.province || null;
-                    //     }else{
-                    //         geoInfo.ipArea = {'province':'', 'city':''};
-                    //         geoInfo.country = "";
-                    //         geoInfo.city = "";
-                    //         geoInfo.province = "";
-                    //     }
-                    // }
+                    if(playerData.lastLoginIp && playerData.lastLoginIp != "undefined"){
+                        var ipData = dbUtility.getIpLocationByIPIPDotNet(playerData.lastLoginIp);
+                        if(ipData){
+                            geoInfo.ipArea = ipData;
+                            geoInfo.country = ipData.country || null;
+                            geoInfo.city = ipData.city || null;
+                            geoInfo.province = ipData.province || null;
+                        }else{
+                            geoInfo.ipArea = {'province':'', 'city':''};
+                            geoInfo.country = "";
+                            geoInfo.city = "";
+                            geoInfo.province = "";
+                        }
+                    }
 
                     //Object.assign(updateData, geoInfo);
                     if (playerData.lastLoginIp && !playerObj.loginIps.includes(playerData.lastLoginIp)) {
@@ -4584,7 +4587,11 @@ let dbPlayerInfo = {
                                 dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
                             }
 
-                            //Object.assign(recordData, geoInfo);
+                            if(recordData.userAgent){
+                                recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+                            }
+                            Object.assign(recordData, geoInfo);
+
                             var record = new dbconfig.collection_playerLoginRecord(recordData);
                             return record.save().then(
                                 function () {
@@ -4871,7 +4878,11 @@ let dbPlayerInfo = {
                                 // isTestPlayer: playerObj.isTestPlayer,
                                 // partner: playerObj.partner ? playerObj.partner : null
                             };
+                            if(recordData.userAgent){
+                                recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+                            }
                             //Object.assign(recordData, geoInfo);
+
                             let record = new dbconfig.collection_playerLoginRecord(recordData);
                             return record.save().then(
                                 function () {
