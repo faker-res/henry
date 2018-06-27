@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var _ = require('underscore');
 var socketioJwt = require('socketio-jwt');
+let compression = require('compression');
 var routes = require('./routes/index');
 var env = require("./config/env").config();
 var WebSocketMessageClient = require("./server_common/WebSocketMessageClient");
@@ -54,6 +55,7 @@ app.use(function (req, res, next) {
     next();
 });
 
+app.use(compression());
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
