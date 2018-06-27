@@ -3794,6 +3794,7 @@
   "TOTAL_TOPUP_FEE" : "需扣除的总存款手续费",
   "TOTAL_WITHDRAWAL_FEE" : "需扣除的总取款手续费",
   "INSERT_TIME": "收录时间",
+  "UPDATE_TIME": "更新时间",
   "NET_COMMISSION" : "本次佣金总结",
   "PARTNER_ACCOUNT_BALANCE" : "代理帐户馀额",
   "ACTIVE_DOWNLINES" : "本次活跃人数",
@@ -3847,6 +3848,9 @@
   "WITHDRAWAL_SPEED_FAILED": "失败、已取消提款速度分析",
   "WITHDRAWAL_SUCCESS_TOTAL_TIMES": "总成功提款笔数（代理、玩家）",
   "WITHDRAWAL_FAILED_TOTAL_TIMES": "总失败、取消提款笔数（代理、玩家）",
+  "Total Login Players": "总登入玩家人数",
+  "Exclude Duplicate Login": "（扣除重复）",
+  "Include Duplicate Player Login": "（未扣除重复）",
   "Bulk Credit Clear Out": "批量清空馀额",
   "Total Credit (Game Provider)": "总馀额（游戏供应商）",
   "Total Credit (Local)": "总馀额（本地）",
@@ -3858,5 +3862,9 @@
   "Remove Empty Credit and Sort": "移除馀额＝0且排序馀额",
   "Start Clear Out": "开始清空上表馀额",
   "Cancel Clear Out": "取消清空任务",
-  "Transferring Out": "转出中"
+  "Transferring Out": "转出中",
+  "Seq No": "排序编号",
+  "Login Date": "登入日期",
+  "Login Device": "登入装置"
+
 }

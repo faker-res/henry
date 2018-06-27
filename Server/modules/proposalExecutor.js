@@ -2437,6 +2437,7 @@ var proposalExecutor = {
                     createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_TOP_UP_RETURN_GROUP, proposalData);
                     deferred1.promise.then(
                         data => {
+                            console.log("executePlayerTopUpReturnGroup deferred1.promise.then data", data);
                             let updateData = {$set: {}};
 
                             if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
@@ -3574,6 +3575,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
     }
 
     // Add proposalId in reward data
+    console.log("createRewardTaskForProposal taskData", taskData);
     taskData.proposalId = proposalData.proposalId;
 
     let gameProviderGroupProm = Promise.resolve(false);
@@ -3589,12 +3591,14 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
 
     Promise.all([gameProviderGroupProm, platformProm, playerProm]).then(
         res => {
+            console.log("createRewardTaskForProposal Promise.all res", res);
             gameProviderGroup = res[0];
             platform = res[1];
             playerRecord = res[2];
             let calCreditArr = [];
             return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: playerRecord._id})
                 .then(rtgData => {
+                    console.log("createRewardTaskForProposal Promise.all.then rtgData", rtgData);
                     if (rtgData && rtgData.length) {
                         rtgData.forEach(rtg => {
                             if(rtg){
@@ -3641,6 +3645,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
         }
     ).then(
         rewardTaskGroup => {
+            console.log("createRewardTaskForProposal Promise.all.then.then rewardTaskGroup", rewardTaskGroup);
             if(rewardTaskGroup){
                 let rtgArr = [];
 
@@ -3674,6 +3679,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
         if (platform.useProviderGroup) {
             if (proposalData.data.providerGroup && gameProviderGroup) {
                 dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).then(() =>{
+                    console.log("createRewardTaskForProposal dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).then");
                     dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                 }).catch(
                     error => Q.reject({
@@ -3686,6 +3692,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                 if (proposalData.data.isDynamicRewardAmount || (proposalData.data.promoCode && proposalData.data.promoCodeTypeValue && proposalData.data.promoCodeTypeValue == 3)
                     || proposalData.data.limitedOfferObjId) {
                     dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).then(() =>{
+                        console.log("createRewardTaskForProposal dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).then");
                         dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                     }).catch(
                         error => Q.reject({
@@ -3698,6 +3705,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             } else {
                 dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardType).then(
                     data => {
+                        console.log("createRewardTaskForProposal Promise.all.then.then.then.then data", data);
                         rewardTask = data;
                         dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                         return sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});

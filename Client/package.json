@@ -6,6 +6,7 @@
     "angular-datepicker": "^1.0.5",
     "angular-translate": "^2.8.1",
     "body-parser": "^1.14.1",
+    "compression": "^1.7.2",
     "del": "^2.2.2",
     "errorhandler": "^1.4.2",
     "express": "^4.13.3",

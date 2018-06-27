@@ -16,7 +16,48 @@ var dbPlayerLoginRecord = {
      */
     createPlayerLoginRecord: function (playerLoginData) {
         var playerLoginRecord = new dbconfig.collection_playerLoginRecord(playerLoginData);
+        if(playerLoginData.userAgent){
+            playerLoginData.inputDeviceType = dbUtil.getInputDeviceType(playerLoginData.userAgent);
+        }
         return playerLoginRecord.save();
+    },
+    getPlayerLoginRecord: function(platformId, startTime, endTime, period, type){
+
+        var dayStartTime = startTime;
+        var getNextDate;
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+
+        var dayEndTime = getNextDate(dayStartTime);
+        var matchObj = {
+            platform: platformId,
+            loginTime: {$gte: dayStartTime, $lt: dayEndTime}
+        };
+        if(type){
+            matchObj['inputDeviceType'] = type;
+        }
+
+        return dbconfig.collection_playerLoginRecord.find(matchObj, {'loginTime':1, 'player':1, 'inputDeviceType':1})
+                .populate({path: 'player', model: dbconfig.collection_players})
+
     },
     getIpHistory: function (playerId) {
         var p1 = dbconfig.collection_playerLoginRecord.find({
@@ -123,12 +164,195 @@ var dbPlayerLoginRecord = {
                 $sort: {amount: -1}
             }]
         );
+    },
 
+    countLoginPlayerDevicebyPlatform: function (platformId, startDate, endDate, period, isRealPlayer, isTestPlayer, hasPartner) {
+        var proms = [];
+        var playerLoginProms = [];
+        var deviceLoginProms = [];
+
+        var dayStartTime = startDate;
+        var getNextDate;
+        var dateRange = 0;
+        var periodRange = 0;
+        dateRange = (new Date(endDate) - new Date(startDate)) || 0;
+
+        switch (period) {
+            case 'day':
+                periodRange = 24 * 3600 * 1000;
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                periodRange = 24 * 3600 * 7 * 1000;
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                periodRange = 24 * 3600 * 30 * 1000;
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+
+        var loopTimes = dateRange / periodRange;
+        for(var i = 0; i < loopTimes; i++){
+          
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+            var matchObj = {
+                platform: platformId,
+                loginTime: {$gte: dayStartTime, $lt: dayEndTime}
+            };
+
+            if (typeof isRealPlayer === 'boolean' && typeof isTestPlayer === 'boolean') {
+
+                if (hasPartner !== null){
+                    if (hasPartner == true){
+                        matchObj.partner = {$type: "objectId"};
+                        matchObj.isRealPlayer = isRealPlayer;
+                        matchObj.isTestPlayer = isTestPlayer;
+                    }else {
+                        matchObj['$and'] = [
+                            {$or: [ {partner: null}, {partner: {$exists: false}} ]},
+                            {$or: [{$and: [ {isRealPlayer: {$exists: false}}, {isTestPlayer: {$exists: false}} ]}, {$and: [ {isRealPlayer: isRealPlayer}, {isTestPlayer:isTestPlayer} ]} ]},
+                        ]
+                    }
+                }
+                else{
+                    if (isRealPlayer){
+                        // the old data which do not contain isTestPlayer & isRealPlayer are treated as individual UserType
+                        matchObj['$or'] = [
+                            {$and: [{isRealPlayer: isRealPlayer}, {isTestPlayer: isTestPlayer} ]},
+                            {$and: [{isRealPlayer: {$exists: false}}, {isTestPlayer: {$exists: false}} ]}
+                        ]
+                    }
+                    else {
+                        // for the case of testPlayer
+                        matchObj.isRealPlayer = isRealPlayer;
+                        matchObj.isTestPlayer = isTestPlayer;
+                    }
+                }
+            }
+            var specifyField = {'_id':1,  'platform:1':1, 'inputDeviceType':1, 'loginTime':1};
+
+            var playerProm = dbconfig.collection_playerLoginRecord.aggregate(
+                    [{
+                        $match: matchObj
+                    },
+                    {
+                        $group: {
+                            _id: "$player",
+                            number: { $sum:1 },
+                            loginTime:{ '$first': '$loginTime'}
+                        }
+                    },
+                    {
+                        $project: {
+                            _id:1,
+                            number:1,
+                            loginTime:{ $dateToString: { format: "%Y-%m-%d", date: "$loginTime" } }
+
+                        }
+                    }]
+                ).read("secondaryPreferred")
+            playerLoginProms.push(playerProm);
+
+            var deviceProm = dbconfig.collection_playerLoginRecord.aggregate(
+              [{
+                    $match: matchObj
+                },
+                {
+                    $group: {
+                        _id: '$inputDeviceType',
+                        count: { $sum:1 },
+                        loginTime:{ '$first': '$loginTime'}
+                    }
+                },
+                {
+                    $project: {
+                        _id:1,
+                        count:1,
+                        loginTime:{ $dateToString: { format: "%Y-%m-%d", date: "$loginTime" } }
+
+                    }
+                }]).read("secondaryPreferred")
+
+            deviceLoginProms.push(deviceProm)
+
+            dayStartTime = dayEndTime;
+        }
+        return Q.all([Q.all(playerLoginProms), Q.all(deviceLoginProms)]).then(
+            data => {
+                let prom = [];
+                var i = 0;
+                var tempDate = startDate;
+                var res = [];
+
+                for(var i=0; i < data[1].length; i++){
+                    var date = tempDate;
+                    var obj = {
+                        '_id': date,
+                        'playerLogin':0,
+                        'subTotal':0,
+                        'device':{
+                            'WEB':0,
+                            'H5':0,
+                            'APP-ANDROID':0,
+                            'APP-IOS':0,
+                            'PC-DOWNLOAD':0
+                        }
+                    }
+
+                    // display playerLogin number
+                    if(data[0][i]){
+                        obj['playerLogin'] = data[0][i].length;
+                    }
+
+                    data[1][i].forEach(item=>{
+                        switch (item._id) {
+                            case '1':
+                                obj['device']['WEB'] = item['count'];
+                                obj['subTotal'] += item['count'];
+                                break;
+                            case '2':
+                                obj['device']['H5'] = item['count'];
+                                obj['subTotal'] += item['count'];
+                                break;
+                            case '3':
+                                obj['device']['APP-ANDROID'] = item['count'];
+                                obj['subTotal'] += item['count'];
+                                break;
+                            case '4':
+                                obj['device']['APP-IOS'] = item['count'];
+                                obj['subTotal'] += item['count'];
+                                break;
+                            case '5':
+                                obj['device']['PC-DOWNLOAD'] = item['count'];
+                                obj['subTotal'] += item['count'];
+                                break;
+                            default:
+                                break;
+                          }
+                    })
+                    tempDate = getNextDate(tempDate);
+                    res.push(obj);
+                }
+                return res;
+
+            }
+        );
     },
 
     /* 
      * Get login player count 
      */
+
     countLoginPlayerbyPlatform: function (platformId, startDate, endDate, period, isRealPlayer, isTestPlayer, hasPartner) {
         var proms = [];
         var dayStartTime = startDate;

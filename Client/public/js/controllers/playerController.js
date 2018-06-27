@@ -5307,6 +5307,7 @@ define(['js/app'], function (myApp) {
                 var tableData = data.data.data ? data.data.data.map(item => {
                     item.createTime$ = vm.dateReformat(item.createTime);
                     item.insertTime$ = vm.dateReformat(item.insertTime);
+                    item.updateTime$ = vm.dateReformat(item.updateTime);
                     item.validAmount$ = item.validAmount.toFixed(2);
                     item.amount$ = item.amount.toFixed(2);
                     item.bonusAmount$ = item.bonusAmount.toFixed(2);
@@ -5353,7 +5354,8 @@ define(['js/app'], function (myApp) {
                             data: "createTime$",
                             render: function (data, type, row) {
                                 let insertTime$ = row && row.insertTime$ || "";
-                                return "<span title='" + $translate("INSERT_TIME") + ": " + insertTime$ + "'>" + data + "</span>";
+                                let updateTime$ = row && row.updateTime$ || "";
+                                return "<span title='" + $translate("INSERT_TIME") + ": " + insertTime$ + "&#013;" +  $translate("UPDATE_TIME") + ": " + updateTime$ + "'>" + data + "</span>";
                             }
                         },
                         {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'sumFloat textRight'},
@@ -9732,6 +9734,7 @@ define(['js/app'], function (myApp) {
             $('#messageLogTab').removeClass('active');
             $scope.safeApply();
             vm.messageModalTab = "sendMessageToPlayerPanel";
+            vm.messageForPlayer = {};
         };
 
         vm.initPartnerMessageModal = function () {
@@ -9739,6 +9742,7 @@ define(['js/app'], function (myApp) {
             $('#messageLogPartnerTab').removeClass('active');
             $scope.safeApply();
             vm.messageModalTab = "sendMessageToPartnerPanel";
+            vm.messageForPartner = {};
         };
 
         vm.initSMSModal = function () {
@@ -11305,6 +11309,7 @@ define(['js/app'], function (myApp) {
                         bonusAmount += Number(record.bonusAmount);
                         record.createTime$ = vm.dateReformat(record.createTime);
                         record.insertTime$ = vm.dateReformat(record.insertTime);
+                        record.updateTime$ = vm.dateReformat(record.updateTime);
                         // record.gameType$ = $translate(vm.allGameTypes[record.gameType] || 'Unknown');
                         record.validAmount$ = parseFloat(record.validAmount).toFixed(2);
                         record.amount$ = parseFloat(record.amount).toFixed(2);
@@ -11355,7 +11360,8 @@ define(['js/app'], function (myApp) {
                             data: "createTime$",
                             render: function (data, type, row) {
                                 let insertTime$ = row && row.insertTime$ || "";
-                                return "<span title='" + $translate("INSERT_TIME") + ": " + insertTime$ + "'>" + data + "</span>";
+                                let updateTime$ = row && row.updateTime$ || "";
+                                return "<span title='" + $translate("INSERT_TIME") + ": " + insertTime$ + "&#013;" +  $translate("UPDATE_TIME") + ": " + updateTime$ + "'>" + data + "</span>";
                             }
                         },
                         {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'alignRight sumFloat'},

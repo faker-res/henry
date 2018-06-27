@@ -350,6 +350,19 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     $scope.buildPlatformList = data => {
         $scope.platformList = [];
+        function sortPlatform(a, b) {
+            if (a.hasOwnProperty("platformId") && b.hasOwnProperty("platformId")) {
+                let dataA = parseInt(a.platformId);
+                let dataB = parseInt(b.platformId);
+                if (!isNaN(dataA) && !isNaN(dataB)) {
+                    return dataA - dataB;
+                }
+            }
+            return 0;
+        }
+        if (data.length) {
+            data = data.sort(sortPlatform);
+        }
         for (let i = 0; i < data.length; i++) {
             $scope.platformList.push($scope.createPlatformNode(data[i]));
         }
@@ -373,7 +386,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     $scope.createPlatformNode = function (v) {
         var obj = {
-            text: v.name,
+            text: v.platformId + ". " + v.name,
             id: v._id,
             selectable: true,
             data: v,
@@ -381,16 +394,21 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 url: v.icon,
                 width: 30,
                 height: 30,
-            }
+            },
+            platformName: v.name
         };
         return obj;
     };
 
     $scope.searchAndSelectPlatform = function (text, option) {
-        var findNodes = $('#platformTreeHeader').treeview('search', [text, {
-            ignoreCase: false,
-            exactMatch: true
-        }]);
+        // var findNodes = $('#platformTreeHeader').treeview('search', [text, {
+        //     ignoreCase: false,
+        //     exactMatch: true
+        // }]);
+        var findNodes = $scope.platformList.filter(e => e.platformName === text);
+        if (!findNodes.length) {
+            findNodes = [$scope.platformList[0]];
+        }
         if (findNodes && findNodes.length > 0) {
             $scope.selectPlatformNode(findNodes[0], option);
             $('#platformTreeHeader').treeview('selectNode', [findNodes[0], {silent: true}]);
@@ -400,9 +418,9 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     $scope.selectPlatformNode = function (node, option) {
         $scope.selectedPlatform = node;
         $scope.curPlatformText = node.text;
-        authService.updatePlatform($cookies, node.text);
-        console.log("$scope.selectedPlatform", node.text);
-        $cookies.put("platform", node.text);
+        authService.updatePlatform($cookies, node.platformName);
+        console.log("$scope.selectedPlatform", node.platformName);
+        $cookies.put("platform", node.platformName);
         if (option && !option.loadAll) {
             $scope.safeApply();
             return;

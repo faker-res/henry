@@ -990,7 +990,7 @@ var dbUtility = {
             device: ua.device.name || '',
             os: ua.os.name || ''
         }];
-        
+
         let inputDevice="";
 
         if (userAgentInput && userAgentInput[0] && inputUserAgent) {
@@ -1024,7 +1024,46 @@ var dbUtility = {
         }
         return inputDevice;
     },
-
+    getInputDeviceType: function (inputUserAgent) {
+        if (Number.isInteger(inputUserAgent)) {
+            return inputUserAgent;
+        }
+        let ua = inputUserAgent;
+        let userAgentInput = [{
+            browser: ua.browser || '',
+            device: ua.device || '',
+            os: ua.os || ''
+        }];
+        let inputDevice="";
+        if (userAgentInput && userAgentInput[0] && inputUserAgent) {
+            let userAgent = userAgentInput[0];
+            if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
+                // android-apps / ios apps
+                if (userAgent.os.indexOf("iOS") !== -1){
+                    inputDevice = 4;
+                }else if(userAgent.os.indexOf("ndroid") !== -1){
+                    inputDevice = 3;
+                }
+            }
+            else if (userAgent.os.indexOf("iOS") !== -1 || userAgent.os.indexOf("ndroid") !== -1 || userAgent.browser.indexOf("obile") !== -1) {
+                    // H5
+                    inputDevice = 2;
+            }
+            else {
+                console.log(userAgent);
+                if(userAgent.browser){
+                    // WEB
+                    inputDevice = 1;
+                }else{
+                    // PC DOWNLOAD - i assume the pc-download version dont have browser detail
+                    if(userAgent.os.indexOf("Window" !== -1)){
+                        inputDevice = 5;
+                    }
+                }
+            }
+        }
+        return inputDevice;
+    },
     decryptPhoneNumber: (phoneNumberRaw) => {
         let decryptedPhoneNo = phoneNumberRaw;
 
