@@ -203,7 +203,7 @@
                                     td.text-left
                                         button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformation')&&vm.selectedSinglePlayer.isRealPlayer",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click="vm.openEditPlayerDialog('withdrawInfo');") {{"EDIT" | translate}}
                                         br
-                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformationHistory')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.getPaymentInfoHistory(true)') {{"EDIT_HISTORY" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformationHistory')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.getPaymentInfoHistory()') {{"EDIT_HISTORY" | translate}}
                                 tr
                                     td
                                         div {{"Topup Group" | translate}}

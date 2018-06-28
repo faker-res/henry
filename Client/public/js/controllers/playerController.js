@@ -12,7 +12,6 @@ define(['js/app'], function (myApp) {
         //init local var data
         vm.updatePlatform = {};
         vm.editPlayer = {};
-        vm.editPartner = {};
         vm.merchantTopupTypeJson = $scope.merchantTopupTypeJson;
         vm.provinceList = [];
         vm.cityList = [];
@@ -8477,7 +8476,6 @@ define(['js/app'], function (myApp) {
 
         vm.loadPartnerSMSSettings = function () {
             let selectedPartner = vm.isOneSelectedPartner();   // ~ 20 fields!
-            let editPartner = vm.editPartner;                  // ~ 6 fields
             vm.partnerBeingEdited = {
                 smsSetting: editPartner.smsSetting,
                 receiveSMS: editPartner.receiveSMS
@@ -12305,24 +12303,12 @@ define(['js/app'], function (myApp) {
                 console.log('playerpayment', data);
             }, null, true);
         }
-        vm.getPaymentInfoHistory = function (isPlayer) {
+        vm.getPaymentInfoHistory = function () {
             vm.paymetHistoryCount = 0;
-            let objId;
-            let type;
-            let modalType;
-
-            if (isPlayer) {
-                objId = vm.isOneSelectedPlayer()._id;
-                type = "PLAYERS";
-            } else {
-                objId = vm.isOneSelectedPartner()._id;
-                type = "PARTNERS";
-            }
             socketService.$socket($scope.AppSocket, 'getPaymentHistory', {
-                objectId: objId,
-                type: type
+                objectId: vm.isOneSelectedPlayer()._id,
+                type: "PLAYERS"
             }, function (data) {
-                console.log('payment history', data);
                 var drawData = data.data.map(item => {
                     item.province = item.provinceData || item.bankAccountProvince;
                     item.city = item.cityData || item.bankAccountCity;
@@ -12333,19 +12319,13 @@ define(['js/app'], function (myApp) {
                     return item;
                 });
                 vm.paymetHistoryCount = data.data.length;
-                vm.drawPaymentHistory(drawData, isPlayer);
+                vm.drawPaymentHistory(drawData);
 
             }, null, true);
-            if (isPlayer) {
-                modalType = '#modalPlayerPaymentHistory';
-            } else {
-                modalType = '#modalPartnerPaymentHistory';
-            }
-            $(modalType).modal();
+            $('#modalPlayerPaymentHistory').modal();
         }
 
-        vm.drawPaymentHistory = function (tblData, isPlayer) {
-            let tableType;
+        vm.drawPaymentHistory = function (tblData) {
             var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                 data: tblData,
                 aoColumnDefs: [
@@ -12366,15 +12346,9 @@ define(['js/app'], function (myApp) {
                 "paging": true,
             });
 
-            if (isPlayer) {
-                tableType = '#playerPaymentHistoryTbl';
-            } else {
-                tableType = '#partnerPaymentHistoryTbl';
-            }
-
-            var aTable = $(tableType).DataTable(tableOptions);
+            var aTable = $('#playerPaymentHistoryTbl').DataTable(tableOptions);
             aTable.columns.adjust().draw();
-            $(tableType).resize();
+            $('#playerPaymentHistoryTbl').resize();
             $scope.safeApply();
         };
 
