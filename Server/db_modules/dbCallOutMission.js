@@ -342,7 +342,7 @@ function getCalleeList (query, sortCol) {
 
             return players.map(player => {
                 let phoneNumber = player.phoneNumber;
-                if (phoneNumber.length > 20) {
+                if (phoneNumber && phoneNumber.length > 20) {
                     try {
                         phoneNo = rsaCrypto.decrypt(phoneNumber);
                     }
@@ -361,10 +361,7 @@ function getCalleeList (query, sortCol) {
 }
 
 function getCtiUrls (platformId) {
-    platformId = platformId ? String(platformId) : "6";
-
-    // todo :: debug used value, delete later
-    platformId = 8;
+    platformId = platformId ? String(platformId) : "8";
 
     let urls = [
         "http://eu.tel400.me/cti/",
@@ -415,8 +412,9 @@ function getCtiToken(str) {
 
 function addMissionToCti (platform, admin, calleeList) {
     let token = getCtiToken("POLYLINK_MESSAGE_TOKEN");
+    let sanitizedAdminName = String(admin.adminName).replace(/[^0-9a-z]/gi, '');
 
-    let missionName = admin.adminName + String(new Date().valueOf());
+    let missionName = sanitizedAdminName + String(new Date().valueOf());
     let param = {token};
     param.taskName = missionName;
     param.startMode = 1;
@@ -437,7 +435,7 @@ function addMissionToCti (platform, admin, calleeList) {
             }
 
             if (apiOutput.result != 1) {
-                console.error("CTI API createCallOutTask.do output:", apiOutput);
+                console.error("CTI API createCallOutTask.do output:", apiOutput, param);
                 return Promise.reject({message: "CTI API return error"});
             }
 
