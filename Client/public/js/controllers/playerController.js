@@ -7572,7 +7572,7 @@ define(['js/app'], function (myApp) {
             let sendQuery = {
                 playerId: vm.selectedSinglePlayer._id,
                 platformId: vm.selectedSinglePlayer.platform,
-                lastLoginIp: vm.selectedSinglePlayer.lastLoginIp,
+                lastLoginIp: vm.selectedSinglePlayer.lastLoginIp || "",
                 index: newSearch ? 0 : vm.similarIpForPlayer.index,
                 limit: newSearch ? vm.similarIpForPlayer.limit : (vm.similarIpForPlayer.limit || 50),
                 sortCol: {registrationTime: -1},
