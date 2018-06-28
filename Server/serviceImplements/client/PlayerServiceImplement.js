@@ -33,7 +33,7 @@ let PlayerServiceImplement = function () {
     this.create.expectsData = 'platformId: String, password: String';
     this.create.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data.name && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH) && (!data.realName || data.realName.match(/\d+/g) === null));
-        if (data.smsCode || ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha')) {
+        //if (data.smsCode || ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha')) {
             data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
             var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
             if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
@@ -166,24 +166,24 @@ let PlayerServiceImplement = function () {
                 }
             ).catch(WebSocketUtil.errorHandler)
                 .done();
-        }
-        else if (!data.smsCode && data.captcha){
-            // if player key in captcha and not matching to existing captcha
-            conn.captchaCode = null;
-            wsFunc.response(conn, {
-                status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
-                errorMessage: localization.translate("Invalid image captcha", conn.lang, conn.platformId),
-                data: null
-            }, data);
-        }
-        else if(!data.smsCode && !data.captcha) {
-            // if player didn't key anything
-            wsFunc.response(conn, {
-                status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
-                errorMessage: localization.translate("Incorrect SMS Validation Code", conn.lang, conn.platformId),
-                data: null
-            }, data);
-        }
+        // }
+        // else if (!data.smsCode && data.captcha){
+        //     // if player key in captcha and not matching to existing captcha
+        //     conn.captchaCode = null;
+        //     wsFunc.response(conn, {
+        //         status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
+        //         errorMessage: localization.translate("Invalid image captcha", conn.lang, conn.platformId),
+        //         data: null
+        //     }, data);
+        // }
+        // else if(!data.smsCode && !data.captcha) {
+        //     // if player didn't key anything
+        //     wsFunc.response(conn, {
+        //         status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
+        //         errorMessage: localization.translate("Incorrect Captcha Validation Code", conn.lang, conn.platformId),
+        //         data: null
+        //     }, data);
+        // }
     };
 
     //player create api handler
