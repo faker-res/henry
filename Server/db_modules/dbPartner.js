@@ -6339,6 +6339,7 @@ let dbPartner = {
                     totalPlatformFee += platformFee;
 
                     rawCommissions.push({
+                        crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
                         groupName: groupRate.groupName,
                         groupId: groupRate.groupId,
                         amount: rawCommission,
@@ -6381,11 +6382,14 @@ let dbPartner = {
                     rawCommissions: rawCommissions,
                     totalReward: totalReward,
                     totalRewardFee: totalRewardFee,
+                    rewardFeeRate: partnerCommissionRateConfig.rateAfterRebatePromo / 100,
                     totalPlatformFee: totalPlatformFee,
                     totalTopUp: totalTopUp,
                     totalTopUpFee: totalTopUpFee,
+                    topUpFeeRate: partnerCommissionRateConfig.rateAfterRebateTotalDeposit / 100,
                     totalWithdrawal: totalWithdrawal,
                     totalWithdrawalFee: totalWithdrawalFee,
+                    withdrawFeeRate: partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal / 100,
                     status: constPartnerCommissionLogStatus.PREVIEW,
                     nettCommission: nettCommission,
                 };
@@ -8233,8 +8237,14 @@ let dbPartner = {
                 let output = {};
 
                 output.activeCrewNumbers = commissionDetail.activeDownLines;
+                output.totalDepositAmount = commissionDetail.totalTopUp;
+                output.depositFeeRate = commissionDetail.topUpFeeRate;
                 output.totalDepositFee = commissionDetail.totalTopUpFee;
+                output.totalWithdrawAmount = commissionDetail.totalWithdrawal;
+                output.withdrawFeeRate = commissionDetail.withdrawFeeRate;
                 output.totalWithdrawalFee = commissionDetail.totalWithdrawalFee;
+                output.totalBonusAmount = commissionDetail.totalReward;
+                output.bonusFeeRate = commissionDetail.rewardFeeRate;
                 output.totalBonusFee = commissionDetail.totalRewardFee;
                 output.totalProviderFee = commissionDetail.totalPlatformFee;
                 // output.totalCommission = commissionDetail.nettCommission;
@@ -8248,6 +8258,9 @@ let dbPartner = {
                             providerGroupName: providerCommission.groupName,
                             providerGroupCommission: providerCommission.amount,
                             providerGroupFee: providerCommission.platformFee,
+                            crewProfit: providerCommission.crewProfit,
+                            commissionRate: providerCommission.commissionRate? providerCommission.commissionRate / 100: 0,
+                            providerGroupFeeRate: providerCommission.platformFeeRate? providerCommission.platformFeeRate / 100: 0
                         })
                         if (providerCommission.amount) {
                             output.totalCommission += providerCommission.amount;

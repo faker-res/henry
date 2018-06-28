@@ -80,6 +80,15 @@ define(['js/app'], function (myApp) {
             6: 'APP_AGENT'
         };
 
+        vm.deviceType = {
+            1:'WEB',
+            2:'H5',
+            3:'APP-ANDROID',
+            4:'APP-IOS',
+            5:'PC-DOWNLOAD',
+        }
+
+        vm.avgPlayerLogin = 0;
         // For debugging:
         window.VM = vm;
 
@@ -164,7 +173,9 @@ define(['js/app'], function (myApp) {
                     case "LOGIN_PLAYER":
                         vm.platformLoginPlayerAnalysisSort = {};
                         vm.initSearchParameter('loginPlayer', 'day', 3);
+                        vm.initSearchParameter('loginPlayerDevice', 'day', 3);
                         vm.queryPara.loginPlayer.userType='all';
+                        vm.queryPara.loginPlayerDevice.userType='all';
                         $scope.safeApply();
                         //vm.plotLoginPlayerLine();
                         break;
@@ -3564,8 +3575,6 @@ define(['js/app'], function (myApp) {
             var sendData = {
                 platformId: vm.selectedPlatform._id,
                 period: vm.queryPara.loginPlayer.periodText,
-                // startDate: vm.queryPara.loginPlayer.startTime,
-                // endDate: vm.queryPara.loginPlayer.endTime,
                 startDate: vm.queryPara.loginPlayer.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.loginPlayer.endTime.data('datetimepicker').getLocalDate(),
             };
@@ -3595,20 +3604,184 @@ define(['js/app'], function (myApp) {
                 sendData.hasPartner = null;
             }
 
-            socketService.$socket($scope.AppSocket, 'countLoginPlayerbyPlatform', sendData, function success(data1) {
-                vm.platformLoginPlayerDataPeriodText = vm.queryPara.loginPlayer.periodText;
-                vm.platformLoginPlayerAnalysisData = data1.data.map(item => {
-                    item.date = item._id.date;
-                    return item;
+            socketService.$socket($scope.AppSocket, 'countLoginPlayerDevicebyPlatform', sendData, function success(data1) {
+                $scope.$evalAsync(() => {
+                    vm.avgTotalPlayerLogin = { avg:0, device:{ 'WEB':0,'H5':0, 'APP-ANDROID':0,'APP-IOS':0,'PC-DOWNLOAD':0 } };
+                    vm.avgPlayerLogin = 0;
+                    vm.platformLoginPlayerDataPeriodText = vm.queryPara.loginPlayer.periodText;
+                    vm.platformLoginPlayerAnalysisData = vm.sumTotalDeviceType(data1, false, 1);
+                    vm.platformLoginPlayerGraphData = data1.data.map(item => {
+                        let graphData = {
+                            date:item._id,
+                            number:item.playerLogin
+                        }
+                        return graphData;
+                    });
+
+                    let calculatedLoginPlayerData = vm.calculateLineDataAndAverage(vm.platformLoginPlayerGraphData, 'number', 'Login Player');
+                    vm.platformLoginPlayerAverage = calculatedLoginPlayerData.average;
+                    vm.plotLineByElementId("#line-loginPlayer", calculatedLoginPlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.loginPlayer.periodText.toUpperCase()));
+                    vm.isShowLoadingSpinner('#loginPlayerAnalysis', false);
                 });
-                let calculatedLoginPlayerData = vm.calculateLineDataAndAverage(vm.platformLoginPlayerAnalysisData, 'number', 'Login Player');
-                vm.platformLoginPlayerAverage = calculatedLoginPlayerData.average;
-                vm.plotLineByElementId("#line-loginPlayer", calculatedLoginPlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.newPlayer.periodText.toUpperCase()));
-                vm.isShowLoadingSpinner('#loginPlayerAnalysis', false);
-                $scope.safeApply();
             });
         };
         // login Player end= =========================================
+
+        // Login Player Device start= =========================================
+        vm.plotLoginPlayerDeviceLine = function () {
+            //todo::add graph code here
+            vm.isShowLoadingSpinner('#loginPlayerDeviceAnalysis', true);
+            var placeholder = "#line-loginPlayer";
+            var sendData = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.loginPlayerDevice.periodText,
+                // startDate: vm.queryPara.loginPlayer.startTime,
+                // endDate: vm.queryPara.loginPlayer.endTime,
+                startDate: vm.queryPara.loginPlayerDevice.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.loginPlayerDevice.endTime.data('datetimepicker').getLocalDate(),
+            };
+
+            switch (vm.queryPara.loginPlayerDevice.userType) {
+                case 'all':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    break;
+                case 'individual':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = false;
+                    break;
+                case 'underPartner':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = true;
+                    break;
+                case 'test':
+                    sendData.isRealPlayer = false;
+                    sendData.isTestPlayer = true;
+                    break;
+            }
+
+            if (typeof sendData.hasPartner !== 'boolean'){
+                sendData.hasPartner = null;
+            }
+
+            socketService.$socket($scope.AppSocket, 'countLoginPlayerDevicebyPlatform', sendData, function success(data1) {
+                $scope.$evalAsync(() => {
+                    vm.avgTotalDevice = { avg:0, device:{ 'WEB':0,'H5':0, 'APP-ANDROID':0,'APP-IOS':0,'PC-DOWNLOAD':0 } };
+                    vm.platformLoginPlayerDeviceAnalysisData = data1.data;
+
+                    var data = vm.sumTotalDeviceType(data1, true, 2);
+                    var pieData = []
+                    Object.keys(data).forEach(item=>{
+                        if(item!='total'){
+                            pieData.push({label: vm.setGraphName(item), data: data[item]});
+                        }
+                    })
+
+                    var placeholderBar = "#pie-loginPlayerDevice";
+                    socketService.$plotPie(placeholderBar, pieData, {}, 'activePlayerPieClickData');
+
+                    var listen = $scope.$watch(function () {
+                        return socketService.getValue('activePlayerPieClickData');
+                    }, function (newV, oldV) {
+                        if (newV !== oldV) {
+                            vm.allPlatformActivePie = newV.series.label;
+                            console.log('pie clicked', newV);
+                            if (vm.showPageName !== "PLATFORM_OVERVIEW") {
+                                listen();
+                            }
+                        }
+                    });
+                    vm.isShowLoadingSpinner('#loginPlayerDeviceAnalysis', false);
+                });
+            });
+        };
+        // login player device end
+
+        // calculate the (avg/sum) of (playerlogin/devicelogin) times
+        vm.sumTotalDeviceType = function(data, isPieChart, graph){
+            let dataList = {
+              'WEB':0,
+              'H5':0,
+              'APP-ANDROID':0,
+              'APP-IOS':0,
+              'PC-DOWNLOAD':0,
+              'total':0
+            }
+            let countPlayerLogin = 0;
+            let countTotalDeviceAmt = 0;
+
+            var dataLength = (data && data.data && data.data.length) || 0;
+            data.data.forEach(item=>{
+                countPlayerLogin += item.playerLogin;
+                countTotalDeviceAmt += item.subTotal;
+                let keys = Object.keys(item.device);
+                keys.forEach(key=>{
+                  if(key!='_id'){
+                      dataList[key] += item['device'][key];
+                      dataList['total'] += item['device'][key];
+                  }
+                })
+            })
+
+            if(dataLength > 0){
+                // calculate the avg of device/playerLogin times
+                if(graph==1){
+                    // calculate the first avg of table
+                    vm.avgTotalPlayerLogin.avg = (countPlayerLogin / dataLength).toFixed(1);
+                    vm.avgPlayerLogin = (countPlayerLogin / dataLength).toFixed(1);
+                    vm.countAvgDevice(dataLength, dataList, graph);
+                }else{
+                    // calculate the second avg of table
+                    vm.avgTotalDevice.avg = (countTotalDeviceAmt /dataLength).toFixed(1);
+                    vm.countAvgDevice(dataLength, dataList, graph);
+                }
+
+            }
+
+            if(isPieChart){
+                return dataList;
+            }else{
+                return data.data;
+            }
+
+        }
+        vm.countAvgDevice = function(dataLength, dataList, graph){
+            if(dataLength <= 0){
+                return;
+            }
+
+            Object.keys(dataList).forEach(key=>{
+                if(dataList[key]!=0){
+                    if(graph == 1){
+                        vm.avgTotalPlayerLogin['device'][key] = (dataList[key] / dataLength).toFixed(1);
+                    }else{
+                        vm.avgTotalDevice['device'][key] = (dataList[key] / dataLength).toFixed(1);
+                    }
+
+                }
+            })
+        }
+
+        vm.getLoginUserList = function(date, period, inputDeviceType, graph){
+
+            socketService.$socket($scope.AppSocket, 'getPlayerLoginRecord', {
+                startDate:date, endDate:date, platform: vm.selectedPlatform._id, period:period, inputDeviceType: inputDeviceType
+            }, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.playerLoginRecords = (data && data.data) ? data.data:[];
+                });
+            });
+            if(graph == 1){
+                vm.displayPeriodText = vm.queryPara.loginPlayer.periodText;
+            }else{
+                vm.displayPeriodText = vm.queryPara.loginPlayerDevice.periodText;
+            }
+
+            $('#modalLoginDevice').modal('show');
+        }
+
 
         // peak hour start        =================================================
         vm.plotPeakhourOnlinePlayerLine = function () {

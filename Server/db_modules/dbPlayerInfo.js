@@ -897,6 +897,10 @@ let dbPlayerInfo = {
             isTestPlayer: data.isTestPlayer,
             partner: data.partner ? data.partner : null
         };
+
+        if(data.userAgent){
+            recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+        }
         var record = new dbconfig.collection_playerLoginRecord(recordData);
         record.save().then().catch(errorUtils.reportError);
     },
@@ -2825,7 +2829,7 @@ let dbPlayerInfo = {
                         }
                     ]
                 }
-                
+
                 var a = dbconfig.collection_playerConsumptionRecord
                     .find(queryObject).sort(sortCol).skip(index).limit(limit)
                     .populate({
@@ -4590,7 +4594,11 @@ let dbPlayerInfo = {
                                 dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
                             }
 
+                            if(recordData.userAgent){
+                                recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+                            }
                             Object.assign(recordData, geoInfo);
+
                             var record = new dbconfig.collection_playerLoginRecord(recordData);
                             return record.save().then(
                                 function () {
@@ -4877,7 +4885,11 @@ let dbPlayerInfo = {
                                 // isTestPlayer: playerObj.isTestPlayer,
                                 // partner: playerObj.partner ? playerObj.partner : null
                             };
+                            if(recordData.userAgent){
+                                recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+                            }
                             //Object.assign(recordData, geoInfo);
+
                             let record = new dbconfig.collection_playerLoginRecord(recordData);
                             return record.save().then(
                                 function () {

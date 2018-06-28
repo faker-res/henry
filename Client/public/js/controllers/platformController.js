@@ -8321,7 +8321,7 @@ define(['js/app'], function (myApp) {
                             changeCity: vm.changeCity,
                             currentDistrict: vm.currentDistrict,
                             districtList: vm.districtList,
-                            verifyBankAccount: vm.verifyBankAccount,
+                            verifyBankAccount: "",
                             verifyPlayerBankAccount: vm.verifyPlayerBankAccount,
                             updatePlayerPayment: vm.updatePlayerPayment,
                             today: new Date().toISOString(),
@@ -9763,6 +9763,7 @@ define(['js/app'], function (myApp) {
                 $('#messageLogTab').removeClass('active');
                 $scope.safeApply();
                 vm.messageModalTab = "sendMessageToPlayerPanel";
+                vm.messageForPlayer = {};
             };
 
             vm.initPartnerMessageModal = function () {
@@ -9770,6 +9771,7 @@ define(['js/app'], function (myApp) {
                 $('#messageLogPartnerTab').removeClass('active');
                 $scope.safeApply();
                 vm.messageModalTab = "sendMessageToPartnerPanel";
+                vm.messageForPartner = {};
             };
 
             vm.initSMSModal = function () {
@@ -13914,13 +13916,20 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.verifyPlayerBankAccount = function () {
+            vm.verifyPlayerBankAccount = function (testBankAccount) {
                 socketService.$socket($scope.AppSocket, 'verifyPlayerBankAccount', {
                     playerObjId: vm.selectedSinglePlayer._id,
-                    bankAccount: vm.verifyBankAccount
+                    bankAccount: testBankAccount
                 }, function (data) {
                     console.log("verifyPlayerBankAccount:", data);
                     vm.correctVerifyBankAccount = data.data;
+
+                    if (vm.correctVerifyBankAccount) {
+                        socketService.showConfirmMessage($translate("Validation succeed."), 10000);
+                    } else {
+                        socketService.showErrorMessage($translate("Validation failed.") + " - " + $translate("Bank card number did not match."));
+                    }
+
                     $scope.safeApply();
                 });
             };

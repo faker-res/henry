@@ -262,7 +262,7 @@ const dbPlayerPayment = {
                 }
                 return returnData;
             }
-        ).catch(() => []);
+        ).catch(() => {});
     }
 
 };
