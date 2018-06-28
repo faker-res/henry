@@ -20634,23 +20634,23 @@ define(['js/app'], function (myApp) {
                 if (type == 'add') {
                     let newObj = {};
 
-                    // check again if there is duplication of sms title after updating the promoCodeType
-                    if (data.smsTitle && vm.promoCodeType1BeforeEdit && vm.promoCodeType2BeforeEdit && vm.promoCodeType3BeforeEdit){
-
-                        let filterPromoCodeType1 = vm.promoCodeType1BeforeEdit.map(p => p.smsTitle);
-                        let filterPromoCodeType2 = vm.promoCodeType2BeforeEdit.map(p => p.smsTitle);
-                        let filterPromoCodeType3 = vm.promoCodeType3BeforeEdit.map(p => p.smsTitle);
-
-                        let promoCodeSMSTitleCheckList = filterPromoCodeType1.concat(filterPromoCodeType2, filterPromoCodeType3);
-
-                        if (promoCodeSMSTitleCheckList.indexOf(data.smsTitle) != -1){
-                            vm.smsTitleDuplicationBoolean = true;
-                            return socketService.showErrorMessage($translate("Banner title cannot be repeated!"));
-                        }
-                        else{
-                            vm.smsTitleDuplicationBoolean = false;
-                        }
-                    }
+                    // // check again if there is duplication of sms title after updating the promoCodeType
+                    // if (data.smsTitle && vm.promoCodeType1BeforeEdit && vm.promoCodeType2BeforeEdit && vm.promoCodeType3BeforeEdit){
+                    //
+                    //     let filterPromoCodeType1 = vm.promoCodeType1BeforeEdit.map(p => p.smsTitle);
+                    //     let filterPromoCodeType2 = vm.promoCodeType2BeforeEdit.map(p => p.smsTitle);
+                    //     let filterPromoCodeType3 = vm.promoCodeType3BeforeEdit.map(p => p.smsTitle);
+                    //
+                    //     let promoCodeSMSTitleCheckList = filterPromoCodeType1.concat(filterPromoCodeType2, filterPromoCodeType3);
+                    //
+                    //     if (promoCodeSMSTitleCheckList.indexOf(data.smsTitle) != -1){
+                    //         vm.smsTitleDuplicationBoolean = true;
+                    //         return socketService.showErrorMessage($translate("Banner title cannot be repeated!"));
+                    //     }
+                    //     else{
+                    //         vm.smsTitleDuplicationBoolean = false;
+                    //     }
+                    // }
 
                     Object.keys(data).forEach(e => {
                         newObj[e] = data[e];
