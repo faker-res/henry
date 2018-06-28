@@ -28,7 +28,7 @@ form(name='form_playerPaymentInfo').well
                 label.control-label {{"VERIFY_BANK_ACCOUNT" | translate}}
                 input.form-control(type="text", placeholder="{{'VERIFY_BANK_ACCOUNT' | translate}}", ng-model="verifyBankAccount")
                 p
-                button.btn.btn-primary.common-button(ng-disabled='!verifyBankAccount', ng-click="verifyPlayerBankAccount()") {{"VERIFY" | translate}}
+                button.btn.btn-primary.common-button(ng-disabled='!verifyBankAccount', ng-click="verifyPlayerBankAccount(verifyBankAccount)") {{"VERIFY" | translate}}
                 label.fa.fa-check.colorGreen(ng-if='correctVerifyBankAccount')
                 label.fa.fa-times.colorRed(ng-if='(!correctVerifyBankAccount && (correctVerifyBankAccount !== undefined))')
         .form-group-col-md-6
