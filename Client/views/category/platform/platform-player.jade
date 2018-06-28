@@ -1099,7 +1099,7 @@ include modalGameCreditLog
                             label.control-label {{"VERIFY_BANK_ACCOUNT" | translate}}
                             input.form-control(type="text", placeholder="{{'VERIFY_BANK_ACCOUNT' | translate}}", ng-model="vm.verifyBankAccount")
                             p
-                            button.btn.btn-primary.common-button(ng-disabled='!vm.verifyBankAccount', ng-click="vm.verifyPlayerBankAccount()") {{"VERIFY" | translate}}
+                            button.btn.btn-primary.common-button(ng-disabled='!vm.verifyBankAccount', ng-click="vm.verifyPlayerBankAccount(vm.verifyBankAccount)") {{"VERIFY" | translate}}
                             label.fa.fa-check.colorGreen(ng-if='vm.correctVerifyBankAccount')
                             label.fa.fa-times.colorRed(ng-if='(!vm.correctVerifyBankAccount && (vm.correctVerifyBankAccount !== undefined))')
                     .form-group-col-md-6
