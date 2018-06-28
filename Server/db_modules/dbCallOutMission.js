@@ -342,7 +342,7 @@ function getCalleeList (query, sortCol) {
 
             return players.map(player => {
                 let phoneNumber = player.phoneNumber;
-                if (phoneNumber.length > 20) {
+                if (phoneNumber && phoneNumber.length > 20) {
                     try {
                         phoneNo = rsaCrypto.decrypt(phoneNumber);
                     }
