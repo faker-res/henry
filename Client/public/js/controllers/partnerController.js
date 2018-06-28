@@ -245,23 +245,6 @@ define(['js/app'], function (myApp) {
                 },
             }
 
-            vm.merchantTopupType = { // for reward points purpose only
-                '1': 'NetPay',
-                //'2': 'WechatQR',
-                '3': 'AlipayQR',
-                '4': 'WechatApp',
-                //'5': 'AlipayApp',
-                '6': 'FASTPAY',
-                '7': 'QQPAYQR',
-                '8': 'UnPayQR',
-                '9': 'JdPayQR',
-                '10': 'WXWAP',
-                '11': 'ALIWAP',
-                '12': 'QQWAP',
-                //'13': 'PCard',
-                '14': 'JDWAP'
-            };
-
             vm.getDepositMethodbyId = {
                 1: 'Online',
                 2: 'ATM',
