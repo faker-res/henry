@@ -2252,6 +2252,9 @@ define(['js/app'], function (myApp) {
                 }).done();
             };
 
+            vm.changePartnerSMSTemplate = function () {
+                vm.smsPartner.message = vm.smstpl ? vm.smstpl.content : '';
+            };
 
             vm.callNewPlayerBtn = function (phoneNumber, data) {
 
