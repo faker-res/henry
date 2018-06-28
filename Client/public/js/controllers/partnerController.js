@@ -72,123 +72,6 @@ define(['js/app'], function (myApp) {
                 "NoVerify"
             ];
 
-            // vm.allProposalType = [
-            //     "UpdatePlayerInfo",
-            //     "UpdatePlayerCredit",
-            //     "FixPlayerCreditTransfer",
-            //     "UpdatePlayerEmail",
-            //     "UpdatePlayerPhone",
-            //     "UpdatePlayerQQ",
-            //     "UpdatePlayerBankInfo",
-            //     "AddPlayerRewardTask",
-            //     "UpdatePartnerBankInfo",
-            //     "UpdatePartnerPhone",
-            //     "UpdatePartnerEmail",
-            //     "UpdatePartnerInfo",
-            //     "FullAttendance",
-            //     "PlayerConsumptionReturn",
-            //     "PartnerConsumptionReturn",
-            //     "FirstTopUp",
-            //     "PartnerIncentiveReward",
-            //     "PartnerReferralReward",
-            //     "GameProviderReward",
-            //     "PlatformTransactionReward",
-            //     "ManualPlayerTopUp",
-            //     "PlayerAlipayTopUp",
-            //     "PlayerWechatTopUp",
-            //     "PlayerTopUp",
-            //     "PlayerBonus",
-            //     "PlayerTopUpReturn",
-            //     "PlayerConsumptionIncentive",
-            //     "PlayerLevelUp",
-            //     "PartnerTopUpReturn",
-            //     "PlayerTopUpReward",
-            //     "PlayerReferralReward",
-            //     "PartnerBonus",
-            //     "PlayerConsumptionReturnFix",
-            //     "PlayerRegistrationReward",
-            //     "PartnerCommission",
-            //     "ManualUnlockPlayerReward",
-            //     "PlayerDoubleTopUpReward",
-            //     "UpdatePartnerCredit",
-            //     "PlayerConsecutiveLoginReward",
-            //     "PlayerRegistrationIntention",
-            //     "PlayerEasterEggReward",
-            //     "PlayerQuickpayTopUp",
-            //     "PlayerTopUpPromo",
-            //     "PlayerLevelMigration",
-            //     "PlayerConsecutiveConsumptionReward",
-            //     "PlayerPacketRainReward",
-            //     "PlayerPromoCodeReward",
-            //     "PlayerLimitedOfferIntention",
-            //     "PlayerLimitedOfferReward"
-            // ];
-
-            vm.constProposalType = {
-                UPDATE_PLAYER_INFO: "UpdatePlayerInfo",
-                UPDATE_PLAYER_CREDIT: "UpdatePlayerCredit",
-                FIX_PLAYER_CREDIT_TRANSFER: "FixPlayerCreditTransfer",
-                UPDATE_PLAYER_EMAIL: "UpdatePlayerEmail",
-                UPDATE_PLAYER_PHONE: "UpdatePlayerPhone",
-                UPDATE_PLAYER_QQ: "UpdatePlayerQQ",
-                UPDATE_PLAYER_WECHAT: "UpdatePlayerWeChat",
-                UPDATE_PLAYER_BANK_INFO: "UpdatePlayerBankInfo",
-                ADD_PLAYER_REWARD_TASK: "AddPlayerRewardTask",
-                UPDATE_PARTNER_BANK_INFO: "UpdatePartnerBankInfo",
-                UPDATE_PARTNER_PHONE: "UpdatePartnerPhone",
-                UPDATE_PARTNER_EMAIL: "UpdatePartnerEmail",
-                UPDATE_PARTNER_QQ: "UpdatePartnerQQ",
-                UPDATE_PARTNER_WECHAT: "UpdatePartnerWeChat",
-                UPDATE_PARTNER_INFO: "UpdatePartnerInfo",
-                UPDATE_PARTNER_COMMISSION_TYPE: "UpdatePartnerCommissionType",
-                FULL_ATTENDANCE: "FullAttendance",
-                PLAYER_CONSUMPTION_RETURN: "PlayerConsumptionReturn",
-                PARTNER_CONSUMPTION_RETURN: "PartnerConsumptionReturn",
-                FIRST_TOP_UP: "FirstTopUp",
-                PARTNER_INCENTIVE_REWARD: "PartnerIncentiveReward",
-                PARTNER_REFERRAL_REWARD: "PartnerReferralReward",
-                GAME_PROVIDER_REWARD: "GameProviderReward",
-                PLATFORM_TRANSACTION_REWARD: "PlatformTransactionReward",
-                PLAYER_MANUAL_TOP_UP: "ManualPlayerTopUp",
-                PLAYER_ALIPAY_TOP_UP: "PlayerAlipayTopUp",
-                PLAYER_WECHAT_TOP_UP: "PlayerWechatTopUp",
-                PLAYER_TOP_UP: "PlayerTopUp",
-                PLAYER_BONUS: "PlayerBonus",
-                PLAYER_TOP_UP_RETURN: "PlayerTopUpReturn",
-                PLAYER_CONSUMPTION_INCENTIVE: "PlayerConsumptionIncentive",
-                PLAYER_LEVEL_UP: "PlayerLevelUp",
-                PARTNER_TOP_UP_RETURN: "PartnerTopUpReturn",
-                PLAYER_TOP_UP_REWARD: "PlayerTopUpReward",
-                PLAYER_REFERRAL_REWARD: "PlayerReferralReward",
-                PARTNER_BONUS: "PartnerBonus",
-                PLAYER_CONSUMPTION_RETURN_FIX: "PlayerConsumptionReturnFix",
-                PLAYER_REGISTRATION_REWARD: "PlayerRegistrationReward",
-                PARTNER_COMMISSION: "PartnerCommission",
-                MANUAL_UNLOCK_PLAYER_REWARD: "ManualUnlockPlayerReward",
-                PLAYER_DOUBLE_TOP_UP_REWARD: "PlayerDoubleTopUpReward",
-                UPDATE_PARTNER_CREDIT: "UpdatePartnerCredit",
-                PLAYER_CONSECUTIVE_LOGIN_REWARD: "PlayerConsecutiveLoginReward",
-                PLAYER_REGISTRATION_INTENTION: "PlayerRegistrationIntention",
-                PLAYER_EASTER_EGG_REWARD: "PlayerEasterEggReward",
-                PLAYER_QUICKPAY_TOP_UP: "PlayerQuickpayTopUp",
-                PLAYER_TOP_UP_PROMO: "PlayerTopUpPromo",
-                PLAYER_LEVEL_MIGRATION: "PlayerLevelMigration",
-                PLAYER_CONSECUTIVE_CONSUMPTION_REWARD: "PlayerConsecutiveConsumptionReward",
-                PLAYER_PACKET_RAIN_REWARD: "PlayerPacketRainReward",
-                PLAYER_PROMO_CODE_REWARD: "PlayerPromoCodeReward",
-                PLAYER_LIMITED_OFFER_INTENTION: "PlayerLimitedOfferIntention",
-                PLAYER_LIMITED_OFFER_REWARD: "PlayerLimitedOfferReward",
-                PLAYER_CONSECUTIVE_REWARD_GROUP: "PlayerConsecutiveRewardGroup",
-                PLAYER_TOP_UP_RETURN_GROUP: "PlayerTopUpReturnGroup",
-                PLAYER_RANDOM_REWARD_GROUP: "PlayerRandomRewardGroup",
-                PLAYER_CONSUMPTION_REWARD_GROUP: "PlayerConsumptionRewardGroup",
-                PLAYER_FREE_TRIAL_REWARD_GROUP: "PlayerFreeTrialRewardGroup",
-                PLAYER_ADD_REWARD_POINTS: "PlayerAddRewardPoints",
-                PLAYER_MINUS_REWARD_POINTS: "PlayerMinusRewardPoints",
-                PLAYER_CONVERT_REWARD_POINTS: "PlayerConvertRewardPoints",
-                PLAYER_AUTO_CONVERT_REWARD_POINTS: "PlayerAutoConvertRewardPoints"
-            };
-
             vm.inputDevice = {
                 BACKSTAGE: 0,
                 WEB_PLAYER: 1,
@@ -199,20 +82,6 @@ define(['js/app'], function (myApp) {
                 APP_AGENT: 6
             };
 
-            vm.allPlayerCreditTransferStatus = {
-                SUCCESS: 1,
-                FAIL: 2,
-                REQUEST: 3,
-                SEND: 4,
-                TIMEOUT: 5
-            };
-            vm.allGameStatusString = {
-                ENABLE: 1,
-                MAINTENANCE: 2,
-                DISABLE: 3,
-                DELETED: 4
-            };
-            vm.allGameStatusKeys = ['ENABLE', 'MAINTENANCE', 'DISABLE', 'DELETED'];
             vm.allPartnersStatusString = {
                 NORMAL: 1,
                 FORBID: 2
@@ -245,10 +114,6 @@ define(['js/app'], function (myApp) {
                 BAN_PLAYER_BONUS: 14
             };
 
-            vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION', 'LOGOFF',
-                'CHEAT_NEW_ACCOUNT_REWARD', 'TOPUP_ATTENTION', 'HEDGING', 'TOPUP_BONUS_SPAM',
-                'MULTIPLE_ACCOUNT', 'BANNED', 'FORBID_ONLINE_TOPUP', 'BAN_PLAYER_BONUS'];
-
             vm.depositMethodList = $scope.depositMethodList;
 
             vm.allPlayerFeedbackString = {
@@ -258,12 +123,7 @@ define(['js/app'], function (myApp) {
                 OTHER: "Other",
                 LAST_CALL: "LastCall"
             };
-            vm.playerLvlPeriod = {
-                NONE: "NONE",
-                DAY: "DAY",
-                WEEK: "WEEK",
-                MONTH: "MONTH"
-            };
+
             vm.allPlayerLevelUpPeriod = {
                 DAY: 1,
                 WEEK: 2,
@@ -271,24 +131,6 @@ define(['js/app'], function (myApp) {
                 // 1: "DAY",
                 // 2: "WEEK",
                 // 3: "MONTH"
-            };
-            vm.topUpTypeList = {
-                1: 'TOPUPMANUAL',
-                2: 'TOPUPONLINE',
-                3: 'TOPUPALIPAY',
-                4: 'TOPUPWECHAT',
-                5: 'TOPUPQUICKPAY'
-            };
-            vm.allSettlePeriod = {
-                DAILY: 1,
-                WEEKLY: 2
-            };
-
-            vm.newPlayerListStatus = {
-                SUCCESS: "SUCCESS",
-                ATTEMPT: "ATTEMPT",
-                MANUAL: "MANUAL",
-                NOVERIFY: "NoVerify"
             };
 
             vm.soundChoice = {
@@ -304,25 +146,6 @@ define(['js/app'], function (myApp) {
                 // "tone10": "10.wav",
                 // "tone11": "11.wav",
                 // "tone12": "12.wav"
-            };
-
-            vm.allSMSPurpose = {
-                UNKNOWN: 'unknown',
-                REGISTRATION: 'registration',
-                OLD_PHONE_NUMBER: 'oldPhoneNumber',
-                NEW_PHONE_NUMBER: 'newPhoneNumber',
-                UPDATE_PASSWORD: 'updatePassword',
-                UPDATE_BANK_INFO_FIRST: 'updateBankInfoFirst',
-                UPDATE_BANK_INFO: 'updateBankInfo',
-                FREE_TRIAL_REWARD: 'freeTrialReward',
-                DEMO_PLAYER: 'demoPlayer',
-                PARTNER_REGISTRATION: 'Partner_registration',
-                PARTNER_OLD_PHONE_NUMBER: 'Partner_oldPhoneNumber',
-                PARTNER_NEW_PHONE_NUMBER: 'Partner_newPhoneNumber',
-                PARTNER_UPDATE_PASSWORD: 'Partner_updatePassword',
-                PARTNER_UPDATE_BANK_INFO_FIRST: 'Partner_updateBankInfoFirst',
-                PARTNER_UPDATE_BANK_INFO: 'Partner_updateBankInfo',
-                // RESET_PASSWORD: 'resetPassword'
             };
 
             vm.constProposalStatus = {
