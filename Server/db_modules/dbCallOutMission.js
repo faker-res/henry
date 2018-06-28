@@ -342,7 +342,7 @@ function getCalleeList (query, sortCol) {
 
             return players.map(player => {
                 let phoneNumber = player.phoneNumber;
-                if (phoneNumber.length > 20) {
+                if (phoneNumber && phoneNumber.length > 20) {
                     try {
                         phoneNo = rsaCrypto.decrypt(phoneNumber);
                     }
@@ -361,10 +361,7 @@ function getCalleeList (query, sortCol) {
 }
 
 function getCtiUrls (platformId) {
-    platformId = platformId ? String(platformId) : "6";
-
-    // todo :: debug used value, delete later
-    platformId = 8;
+    platformId = platformId ? String(platformId) : "8";
 
     let urls = [
         "http://eu.tel400.me/cti/",

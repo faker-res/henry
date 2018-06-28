@@ -716,7 +716,7 @@ var dbPlayerTopUpRecord = {
      * @param {Number} topupRequest.topupType
      */
 
-    addOnlineTopupRequest: function (userAgent, playerId, topupRequest, merchantUseType, clientType, topUpReturnCode) {
+    addOnlineTopupRequest: function (userAgent, playerId, topupRequest, merchantUseType, clientType, topUpReturnCode, bPMSGroup = false) {
         var userAgentStr = userAgent;
         var player = null;
         var proposal = null;
@@ -848,6 +848,7 @@ var dbPlayerTopUpRecord = {
                 proposalData.platform = player.platform.platformId;
                 proposalData.playerName = player.name;
                 proposalData.userAgent = userAgent ? userAgent : "";
+                proposalData.bPMSGroup = Boolean(bPMSGroup);
                 proposalData.creator = {
                     type: 'player',
                     name: player.name,
@@ -893,7 +894,9 @@ var dbPlayerTopUpRecord = {
                     // console.log("requestData:", requestData);
                     let groupMerchantList = dbPlayerTopUpRecord.isMerchantValid(player.merchantGroup.merchantNames, merchantGroupList, topupRequest.topupType, clientType);
                     if (groupMerchantList.length > 0) {
-                        requestData.groupMerchantList = groupMerchantList;
+                        if(!bPMSGroup){
+                            requestData.groupMerchantList = groupMerchantList;
+                        }
                         return pmsAPI.payment_requestOnlineMerchant(requestData);
                     } else {
                         let errorMsg = "No Any MerchantNo Are Available, Please Change TopUp Method";
@@ -1909,7 +1912,7 @@ var dbPlayerTopUpRecord = {
      * @param adminName
      */
 
-    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime, realName, limitedOfferObjId, topUpReturnCode) {
+    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime, realName, limitedOfferObjId, topUpReturnCode, bPMSGroup = false) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -2013,6 +2016,7 @@ var dbPlayerTopUpRecord = {
                     proposalData.alipayAccount = alipayAccount;
                     proposalData.remark = remark;
                     proposalData.userAgent = userAgent ? userAgent : '';
+                    proposalData.bPMSGroup = Boolean(bPMSGroup);
                     if (createTime) {
                         proposalData.depositeTime = new Date(createTime);
                     }
@@ -2078,8 +2082,10 @@ var dbPlayerTopUpRecord = {
                             createTime: cTimeString,
                             operateType: entryType == "ADMIN" ? 1 : 0
                         };
-                        if (alipayAccount) {
-                            requestData.groupAlipayList = [alipayAccount];
+                        if(!bPMSGroup){
+                            if (alipayAccount) {
+                                requestData.groupAlipayList = [alipayAccount];
+                            }
                         }
                         // console.log("requestData", requestData);
                         return pmsAPI.payment_requestAlipayAccount(requestData);
@@ -2310,7 +2316,7 @@ var dbPlayerTopUpRecord = {
      * @param limitedOfferObjId
      */
 
-    requestWechatTopup: function (useQR, userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime, limitedOfferObjId, topUpReturnCode) {
+    requestWechatTopup: function (useQR, userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime, limitedOfferObjId, topUpReturnCode, bPMSGroup = false) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -2413,6 +2419,7 @@ var dbPlayerTopUpRecord = {
                         proposalData.wechatAccount = wechatAccount;
                         proposalData.remark = remark;
                         proposalData.userAgent = userAgent ? userAgent : "";
+                        proposalData.bPMSGroup = Boolean(bPMSGroup);
                         if (createTime) {
                             proposalData.depositeTime = new Date(createTime);
                         }
@@ -2484,8 +2491,10 @@ var dbPlayerTopUpRecord = {
                         if (remark) {
                             requestData.remark = remark;
                         }
-                        if (wechatAccount) {
-                            requestData.groupWechatList = [wechatAccount];
+                        if(!bPMSGroup){
+                            if (wechatAccount) {
+                                requestData.groupWechatList = [wechatAccount];
+                            }
                         }
                         //console.log("requestData", requestData);
                         if (useQR) {
