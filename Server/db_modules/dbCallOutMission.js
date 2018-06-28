@@ -415,8 +415,9 @@ function getCtiToken(str) {
 
 function addMissionToCti (platform, admin, calleeList) {
     let token = getCtiToken("POLYLINK_MESSAGE_TOKEN");
+    let sanitizedAdminName = String(admin.adminName).replace(/[^0-9a-z]/gi, '');
 
-    let missionName = admin.adminName + String(new Date().valueOf());
+    let missionName = sanitizedAdminName + String(new Date().valueOf());
     let param = {token};
     param.taskName = missionName;
     param.startMode = 1;
@@ -437,7 +438,7 @@ function addMissionToCti (platform, admin, calleeList) {
             }
 
             if (apiOutput.result != 1) {
-                console.error("CTI API createCallOutTask.do output:", apiOutput);
+                console.error("CTI API createCallOutTask.do output:", apiOutput, param);
                 return Promise.reject({message: "CTI API return error"});
             }
 

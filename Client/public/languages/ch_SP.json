@@ -3789,6 +3789,9 @@
   "CHECK_RECORDED_RECORD": "查询已收录对话数量",
   "Player does not exist": "玩家不存在",
   "manualRewardSkipAuditAmount": "手工优惠 X 元以下自动执行（忽略审核部），不根据提案流程来走",
+  "Validation succeed.": "验证成功",
+  "Validation failed.": "验证失败",
+  "Bank card number did not match.": "银行卡号对不上",
 
   "TOTAL_REWARD_FEE" : "需扣除的优惠",
   "TOTAL_PLATFORM_FEE" :  "需扣除的平台费",
