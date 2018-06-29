@@ -160,6 +160,40 @@
     </div>
 </div>
 
+<h3>Get Reward Points Record (积分变化记录)</h3>
+<div class="test-container">
+    <div>
+        <label>Start Time
+            <input name="startTime" type="datetime-local">
+        </label>
+    </div>
+    <div>
+        <label>End Time
+            <input name="endTime" type="datetime-local">
+        </label>
+    </div>
+    <div>
+        <label>Point Type
+            <input name="pointType" type="number">
+        </label>
+    </div>
+    <div>
+        <label>Status
+            <input name="status" type="number">
+        </label>
+    </div>
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <button id="getPointChangeRecord" data-api-name="getPointChangeRecord">Get Mission List</button>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientRewardPointsAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
         function (ClientServices, WebSocketClient, TestHelper, ClientRewardPointsAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {
