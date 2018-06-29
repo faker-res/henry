@@ -8259,8 +8259,8 @@ let dbPartner = {
                             providerGroupCommission: providerCommission.amount,
                             providerGroupFee: providerCommission.platformFee,
                             crewProfit: providerCommission.crewProfit,
-                            commissionRate: providerCommission.commissionRate? providerCommission.commissionRate / 100: 0,
-                            providerGroupFeeRate: providerCommission.platformFeeRate? providerCommission.platformFeeRate / 100: 0
+                            commissionRate: providerCommission.commissionRate ? providerCommission.commissionRate : 0,
+                            providerGroupFeeRate: providerCommission.platformFeeRate ? providerCommission.platformFeeRate / 100 : 0
                         })
                         if (providerCommission.amount) {
                             output.totalCommission += providerCommission.amount;
