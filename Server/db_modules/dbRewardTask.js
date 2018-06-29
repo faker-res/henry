@@ -1954,7 +1954,7 @@ const dbRewardTask = {
         return attemptUpdate(1);
     },
 
-    getPlatformRewardAnalysis: function (type, period, platformId, startDate, endDate) {
+    getPlatformRewardAnalysis: function (type, period, platformId, startDate, endDate, eventName) {
         //refractorTime
         // var options = {};
         // switch (period) {
@@ -2064,7 +2064,8 @@ const dbRewardTask = {
             let query = {
                 'data.platformId': platformId,
                 type: data._id,
-                createTime: {$gte: startDate, $lt: endDate}
+                createTime: {$gte: startDate, $lt: endDate},
+                "data.eventName": eventName
             };
 
             return dbconfig.collection_proposal.find(query);

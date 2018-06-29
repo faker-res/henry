@@ -4255,7 +4255,8 @@ define(['js/app'], function (myApp) {
                 period: vm.queryPara.reward.periodText,
                 startTime: startDate,
                 endTime: endDate,
-                type: vm.selectReward.type.name
+                type: vm.selectReward.type.name,
+                eventName: vm.selectReward.name
             };
 
             socketService.$socket($scope.AppSocket, 'getPlatformRewardAnalysis', sendData, function success(data1) {
@@ -4269,6 +4270,7 @@ define(['js/app'], function (myApp) {
                     }
 
                     vm.platformRewardData = data1.data;
+                    console.log("walaodata",data1)
                     vm.platformRewardAnalysisData = [];
                     for(let i = 0; i<periodDateData.length; i++){
                         let rewardWithinPeriod = vm.platformRewardData.filter(reward => new Date(reward.createTime).getTime() > periodDateData[i].getTime() && new Date(reward.createTime).getTime() < vm.getNextDateByPeriodAndDate(vm.queryPara.reward.periodText, periodDateData[i]));
