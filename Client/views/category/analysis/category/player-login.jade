@@ -3,7 +3,7 @@
     .row
         .titlePic
             .title
-                text {{"LOGIN_PLAYER" | translate}}
+                text {{"Total Login Player(Without Duplicate)" | translate}}
                 .pull-right
                     a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#loginPlayerAnalysis .block-query","loginPlayer")')
                         text.pull-left.margin-right-5 {{vm.optionText.loginPlayer | translate}}
@@ -92,6 +92,10 @@
                             td
                                 span {{ vm.avgTotalPlayerLogin['device']['PC-DOWNLOAD'] }}
 
+       .row
+           .titlePic
+               .title
+                   text {{"Percentage of Login Devices" | translate}}
         #loginPlayerDeviceAnalysis
             .col-md-12.block-query.well(style='margin-bottom:3px;')
                 div
@@ -197,7 +201,7 @@
             .modal-body
                 .panel.panel-primary
                     .panel-body
-                        .tab-content(style='overflow-y:scroll;')
+                        .tab-content(style='overflow-y:scroll;max-height:600px;')
                             div
                                 table.table.table-striped.table-bordered
                                     thead

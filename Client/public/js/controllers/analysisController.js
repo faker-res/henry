@@ -3603,6 +3603,8 @@ define(['js/app'], function (myApp) {
             if (typeof sendData.hasPartner !== 'boolean'){
                 sendData.hasPartner = null;
             }
+            // only display player without duplicate login
+            sendData.isDuplicateLogin = false;
 
             socketService.$socket($scope.AppSocket, 'countLoginPlayerDevicebyPlatform', sendData, function success(data1) {
                 $scope.$evalAsync(() => {
@@ -3665,6 +3667,9 @@ define(['js/app'], function (myApp) {
             if (typeof sendData.hasPartner !== 'boolean'){
                 sendData.hasPartner = null;
             }
+
+            // only display player with duplicate login
+            sendData.isDuplicateLogin = true;
 
             socketService.$socket($scope.AppSocket, 'countLoginPlayerDevicebyPlatform', sendData, function success(data1) {
                 $scope.$evalAsync(() => {

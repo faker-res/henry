@@ -57,7 +57,7 @@ function socketActionPartner(socketIO, socket) {
             var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.period && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
             var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
             var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerLoginRecord.countLoginPlayerDevicebyPlatform, [ObjectId(data.platformId), startTime, endTime, data.period, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerLoginRecord.countLoginPlayerDevicebyPlatform, [ObjectId(data.platformId), startTime, endTime, data.period, data.isRealPlayer, data.isTestPlayer, data.hasPartner, data.isDuplicateLogin], actionName, isValidData);
         },
         /**
          * Get login player count
