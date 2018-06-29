@@ -32,7 +32,7 @@ function platformListSidebarController($scope, $cookies, socketService, authServ
             setTimeout(function () {
                 $('#platformRefresh').removeClass('fa-check');
                 $('#platformRefresh').addClass('fa-refresh').fadeIn(100);
-            }, 1000);
+            }, 0);
 
             //select platform from cookies data
             var storedPlatform = $cookies.get("platform");

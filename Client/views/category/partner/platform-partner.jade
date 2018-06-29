@@ -407,7 +407,7 @@ p
                                         td.text-left
                                             button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Partner', 'BankDetail')",ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal", ng-click="vm.openEditPartnerDialog('withdrawInfo');") {{"EDIT" | translate}}
                                             br
-                                            button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Partner', 'PaymentInformationHistory')",ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", ng-click='vm.getPaymentInfoHistory(false)') {{"EDIT_HISTORY" | translate}}
+                                            button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Partner', 'PaymentInformationHistory')",ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", ng-click='vm.getPaymentInfoHistory()') {{"EDIT_HISTORY" | translate}}
 
                                 tr
                                     td

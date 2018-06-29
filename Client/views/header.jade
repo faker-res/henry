@@ -102,6 +102,10 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
                             text(ng-if='langKey=="en_US"') 中文
                             text(ng-if='langKey=="ch_SP"') English
                     li
+                        a(ng-click='toggleDevLog()')
+                            input(type='checkbox' style='transform:scale(1.5);' ng-model='enableLogging')
+                            text {{ 'Dev Log' | translate }}
+                    li
                         a(data-toggle="modal", data-target='#modalDisplayActionLog', ng-click='presentActionLog()')
                             i.fa.fa-2x.fa-list-alt
                             text {{ 'VIEW_LOG' | translate }}

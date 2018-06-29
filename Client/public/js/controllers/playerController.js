@@ -12,7 +12,6 @@ define(['js/app'], function (myApp) {
         //init local var data
         vm.updatePlatform = {};
         vm.editPlayer = {};
-        vm.editPartner = {};
         vm.merchantTopupTypeJson = $scope.merchantTopupTypeJson;
         vm.provinceList = [];
         vm.cityList = [];
@@ -303,25 +302,6 @@ define(['js/app'], function (myApp) {
             // "tone10": "10.wav",
             // "tone11": "11.wav",
             // "tone12": "12.wav"
-        };
-
-        vm.allSMSPurpose = {
-            UNKNOWN: 'unknown',
-            REGISTRATION: 'registration',
-            OLD_PHONE_NUMBER: 'oldPhoneNumber',
-            NEW_PHONE_NUMBER: 'newPhoneNumber',
-            UPDATE_PASSWORD: 'updatePassword',
-            UPDATE_BANK_INFO_FIRST: 'updateBankInfoFirst',
-            UPDATE_BANK_INFO: 'updateBankInfo',
-            FREE_TRIAL_REWARD: 'freeTrialReward',
-            DEMO_PLAYER: 'demoPlayer',
-            PARTNER_REGISTRATION: 'Partner_registration',
-            PARTNER_OLD_PHONE_NUMBER: 'Partner_oldPhoneNumber',
-            PARTNER_NEW_PHONE_NUMBER: 'Partner_newPhoneNumber',
-            PARTNER_UPDATE_PASSWORD: 'Partner_updatePassword',
-            PARTNER_UPDATE_BANK_INFO_FIRST: 'Partner_updateBankInfoFirst',
-            PARTNER_UPDATE_BANK_INFO: 'Partner_updateBankInfo',
-            // RESET_PASSWORD: 'resetPassword'
         };
 
         vm.constProposalStatus = {
@@ -805,16 +785,6 @@ define(['js/app'], function (myApp) {
             }
             else {
                 vm.smsModalTab = tabName ? tabName : "smsToPlayerPanel";
-            }
-        };
-
-        vm.showPartnerSmsTab = function (tabName) {
-            if (!tabName && (vm.selectedSinglePartner && vm.selectedSinglePartner.permission && vm.selectedSinglePartner.permission.SMSFeedBack === false)) {
-                vm.smsModalTab = "smsLogPartnerPanel";
-                vm.initSMSLogPartner("partner");
-            }
-            else {
-                vm.smsModalTab = tabName ? tabName : "smsToPartnerPanel";
             }
         };
 
@@ -2147,10 +2117,6 @@ define(['js/app'], function (myApp) {
 
         vm.changeSMSTemplate = function () {
             vm.smsPlayer.message = vm.smstpl ? vm.smstpl.content : '';
-        };
-
-        vm.changePartnerSMSTemplate = function () {
-            vm.smsPartner.message = vm.smstpl ? vm.smstpl.content : '';
         };
 
         vm.searchPlayersForSendingMessage = function (newSearch) {
@@ -6536,21 +6502,6 @@ define(['js/app'], function (myApp) {
                         }).done();
                     };
 
-                    vm.sendMessageToPartner = function () {
-                        // Currently we are passing the adminId from the client side, but we should really pick it up on the server side.
-                        let sendData = {
-                            //adminId: authService.adminId,
-                            adminName: authService.adminName,
-                            platformId: vm.selectedPlatform.id,
-                            partnerId: vm.telphonePartner._id,
-                            title: vm.messageForPartner.title,
-                            content: vm.messageForPartner.content
-                        };
-                        $scope.$socketPromise('sendPlayerMailFromAdminToPartner', sendData).then(function () {
-                            // We could show a confirmation message, but currently showConfirmMessage() is doing that for us.
-                        }).done();
-                    };
-
                     utilService.setupPopover({
                         context: container,
                         elem: '.statusPopover',
@@ -7853,11 +7804,6 @@ define(['js/app'], function (myApp) {
             $('#messagePlayerModal').modal('show');
         };
 
-        vm.sendMessageToPartnerBtn = function (type, data) {
-            vm.telphonePartner = data;
-            $('#messagePartnerModal').modal('show');
-        };
-
         vm.callNewPlayerBtn = function (phoneNumber, data) {
 
             vm.getSMSTemplate();
@@ -7921,47 +7867,6 @@ define(['js/app'], function (myApp) {
                 }
                 $scope.initPhoneCall(phoneCall);
                 socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: playerObjId}, function (data) {
-                    $scope.phoneCall.phone = data.data;
-                    $scope.phoneCall.loadingNumber = false;
-                    $scope.safeApply();
-                    $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
-                }, function (err) {
-                    $scope.phoneCall.loadingNumber = false;
-                    $scope.phoneCall.err = err.error.message;
-                    alert($scope.phoneCall.err);
-                    $scope.safeApply();
-                }, true);
-            }
-        };
-
-        vm.telorMessageToPartnerBtn = function (type, partnerObjId, data) {
-            // let rowData = JSON.parse(data);
-            console.log(type, data);
-            vm.getSMSTemplate();
-            let title, text;
-            if (type === 'msg' && authService.checkViewPermission('Platform', 'Partner', 'sendSMS')) {
-                vm.smsPartner = {
-                    partnerId: partnerObjId.partnerId,
-                    partnerName: partnerObjId.partnerName,
-                    realName: partnerObjId.realName,
-                    platformId: vm.selectedPlatform.data.platformId,
-                    channel: $scope.channelList[0],
-                    hasPhone: partnerObjId.phoneNumber
-                };
-                vm.sendSMSResult = {};
-                $scope.safeApply();
-                $('#smsPartnerModal').modal('show');
-                vm.showPartnerSmsTab(null);
-            } else if (type === 'tel') {
-                let phoneCall = {
-                    partnerId: data.partnerId,
-                    name: data.realName,
-                    toText: data.partnerName ? data.partnerName : data.realName,
-                    platform: "jinshihao",
-                    loadingNumber: true,
-                };
-                $scope.initPhoneCall(phoneCall);
-                socketService.$socket($scope.AppSocket, 'getPartnerPhoneNumber', {partnerObjId: partnerObjId}, function (data) {
                     $scope.phoneCall.phone = data.data;
                     $scope.phoneCall.loadingNumber = false;
                     $scope.safeApply();
@@ -8475,15 +8380,6 @@ define(['js/app'], function (myApp) {
             };
         };
 
-        vm.loadPartnerSMSSettings = function () {
-            let selectedPartner = vm.isOneSelectedPartner();   // ~ 20 fields!
-            let editPartner = vm.editPartner;                  // ~ 6 fields
-            vm.partnerBeingEdited = {
-                smsSetting: editPartner.smsSetting,
-                receiveSMS: editPartner.receiveSMS
-            };
-        };
-
         function getPlayerLevelName(levelObjId) {
             for (var i = 0; i < vm.allPlayerLvl.length; i++) {
                 if (vm.allPlayerLvl[i]._id == levelObjId) {
@@ -8834,24 +8730,6 @@ define(['js/app'], function (myApp) {
             });
 
         };
-
-        vm.updatePartnerSMSSettings = function () {
-            let partnerId = vm.isOneSelectedPartner()._id;
-
-            let updateSMS = {
-                receiveSMS: vm.partnerBeingEdited.receiveSMS != null ? vm.partnerBeingEdited.receiveSMS : undefined,
-                smsSetting: vm.partnerBeingEdited.smsSetting,
-            };
-
-            socketService.$socket($scope.AppSocket, 'updatePartner', {
-                query: {_id: playerId},
-                updateData: updateSMS
-            }, function (updated) {
-                console.log('updated', updated);
-                vm.getPlatformPartnersData();
-            });
-
-        }
 
         /// check the length of password of player/partner before signup
         vm.passwordLengthCheck = function (password) {
@@ -9737,31 +9615,12 @@ define(['js/app'], function (myApp) {
             vm.messageForPlayer = {};
         };
 
-        vm.initPartnerMessageModal = function () {
-            $('#sendMessageToPartnerTab').addClass('active');
-            $('#messageLogPartnerTab').removeClass('active');
-            $scope.safeApply();
-            vm.messageModalTab = "sendMessageToPartnerPanel";
-            vm.messageForPartner = {};
-        };
-
         vm.initSMSModal = function () {
             $('#smsToPlayerTab').addClass('active');
             $('#smsLogTab').removeClass('active');
             $('#smsSettingTab').removeClass('active');
             vm.smsModalTab = "smsToPlayerPanel";
             vm.playerSmsSetting = {smsGroup: {}};
-            vm.getPlatformSmsGroups();
-            vm.getAllMessageTypes();
-            $scope.safeApply();
-        };
-
-        vm.initPartnerSMSModal = function () {
-            $('#smsToPartnerTab').addClass('active');
-            $('#smsLogPartnerTab').removeClass('active');
-            $('#smsSettingPartnerTab').removeClass('active');
-            vm.smsModalTab = "smsToPartnerPanel";
-            vm.partnerSmsSetting = {smsGroup:{}};
             vm.getPlatformSmsGroups();
             vm.getAllMessageTypes();
             $scope.safeApply();
@@ -12305,24 +12164,12 @@ define(['js/app'], function (myApp) {
                 console.log('playerpayment', data);
             }, null, true);
         }
-        vm.getPaymentInfoHistory = function (isPlayer) {
+        vm.getPaymentInfoHistory = function () {
             vm.paymetHistoryCount = 0;
-            let objId;
-            let type;
-            let modalType;
-
-            if (isPlayer) {
-                objId = vm.isOneSelectedPlayer()._id;
-                type = "PLAYERS";
-            } else {
-                objId = vm.isOneSelectedPartner()._id;
-                type = "PARTNERS";
-            }
             socketService.$socket($scope.AppSocket, 'getPaymentHistory', {
-                objectId: objId,
-                type: type
+                objectId: vm.isOneSelectedPlayer()._id,
+                type: "PLAYERS"
             }, function (data) {
-                console.log('payment history', data);
                 var drawData = data.data.map(item => {
                     item.province = item.provinceData || item.bankAccountProvince;
                     item.city = item.cityData || item.bankAccountCity;
@@ -12333,19 +12180,13 @@ define(['js/app'], function (myApp) {
                     return item;
                 });
                 vm.paymetHistoryCount = data.data.length;
-                vm.drawPaymentHistory(drawData, isPlayer);
+                vm.drawPaymentHistory(drawData);
 
             }, null, true);
-            if (isPlayer) {
-                modalType = '#modalPlayerPaymentHistory';
-            } else {
-                modalType = '#modalPartnerPaymentHistory';
-            }
-            $(modalType).modal();
+            $('#modalPlayerPaymentHistory').modal();
         }
 
-        vm.drawPaymentHistory = function (tblData, isPlayer) {
-            let tableType;
+        vm.drawPaymentHistory = function (tblData) {
             var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                 data: tblData,
                 aoColumnDefs: [
@@ -12366,30 +12207,11 @@ define(['js/app'], function (myApp) {
                 "paging": true,
             });
 
-            if (isPlayer) {
-                tableType = '#playerPaymentHistoryTbl';
-            } else {
-                tableType = '#partnerPaymentHistoryTbl';
-            }
-
-            var aTable = $(tableType).DataTable(tableOptions);
+            var aTable = $('#playerPaymentHistoryTbl').DataTable(tableOptions);
             aTable.columns.adjust().draw();
-            $(tableType).resize();
+            $('#playerPaymentHistoryTbl').resize();
             $scope.safeApply();
         };
-
-        // vm.initMailLog = function () {
-        //     vm.mailLog = vm.mailLog || {};
-        //     vm.mailLog.query = {};
-        //     vm.mailLog.receivedMails = [{}];
-        //     utilService.actionAfterLoaded('#modalMailLog.in #mailLogQuery .endTime', function () {
-        //         vm.mailLog.startTime = utilService.createDatePicker('#mailLogQuery .startTime');
-        //         vm.mailLog.endTime = utilService.createDatePicker('#mailLogQuery .endTime');
-        //         vm.mailLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
-        //         vm.mailLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-        //         vm.searchMailLog();
-        //     });
-        // }
 
         vm.initMailLog = function () {
             vm.mailLog = vm.mailLog || {};
@@ -12403,21 +12225,6 @@ define(['js/app'], function (myApp) {
                 vm.mailLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                 vm.mailLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 vm.searchMailLog();
-            });
-        };
-
-        vm.initPartnerMailLog = function () {
-            vm.mailLogPartner = vm.mailLogPartner || {};
-            vm.mailLogPartner.query = {};
-            vm.mailLogPartner.receivedMails = [{}];
-            vm.mailLogPartner.isAdmin = true;
-            vm.mailLogPartner.isSystem = true;
-            utilService.actionAfterLoaded('#messagePartnerModal.in #messageLogPartnerPanel #mailLogPartnerQuery .endTime', function () {
-                vm.mailLogPartner.startTime = utilService.createDatePicker('#messageLogPartnerPanel #mailLogPartnerQuery .startTime');
-                vm.mailLogPartner.endTime = utilService.createDatePicker('#messageLogPartnerPanel #mailLogPartnerQuery .endTime');
-                vm.mailLogPartner.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
-                vm.mailLogPartner.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                vm.searchPartnerMailLog();
             });
         };
 
@@ -12435,24 +12242,6 @@ define(['js/app'], function (myApp) {
             $scope.$socketPromise('searchMailLog', requestData).then(result => {
                 console.log("result:", result);
                 vm.mailLog.receivedMails = result.data;
-                $scope.safeApply();
-            }).catch(console.error);
-        };
-
-        vm.searchPartnerMailLog = function () {
-            let requestData = {
-                recipientId: vm.selectedSinglePartner._id,
-                startTime: vm.mailLogPartner.startTime.data('datetimepicker').getLocalDate() || new Date(0),
-                endTime: vm.mailLogPartner.endTime.data('datetimepicker').getLocalDate() || new Date()
-            };
-            if (!vm.mailLogPartner.isAdmin && vm.mailLogPartner.isSystem) {
-                requestData.senderType = 'System';
-            } else if (vm.mailLogPartner.isAdmin && !vm.mailLogPartner.isSystem) {
-                requestData.senderType = 'admin';
-            }
-            $scope.$socketPromise('searchMailLog', requestData).then(result => {
-                console.log("result:", result);
-                vm.mailLogPartner.receivedMails = result.data;
                 $scope.safeApply();
             }).catch(console.error);
         };
@@ -12488,37 +12277,6 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.initSMSLogPartner = function (type) {
-            vm.smsLog = vm.smsLog || {index: 0, limit: 10};
-            vm.smsLog.type = type;
-            vm.smsLog.query = {};
-            vm.smsLog.searchResults = [{}];
-            vm.smsLog.query.status = "all";
-            vm.smsLog.query.isAdmin = true;
-            vm.smsLog.query.isSystem = false;
-            let endTimeElementPath = '.modal.in #smsLogPartnerPanel #smsLogPartnerQuery .endTime';
-            let tablePageId = "smsLogPartnerTablePage";
-            if (type === "multi") {
-                endTimeElementPath = '#groupSmsLogQuery .endTime';
-                tablePageId = "groupSmsLogTablePage";
-            }
-            utilService.actionAfterLoaded(endTimeElementPath, function () {
-                vm.smsLog.query.startTime = utilService.createDatePicker('#smsLogPartnerPanel #smsLogPartnerQuery .startTime');
-                vm.smsLog.query.endTime = utilService.createDatePicker('#smsLogPartnerPanel #smsLogPartnerQuery .endTime');
-                if (type === "multi") {
-                    vm.smsLog.query.startTime = utilService.createDatePicker('#groupSmsLogQuery .startTime');
-                    vm.smsLog.query.endTime = utilService.createDatePicker('#groupSmsLogQuery .endTime');
-                }
-                vm.smsLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
-                vm.smsLog.query.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                vm.smsLog.pageObj = utilService.createPageForPagingTable(tablePageId, {}, $translate, function (curP, pageSize) {
-                    vm.commonPageChangeHandler(curP, pageSize, "smsLog", vm.searchSMSLogPartner)
-                });
-                // Be user friendly: Fetch some results immediately!
-                vm.searchSMSLogPartner(true);
-            });
-        };
-
         vm.searchSMSLog = function (newSearch) {
             var requestData = {
                 // playerId: vm.selectedSinglePlayer.playerId,
@@ -12541,41 +12299,6 @@ define(['js/app'], function (myApp) {
                     vm.smsLog.searchResults = result.data.data.map(item => {
                         item.createTime$ = vm.dateReformat(item.createTime);
                         if (item.status == "failure" && item.error && item.error.status == 430) {
-                            item.error = $translate('RESPONSE_TIMEOUT');
-                            item.status$ = $translate('unknown');
-                        } else {
-                            item.status$ = $translate(item.status);
-                        }
-                        return item;
-                    });
-                    vm.smsLog.totalCount = result.data.size;
-                    vm.smsLog.pageObj.init({maxCount: vm.smsLog.totalCount}, newSearch);
-                })
-            }).catch(console.error);
-        };
-
-        vm.searchSMSLogPartner = function (newSearch) {
-            let requestData = {
-                isAdmin: vm.smsLog.query.isAdmin,
-                isSystem: vm.smsLog.query.isSystem,
-                status: vm.smsLog.query.status,
-                startTime: vm.smsLog.query.startTime.data('datetimepicker').getLocalDate(),//$('#smsLogQuery .startTime input').val() || undefined,
-                endTime: vm.smsLog.query.endTime.data('datetimepicker').getLocalDate(),//$('#smsLogQuery .endTime   input').val() || undefined,
-                index: newSearch ? 0 : vm.smsLog.index,
-                limit: newSearch ? 10 : vm.smsLog.limit,
-            };
-
-            if (vm.smsLog.type === "partner") {
-                requestData.partnerId = vm.selectedSinglePartner.partnerId;
-            }
-
-            console.log("searchSMSLogPartner requestData:", requestData);
-            $scope.$socketPromise('searchSMSLog', requestData).then(result => {
-                $scope.$evalAsync(() => {
-                    console.log("searchSMSLogPartner result", result);
-                    vm.smsLog.searchResults = result.data.data.map(item => {
-                        item.createTime$ = vm.dateReformat(item.createTime);
-                        if (item.status === "failure" && item.error && item.error.status === 430) {
                             item.error = $translate('RESPONSE_TIMEOUT');
                             item.status$ = $translate('unknown');
                         } else {
