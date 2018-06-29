@@ -78,7 +78,6 @@ let RewardPointsServiceImplement = function () {
 
     this.getPointChangeRecord.expectsData = '';
     this.getPointChangeRecord.onRequest = function (wsFunc, conn, data) {
-        console.log("walaodata",data.startTime, data.endTime, data.pointType, data.status,data.platformId,conn.playerId )
         var isValidData = Boolean(data && data.startTime && data.endTime && data.platformId && conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbRewardPoints.getPointChangeRecord, [data.startTime, data.endTime, data.pointType, data.status, data.platformId, conn.playerId], isValidData);
 
