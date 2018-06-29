@@ -412,13 +412,13 @@ style.
                                         option(value='all') {{'ALL' | translate}}
                                         option(ng-repeat='(i,v) in constRewardPointsLogStatus' value='{{i}}') {{ v | translate }}
                                 .inlineBlk
-                                    label {{'START_DATE' | translate}}
+                                    label {{'Create Time(Start)' | translate}}
                                     #rpRecordStartDate.input-append.form-control
                                         input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
                                         span.add-on
                                             i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                                 .inlineBlk
-                                    label {{'END_DATE' | translate}}
+                                    label {{'Create Time(End)' | translate}}
                                     br
                                     #rpRecordEndDate.input-append.form-control
                                         input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
