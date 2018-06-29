@@ -6502,21 +6502,6 @@ define(['js/app'], function (myApp) {
                         }).done();
                     };
 
-                    vm.sendMessageToPartner = function () {
-                        // Currently we are passing the adminId from the client side, but we should really pick it up on the server side.
-                        let sendData = {
-                            //adminId: authService.adminId,
-                            adminName: authService.adminName,
-                            platformId: vm.selectedPlatform.id,
-                            partnerId: vm.telphonePartner._id,
-                            title: vm.messageForPartner.title,
-                            content: vm.messageForPartner.content
-                        };
-                        $scope.$socketPromise('sendPlayerMailFromAdminToPartner', sendData).then(function () {
-                            // We could show a confirmation message, but currently showConfirmMessage() is doing that for us.
-                        }).done();
-                    };
-
                     utilService.setupPopover({
                         context: container,
                         elem: '.statusPopover',
@@ -7817,11 +7802,6 @@ define(['js/app'], function (myApp) {
         vm.sendMessageToPlayerBtn = function (type, data) {
             vm.telphonePlayer = data;
             $('#messagePlayerModal').modal('show');
-        };
-
-        vm.sendMessageToPartnerBtn = function (type, data) {
-            vm.telphonePartner = data;
-            $('#messagePartnerModal').modal('show');
         };
 
         vm.callNewPlayerBtn = function (phoneNumber, data) {
@@ -9633,14 +9613,6 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
             vm.messageModalTab = "sendMessageToPlayerPanel";
             vm.messageForPlayer = {};
-        };
-
-        vm.initPartnerMessageModal = function () {
-            $('#sendMessageToPartnerTab').addClass('active');
-            $('#messageLogPartnerTab').removeClass('active');
-            $scope.safeApply();
-            vm.messageModalTab = "sendMessageToPartnerPanel";
-            vm.messageForPartner = {};
         };
 
         vm.initSMSModal = function () {
