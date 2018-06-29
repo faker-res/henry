@@ -76,9 +76,9 @@ function socketActionRewardEvent(socketIO, socket) {
             if (data && data.platformId && ObjectId(data.platformId)) {
                 platformId = ObjectId(data.platformId);
             }
-            var isValidData = Boolean(data && data.type && data.period && platformId);
+            var isValidData = Boolean(data && data.type && data.period && platformId && data.eventName);
             if (isValidData) {
-                args = [data.type, data.period, platformId, startTime, endTime];
+                args = [data.type, data.period, platformId, startTime, endTime, data.eventName];
             }
             socketUtil.emitter(self.socket, dbRewardTask.getPlatformRewardAnalysis, args, actionName, isValidData);
         },

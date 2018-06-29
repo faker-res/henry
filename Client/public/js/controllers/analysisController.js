@@ -4255,7 +4255,8 @@ define(['js/app'], function (myApp) {
                 period: vm.queryPara.reward.periodText,
                 startTime: startDate,
                 endTime: endDate,
-                type: vm.selectReward.type.name
+                type: vm.selectReward.type.name,
+                eventName: vm.selectReward.name
             };
 
             socketService.$socket($scope.AppSocket, 'getPlatformRewardAnalysis', sendData, function success(data1) {
