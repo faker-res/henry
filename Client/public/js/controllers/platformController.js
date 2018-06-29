@@ -7885,6 +7885,14 @@ define(['js/app'], function (myApp) {
             };
 
             vm.callNewPlayerBtn = function (phoneNumber, data) {
+                let now = new Date();
+                if (vm.lastCallNewPlayerDate && (now.valueOf() - vm.lastCallNewPlayerDate.valueOf() < 1000)) {
+                    console.log('multiple call within a second!!');
+                    return;
+                }
+                else {
+                    vm.lastCallNewPlayerDate = new Date();
+                }
 
                 vm.getSMSTemplate();
                 var phoneCall = {
