@@ -361,7 +361,7 @@ function getCalleeList (query, sortCol) {
 }
 
 function getCtiUrls (platformId) {
-    platformId = platformId ? String(platformId) : "8";
+    platformId = platformId ? String(platformId) : "10";
 
     let urls = [
         "http://eu.tel400.me/cti/",
@@ -386,7 +386,7 @@ function getCtiUrls (platformId) {
         let xdlUrl = urls[3];
         urls[3] = urls[1];
         urls[1] = xdlUrl;
-    } else if (platformId == '9') {
+    } else if (platformId == '8') {
         let jshUrl = urls[6];
         urls[6] = urls[0];
         urls[0] = jshUrl;
@@ -394,10 +394,14 @@ function getCtiUrls (platformId) {
         let bylUrl = urls[7];
         urls[7] = urls[0];
         urls[0] = bylUrl;
-    } else if (platformId == '8') {
+    } else if (platformId == '10') {
         let jshUrl = urls[8];
         urls[8] = urls[0];
         urls[0] = jshUrl;
+    } else if (platformId == '3' || platformId == '9') {
+        let byhUrl = urls[6];
+        urls[6] = urls[0];
+        urls[0] = byhUrl;
     }
 
     return urls;
@@ -558,9 +562,12 @@ function callCtiApiWithRetry (platformId, path, param) {
 
     return tryCallCtiApi();
 
-    function tryCallCtiApi (triedTimes) {
+    function tryCallCtiApi (triedTimes, lastBody) {
         triedTimes = triedTimes || 0;
         if (triedTimes >= urls.length) {
+            if (lastBody) {
+                return lastBody;
+            }
             return Promise.reject({message: "Fail To Connect CTI API."});
         }
 
@@ -571,22 +578,26 @@ function callCtiApiWithRetry (platformId, path, param) {
 
         return new Promise((resolve) => {
             try {
-                request.post(link, {form: param}, (err, resp, body) => {
-                    if (err) {
-                        console.error(err);
-                        resolve(tryCallCtiApi(nextTriedTimes));
+                request.post(link, {form: param, timeout: 3000}, (err, resp, body) => {
+                    if (err || (resp && body && Number(JSON.parse(body).result) != 1)) {
+                        console.log("try no.", nextTriedTimes, link);
+                        console.error(err || body);
+                        resolve(tryCallCtiApi(nextTriedTimes), body);
+                        return;
                     }
 
                     if (!resp) {
                         // throw this to prevent passing undefined to JSON.parse function
-                        throw(new Error('Post request get nothing for ' + link));
+                        console.error('Post request get nothing for ' + link);
+                        resolve(tryCallCtiApi(nextTriedTimes), lastBody);
+                        return;
                     }
 
                     resolve(JSON.parse(body));
-                })
+                });
             } catch (err) {
                 console.error(err);
-                resolve(tryCallCtiApi(nextTriedTimes));
+                resolve(tryCallCtiApi(nextTriedTimes), lastBody);
             }
         });
     }
