@@ -3869,6 +3869,7 @@
   "Transferring Out": "转出中",
   "Seq No": "排序编号",
   "Login Date": "登入日期",
-  "Login Device": "登入装置"
-
+  "Login Device": "登入装置",
+  "Percentage of Login Devices": "登入装置人数占比",
+  "Total Login Player(Without Duplicate)":"总登入玩家人数（扣除重复） VS 日"
 }
