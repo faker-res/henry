@@ -2027,11 +2027,6 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.sendMessageToPlayerBtn = function (type, data) {
-                vm.telphonePlayer = data;
-                $('#messagePlayerModal').modal('show');
-            };
-
             vm.sendMessageToPartnerBtn = function (type, data) {
                 vm.telphonePartner = data;
                 $('#messagePartnerModal').modal('show');
