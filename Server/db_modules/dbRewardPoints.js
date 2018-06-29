@@ -821,7 +821,7 @@ let dbRewardPoints = {
                                         if (event.target) {
                                             event.target.targetDestination = providerName;
                                         }
-                                        if (event.level && event.level.value){
+                                        if (event.level && (event.level.value || event.level.value === 0)){
                                             event.level = event.level.value;
                                         }
                                     
@@ -938,7 +938,7 @@ let dbRewardPoints = {
                                     if (event.target) {
                                         event.target.targetDestination = providerName;
                                     }
-                                    if (event.level && event.level.value){
+                                    if (event.level && (event.level.value || event.level.value === 0)){
                                         event.level = event.level.value;
                                     }
 
@@ -1035,7 +1035,7 @@ let dbRewardPoints = {
                                     if (event.target) {
                                         event.target.targetDestination = providerName;
                                     }
-                                    if (event.level && event.level.value){
+                                    if (event.level && (event.level.value || event.level.value === 0)){
                                         event.level = event.level.value;
                                     }
                                 });
@@ -1169,7 +1169,7 @@ let dbRewardPoints = {
                                     if (event.target) {
                                         event.target.targetDestination = providerName;
                                     }
-                                    if (event.level && event.level.value){
+                                    if (event.level && (event.level.value || event.level.value === 0)){
                                         event.level = event.level.value;
                                     }
                                 });
@@ -1281,7 +1281,7 @@ let dbRewardPoints = {
                                     if (event.target) {
                                         event.target.targetDestination = providerName;
                                     }
-                                    if (event.level && event.level.value){
+                                    if (event.level && (event.level.value || event.level.value === 0)){
                                         event.level = event.level.value;
                                     }
                                 });
@@ -1393,7 +1393,7 @@ let dbRewardPoints = {
                                     if (event.target) {
                                         event.target.targetDestination = providerName;
                                     }
-                                    if (event.level && event.level.value){
+                                    if (event.level && (event.level.value || event.level.value === 0)){
                                         event.level = event.level.value;
                                     }
                                 });
