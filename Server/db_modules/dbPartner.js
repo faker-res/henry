@@ -65,7 +65,7 @@ let dbPartner = {
                         }
                     }
 
-                    if (!platformData.partnerRequireSMSVerification || bypassSMSVerify) {
+                    if (!platformData.partnerRequireSMSVerification || bypassSMSVerify || partnerData.parent) {
                         return true;
                     }
                     return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, platformData, partnerData.smsCode, partnerData.partnerName, true);
