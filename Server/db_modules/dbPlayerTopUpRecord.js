@@ -2012,7 +2012,7 @@ var dbPlayerTopUpRecord = {
                     proposalData.playerName = player.name;
                     proposalData.realName = realName || player.realName;
                     proposalData.amount = Number(amount);
-                    proposalData.alipayName = alipayName;
+                    proposalData.alipayName = entryType == "ADMIN" ? remark : (alipayName || remark);
                     proposalData.alipayAccount = alipayAccount;
                     proposalData.remark = remark;
                     proposalData.userAgent = userAgent ? userAgent : '';
