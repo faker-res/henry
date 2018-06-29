@@ -166,7 +166,7 @@ var dbPlayerLoginRecord = {
         );
     },
 
-    countLoginPlayerDevicebyPlatform: function (platformId, startDate, endDate, period, isRealPlayer, isTestPlayer, hasPartner) {
+    countLoginPlayerDevicebyPlatform: function (platformId, startDate, endDate, period, isRealPlayer, isTestPlayer, hasPartner, isDuplicateLogin) {
         var proms = [];
         var playerLoginProms = [];
         var deviceLoginProms = [];
@@ -203,7 +203,7 @@ var dbPlayerLoginRecord = {
 
         var loopTimes = dateRange / periodRange;
         for(var i = 0; i < loopTimes; i++){
-          
+
             var dayEndTime = getNextDate.call(this, dayStartTime);
             var matchObj = {
                 platform: platformId,
@@ -269,7 +269,7 @@ var dbPlayerLoginRecord = {
                 },
                 {
                     $group: {
-                        _id: '$inputDeviceType',
+                        _id: {'inputDeviceType':'$inputDeviceType' , 'player':'$player'},
                         count: { $sum:1 },
                         loginTime:{ '$first': '$loginTime'}
                     }
@@ -315,30 +315,12 @@ var dbPlayerLoginRecord = {
                     }
 
                     data[1][i].forEach(item=>{
-                        switch (item._id) {
-                            case '1':
-                                obj['device']['WEB'] = item['count'];
-                                obj['subTotal'] += item['count'];
-                                break;
-                            case '2':
-                                obj['device']['H5'] = item['count'];
-                                obj['subTotal'] += item['count'];
-                                break;
-                            case '3':
-                                obj['device']['APP-ANDROID'] = item['count'];
-                                obj['subTotal'] += item['count'];
-                                break;
-                            case '4':
-                                obj['device']['APP-IOS'] = item['count'];
-                                obj['subTotal'] += item['count'];
-                                break;
-                            case '5':
-                                obj['device']['PC-DOWNLOAD'] = item['count'];
-                                obj['subTotal'] += item['count'];
-                                break;
-                            default:
-                                break;
-                          }
+
+                        if(isDuplicateLogin){
+                            obj = dbPlayerLoginRecord.calDevice(obj, item, item['count']);
+                        }else{
+                            obj = dbPlayerLoginRecord.calDevice(obj, item, 1);
+                        }
                     })
                     tempDate = getNextDate(tempDate);
                     res.push(obj);
@@ -348,7 +330,34 @@ var dbPlayerLoginRecord = {
             }
         );
     },
+    calDevice: function(obj, item, no){
+      switch (item._id.inputDeviceType) {
+          case '1':
+              obj['device']['WEB'] += no;
+              obj['subTotal'] += no;
+              break;
+          case '2':
+              obj['device']['H5'] += no;
+              obj['subTotal'] += no;
+              break;
+          case '3':
+              obj['device']['APP-ANDROID'] += no;
+              obj['subTotal'] += no;
+              break;
+          case '4':
+              obj['device']['APP-IOS'] += no;
+              obj['subTotal'] += no;
+              break;
+          case '5':
+              obj['device']['PC-DOWNLOAD'] += no;
+              obj['subTotal'] += no;
+              break;
+          default:
+              break;
+        }
 
+        return obj
+    },
     /* 
      * Get login player count 
      */

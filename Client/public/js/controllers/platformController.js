@@ -854,7 +854,8 @@ define(['js/app'], function (myApp) {
                 [vm.rewardList, vm.promoTypeList, vm.allAlipaysAcc, vm.allWechatpaysAcc, vm.allBankTypeList,
                  vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
                  vm.playerFeedbackTopic, vm.partnerFeedbackTopic, vm.allPlayerFeedbackResults,vm.allPartnerFeedbackResults,
-                 [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes,[vm.allGameProviders, vm.gameProvidersList]
+                 [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes,[vm.allGameProviders, vm.gameProvidersList],
+                    [vm.gameProviderGroup, vm.gameProviderGroupNames]
                 ] = await Promise.all([
                     commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -871,7 +872,8 @@ define(['js/app'], function (myApp) {
                     commonService.getAllPartnerFeedbackResults($scope).catch(err => Promise.resolve([])),
                     commonService.getAllGameTypes($scope).catch(err => Promise.resolve([[], []])),
                     commonService.getAllRewardTypes($scope).catch(err => Promise.resolve([])),
-                    commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []]))
+                    commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])),
+                    commonService.getPlatformProviderGroup($scope, vm.selectedPlatform.data._id).catch(err => Promise.resolve([[], []]))
                 ]);
 
                 // 1st dependencies variable
@@ -7883,6 +7885,14 @@ define(['js/app'], function (myApp) {
             };
 
             vm.callNewPlayerBtn = function (phoneNumber, data) {
+                let now = new Date();
+                if (vm.lastCallNewPlayerDate && (now.valueOf() - vm.lastCallNewPlayerDate.valueOf() < 1000)) {
+                    console.log('multiple call within a second!!');
+                    return;
+                }
+                else {
+                    vm.lastCallNewPlayerDate = new Date();
+                }
 
                 vm.getSMSTemplate();
                 var phoneCall = {
@@ -20634,23 +20644,23 @@ define(['js/app'], function (myApp) {
                 if (type == 'add') {
                     let newObj = {};
 
-                    // check again if there is duplication of sms title after updating the promoCodeType
-                    if (data.smsTitle && vm.promoCodeType1BeforeEdit && vm.promoCodeType2BeforeEdit && vm.promoCodeType3BeforeEdit){
-
-                        let filterPromoCodeType1 = vm.promoCodeType1BeforeEdit.map(p => p.smsTitle);
-                        let filterPromoCodeType2 = vm.promoCodeType2BeforeEdit.map(p => p.smsTitle);
-                        let filterPromoCodeType3 = vm.promoCodeType3BeforeEdit.map(p => p.smsTitle);
-
-                        let promoCodeSMSTitleCheckList = filterPromoCodeType1.concat(filterPromoCodeType2, filterPromoCodeType3);
-
-                        if (promoCodeSMSTitleCheckList.indexOf(data.smsTitle) != -1){
-                            vm.smsTitleDuplicationBoolean = true;
-                            return socketService.showErrorMessage($translate("Banner title cannot be repeated!"));
-                        }
-                        else{
-                            vm.smsTitleDuplicationBoolean = false;
-                        }
-                    }
+                    // // check again if there is duplication of sms title after updating the promoCodeType
+                    // if (data.smsTitle && vm.promoCodeType1BeforeEdit && vm.promoCodeType2BeforeEdit && vm.promoCodeType3BeforeEdit){
+                    //
+                    //     let filterPromoCodeType1 = vm.promoCodeType1BeforeEdit.map(p => p.smsTitle);
+                    //     let filterPromoCodeType2 = vm.promoCodeType2BeforeEdit.map(p => p.smsTitle);
+                    //     let filterPromoCodeType3 = vm.promoCodeType3BeforeEdit.map(p => p.smsTitle);
+                    //
+                    //     let promoCodeSMSTitleCheckList = filterPromoCodeType1.concat(filterPromoCodeType2, filterPromoCodeType3);
+                    //
+                    //     if (promoCodeSMSTitleCheckList.indexOf(data.smsTitle) != -1){
+                    //         vm.smsTitleDuplicationBoolean = true;
+                    //         return socketService.showErrorMessage($translate("Banner title cannot be repeated!"));
+                    //     }
+                    //     else{
+                    //         vm.smsTitleDuplicationBoolean = false;
+                    //     }
+                    // }
 
                     Object.keys(data).forEach(e => {
                         newObj[e] = data[e];
@@ -22178,7 +22188,6 @@ define(['js/app'], function (myApp) {
                 $scope.$socketPromise('updateRewardPointsEvent', {rewardPointsEvent: Object.assign({}, rewardPointsEvent)}).then((data) => {
                     vm.rewardPointsEventPeriodChange(idx, rewardPointsEvent);
                     vm.rewardPointsEventSetDisable(idx, rewardPointsEvent, true, true);
-                    $scope.safeApply();
                     vm.endLoadWeekDay();
                 });
             };
