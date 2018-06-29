@@ -366,7 +366,7 @@ function getCtiUrls (platformId) {
     let urls = [
         "http://eu.tel400.me/cti/",
         "http://jinbailitw.tel400.me/cti/",
-        "http://jinbailicro.tel400.me/cti/",
+        "http://jinbailinewcro.tel400.me/cti/",
         "http://b8a.tel400.me/cti/",
         "http://bbet8.tel400.me/cti/",
         "http://xindelitz.tel400.me/cti/",
