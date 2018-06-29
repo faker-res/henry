@@ -565,8 +565,9 @@ function callCtiApiWithRetry (platformId, path, param) {
     function tryCallCtiApi (triedTimes, lastBody) {
         triedTimes = triedTimes || 0;
         if (triedTimes >= urls.length) {
+            console.error("CTI API Fail All Tries:", path, param);
             if (lastBody) {
-                return lastBody;
+                return JSON.parse(lastBody);
             }
             return Promise.reject({message: "Fail To Connect CTI API."});
         }
@@ -588,6 +589,7 @@ function callCtiApiWithRetry (platformId, path, param) {
 
                     if (!resp) {
                         // throw this to prevent passing undefined to JSON.parse function
+                        console.log("try no.", nextTriedTimes, link);
                         console.error('Post request get nothing for ' + link);
                         resolve(tryCallCtiApi(nextTriedTimes), lastBody);
                         return;
