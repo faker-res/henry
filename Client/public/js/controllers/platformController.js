@@ -21574,6 +21574,23 @@ define(['js/app'], function (myApp) {
                             vm.rewardPointsLogPageObjs.allRewardPoints = utilService.createPageForPagingTable("#allRewardPointsTablePage", {}, $translate, function (curP, pageSize) {
                                 vm.commonPageChangeHandler(curP, pageSize, "rewardPointsLogPageAASorting", vm.submitRewardPointsLogQuery)
                             });
+
+                            $('#rpRecordStartDate').datetimepicker({
+                                language: 'en',
+                                format: 'dd/MM/yyyy hh:mm:ss',
+                                pick12HourFormat: true
+                            });
+
+                            $("#rpRecordStartDate").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                            $('#rpRecordEndDate').datetimepicker({
+                                language: 'en',
+                                format: 'dd/MM/yyyy hh:mm:ss',
+                                pick12HourFormat: true
+                            });
+
+                            $("#rpRecordEndDate").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+
                             $scope.safeApply();
                             vm.submitRewardPointsLogQuery(true);
                         });
@@ -22302,6 +22319,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.searchRewardPointsLog = (index, limit) => {
+                var startTime = $('#rpRecordStartDate').data('datetimepicker').getLocalDate();
+                var endTime = $('#rpRecordEndDate').data('datetimepicker').getLocalDate();
                 var sendQuery = {
                     query: {
                         platformId: vm.selectedPlatform.id
@@ -22310,6 +22329,13 @@ define(['js/app'], function (myApp) {
                     limit: limit || 10,
                     sort: vm.rewardPointsLogPageAASorting.sortCol || {'createTime': -1}
                 };
+
+                if(startTime && endTime){
+                    sendQuery.query.createTime =  {
+                        $gte: startTime,
+                        $lt: endTime,
+                    }
+                }
                 $.each(vm.rewardPointsLogQuery, function (idx, val) {
                     if (val && val != '' && val != 'all') {
                         sendQuery.query[idx] = val;
