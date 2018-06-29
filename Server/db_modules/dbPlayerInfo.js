@@ -11075,7 +11075,7 @@ let dbPlayerInfo = {
     /*
      * get player online top up types
      */
-    getOnlineTopupType: function (playerId, merchantUse, clientType) {
+    getOnlineTopupType: function (playerId, merchantUse, clientType, bPMSGroup, userIp) {
         // merchantUse - 1: merchant, 2: bankcard
         // clientType: 1: browser, 2: mobileApp
         var playerData = null;
@@ -11088,18 +11088,22 @@ let dbPlayerInfo = {
         ).lean().then(
             data => {
                 if (data && data.platform) {
+                    let pmsQuery = {
+                        platformId: data.platform.platformId,
+                        queryId: serverInstance.getQueryId()
+                    };
                     playerData = data;
                     if (merchantUse == 1) {
-                        return pmsAPI.merchant_getMerchantList({
-                            platformId: data.platform.platformId,
-                            queryId: serverInstance.getQueryId()
-                        });
+                        if (bPMSGroup == true || bPMSGroup == "true") {
+                            pmsQuery.username = data.name;
+                            pmsQuery.ip = userIp;
+                            pmsQuery.clientType = clientType;
+                            return pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
+                        }
+                        return pmsAPI.merchant_getMerchantList(pmsQuery);
                     }
                     else {
-                        return pmsAPI.bankcard_getBankcardList({
-                            platformId: data.platform.platformId,
-                            queryId: serverInstance.getQueryId()
-                        });
+                        return pmsAPI.bankcard_getBankcardList(pmsQuery);
                     }
                 } else {
                     return Q.reject({name: "DataError", message: "Cannot find player"})
@@ -11109,49 +11113,57 @@ let dbPlayerInfo = {
             paymentData => {
                 if (paymentData) {
                     var resData = [];
-                    if (merchantUse == 1 && paymentData.merchants) {
-                        if (playerData.merchantGroup && playerData.merchantGroup.merchantNames && playerData.merchantGroup.merchantNames.length > 0) {
-                            playerData.merchantGroup.merchantNames.forEach(
-                                merchant => {
-                                    let maxDeposit = 0;
-                                    for (let i = 0; i < paymentData.merchants.length; i++) {
-                                        let status = 2;
-                                        if (paymentData.merchants[i].name == merchant) {
-                                            status = 1;
-                                        }
-
-                                        //if (playerData.permission.topupOnline === false) {
-                                        //    status = 0;
-                                        //}
-
-                                        var bValidType = true;
-                                        resData.forEach(type => {
-                                            if (type.type == paymentData.merchants[i].topupType) {
-                                                bValidType = false;
-                                                if (status == 1 && paymentData.merchants[i].status == "ENABLED" && paymentData.merchants[i].targetDevices == clientType) {
-                                                    if (type.status == 2 || type.maxDepositAmount < paymentData.merchants[i].permerchantLimits) {
-                                                        type.maxDepositAmount = paymentData.merchants[i].permerchantLimits;
-                                                    }
-
-                                                    type.status = status;
-                                                }
+                    if (merchantUse == 1 && (paymentData.merchants || paymentData.topupTypes)) {
+                        if (paymentData.topupTypes) {
+                            resData = paymentData.topupTypes;
+                            resData.forEach(merchant => {
+                                merchant.type = Number(merchant.type);
+                                merchant.status = Number(merchant.status);
+                            })
+                        } else {
+                            if (playerData.merchantGroup && playerData.merchantGroup.merchantNames && playerData.merchantGroup.merchantNames.length > 0) {
+                                playerData.merchantGroup.merchantNames.forEach(
+                                    merchant => {
+                                        let maxDeposit = 0;
+                                        for (let i = 0; i < paymentData.merchants.length; i++) {
+                                            let status = 2;
+                                            if (paymentData.merchants[i].name == merchant) {
+                                                status = 1;
                                             }
-                                        });
-                                        if (bValidType && playerData.permission.topupOnline && paymentData.merchants[i].name == merchant && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
-                                            console.log(paymentData.merchants[i])
 
-                                            if (!playerData.forbidTopUpType || playerData.forbidTopUpType.findIndex(f => f == paymentData.merchants[i].topupType) == -1) {
-                                                resData.push({
-                                                    type: paymentData.merchants[i].topupType,
-                                                    status: status,
-                                                    maxDepositAmount: paymentData.merchants[i].permerchantLimits,
-                                                    minDepositAmount: paymentData.merchants[i].permerchantminLimits
-                                                });
+                                            //if (playerData.permission.topupOnline === false) {
+                                            //    status = 0;
+                                            //}
+
+                                            var bValidType = true;
+                                            resData.forEach(type => {
+                                                if (type.type == paymentData.merchants[i].topupType) {
+                                                    bValidType = false;
+                                                    if (status == 1 && paymentData.merchants[i].status == "ENABLED" && paymentData.merchants[i].targetDevices == clientType) {
+                                                        if (type.status == 2 || type.maxDepositAmount < paymentData.merchants[i].permerchantLimits) {
+                                                            type.maxDepositAmount = paymentData.merchants[i].permerchantLimits;
+                                                        }
+
+                                                        type.status = status;
+                                                    }
+                                                }
+                                            });
+                                            if (bValidType && playerData.permission.topupOnline && paymentData.merchants[i].name == merchant && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
+                                                console.log(paymentData.merchants[i])
+
+                                                if (!playerData.forbidTopUpType || playerData.forbidTopUpType.findIndex(f => f == paymentData.merchants[i].topupType) == -1) {
+                                                    resData.push({
+                                                        type: paymentData.merchants[i].topupType,
+                                                        status: status,
+                                                        maxDepositAmount: paymentData.merchants[i].permerchantLimits,
+                                                        minDepositAmount: paymentData.merchants[i].permerchantminLimits
+                                                    });
+                                                }
                                             }
                                         }
                                     }
-                                }
-                            );
+                                );
+                            }
                         }
                     }
                     else {

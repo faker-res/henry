@@ -62,7 +62,14 @@ var PaymentServiceImplement = function () {
     this.getOnlineTopupType.expectsData = 'merchantUse: ?, clientType: ?';
     this.getOnlineTopupType.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId && data && data.merchantUse && data.clientType);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getOnlineTopupType, [conn.playerId, data.merchantUse, data.clientType], isValidData);
+        let userIp = conn.upgradeReq.connection.remoteAddress || '';
+        let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            if(forwardedIp[0].trim() != "undefined"){
+                userIp = forwardedIp[0].trim();
+            }
+        }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getOnlineTopupType, [conn.playerId, data.merchantUse, data.clientType, data.bPMSGroup, userIp], isValidData);
     };
 
     this.getBonusList.expectsData = '';
@@ -312,12 +319,26 @@ var PaymentServiceImplement = function () {
     this.getPlayerWechatPayStatus.expectsData = 'playerId: String';
     this.getPlayerWechatPayStatus.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(conn.playerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.getPlayerWechatPayStatus, [conn.playerId], isValidData);
+        let userIp = conn.upgradeReq.connection.remoteAddress || '';
+        let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            if(forwardedIp[0].trim() != "undefined"){
+                userIp = forwardedIp[0].trim();
+            }
+        }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.getPlayerWechatPayStatus, [conn.playerId, data.bPMSGroup, userIp], isValidData);
     };
 
     this.getPlayerAliPayStatus.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(conn.playerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.getPlayerAliPayStatus, [conn.playerId], isValidData);
+        let userIp = conn.upgradeReq.connection.remoteAddress || '';
+        let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            if(forwardedIp[0].trim() != "undefined"){
+                userIp = forwardedIp[0].trim();
+            }
+        }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.getPlayerAliPayStatus, [conn.playerId, data.bPMSGroup, userIp], isValidData);
     };
 
     this.getAlipaySingleLimit.onRequest = function (wsFunc, conn, data) {
