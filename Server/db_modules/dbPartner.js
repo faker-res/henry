@@ -82,7 +82,7 @@ let dbPartner = {
                     // if (platformData.partnerPrefix) {
                     //     partnerData.partnerName = platformData.partnerPrefix + partnerData.partnerName;
                     // }
-
+                    let phoneNumber = (partnerData.phoneNumber) || '';
                     if (platformData.whiteListingPhoneNumbers
                         && platformData.whiteListingPhoneNumbers.length > 0
                         && partnerData.phoneNumber
@@ -91,13 +91,13 @@ let dbPartner = {
 
                     if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
                         return dbPartner.isExceedPhoneNumberValidToRegister({
-                            phoneNumber: rsaCrypto.encrypt(partnerData.phoneNumber),
+                            phoneNumber: rsaCrypto.encrypt(phoneNumber),
                             platform: partnerData.platform
                         }, platformData.partnerSamePhoneNumberRegisterCount);
                         // return {isPhoneNumberValid: true};
                     } else {
                         return dbPartner.isPhoneNumberValidToRegister({
-                            phoneNumber: rsaCrypto.encrypt(partnerData.phoneNumber),
+                            phoneNumber: rsaCrypto.encrypt(phoneNumber),
                             platform: partnerData.platform
                         });
                     }
@@ -194,7 +194,7 @@ let dbPartner = {
                         });
                         return Promise.reject(new Error());
                     }
-
+                    let phoneNumber = (partnerdata.phoneNumber) || '';
                     if (platformData.whiteListingPhoneNumbers
                         && platformData.whiteListingPhoneNumbers.length > 0
                         && partnerdata.phoneNumber
@@ -203,13 +203,13 @@ let dbPartner = {
 
                     if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
                         return dbPartner.isExceedPhoneNumberValidToRegister({
-                            phoneNumber: rsaCrypto.encrypt(partnerdata.phoneNumber),
+                            phoneNumber: rsaCrypto.encrypt(phoneNumber),
                             platform: partnerdata.platform
                         }, platformData.partnerSamePhoneNumberRegisterCount);
                         // return {isPhoneNumberValid: true};
                     } else {
                         return dbPartner.isPhoneNumberValidToRegister({
-                            phoneNumber: rsaCrypto.encrypt(partnerdata.phoneNumber),
+                            phoneNumber: rsaCrypto.encrypt(phoneNumber),
                             platform: partnerdata.platform
                         });
                     }
@@ -229,7 +229,7 @@ let dbPartner = {
             }
         ).then(
             function (data) {
-                if (data.isPhoneNumberValid || bFromBI) {
+                if (data.isPhoneNumberValid || bFromBI || !partnerdata.phoneNumber) {
                     return dbPartner.isPartnerNameValidToRegister({
                         partnerName: partnerdata.partnerName,
                         realName: partnerdata.realName,
@@ -1745,7 +1745,7 @@ let dbPartner = {
                         platform: partnerResult.platform
                     }
                     partnerData = partnerResult;
-                    
+
                     return dbconfig.collection_partner.find({realName : updateData.bankAccountName, platform: partnerResult.platform._id}).lean().count().then(
                         count => {
                             duplicatedRealNameCount = count || 0;
@@ -1771,14 +1771,14 @@ let dbPartner = {
                         if(partnerData.bankAccountName){
                             delete updateData.bankAccountName;
                         }
-                        
+
                         if (updateData.bankAccountName && !partnerData.realName) {
                             if (updateData.bankAccountName.indexOf('*') > -1)
                                 delete updateData.bankAccountName;
                             else
                                 updateData.realName = updateData.bankAccountName;
                         }
-                        
+
                         if (!updateData.bankAccountName && !partnerData.realName) {
                             return Q.reject({
                                 name: "DataError",
