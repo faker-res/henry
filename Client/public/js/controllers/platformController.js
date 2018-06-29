@@ -22188,7 +22188,6 @@ define(['js/app'], function (myApp) {
                 $scope.$socketPromise('updateRewardPointsEvent', {rewardPointsEvent: Object.assign({}, rewardPointsEvent)}).then((data) => {
                     vm.rewardPointsEventPeriodChange(idx, rewardPointsEvent);
                     vm.rewardPointsEventSetDisable(idx, rewardPointsEvent, true, true);
-                    $scope.safeApply();
                     vm.endLoadWeekDay();
                 });
             };

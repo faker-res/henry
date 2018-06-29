@@ -2,6 +2,7 @@
  * Created by hninpwinttin on 13/1/16.
  */
 var dbconfig = require('./../modules/dbproperties');
+let constProposalType = require('../const/constProposalType');
 var Q = require("q");
 
 var proposalType = {
@@ -74,10 +75,35 @@ var proposalType = {
      * @param {objectId} platformId - The platform Id
      */
     getProposalTypeByPlatformId: function (platformId) {
+        //hide proposal type related to unused reward
+        let hideProposalType = [
+            constProposalType.FULL_ATTENDANCE,
+            constProposalType.PARTNER_CONSUMPTION_RETURN,
+            constProposalType.FIRST_TOP_UP,
+            constProposalType.PARTNER_INCENTIVE_REWARD,
+            constProposalType.PARTNER_REFERRAL_REWARD,
+            constProposalType.GAME_PROVIDER_REWARD,
+            constProposalType.PLATFORM_TRANSACTION_REWARD,
+            constProposalType.PLAYER_TOP_UP_RETURN,
+            constProposalType.PLAYER_CONSUMPTION_INCENTIVE,
+            constProposalType.PARTNER_TOP_UP_RETURN,
+            constProposalType.PLAYER_TOP_UP_REWARD,
+            constProposalType.PLAYER_REFERRAL_REWARD,
+            constProposalType.PLAYER_REGISTRATION_REWARD,
+            constProposalType.PLAYER_DOUBLE_TOP_UP_REWARD,
+            constProposalType.PLAYER_CONSECUTIVE_LOGIN_REWARD,
+            constProposalType.PLAYER_EASTER_EGG_REWARD,
+            constProposalType.PLAYER_TOP_UP_PROMO,
+            constProposalType.PLAYER_CONSECUTIVE_CONSUMPTION_REWARD,
+            constProposalType.PLAYER_PACKET_RAIN_REWARD,
+        ];
         return dbconfig.collection_proposalType.find(
             {
                 platformId: {
                     $in: platformId
+                },
+                name: {
+                    $nin: hideProposalType
                 }
             }
         ).exec();
