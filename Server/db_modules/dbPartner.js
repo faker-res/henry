@@ -89,17 +89,21 @@ let dbPartner = {
                         && platformData.whiteListingPhoneNumbers.indexOf(partnerData.phoneNumber) > -1)
                         return {isPhoneNumberValid: true};
 
-                    if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
-                        return dbPartner.isExceedPhoneNumberValidToRegister({
-                            phoneNumber: rsaCrypto.encrypt(phoneNumber),
-                            platform: partnerData.platform
-                        }, platformData.partnerSamePhoneNumberRegisterCount);
-                        // return {isPhoneNumberValid: true};
-                    } else {
-                        return dbPartner.isPhoneNumberValidToRegister({
-                            phoneNumber: rsaCrypto.encrypt(phoneNumber),
-                            platform: partnerData.platform
-                        });
+                    if(phoneNumber){
+                        if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
+                            return dbPartner.isExceedPhoneNumberValidToRegister({
+                                phoneNumber: rsaCrypto.encrypt(phoneNumber),
+                                platform: partnerData.platform
+                            }, platformData.partnerSamePhoneNumberRegisterCount);
+                            // return {isPhoneNumberValid: true};
+                        } else {
+                            return dbPartner.isPhoneNumberValidToRegister({
+                                phoneNumber: rsaCrypto.encrypt(phoneNumber),
+                                platform: partnerData.platform
+                            });
+                        }
+                    }else{
+                          return {isPhoneNumberValid: true};
                     }
                 }
                 else {
@@ -201,18 +205,23 @@ let dbPartner = {
                         && platformData.whiteListingPhoneNumbers.indexOf(partnerdata.phoneNumber) > -1)
                         return {isPhoneNumberValid: true};
 
-                    if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
-                        return dbPartner.isExceedPhoneNumberValidToRegister({
-                            phoneNumber: rsaCrypto.encrypt(phoneNumber),
-                            platform: partnerdata.platform
-                        }, platformData.partnerSamePhoneNumberRegisterCount);
-                        // return {isPhoneNumberValid: true};
-                    } else {
-                        return dbPartner.isPhoneNumberValidToRegister({
-                            phoneNumber: rsaCrypto.encrypt(phoneNumber),
-                            platform: partnerdata.platform
-                        });
+                    if(phoneNumber){
+                        if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
+                            return dbPartner.isExceedPhoneNumberValidToRegister({
+                                phoneNumber: rsaCrypto.encrypt(phoneNumber),
+                                platform: partnerdata.platform
+                            }, platformData.partnerSamePhoneNumberRegisterCount);
+                            // return {isPhoneNumberValid: true};
+                        } else {
+                            return dbPartner.isPhoneNumberValidToRegister({
+                                phoneNumber: rsaCrypto.encrypt(phoneNumber),
+                                platform: partnerdata.platform
+                            });
+                        }
+                    }else{
+                        return {isPhoneNumberValid: true};
                     }
+
                 } else {
                     deferred.reject({
                         name: "DBError",
@@ -229,7 +238,7 @@ let dbPartner = {
             }
         ).then(
             function (data) {
-                if (data.isPhoneNumberValid || bFromBI || !partnerdata.phoneNumber) {
+                if (data.isPhoneNumberValid || bFromBI) {
                     return dbPartner.isPartnerNameValidToRegister({
                         partnerName: partnerdata.partnerName,
                         realName: partnerdata.realName,
