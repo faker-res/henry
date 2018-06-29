@@ -1785,21 +1785,6 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.callDemoPlayer = function (data) {
-                var phoneCall = {
-                    // playerId: "5a74167afe96b103da96f5fc",//data.playerId,
-                    name: $translate("demoPlayer"),
-                    toText: $translate("demoPlayer"),
-                    platform: "jinshihao",
-                    loadingNumber: true,
-                }
-                $scope.initPhoneCall(phoneCall);
-                $scope.phoneCall.phone = data.tel;
-                $scope.phoneCall.loadingNumber = false;
-                $scope.safeApply();
-                $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
-            }
-
             vm.sendSMSToPlayer = function () {
                 vm.sendSMSResult = {sent: "sending"};
 
@@ -1932,14 +1917,6 @@ define(['js/app'], function (myApp) {
                 };
             };
 
-            function getPlayerLevelName(levelObjId) {
-                for (var i = 0; i < vm.allPlayerLvl.length; i++) {
-                    if (vm.allPlayerLvl[i]._id == levelObjId) {
-                        return vm.allPlayerLvl[i].name;
-                    }
-                }
-            };
-
             vm.getReferralPlayer = function (editObj, type) {
                 var sendData = null;
                 if (type === 'change' && editObj.referralName) {
@@ -2009,57 +1986,6 @@ define(['js/app'], function (myApp) {
                     editObj.partner = null;
                 }
             };
-
-            function buildTopUpGroupChangesString(updateData, oldData) {
-                var bankGroup = {};
-                var oldGroupName = "";
-                if (updateData.bankCardGroup) {
-                    for (let i = 0; i < vm.platformBankCardGroupList.length; i++) {
-                        if (oldData.bankCardGroup == vm.platformBankCardGroupList[i]._id)
-                            oldGroupName = vm.platformBankCardGroupList[i].displayName;
-                        if (updateData.bankCardGroup == vm.platformBankCardGroupList[i]._id)
-                            bankGroup.bankCardGroup = vm.platformBankCardGroupList[i].displayName;
-                    }
-                    bankGroup.bankCardGroup = oldGroupName + " -> " + bankGroup.bankCardGroup;
-                }
-                if (updateData.merchantGroup) {
-                    for (let i = 0; i < vm.platformMerchantGroupList.length; i++) {
-                        if (oldData.merchantGroup == vm.platformMerchantGroupList[i]._id)
-                            oldGroupName = vm.platformMerchantGroupList[i].displayName;
-                        if (updateData.merchantGroup == vm.platformMerchantGroupList[i]._id)
-                            bankGroup.merchantGroup = vm.platformMerchantGroupList[i].displayName;
-                    }
-                    bankGroup.merchantGroup = oldGroupName + " -> " + bankGroup.merchantGroup;
-                }
-                if (updateData.alipayGroup) {
-                    for (let i = 0; i < vm.platformAlipayGroupList.length; i++) {
-                        if (oldData.alipayGroup == vm.platformAlipayGroupList[i]._id)
-                            oldGroupName = vm.platformAlipayGroupList[i].displayName;
-                        if (updateData.alipayGroup == vm.platformAlipayGroupList[i]._id)
-                            bankGroup.alipayGroup = vm.platformAlipayGroupList[i].displayName;
-                    }
-                    bankGroup.alipayGroup = oldGroupName + " -> " + bankGroup.alipayGroup;
-                }
-                if (updateData.wechatPayGroup) {
-                    for (let i = 0; i < vm.platformWechatPayGroupList.length; i++) {
-                        if (oldData.wechatPayGroup == vm.platformWechatPayGroupList[i]._id)
-                            oldGroupName = vm.platformWechatPayGroupList[i].displayName;
-                        if (updateData.wechatPayGroup == vm.platformWechatPayGroupList[i]._id)
-                            bankGroup.wechatPayGroup = vm.platformWechatPayGroupList[i].displayName;
-                    }
-                    bankGroup.wechatPayGroup = oldGroupName + " -> " + bankGroup.wechatPayGroup;
-                }
-                if (updateData.quickPayGroup) {
-                    for (let i = 0; i < vm.platformQuickPayGroupList.length; i++) {
-                        if (oldData.quickPayGroup == vm.platformQuickPayGroupList[i]._id)
-                            oldGroupName = vm.platformQuickPayGroupList[i].displayName;
-                        if (updateData.quickPayGroup == vm.platformQuickPayGroupList[i]._id)
-                            bankGroup.quickPayGroup = vm.platformQuickPayGroupList[i].displayName;
-                    }
-                    bankGroup.quickPayGroup = oldGroupName + " -> " + bankGroup.quickPayGroup;
-                }
-                return bankGroup;
-            }
 
             vm.updatePartnerSMSSettings = function () {
                 let partnerId = vm.isOneSelectedPartner()._id;
