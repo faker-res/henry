@@ -4270,7 +4270,6 @@ define(['js/app'], function (myApp) {
                     }
 
                     vm.platformRewardData = data1.data;
-                    console.log("walaodata",data1)
                     vm.platformRewardAnalysisData = [];
                     for(let i = 0; i<periodDateData.length; i++){
                         let rewardWithinPeriod = vm.platformRewardData.filter(reward => new Date(reward.createTime).getTime() > periodDateData[i].getTime() && new Date(reward.createTime).getTime() < vm.getNextDateByPeriodAndDate(vm.queryPara.reward.periodText, periodDateData[i]));
