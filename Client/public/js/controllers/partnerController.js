@@ -245,23 +245,6 @@ define(['js/app'], function (myApp) {
                 },
             }
 
-            vm.merchantTopupType = { // for reward points purpose only
-                '1': 'NetPay',
-                //'2': 'WechatQR',
-                '3': 'AlipayQR',
-                '4': 'WechatApp',
-                //'5': 'AlipayApp',
-                '6': 'FASTPAY',
-                '7': 'QQPAYQR',
-                '8': 'UnPayQR',
-                '9': 'JdPayQR',
-                '10': 'WXWAP',
-                '11': 'ALIWAP',
-                '12': 'QQWAP',
-                //'13': 'PCard',
-                '14': 'JDWAP'
-            };
-
             vm.getDepositMethodbyId = {
                 1: 'Online',
                 2: 'ATM',
@@ -4565,24 +4548,12 @@ define(['js/app'], function (myApp) {
                     console.log('playerpayment', data);
                 }, null, true);
             }
-            vm.getPaymentInfoHistory = function (isPlayer) {
+            vm.getPaymentInfoHistory = function () {
                 vm.paymetHistoryCount = 0;
-                let objId;
-                let type;
-                let modalType;
-
-                if (isPlayer) {
-                    objId = vm.isOneSelectedPlayer()._id;
-                    type = "PLAYERS";
-                } else {
-                    objId = vm.isOneSelectedPartner()._id;
-                    type = "PARTNERS";
-                }
                 socketService.$socket($scope.AppSocket, 'getPaymentHistory', {
-                    objectId: objId,
-                    type: type
+                    objectId: vm.isOneSelectedPartner()._id,
+                    type: "PARTNERS"
                 }, function (data) {
-                    console.log('payment history', data);
                     var drawData = data.data.map(item => {
                         item.province = item.provinceData || item.bankAccountProvince;
                         item.city = item.cityData || item.bankAccountCity;
@@ -4593,19 +4564,13 @@ define(['js/app'], function (myApp) {
                         return item;
                     });
                     vm.paymetHistoryCount = data.data.length;
-                    vm.drawPaymentHistory(drawData, isPlayer);
+                    vm.drawPaymentHistory(drawData);
 
                 }, null, true);
-                if (isPlayer) {
-                    modalType = '#modalPlayerPaymentHistory';
-                } else {
-                    modalType = '#modalPartnerPaymentHistory';
-                }
-                $(modalType).modal();
+                $('#modalPartnerPaymentHistory').modal();
             }
 
-            vm.drawPaymentHistory = function (tblData, isPlayer) {
-                let tableType;
+            vm.drawPaymentHistory = function (tblData) {
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
                     aoColumnDefs: [
@@ -4626,15 +4591,9 @@ define(['js/app'], function (myApp) {
                     "paging": true,
                 });
 
-                if (isPlayer) {
-                    tableType = '#playerPaymentHistoryTbl';
-                } else {
-                    tableType = '#partnerPaymentHistoryTbl';
-                }
-
-                var aTable = $(tableType).DataTable(tableOptions);
+                var aTable = $('#partnerPaymentHistoryTbl').DataTable(tableOptions);
                 aTable.columns.adjust().draw();
-                $(tableType).resize();
+                $('#partnerPaymentHistoryTbl').resize();
                 $scope.safeApply();
             };
 
