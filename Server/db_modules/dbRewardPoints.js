@@ -821,7 +821,7 @@ let dbRewardPoints = {
                                         if (event.target) {
                                             event.target.targetDestination = providerName;
                                         }
-                                        if (event.level && event.level.value){
+                                        if (event.level && (event.level.value || event.level.value === 0)){
                                             event.level = event.level.value;
                                         }
                                     
@@ -938,7 +938,7 @@ let dbRewardPoints = {
                                     if (event.target) {
                                         event.target.targetDestination = providerName;
                                     }
-                                    if (event.level && event.level.value){
+                                    if (event.level && (event.level.value || event.level.value === 0)){
                                         event.level = event.level.value;
                                     }
 
@@ -1015,9 +1015,8 @@ let dbRewardPoints = {
                                 rewardPointsEvent.map(event => {
                                     let providerName = [];
 
-                                    if (event && event.target && event.target.targetDestination && event.target.targetDestination.length > 0) {
-
-                                        event.target.targetDestination.forEach(item => {
+                                    if (event && event.target && event.target.targetDestination) {
+                                        let item = event.target.targetDestination;
                                             if (platformObjData[0] && platformObjData[0].gameProviderInfo && platformObjData[0].gameProviderInfo[item] && platformObjData[0].gameProviderInfo[item].localNickName) {
                                                 providerName.push(platformObjData[0].gameProviderInfo[item].localNickName);
                                             }
@@ -1029,13 +1028,11 @@ let dbRewardPoints = {
                                                 });
 
                                             }
-
-                                        })
                                     }
                                     if (event.target) {
                                         event.target.targetDestination = providerName;
                                     }
-                                    if (event.level && event.level.value){
+                                    if (event.level && (event.level.value || event.level.value === 0)){
                                         event.level = event.level.value;
                                     }
                                 });
@@ -1169,7 +1166,7 @@ let dbRewardPoints = {
                                     if (event.target) {
                                         event.target.targetDestination = providerName;
                                     }
-                                    if (event.level && event.level.value){
+                                    if (event.level && (event.level.value || event.level.value === 0)){
                                         event.level = event.level.value;
                                     }
                                 });
@@ -1281,7 +1278,7 @@ let dbRewardPoints = {
                                     if (event.target) {
                                         event.target.targetDestination = providerName;
                                     }
-                                    if (event.level && event.level.value){
+                                    if (event.level && (event.level.value || event.level.value === 0)){
                                         event.level = event.level.value;
                                     }
                                 });
@@ -1393,7 +1390,7 @@ let dbRewardPoints = {
                                     if (event.target) {
                                         event.target.targetDestination = providerName;
                                     }
-                                    if (event.level && event.level.value){
+                                    if (event.level && (event.level.value || event.level.value === 0)){
                                         event.level = event.level.value;
                                     }
                                 });

@@ -657,10 +657,13 @@ var dbQualityInspection = {
                 let content = [];
                 let he = dom.window.document.getElementsByTagName("he");
                 let i = dom.window.document.getElementsByTagName("i");
+                let file = dom.window.document.getElementsByTagName("file");
 
                 partI = dbQualityInspection.reGroup(i, 1);
                 partHe = dbQualityInspection.reGroup(he, 2);
+                let partFile = dbQualityInspection.reGroup(file, 3);
                 content = partI.concat(partHe);
+                content = content.concat(partFile);
                 content.sort(function (a, b) {
                     return a.time - b.time;
                 });
@@ -722,11 +725,11 @@ var dbQualityInspection = {
                 return a.conversationInterval - b.conversationInterval
             })
             conversation.forEach(item => {
-                if (!firstCV && item.roles == 2) {
+                if (!firstCV && (item.roles == 2 || item.roles == 3)) {
                     firstCV = item;
                     lastCustomerCV = item;
                 } else {
-                    if (item.roles == 2) {
+                    if (item.roles == 2 || item.roles == 3) {
                         // keep the last customer question , to calculate the timeoutRate
                         if (lastCV.roles == 1) {
                             lastCustomerCV = item;
