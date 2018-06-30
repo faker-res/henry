@@ -1136,10 +1136,6 @@ let dbPlayerCreditTransfer = {
                             transferId = id;
                             dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
                                 providerShortId, amount, updateObj.rewardAmt, adminName, null, constPlayerCreditTransferStatus.SEND);
-                            //todo: temp fix
-                            if( userName == "bj1125" && amount > 500000 ){
-                                amount = 400000;
-                            }
                             return pCTFP.playerTransferOut(
                                 {
                                     username: userName,
