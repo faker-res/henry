@@ -92,6 +92,18 @@ const pmsAPI = {
         return callPMSAPI("foundation", "requestBankTypeByUsername", data);
     },
 
+    foundation_requestOnLinepayByUsername: function (data) {
+        return callPMSAPI("foundation", "requestOnLinepayByUsername", data);
+    },
+
+    foundation_requestWechatpayByUsername: function (data) {
+        return callPMSAPI("foundation", "requestWechatpayByUsername", data);
+    },
+
+    foundation_requestAlipayByUsername: function (data) {
+        return callPMSAPI("foundation", "requestAlipayByUsername", data);
+    },
+
     //platform service
     platform_add: function (data) {
         return callPMSAPI("platform", "add", data);

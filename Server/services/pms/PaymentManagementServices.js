@@ -72,7 +72,10 @@
                 "getProvince",
                 "getCity",
                 "getDistrict",
-                "requestBankTypeByUsername"
+                "requestBankTypeByUsername",
+                "requestOnLinepayByUsername",
+                "requestWechatpayByUsername",
+                "requestAlipayByUsername"
             ];
             addServiceSyncFunctions(sinonet, this, functionNames, ["queryId"]);
         };

@@ -2191,34 +2191,55 @@ var dbPlayerTopUpRecord = {
         }
     },
 
-    getPlayerWechatPayStatus: playerId => {
+    getPlayerWechatPayStatus: (playerId, bPMSGroup, userIp) => {
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).lean().then(
                 playerData => {
                     if (playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) {
-                        return pmsAPI.weChat_getWechatList({
+                        let prom;
+                        let pmsQuery = {
                             platformId: playerData.platform.platformId,
                             queryId: serverInstance.getQueryId()
-                        }).then(
+                        }
+
+                        if (String(bPMSGroup) == "true") {
+                            pmsQuery.ip = userIp;
+                            pmsQuery.username = playerData.name;
+                            prom = pmsAPI.foundation_requestWechatpayByUsername(pmsQuery);
+                        } else {
+                            prom = pmsAPI.weChat_getWechatList(pmsQuery);
+                        }
+                        return prom.then(
                             wechats => {
                                 let bValid = false;
                                 let maxDeposit = 0;
-                                if (wechats.data && wechats.data.length > 0) {
-                                    wechats.data.forEach(
-                                        wechat => {
-                                            playerData.wechatPayGroup.wechats.forEach(
-                                                pWechat => {
-                                                    if (pWechat == wechat.accountNumber && wechat.state == "NORMAL") {
-                                                        if (!playerData.permission.disableWechatPay) {
-                                                            bValid = true;
-                                                        }
-                                                        maxDeposit = wechat.singleLimit > maxDeposit ? wechat.singleLimit : maxDeposit;
-                                                    }
-                                                }
-                                            );
+                                if (String(bPMSGroup) == "true") {
+                                    if (wechats.data) {
+                                        if (!playerData.permission.disableWechatPay && wechats.data.valid) {
+                                            bValid = true;
                                         }
-                                    );
+                                        if (wechats.data.hasOwnProperty("maxDepositAmount")) {
+                                            maxDeposit = wechats.data.maxDepositAmount;
+                                        }
+                                    }
+                                } else {
+                                    if (wechats.data && wechats.data.length > 0) {
+                                        wechats.data.forEach(
+                                            wechat => {
+                                                playerData.wechatPayGroup.wechats.forEach(
+                                                    pWechat => {
+                                                        if (pWechat == wechat.accountNumber && wechat.state == "NORMAL") {
+                                                            if (!playerData.permission.disableWechatPay) {
+                                                                bValid = true;
+                                                            }
+                                                            maxDeposit = wechat.singleLimit > maxDeposit ? wechat.singleLimit : maxDeposit;
+                                                        }
+                                                    }
+                                                );
+                                            }
+                                        );
+                                    }
                                 }
                                 if (bValid || maxDeposit > 0)
                                     bValid = {valid: bValid, maxDepositAmount: maxDeposit};
@@ -2233,16 +2254,25 @@ var dbPlayerTopUpRecord = {
             )
     },
 
-    getPlayerAliPayStatus: playerId => {
+    getPlayerAliPayStatus: (playerId, bPMSGroup, userIp) => {
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup}).then(
                 playerData => {
                     if (playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) {
-                        let aliPayProm = pmsAPI.alipay_getAlipayList({
+                        let aliPayProm;
+                        let pmsQuery = {
                             platformId: playerData.platform.platformId,
                             queryId: serverInstance.getQueryId()
-                        });
+                        }
+
+                        if (String(bPMSGroup) == "true") {
+                            pmsQuery.ip = userIp;
+                            pmsQuery.username = playerData.name;
+                            aliPayProm = pmsAPI.foundation_requestAlipayByUsername(pmsQuery);
+                        } else {
+                            aliPayProm = pmsAPI.alipay_getAlipayList(pmsQuery);
+                        }
 
                         let proposalQuery = {
                             'data.playerObjId': {$in: [ObjectId(playerData._id), String(playerData._id)]},
@@ -2265,21 +2295,32 @@ var dbPlayerTopUpRecord = {
                                 let aliProposal = res[1];
                                 let bValid = false;
                                 let maxDeposit = 0;
-                                if (alipays.data && alipays.data.length > 0) {
-                                    alipays.data.forEach(
-                                        alipay => {
-                                            playerData.alipayGroup.alipays.forEach(
-                                                pAlipay => {
-                                                    if (pAlipay == alipay.accountNumber && alipay.state == "NORMAL") {
-                                                        if (playerData.permission.alipayTransaction) {
-                                                            bValid = true;
-                                                        }
-                                                        maxDeposit = alipay.singleLimit > maxDeposit ? alipay.singleLimit : maxDeposit;
-                                                    }
-                                                }
-                                            );
+                                if (String(bPMSGroup) == "true") {
+                                    if (alipays.data) {
+                                        if (playerData.permission.alipayTransaction && alipays.data.valid) {
+                                            bValid = true;
                                         }
-                                    );
+                                        if (alipays.data.hasOwnProperty("maxDepositAmount")) {
+                                            maxDeposit = alipays.data.maxDepositAmount;
+                                        }
+                                    }
+                                } else {
+                                    if (alipays.data && alipays.data.length > 0) {
+                                        alipays.data.forEach(
+                                            alipay => {
+                                                playerData.alipayGroup.alipays.forEach(
+                                                    pAlipay => {
+                                                        if (pAlipay == alipay.accountNumber && alipay.state == "NORMAL") {
+                                                            if (playerData.permission.alipayTransaction) {
+                                                                bValid = true;
+                                                            }
+                                                            maxDeposit = alipay.singleLimit > maxDeposit ? alipay.singleLimit : maxDeposit;
+                                                        }
+                                                    }
+                                                );
+                                            }
+                                        );
+                                    }
                                 }
                                 if (bValid || maxDeposit > 0) {
                                     bValid = {
