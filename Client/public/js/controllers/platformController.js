@@ -735,7 +735,7 @@ define(['js/app'], function (myApp) {
                             platformData[listName] = [{content: oldData}];
                         }
                     }
-                    
+
                     if(platformData[listName] && platformData[listName].length > 0){
                         platformData[listName].forEach(p => {
                             p.isImg = typeof p.isImg === 'number' ? p.isImg.toString() : null ;
@@ -16967,7 +16967,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                         })
-                        
+
                         vm.playerDetailsSummary = data.data;
                         vm.playerDetailsSummary.totalCount = data.data.length;
                         vm.playerDetailsSummary.sumOfManualTopUp = sumOfManualTopUp;
@@ -20274,7 +20274,7 @@ define(['js/app'], function (myApp) {
                     valueCollection[idx].btnOrImageList.push({btnName: "", btnSourceFrom: "", btnLinksTo: ""});
                 }
             };
-            
+
             vm.rewardDisplayNewRow = (valueCollection) => {
                 valueCollection.push({displayId: "", displayTitle: "", displayTextContent: "", btnOrImageList: []});
             };
@@ -20607,7 +20607,6 @@ define(['js/app'], function (myApp) {
                     $('.spicker').selectpicker('refresh');
                 }, 0);
             };
-
             vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
                 if (type == 'add') {
                     switch (configType) {
@@ -21345,7 +21344,7 @@ define(['js/app'], function (myApp) {
                 vm.promoCode2HasMoreThanOne = false;
                 vm.promoCode3HasMoreThanOne = false;
                 vm.smsTitleDuplicationBoolean = false;
-            
+
                 vm.newPromoCode1 = [];
                 vm.newPromoCode2 = [];
                 vm.newPromoCode3 = [];
@@ -22148,21 +22147,20 @@ define(['js/app'], function (myApp) {
 
             vm.getRewardPointsEventByCategory = (category) => {
                 vm.rewardPointsEvent = [];
-                $scope.safeApply();
                 return $scope.$socketPromise('getRewardPointsEventByCategory', {
                     platformObjId: vm.selectedPlatform.id,
                     category: category
                 }).then((data) => {
-                    console.log('getRewardPointsEventByCategory', data.data);
-                    vm.rewardPointsEvent = data.data;
-                    $.each(vm.rewardPointsEvent, function (idx, val) {
-                        vm.rewardPointsEventPeriodChange(idx, val);
-                        vm.rewardPointsEventSetDisable(idx, val, true, true);
-                        vm.rewardPointsEventOld.push($.extend(true, {}, val));
-                        vm.refreshSPicker();
+                    $scope.$evalAsync(()=>{
+                        console.log('getRewardPointsEventByCategory', data.data);
+                        vm.rewardPointsEvent = data.data;
+                        $.each(vm.rewardPointsEvent, function (idx, val) {
+                            vm.rewardPointsEventPeriodChange(idx, val);
+                            vm.rewardPointsEventSetDisable(idx, val, true, true);
+                            vm.rewardPointsEventOld.push($.extend(true, {}, val));
+                        });
+                        vm.endLoadWeekDay();
                     });
-                    $scope.safeApply();
-                    vm.endLoadWeekDay();
                 });
             };
 
@@ -22192,6 +22190,9 @@ define(['js/app'], function (myApp) {
                 }
                 if (rewardPointsEvent.target && !rewardPointsEvent.target.depositMethod) {
                     delete rewardPointsEvent.target.depositMethod;
+                }
+                if (rewardPointsEvent.target && (rewardPointsEvent.target.betType && rewardPointsEvent.target.betType.length == 0)) {
+                    delete rewardPointsEvent.target.betType;
                 }
                 delete rewardPointsEvent.isEditing;
                 if (rewardPointsEvent.period == 6) {
@@ -22269,9 +22270,7 @@ define(['js/app'], function (myApp) {
                     vm.updateRewardPointsEvent(x, vm.rewardPointsEvent[x]);
                     vm.rewardPointsEventSetDisable(x, vm.rewardPointsEvent[x], true, true);
                 }
-
                 vm.rewardPointsEventUpdateAll = false;
-                $scope.safeApply();
             }
 
             vm.rewardPointsEventReset = (idx) => {
@@ -26881,7 +26880,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.validateInput = function (smsTitle, type, mode){
-               
+
                 if(smsTitle && vm.promoCodeType1BeforeEdit && vm.promoCodeType2BeforeEdit && vm.promoCodeType3BeforeEdit){
 
                     let filterPromoCodeType1 = vm.promoCodeType1BeforeEdit.map(p => p.smsTitle);
@@ -26916,11 +26915,11 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            function updatePromoSMSContent(srcData) {     
-                vm.promoCodeType1.forEach(entry => entry.type = 1);       
-                vm.promoCodeType2.forEach(entry => entry.type = 2);        
+            function updatePromoSMSContent(srcData) {
+                vm.promoCodeType1.forEach(entry => entry.type = 1);
+                vm.promoCodeType2.forEach(entry => entry.type = 2);
                 vm.promoCodeType3.forEach(entry => entry.type = 3);
-        
+
                 let promoCodeSMSContent = vm.promoCodeType1.concat(vm.promoCodeType2, vm.promoCodeType3);
 
                 if (vm.removeSMSContent && vm.removeSMSContent.length > 0) {
@@ -26964,7 +26963,7 @@ define(['js/app'], function (myApp) {
                         });
                     }
                 }
-            
+
             function updateProviderGroup() {
                 let totalProviderCount = vm.platformProviderList.length;
                 let localProviderCount = vm.gameProviderGroup.reduce(
