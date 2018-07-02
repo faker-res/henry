@@ -943,7 +943,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             let urls = [
                 "http://eu.tel400.me/cti/previewcallout.action",
                 "http://jinbailitw.tel400.me/cti/previewcallout.action",
-                "http://jinbailicro.tel400.me/cti/previewcallout.action",
+                "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
                 "http://b8a.tel400.me/cti/previewcallout.action",
                 "http://bbet8.tel400.me/cti/previewcallout.action",
                 "http://xindelitz.tel400.me/cti/previewcallout.action",
