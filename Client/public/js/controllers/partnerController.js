@@ -6578,6 +6578,7 @@ define(['js/app'], function (myApp) {
                             }
                         });
                         setPartnerTableData(reply.data.data);
+                        vm.partners = reply.data.data;
                         vm.searchPartnerCount = reply.data.size;
                         vm.advancedPartnerQueryObj.pageObj.init({maxCount: size}, true);
                     })
