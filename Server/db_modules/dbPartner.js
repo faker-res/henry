@@ -5953,7 +5953,6 @@ let dbPartner = {
                     })
 
                     console.log('bonusDetails===', bonusDetails);
-                    console.log('bonusDetails.totalBonusAmount===', bonusDetails.totalBonusAmount);
                     if(bonusDetails && bonusDetails.totalBonusAmount ){
                         playerObj.totalBonus = bonusDetails.totalBonusAmount;
                         playerObj.totalDepositAmount = playerObj.topUpSum - bonusDetails.totalBonusAmount;
