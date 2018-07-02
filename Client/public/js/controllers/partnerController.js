@@ -3983,8 +3983,10 @@ define(['js/app'], function (myApp) {
                         vm.playerPermissionQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     });
                 }
+                let tempPlayerId = vm.popOverPlayerPermission && vm.popOverPlayerPermission._id ? vm.popOverPlayerPermission._id :
+                    vm.selectedSinglePlayer && vm.selectedSinglePlayer._id ? vm.selectedSinglePlayer._id : null;
                 var sendData = {
-                    playerId: (vm.popOverPlayerPermission || vm.selectedSinglePlayer)._id,
+                    playerId: tempPlayerId,
                     platform: vm.selectedPlatform.id,
                     createTime: {
                         $gte: new Date(vm.playerPermissionQuery.startTime.data('datetimepicker').getLocalDate()),
