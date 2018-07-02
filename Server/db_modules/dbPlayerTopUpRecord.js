@@ -842,7 +842,9 @@ var dbPlayerTopUpRecord = {
                 proposalData.playerId = playerId;
                 proposalData.playerObjId = player._id;
                 proposalData.platformId = player.platform._id;
-                proposalData.playerLevel = player.playerLevel._id;
+                if( player.playerLevel ){
+                    proposalData.playerLevel = player.playerLevel._id;
+                }
                 proposalData.playerRealName = player.realName;
                 proposalData.merchantGroupName = player.merchantGroup && player.merchantGroup.name || "";
                 proposalData.platform = player.platform.platformId;
