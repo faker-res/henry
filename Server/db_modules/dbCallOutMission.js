@@ -564,6 +564,7 @@ function callCtiApiWithRetry (platformId, path, param) {
 
     function tryCallCtiApi (triedTimes, lastBody) {
         triedTimes = triedTimes || 0;
+        console.log('CTI API debug log param', path, param);
         if (triedTimes >= urls.length) {
             console.error("CTI API Fail All Tries:", path, param);
             if (lastBody) {

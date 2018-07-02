@@ -328,7 +328,8 @@
                 "getPointRule",
                 "applyPointToCredit",
                 "getMissonList",
-                "applyRewardPoints"
+                "applyRewardPoints",
+                "getPointChangeRecord"
             ];
             addServiceFunctions(sinonet, this, functionNames);
 

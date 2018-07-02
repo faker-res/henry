@@ -6834,6 +6834,8 @@ define(['js/app'], function (myApp) {
                     let sumOfTotalDeposit = 0;
                     let sumOfTotalBalance = 0;
 
+                    console.log('children data===', data);
+
                     if(data && data.data){
                         data.data.forEach(result => {
                             if(result){

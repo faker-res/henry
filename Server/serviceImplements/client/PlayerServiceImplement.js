@@ -33,138 +33,157 @@ let PlayerServiceImplement = function () {
     this.create.expectsData = 'platformId: String, password: String';
     this.create.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data.name && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH) && (!data.realName || data.realName.match(/\d+/g) === null));
-        data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
-        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
-        if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            if(forwardedIp[0].trim() != "undefined"){
-                data.lastLoginIp = forwardedIp[0].trim();
-            }
-        }
-        data.loginIps = [data.lastLoginIp];
-        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
-        var uaString = conn.upgradeReq.headers['user-agent'];
-        var ua = uaParser(uaString);
-        var md = new mobileDetect(uaString);
-        data.userAgent = [{
-            browser: ua.browser.name || '',
-            device: ua.device.name || (md && md.mobile()) ? md.mobile() : 'PC',
-            os: ua.os.name || ''
-        }];
-
-        if (data.phoneNumber) {
-            var queryRes = queryPhoneLocation(data.phoneNumber);
-            if (queryRes) {
-                data.phoneProvince = queryRes.province;
-                data.phoneCity = queryRes.city;
-                data.phoneType = queryRes.type;
-            }
-        }
-        if (data.domain) {
-            //for ad tracking debug
-            console.log("Player registration domain:", data.domain);
-            let reporoId = dbUtility.getParameterByName("rcid", data.domain);
-            if (reporoId) {
-                data.reporoId = reporoId;
-            }
-            console.log("Player registration reporoId:", reporoId);
-            data.domain = data.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
-        }
-        if(data.lastLoginIp && data.lastLoginIp != "undefined"){
-            var ipData = dbUtility.getIpLocationByIPIPDotNet(data.lastLoginIp);
-            if(ipData){
-                data.ipArea = ipData;
-                data.country = ipData.country || null;
-                data.city = ipData.city || null;
-                data.province = ipData.province || null;
-            }else{
-                data.ipArea = {'province':'', 'city':''};
-                data.country = "";
-                data.city = "";
-                data.province = "";
-            }
-        }
-
-        //set email to qq if there is only qq number and no email data
-        if (data.qq && !data.email) {
-            data.email = data.qq + "@qq.com";
-        }
-
-        // data.partnerId = "";
-        //for partner player registration
-        let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
-        conn.captchaCode = null;
-        data.isOnline = true;
-        let inputData = Object.assign({}, data);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode, null, null, data.isAutoCreate], isValidData, true, true, true).then(
-            (playerData) => {
-                data.playerId = data.playerId ? data.playerId : playerData.playerId;
-                data.remarks = playerData.partnerName ? localization.translate("PARTNER", conn.lang, conn.platformId) + ": " + playerData.partnerName : "";
-                if(playerData && playerData.partnerId){
-                    data.partnerId = playerData.partnerId;
+        if (data.smsCode || ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha')) {
+            data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
+            var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+            if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+                if(forwardedIp[0].trim() != "undefined"){
+                    data.lastLoginIp = forwardedIp[0].trim();
                 }
+            }
+            data.loginIps = [data.lastLoginIp];
+            let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+            var uaString = conn.upgradeReq.headers['user-agent'];
+            var ua = uaParser(uaString);
+            var md = new mobileDetect(uaString);
+            data.userAgent = [{
+                browser: ua.browser.name || '',
+                device: ua.device.name || (md && md.mobile()) ? md.mobile() : 'PC',
+                os: ua.os.name || ''
+            }];
 
-                console.log("createPlayerRegistrationIntentRecordAPI SUCCESS", data);
-                dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
-                    isUpdateData=> {
-                        if (!(isUpdateData[0] && isUpdateData[0]._id)) {
-                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.NOVERIFY, inputDevice).catch(errorUtils.reportError);
+            if (data.phoneNumber) {
+                var queryRes = queryPhoneLocation(data.phoneNumber);
+                if (queryRes) {
+                    data.phoneProvince = queryRes.province;
+                    data.phoneCity = queryRes.city;
+                    data.phoneType = queryRes.type;
+                }
+            }
+            if (data.domain) {
+                //for ad tracking debug
+                console.log("Player registration domain:", data.domain);
+                let reporoId = dbUtility.getParameterByName("rcid", data.domain);
+                if (reporoId) {
+                    data.reporoId = reporoId;
+                }
+                console.log("Player registration reporoId:", reporoId);
+                data.domain = data.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
+            }
+            if(data.lastLoginIp && data.lastLoginIp != "undefined"){
+                var ipData = dbUtility.getIpLocationByIPIPDotNet(data.lastLoginIp);
+                if(ipData){
+                    data.ipArea = ipData;
+                    data.country = ipData.country || null;
+                    data.city = ipData.city || null;
+                    data.province = ipData.province || null;
+                }else{
+                    data.ipArea = {'province':'', 'city':''};
+                    data.country = "";
+                    data.city = "";
+                    data.province = "";
+                }
+            }
+
+            //set email to qq if there is only qq number and no email data
+            if (data.qq && !data.email) {
+                data.email = data.qq + "@qq.com";
+            }
+
+            // data.partnerId = "";
+            //for partner player registration
+            let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
+            conn.captchaCode = null;
+            data.isOnline = true;
+            let inputData = Object.assign({}, data);
+            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode, null, null, data.isAutoCreate], isValidData, true, true, true).then(
+                (playerData) => {
+                    data.playerId = data.playerId ? data.playerId : playerData.playerId;
+                    data.remarks = playerData.partnerName ? localization.translate("PARTNER", conn.lang, conn.platformId) + ": " + playerData.partnerName : "";
+                    if(playerData && playerData.partnerId){
+                        data.partnerId = playerData.partnerId;
+                    }
+
+                    console.log("createPlayerRegistrationIntentRecordAPI SUCCESS", data);
+                    dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
+                        isUpdateData=> {
+                            if (!(isUpdateData[0] && isUpdateData[0]._id)) {
+                                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.NOVERIFY, inputDevice).catch(errorUtils.reportError);
+                            }
                         }
-                    }
-                );
+                    );
 
-                //dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
-                //dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
-                conn.isAuth = true;
-                conn.playerId = playerData.playerId;
-                conn.playerObjId = playerData._id;
-                conn.noOfAttempt = 0;
-                conn.onclose = function (event) {
-                    dbPlayerInfo.playerLogout({playerId: playerData.playerId});
-                };
-                var profile = {name: playerData.name, password: playerData.password};
-                var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
-
-                playerData.phoneNumber = dbUtility.encodePhoneNum(playerData.phoneNumber);
-                playerData.email = dbUtility.encodeEmail(playerData.email);
-                if (playerData.bankAccount) {
-                    playerData.bankAccount = dbUtility.encodeBankAcc(playerData.bankAccount);
-                }
-
-                wsFunc.response(conn, {
-                    status: constServerCode.SUCCESS,
-                    data: playerData,
-                    token: token,
-                }, data);
-            }, (err) => {
-                if (err && err.status) {
-                    if (err.errorMessage || err.message) {
-                        var msg = err.errorMessage || err.message;
-                        err.errorMessage = localization.translate(msg, conn.lang, conn.platformId);
-                    }
-                    wsFunc.response(conn, err, data);
-                }
-                else {
-                    var errorCode = err && err.code || constServerCode.COMMON_ERROR;
-                    var resObj = {
-                        status: errorCode,
-                        errorMessage: localization.translate(err.message || err.errorMessage, conn.lang, conn.platformId)
+                    //dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                    //dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                    conn.isAuth = true;
+                    conn.playerId = playerData.playerId;
+                    conn.playerObjId = playerData._id;
+                    conn.noOfAttempt = 0;
+                    conn.onclose = function (event) {
+                        dbPlayerInfo.playerLogout({playerId: playerData.playerId});
                     };
-                    resObj.errorMessage = err.errMessage || resObj.errorMessage;
-                    wsFunc.response(conn, resObj, data);
-                }
-                console.log("createPlayerRegistrationIntentRecordAPI FAIL", data, err);
-                if (err && err.status != constServerCode.USERNAME_ALREADY_EXIST) {
-                    if(data && data.partnerName && data.partnerName != ""){
-                        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
-                    }else{
-                        dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
+                    var profile = {name: playerData.name, password: playerData.password};
+                    var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+                    playerData.phoneNumber = dbUtility.encodePhoneNum(playerData.phoneNumber);
+                    playerData.email = dbUtility.encodeEmail(playerData.email);
+                    if (playerData.bankAccount) {
+                        playerData.bankAccount = dbUtility.encodeBankAcc(playerData.bankAccount);
                     }
-                    //dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
-                    //dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
+
+                    wsFunc.response(conn, {
+                        status: constServerCode.SUCCESS,
+                        data: playerData,
+                        token: token,
+                    }, data);
+                }, (err) => {
+                    if (err && err.status) {
+                        if (err.errorMessage || err.message) {
+                            var msg = err.errorMessage || err.message;
+                            err.errorMessage = localization.translate(msg, conn.lang, conn.platformId);
+                        }
+                        wsFunc.response(conn, err, data);
+                    }
+                    else {
+                        var errorCode = err && err.code || constServerCode.COMMON_ERROR;
+                        var resObj = {
+                            status: errorCode,
+                            errorMessage: localization.translate(err.message || err.errorMessage, conn.lang, conn.platformId)
+                        };
+                        resObj.errorMessage = err.errMessage || resObj.errorMessage;
+                        wsFunc.response(conn, resObj, data);
+                    }
+                    console.log("createPlayerRegistrationIntentRecordAPI FAIL", data, err);
+                    if (err && err.status != constServerCode.USERNAME_ALREADY_EXIST) {
+                        if(data && data.partnerName && data.partnerName != ""){
+                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
+                        }else{
+                            dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
+                        }
+                        //dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
+                        //dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
+                    }
                 }
-            }
-        ).catch(WebSocketUtil.errorHandler)
-            .done();
+            ).catch(WebSocketUtil.errorHandler)
+                .done();
+        }
+        else if (!data.smsCode && data.captcha){
+            // if player key in captcha and not matching to existing captcha
+            conn.captchaCode = null;
+            wsFunc.response(conn, {
+                status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
+                errorMessage: localization.translate("Invalid image captcha", conn.lang, conn.platformId),
+                data: null
+            }, data);
+        }
+        else if(!data.smsCode && !data.captcha) {
+            // if player didn't key anything
+            wsFunc.response(conn, {
+                status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
+                errorMessage: localization.translate("Incorrect SMS Validation Code", conn.lang, conn.platformId),
+                data: null
+            }, data);
+        }
     };
 
     //player create api handler
