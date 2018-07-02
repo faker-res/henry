@@ -3875,12 +3875,11 @@
   "Total Login Player(Without Duplicate)":"总登入玩家人数（扣除重复） VS 日",
   "Create Time(Start)": "加入时间（开始）",
   "Create Time(End)": "加入时间（结束）",
-  "Login Device": "登入装置",
   "For eBet Wallet Usage": "eBet钱包专用",
   "Common Wallet": "通用钱包（自由）",
   "Live Wallet": "真人钱包",
-  "Slots Wallet": "彩票钱包",
+  "Slots Wallet": "电子钱包",
   "Sports Wallet": "体育钱包",
-  "Keno Wallet": "电子钱包"
+  "Keno Wallet": "彩票钱包"
 
 }
