@@ -838,14 +838,14 @@
                                                             tbody
                                                                 tr(ng-repeat='commissionSetting in gpg.showConfig.commissionSetting track by $index')
                                                                     td
-                                                                        input.form-control(type='number', ng-model='commissionSetting.playerConsumptionAmountFrom' ng-disabled='!commissionSetting.isEditing')
+                                                                        input.form-control(type='number', ng-model='commissionSetting.playerConsumptionAmountFrom' ng-disabled='!commissionSetting.isEditing' ng-change="vm.updateCommissionRateRequirement=true")
                                                                     td
-                                                                        input.form-control(type='number', ng-if='commissionSetting.playerConsumptionAmountTo || commissionSetting.isEditing || commissionSetting.isCreateNew', ng-model='commissionSetting.playerConsumptionAmountTo' ng-disabled='!commissionSetting.isEditing')
+                                                                        input.form-control(type='number', ng-if='commissionSetting.playerConsumptionAmountTo || commissionSetting.isEditing || commissionSetting.isCreateNew', ng-model='commissionSetting.playerConsumptionAmountTo' ng-disabled='!commissionSetting.isEditing' ng-change="vm.updateCommissionRateRequirement=true")
                                                                         input.form-control(style='text-align: right' type='text', ng-if='!commissionSetting.playerConsumptionAmountTo && !commissionSetting.isEditing && !commissionSetting.isCreateNew', value='-', disabled)
                                                                     td
-                                                                        input.form-control(type='number', ng-model='commissionSetting.activePlayerValueFrom' ng-disabled='!commissionSetting.isEditing')
+                                                                        input.form-control(type='number', ng-model='commissionSetting.activePlayerValueFrom' ng-disabled='!commissionSetting.isEditing' ng-change="vm.updateCommissionRateRequirement=true")
                                                                     td
-                                                                        input.form-control(type='number', ng-if='commissionSetting.activePlayerValueTo || commissionSetting.isEditing || commissionSetting.isCreateNew', ng-model='commissionSetting.activePlayerValueTo', ng-disabled='!commissionSetting.isEditing')
+                                                                        input.form-control(type='number', ng-if='commissionSetting.activePlayerValueTo || commissionSetting.isEditing || commissionSetting.isCreateNew', ng-model='commissionSetting.activePlayerValueTo', ng-disabled='!commissionSetting.isEditing' ng-change="vm.updateCommissionRateRequirement=true")
                                                                         input.form-control(style='text-align: right' type='text', ng-if='!commissionSetting.activePlayerValueTo && !commissionSetting.isEditing && !commissionSetting.isCreateNew', value='-', disabled)
                                                                     td
                                                                         span.percentage
@@ -869,6 +869,9 @@
                                                         button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.gameProviderGroup, false, true, vm.partnerCommission.gameProviderGroup)') {{'CANCEL' | translate}}
                                                         button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && !vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.gameProviderGroup, true, true)') {{'Edit' | translate}}
                                                         button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.submitPartnerCommissionConfigWithGameProviderGroup()') {{'SUBMIT' | translate}}
+                                                    br
+                                                    div(ng-if="vm.updateCommissionRateRequirement")
+                                                        text {{"Current update will remove the commission customization of relevant partners." | translate}}
 
 
 
