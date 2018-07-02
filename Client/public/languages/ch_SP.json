@@ -3731,6 +3731,8 @@
   "Select date range to show settlement details": "选择当日代表展示该日被结算的数据",
   "Either Commission Type or Partner Name must be filled in": "佣金模式 或 代理账号 必填",
   "Current update will remove the commission customization of relevant partners.": "此次更新因有修改投注或活跃玩家需求而将恢复相关代理的客制化。若只需要修改佣金比例，请取消后重新修改，以避免恢复代理的客制化。",
+  "Commission Customization Revert": "客制化恢复预设",
+  "Update requirement will revert partner's commission customization. Are you sure?": "编辑佣金阶级条件，相关的客制化数据将会全部恢复预设，是否确定？",
 
   "RECEIVE_BANK_TYPE": "收款银行类型",
   "RECEIVE_BANK_ACC": "收款银行账号",

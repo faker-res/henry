@@ -25674,7 +25674,16 @@ define(['js/app'], function (myApp) {
                     }
                 }
             };
-            vm.submitPartnerCommissionConfigWithGameProviderGroup = function () {
+            vm.submitPartnerCommissionConfigWithGameProviderGroup = function (isConfirm) {
+                if (!isConfirm && vm.updateCommissionRateRequirement) {
+                    vm.modalYesNo = {};
+                    vm.modalYesNo.modalTitle = $translate("Commission Customization Revert");
+                    vm.modalYesNo.modalText = $translate("Update requirement will revert partner's commission customization. Are you sure?");
+                    vm.modalYesNo.actionYes = () => vm.submitPartnerCommissionConfigWithGameProviderGroup(true);
+                    $('#modalYesNo').modal();
+                    return;
+                }
+
                 if (vm.partnerCommission && vm.partnerCommission.gameProviderGroup && vm.partnerCommission.gameProviderGroup.length) {
                     let p = Promise.resolve();
 
