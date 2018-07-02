@@ -65,7 +65,7 @@ let dbPartner = {
                         }
                     }
 
-                    if (!platformData.partnerRequireSMSVerification || bypassSMSVerify) {
+                    if (!platformData.partnerRequireSMSVerification || bypassSMSVerify || partnerData.parent) {
                         return true;
                     }
                     return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, platformData, partnerData.smsCode, partnerData.partnerName, true);
@@ -82,24 +82,28 @@ let dbPartner = {
                     // if (platformData.partnerPrefix) {
                     //     partnerData.partnerName = platformData.partnerPrefix + partnerData.partnerName;
                     // }
-
+                    let phoneNumber = (partnerData.phoneNumber) || '';
                     if (platformData.whiteListingPhoneNumbers
                         && platformData.whiteListingPhoneNumbers.length > 0
                         && partnerData.phoneNumber
                         && platformData.whiteListingPhoneNumbers.indexOf(partnerData.phoneNumber) > -1)
                         return {isPhoneNumberValid: true};
 
-                    if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
-                        return dbPartner.isExceedPhoneNumberValidToRegister({
-                            phoneNumber: rsaCrypto.encrypt(partnerData.phoneNumber),
-                            platform: partnerData.platform
-                        }, platformData.partnerSamePhoneNumberRegisterCount);
-                        // return {isPhoneNumberValid: true};
-                    } else {
-                        return dbPartner.isPhoneNumberValidToRegister({
-                            phoneNumber: rsaCrypto.encrypt(partnerData.phoneNumber),
-                            platform: partnerData.platform
-                        });
+                    if(phoneNumber){
+                        if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
+                            return dbPartner.isExceedPhoneNumberValidToRegister({
+                                phoneNumber: rsaCrypto.encrypt(phoneNumber),
+                                platform: partnerData.platform
+                            }, platformData.partnerSamePhoneNumberRegisterCount);
+                            // return {isPhoneNumberValid: true};
+                        } else {
+                            return dbPartner.isPhoneNumberValidToRegister({
+                                phoneNumber: rsaCrypto.encrypt(phoneNumber),
+                                platform: partnerData.platform
+                            });
+                        }
+                    }else{
+                          return {isPhoneNumberValid: true};
                     }
                 }
                 else {
@@ -194,25 +198,30 @@ let dbPartner = {
                         });
                         return Promise.reject(new Error());
                     }
-
+                    let phoneNumber = (partnerdata.phoneNumber) || '';
                     if (platformData.whiteListingPhoneNumbers
                         && platformData.whiteListingPhoneNumbers.length > 0
                         && partnerdata.phoneNumber
                         && platformData.whiteListingPhoneNumbers.indexOf(partnerdata.phoneNumber) > -1)
                         return {isPhoneNumberValid: true};
 
-                    if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
-                        return dbPartner.isExceedPhoneNumberValidToRegister({
-                            phoneNumber: rsaCrypto.encrypt(partnerdata.phoneNumber),
-                            platform: partnerdata.platform
-                        }, platformData.partnerSamePhoneNumberRegisterCount);
-                        // return {isPhoneNumberValid: true};
-                    } else {
-                        return dbPartner.isPhoneNumberValidToRegister({
-                            phoneNumber: rsaCrypto.encrypt(partnerdata.phoneNumber),
-                            platform: partnerdata.platform
-                        });
+                    if(phoneNumber){
+                        if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
+                            return dbPartner.isExceedPhoneNumberValidToRegister({
+                                phoneNumber: rsaCrypto.encrypt(phoneNumber),
+                                platform: partnerdata.platform
+                            }, platformData.partnerSamePhoneNumberRegisterCount);
+                            // return {isPhoneNumberValid: true};
+                        } else {
+                            return dbPartner.isPhoneNumberValidToRegister({
+                                phoneNumber: rsaCrypto.encrypt(phoneNumber),
+                                platform: partnerdata.platform
+                            });
+                        }
+                    }else{
+                        return {isPhoneNumberValid: true};
                     }
+
                 } else {
                     deferred.reject({
                         name: "DBError",
@@ -1745,7 +1754,7 @@ let dbPartner = {
                         platform: partnerResult.platform
                     }
                     partnerData = partnerResult;
-                    
+
                     return dbconfig.collection_partner.find({realName : updateData.bankAccountName, platform: partnerResult.platform._id}).lean().count().then(
                         count => {
                             duplicatedRealNameCount = count || 0;
@@ -1771,14 +1780,14 @@ let dbPartner = {
                         if(partnerData.bankAccountName){
                             delete updateData.bankAccountName;
                         }
-                        
+
                         if (updateData.bankAccountName && !partnerData.realName) {
                             if (updateData.bankAccountName.indexOf('*') > -1)
                                 delete updateData.bankAccountName;
                             else
                                 updateData.realName = updateData.bankAccountName;
                         }
-                        
+
                         if (!updateData.bankAccountName && !partnerData.realName) {
                             return Q.reject({
                                 name: "DataError",
