@@ -8286,7 +8286,7 @@ let dbPartner = {
         )
     },
 
-    getCommissionProposalList : (platformId, partnerId, startTime, endTime, status)=> {
+    getCommissionProposalList : (platformId, partnerId, startTime, endTime, status, searchProposalCounts)=> {
         let platformObj;
         let partnerObj;
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
@@ -8318,11 +8318,15 @@ let dbPartner = {
                 let proposalQuery = {
                     "data.platformId": platformObj._id,
                     "data.partnerObjId": partnerObj._id,
-                    "createTime": {
+                }
+
+                if (startTime && endTime) {
+                    proposalQuery.createTime = {
                         $gte: new Date(startTime),
-                        $lt: new Date(endTime)
+                            $lt: new Date(endTime)
                     }
                 }
+
                 if (status) {
                     if (status == constProposalStatus.SUCCESS || status == constProposalStatus.APPROVED) {
                         proposalQuery.status = {$in:[constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
@@ -8331,7 +8335,26 @@ let dbPartner = {
                     }
                 }
 
-                return dbPropUtil.getProposalDataOfType(platformObj._id, constProposalType.SETTLE_PARTNER_COMMISSION, proposalQuery);
+                // return dbPropUtil.getProposalDataOfType(platformObj._id, constProposalType.SETTLE_PARTNER_COMMISSION, proposalQuery);
+
+                return dbconfig.collection_proposalType.findOne({
+                    platformId: platformObj._id,
+                    name: constProposalType.SETTLE_PARTNER_COMMISSION
+                }).lean().then(
+                    proposalType => {
+                        proposalQuery.type = proposalType._id;
+
+                        if (!(startTime && endTime) && searchProposalCounts) {
+                            return dbconfig.collection_proposal.find(proposalQuery).populate(
+                                {path: "process", model: dbconfig.collection_proposalProcess}
+                            ).sort({createTime: -1}).limit(Number(searchProposalCounts)).lean();
+                        } else {
+                            return dbconfig.collection_proposal.find(proposalQuery).populate(
+                                {path: "process", model: dbconfig.collection_proposalProcess}
+                            ).lean();
+                        }
+                    }
+                )
             }
         ).then(
             proposalData => {
