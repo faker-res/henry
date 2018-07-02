@@ -5989,12 +5989,13 @@ let dbPartner = {
         return dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: constProposalType.PLAYER_BONUS}).then(
             proposalType => {
                 if(proposalType){
+                    console.log('proposalType===', proposalType);
                     return dbconfig.collection_proposal.aggregate(
                         {
                             $match: {
                                 type: proposalType._id,
                                 'data.playerObjId': playerObjId,
-                                status: constProposalStatus.APPROVED
+                                status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                             }
                         },
                         {
