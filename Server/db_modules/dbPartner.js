@@ -5932,6 +5932,8 @@ let dbPartner = {
 
         return Promise.all([getPlayerTopUpDetailsProm, getPlayerBonusDetailsProm]).then(
             result => {
+                console.log('result[0]===', result[0]);
+                console.log('result[1]===', result[1]);
                 if(result && result[0] && result[1]){
                     let topUpDetails = result[0];
                     let bonusDetails = result[1][0];
@@ -5950,6 +5952,8 @@ let dbPartner = {
                         }
                     })
 
+                    console.log('bonusDetails===', bonusDetails);
+                    console.log('bonusDetails.totalBonusAmount===', bonusDetails.totalBonusAmount);
                     if(bonusDetails && bonusDetails.totalBonusAmount ){
                         playerObj.totalBonus = bonusDetails.totalBonusAmount;
                         playerObj.totalDepositAmount = playerObj.topUpSum - bonusDetails.totalBonusAmount;
