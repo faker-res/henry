@@ -1852,6 +1852,69 @@ let dbRewardPoints = {
                         }
                     );
             })
+    },
+
+    getPointChangeRecord: function (startTime, endTime, pointType, status, platformId, playerId) {
+        let platformObj;
+        const constPlayerRegistrationInterface = {
+            0: 'BACKSTAGE',
+            1: 'WEB_PLAYER',
+            2: 'WEB_AGENT',
+            3: 'H5_PLAYER',
+            4: 'H5_AGENT',
+            5: 'APP_PLAYER',
+            6: 'APP_AGENT'
+        };
+        return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+                platformObj = platformData;
+                return dbConfig.collection_players.findOne({platform:platformObj._id, playerId: playerId}).lean();
+            }
+        ).then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"});
+                }
+                let rewardQuery = {
+                    playerName: playerData.name,
+                    platformId: platformObj._id,
+                    createTime: {$gte: new Date(startTime), $lt: new Date(endTime)}
+                };
+                if (status) {
+                    rewardQuery.status = Number(status);
+                }
+                if (pointType) {
+                    rewardQuery.category = Number(pointType);
+                }
+                return dbConfig.collection_rewardPointsLog.find(rewardQuery).sort({createTime: -1}).lean();
+            }
+        ).then(
+            rewardPointsData => {
+                let returnData = [];
+                for (let i = 0; i < rewardPointsData.length; i++) {
+                    let tempObj = {
+                        pointRecordId: rewardPointsData[i].pointLogId,
+                        pointType: rewardPointsData[i].category,
+                        title: rewardPointsData[i].rewardTitle || "",
+                        device: localization.localization.translate(constPlayerRegistrationInterface[rewardPointsData[i].userAgent]),
+                        status: rewardPointsData[i].status,
+                        beforePoint: rewardPointsData[i].oldPoints,
+                        afterPoint: rewardPointsData[i].newPoints,
+                        pointChange: rewardPointsData[i].amount,
+                        dailyClaimedPoint: rewardPointsData[i].currentDayAppliedAmount || 0,
+                        dailyClaimMaxPoint: rewardPointsData[i].maxDayApplyAmount || 0,
+                        createTime: rewardPointsData[i].createTime,
+                        playerLevelText: rewardPointsData[i].playerLevelName,
+                        remark: rewardPointsData[i].remark || "",
+                    }
+                    returnData.push(tempObj)
+                }
+                return returnData;
+            }
+        )
     }
 };
 

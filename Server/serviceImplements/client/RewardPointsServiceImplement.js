@@ -75,6 +75,13 @@ let RewardPointsServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbRewardPoints.getMissonList, [conn.playerId, data.platformId], isValidData, false, false, Boolean(data.platformId));
 
     };
+
+    this.getPointChangeRecord.expectsData = '';
+    this.getPointChangeRecord.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.startTime && data.endTime && data.platformId && conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbRewardPoints.getPointChangeRecord, [data.startTime, data.endTime, data.pointType, data.status, data.platformId, conn.playerId], isValidData);
+
+    };
 };
 
 
