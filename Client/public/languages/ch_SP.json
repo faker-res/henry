@@ -1550,6 +1550,7 @@
   "PLAYER_SIMILAR_PHONE": "电话重复",
   "PLAYER_SIMILAR_IP": "注册IP重复",
   "RICH_TEXT_EDITOR": "富文本编辑器",
+  "Total Partner": "代理总数",
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
@@ -3874,5 +3875,12 @@
   "Percentage of Login Devices": "登入装置人数占比",
   "Total Login Player(Without Duplicate)":"总登入玩家人数（扣除重复） VS 日",
   "Create Time(Start)": "加入时间（开始）",
-  "Create Time(End)": "加入时间（结束）"
+  "Create Time(End)": "加入时间（结束）",
+  "For eBet Wallet Usage": "eBet钱包专用",
+  "Common Wallet": "通用钱包（自由）",
+  "Live Wallet": "真人钱包",
+  "Slots Wallet": "电子钱包",
+  "Sports Wallet": "体育钱包",
+  "Keno Wallet": "彩票钱包"
+
 }
