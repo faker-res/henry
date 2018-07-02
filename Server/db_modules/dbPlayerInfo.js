@@ -425,18 +425,11 @@ let dbPlayerInfo = {
                     platformObjId = platformData._id;
                     platformPrefix = platformData.prefix;
 
-                    if (!platformObj.requireSMSVerification && bypassSMSVerify) {
+                    if (!platformObj.requireSMSVerification || bypassSMSVerify) {
                         return true;
-                    }else if(platformObj.requireSMSVerification){
-                        return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode);
                     }
-                    else if(!bypassSMSVerify){
-                        return Q.reject({
-                            status: constServerCode.VALIDATION_CODE_INVALID,
-                            name: "ValidationError",
-                            message: "Invalid image captcha"
-                        });
-                    }
+
+                    return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode);
                 }
             ).then(
                 isVerified => {
