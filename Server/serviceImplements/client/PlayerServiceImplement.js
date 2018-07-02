@@ -1149,7 +1149,7 @@ let PlayerServiceImplement = function () {
         if (geo) {
             country = geo.country;
             city = geo.city;
-            province = ipData.province || null;
+            province = geo.province || null;
             longitude = geo.ll ? geo.ll[1] : null;
             latitude = geo.ll ? geo.ll[0] : null;
         }
