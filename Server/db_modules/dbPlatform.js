@@ -4114,7 +4114,7 @@ function getPartnerCommNextSettDate(settMode, curTime = dbUtility.getFirstDayOfY
 }
 
 function calculatePartnerCommissionInfo (platformObjId, commissionType, startTime, endTime, isSkip) {
-    let stream = dbconfig.collection_partner.find({platform: platformObjId, commissionType: commissionType}, {_id: 1}).cursor({batchSize: 100});
+    let stream = dbconfig.collection_partner.find({platform: platformObjId, commissionType: commissionType}, {_id: 1}).cursor({batchSize: 1});
 
     let balancer = new SettlementBalancer();
     return balancer.initConns().then(function () {
