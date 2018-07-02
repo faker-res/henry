@@ -443,7 +443,7 @@ function addMissionToCti (platform, admin, calleeList) {
                 return Promise.reject({message: "CTI API return error"});
             }
 
-            return addPhoneNumToMission (platform, missionName, calleeList);
+            return addPhoneNumToMission (platform, missionName, calleeList, admin.did || "879997");
         }
     ).then(
         () => {
@@ -456,7 +456,7 @@ function addMissionToCti (platform, admin, calleeList) {
     );
 }
 
-function addPhoneNumToMission (platform, missionName, calleeList) {
+function addPhoneNumToMission (platform, missionName, calleeList, did) {
     let token = getCtiToken("POLYLINK_MESSAGE_TOKEN");
 
     let param = {token};
@@ -464,7 +464,7 @@ function addPhoneNumToMission (platform, missionName, calleeList) {
 
     let phones = calleeList.map(callee => {
         return {
-            phoneNum: callee.phoneNumber,
+            phoneNum: String(did) + callee.phoneNumber,
             name: callee.playerName,
             customerForeignId: callee.player,
             remark: ""
