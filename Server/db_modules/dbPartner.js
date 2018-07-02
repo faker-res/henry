@@ -5899,19 +5899,22 @@ let dbPartner = {
         if(!platform || !partnerId){
             return;
         }
+        console.log('HERE11===');
 
         return dbconfig.collection_players.find({platform: platform, partner: ObjectId(partnerId)}).lean().then(
             playerDetails => {
                 if(playerDetails){
+                    console.log('HERE22===');
                     let calculatedDetailsProm = [];
 
                     playerDetails.map(
                         player => {
                             if(player){
+                                console.log('HERE33===');
                                 calculatedDetailsProm.push(dbPartner.getPlayerCalculatedDetails(player));
                             }
                         }
-                    )
+                    );
 
                     return Promise.all(calculatedDetailsProm);
                 }
@@ -5929,6 +5932,7 @@ let dbPartner = {
         playerObj.wechatTopUp = 0;
         playerObj.totalBonus = 0;
         playerObj.totalDepositAmount = playerObj.topUpSum || 0;
+        console.log('player.name===', player.name);
 
         return Promise.all([getPlayerTopUpDetailsProm, getPlayerBonusDetailsProm]).then(
             result => {
@@ -5952,11 +5956,12 @@ let dbPartner = {
                         }
                     })
 
-                    console.log('bonusDetails===', bonusDetails);
                     if(bonusDetails && bonusDetails.totalBonusAmount ){
+                        console.log('bonusDetails===', bonusDetails);
                         playerObj.totalBonus = bonusDetails.totalBonusAmount;
                         playerObj.totalDepositAmount = playerObj.topUpSum - bonusDetails.totalBonusAmount;
                     }
+                    console.log('playerObj.totalBonus===', playerObj.totalBonus);
 
                     return playerObj;
                 }
