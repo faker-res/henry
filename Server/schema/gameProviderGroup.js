@@ -10,6 +10,8 @@ let gameProviderGroupSchema = new Schema({
     name: {type: String, index: true},
     // Game providers
     providers: [{type: Schema.ObjectId}],
+    // for Ebet wallet use (refer constEbetWallet.js)
+    ebetWallet: {type: Number},
 });
 
 module.exports = gameProviderGroupSchema;

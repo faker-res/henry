@@ -32,6 +32,14 @@ var simplifiedChinese = {
     "Invalid ranking mode": "无效排行模式",
     "Cannot find this downline": "查无此下线",
 
+    "BACKSTAGE": "后台",
+    "APP_AGENT": "APP代理",
+    "APP_PLAYER": "APP玩家",
+    "H5_AGENT": "H5代理",
+    "H5_PLAYER": "H5玩家",
+    "WEB_AGENT": "WEB代理",
+    "WEB_PLAYER": "WEB玩家",
+
     "Error in getting ID": "获得ID出错",
     "Error in getting player, game or provider": "无法获得玩家，游戏或供应商",
     "Error in getting player, paymentChannel or platform": "没能得到玩家， 支付渠道或平台",

@@ -700,10 +700,10 @@
                                     th(width="20%", style="background-color:{{vm.selectedBlockPromoCodeUserGroup.color}}") {{'INLINE_EDIT' | translate}}
                             tbody
                                 // before edit enabled
-                                tr(ng-repeat='playerName in vm.selectedBlockPromoCodeUserGroup.playerNames', ng-if='!vm.blockPromoCodeUserGroupPlayerEdit')
+                                tr(ng-repeat='playerName in vm.selectedBlockPromoCodeUserGroup.playerNames track by $index', ng-if='!vm.blockPromoCodeUserGroupPlayerEdit')
                                     td {{ $index + 1 }}
-                                    td(ng-if="$odd" style="background-color:#ddd") {{playerName}}
-                                    td(ng-if="$even") {{playerName}}
+                                    td(ng-if="$odd" style="background-color:#ddd") {{vm.selectedBlockPromoCodeUserGroup.playerNames[$index]}}
+                                    td(ng-if="$even") {{vm.selectedBlockPromoCodeUserGroup.playerNames[$index]}}
                                     td(ng-if="$odd" style="background-color:#ddd")
                                         button.btn.btn-primary.common-button(ng-click="vm.blockPromoCodeUserGroupPlayerEdit=true")
                                             i.fa.fa-pencil-square-o
@@ -719,12 +719,12 @@
                                             i.fa.fa-trash
                                             text {{'DELETE' | translate}}
                                 // after edit enabled
-                                tr(ng-repeat='playerName in vm.selectedBlockPromoCodeUserGroup.playerNames', ng-if='vm.blockPromoCodeUserGroupPlayerEdit')
+                                tr(ng-repeat='playerName in vm.selectedBlockPromoCodeUserGroup.playerNames track by $index', ng-if='vm.blockPromoCodeUserGroupPlayerEdit')
                                     td {{ $index + 1 }}
                                     td(ng-if="$odd" style="background-color:#ddd")
-                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="playerName")
+                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="vm.selectedBlockPromoCodeUserGroup.playerNames[$index]")
                                     td(ng-if="$even")
-                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="playerName")
+                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="vm.selectedBlockPromoCodeUserGroup.playerNames[$index]")
                                     td(ng-if="$odd" style="background-color:#ddd")
                                         button.btn.btn-success.common-button(ng-click="vm.blockPromoCodeUserGroupPlayerEdit=false; vm.saveBlockPromoCodeUserGroup();")
                                             i.fa.fa-floppy-o
