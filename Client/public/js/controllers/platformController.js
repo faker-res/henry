@@ -26162,6 +26162,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.playerForbidApplyBonusNeedCsApproval = vm.selectedPlatform.data.playerForbidApplyBonusNeedCsApproval;
                 vm.platformBasic.unreadMailMaxDuration = vm.selectedPlatform.data.unreadMailMaxDuration;
                 vm.platformBasic.manualRewardSkipAuditAmount = vm.selectedPlatform.data.manualRewardSkipAuditAmount || 0;
+                vm.platformBasic.useEbetWallet = vm.selectedPlatform.data.useEbetWallet;
 
                 if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
                     let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
@@ -26832,6 +26833,7 @@ define(['js/app'], function (myApp) {
                         unreadMailMaxDuration: srcData.unreadMailMaxDuration,
                         manualRewardSkipAuditAmount: srcData.manualRewardSkipAuditAmount,
                         display: srcData.display,
+                        useEbetWallet: srcData.useEbetWallet,
                     }
                 };
                 let isProviderGroupOn = false;

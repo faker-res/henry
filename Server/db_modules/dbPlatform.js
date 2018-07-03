@@ -3450,6 +3450,7 @@ var dbPlatform = {
                 "playerForbidApplyBonusNeedCsApproval",
                 "unreadMailMaxDuration",
                 "manualRewardSkipAuditAmount",
+                "useEbetWallet",
                 "partnerNameMaxLength",
                 "partnerNameMinLength",
                 "partnerAllowSamePhoneNumberToRegister",
