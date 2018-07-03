@@ -899,7 +899,7 @@
                     form(name='form_feedback').well
                         .form-group
                             label.control-label {{'PLAYER_NAME' | translate}}
-                            label.form-control {{vm.isOneSelectedPlayer().name}}
+                            label.form-control {{vm.currentFeedbackPlayer.name || vm.isOneSelectedPlayer().name}}
                         //.form-group
                             label.control-label {{'TEST_PLAYER_ID' | translate}}
                             input.form-control(ng-model='vm.playerFeedback.adminId')
