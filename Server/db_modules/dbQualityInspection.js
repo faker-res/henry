@@ -2416,10 +2416,13 @@ var dbQualityInspection = {
 
                             let he = dom.window.document.getElementsByTagName("he");
                             let i = dom.window.document.getElementsByTagName("i");
+                            let file = dom.window.document.getElementsByTagName("file");
 
                             partI = dbQualityInspection.reGroup(i, 1);
                             partHe = dbQualityInspection.reGroup(he, 2);
+                            partFile = dbQualityInspection.reGroup(file, 3);
                             content = partI.concat(partHe);
+                            content = content.concat(partFile);
                             content.sort(function (a, b) {
                                 return a.time - b.time;
                             });
