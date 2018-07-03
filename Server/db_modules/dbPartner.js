@@ -3369,19 +3369,25 @@ let dbPartner = {
         return dbconfig.collection_partnerCommissionRateConfig.find(query);
     },
 
-    createUpdatePartnerCommissionConfig: function  (query, data) {
+    createUpdatePartnerCommissionConfig: function  (query, data, clearCustomize) {
         return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, _id: query._id}).lean().then(
-           configData => {
-               //check if config exist
-               if (!configData) {
-                    var newCommissionConfig = new dbconfig.collection_partnerCommissionConfig(data);
-                    return newCommissionConfig.save();
-               }
-               else {
-                   delete data._id;
-                   return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(query, data);
-               }
-           });
+            configData => {
+                //check if config exist
+                if (!configData) {
+                     var newCommissionConfig = new dbconfig.collection_partnerCommissionConfig(data);
+                     return newCommissionConfig.save();
+                }
+                else {
+                    delete data._id;
+
+                    if (clearCustomize) {
+                        clearCustomizedPartnerCommissionConfig(configData.platform, configData.commissionType, configData.provider).catch(errorUtils.reportError);
+                    }
+
+                    return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(query, data);
+                }
+            }
+        );
     },
 
     getPartnerCommissionConfigWithGameProviderGroup: function (query) {
@@ -3404,7 +3410,7 @@ let dbPartner = {
         );
     },
 
-    createUpdatePartnerCommissionConfigWithGameProviderGroup: function  (query, data) {
+    createUpdatePartnerCommissionConfigWithGameProviderGroup: function  (query, data, clearCustomize) {
         return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, _id: query._id}).lean().then(
             configData => {
                 //check if config exist
@@ -3413,9 +3419,15 @@ let dbPartner = {
                 }
                 else {
                     delete data._id;
+
+                    if (clearCustomize) {
+                        clearCustomizedPartnerCommissionConfig(configData.platform, configData.commissionType, configData.provider).then(output => console.log(output)).catch(errorUtils.reportError);
+                    }
+
                     return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(query, data);
                 }
-            });
+            }
+        );
     },
 
     startPlatformPartnerCommissionSettlement: function (platformObjId, bUpdateSettlementTime, isToday) {
@@ -5899,19 +5911,22 @@ let dbPartner = {
         if(!platform || !partnerId){
             return;
         }
+        console.log('HERE11===');
 
         return dbconfig.collection_players.find({platform: platform, partner: ObjectId(partnerId)}).lean().then(
             playerDetails => {
                 if(playerDetails){
+                    console.log('HERE22===');
                     let calculatedDetailsProm = [];
 
                     playerDetails.map(
                         player => {
                             if(player){
+                                console.log('HERE33===');
                                 calculatedDetailsProm.push(dbPartner.getPlayerCalculatedDetails(player));
                             }
                         }
-                    )
+                    );
 
                     return Promise.all(calculatedDetailsProm);
                 }
@@ -5929,6 +5944,7 @@ let dbPartner = {
         playerObj.wechatTopUp = 0;
         playerObj.totalBonus = 0;
         playerObj.totalDepositAmount = playerObj.topUpSum || 0;
+        console.log('player.name===', player.name);
 
         return Promise.all([getPlayerTopUpDetailsProm, getPlayerBonusDetailsProm]).then(
             result => {
@@ -5952,11 +5968,12 @@ let dbPartner = {
                         }
                     })
 
-                    console.log('bonusDetails===', bonusDetails);
                     if(bonusDetails && bonusDetails.totalBonusAmount ){
+                        console.log('bonusDetails===', bonusDetails);
                         playerObj.totalBonus = bonusDetails.totalBonusAmount;
                         playerObj.totalDepositAmount = playerObj.topUpSum - bonusDetails.totalBonusAmount;
                     }
+                    console.log('playerObj.totalBonus===', playerObj.totalBonus);
 
                     return playerObj;
                 }
@@ -5984,12 +6001,13 @@ let dbPartner = {
         return dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: constProposalType.PLAYER_BONUS}).then(
             proposalType => {
                 if(proposalType){
+                    console.log('proposalType===', proposalType);
                     return dbconfig.collection_proposal.aggregate(
                         {
                             $match: {
                                 type: proposalType._id,
                                 'data.playerObjId': playerObjId,
-                                status: constProposalStatus.APPROVED
+                                status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                             }
                         },
                         {
@@ -10127,3 +10145,11 @@ function getCrewTopUpDetail (playerObjId, startTime, endTime) {
 var proto = dbPartnerFunc.prototype;
 proto = Object.assign(proto, dbPartner);
 module.exports = dbPartner;
+
+function clearCustomizedPartnerCommissionConfig (platform, commissionType, provider) {
+    let query = {platform, commissionType, partner: {$exists: true}};
+    if (provider) {
+        query.provider = provider;
+    }
+    return dbconfig.collection_partnerCommissionConfig.remove(query);
+}
