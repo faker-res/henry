@@ -842,7 +842,9 @@ var dbPlayerTopUpRecord = {
                 proposalData.playerId = playerId;
                 proposalData.playerObjId = player._id;
                 proposalData.platformId = player.platform._id;
-                proposalData.playerLevel = player.playerLevel._id;
+                if( player.playerLevel ){
+                    proposalData.playerLevel = player.playerLevel._id;
+                }
                 proposalData.playerRealName = player.realName;
                 proposalData.merchantGroupName = player.merchantGroup && player.merchantGroup.name || "";
                 proposalData.platform = player.platform.platformId;
@@ -893,9 +895,12 @@ var dbPlayerTopUpRecord = {
                     };
                     // console.log("requestData:", requestData);
                     let groupMerchantList = dbPlayerTopUpRecord.isMerchantValid(player.merchantGroup.merchantNames, merchantGroupList, topupRequest.topupType, clientType);
-                    if (groupMerchantList.length > 0) {
+                    if (groupMerchantList.length > 0 || bPMSGroup) {
                         if(!bPMSGroup){
                             requestData.groupMerchantList = groupMerchantList;
+                        }
+                        else{
+                            requestData.groupMerchantList = [];
                         }
                         return pmsAPI.payment_requestOnlineMerchant(requestData);
                     } else {
@@ -2074,6 +2079,7 @@ var dbPlayerTopUpRecord = {
                             proposalId: proposalData.proposalId,
                             platformId: player.platform.platformId,
                             userName: player.name,
+                            ip: player.lastLoginIp || "127.0.0.1",
                             realName: realName || player.realName || "",
                             aliPayAccount: 1,
                             amount: amount,
@@ -2086,6 +2092,9 @@ var dbPlayerTopUpRecord = {
                             if (alipayAccount) {
                                 requestData.groupAlipayList = [alipayAccount];
                             }
+                        }
+                        else{
+                            requestData.groupAlipayList = [];
                         }
                         // console.log("requestData", requestData);
                         return pmsAPI.payment_requestAlipayAccount(requestData);
@@ -2522,6 +2531,7 @@ var dbPlayerTopUpRecord = {
                             platformId: player.platform.platformId,
                             userName: player.name,
                             realName: player.realName || "",
+                            ip: player.lastLoginIp || "127.0.0.1",
                             aliPayAccount: 1,
                             amount: amount,
                             groupWechatList: player.wechatPayGroup ? player.wechatPayGroup.wechats : [],
@@ -2536,6 +2546,9 @@ var dbPlayerTopUpRecord = {
                             if (wechatAccount) {
                                 requestData.groupWechatList = [wechatAccount];
                             }
+                        }
+                        else{
+                            requestData.groupWechatList = [];
                         }
                         //console.log("requestData", requestData);
                         if (useQR) {

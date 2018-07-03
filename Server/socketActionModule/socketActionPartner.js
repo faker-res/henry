@@ -362,7 +362,7 @@ function socketActionPartner(socketIO, socket) {
         createUpdatePartnerCommissionConfigWithGameProviderGroup: function createUpdatePartnerCommissionConfigWithGameProviderGroup(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.updateData);
-            socketUtil.emitter(self.socket, dbPartner.createUpdatePartnerCommissionConfigWithGameProviderGroup, [data.query, data.updateData], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPartner.createUpdatePartnerCommissionConfigWithGameProviderGroup, [data.query, data.updateData, data.clearCustomize], actionName, isValidData);
         },
         getPartnerCommissionConfigWithGameProviderGroup: function getPartnerCommissionConfigWithGameProviderGroup(data) {
             var actionName = arguments.callee.name;
@@ -373,7 +373,7 @@ function socketActionPartner(socketIO, socket) {
         createUpdatePartnerCommissionConfig: function createUpdatePartnerCommissionConfig(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.updateData);
-            socketUtil.emitter(self.socket, dbPartner.createUpdatePartnerCommissionConfig, [data.query, data.updateData], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPartner.createUpdatePartnerCommissionConfig, [data.query, data.updateData, data.clearCustomize], actionName, isValidData);
         },
 
         getPartnerCommissionConfig: function getPartnerCommissionConfig(data) {
@@ -551,7 +551,13 @@ function socketActionPartner(socketIO, socket) {
         cancelPartnerCommissionPreview: function cancelPartnerCommissionPreview (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data, data.commSettLog, data.partnerCommLogId);
-            socketUtil.emitter(self.socket, dbPartner.cancelPartnerCommissionPreview, [data.commSettLog,data.partnerCommLogId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPartner.cancelPartnerCommissionPreview, [data.commSettLog, data.partnerCommLogId], actionName, isValidData);
+        },
+
+        getSelectedPartnerCommissionPreview: function getSelectedPartnerCommissionPreview (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data, data.platformObjId, data.partnerName);
+            socketUtil.emitter(self.socket, dbPartner.getSelectedPartnerCommissionLog, [data.platformObjId, data.partnerName], actionName, isValidData);
         },
     };
 

@@ -590,6 +590,7 @@ define(['js/app'], function (myApp) {
                         //item.endTime$ = item.data.lastSettleTime ? utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime) : "-";
                         item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime) : "-";
                         // $('.merchantNoList').selectpicker('refresh');
+                        item.remark$ = item.data.remark? item.data.remark: "";
                         return item;
                     }), data.data.size, {}, isNewSearch
                 );
@@ -764,7 +765,8 @@ define(['js/app'], function (myApp) {
                             }
                             return '<div>' + text + '</div>'
                         }
-                    }
+                    },
+                    {title: $translate('START_TIME'), data: "remark$"},
                 ],
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {

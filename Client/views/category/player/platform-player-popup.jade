@@ -1345,6 +1345,12 @@
                                             td {{v.nonXIMAAmt}}
                                             td {{v.consumptionAmount}}
                                             td {{v.returnAmount}}
+                                        tr
+                                            td {{'Totalsum' | translate}}
+                                            td {{'-'}}
+                                            td {{vm.totalConsumptionReturnData.totalNonXIMA}}
+                                            td {{vm.totalConsumptionReturnData.totalConsumption}}
+                                            td {{vm.totalConsumptionReturnData.totalReturnAmt}}
                             .well(ng-show='vm.playerApplyEventResult.success')
                                 label.text-success {{'SUCCESS' | translate}}
                             .well(ng-show='vm.playerApplyEventResult && !vm.playerApplyEventResult.success')
@@ -1657,7 +1663,7 @@
                         label {{"End date"|translate}}
                         .endTime
                     .inlineBlk
-                        button.common-button.btn.btn-primary(ng-click='vm.getPlayerPermissionChange("update")') {{'FILTER' | translate}}
+                        button.common-button.btn.btn-primary(ng-click='vm.getPlayerPermissionChangeByPlayerTab("update")') {{'FILTER' | translate}}
                         i.fa.fa-spinner.fa-spin(ng-if='vm.playerPermissionQuery.searching')
                 label(ng-if='!vm.playerPermissionQuery.searching') {{'total' | translate}} {{vm.playerPermissionHistory.length || 0}} {{'records' | translate}}
                 .panel.panel-primary
