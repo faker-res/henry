@@ -187,7 +187,7 @@ let dbCallOutMission = {
 
                 return getUpdatedMissionDetail(platform, admin, callOutMissionData, limit, index);
             }
-        )
+        );
     },
 };
 
