@@ -895,9 +895,12 @@ var dbPlayerTopUpRecord = {
                     };
                     // console.log("requestData:", requestData);
                     let groupMerchantList = dbPlayerTopUpRecord.isMerchantValid(player.merchantGroup.merchantNames, merchantGroupList, topupRequest.topupType, clientType);
-                    if (groupMerchantList.length > 0) {
+                    if (groupMerchantList.length > 0 || bPMSGroup) {
                         if(!bPMSGroup){
                             requestData.groupMerchantList = groupMerchantList;
+                        }
+                        else{
+                            requestData.groupMerchantList = [];
                         }
                         return pmsAPI.payment_requestOnlineMerchant(requestData);
                     } else {
