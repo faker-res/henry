@@ -10806,6 +10806,11 @@ define(['js/app'], function (myApp) {
                 // PlayerConsumptionReturn
                 vm.playerApplyRewardShow.showConsumptionReturn = type == "PlayerConsumptionReturn";
                 vm.playerApplyRewardShow.consumptionReturnData = {};
+                vm.totalConsumptionReturnData = {
+                    totalNonXIMA: 0,
+                    totalConsumption: 0,
+                    totalReturnAmt: 0
+                };
                 if (type == "PlayerConsumptionReturn") {
                     socketService.$socket($scope.AppSocket, 'getConsumeRebateAmount', {
                         playerId: vm.isOneSelectedPlayer().playerId,
@@ -10823,11 +10828,17 @@ define(['js/app'], function (myApp) {
                             vm.playerApplyRewardShow.consumptionReturnData[key].ratio = parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].ratio).toFixed(4);
                             vm.playerApplyRewardShow.consumptionReturnData[key].nonXIMAAmt = parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].nonXIMAAmt).toFixed(2);
                             vm.playerApplyRewardShow.consumptionReturnData[$translate(vm.allGameTypes[key] || 'Unknown')] = vm.playerApplyRewardShow.consumptionReturnData[key];
+                            vm.totalConsumptionReturnData.totalNonXIMA += parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].nonXIMAAmt)? parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].nonXIMAAmt): 0;
+                            vm.totalConsumptionReturnData.totalConsumption += parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].consumptionAmount)? parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].consumptionAmount): 0;
+                            vm.totalConsumptionReturnData.totalReturnAmt += parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].returnAmount)? parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].returnAmount): 0;
                             // hide consumption type that is not in current selecting platform
                             if (vm.playerApplyRewardShow.consumptionReturnData[$translate(vm.allGameTypes[key] || 'Unknown')].ratio == 0)
                                 delete vm.playerApplyRewardShow.consumptionReturnData[$translate(vm.allGameTypes[key] || 'Unknown')]
                             delete vm.playerApplyRewardShow.consumptionReturnData[key];
                         }
+                        vm.totalConsumptionReturnData.totalNonXIMA = vm.totalConsumptionReturnData.totalNonXIMA.toFixed(2);
+                        vm.totalConsumptionReturnData.totalConsumption = vm.totalConsumptionReturnData.totalConsumption.toFixed(2);
+                        vm.totalConsumptionReturnData.totalReturnAmt = vm.totalConsumptionReturnData.totalReturnAmt.toFixed(2);
                         $scope.safeApply();
                     }, function (err) {
                         console.log(err);

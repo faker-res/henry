@@ -1345,6 +1345,12 @@
                                             td {{v.nonXIMAAmt}}
                                             td {{v.consumptionAmount}}
                                             td {{v.returnAmount}}
+                                        tr
+                                            td {{'Totalsum' | translate}}
+                                            td {{'-'}}
+                                            td {{vm.totalConsumptionReturnData.totalNonXIMA}}
+                                            td {{vm.totalConsumptionReturnData.totalConsumption}}
+                                            td {{vm.totalConsumptionReturnData.totalReturnAmt}}
                             .well(ng-show='vm.playerApplyEventResult.success')
                                 label.text-success {{'SUCCESS' | translate}}
                             .well(ng-show='vm.playerApplyEventResult && !vm.playerApplyEventResult.success')
