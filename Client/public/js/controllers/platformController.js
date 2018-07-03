@@ -16711,10 +16711,11 @@ define(['js/app'], function (myApp) {
                         delete vm.advancedPartnerQueryObj[k];
                     }
                 }
-                vm.advancedPartnerQueryObj.index = 0;
+                // vm.advancedPartnerQueryObj.index = 0;
                 var apiQuery = {
                     platformId: vm.selectedPlatform.id,
-                    query: vm.advancedPartnerQueryObj
+                    query: vm.advancedPartnerQueryObj,
+                    index: partnerQuery ? 0 : (vm.advancedPartnerQueryObj.index || 0),
                 };
                 console.log('apiQuery', apiQuery);
                 socketService.$socket($scope.AppSocket, 'getPartnersByAdvancedQuery', apiQuery, function (reply) {
