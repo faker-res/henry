@@ -343,6 +343,10 @@ var simplifiedChinese = {
     "Cannot find reward event for platform and type name": "优惠不存在",
     "DX code invalid": "电销代码不存在",
     "Password changed": "密码已更换",
+    "Username must be alphanumeric": "用户名只能为数字和字母",
+    "Username must be at least": "用户名必须是至少",
+    "Username must be less than": "用户名必须是少过",
+    "characters": "位的数字和字母"
     //todo::add missing messages here
 
     /*
