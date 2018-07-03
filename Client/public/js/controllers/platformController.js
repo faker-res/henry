@@ -15975,6 +15975,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getCtiData = function() {
+                $('#platformFeedbackSpin').show();
                 socketService.$socket($scope.AppSocket, 'getUpdatedAdminMissionStatusFromCti', {
                     platformObjId: vm.selectedPlatform.id,
                     limit: vm.playerFeedbackQuery.limit || 10,
@@ -16012,6 +16013,7 @@ define(['js/app'], function (myApp) {
                             vm.callOutMissionProgressText = completedAmount + '/' + vm.ctiData.callee.length;
                         });
                         // setTableData(vm.playerFeedbackTable, players);
+                        $('#platformFeedbackSpin').hide();
                     }
                 });
             };
@@ -17861,6 +17863,15 @@ define(['js/app'], function (myApp) {
             //show partner info modal
             vm.showPartnerInfoModal = function (partnerName) {
                 $('#modalPartnerInfo').modal().show();
+                $scope.$evalAsync(() => {
+                    vm.selectedPartnerCommissionPreview = false;
+                });
+                $scope.$socketPromise('getSelectedPartnerCommissionPreview', {platformObjId: vm.selectedPlatform.id, partnerName: partnerName}).then(data => {
+                    console.log('getSelectedPartnerCommissionPreview', data);
+                    $scope.$evalAsync(() => {
+                        vm.selectedPartnerCommissionPreview = data && data.data ? data.data : false;
+                    });
+                });
             };
 
             vm.showActivePartnerInfoModal = function (partnerObjId, activeType) {
@@ -31285,6 +31296,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.createCallOutMission = function () {
+                $('#platformFeedbackSpin').show();
                 let sendQuery = {};
 
                 sendQuery.platformObjId = vm.selectedPlatform.id;
