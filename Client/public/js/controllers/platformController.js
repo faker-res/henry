@@ -25619,6 +25619,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.isSetAllDisablePartnerConfigSetting = function (showSetting, isEditing, isProviderGroupIncluded, srcSetting) {
+                vm.updateCommissionRateRequirement = false;
+
                 if (isProviderGroupIncluded) {
                     for (var i in showSetting) {
                         if (showSetting[i].showConfig && showSetting[i].showConfig.commissionSetting) {
@@ -25679,7 +25681,16 @@ define(['js/app'], function (myApp) {
                     }
                 }
             };
-            vm.submitPartnerCommissionConfigWithGameProviderGroup = function () {
+            vm.submitPartnerCommissionConfigWithGameProviderGroup = function (isConfirm) {
+                if (!isConfirm && vm.updateCommissionRateRequirement) {
+                    vm.modalYesNo = {};
+                    vm.modalYesNo.modalTitle = $translate("Commission Customization Revert");
+                    vm.modalYesNo.modalText = $translate("Update requirement will revert partner's commission customization. Are you sure?");
+                    vm.modalYesNo.actionYes = () => vm.submitPartnerCommissionConfigWithGameProviderGroup(true);
+                    $('#modalYesNo').modal();
+                    return;
+                }
+
                 if (vm.partnerCommission && vm.partnerCommission.gameProviderGroup && vm.partnerCommission.gameProviderGroup.length) {
                     let p = Promise.resolve();
 
@@ -25712,7 +25723,8 @@ define(['js/app'], function (myApp) {
                                             platform: tempShowConfig.platform ? tempShowConfig.platform : vm.selectedPlatform.id,
                                             _id: tempShowConfig._id
                                         },
-                                        updateData: tempShowConfig
+                                        updateData: tempShowConfig,
+                                        clearCustomize: vm.updateCommissionRateRequirement
                                     }
 
                                     p = p.then(function () {
@@ -25727,6 +25739,7 @@ define(['js/app'], function (myApp) {
 
                     return p.then(()=> {
                         $scope.$evalAsync(vm.getPartnerCommissionConfigWithGameProviderConfig);
+                        vm.updateCommissionRateRequirement = false;
                     });
                 }
             }
@@ -25736,7 +25749,8 @@ define(['js/app'], function (myApp) {
                         platform: vm.selectedPlatform.id,
                         _id: vm.partnerCommission.showConfig._id
                     },
-                    updateData: vm.partnerCommission.showConfig
+                    updateData: vm.partnerCommission.showConfig,
+                    clearCustomize: vm.updateCommissionRateRequirement
                 }
                 socketService.$socket($scope.AppSocket, 'createUpdatePartnerCommissionConfig', sendData, function (data) {
                     console.log('createUpdatePartnerCommissionConfig success:', data);
@@ -25744,6 +25758,7 @@ define(['js/app'], function (myApp) {
                     vm.getPartnerCommisionConfig();
                     $scope.safeApply();
                 });
+                vm.updateCommissionRateRequirement = false;
             };
             vm.addCommissionLevel = function (key) {
                 vm.partnerCommission.showConfig[key] = vm.partnerCommission.showConfig[key] || [];

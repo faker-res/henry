@@ -142,7 +142,7 @@
             .inlineBlk
                 button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="many";vm.submitPlayerFeedbackQuery(true);') {{"SEARCH_LIST" | translate}}
             .inlineBlk
-                button.btn.btn-warning(ng-if="checkViewPermission('Platform','Feedback','Export')",ng-disabled = 'vm.showExportButton()', ng-click='vm.exportPlayerQuery()') {{"PLAYER_EXPORT_BATCH" | translate}}
+                button.btn.btn-warning(ng-if="checkViewPermission('Platform','Feedback','Export') && !vm.ctiData.hasOnGoingMission", ng-disabled='vm.showExportButton()', ng-click='vm.exportPlayerQuery()') {{"PLAYER_EXPORT_BATCH" | translate}}
                 span#platformFeedbackSpin.collapse
                     i.fa.fa-spinner.fa-spin
                 span.margin-left-5
