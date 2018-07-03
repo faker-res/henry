@@ -2751,6 +2751,14 @@
   "SOURCE_URL": "来源URL",
   "autoAuditTime": "自动审核：审核时间",
   "ROUND_RESULT": "开奖结果",
+  "FRONTEND_MODULE_SETTING": "前端功能模板设置",
+  "PRESET_MODULE": "预设模板",
+  "SPECIAL_MODULE": "特殊模板",
+  "DISPLAYABLE": "是否展示",
+  "FUNCTION_ID": "功能ID",
+  "FUNCTION_NAME": "功能名称",
+  "YES": "是",
+  "NO": "否",
   "ROUND_ID": "局号",
   "MATCH_ID": "场次",
   "BET_TYPE": "下注类型",
@@ -3884,6 +3892,8 @@
   "Live Wallet": "真人钱包",
   "Slots Wallet": "电子钱包",
   "Sports Wallet": "体育钱包",
-  "Keno Wallet": "彩票钱包"
+  "Keno Wallet": "彩票钱包",
+  "FRONT_END_STATUS": "前端状态",
+  "UNREAD": "未读"
 
 }

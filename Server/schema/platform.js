@@ -142,6 +142,13 @@ var platformSchema = new Schema({
         isImg: {type: Number},
         content: {type: String}
     }],
+    //for frontend-module-setting
+    presetModuleSetting: [{
+        _id: false,
+        functionId: {type: Number},
+        displayable: {type: Number},
+        functionName: {type: String}
+    }],
 
     //email address used when sending emails to players
     csEmail: {type: String},
