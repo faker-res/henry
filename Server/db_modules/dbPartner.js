@@ -6436,6 +6436,51 @@ let dbPartner = {
         }).lean();
     },
 
+    getSelectedPartnerCommissionLog: function (platformObjId, partnerName) {
+        let partner, settLog;
+        return dbconfig.collection_partner.findOne({partnerName: partnerName, platform: platformObjId}, {partnerName: 1, platform: 1, commissionType:1}).lean().then(
+            partnerData => {
+                if (!partnerData) {
+                    return Promise.reject({message: "No partner found in table"});
+                }
+                partner = partnerData;
+
+                return dbconfig.collection_partnerCommSettLog.findOne({
+                    platform: partner.platform,
+                    settMode: partner.commissionType,
+                    isSkipped: false,
+                    isSettled: false
+                }).lean();
+            }
+        ).then(
+            settLogData => {
+                if (!settLogData) {
+                    return null;
+                }
+                settLog = settLogData;
+
+                return dbconfig.collection_partnerCommissionLog.findOne({
+                    status: constPartnerCommissionLogStatus.PREVIEW,
+                    partner: partner._id,
+                    platform: partner.platform,
+                    commissionType: partner.commissionType
+                }).lean();
+            }
+        ).then(
+            partnerCommmissionLog => {
+                if (partnerCommmissionLog) {
+                    return partnerCommmissionLog;
+                }
+
+                if (!settLog) {
+                    return null;
+                }
+
+                return dbPartner.generatePartnerCommissionLog(partner._id, partner.commissionType, settLog.startTime, settLog.endTime);
+            }
+        )
+    },
+
     /**
      * Create new Proposal to update partner QQ
      * @param {json} data - proposal data
