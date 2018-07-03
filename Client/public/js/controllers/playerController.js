@@ -2417,9 +2417,10 @@ define(['js/app'], function (myApp) {
             });
 
             function updateNumReceipient() {
-                vm.sendMultiMessage.numRecipient = $('#mutilplePlayerTable tbody input:checked[type="checkbox"]').length;
-                resetMultiMessageStatus();
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    vm.sendMultiMessage.numRecipient = $('#mutilplePlayerTable tbody input:checked[type="checkbox"]').length;
+                    resetMultiMessageStatus();
+                });
             };
             $('.toggleCheckAll').off('click');
             $('.toggleCheckAll').on('click', function (event, a, b) {
@@ -2476,36 +2477,38 @@ define(['js/app'], function (myApp) {
             resetAllSelection();
         };
         vm.sendMessages = function () {
+
             // console.log(vm.sendMultiMessage.tableObj.rows('.selected').data());
             vm.sendMultiMessage.sendInitiated = true;
             updateMultiMessageButton();
 
             $scope.AppSocket.removeAllListeners('_sendSMSToPlayer');
             $scope.AppSocket.on('_sendSMSToPlayer', function (data) {
-                console.log('retData', data);
-                if (data.success) {
-                    vm.sendMultiMessage.numReceived++;
-                    $('#messageSentReceived').text(vm.sendMultiMessage.numReceived);
-                } else {
-                    vm.sendMultiMessage.numFailed++;
-                    $('#messageSentFailed').text(vm.sendMultiMessage.numFailed);
-                }
-                if (vm.sendMultiMessage.numFailed + vm.sendMultiMessage.numReceived === vm.sendMultiMessage.numRecipient) {
-                    vm.sendMultiMessage.sendCompleted = true;
-                }
-                vm.sendMultiMessage.messageTitle = "";
-                vm.sendMultiMessage.messageContent = "";
-                updateMultiMessageButton();
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    console.log('retData', data);
+                    if (data.success) {
+                        vm.sendMultiMessage.numReceived++;
+                        $('#messageSentReceived').text(vm.sendMultiMessage.numReceived);
+                    } else {
+                        vm.sendMultiMessage.numFailed++;
+                        $('#messageSentFailed').text(vm.sendMultiMessage.numFailed);
+                    }
+                    if (vm.sendMultiMessage.numFailed + vm.sendMultiMessage.numReceived === vm.sendMultiMessage.numRecipient) {
+                        vm.sendMultiMessage.sendCompleted = true;
+                    }
+                    vm.sendMultiMessage.messageTitle = "";
+                    vm.sendMultiMessage.messageContent = "";
+                    updateMultiMessageButton();
+                });
             });
 
             $scope.AppSocket.removeAllListeners('_sendPlayerMailFromAdminToPlayer');
             $scope.AppSocket.on('_sendPlayerMailFromAdminToPlayer', function (data) {
+                console.log(data);
                 vm.sendMultiMessage.sendCompleted = true;
                 vm.sendMultiMessage.messageTitle = "";
                 vm.sendMultiMessage.messageContent = "";
                 updateMultiMessageButton();
-                $scope.safeApply();
             });
 
             if (vm.sendMultiMessage.messageType === "sms") {
@@ -2540,26 +2543,46 @@ define(['js/app'], function (myApp) {
                         vm.sendMultiMessage.messageTitle = "";
                         vm.sendMultiMessage.messageContent = "";
                         updateMultiMessageButton();
-                        $scope.safeApply();
                     })
                 } else {
                     $scope.AppSocket.emit('sendPlayerMailFromAdminToPlayer', sendData);
                 }
             }
-
-
         };
 
         vm.sendSingleMessages = function () {
-            vm.sendMultiMessage.singleBtnText = $translate("Sending");
-            vm.sendMultiMessage.singleSendDisable = true;
+            $scope.$evalAsync(() => {
+                vm.sendMultiMessage.singleBtnText = $translate("Sending");
+                vm.sendMultiMessage.singleSendDisable = true;
 
-            if (vm.toPhoneNumber && vm.sendMultiMessage.phoneCount && vm.sendMultiMessage.phoneCount > 1) {
-                let phoneList = (vm.toPhoneNumber).split(/\r\n|\r|\n/);
+                if (vm.toPhoneNumber && vm.sendMultiMessage.phoneCount && vm.sendMultiMessage.phoneCount > 1) {
+                    let phoneList = (vm.toPhoneNumber).split(/\r\n|\r|\n/);
 
-                phoneList.forEach(phoneNumber => {
+                    phoneList.forEach(phoneNumber => {
+                        let sendData = {
+                            phoneNumber: phoneNumber,
+                            platformId: vm.selectedPlatform.data.platformId,
+                            channel: vm.sendMultiMessage.channel,
+                            message: vm.sendMultiMessage.messageContent
+                        };
+
+                        socketService.$socket($scope.AppSocket, 'sendSMStoNumber', sendData, function (data) {
+                            vm.sendMultiMessage.sendCompleted = true;
+                            vm.sendMultiMessage.singleSendResultText = $translate("SUCCESS");
+                            vm.sendMultiMessage.singleBtnText = $translate("SEND");
+                            updateMultiMessageButton();
+                        }, function (err) {
+                            vm.sendMultiMessage.singleBtnText = $translate("SEND");
+                            vm.sendMultiMessage.singleSendResultText = $translate("FAIL");
+                            updateMultiMessageButton();
+                        });
+                    });
+                    vm.toPhoneNumber = null;
+                    vm.sendMultiMessage.messageContent = "";
+                    vm.sendMultiMessage.phoneCount = 0;
+                } else {
                     let sendData = {
-                        phoneNumber: phoneNumber,
+                        phoneNumber: vm.toPhoneNumber,
                         platformId: vm.selectedPlatform.data.platformId,
                         channel: vm.sendMultiMessage.channel,
                         message: vm.sendMultiMessage.messageContent
@@ -2569,44 +2592,19 @@ define(['js/app'], function (myApp) {
                         vm.sendMultiMessage.sendCompleted = true;
                         vm.sendMultiMessage.singleSendResultText = $translate("SUCCESS");
                         vm.sendMultiMessage.singleBtnText = $translate("SEND");
+                        // vm.toPhoneNumber = null
                         updateMultiMessageButton();
                     }, function (err) {
                         vm.sendMultiMessage.singleBtnText = $translate("SEND");
                         vm.sendMultiMessage.singleSendResultText = $translate("FAIL");
+                        // vm.toPhoneNumber = null
                         updateMultiMessageButton();
                     });
-                });
-                vm.toPhoneNumber = null;
-                vm.sendMultiMessage.messageContent = "";
-                vm.sendMultiMessage.phoneCount = 0;
-                $scope.safeApply();
-            } else {
-                let sendData = {
-                    phoneNumber: vm.toPhoneNumber,
-                    platformId: vm.selectedPlatform.data.platformId,
-                    channel: vm.sendMultiMessage.channel,
-                    message: vm.sendMultiMessage.messageContent
-                };
-
-                socketService.$socket($scope.AppSocket, 'sendSMStoNumber', sendData, function (data) {
-                    vm.sendMultiMessage.sendCompleted = true;
-                    vm.sendMultiMessage.singleSendResultText = $translate("SUCCESS");
-                    vm.sendMultiMessage.singleBtnText = $translate("SEND");
-                    // vm.toPhoneNumber = null
-                    updateMultiMessageButton();
-                    $scope.safeApply();
-                }, function (err) {
-                    vm.sendMultiMessage.singleBtnText = $translate("SEND");
-                    vm.sendMultiMessage.singleSendResultText = $translate("FAIL");
-                    // vm.toPhoneNumber = null
-                    updateMultiMessageButton();
-                    $scope.safeApply();
-                });
-                vm.toPhoneNumber = null;
-                vm.sendMultiMessage.messageContent = "";
-                vm.sendMultiMessage.phoneCount = 0;
-                $scope.safeApply();
-            }
+                    vm.toPhoneNumber = null;
+                    vm.sendMultiMessage.messageContent = "";
+                    vm.sendMultiMessage.phoneCount = 0;
+                }
+            });
         };
 
         function updateMultiMessageButton() {
@@ -8379,7 +8377,7 @@ define(['js/app'], function (myApp) {
                 editObj.referral = null;
             }
         };
-        
+
         vm.getPartnerinPlayer = function (editObj, type) {
             var sendData = null;
             if (type === 'change' && editObj.partnerName == '') {
