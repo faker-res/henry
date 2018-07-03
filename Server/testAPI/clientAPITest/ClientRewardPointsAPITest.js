@@ -108,6 +108,13 @@
         this.rewardPointsService.getMissonList.once(callback);
     };
 
+    proto.getPointChangeRecord = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.rewardPointsService.getPointChangeRecord.request(data);
+        this.rewardPointsService.getPointChangeRecord.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientRewardPointsAPITest;
     } else {

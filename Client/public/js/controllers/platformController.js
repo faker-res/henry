@@ -457,6 +457,13 @@ define(['js/app'], function (myApp) {
                 5: 'WEEKLY_CONSUMPTION'
             };
 
+            vm.ebetWalletList = {
+                0: 'Common Wallet',
+                1: 'Live Wallet',
+                2: 'Slots Wallet',
+                3: 'Sports Wallet',
+                4: 'Keno Wallet'
+            };
             vm.partnerCommissionLog= {};
 
             vm.prepareToBeDeletedProviderGroupId = [];
@@ -27004,7 +27011,8 @@ define(['js/app'], function (myApp) {
                             return {
                                 providerGroupId: e.providerGroupId,
                                 name: e.name,
-                                providers: e.providers
+                                providers: e.providers,
+                                ebetWallet: e.ebetWallet ? e.ebetWallet : 0
                             };
                         })
                     };

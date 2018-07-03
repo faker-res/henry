@@ -6578,6 +6578,7 @@ define(['js/app'], function (myApp) {
                             }
                         });
                         setPartnerTableData(reply.data.data);
+                        vm.partners = reply.data.data;
                         vm.searchPartnerCount = reply.data.size;
                         vm.advancedPartnerQueryObj.pageObj.init({maxCount: size}, true);
                     })
@@ -6832,6 +6833,8 @@ define(['js/app'], function (myApp) {
                     let sumOfTotalBonus = 0;
                     let sumOfTotalDeposit = 0;
                     let sumOfTotalBalance = 0;
+
+                    console.log('children data===', data);
 
                     if(data && data.data){
                         data.data.forEach(result => {

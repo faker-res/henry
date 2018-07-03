@@ -471,8 +471,8 @@ var PartnerServiceImplement = function () {
     };
 
     this.getCommissionProposalList.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data.platformId && conn.partnerId && data.startTime && data.endTime);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCommissionProposalList, [data.platformId, conn.partnerId, data.startTime, data.endTime, data.status], isValidData);
+        let isValidData = Boolean(data.platformId && conn.partnerId && ((data.startTime && data.endTime) || data.searchProposalCounts));
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getCommissionProposalList, [data.platformId, conn.partnerId, data.startTime, data.endTime, data.status, data.searchProposalCounts], isValidData);
     };
 
     this.getPartnerConfig.onRequest = function (wsFunc, conn, data) {
