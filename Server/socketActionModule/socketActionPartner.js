@@ -362,7 +362,7 @@ function socketActionPartner(socketIO, socket) {
         createUpdatePartnerCommissionConfigWithGameProviderGroup: function createUpdatePartnerCommissionConfigWithGameProviderGroup(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.updateData);
-            socketUtil.emitter(self.socket, dbPartner.createUpdatePartnerCommissionConfigWithGameProviderGroup, [data.query, data.updateData], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPartner.createUpdatePartnerCommissionConfigWithGameProviderGroup, [data.query, data.updateData, data.clearCustomize], actionName, isValidData);
         },
         getPartnerCommissionConfigWithGameProviderGroup: function getPartnerCommissionConfigWithGameProviderGroup(data) {
             var actionName = arguments.callee.name;
@@ -373,7 +373,7 @@ function socketActionPartner(socketIO, socket) {
         createUpdatePartnerCommissionConfig: function createUpdatePartnerCommissionConfig(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.updateData);
-            socketUtil.emitter(self.socket, dbPartner.createUpdatePartnerCommissionConfig, [data.query, data.updateData], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPartner.createUpdatePartnerCommissionConfig, [data.query, data.updateData, data.clearCustomize], actionName, isValidData);
         },
 
         getPartnerCommissionConfig: function getPartnerCommissionConfig(data) {
