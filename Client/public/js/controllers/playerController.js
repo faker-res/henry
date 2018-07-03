@@ -13695,7 +13695,7 @@ define(['js/app'], function (myApp) {
             return deferred.promise;
         }
 
-        vm.getPlayerPermissionChange = function (flag) {
+        vm.getPlayerPermissionChangeByPlayerTab = function (flag) {
             $('.playerPermissionPopover').popover('hide');
             // $('#playerPermissionPopover').modal('hide');
             vm.playerPermissionQuery = vm.playerPermissionQuery || {};
@@ -22912,8 +22912,8 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        $('body').on('click', '#permissionRecordButton', function () {
-            vm.getPlayerPermissionChange("new")
+        $('body').on('click', '#permissionRecordButtonByPlayerTab', function () {
+            vm.getPlayerPermissionChangeByPlayerTab("new")
         })
 
         function initFeedbackAdmin (callback) {
