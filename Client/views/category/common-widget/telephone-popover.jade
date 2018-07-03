@@ -49,12 +49,14 @@ ez-modal(modal-id="messagePlayerModal", modal-title="{{'SEND_MESSAGE_TO_PLAYER' 
                             th(data-toggle="modal", data-target="#modalFilterMessageLogSenderType", style="cursor: pointer") {{"Sender Type" | translate}}
                             th {{"Sender Name" | translate}}
                             th {{"CONTENT" | translate}}
+                            th {{"FRONT_END_STATUS" | translate}}
                     tbody
                         tr(ng-repeat='(i,mailLog) in vm.mailLog.receivedMails')
                             td {{mailLog.createTime | date:'medium'}}
                             td {{mailLog.senderType}}
                             td {{mailLog.senderName | translate}}
                             td {{mailLog.content}}
+                            td {{mailLog.mailStatus$ | translate}}
 
     ez-modal-footer(ng-if="vm.messageModalTab === 'sendMessageToPlayerPanel'")
         ez-confirm-button(ng-click="vm.sendMessageToPlayer()") {{"SEND" | translate}}
