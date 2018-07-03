@@ -2092,6 +2092,9 @@ var dbPlayerTopUpRecord = {
                                 requestData.groupAlipayList = [alipayAccount];
                             }
                         }
+                        else{
+                            requestData.groupAlipayList = [];
+                        }
                         // console.log("requestData", requestData);
                         return pmsAPI.payment_requestAlipayAccount(requestData);
                     }
@@ -2541,6 +2544,9 @@ var dbPlayerTopUpRecord = {
                             if (wechatAccount) {
                                 requestData.groupWechatList = [wechatAccount];
                             }
+                        }
+                        else{
+                            requestData.groupWechatList = [];
                         }
                         //console.log("requestData", requestData);
                         if (useQR) {
