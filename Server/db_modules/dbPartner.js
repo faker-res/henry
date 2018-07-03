@@ -3369,19 +3369,25 @@ let dbPartner = {
         return dbconfig.collection_partnerCommissionRateConfig.find(query);
     },
 
-    createUpdatePartnerCommissionConfig: function  (query, data) {
+    createUpdatePartnerCommissionConfig: function  (query, data, clearCustomize) {
         return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, _id: query._id}).lean().then(
-           configData => {
-               //check if config exist
-               if (!configData) {
-                    var newCommissionConfig = new dbconfig.collection_partnerCommissionConfig(data);
-                    return newCommissionConfig.save();
-               }
-               else {
-                   delete data._id;
-                   return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(query, data);
-               }
-           });
+            configData => {
+                //check if config exist
+                if (!configData) {
+                     var newCommissionConfig = new dbconfig.collection_partnerCommissionConfig(data);
+                     return newCommissionConfig.save();
+                }
+                else {
+                    delete data._id;
+
+                    if (clearCustomize) {
+                        clearCustomizedPartnerCommissionConfig(configData.platform, configData.commissionType, configData.provider).catch(errorUtils.reportError);
+                    }
+
+                    return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(query, data);
+                }
+            }
+        );
     },
 
     getPartnerCommissionConfigWithGameProviderGroup: function (query) {
@@ -3404,7 +3410,7 @@ let dbPartner = {
         );
     },
 
-    createUpdatePartnerCommissionConfigWithGameProviderGroup: function  (query, data) {
+    createUpdatePartnerCommissionConfigWithGameProviderGroup: function  (query, data, clearCustomize) {
         return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, _id: query._id}).lean().then(
             configData => {
                 //check if config exist
@@ -3413,9 +3419,15 @@ let dbPartner = {
                 }
                 else {
                     delete data._id;
+
+                    if (clearCustomize) {
+                        clearCustomizedPartnerCommissionConfig(configData.platform, configData.commissionType, configData.provider).then(output => console.log(output)).catch(errorUtils.reportError);
+                    }
+
                     return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(query, data);
                 }
-            });
+            }
+        );
     },
 
     startPlatformPartnerCommissionSettlement: function (platformObjId, bUpdateSettlementTime, isToday) {
@@ -6422,6 +6434,51 @@ let dbPartner = {
             startTime: startTime,
             endTime: endTime
         }).lean();
+    },
+
+    getSelectedPartnerCommissionLog: function (platformObjId, partnerName) {
+        let partner, settLog;
+        return dbconfig.collection_partner.findOne({partnerName: partnerName, platform: platformObjId}, {partnerName: 1, platform: 1, commissionType:1}).lean().then(
+            partnerData => {
+                if (!partnerData) {
+                    return Promise.reject({message: "No partner found in table"});
+                }
+                partner = partnerData;
+
+                return dbconfig.collection_partnerCommSettLog.findOne({
+                    platform: partner.platform,
+                    settMode: partner.commissionType,
+                    isSkipped: false,
+                    isSettled: false
+                }).lean();
+            }
+        ).then(
+            settLogData => {
+                if (!settLogData) {
+                    return null;
+                }
+                settLog = settLogData;
+
+                return dbconfig.collection_partnerCommissionLog.findOne({
+                    status: constPartnerCommissionLogStatus.PREVIEW,
+                    partner: partner._id,
+                    platform: partner.platform,
+                    commissionType: partner.commissionType
+                }).lean();
+            }
+        ).then(
+            partnerCommmissionLog => {
+                if (partnerCommmissionLog) {
+                    return partnerCommmissionLog;
+                }
+
+                if (!settLog) {
+                    return null;
+                }
+
+                return dbPartner.generatePartnerCommissionLog(partner._id, partner.commissionType, settLog.startTime, settLog.endTime);
+            }
+        )
     },
 
     /**
@@ -10133,3 +10190,11 @@ function getCrewTopUpDetail (playerObjId, startTime, endTime) {
 var proto = dbPartnerFunc.prototype;
 proto = Object.assign(proto, dbPartner);
 module.exports = dbPartner;
+
+function clearCustomizedPartnerCommissionConfig (platform, commissionType, provider) {
+    let query = {platform, commissionType, partner: {$exists: true}};
+    if (provider) {
+        query.provider = provider;
+    }
+    return dbconfig.collection_partnerCommissionConfig.remove(query);
+}

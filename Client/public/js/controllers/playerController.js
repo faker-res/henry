@@ -13695,7 +13695,7 @@ define(['js/app'], function (myApp) {
             return deferred.promise;
         }
 
-        vm.getPlayerPermissionChange = function (flag) {
+        vm.getPlayerPermissionChangeByPlayerTab = function (flag) {
             $('.playerPermissionPopover').popover('hide');
             // $('#playerPermissionPopover').modal('hide');
             vm.playerPermissionQuery = vm.playerPermissionQuery || {};
@@ -13710,8 +13710,10 @@ define(['js/app'], function (myApp) {
                     vm.playerPermissionQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 });
             }
+            let tempPlayerId = vm.popOverPlayerPermission && vm.popOverPlayerPermission._id ? vm.popOverPlayerPermission._id :
+                vm.selectedSinglePlayer && vm.selectedSinglePlayer._id ? vm.selectedSinglePlayer._id : null;
             var sendData = {
-                playerId: (vm.popOverPlayerPermission || vm.selectedSinglePlayer)._id,
+                playerId: tempPlayerId,
                 platform: vm.selectedPlatform.id,
                 createTime: {
                     $gte: new Date(vm.playerPermissionQuery.startTime.data('datetimepicker').getLocalDate()),
@@ -22910,8 +22912,8 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        $('body').on('click', '#permissionRecordButton', function () {
-            vm.getPlayerPermissionChange("new")
+        $('body').on('click', '#permissionRecordButtonByPlayerTab', function () {
+            vm.getPlayerPermissionChangeByPlayerTab("new")
         })
 
         function initFeedbackAdmin (callback) {

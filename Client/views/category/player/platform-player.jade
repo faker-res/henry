@@ -995,7 +995,7 @@ include modalGameCreditLog
             textarea.permissionRemark(placeholder='{{"Please add remark." | translate}}')
         .text-left(style="position:relative;")
             button.btn.btn-primary.submit {{'CONFIRM' | translate}}
-            button#permissionRecordButton.btn.btn-primary.common-button(style="right:0;position:absolute",ng-if="checkViewPermission('Platform', 'Player', 'PermissionHistory')", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog', ng-show="vm.platformPageName!='batchPermit'")
+            button#permissionRecordButtonByPlayerTab.btn.btn-primary.common-button(style="right:0;position:absolute",ng-if="checkViewPermission('Platform', 'Player', 'PermissionHistory')", data-toggle="modal", ng-click='vm.getPlayerPermissionChangeByPlayerTab("new")', data-target='#modalPlayerPermissionChangeLog', ng-show="vm.platformPageName!='batchPermit'")
                 text {{"Permission History" | translate}}
         div(ng-show="vm.platformPageName=='batchPermit'") * 若要开启/解除某权限设置，请
         div(ng-show="vm.platformPageName=='batchPermit'") 关闭->开启->再按确定按钮。
