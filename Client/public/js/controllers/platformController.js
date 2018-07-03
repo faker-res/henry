@@ -16075,7 +16075,6 @@ define(['js/app'], function (myApp) {
                                 vm.getCtiData();
                             }, 15000);
                         }
-                        // setTableData(vm.playerFeedbackTable, players);
 
                         if (!vm.calleeCallOutStatus) {
                             vm.calleeCallOutStatus = {};
