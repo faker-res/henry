@@ -207,7 +207,7 @@ define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
             $.ajax({
                 type: "HEAD",
                 url: serverURL,
-                timeout: 3000,
+                timeout: 30000,
                 beforeSend: () => {
                     sendTime = (new Date()).getTime();
                 },
