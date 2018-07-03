@@ -9764,6 +9764,7 @@ define(['js/app'], function (myApp) {
 
             vm.initFeedbackModal = function (rowData) {
                 if (rowData && rowData.playerId) {
+                    vm.currentFeedbackPlayer = rowData;
                     $('#addFeedbackTab').addClass('active');
                     $('#feedbackHistoryTab').removeClass('active');
                     $scope.safeApply();
@@ -9888,7 +9889,7 @@ define(['js/app'], function (myApp) {
                     query: {
                         startTime: vm.playerFeedbackRecord.startTime.data('datetimepicker').getLocalDate(),
                         endTime: vm.playerFeedbackRecord.endTime.data('datetimepicker').getLocalDate(),
-                        playerId: vm.selectedSinglePlayer._id
+                        playerId: vm.currentFeedbackPlayer._id || vm.selectedSinglePlayer._id
                     }
                 }, function (data) {
                     console.log('getPlayerFeedback', data);
@@ -12013,7 +12014,7 @@ define(['js/app'], function (myApp) {
                 });
                 resultName = resultName.length > 0 ? resultName[0].value : "";
                 let sendData = {
-                    playerId: vm.isOneSelectedPlayer()._id,
+                    playerId: vm.currentFeedbackPlayer._id || vm.isOneSelectedPlayer()._id,
                     platform: vm.selectedPlatform.id,
                     createTime: Date.now(),
                     adminId: authService.adminId,
@@ -16031,7 +16032,7 @@ define(['js/app'], function (myApp) {
                     vm.ctiData = data.data;
                     if(vm.ctiData.hasOnGoingMission) {
                         let playerFeedbackDetail = vm.ctiData.feedbackPlayerDetail;
-                        setTableData(vm.playerFeedbackTable, playerFeedbackDetail.data);
+                        let playerTableData = playerFeedbackDetail.data || [];
                         vm.playerFeedbackQuery.total = playerFeedbackDetail.total || 0;
                         vm.playerFeedbackQuery.index = playerFeedbackDetail.index || 0;
                         vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total});
@@ -16042,11 +16043,20 @@ define(['js/app'], function (myApp) {
                         vm.callOutMissionStatusText = '';
 
                         vm.ctiData.callee.forEach(callee => {
-                            players.push(Object.assign({},callee.player,{callOutMissionStatus: callee.status}));
-                            if (status == $scope.constCallOutMissionStatus.SUCCEEDED || status == $scope.constCallOutMissionStatus.FAILED) {
+                            // players.push(Object.assign({},callee.player,{callOutMissionStatus: callee.status}));
+                            for (let i = 0; i < playerTableData.length; i++) {
+                                if (callee.player && callee.player._id == playerTableData[i]._id) {
+                                    playerTableData[i].callOutMissionStatus = callee.status;
+                                    break;
+                                }
+                            }
+
+                            if (callee.status != 0) {
                                 completedAmount++;
                             }
                         });
+
+                        setTableData(vm.playerFeedbackTable, playerFeedbackDetail.data);
 
                         if (vm.ctiData.status == $scope.constCallOutMissionStatus.ON_GOING) {
                             vm.callOutMissionStatusText = $translate("On Going");
@@ -16058,9 +16068,35 @@ define(['js/app'], function (myApp) {
                             vm.feedbackPlayersPara.total = vm.ctiData.callee.length;
                             vm.callOutMissionProgressText = completedAmount + '/' + vm.ctiData.callee.length;
                         });
-                        // setTableData(vm.playerFeedbackTable, players);
-                        $('#platformFeedbackSpin').hide();
+
+                        clearTimeout(vm.ctiRefreshTimeout);
+                        if (window.location.pathname == "/platform" && vm.platformPageName == "Feedback") {
+                            vm.ctiRefreshTimeout = setTimeout(() => {
+                                vm.getCtiData();
+                            }, 15000);
+                        }
+
+                        if (!vm.calleeCallOutStatus) {
+                            vm.calleeCallOutStatus = {};
+                            vm.ctiData.callee.map(callee => {
+                                vm.calleeCallOutStatus[callee._id] = callee.status;
+                            });
+                        }
+                        else {
+                            vm.ctiData.callee.map(callee => {
+                                if (vm.calleeCallOutStatus[callee._id] != 1 && callee.status == 1) {
+                                    vm.initFeedbackModal(callee.player);
+                                    $('#modalAddPlayerFeedback').modal().show();
+                                }
+                                vm.calleeCallOutStatus[callee._id] = callee.status;
+                            });
+                        }
+
                     }
+                    else {
+                        vm.calleeCallOutStatus = undefined;
+                    }
+                    $('#platformFeedbackSpin').hide();
                 });
             };
 
@@ -26126,6 +26162,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.playerForbidApplyBonusNeedCsApproval = vm.selectedPlatform.data.playerForbidApplyBonusNeedCsApproval;
                 vm.platformBasic.unreadMailMaxDuration = vm.selectedPlatform.data.unreadMailMaxDuration;
                 vm.platformBasic.manualRewardSkipAuditAmount = vm.selectedPlatform.data.manualRewardSkipAuditAmount || 0;
+                vm.platformBasic.useEbetWallet = vm.selectedPlatform.data.useEbetWallet;
 
                 if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
                     let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
@@ -26796,6 +26833,7 @@ define(['js/app'], function (myApp) {
                         unreadMailMaxDuration: srcData.unreadMailMaxDuration,
                         manualRewardSkipAuditAmount: srcData.manualRewardSkipAuditAmount,
                         display: srcData.display,
+                        useEbetWallet: srcData.useEbetWallet,
                     }
                 };
                 let isProviderGroupOn = false;
