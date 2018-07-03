@@ -12496,6 +12496,15 @@ define(['js/app'], function (myApp) {
                 $scope.$socketPromise('searchMailLog', requestData).then(result => {
                     console.log("result:", result);
                     vm.mailLog.receivedMails = result.data;
+                    for (let i = 0; i < vm.mailLog.receivedMails.length; i++) {
+                        vm.mailLog.receivedMails[i].mailStatus$ = "UNREAD";
+                        if (vm.mailLog.receivedMails[i].hasBeenRead) {
+                            vm.mailLog.receivedMails[i].mailStatus$ = "MARK_AS_READ";
+                        }
+                        if (vm.mailLog.receivedMails[i].bDelete) {
+                            vm.mailLog.receivedMails[i].mailStatus$ = "DELETE";
+                        }
+                    }
                     $scope.safeApply();
                 }).catch(console.error);
             };
