@@ -2722,10 +2722,12 @@ define(['js/app'], function (myApp) {
             };
 
             function updateMultiMessageButton() {
-                vm.sendMultiMessage.sendBtnText =
-                    vm.sendMultiMessage.sendCompleted ? $translate("DONE")
-                        : vm.sendMultiMessage.sendInitiated ? $translate("Sending")
-                        : $translate("SEND");
+                $scope.$evalAsync(() => {
+                    vm.sendMultiMessage.sendBtnText =
+                        vm.sendMultiMessage.sendCompleted ? $translate("DONE")
+                            : vm.sendMultiMessage.sendInitiated ? $translate("Sending")
+                            : $translate("SEND");
+                });
             }
 
             ////////////////Mark::Game Group functions//////////////////
