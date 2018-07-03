@@ -1408,6 +1408,70 @@ form(name="form_new_platform" ,novalidate)
                                                 button.common-button.btn.btn-info(ng-click="vm.resetPartnerAddTable();" style="width: auto; background-color: #5bc0de") {{'CANCEL' | translate}}
 
 
+
+
+        div(name="frontend-module-setting", ng-show="vm.selectedPlatformDetailTab == 'frontend-module-setting'")
+            ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu(style='height: 46px;')
+                .pull-left.padding-all-5
+                li.active(id = 'presetModuleTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
+                    a.common-tab(data-toggle="tab", ng-click='vm.moduleDisplayDataTab = \'presetModulePanel\'; vm.getFrontEndPresetModuleSetting();')
+                        .fa.fa-file-text.margin-right-5
+                        text.span {{"PRESET_MODULE" | translate}}
+                li(id = 'specialModuleTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
+                    a.common-tab(data-toggle="tab",ng-click='vm.moduleDisplayDataTab = \'specialModulePanel\'; vm.playerAdvertisementList();vm.editFrontendModuleSetting=false; vm.showFrontendModuleSetting=true;vm.addNewPlayerAdvertisement=false;')
+                        .fa.fa-file-text.margin-right-5
+                        text.span {{"SPECIAL_MODULE" | translate}}
+            #presetModulePanel.panel-body(ng-if="vm.moduleDisplayDataTab === 'presetModulePanel'", style="background-color: white;")
+                .col-md-12
+                    table.simple-table
+                        thead
+                            tr
+                                th(colspan = 4) {{"A. "}} {{"PRESET_MODULE" |translate}}
+                            tr
+                                th(style="width: 20%", ng-if='!vm.isNotAllowEdit') {{"ACTION_BUTTON" | translate}}
+                                th(style="width: 20%;") {{"Display ID" | translate}}
+                                th(style="width: 40%;") {{"Display Title" | translate}}
+                                th(style="width: 20%;") {{"DISPLAYABLE" | translate}}
+                        tbody
+                            tr(ng-repeat= 'item in vm.presetModuleSettingData')
+                                td(ng-if="!vm.isNotAllowEdit")
+                                    i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.presetModuleSettingData, $index)')
+                                td(ng-if="!vm.isNotAllowEdit")
+                                    input.form-control(type='text', value='{{item.functionId}}', ng-model='item.functionId')
+                                td(ng-if="!vm.isNotAllowEdit")
+                                    input.form-control(type='text', value='{{item.functionName}}', ng-model='item.functionName')
+                                td(ng-if="!vm.isNotAllowEdit")
+                                    div
+                                        select.form-control(ng-model='item.displayable', style='max-width:300px', required)
+                                            option(value=0) {{'NO' | translate}}
+                                            option(value=1) {{'YES' | translate}}
+
+
+                                td(ng-if="vm.isNotAllowEdit", ) {{ item.functionId ? item.functionId : ''}}
+                                td(ng-if="vm.isNotAllowEdit", ) {{ item.functionName ? item.functionName : ''}}
+                                td(ng-if="vm.isNotAllowEdit", style="width: 30%") {{ (item.displayable == 0 || item.displayable == 1 ?  item.displayable == 1 ? 'YES' : 'NO' : '') | translate}}
+
+
+                            tr(ng-if='!vm.isNotAllowEdit')
+                                td(colspan=4) {{'ADD' | translate}}
+                            tr(ng-if='!vm.isNotAllowEdit')
+                                td
+                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.presetModuleSettingData, {displayable: vm.newDisplayable, functionId: vm.newFunctionId, functionName: vm.newFunctionName}); vm.newFunctionId=""; vm.newFunctionName=""; vm.newDisplayable="";')
+
+                                td
+                                    input.form-control(type="text", ng-model="vm.newFunctionId")
+                                td
+                                    input.form-control(type="text", ng-model="vm.newFunctionName")
+                                td
+                                    div
+                                        select.form-control(ng-model='vm.newDisplayable', style='max-width:300px', required)
+                                            option(value= '0') {{'NO' | translate}}
+                                            option(value= '1') {{'YES' | translate}}
+
+
+            #specialModulePanel.panel-body(ng-if="vm.moduleDisplayDataTab === 'specialModulePanel'", style="background-color: white;")
+                div.col-md-12
+
 div(name="system-settlement", ng-show="vm.selectedPlatformDetailTab == 'system-settlement'")
     .col-md-12.block-query.well
         h4(style="margin-top:0;font-weight:bold;text-decoration:underline;") {{"SETTLEMENT_HISTORY" | translate}}

@@ -478,6 +478,8 @@ define(['js/app'], function (myApp) {
                 vm.initPartnerDisplayDataModal();
             } else if (tabName && tabName == "system-settlement") {
                 vm.prepareSettlementHistory();
+            } else if (tabName && tabName == "frontend-module-setting"){
+                vm.initFrontendModuleSettingModal();
             }
         };
         vm.isValidCompanyId = function (live800CompanyIdTXT) {
@@ -620,6 +622,18 @@ define(['js/app'], function (myApp) {
 
         vm.setPlatformFooter = function (platformAction) {
             vm.platformAction = platformAction;
+        };
+
+        vm.getFrontEndPresetModuleSetting = function() {
+            vm.presetModuleSettingData = [];
+
+            if(vm.showPlatform.presetModuleSetting && vm.showPlatform.presetModuleSetting.length > 0){
+                vm.showPlatform.presetModuleSetting.forEach(p => {
+
+                    p.displayable = ( p.displayable == 0 || p.displayable == 1 )? p.displayable.toString() : null ;
+                    vm.presetModuleSettingData.push($.extend({}, p));
+                })
+            }
         };
 
         vm.retrievePlatformData = function(platformData) {
@@ -1967,6 +1981,7 @@ define(['js/app'], function (myApp) {
             if (vm.selectedPlatform && vm.selectedPlatform.data) {
                 if (vm.showPlatform) {
                     vm.showPlatform.demoPlayerPrefix = vm.selectedPlatform.data.demoPlayerPrefix;
+                    vm.getFrontEndPresetModuleSetting();
                 }
             }
         };
@@ -1984,6 +1999,10 @@ define(['js/app'], function (myApp) {
                 vm.showPlatform.department = vm.showPlatform.department._id;
             }
 
+            if (vm.presetModuleSettingData){
+                vm.showPlatform.presetModuleSetting =  vm.presetModuleSettingData;
+            }
+
             socketService.$socket($scope.AppSocket, 'updatePlatform',
                 {
                     query: {_id: vm.selectedPlatform.id},
@@ -1993,6 +2012,7 @@ define(['js/app'], function (myApp) {
                     vm.curPlatformText = vm.showPlatform.name;
                     loadPlatformData({loadAll: false});
                     vm.editFrontEndDisplay = false;
+                    vm.getFrontEndPresetModuleSetting();
                     vm.syncPlatform();
                 });
         };
@@ -9623,6 +9643,13 @@ define(['js/app'], function (myApp) {
             vm.showPartnerAdvertisementRecord = true;
             vm.editPartnerAdvertisementRecord = false;
             vm.partnerAdvertisementWebDevice = true;
+        };
+
+        vm.initFrontendModuleSettingModal = function () {
+            $('#presetModuleTab').addClass('active');
+            $('#specialModuleTab').removeClass('active');
+            $scope.safeApply();
+            vm.moduleDisplayDataTab = "presetModulePanel";
         };
 
         vm.updatePlayerFeedbackData = function (modalId, tableId, opt) {
