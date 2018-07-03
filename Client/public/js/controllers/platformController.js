@@ -16083,10 +16083,7 @@ define(['js/app'], function (myApp) {
                             });
                         }
                         else {
-                            vm.firstccc = false
                             vm.ctiData.callee.map(callee => {
-                                if(!vm.firstccc)
-                                vm.firstccc = true;
                                 if (vm.calleeCallOutStatus[callee._id] != 1 && callee.status == 1) {
                                     vm.initFeedbackModal(callee.player);
                                     $('#modalAddPlayerFeedback').modal().show();
