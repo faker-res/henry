@@ -478,6 +478,8 @@ define(['js/app'], function (myApp) {
                 vm.initPartnerDisplayDataModal();
             } else if (tabName && tabName == "system-settlement") {
                 vm.prepareSettlementHistory();
+            } else if (tabName && tabName == "frontend-module-setting"){
+                vm.initFrontendModuleSettingModal();
             }
         };
         vm.isValidCompanyId = function (live800CompanyIdTXT) {
@@ -620,6 +622,18 @@ define(['js/app'], function (myApp) {
 
         vm.setPlatformFooter = function (platformAction) {
             vm.platformAction = platformAction;
+        };
+
+        vm.getFrontEndPresetModuleSetting = function() {
+            vm.presetModuleSettingData = [];
+
+            if(vm.showPlatform.presetModuleSetting && vm.showPlatform.presetModuleSetting.length > 0){
+                vm.showPlatform.presetModuleSetting.forEach(p => {
+
+                    p.displayable = ( p.displayable == 0 || p.displayable == 1 )? p.displayable.toString() : null ;
+                    vm.presetModuleSettingData.push($.extend({}, p));
+                })
+            }
         };
 
         vm.retrievePlatformData = function(platformData) {
@@ -1967,6 +1981,7 @@ define(['js/app'], function (myApp) {
             if (vm.selectedPlatform && vm.selectedPlatform.data) {
                 if (vm.showPlatform) {
                     vm.showPlatform.demoPlayerPrefix = vm.selectedPlatform.data.demoPlayerPrefix;
+                    vm.getFrontEndPresetModuleSetting();
                 }
             }
         };
@@ -1984,6 +1999,10 @@ define(['js/app'], function (myApp) {
                 vm.showPlatform.department = vm.showPlatform.department._id;
             }
 
+            if (vm.presetModuleSettingData){
+                vm.showPlatform.presetModuleSetting =  vm.presetModuleSettingData;
+            }
+
             socketService.$socket($scope.AppSocket, 'updatePlatform',
                 {
                     query: {_id: vm.selectedPlatform.id},
@@ -1993,6 +2012,7 @@ define(['js/app'], function (myApp) {
                     vm.curPlatformText = vm.showPlatform.name;
                     loadPlatformData({loadAll: false});
                     vm.editFrontEndDisplay = false;
+                    vm.getFrontEndPresetModuleSetting();
                     vm.syncPlatform();
                 });
         };
@@ -2417,9 +2437,10 @@ define(['js/app'], function (myApp) {
             });
 
             function updateNumReceipient() {
-                vm.sendMultiMessage.numRecipient = $('#mutilplePlayerTable tbody input:checked[type="checkbox"]').length;
-                resetMultiMessageStatus();
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    vm.sendMultiMessage.numRecipient = $('#mutilplePlayerTable tbody input:checked[type="checkbox"]').length;
+                    resetMultiMessageStatus();
+                });
             };
             $('.toggleCheckAll').off('click');
             $('.toggleCheckAll').on('click', function (event, a, b) {
@@ -2476,36 +2497,38 @@ define(['js/app'], function (myApp) {
             resetAllSelection();
         };
         vm.sendMessages = function () {
+
             // console.log(vm.sendMultiMessage.tableObj.rows('.selected').data());
             vm.sendMultiMessage.sendInitiated = true;
             updateMultiMessageButton();
 
             $scope.AppSocket.removeAllListeners('_sendSMSToPlayer');
             $scope.AppSocket.on('_sendSMSToPlayer', function (data) {
-                console.log('retData', data);
-                if (data.success) {
-                    vm.sendMultiMessage.numReceived++;
-                    $('#messageSentReceived').text(vm.sendMultiMessage.numReceived);
-                } else {
-                    vm.sendMultiMessage.numFailed++;
-                    $('#messageSentFailed').text(vm.sendMultiMessage.numFailed);
-                }
-                if (vm.sendMultiMessage.numFailed + vm.sendMultiMessage.numReceived === vm.sendMultiMessage.numRecipient) {
-                    vm.sendMultiMessage.sendCompleted = true;
-                }
-                vm.sendMultiMessage.messageTitle = "";
-                vm.sendMultiMessage.messageContent = "";
-                updateMultiMessageButton();
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    console.log('retData', data);
+                    if (data.success) {
+                        vm.sendMultiMessage.numReceived++;
+                        $('#messageSentReceived').text(vm.sendMultiMessage.numReceived);
+                    } else {
+                        vm.sendMultiMessage.numFailed++;
+                        $('#messageSentFailed').text(vm.sendMultiMessage.numFailed);
+                    }
+                    if (vm.sendMultiMessage.numFailed + vm.sendMultiMessage.numReceived === vm.sendMultiMessage.numRecipient) {
+                        vm.sendMultiMessage.sendCompleted = true;
+                    }
+                    vm.sendMultiMessage.messageTitle = "";
+                    vm.sendMultiMessage.messageContent = "";
+                    updateMultiMessageButton();
+                });
             });
 
             $scope.AppSocket.removeAllListeners('_sendPlayerMailFromAdminToPlayer');
             $scope.AppSocket.on('_sendPlayerMailFromAdminToPlayer', function (data) {
+                console.log(data);
                 vm.sendMultiMessage.sendCompleted = true;
                 vm.sendMultiMessage.messageTitle = "";
                 vm.sendMultiMessage.messageContent = "";
                 updateMultiMessageButton();
-                $scope.safeApply();
             });
 
             if (vm.sendMultiMessage.messageType === "sms") {
@@ -2540,26 +2563,46 @@ define(['js/app'], function (myApp) {
                         vm.sendMultiMessage.messageTitle = "";
                         vm.sendMultiMessage.messageContent = "";
                         updateMultiMessageButton();
-                        $scope.safeApply();
                     })
                 } else {
                     $scope.AppSocket.emit('sendPlayerMailFromAdminToPlayer', sendData);
                 }
             }
-
-
         };
 
         vm.sendSingleMessages = function () {
-            vm.sendMultiMessage.singleBtnText = $translate("Sending");
-            vm.sendMultiMessage.singleSendDisable = true;
+            $scope.$evalAsync(() => {
+                vm.sendMultiMessage.singleBtnText = $translate("Sending");
+                vm.sendMultiMessage.singleSendDisable = true;
 
-            if (vm.toPhoneNumber && vm.sendMultiMessage.phoneCount && vm.sendMultiMessage.phoneCount > 1) {
-                let phoneList = (vm.toPhoneNumber).split(/\r\n|\r|\n/);
+                if (vm.toPhoneNumber && vm.sendMultiMessage.phoneCount && vm.sendMultiMessage.phoneCount > 1) {
+                    let phoneList = (vm.toPhoneNumber).split(/\r\n|\r|\n/);
 
-                phoneList.forEach(phoneNumber => {
+                    phoneList.forEach(phoneNumber => {
+                        let sendData = {
+                            phoneNumber: phoneNumber,
+                            platformId: vm.selectedPlatform.data.platformId,
+                            channel: vm.sendMultiMessage.channel,
+                            message: vm.sendMultiMessage.messageContent
+                        };
+
+                        socketService.$socket($scope.AppSocket, 'sendSMStoNumber', sendData, function (data) {
+                            vm.sendMultiMessage.sendCompleted = true;
+                            vm.sendMultiMessage.singleSendResultText = $translate("SUCCESS");
+                            vm.sendMultiMessage.singleBtnText = $translate("SEND");
+                            updateMultiMessageButton();
+                        }, function (err) {
+                            vm.sendMultiMessage.singleBtnText = $translate("SEND");
+                            vm.sendMultiMessage.singleSendResultText = $translate("FAIL");
+                            updateMultiMessageButton();
+                        });
+                    });
+                    vm.toPhoneNumber = null;
+                    vm.sendMultiMessage.messageContent = "";
+                    vm.sendMultiMessage.phoneCount = 0;
+                } else {
                     let sendData = {
-                        phoneNumber: phoneNumber,
+                        phoneNumber: vm.toPhoneNumber,
                         platformId: vm.selectedPlatform.data.platformId,
                         channel: vm.sendMultiMessage.channel,
                         message: vm.sendMultiMessage.messageContent
@@ -2569,51 +2612,28 @@ define(['js/app'], function (myApp) {
                         vm.sendMultiMessage.sendCompleted = true;
                         vm.sendMultiMessage.singleSendResultText = $translate("SUCCESS");
                         vm.sendMultiMessage.singleBtnText = $translate("SEND");
+                        // vm.toPhoneNumber = null
                         updateMultiMessageButton();
                     }, function (err) {
                         vm.sendMultiMessage.singleBtnText = $translate("SEND");
                         vm.sendMultiMessage.singleSendResultText = $translate("FAIL");
+                        // vm.toPhoneNumber = null
                         updateMultiMessageButton();
                     });
-                });
-                vm.toPhoneNumber = null;
-                vm.sendMultiMessage.messageContent = "";
-                vm.sendMultiMessage.phoneCount = 0;
-                $scope.safeApply();
-            } else {
-                let sendData = {
-                    phoneNumber: vm.toPhoneNumber,
-                    platformId: vm.selectedPlatform.data.platformId,
-                    channel: vm.sendMultiMessage.channel,
-                    message: vm.sendMultiMessage.messageContent
-                };
-
-                socketService.$socket($scope.AppSocket, 'sendSMStoNumber', sendData, function (data) {
-                    vm.sendMultiMessage.sendCompleted = true;
-                    vm.sendMultiMessage.singleSendResultText = $translate("SUCCESS");
-                    vm.sendMultiMessage.singleBtnText = $translate("SEND");
-                    // vm.toPhoneNumber = null
-                    updateMultiMessageButton();
-                    $scope.safeApply();
-                }, function (err) {
-                    vm.sendMultiMessage.singleBtnText = $translate("SEND");
-                    vm.sendMultiMessage.singleSendResultText = $translate("FAIL");
-                    // vm.toPhoneNumber = null
-                    updateMultiMessageButton();
-                    $scope.safeApply();
-                });
-                vm.toPhoneNumber = null;
-                vm.sendMultiMessage.messageContent = "";
-                vm.sendMultiMessage.phoneCount = 0;
-                $scope.safeApply();
-            }
+                    vm.toPhoneNumber = null;
+                    vm.sendMultiMessage.messageContent = "";
+                    vm.sendMultiMessage.phoneCount = 0;
+                }
+            });
         };
 
         function updateMultiMessageButton() {
-            vm.sendMultiMessage.sendBtnText =
-                vm.sendMultiMessage.sendCompleted ? $translate("DONE")
-                    : vm.sendMultiMessage.sendInitiated ? $translate("Sending")
-                    : $translate("SEND");
+            $scope.$evalAsync(() => {
+                vm.sendMultiMessage.sendBtnText =
+                    vm.sendMultiMessage.sendCompleted ? $translate("DONE")
+                        : vm.sendMultiMessage.sendInitiated ? $translate("Sending")
+                        : $translate("SEND");
+            });
         }
 
         ////////////////Mark::Game Group functions//////////////////
@@ -8379,7 +8399,7 @@ define(['js/app'], function (myApp) {
                 editObj.referral = null;
             }
         };
-        
+
         vm.getPartnerinPlayer = function (editObj, type) {
             var sendData = null;
             if (type === 'change' && editObj.partnerName == '') {
@@ -9625,6 +9645,13 @@ define(['js/app'], function (myApp) {
             vm.partnerAdvertisementWebDevice = true;
         };
 
+        vm.initFrontendModuleSettingModal = function () {
+            $('#presetModuleTab').addClass('active');
+            $('#specialModuleTab').removeClass('active');
+            $scope.safeApply();
+            vm.moduleDisplayDataTab = "presetModulePanel";
+        };
+
         vm.updatePlayerFeedbackData = function (modalId, tableId, opt) {
             opt = opt || {'dom': 't'};
             vm.playerFeedbackRecord.searching = true;
@@ -10576,6 +10603,11 @@ define(['js/app'], function (myApp) {
             // PlayerConsumptionReturn
             vm.playerApplyRewardShow.showConsumptionReturn = type == "PlayerConsumptionReturn";
             vm.playerApplyRewardShow.consumptionReturnData = {};
+            vm.totalConsumptionReturnData = {
+                totalNonXIMA: 0,
+                totalConsumption: 0,
+                totalReturnAmt: 0
+            };
             if (type == "PlayerConsumptionReturn") {
                 socketService.$socket($scope.AppSocket, 'getConsumeRebateAmount', {
                     playerId: vm.isOneSelectedPlayer().playerId,
@@ -10593,11 +10625,17 @@ define(['js/app'], function (myApp) {
                         vm.playerApplyRewardShow.consumptionReturnData[key].ratio = parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].ratio).toFixed(4);
                         vm.playerApplyRewardShow.consumptionReturnData[key].nonXIMAAmt = parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].nonXIMAAmt).toFixed(2);
                         vm.playerApplyRewardShow.consumptionReturnData[$translate(vm.allGameTypes[key] || 'Unknown')] = vm.playerApplyRewardShow.consumptionReturnData[key];
+                        vm.totalConsumptionReturnData.totalNonXIMA += parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].nonXIMAAmt)? parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].nonXIMAAmt): 0;
+                        vm.totalConsumptionReturnData.totalConsumption += parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].consumptionAmount)? parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].consumptionAmount): 0;
+                        vm.totalConsumptionReturnData.totalReturnAmt += parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].returnAmount)? parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].returnAmount): 0;
                         // hide consumption type that is not in current selecting platform
                         if (vm.playerApplyRewardShow.consumptionReturnData[$translate(vm.allGameTypes[key] || 'Unknown')].ratio == 0)
                             delete vm.playerApplyRewardShow.consumptionReturnData[$translate(vm.allGameTypes[key] || 'Unknown')]
                         delete vm.playerApplyRewardShow.consumptionReturnData[key];
                     }
+                    vm.totalConsumptionReturnData.totalNonXIMA = vm.totalConsumptionReturnData.totalNonXIMA.toFixed(2);
+                    vm.totalConsumptionReturnData.totalConsumption = vm.totalConsumptionReturnData.totalConsumption.toFixed(2);
+                    vm.totalConsumptionReturnData.totalReturnAmt = vm.totalConsumptionReturnData.totalReturnAmt.toFixed(2);
                     $scope.safeApply();
                 }, function (err) {
                     console.log(err);
@@ -12199,6 +12237,15 @@ define(['js/app'], function (myApp) {
             $scope.$socketPromise('searchMailLog', requestData).then(result => {
                 console.log("result:", result);
                 vm.mailLog.receivedMails = result.data;
+                for (let i = 0; i < vm.mailLog.receivedMails.length; i++) {
+                    vm.mailLog.receivedMails[i].mailStatus$ = "UNREAD";
+                    if (vm.mailLog.receivedMails[i].hasBeenRead) {
+                        vm.mailLog.receivedMails[i].mailStatus$ = "MARK_AS_READ";
+                    }
+                    if (vm.mailLog.receivedMails[i].bDelete) {
+                        vm.mailLog.receivedMails[i].mailStatus$ = "DELETE";
+                    }
+                }
                 $scope.safeApply();
             }).catch(console.error);
         };
