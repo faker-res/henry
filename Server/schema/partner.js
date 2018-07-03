@@ -61,9 +61,9 @@ var partnerSchema = new Schema({
     //no of monthly active players
     monthlyActivePlayer: {type:Number, min: 0, default: 0},
     //total children deposit
-    totalChildrenDeposit: {type:Number, min: 0, default: 0},
+    totalChildrenDeposit: {type:Number, default: 0},
     //total children balance
-    totalChildrenBalance: {type:Number, min: 0, default: 0},
+    totalChildrenBalance: {type:Number, default: 0},
     //validConsumptionSum
     validConsumptionSum: {type:Number, min: 0, default: 0},
     //valid reward
