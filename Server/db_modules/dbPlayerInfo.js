@@ -427,7 +427,7 @@ let dbPlayerInfo = {
 
                     //check if manual player creation from FPMS, return true (manual creation from FPMS do not have userAgent)
                     if(inputData.userAgent){
-                        if (!platformObj.requireSMSVerification && bypassSMSVerify) {
+                        if (!platformObj.requireSMSVerification || bypassSMSVerify) {
                             return true;
                         }else if(platformObj.requireSMSVerification){
                             return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode);
