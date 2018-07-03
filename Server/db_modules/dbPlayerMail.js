@@ -434,35 +434,37 @@ const dbPlayerMail = {
                         }
                     }
 
-                    let letterNumber = /^[0-9a-zA-Z]+$/;
-                    let prefixLength = platform.prefix ?　platform.prefix.length : 0;
+                    if (purpose && purpose == constSMSPurpose.REGISTRATION) {
+                        let letterNumber = /^[0-9a-zA-Z]+$/;
+                        let prefixLength = platform.prefix ?　platform.prefix.length : 0;
 
-                    if(!inputData.name.match(letterNumber)){
-                        return Q.reject({
-                            status: constServerCode.DATA_INVALID,
-                            name: "DBError",
-                            message: localization.localization.translate("Username must be alphanumeric")
-                        });
-                    }
-
-                    if(platform.playerNameMinLength > 0){
-                        if(playerName.length + prefixLength < platform.playerNameMinLength){
+                        if(!inputData.name.match(letterNumber)){
                             return Q.reject({
                                 status: constServerCode.DATA_INVALID,
                                 name: "DBError",
-                                message: localization.localization.translate("Username must be at least") + " " + platform.playerNameMinLength + " " + localization.localization.translate("characters")
+                                message: localization.localization.translate("Username must be alphanumeric")
                             });
                         }
 
-                    }
+                        if(platform.playerNameMinLength > 0){
+                            if(playerName.length + prefixLength < platform.playerNameMinLength){
+                                return Q.reject({
+                                    status: constServerCode.DATA_INVALID,
+                                    name: "DBError",
+                                    message: localization.localization.translate("Username must be at least") + " " + platform.playerNameMinLength + " " + localization.localization.translate("characters")
+                                });
+                            }
 
-                    if(platform.playerNameMaxLength > 0){
-                        if(playerName.length + prefixLength > platform.playerNameMaxLength){
-                            return Q.reject({
-                                status: constServerCode.DATA_INVALID,
-                                name: "DBError",
-                                message: localization.localization.translate("Username must be less than") + " " + platform.playerNameMaxLength + " " + localization.localization.translate("characters")
-                            });
+                        }
+
+                        if(platform.playerNameMaxLength > 0){
+                            if(playerName.length + prefixLength > platform.playerNameMaxLength){
+                                return Q.reject({
+                                    status: constServerCode.DATA_INVALID,
+                                    name: "DBError",
+                                    message: localization.localization.translate("Username must be less than") + " " + platform.playerNameMaxLength + " " + localization.localization.translate("characters")
+                                });
+                            }
                         }
                     }
 
