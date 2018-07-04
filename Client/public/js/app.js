@@ -438,7 +438,7 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
             //     }
             // });
 
-            $urlRouterProvider.otherwise('/platform');
+            $urlRouterProvider.otherwise('/player');
         }]);
 
     return myApp;
