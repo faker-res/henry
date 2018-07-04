@@ -364,44 +364,42 @@ function getCtiUrls (platformId) {
     platformId = platformId ? String(platformId) : "10";
 
     let urls = [
-        "http://eu.tel400.me/cti/",
-        "http://jinbailitw.tel400.me/cti/",
-        "http://jinbailinewcro.tel400.me/cti/",
-        "http://b8a.tel400.me/cti/",
-        "http://bbet8.tel400.me/cti/",
-        "http://xindelitz.tel400.me/cti/",
-        "http://buyuhuang.tel400.me/cti/",
-        "http://hm.tel400.me/cti/",
         "http://jsh.tel400.me/cti/",
     ];
 
     if (platformId == '6') {
-        let jblUrl = urls[2];
-        urls[2] = urls[0];
-        urls[0] = jblUrl;
+        urls = [
+            "http://jinbailinewcro.tel400.me/cti/",
+            "http://ruibodl.tel400.me/cti/",
+            "http://jinbailitw.tel400.me/cti/",
+        ];
     } else if (platformId == '2' || platformId == '7') {
-        let bbetUrl = urls[4];
-        urls[4] = urls[0];
-        urls[0] = bbetUrl;
-        let xdlUrl = urls[3];
-        urls[3] = urls[1];
-        urls[1] = xdlUrl;
+        urls = [
+            "http://bbet8dl.tel400.me/cti/",
+            "http://bbet8.tel400.me/cti/",
+            "http://b8a.tel400.me/cti/",
+            "http://xindelitz.tel400.me/cti/",
+        ];
     } else if (platformId == '8') {
-        let jshUrl = urls[6];
-        urls[6] = urls[0];
-        urls[0] = jshUrl;
+        urls = [
+            "http://bbetasiadl.tel400.me/cti/",
+            "http://jsh.tel400.me/cti/",
+            "http://buyuhuang.tel400.me/cti/",
+        ];
     } else if (platformId == '5') {
-        let bylUrl = urls[7];
-        urls[7] = urls[0];
-        urls[0] = bylUrl;
-    } else if (platformId == '10') {
-        let jshUrl = urls[8];
-        urls[8] = urls[0];
-        urls[0] = jshUrl;
+        urls = [
+            "http://haomendl.tel400.me/cti/",
+            "http://hm.tel400.me/cti/",
+        ];
     } else if (platformId == '3' || platformId == '9') {
-        let byhUrl = urls[6];
-        urls[6] = urls[0];
-        urls[0] = byhUrl;
+        urls = [
+            "http://buyuhuang.tel400.me/cti/",
+        ];
+    } else if (platformId == '4') {
+        urls = [
+            "http://eudl.tel400.me/cti/",
+            "http://eu.tel400.me/cti/",
+        ];
     }
 
     return urls;
