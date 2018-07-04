@@ -28,7 +28,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     // Dev log switch
     let consoleLog, consoleInfo;
-    $scope.enableLogging = false;
+    $scope.enableLogging = $cookies.get('devLog') ? JSON.parse($cookies.get('devLog')) : false;
     $scope.toggleDevLog = (isFirstLoad) => {
         if (!isFirstLoad) {
             $scope.enableLogging = !$scope.enableLogging;
@@ -39,13 +39,15 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             consoleInfo = console.info;
             window['console']['log'] = () => {};
             window['console']['info'] = () => {};
+            $cookies.put('devLog', 'false');
         } else {
-            if (consoleLog === null || consoleInfo === null) {
+            if (!consoleLog || !consoleInfo) {
                 return;
             }
 
             window['console']['log'] = consoleLog;
             window['console']['info'] = consoleInfo;
+            $cookies.put('devLog', 'true');
         }
     };
     $scope.toggleDevLog(true);
