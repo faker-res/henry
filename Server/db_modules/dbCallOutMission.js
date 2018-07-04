@@ -381,6 +381,7 @@ function getCtiUrls (platformId) {
 
     let urls = [
         "http://jsh.tel400.me/cti/",
+        "http://jinbailinewcro.tel400.me/cti/",
     ];
 
     if (platformId == '6') {
@@ -396,26 +397,31 @@ function getCtiUrls (platformId) {
             "http://bbet8.tel400.me/cti/",
             "http://b8a.tel400.me/cti/",
             "http://xindelitz.tel400.me/cti/",
+            "http://jinbailinewcro.tel400.me/cti/",
         ];
     } else if (platformId == '8') {
         urls = [
             "http://bbetasiadl.tel400.me/cti/",
             "http://jsh.tel400.me/cti/",
             "http://buyuhuang.tel400.me/cti/",
+            "http://jinbailinewcro.tel400.me/cti/",
         ];
     } else if (platformId == '5') {
         urls = [
             "http://haomendl.tel400.me/cti/",
             "http://hm.tel400.me/cti/",
+            "http://jinbailinewcro.tel400.me/cti/",
         ];
     } else if (platformId == '3' || platformId == '9') {
         urls = [
             "http://buyuhuang.tel400.me/cti/",
+            "http://jinbailinewcro.tel400.me/cti/",
         ];
     } else if (platformId == '4') {
         urls = [
             "http://eudl.tel400.me/cti/",
             "http://eu.tel400.me/cti/",
+            "http://jinbailinewcro.tel400.me/cti/",
         ];
     }
 
