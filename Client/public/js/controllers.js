@@ -945,6 +945,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
             let urls = [
                 "http://jsh.tel400.me/cti/previewcallout.action",
+                "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
             ];
 
             if (platformId == '6') {
@@ -960,26 +961,31 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     "http://bbet8.tel400.me/cti/previewcallout.action",
                     "http://b8a.tel400.me/cti/previewcallout.action",
                     "http://xindelitz.tel400.me/cti/previewcallout.action",
+                    "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
                 ];
             } else if (platformId == '8') {
                 urls = [
                     "http://bbetasiadl.tel400.me/cti/previewcallout.action",
                     "http://jsh.tel400.me/cti/previewcallout.action",
                     "http://buyuhuang.tel400.me/cti/previewcallout.action",
+                    "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
                 ];
             } else if (platformId == '5') {
                 urls = [
                     "http://haomendl.tel400.me/cti/previewcallout.action",
                     "http://hm.tel400.me/cti/previewcallout.action",
+                    "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
                 ];
             } else if (platformId == '3' || platformId == '9') {
                 urls = [
                     "http://buyuhuang.tel400.me/cti/previewcallout.action",
+                    "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
                 ];
             } else if (platformId == '4') {
                 urls = [
                     "http://eudl.tel400.me/cti/previewcallout.action",
                     "http://eu.tel400.me/cti/previewcallout.action",
+                    "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
                 ];
             } /*else if (platformId == '10') {
                 urls = [
