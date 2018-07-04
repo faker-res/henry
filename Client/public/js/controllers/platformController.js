@@ -2110,6 +2110,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initSendMultiMessage = function () {
+                vm.smsLog = {index: 0, limit: 10};
                 vm.getSMSTemplate();
                 vm.sendMultiMessage = {
                     totalCount: 0,
@@ -2272,20 +2273,20 @@ define(['js/app'], function (myApp) {
                 };
                 socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', sendQuery, function (data) {
                     console.log('playerData', data);
-
-                    var size = data.data.size || 0;
-                    var result = data.data.data || [];
-                    vm.drawSendMessagesTable(result.map(item => {
-                        if (!item.name && item.partnerName) {
-                            item.name = item.partnerName;
-                        }
-                        item.lastAccessTime$ = vm.dateReformat(item.lastAccessTime);
-                        item.registrationTime$ = vm.dateReformat(item.registrationTime);
-                        return item;
-                    }), size, newSearch);
-                    vm.sendMultiMessage.totalCount = size;
-                    vm.sendMultiMessage.pageObj.init({maxCount: size}, newSearch);
-                    $scope.safeApply();
+                    $scope.$evalAsync(()=>{
+                        var size = data.data.size || 0;
+                        var result = data.data.data || [];
+                        vm.drawSendMessagesTable(result.map(item => {
+                            if (!item.name && item.partnerName) {
+                                item.name = item.partnerName;
+                            }
+                            item.lastAccessTime$ = vm.dateReformat(item.lastAccessTime);
+                            item.registrationTime$ = vm.dateReformat(item.registrationTime);
+                            return item;
+                        }), size, newSearch);
+                        vm.sendMultiMessage.totalCount = size;
+                        vm.sendMultiMessage.pageObj.init({maxCount: size}, newSearch);
+                    })
                 });
             }
             vm.initVertificationSMS = function () {
@@ -16729,7 +16730,7 @@ define(['js/app'], function (myApp) {
                 // if (vm.selectedPlatform && vm.selectedPlatform.id) {
                 //     vm.getRewardPointsEvent(vm.selectedPlatform.id);
                 // }
-
+                vm.smsLog = {index: 0, limit: 10};
                 setTimeout(() => {
                     $('#playerDataTable').resize();
                 }, 300);
