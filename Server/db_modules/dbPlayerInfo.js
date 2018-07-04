@@ -427,7 +427,7 @@ let dbPlayerInfo = {
 
                     //check if manual player creation from FPMS, return true (manual creation from FPMS do not have userAgent)
                     if(inputData.userAgent){
-                        if (!platformObj.requireSMSVerification && bypassSMSVerify) {
+                        if (!platformObj.requireSMSVerification || bypassSMSVerify) {
                             return true;
                         }else if(platformObj.requireSMSVerification){
                             return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode);
@@ -5271,8 +5271,12 @@ let dbPlayerInfo = {
 
                             if (playerData.platform.useProviderGroup) {
                                 // Platform supporting provider group
-                                return dbPlayerCreditTransfer.playerCreditTransferToProviderWithProviderGroup(
-                                    playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                                if(playerData.platform.useEbetWallet) {
+                                    // if use eBet Wallet
+                                } else {
+                                    return dbPlayerCreditTransfer.playerCreditTransferToProviderWithProviderGroup(
+                                        playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                                }
                             } else if (playerData.platform.canMultiReward) {
                                 // Platform supporting multiple rewards will use new function first
                                 return dbPlayerCreditTransfer.playerCreditTransferToProvider(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
@@ -5762,8 +5766,12 @@ let dbPlayerInfo = {
 
                                 if (playerObj.platform.useProviderGroup) {
                                     // Platform supporting provider group
-                                    return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
-                                        data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
+                                    if(playerObj.platform.useEbetWallet) {
+                                        // if use eBet Wallet
+                                    } else {
+                                        return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
+                                            data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
+                                    }
                                 } else if (playerObj.platform.canMultiReward) {
                                     // Platform supporting multiple rewards will use new function first
                                     return dbPlayerCreditTransfer.playerCreditTransferFromProvider(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);

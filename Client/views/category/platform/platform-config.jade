@@ -1036,6 +1036,10 @@
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.manualRewardSkipAuditAmount}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.manualRewardSkipAuditAmount')
+                            tr
+                                td {{'Use eBet Wallet' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.useEbetWallet', ng-disabled='!vm.configTableEdit')
                             br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
@@ -1584,8 +1588,7 @@
                                     select.spicker.form-control(disabled, ng-model='group.providers', multiple data-width="600px")
                                         option(ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}' ng-disabled="vm.checkProviderGrouped(v._id, group.providers)") {{v.name}}
                                 td
-                                    select.form-control(disabled, ng-model='group.ebetWallet')
-                                        option(ng-repeat='(i,v) in vm.ebetWalletList', value='{{i}}' ng-disabled="!vm.configTableEdit") {{v | translate}}
+                                    select.form-control(disabled, ng-model='group.ebetWallet' ng-options="+(i) as v | translate for (i,v) in vm.ebetWalletList")
                                 td(ng-if='vm.configTableEdit')
                                     button.btn.btn-danger.common-button(ng-click='vm.deleteProviderGroup($index,group)') {{"Delete" | translate}}
                             tr(ng-if='vm.configTableEdit')
