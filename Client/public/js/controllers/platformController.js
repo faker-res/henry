@@ -15730,7 +15730,6 @@ define(['js/app'], function (myApp) {
                     });
                 }
                 vm.playerCredibilityComment = [];
-                $scope.safeApply();
             };
             vm.drawExtendedFeedbackTable = function (data) {
                 var tableOptions = {
@@ -16234,8 +16233,6 @@ define(['js/app'], function (myApp) {
                     });
                     vm.getCtiData();
                 });
-
-                $scope.safeApply();
             };
 
             vm.clearFeedBackResultDataStatus = function (rowData) {
@@ -16615,7 +16612,6 @@ define(['js/app'], function (myApp) {
                 });
                 $("#playerAlmostLevelUpTable").resize();
 
-                $scope.safeApply();
                 aTable.columns.adjust().draw();
                 $('#feedbackAdminTable').resize();
                 $('#feedbackAdminTable').resize();
@@ -31349,7 +31345,6 @@ define(['js/app'], function (myApp) {
                             })
                         });
                         vm.departmentUsers = result;
-                        $scope.safeApply();
                     });
                 }
                 vm.feedbackAdminQuery.admin = "any";

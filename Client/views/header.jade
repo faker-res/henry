@@ -13,11 +13,6 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
                 option(ng-repeat='(i,v) in mgntServerList', value='{{i}}', ng-selected='currentServer' ng-disabled='!v.latency') {{i + ":  " + v.latency + "ms"}}
     #cssmenu
         ul.navibar.navbar-header.nav-header.navbar-brand
-            li(style="{{ checkViewPermission('Platform')? 'display:block; width:70px;' : 'display:none'}}" class="wbLogo")
-                a(href='', name='platform', ng-click="openHeaderPanel('Website Business'); setClickedHeaderIcon()" )
-                    i.fa
-                        div()
-                    | {{ 'Website Business' | translate }}
             li(style="{{ checkViewPermission('Platform', 'Player', 'Read')? 'display:block; width:70px;' : 'display:none'}}")
                 a(href='', name='player', ng-click="openHeaderPanel('player'); setClickedHeaderIcon()" )
                     i.fa.fa-user
@@ -26,6 +21,11 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
                 a(href='', name='partner', ng-click="openHeaderPanel('partner'); setClickedHeaderIcon()" )
                     i.fa.fa-share-alt
                     | {{ 'PARTNER' | translate }}
+            li(style="{{ checkViewPermission('Platform')? 'display:block; width:70px;' : 'display:none'}}" class="wbLogo")
+                a(href='', name='platform', ng-click="openHeaderPanel('Website Business'); setClickedHeaderIcon()" )
+                    i.fa
+                        div()
+                    | {{ 'Website Business' | translate }}
             li(style="{{ checkViewPermission('Report')? 'display:block; width:70px;' : 'display:none'}}")
                 a(href='', name='report', ng-click="openHeaderPanel('report'); setClickedHeaderIcon()" )
                     i.fa.fa-table
