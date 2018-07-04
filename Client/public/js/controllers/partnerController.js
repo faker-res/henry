@@ -958,6 +958,15 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            function getAllPartnerCommSettPreview() {
+                commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id).then(
+                    previewData => {
+                        $scope.$evalAsync(() => {
+                            vm.allPartnerCommSettPreview = previewData;
+                        })
+                    }
+                );
+            }
 
             vm.startPlatformPartnerCommissionSettlement = function ($event) {
                 vm.partnerCommissionSettlement = {
@@ -988,11 +997,7 @@ define(['js/app'], function (myApp) {
                     }
                 )
 
-                commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id).then(
-                    previewData => {
-                        vm.allPartnerCommSettPreview = previewData;
-                    }
-                );
+                getAllPartnerCommSettPreview();
             };
 
             vm.generatePartnerCommSettPreview = (modeObj) => {
@@ -1080,25 +1085,27 @@ define(['js/app'], function (myApp) {
                     endTime: prev.endTime
                 }).then(
                     partnerCommObj => {
-                        vm.partnerCommissionLog = partnerCommObj.data;
-                        vm.partnerCommissionLog.forEach( partner => {
-                                if (partner){
-                                    partner.isAnyCustomPlatformFeeRate = false;
-                                    if (partner.rawCommissions && partner.rawCommissions.length > 0) {
-                                        (partner.rawCommissions).forEach((group, idxgroup) => {
-                                                group.commissionRate = +(group.commissionRate*100).toFixed(2);
-                                                partner.isAnyCustomPlatformFeeRate = group.isCustomPlatformFeeRate ? true : partner.isAnyCustomPlatformFeeRate;
-                                                if (group.isCustomPlatformFeeRate == true) {
-                                                    vm.partnerCommVar.platformFeeTab = idxgroup;
+                        $scope.$evalAsync(() => {
+                            vm.partnerCommissionLog = partnerCommObj.data;
+                            vm.partnerCommissionLog.forEach( partner => {
+                                    if (partner){
+                                        partner.isAnyCustomPlatformFeeRate = false;
+                                        if (partner.rawCommissions && partner.rawCommissions.length > 0) {
+                                            (partner.rawCommissions).forEach((group, idxgroup) => {
+                                                    group.commissionRate = +(group.commissionRate*100).toFixed(2);
+                                                    partner.isAnyCustomPlatformFeeRate = group.isCustomPlatformFeeRate ? true : partner.isAnyCustomPlatformFeeRate;
+                                                    if (group.isCustomPlatformFeeRate == true) {
+                                                        vm.partnerCommVar.platformFeeTab = idxgroup;
+                                                    }
                                                 }
-                                            }
-                                        );
+                                            );
+                                        }
                                     }
                                 }
-                            }
-                        );
-                        console.log('partnerCommissionLog', vm.partnerCommissionLog);
-                        $('#modalPartnerCommPreview').modal();
+                            );
+                            console.log('partnerCommissionLog', vm.partnerCommissionLog);
+                            $('#modalPartnerCommPreview').modal();
+                        })
                     }
                 )
             };
@@ -1184,7 +1191,7 @@ define(['js/app'], function (myApp) {
                     sendData.partnerCommLogId = partnerCommLogIdArr;
 
                     socketService.$socket($scope.AppSocket, 'cancelPartnerCommissionPreview', sendData, function (data) {
-                        vm.loadTab('Partner');
+                        getAllPartnerCommSettPreview();
                     });
                 }
             };
