@@ -2455,13 +2455,13 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                 //     {new: true}
                                 // ).then(
                                     res => {
-                                        
-                                        if (res[0]){
-                                            dbRewardTask.updateUnlockedRewardTasksRecord(res[0], statusUpdObj.status, updatedRTG.playerId, updatedRTG.platformId).catch(errorUtils.reportError);
-                                        }
 
                                         if (res[1]) {
                                             dbRewardTask.completeRewardTaskGroup(res[1], res[1].status).catch(errorUtils.reportError);
+                                            if (res[0]){
+                                                dbRewardTask.updateUnlockedRewardTasksRecord(res[0], statusUpdObj.status, updatedRTG.playerId, updatedRTG.platformId).catch(errorUtils.reportError);
+                                            }
+
                                             return res[1];
                                         }
 
