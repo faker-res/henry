@@ -3639,7 +3639,13 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                             }
                         });
 
-                        return Promise.all(calCreditArr);
+                        return Promise.all(calCreditArr).then(data=>{
+                            console.log("createRewardTaskForProposal Promise.all.then.innerPromise.all success",data);
+                            return data;
+                        },err=>{
+                            console.log("createRewardTaskForProposal Promise.all.then.innerPromise.all error",err)
+                            return err;
+                        });
                     }
                 });
         }
