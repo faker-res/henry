@@ -1636,7 +1636,7 @@
                             tr
                                 th {{'DOWNLINE_NAME' | translate}}
                                 th {{'REAL_NAME' | translate}}
-                                th {{'EXPENSE' | translate}} {{' ('}} {{'BONUS_AMOUNT' | translate}} {{'/'}} {{'CONSUMPTION' | translate}} {{')'}}
+                                th {{'EXPENSE' | translate}} {{' ('}} {{'bonusAmount1' | translate}} {{'/'}} {{'CONSUMPTION' | translate}} {{')'}}
                         tbody
                             tr(ng-if="vm.realTimeCommissionData[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length > 0", ng-repeat="v in vm.realTimeCommissionData[vm.partnerCommVar.partner].downLinesRawCommissionDetail")
                                 td {{v.name}}

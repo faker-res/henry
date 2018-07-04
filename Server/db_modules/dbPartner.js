@@ -6149,9 +6149,14 @@ let dbPartner = {
     },
 
     generatePartnerCommissionLog: function (partnerObjId, commissionType, startTime, endTime) {
+        let downLinesRawCommissionDetails, partnerCommissionLog;
         return dbPartner.calculatePartnerCommissionDetail(partnerObjId, commissionType, startTime, endTime)
             .then(
             commissionDetail => {
+                downLinesRawCommissionDetails = commissionDetail.downLinesRawCommissionDetail || [];
+
+                delete commissionDetail.downLinesRawCommissionDetail;
+
                 return dbconfig.collection_partnerCommissionLog.findOneAndUpdate({
                     partner: commissionDetail.partner,
                     platform: commissionDetail.platform,
@@ -6161,8 +6166,31 @@ let dbPartner = {
                 }, commissionDetail, {upsert: true, new: true}).lean();
             }
         ).then(
-            partnerCommissionLog => {
-                updatePastThreeRecord(partnerCommissionLog).catch(errorUtils.reportError);
+            partnerCommissionLogData => {
+                if (!partnerCommissionLogData) {
+                    return undefined;
+                }
+                updatePastThreeRecord(partnerCommissionLogData).catch(errorUtils.reportError);
+                partnerCommissionLog = partnerCommissionLogData;
+
+                let proms = [];
+                downLinesRawCommissionDetails.map(detail => {
+                    detail.platform = partnerCommissionLog.platform;
+                    detail.partnerCommissionLog = partnerCommissionLog._id;
+
+                    let prom = dbconfig.collection_downLinesRawCommissionDetail.findOneAndUpdate({platform: detail.platform, partnerCommissionLog: detail.partnerCommissionLog, name: detail.name}, detail, {upsert: true, new: true}).catch(errorUtils.reportError);
+                    proms.push(prom);
+                });
+
+                return Promise.all(proms);
+            }
+        ).then(
+            downLinesRawCommissionDetail => {
+                if (!downLinesRawCommissionDetail) {
+                    return undefined;
+                }
+
+                partnerCommissionLog.downLinesRawCommissionDetail = downLinesRawCommissionDetail;
                 return partnerCommissionLog;
             }
         );
@@ -6428,12 +6456,18 @@ let dbPartner = {
     },
 
     getPartnerCommissionLog: function (platformObjId, commissionType, startTime, endTime) {
-        return dbconfig.collection_partnerCommissionLog.find({
+        // return dbconfig.collection_partnerCommissionLog.find({
+        //     "platform": platformObjId,
+        //     commissionType: commissionType,
+        //     startTime: startTime,
+        //     endTime: endTime
+        // }).lean();
+        return dbPartner.findPartnerCommissionLog({
             "platform": platformObjId,
             commissionType: commissionType,
             startTime: startTime,
             endTime: endTime
-        }).lean();
+        });
     },
 
     getSelectedPartnerCommissionLog: function (platformObjId, partnerName) {
@@ -6459,12 +6493,12 @@ let dbPartner = {
                 }
                 settLog = settLogData;
 
-                return dbconfig.collection_partnerCommissionLog.findOne({
+                return dbPartner.findPartnerCommissionLog({
                     status: constPartnerCommissionLogStatus.PREVIEW,
                     partner: partner._id,
                     platform: partner.platform,
                     commissionType: partner.commissionType
-                }).lean();
+                }, true);
             }
         ).then(
             partnerCommmissionLog => {
@@ -6620,7 +6654,8 @@ let dbPartner = {
             let remark = commissionApplication.remark;
             let log = {};
 
-            let prom = dbconfig.collection_partnerCommissionLog.findOne({_id: logObjId}).lean().then(
+            let prom = dbPartner.findPartnerCommissionLog({_id: logObjId}, true).then(
+            // let prom = dbconfig.collection_partnerCommissionLog.findOne({_id: logObjId}).lean().then(
                 logData => {
                     if (!logData) {
                         return Promise.reject({
@@ -6682,7 +6717,8 @@ let dbPartner = {
         }
 
         let count = dbconfig.collection_partnerCommissionLog.count(query).read("secondaryPreferred");
-        let result = dbconfig.collection_partnerCommissionLog.find(query).read("secondaryPreferred");
+        // let result = dbconfig.collection_partnerCommissionLog.find(query).read("secondaryPreferred");
+        let result = dbPartner.findPartnerCommissionLog(query);
 
         return Promise.all([count, result]).then(data => {
             let retData = [];
@@ -8551,6 +8587,41 @@ let dbPartner = {
         );
     },
 
+    findPartnerCommissionLog: (query, isOne) => {
+        let request = dbconfig.collection_partnerCommissionLog.find(query);
+        if (isOne) {
+            request = request.limit(1);
+        }
+        request = request.lean().read("secondaryPreferred");
+
+        return request.then(
+            partnerCommissionLogs => {
+                let proms = [];
+                partnerCommissionLogs.map(partnerCommissionLog => {
+                    let prom = Promise.resolve(partnerCommissionLog);
+                    if (!partnerCommissionLog.downLinesRawCommissionDetail || partnerCommissionLog.downLinesRawCommissionDetail.length == 0) {
+                        prom = dbconfig.collection_downLinesRawCommissionDetail.find({platform: partnerCommissionLog.platform, partnerCommissionLog: partnerCommissionLog._id}).lean().read("secondaryPreferred").then(
+                            downLinesRawCommissionDetail => {
+                                partnerCommissionLog.downLinesRawCommissionDetail = downLinesRawCommissionDetail;
+                                return Promise.resolve(partnerCommissionLog)
+                            }
+                        );
+                    }
+                    proms.push(prom)
+                });
+
+                return Promise.all(proms);
+            }
+        ).then(
+            partnerCommissionLogs => {
+                if (isOne) {
+                    return partnerCommissionLogs[0];
+                }
+                return partnerCommissionLogs;
+            }
+        )
+    },
+
 };
 
 
@@ -8608,6 +8679,7 @@ function getCommissionRateTable (platformObjId, commissionType, partnerObjId, pr
         data => {
             if (!data || !data[0]) {
                 return Promise.reject({
+                    code: constServerCode.INVALID_PARAM,
                     name: "DataError",
                     message: "Cannot find commission rate, please ensure that you had configure the setting properly."
                 });
@@ -9581,24 +9653,24 @@ function getPreviousThreeDetailIfExist (partnerObjId, commissionType, startTime)
     let secondLastPeriod = getTargetCommissionPeriod(commissionType, new Date(new Date(firstLastPeriod.startTime).setMinutes(firstLastPeriod.startTime.getMinutes()-5)));
     let thirdLastPeriod = getTargetCommissionPeriod(commissionType, new Date(new Date(secondLastPeriod.startTime).setMinutes(secondLastPeriod.startTime.getMinutes()-5)));
 
-    let firstLastRecordProm = dbconfig.collection_partnerCommissionLog.findOne({
+    let firstLastRecordProm = dbPartner.findPartnerCommissionLog({
         partner: partnerObjId,
         commissionType: commissionType,
         startTime: new Date(firstLastPeriod.startTime),
         endTime: new Date(firstLastPeriod.endTime)
-    }).lean();
-    let secondLastRecordProm = dbconfig.collection_partnerCommissionLog.findOne({
+    }, true);
+    let secondLastRecordProm = dbPartner.findPartnerCommissionLog({
         partner: partnerObjId,
         commissionType: commissionType,
         startTime: new Date(secondLastPeriod.startTime),
         endTime: new Date(secondLastPeriod.endTime)
-    }).lean();
-    let thirdLastRecordProm = dbconfig.collection_partnerCommissionLog.findOne({
+    }, true);
+    let thirdLastRecordProm = dbPartner.findPartnerCommissionLog({
         partner: partnerObjId,
         commissionType: commissionType,
         startTime: new Date(thirdLastPeriod.startTime),
         endTime: new Date(thirdLastPeriod.endTime)
-    }).lean();
+    }, true);
 
     return Promise.all([firstLastRecordProm, secondLastRecordProm, thirdLastRecordProm]).then(
         records => {
