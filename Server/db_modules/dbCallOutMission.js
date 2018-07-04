@@ -239,7 +239,26 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
         }
     ).then(
         () => {
-            return dbconfig.collection_callOutMissionCallee.find({platform: platform._id, admin: admin._id, mission: mission._id}).populate({path: "player", model: dbconfig.collection_players}).lean();
+            return dbconfig.collection_callOutMissionCallee.find({platform: platform._id, admin: admin._id, mission: mission._id}).lean();
+        }
+    ).then(
+        calleeList => {
+            let proms = [];
+            calleeList.map(callee => {
+                let prom = dbconfig.collection_players.findOne({_id: callee.player})
+                    .populate({path: "partner", model: dbconfig.collection_partner})
+                    .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+                    .lean().then(
+                        playerData => {
+                            callee.player = playerData;
+                            return callee;
+                        }
+                    );
+
+                proms.push(prom);
+            });
+
+            return Promise.all(proms);
         }
     ).then(
         calleeList => {
@@ -256,17 +275,14 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
                     return callee.player;
                 });
 
-                return getPlayerDetails(playersData).then(playersDetail => {
-                    let feedbackPlayerDetail = {
-                        data: playersDetail,
-                        index: index,
-                        total: total
-                    };
+                let feedbackPlayerDetail = {
+                    data: playersData,
+                    index: index,
+                    total: total
+                };
 
-                    outputData.feedbackPlayerDetail = feedbackPlayerDetail;
-                    return outputData;
-                });
-
+                outputData.feedbackPlayerDetail = feedbackPlayerDetail;
+                return outputData;
             }
 
             return outputData;
@@ -365,6 +381,7 @@ function getCtiUrls (platformId) {
 
     let urls = [
         "http://jsh.tel400.me/cti/",
+        "http://jinbailinewcro.tel400.me/cti/",
     ];
 
     if (platformId == '6') {
@@ -372,6 +389,7 @@ function getCtiUrls (platformId) {
             "http://jinbailinewcro.tel400.me/cti/",
             "http://ruibodl.tel400.me/cti/",
             "http://jinbailitw.tel400.me/cti/",
+            "http://jinbailitz.tel400.me/cti/",
         ];
     } else if (platformId == '2' || platformId == '7') {
         urls = [
@@ -379,26 +397,31 @@ function getCtiUrls (platformId) {
             "http://bbet8.tel400.me/cti/",
             "http://b8a.tel400.me/cti/",
             "http://xindelitz.tel400.me/cti/",
+            "http://jinbailinewcro.tel400.me/cti/",
         ];
     } else if (platformId == '8') {
         urls = [
             "http://bbetasiadl.tel400.me/cti/",
             "http://jsh.tel400.me/cti/",
             "http://buyuhuang.tel400.me/cti/",
+            "http://jinbailinewcro.tel400.me/cti/",
         ];
     } else if (platformId == '5') {
         urls = [
             "http://haomendl.tel400.me/cti/",
             "http://hm.tel400.me/cti/",
+            "http://jinbailinewcro.tel400.me/cti/",
         ];
     } else if (platformId == '3' || platformId == '9') {
         urls = [
             "http://buyuhuang.tel400.me/cti/",
+            "http://jinbailinewcro.tel400.me/cti/",
         ];
     } else if (platformId == '4') {
         urls = [
             "http://eudl.tel400.me/cti/",
             "http://eu.tel400.me/cti/",
+            "http://jinbailinewcro.tel400.me/cti/",
         ];
     }
 

@@ -18707,6 +18707,20 @@ define(['js/app'], function (myApp) {
                     vm.selectedProposal.data = proposalDetail;
                 }
 
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name && vm.selectedProposal.type.name == 'PlayerLoseReturnRewardGroup') {
+                    let proposalDetail = vm.selectedProposal.data;
+                    let checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
+                    for (let i in proposalDetail) {
+                        if (checkForHexRegExp.test(proposalDetail[i]) || i == 'playerLevelName') {
+                            delete proposalDetail[i];
+                        }
+                    }
+                    proposalDetail.defineLoseValue = $translate($scope.loseValueType[vm.selectedProposal.data.defineLoseValue]);
+                    if (vm.selectedProposal.data.rewardPercent) {
+                        proposalDetail.rewardPercent = vm.selectedProposal.data.rewardPercent + "%";
+                    }
+                }
+
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
                         vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)

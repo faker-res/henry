@@ -3940,6 +3940,7 @@ let dbPlayerReward = {
         let updateTopupRecordIds = [];
         let updateConsumptionRecordIds = [];
         let showRewardPeriod = {};
+        let intervalRewardSum = 0, intervalConsumptionSum = 0, intervalTopupSum = 0, intervalBonusSum = 0, playerCreditLogSum = 0;
 
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
@@ -4226,6 +4227,10 @@ let dbPlayerReward = {
                         let topUpAmt = data[1];
                         let creditDailyAmt = data[2];
 
+                        intervalBonusSum = data[0];
+                        intervalTopupSum = data[1];
+                        playerCreditLogSum = data[2];
+
                         return topUpAmt - bonusAmt - creditDailyAmt;
 
                     });
@@ -4303,8 +4308,10 @@ let dbPlayerReward = {
 
                     calculateLosses = Promise.all(promiseUsed).then(data => {
                         let consumptionAmount = data[0];
+                        intervalConsumptionSum = data[0] * -1;
                         if (data[1]) {
                             let allRewardAmount = data[1];
+                            intervalRewardSum = data[1];
                             return consumptionAmount - allRewardAmount;
                         } else {
                             return consumptionAmount;
@@ -5168,6 +5175,32 @@ let dbPlayerReward = {
 
                         if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
                             proposalData.data.rewardAppearPeriod = showRewardPeriod;
+                        }
+
+                        if (eventData.type.name === constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
+                            if (eventData.condition && eventData.condition.defineLoseValue) {
+                                proposalData.data.defineLoseValue = eventData.condition.defineLoseValue;
+
+                                if (eventData.condition.defineLoseValue.indexOf("2") > -1 || eventData.condition.defineLoseValue.indexOf("3") > -1) {
+                                    proposalData.data.intervalRewardSum = intervalRewardSum;
+                                    proposalData.data.intervalConsumptionSum = intervalConsumptionSum;
+                                } else if (eventData.condition.defineLoseValue.indexOf("1") > -1) {
+                                    if (selectedRewardParam && selectedRewardParam.rewardAmount) {
+                                        proposalData.data.maxReward = selectedRewardParam.rewardAmount;
+                                    }
+                                    proposalData.data.intervalTopupSum = intervalTopupSum;
+                                    proposalData.data.intervalBonusSum = intervalBonusSum;
+                                    proposalData.data.playerCreditLogSum = playerCreditLogSum;
+                                }
+                            }
+
+                            if (selectedRewardParam && selectedRewardParam.maxReward) {
+                                proposalData.data.maxReward = selectedRewardParam.maxReward;
+                            }
+
+                            if (selectedRewardParam && selectedRewardParam.rewardPercent) {
+                                proposalData.data.rewardPercent = selectedRewardParam.rewardPercent;
+                            }
                         }
 
                         return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
