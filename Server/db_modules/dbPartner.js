@@ -8608,6 +8608,7 @@ function getCommissionRateTable (platformObjId, commissionType, partnerObjId, pr
         data => {
             if (!data || !data[0]) {
                 return Promise.reject({
+                    code: constServerCode.INVALID_PARAM,
                     name: "DataError",
                     message: "Cannot find commission rate, please ensure that you had configure the setting properly."
                 });
