@@ -838,6 +838,10 @@ define(['js/app'], function (myApp) {
                 result = $translate(val);
             } else if (fieldName === 'userAgent') {
                 result = $translate($scope.userAgentType[val]) || '';
+            } else if (fieldName === 'defineLoseValue') {
+                result = $translate($scope.loseValueType[val]);
+            } else if (fieldName === 'rewardPercent') {
+                result = val + "%";
             }
             return $sce.trustAsHtml(result);
         };
