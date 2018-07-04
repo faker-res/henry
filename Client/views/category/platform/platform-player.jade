@@ -23,7 +23,7 @@
                 option(value='Test Player') {{'TEST_PLAYER' | translate}}
         .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'PLAYERNAME' | translate}}
-            input.form-control(ng-model='vm.playerAdvanceSearchQuery.name', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+            input#playerTableNameSearch.form-control(ng-model='vm.playerAdvanceSearchQuery.name', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
         .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'REAL_NAME' | translate}}
             input.form-control(ng-model='vm.playerAdvanceSearchQuery.realName', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
