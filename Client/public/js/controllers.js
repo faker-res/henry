@@ -949,6 +949,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
                     "http://ruibodl.tel400.me/cti/previewcallout.action",
                     "http://jinbailitw.tel400.me/cti/previewcallout.action",
+                    "http://jinbailitz.tel400.me/cti/previewcallout.action",
                 ];
             } else if (platformId == '2' || platformId == '7') {
                 urls = [
