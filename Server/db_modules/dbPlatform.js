@@ -1561,13 +1561,11 @@ var dbPlatform = {
     },
 
     searchSMSLog: function (data, index, limit) {
-        if (data && (data.playerId || data.partnerId)) {
+        if (data) {
             index = index || 0;
             limit = limit || constSystemParam.MAX_RECORD_NUM;
             var query = {
                 status: data.status === 'all' ? undefined : data.status,
-                playerId: data.playerId || undefined,
-                partnerId: data.partnerId || undefined,
                 type: {$nin: ["registration"]}
             };
             if (data.isAdmin && !data.isSystem) {
@@ -1575,7 +1573,12 @@ var dbPlatform = {
             } else if (data.isSystem && !data.isAdmin) {
                 query.adminName = {$eq: null};
             }
-
+            if(data.playerId){
+                query.playerId = data.playerId;
+            }
+            if(data.partnerId){
+                query.partnerId = data.partnerId;
+            }
             // Strip any fields which have value `undefined`
             query = JSON.parse(JSON.stringify(query));
             addOptionalTimeLimitsToQuery(data, query, 'createTime');
@@ -3327,9 +3330,9 @@ var dbPlatform = {
         ).then(
             platformStringData => {
                 platformString = platformStringData;
-            
+
                 url = platform.callRequestUrlConfig;
-                
+
                 let path = "/servlet/TelephoneApplication?phone=" + phoneNumber + "&captcha=" + captcha + "&platform=" + platformString + "&random=" + randomNumber + "&callback=jsonp1";
 
                 let link = url + path;
@@ -4073,7 +4076,7 @@ function getPlatformStringForCallback (platformStringArray, playerId, lineId) {
             if (!player || !player.playerLevel || requiredPlayerLevel.value < player.playerLevel.value) {
                 return Promise.reject({message: "Player level is not enough"});
             }
-            
+
             return platformString;
         }
     );

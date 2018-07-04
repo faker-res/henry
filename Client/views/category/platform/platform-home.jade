@@ -442,29 +442,11 @@
                     button.btn.btn-primary.common-button(ng-click='vm.searchSMSLog()', style='vertical-align: bottom') {{"SEARCH" | translate}}
                 div(style='max-height: 400px; max-height: 50vh; overflow: auto')
                     label {{"Total" | translate}} {{vm.smsLog.totalCount}} {{"records" | translate}}
-                    table.simple-table.display(style='min-width: 100%; width: 100%')
-                        thead
-                            tr
-                                th {{"date" | translate}}
-                                th {{"Admin" | translate}}
-                                th {{"Recipient" | translate}}
-                                th {{"Channel" | translate}}
-                                th {{"CONTENT" | translate}}
-                                th {{"STATUS" | translate}}
-                        tbody
-                            tr(ng-repeat='(i,smsLog) in vm.smsLog.searchResults')
-                                td {{smsLog.createTime$}}
-                                td {{smsLog.adminName}}
-                                td {{smsLog.recipientName}}
-                                td {{smsLog.channel}}
-                                td {{smsLog.message}}
-                                td(ng-if='smsLog.status !== "failure"') {{smsLog.status$}}
-                                td(ng-if='smsLog.status === "failure"')
-                                    text.sn-hoverable-text(title='{{smsLog.error}}', sn-tooltip) {{smsLog.status$}}
                     br
+                    table#groupSmsLogTable.common-table.display(style='min-width:100%')
                     #groupSmsLogTablePage
             .modal-footer
-                button.common-button.btn.btn-primary(data-dismiss='modal') {{"CLOSE" | translate}}
+                button.common-button.btn.btn-primary(data-dismiss='modal') {{"Close" | translate}}
 include ../common-widget/telephone-popover
 #modalSelectPartner.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='z-index:1201')
     .modal-dialog(style='width:80%')
