@@ -7,6 +7,10 @@
     --font-size-large: 18px;
 }
 
+body {
+    padding-right: 0 !important;
+}
+
 .noWrap, .noWrap * {
     word-wrap: normal;
     white-space: nowrap;
