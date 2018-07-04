@@ -12597,6 +12597,7 @@ define(['js/app'], function (myApp) {
                             return item;
                         });
                         vm.smsLog.totalCount = result.data.size;
+                        vm.smsLog.pageObj.init({maxCount: vm.smsLog.totalCount}, newSearch);
                         if (vm.smsLog.type === "multi") {
                             vm.drawSMSTable(vm.smsLog.searchResults, result.data.size, newSearch);
                         }
