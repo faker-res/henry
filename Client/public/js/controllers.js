@@ -1757,8 +1757,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         function callback() {
 
             if (queryDone[0] && queryDone[1] && queryDone[2] && queryDone[3] ){
-                // profileDetailTimeOut = setTimeout(loadProfitDetail, 60000);
-                profileDetailTimeOut = setTimeout(loadProfitDetail, 3000);
+                profileDetailTimeOut = setTimeout(loadProfitDetail, 60000);
                 return profileDetailTimeOut; // update every minute
             }
             else{

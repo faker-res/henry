@@ -15302,25 +15302,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getCallOutMissionPlayerDetail = function() {
-                if(vm.playerFeedbackSearchType == "one") {
-                    socketService.$socket($scope.AppSocket, 'getUpdatedAdminMissionStatusFromCti', {
-                        platformObjId: vm.selectedPlatform.id
-                    }, function (data) {
-                        vm.ctiData = data.data;
-                        let query = {
-                            _id: vm.ctiData.callee[vm.feedbackPlayersPara.index - 1].player._id
-                        };
-                        socketService.$socket($scope.AppSocket, 'getSinglePlayerFeedbackQuery', {
-                            query: query,
-                            index: 0
-                        }, function (data) {
-                            console.log('_getSinglePlayerFeedbackQuery for CallOutMission', data);
-                            vm.drawSinglePlayerFeedback(data);
-                        });
-                    });
-                } else {
-                    vm.getCtiData();
-                }
+                vm.getCtiData();
             };
 
             vm.drawSinglePlayerFeedback = function (data) {
@@ -15939,8 +15921,12 @@ define(['js/app'], function (myApp) {
 
             vm.getFeedbackPlayer = function (inc) {
                 if (inc == '+') {
+                    vm.isSingleFeedBackPageChange = true;
+                    vm.lastSelectedCallPlayer = undefined;
                     vm.feedbackPlayersPara.index += 1;
                 } else if (inc == '-') {
+                    vm.isSingleFeedBackPageChange = true;
+                    vm.lastSelectedCallPlayer = undefined;
                     vm.feedbackPlayersPara.index -= 1;
                 } else if ($.isNumeric(inc)) {
                     vm.feedbackPlayersPara.index = inc;
@@ -16042,6 +16028,9 @@ define(['js/app'], function (myApp) {
                         vm.callOutMissionStatusText = '';
 
                         vm.ctiData.callee.forEach(callee => {
+                            if (callee.player) {
+                                callee.player.callOutMissionStatus = callee.status;
+                            }
                             // players.push(Object.assign({},callee.player,{callOutMissionStatus: callee.status}));
                             for (let i = 0; i < playerTableData.length; i++) {
                                 if (callee.player && callee.player._id == playerTableData[i]._id) {
@@ -16050,12 +16039,23 @@ define(['js/app'], function (myApp) {
                                 }
                             }
 
+                            if (vm.lastSelectedCallPlayer && callee.player && vm.lastSelectedCallPlayer._id == callee.player._id) {
+                                vm.lastSelectedCallPlayer = callee.player;
+                            }
+
                             if (callee.status != 0) {
                                 completedAmount++;
                             }
                         });
 
-                        setTableData(vm.playerFeedbackTable, playerFeedbackDetail.data);
+                        if (vm.playerFeedbackSearchType=="many") {
+                            setTableData(vm.playerFeedbackTable, playerFeedbackDetail.data);
+                        }
+                        else {
+                            if (playerFeedbackDetail.data && playerFeedbackDetail.data[0] && vm.isSingleFeedBackPageChange) {
+                                vm.lastSelectedCallPlayer = playerFeedbackDetail.data[0];
+                            }
+                        }
 
                         if (vm.ctiData.status == $scope.constCallOutMissionStatus.ON_GOING) {
                             vm.callOutMissionStatusText = $translate("On Going");
@@ -16079,16 +16079,26 @@ define(['js/app'], function (myApp) {
                             vm.calleeCallOutStatus = {};
                             vm.ctiData.callee.map(callee => {
                                 vm.calleeCallOutStatus[callee._id] = callee.status;
+                                vm.lastSelectedCallPlayer = playerFeedbackDetail && playerFeedbackDetail.data && playerFeedbackDetail.data[0] || vm.lastSelectedCallPlayer || callee.player;
                             });
                         }
                         else {
                             vm.ctiData.callee.map(callee => {
                                 if (vm.calleeCallOutStatus[callee._id] != 1 && callee.status == 1) {
-                                    vm.initFeedbackModal(callee.player);
-                                    $('#modalAddPlayerFeedback').modal().show();
+                                    if (vm.playerFeedbackSearchType=="many") {
+                                        vm.initFeedbackModal(callee.player);
+                                        $('#modalAddPlayerFeedback').modal().show();
+                                    }
+                                    else {
+                                        vm.lastSelectedCallPlayer = callee.player || vm.lastSelectedCallPlayer;
+                                    }
                                 }
                                 vm.calleeCallOutStatus[callee._id] = callee.status;
                             });
+                        }
+
+                        if (vm.playerFeedbackSearchType == "one") {
+                            setTableData(vm.playerFeedbackTable, [vm.lastSelectedCallPlayer]);
                         }
 
                     }
@@ -16097,6 +16107,7 @@ define(['js/app'], function (myApp) {
                     }
                     $('#platformFeedbackSpin').hide();
                 });
+                vm.isSingleFeedBackPageChange = false;
             };
 
             vm.getPlayerCreditinFeedbackInfo = function () {
