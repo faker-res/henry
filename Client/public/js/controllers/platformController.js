@@ -28782,6 +28782,52 @@ define(['js/app'], function (myApp) {
             };
 
             utilService.actionAfterLoaded('#resetPlayerQuery', function () {
+                if(!localStorage.getItem('custom_history')) {
+                    localStorage.setItem('custom_history', '');
+                }
+
+                $( "#playerTableNameSearch" ).autocomplete({
+                    source: function( req, resp ) {
+                        var term = req.term;
+                        var data = [];
+                        var temp = localStorage.getItem('custom_history');
+                        if (temp.length) {
+                            temp = temp.split(",");
+                            data = temp;
+                        }
+
+                        data = $.map(data,function(val){
+                            if(val.indexOf(term) != -1)
+                                return val;
+                            else
+                                return null;
+                        });
+                        resp( data );
+
+                    }
+                });
+
+                $('#playerTableNameSearch').on('blur', function() {
+                    var data = [];
+                    var temp = localStorage.getItem('custom_history');
+                    if (temp.length) {
+                        temp = temp.split(",");
+                        data = temp;
+                    }
+                    if ($.trim(this.value).length > 0) {
+                        if(data.indexOf(this.value) != -1){
+                            return;
+                        }
+                        data.push(this.value);
+                        localStorage.setItem('custom_history', data);
+                    }
+                });
+
+                $('body .ui-autocomplete').css({
+                    "overflow-y": "scroll",
+                    "max-height": "200px",
+                });
+
                 $('#resetPlayerQuery').off('click');
                 $('#resetPlayerQuery').click(function () {
                     utilService.clearDatePickerDate('#regDateTimePicker');
