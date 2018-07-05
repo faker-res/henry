@@ -8792,7 +8792,6 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
         }
     ]).allowDiskUse(true).read("secondaryPreferred").then(
         consumptionData => {
-            console.log('commSet step5a', partnerObjId)
             if (!consumptionData || !consumptionData[0]) {
                 consumptionData = [];
             }
@@ -8863,7 +8862,6 @@ function getPlayerCommissionTopUpDetail (playerObjId, startTime, endTime, topUpT
         }
     ]).read("secondaryPreferred").then(
         topUpData => {
-            console.log('commSet step5b', partnerObjId)
             if (!topUpData || !topUpData[0]) {
                 topUpData = [];
             }
@@ -8928,7 +8926,6 @@ function getPlayerCommissionWithdrawDetail (playerObjId, startTime, endTime) {
         }
     ]).read("secondaryPreferred").then(
         withdrawalInfo => {
-            console.log('commSet step5c', partnerObjId)
             if (!withdrawalInfo || !withdrawalInfo[0]) {
                 withdrawalInfo = [{}];
             }
@@ -9289,7 +9286,6 @@ function getAllPlayerCommissionRawDetails (playerObjId, commissionType, startTim
 
     return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm, rewardDetailProm, namesProm]).then(
         data => {
-            console.log('commSet step6', partnerObjId)
             let consumptionDetail = data[0];
             let topUpDetail = data[1];
             let withdrawalDetail = data[2];
@@ -9388,7 +9384,6 @@ function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewar
 
     return rewardProm.then(
         rewardData => {
-            console.log('commSet step5d', partnerObjId)
             if (!rewardData || !rewardData[0]) {
                 rewardData = [];
             }
