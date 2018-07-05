@@ -266,7 +266,7 @@ style.
                                     // display select form if game provider is not required to manually insert game id
                                     select.form-control(ng-model="val.target.gameType" data-width="100%" data-actions-box="true" ng-disabled="!val.isEditing" ng-if="vm.gameProviderManuallyInsertGameId.indexOf(val.target.targetDestination) === -1")
                                         option(style="display: inline-block" value='') {{"any" | translate}}
-                                        option(style="display: inline-block" ng-repeat='(i,v) in vm.gameProvidersList[val.target.targetDestination].gameTypes', value='{{i}}') {{v}}
+                                        option(style="display: inline-block" ng-repeat='(i,v) in vm.gameProvidersList[val.target.targetDestination].gameTypes', value='{{i}}') {{i}}
                                     // display input form if game provider is required to manually insert game id
                                     input.form-control(type="text" ng-model="val.target.gameType" ng-disabled="!val.isEditing" ng-if="vm.gameProviderManuallyInsertGameId.indexOf(val.target.targetDestination) > -1")
                                 td(style="min-width:105px;")
