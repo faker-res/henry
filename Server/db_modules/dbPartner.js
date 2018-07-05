@@ -6163,7 +6163,10 @@ let dbPartner = {
                     startTime: startTime,
                     endTime: endTime,
                     commissionType: commissionType,
-                }, commissionDetail, {upsert: true, new: true}).lean();
+                }, commissionDetail, {upsert: true, new: true}).lean().catch(err => {
+                    console.error('partnerCommissionLog died with param:', commissionDetail, err);
+                    return Promise.reject(err);
+                })
             }
         ).then(
             partnerCommissionLogData => {
@@ -6178,7 +6181,10 @@ let dbPartner = {
                     detail.platform = partnerCommissionLog.platform;
                     detail.partnerCommissionLog = partnerCommissionLog._id;
 
-                    let prom = dbconfig.collection_downLinesRawCommissionDetail.findOneAndUpdate({platform: detail.platform, partnerCommissionLog: detail.partnerCommissionLog, name: detail.name}, detail, {upsert: true, new: true}).catch(errorUtils.reportError);
+                    let prom = dbconfig.collection_downLinesRawCommissionDetail.findOneAndUpdate({platform: detail.platform, partnerCommissionLog: detail.partnerCommissionLog, name: detail.name}, detail, {upsert: true, new: true}).catch(err => {
+                        console.error('downLinesRawCommissionDetail died with param:', detail, err);
+                        errorUtils.reportError(err);
+                    });
                     proms.push(prom);
                 });
 
