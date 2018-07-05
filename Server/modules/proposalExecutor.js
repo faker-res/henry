@@ -1780,6 +1780,8 @@ var proposalExecutor = {
                             }
                         }
 
+                        let cTime = proposalData && proposalData.createTime ? new Date(proposalData.createTime) : new Date();
+                        let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
                         var message = {
                             proposalId: proposalData.proposalId,
                             platformId: partner.platform.platformId,
@@ -1794,7 +1796,8 @@ var proposalExecutor = {
                             bankAddress: partner.bankAddress || "",
                             bankName: partner.bankName || "",
                             phone: decryptedPhoneNo || "",
-                            email: partner.email || ""
+                            email: partner.email || "",
+                            applyTime: cTimeString
                         };
                         return pmsAPI.bonus_applyBonus(message).then(
                             bonusData => {
