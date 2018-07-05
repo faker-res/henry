@@ -133,6 +133,11 @@
                             a.common-tab(data-toggle="tab", href="#batchPermit", ng-click="vm.loadTab('batchPermit');")
                                 .fa.fa-cogs.margin-right-5
                                 text.span {{"Batch Setting" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'Platform','Read')")
+                            a.common-tab(data-toggle="tab", href="#platformSetting", ng-click="vm.loadTab('platformSetting');")
+                                .fa.fa-cogs.margin-right-5
+                                text.span {{"platformSetting" | translate}}
+
                 .panel-body.common-right-panel-body
                     div.tab-content
                         #Game.tab-pane.fade
@@ -177,6 +182,8 @@
                             include ./platform-reward-point
                         #batchPermit.tab-pane.fade
                             include ./platform-batch-permit
+                        #platformSetting.tab-pane.fade
+                            include ./platform-platform-setting
 
                             //ui-view
                         //#bankCardGroup.tab-pane.fade
