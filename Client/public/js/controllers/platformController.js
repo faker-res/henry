@@ -15324,7 +15324,7 @@ define(['js/app'], function (myApp) {
                 if (vm.playerFeedbackQuery.departments) {
                     if (vm.playerFeedbackQuery.roles) {
                         vm.queryRoles.map(e => {
-                            if (vm.playerFeedbackQuery.roles.indexOf(e._id) >= 0) {
+                            if (e._id != "" && (vm.playerFeedbackQuery.roles.indexOf(e._id) >= 0)) {
                                 e.users.map(f => admins.push(f._id))
                             }
                         })
