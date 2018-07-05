@@ -6153,6 +6153,9 @@ let dbPartner = {
         return dbPartner.calculatePartnerCommissionDetail(partnerObjId, commissionType, startTime, endTime)
             .then(
             commissionDetail => {
+                if (commissionDetail.disableCommissionSettlement) {
+                    return undefined;
+                }
                 downLinesRawCommissionDetails = commissionDetail.downLinesRawCommissionDetail || [];
 
                 delete commissionDetail.downLinesRawCommissionDetail;
@@ -6456,6 +6459,7 @@ let dbPartner = {
                     withdrawFeeRate: partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal / 100,
                     status: constPartnerCommissionLogStatus.PREVIEW,
                     nettCommission: nettCommission,
+                    disableCommissionSettlement: Boolean(partner.permission && partner.permission.disableCommSettlement),
                 };
             }
         );
