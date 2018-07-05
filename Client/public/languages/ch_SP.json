@@ -3895,6 +3895,8 @@
   "Keno Wallet": "彩票钱包",
   "Use eBet Wallet": "使用eBet钱包",
   "FRONT_END_STATUS": "前端状态",
-  "UNREAD": "未读"
+  "UNREAD": "未读",
+  "EDIT_ALL_FEE_RATE": "编辑所有费用比例",
+  "EDIT_ALL_COMMISSION_RATE": "编辑所有佣金比例"
 
 }
