@@ -16159,8 +16159,6 @@ define(['js/app'], function (myApp) {
             vm.setQueryRole = (modal) => {
                 vm.queryRoles = [];
 
-                vm.queryRoles.push({_id:'', roleName:'N/A'});
-
                 vm.queryDepartments.map(e => {
                     if (e._id != "" && (modal.departments.indexOf(e._id) >= 0)) {
                         vm.queryRoles = vm.queryRoles.concat(e.roles);
@@ -16168,12 +16166,14 @@ define(['js/app'], function (myApp) {
                 });
 
                 if (modal && modal.departments && modal.departments.length > 0) {
-                    if (!vm.queryAdmins) {
-                        vm.queryAdmins = [];
-                        vm.queryAdmins.push({_id:'', adminName:'N/A'});
-                    }
-
                     if (modal.departments.includes("")) {
+                        vm.queryRoles.push({_id:'', roleName:'N/A'});
+
+                        if (!vm.queryAdmins || !vm.queryAdmins.length) {
+                            vm.queryAdmins = [];
+                            vm.queryAdmins.push({_id:'', adminName:'N/A'});
+                        }
+
                         if (modal && modal.roles && modal.admins) {
                             modal.roles.push("");
                             modal.admins.push("");
@@ -16193,13 +16193,16 @@ define(['js/app'], function (myApp) {
             vm.setQueryAdmins = (modal) => {
                 vm.queryAdmins = [];
 
-                vm.queryAdmins.push({_id:'', adminName:'N/A'});
+                if (modal.departments.includes("") && modal.roles.includes("") && modal.admins.includes("")) {
+                    vm.queryAdmins.push({_id:'', adminName:'N/A'});
+                }
 
                 vm.queryRoles.map(e => {
                     if (e._id != "" && (modal.roles.indexOf(e._id) >= 0)) {
                         vm.queryAdmins = vm.queryAdmins.concat(e.users);
                     }
                 });
+
                 vm.refreshSPicker();
                 $scope.safeApply();
             };

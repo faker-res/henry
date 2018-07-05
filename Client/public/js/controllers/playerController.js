@@ -836,7 +836,6 @@ define(['js/app'], function (myApp) {
             vm.showDailySettlement = nowDate != dailyDate;
             vm.showWeeklySettlement = (nowDate != weeklyDate) && (vm.selectedPlatform.data.weeklySettlementDay == new Date().getDay());
             vm.platformSettlement = {};
-            vm.advancedPartnerQueryObj = {limit: 10, index: 0};
             vm.getCredibilityRemarks();
             vm.partnerAdvanceSearchQuery = {
                 creditsOperator: ">=",
@@ -860,16 +859,6 @@ define(['js/app'], function (myApp) {
 
             if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read'))
                 vm.getAdminNameByDepartment(vm.selectedPlatform.data.department);
-
-            //load partner
-            utilService.actionAfterLoaded("#partnerTablePage", function () {
-                vm.advancedPartnerQueryObj.pageObj = utilService.createPageForPagingTable("#partnerTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
-                    var index = (curP - 1) * pageSize;
-                    vm.advancedPartnerQueryObj.index = index;
-                    vm.advancedPartnerQueryObj.limit = pageSize;
-                    vm.commonPageChangeHandler(curP, pageSize, "advancedPartnerQueryObj", vm.getPlatformPartnersData());
-                });
-            })
 
             Q.all([vm.getAllPlayerLevels(), vm.getAllPartnerLevels()]).then(
                 function (data) {
@@ -897,7 +886,6 @@ define(['js/app'], function (myApp) {
                         vm.loadAlldepartment();
                         vm.rewardTabClicked();
                         vm.getPlatformPlayersData(true, true);
-                        // vm.getPlatformPartnersData();
                         vm.getPlatformGameData();
                         vm.loadProposalTypeData();
                         vm.loadBankCardGroupData();
@@ -1031,63 +1019,6 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'syncPlatform', {}, function (data) {
 
             })
-        };
-
-        vm.loadTab = (tabName) => {
-            vm.platformPageName = tabName;
-
-            switch (tabName) {
-                case "Player":
-                    vm.activatePlayerTab();
-                    break;
-                case "Feedback":
-                    vm.initPlayerFeedback();
-                    break;
-                case "FeedbackAdmin":
-                    initFeedbackAdmin();
-                    break;
-                case "Partner":
-                    vm.partnerCommission = {};
-                    vm.getPlatformPartnersData();
-                    vm.getCommissionRateGameProviderGroup();
-                    vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
-
-                    break;
-                case "Game":
-                    vm.platformGameTabClicked();
-                    break;
-                case "GameGroup":
-                    vm.loadGameGroupData();
-                    break;
-                case "Reward":
-                    vm.rewardTabClicked();
-                    break;
-                case "Config":
-                    vm.configTabClicked();
-                    break;
-                case "MessageTemplates":
-                    vm.getPlatformMessageTemplates();
-                    break;
-                case "Announcement:":
-                    vm.getPlatformAnnouncements();
-                    break;
-                case "MultiMessage":
-                    vm.initSendMultiMessage(true);
-                    break;
-                case "VertificationSMS":
-                    vm.initVertificationSMS();
-                    break;
-                case "RegistrationUrlConfig":
-                    vm.initPlatformOfficer();
-                    break;
-                case "batchPermit":
-                    vm.initBatchPermit();
-                // setTimeout(() => {
-                //     $('#partnerDataTable').resize();
-                // }, 300);
-            }
-
-            commonService.updatePageTile($translate, "platform", tabName);
         };
 
         vm.showPlatformDetailModal = function () {
@@ -21433,25 +21364,6 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 });
-            });
-
-            $('#partnerDataTable').on('order.dt', function (event, a, b) {
-                // console.log(event, a, b);
-                if (!a.aaSorting[0]) return;
-                var sortCol = a.aaSorting[0][0];
-                var sortDire = a.aaSorting[0][1];
-                var sortKey = a.aoColumns[sortCol].data;
-                // vm.advancedPartnerQueryObj.aaSorting = a.aaSorting;
-                if (sortKey) {
-                    vm.advancedPartnerQueryObj.sortCol = vm.advancedPartnerQueryObj.sortCol || {};
-                    var preVal = vm.advancedPartnerQueryObj.sortCol[sortKey];
-                    vm.advancedPartnerQueryObj.sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
-                    if (vm.advancedPartnerQueryObj.sortCol[sortKey] != preVal) {
-                        vm.advancedPartnerQueryObj.sortCol = {};
-                        vm.advancedPartnerQueryObj.sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
-                        vm.getPartnersByAdvanceQueryDebounced();
-                    }
-                }
             });
             vm.getAllMessageTypes();
             vm.linkProvider();
