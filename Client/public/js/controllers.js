@@ -28,7 +28,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     // Dev log switch
     let consoleLog, consoleInfo;
-    $scope.enableLogging = false;
+    $scope.enableLogging = $cookies.get('devLog') ? JSON.parse($cookies.get('devLog')) : false;
     $scope.toggleDevLog = (isFirstLoad) => {
         if (!isFirstLoad) {
             $scope.enableLogging = !$scope.enableLogging;
@@ -39,13 +39,15 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             consoleInfo = console.info;
             window['console']['log'] = () => {};
             window['console']['info'] = () => {};
+            $cookies.put('devLog', 'false');
         } else {
-            if (consoleLog === null || consoleInfo === null) {
+            if (!consoleLog || !consoleInfo) {
                 return;
             }
 
             window['console']['log'] = consoleLog;
             window['console']['info'] = consoleInfo;
+            $cookies.put('devLog', 'true');
         }
     };
     $scope.toggleDevLog(true);
@@ -945,12 +947,17 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
             let urls = [
                 "http://jsh.tel400.me/cti/previewcallout.action",
+                "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
+                "http://blb.tel400.me/cti/previewcallout.action",
+                "http://rb.tel400.me/cti/previewcallout.action",
+                "http://xbet.tel400.me/cti/previewcallout.action",
             ];
 
             if (platformId == '6') {
                 urls = [
                     "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
                     "http://ruibodl.tel400.me/cti/previewcallout.action",
+                    "http://jbldl.tel400.me/cti/previewcallout.action",
                     "http://jinbailitw.tel400.me/cti/previewcallout.action",
                     "http://jinbailitz.tel400.me/cti/previewcallout.action",
                 ];
@@ -960,26 +967,31 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     "http://bbet8.tel400.me/cti/previewcallout.action",
                     "http://b8a.tel400.me/cti/previewcallout.action",
                     "http://xindelitz.tel400.me/cti/previewcallout.action",
+                    "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
                 ];
             } else if (platformId == '8') {
                 urls = [
                     "http://bbetasiadl.tel400.me/cti/previewcallout.action",
-                    "http://jsh.tel400.me/cti/previewcallout.action",
+                    "http://bbetasiatw.tel400.me/cti/previewcallout.action",
                     "http://buyuhuang.tel400.me/cti/previewcallout.action",
+                    "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
                 ];
             } else if (platformId == '5') {
                 urls = [
                     "http://haomendl.tel400.me/cti/previewcallout.action",
                     "http://hm.tel400.me/cti/previewcallout.action",
+                    "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
                 ];
             } else if (platformId == '3' || platformId == '9') {
                 urls = [
                     "http://buyuhuang.tel400.me/cti/previewcallout.action",
+                    "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
                 ];
             } else if (platformId == '4') {
                 urls = [
                     "http://eudl.tel400.me/cti/previewcallout.action",
                     "http://eu.tel400.me/cti/previewcallout.action",
+                    "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
                 ];
             } /*else if (platformId == '10') {
                 urls = [

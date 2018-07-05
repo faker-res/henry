@@ -2130,6 +2130,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initSendMultiMessage = function () {
+                vm.smsLog = {index: 0, limit: 10};
                 vm.getSMSTemplate();
                 vm.sendMultiMessage = {
                     totalCount: 0,
@@ -2292,20 +2293,20 @@ define(['js/app'], function (myApp) {
                 };
                 socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', sendQuery, function (data) {
                     console.log('playerData', data);
-
-                    var size = data.data.size || 0;
-                    var result = data.data.data || [];
-                    vm.drawSendMessagesTable(result.map(item => {
-                        if (!item.name && item.partnerName) {
-                            item.name = item.partnerName;
-                        }
-                        item.lastAccessTime$ = vm.dateReformat(item.lastAccessTime);
-                        item.registrationTime$ = vm.dateReformat(item.registrationTime);
-                        return item;
-                    }), size, newSearch);
-                    vm.sendMultiMessage.totalCount = size;
-                    vm.sendMultiMessage.pageObj.init({maxCount: size}, newSearch);
-                    $scope.safeApply();
+                    $scope.$evalAsync(()=>{
+                        var size = data.data.size || 0;
+                        var result = data.data.data || [];
+                        vm.drawSendMessagesTable(result.map(item => {
+                            if (!item.name && item.partnerName) {
+                                item.name = item.partnerName;
+                            }
+                            item.lastAccessTime$ = vm.dateReformat(item.lastAccessTime);
+                            item.registrationTime$ = vm.dateReformat(item.registrationTime);
+                            return item;
+                        }), size, newSearch);
+                        vm.sendMultiMessage.totalCount = size;
+                        vm.sendMultiMessage.pageObj.init({maxCount: size}, newSearch);
+                    })
                 });
             }
             vm.initVertificationSMS = function () {
@@ -12566,7 +12567,7 @@ define(['js/app'], function (myApp) {
                 let tablePageId = "smsLogTablePage";
                 if (type == "multi") {
                     endTimeElementPath = '#groupSmsLogQuery .endTime';
-                    tablePageId = "groupSmsLogTablePage";
+                    tablePageId = "#groupSmsLogTablePage";
                 }
                 utilService.actionAfterLoaded(endTimeElementPath, function () {
                     vm.smsLog.query.startTime = utilService.createDatePicker('#smsLogPanel #smsLogQuery .startTime');
@@ -12578,7 +12579,7 @@ define(['js/app'], function (myApp) {
                     vm.smsLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.smsLog.query.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.smsLog.pageObj = utilService.createPageForPagingTable(tablePageId, {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "smsLog", vm.searchSMSLog)
+                        vm.commonPageChangeHandler(curP, pageSize, "smsLog", vm.searchSMSLog);
                     });
                     // Be user friendly: Fetch some results immediately!
                     vm.searchSMSLog(true);
@@ -12647,10 +12648,12 @@ define(['js/app'], function (myApp) {
                         });
                         vm.smsLog.totalCount = result.data.size;
                         vm.smsLog.pageObj.init({maxCount: vm.smsLog.totalCount}, newSearch);
+                        if (vm.smsLog.type === "multi") {
+                            vm.drawSMSTable(vm.smsLog.searchResults, result.data.size, newSearch);
+                        }
                     })
                 }).catch(console.error);
             };
-
             vm.searchSMSLogPartner = function (newSearch) {
                 let requestData = {
                     isAdmin: vm.smsLog.query.isAdmin,
@@ -12685,6 +12688,42 @@ define(['js/app'], function (myApp) {
                     })
                 }).catch(console.error);
             };
+
+            vm.drawSMSTable = function (data, size, newSearch){
+              var option = $.extend({}, vm.generalDataTableOptions, {
+                  data: data,
+                  aoColumnDefs: [
+                      {targets: '_all', defaultContent: ' ', bSortable: false}
+                  ],
+                  columns: [
+                      {'title': $translate('date'), data: 'createTime$'},
+                      {'title': $translate('Admin'), sClass: "wordWrap realNameCell", data: 'adminName'},
+                      {'title': $translate('Recipient'), data: 'recipientName'},
+                      {'title': $translate('Channel'), data: 'channel'},
+                      {'title': $translate('CONTENT'), data: 'message'},
+                      {
+                          title: $translate('eventName'),
+                          data: "status$",
+                          render: function (data, type, row) {
+                              let result = '<div>' + data + '</div>';
+                              let error = '';
+                              if(row.error){
+                                  error = JSON.stringify(row.error);
+                              }
+                              if(row.status=='failure'){
+                                  result = "<text class='sn-hoverable-text' title='" + error + "' sn-tooltip='sn-tooltip'>" + data +"</text>";
+                              }
+                              return result;
+                          }
+                      },
+                  ],
+                  paging: false,
+              });
+              let aTable = utilService.createDatatableWithFooter('#groupSmsLogTable', option, {});
+              aTable.columns.adjust().draw();
+              vm.smsLog.pageObj.init({maxCount: size}, newSearch);
+              $('#groupSmsLogTable').resize();
+            }
 
             vm.initGameCreditLog = function () {
                 vm.gameCreditLog = vm.gameCreditLog || {index: 0, limit: 20, pageSize: 20};
@@ -15285,7 +15324,7 @@ define(['js/app'], function (myApp) {
                 if (vm.playerFeedbackQuery.departments) {
                     if (vm.playerFeedbackQuery.roles) {
                         vm.queryRoles.map(e => {
-                            if (vm.playerFeedbackQuery.roles.indexOf(e._id) >= 0) {
+                            if (e._id != "" && (vm.playerFeedbackQuery.roles.indexOf(e._id) >= 0)) {
                                 e.users.map(f => admins.push(f._id))
                             }
                         })
@@ -15302,25 +15341,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getCallOutMissionPlayerDetail = function() {
-                if(vm.playerFeedbackSearchType == "one") {
-                    socketService.$socket($scope.AppSocket, 'getUpdatedAdminMissionStatusFromCti', {
-                        platformObjId: vm.selectedPlatform.id
-                    }, function (data) {
-                        vm.ctiData = data.data;
-                        let query = {
-                            _id: vm.ctiData.callee[vm.feedbackPlayersPara.index - 1].player._id
-                        };
-                        socketService.$socket($scope.AppSocket, 'getSinglePlayerFeedbackQuery', {
-                            query: query,
-                            index: 0
-                        }, function (data) {
-                            console.log('_getSinglePlayerFeedbackQuery for CallOutMission', data);
-                            vm.drawSinglePlayerFeedback(data);
-                        });
-                    });
-                } else {
-                    vm.getCtiData();
-                }
+                vm.getCtiData();
             };
 
             vm.drawSinglePlayerFeedback = function (data) {
@@ -15939,8 +15960,12 @@ define(['js/app'], function (myApp) {
 
             vm.getFeedbackPlayer = function (inc) {
                 if (inc == '+') {
+                    vm.isSingleFeedBackPageChange = true;
+                    vm.lastSelectedCallPlayer = undefined;
                     vm.feedbackPlayersPara.index += 1;
                 } else if (inc == '-') {
+                    vm.isSingleFeedBackPageChange = true;
+                    vm.lastSelectedCallPlayer = undefined;
                     vm.feedbackPlayersPara.index -= 1;
                 } else if ($.isNumeric(inc)) {
                     vm.feedbackPlayersPara.index = inc;
@@ -16020,6 +16045,24 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.endCallOutMission = function() {
+                socketService.$socket($scope.AppSocket, 'endCallOutMission', {
+                    platformObjId: vm.selectedPlatform.id,
+                    missionName: vm.ctiData.missionName
+                }, function (data) {
+                    console.log("endCallOutMission ret" , data);
+                    $scope.$evalAsync(function(){
+                        vm.ctiData = {};
+                        vm.feedbackPlayersPara.total = 0;
+                        vm.callOutMissionStatus = "";
+                        setTableData(vm.playerFeedbackTable, []);
+                        vm.drawExtendedFeedbackTable([]);
+                        vm.playerCredibilityComment = [];
+                        vm.curPlayerFeedbackDetail = {};
+                    });
+                });
+            };
+
             vm.getCtiData = function() {
                 $('#platformFeedbackSpin').show();
                 socketService.$socket($scope.AppSocket, 'getUpdatedAdminMissionStatusFromCti', {
@@ -16036,12 +16079,16 @@ define(['js/app'], function (myApp) {
                         vm.playerFeedbackQuery.index = playerFeedbackDetail.index || 0;
                         vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total});
                         vm.feedbackPlayersPara.total = vm.playerFeedbackQuery.total;
+                        vm.showFinishCalloutMissionButton = Boolean(vm.ctiData.status == '3');
 
-                        let players = [];
+                        // let players = [];
                         let completedAmount = 0;
                         vm.callOutMissionStatusText = '';
 
                         vm.ctiData.callee.forEach(callee => {
+                            if (callee.player) {
+                                callee.player.callOutMissionStatus = callee.status;
+                            }
                             // players.push(Object.assign({},callee.player,{callOutMissionStatus: callee.status}));
                             for (let i = 0; i < playerTableData.length; i++) {
                                 if (callee.player && callee.player._id == playerTableData[i]._id) {
@@ -16050,12 +16097,23 @@ define(['js/app'], function (myApp) {
                                 }
                             }
 
+                            if (vm.lastSelectedCallPlayer && callee.player && vm.lastSelectedCallPlayer._id == callee.player._id) {
+                                vm.lastSelectedCallPlayer = callee.player;
+                            }
+
                             if (callee.status != 0) {
                                 completedAmount++;
                             }
                         });
 
-                        setTableData(vm.playerFeedbackTable, playerFeedbackDetail.data);
+                        if (vm.playerFeedbackSearchType=="many") {
+                            setTableData(vm.playerFeedbackTable, playerFeedbackDetail.data);
+                        }
+                        else {
+                            if (playerFeedbackDetail.data && playerFeedbackDetail.data[0] && vm.isSingleFeedBackPageChange) {
+                                vm.lastSelectedCallPlayer = playerFeedbackDetail.data[0];
+                            }
+                        }
 
                         if (vm.ctiData.status == $scope.constCallOutMissionStatus.ON_GOING) {
                             vm.callOutMissionStatusText = $translate("On Going");
@@ -16079,16 +16137,26 @@ define(['js/app'], function (myApp) {
                             vm.calleeCallOutStatus = {};
                             vm.ctiData.callee.map(callee => {
                                 vm.calleeCallOutStatus[callee._id] = callee.status;
+                                vm.lastSelectedCallPlayer = playerFeedbackDetail && playerFeedbackDetail.data && playerFeedbackDetail.data[0] || vm.lastSelectedCallPlayer || callee.player;
                             });
                         }
                         else {
                             vm.ctiData.callee.map(callee => {
                                 if (vm.calleeCallOutStatus[callee._id] != 1 && callee.status == 1) {
-                                    vm.initFeedbackModal(callee.player);
-                                    $('#modalAddPlayerFeedback').modal().show();
+                                    if (vm.playerFeedbackSearchType=="many") {
+                                        vm.initFeedbackModal(callee.player);
+                                        $('#modalAddPlayerFeedback').modal().show();
+                                    }
+                                    else {
+                                        vm.lastSelectedCallPlayer = callee.player || vm.lastSelectedCallPlayer;
+                                    }
                                 }
                                 vm.calleeCallOutStatus[callee._id] = callee.status;
                             });
+                        }
+
+                        if (vm.playerFeedbackSearchType == "one") {
+                            setTableData(vm.playerFeedbackTable, [vm.lastSelectedCallPlayer]);
                         }
 
                     }
@@ -16097,6 +16165,7 @@ define(['js/app'], function (myApp) {
                     }
                     $('#platformFeedbackSpin').hide();
                 });
+                vm.isSingleFeedBackPageChange = false;
             };
 
             vm.getPlayerCreditinFeedbackInfo = function () {
@@ -16109,8 +16178,6 @@ define(['js/app'], function (myApp) {
             vm.setQueryRole = (modal) => {
                 vm.queryRoles = [];
 
-                vm.queryRoles.push({_id:'', roleName:'N/A'});
-
                 vm.queryDepartments.map(e => {
                     if (e._id != "" && (modal.departments.indexOf(e._id) >= 0)) {
                         vm.queryRoles = vm.queryRoles.concat(e.roles);
@@ -16118,12 +16185,14 @@ define(['js/app'], function (myApp) {
                 });
 
                 if (modal && modal.departments && modal.departments.length > 0) {
-                    if (!vm.queryAdmins) {
-                        vm.queryAdmins = [];
-                        vm.queryAdmins.push({_id:'', adminName:'N/A'});
-                    }
-
                     if (modal.departments.includes("")) {
+                        vm.queryRoles.push({_id:'', roleName:'N/A'});
+
+                        if (!vm.queryAdmins || !vm.queryAdmins.length) {
+                            vm.queryAdmins = [];
+                            vm.queryAdmins.push({_id:'', adminName:'N/A'});
+                        }
+
                         if (modal && modal.roles && modal.admins) {
                             modal.roles.push("");
                             modal.admins.push("");
@@ -16143,13 +16212,16 @@ define(['js/app'], function (myApp) {
             vm.setQueryAdmins = (modal) => {
                 vm.queryAdmins = [];
 
-                vm.queryAdmins.push({_id:'', adminName:'N/A'});
+                if (modal.departments.includes("") && modal.roles.includes("") && modal.admins.includes("")) {
+                    vm.queryAdmins.push({_id:'', adminName:'N/A'});
+                }
 
                 vm.queryRoles.map(e => {
                     if (e._id != "" && (modal.roles.indexOf(e._id) >= 0)) {
                         vm.queryAdmins = vm.queryAdmins.concat(e.users);
                     }
                 });
+
                 vm.refreshSPicker();
                 $scope.safeApply();
             };
@@ -16776,7 +16848,7 @@ define(['js/app'], function (myApp) {
                 // if (vm.selectedPlatform && vm.selectedPlatform.id) {
                 //     vm.getRewardPointsEvent(vm.selectedPlatform.id);
                 // }
-
+                vm.smsLog = {index: 0, limit: 10};
                 setTimeout(() => {
                     $('#playerDataTable').resize();
                 }, 300);
@@ -23517,6 +23589,20 @@ define(['js/app'], function (myApp) {
                         vm.selectedProposal.data = proposalDetail;
                     }
 
+                    if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name && vm.selectedProposal.type.name == 'PlayerLoseReturnRewardGroup') {
+                        let proposalDetail = vm.selectedProposal.data;
+                        let checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
+                        for (let i in proposalDetail) {
+                            if (checkForHexRegExp.test(proposalDetail[i]) || i == 'playerLevelName') {
+                                delete proposalDetail[i];
+                            }
+                        }
+                        proposalDetail.defineLoseValue = $translate($scope.loseValueType[vm.selectedProposal.data.defineLoseValue]);
+                        if (vm.selectedProposal.data.rewardPercent) {
+                            proposalDetail.rewardPercent = vm.selectedProposal.data.rewardPercent + "%";
+                        }
+                    }
+
                     if (vm.selectedProposal.data.inputData) {
                         if (vm.selectedProposal.data.inputData.provinceId) {
                             vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
@@ -25629,6 +25715,7 @@ define(['js/app'], function (myApp) {
 
             };
             vm.commissionSettingDeleteRow = (idx, valueCollection) => {
+                vm.updateCommissionRateRequirement = true;
                 valueCollection.splice(idx, 1);
 
                 if (valueCollection.length == 0) {

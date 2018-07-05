@@ -1035,13 +1035,20 @@ define(['js/app'], function (myApp) {
             vm.queryRoles = [];
 
             vm.queryDepartments.map(e => {
-                if (modal.departments.indexOf(e._id) >= 0) {
+                if (e._id != "" && (modal.departments.indexOf(e._id) >= 0)) {
                     vm.queryRoles = vm.queryRoles.concat(e.roles);
                 }
             });
 
             if (modal && modal.departments && modal.departments.length > 0) {
                 if (modal.departments.includes("")) {
+                    vm.queryRoles.push({_id:'', roleName:'N/A'});
+
+                    if (!vm.queryAdmins || !vm.queryAdmins.length) {
+                        vm.queryAdmins = [];
+                        vm.queryAdmins.push({_id:'', adminName:'N/A'});
+                    }
+
                     if (modal && modal.roles && modal.admins) {
                         modal.roles.push("");
                         modal.admins.push("");
@@ -1061,8 +1068,12 @@ define(['js/app'], function (myApp) {
         vm.setQueryAdmins = (modal) => {
             vm.queryAdmins = [];
 
+            if (modal.departments.includes("") && modal.roles.includes("") && modal.admins.includes("")) {
+                vm.queryAdmins.push({_id:'', adminName:'N/A'});
+            }
+
             vm.queryRoles.map(e => {
-                if (modal.roles.indexOf(e._id) >= 0) {
+                if (e._id != "" && (modal.roles.indexOf(e._id) >= 0)) {
                     vm.queryAdmins = vm.queryAdmins.concat(e.users);
                 }
             });
@@ -1075,13 +1086,20 @@ define(['js/app'], function (myApp) {
             vm.pdQueryRoles = [];
 
             vm.pdQueryDepartments.map(e => {
-                if (vm.playerDomain.departments.indexOf(e._id) >= 0) {
+                if (e._id != "" && (vm.playerDomain.departments.indexOf(e._id) >= 0)) {
                     vm.pdQueryRoles = vm.pdQueryRoles.concat(e.roles);
                 }
             });
 
             if (vm.playerDomain && vm.playerDomain.departments && vm.playerDomain.departments.length > 0) {
                 if (vm.playerDomain.departments.includes("")) {
+                    vm.pdQueryRoles.push({_id:'', roleName:'N/A'});
+
+                    if (!vm.pdQueryAdmins || !vm.pdQueryAdmins.length) {
+                        vm.pdQueryAdmins = [];
+                        vm.pdQueryAdmins.push({_id:'', adminName:'N/A'});
+                    }
+
                     if (vm.playerDomain && vm.playerDomain.roles && vm.playerDomain.admins) {
                         vm.playerDomain.roles.push("");
                         vm.playerDomain.admins.push("");
@@ -1101,8 +1119,12 @@ define(['js/app'], function (myApp) {
         vm.setPDQueryAdmins = () => {
             vm.pdQueryAdmins = [];
 
+            if (vm.playerDomain.departments.includes("") && vm.playerDomain.roles.includes("") && vm.playerDomain.admins.includes("")) {
+                vm.pdQueryAdmins.push({_id:'', adminName:'N/A'});
+            }
+
             vm.pdQueryRoles.map(e => {
-                if (vm.playerDomain.roles.indexOf(e._id) >= 0) {
+                if (e._id != "" && (vm.playerDomain.roles.indexOf(e._id) >= 0)) {
                     vm.pdQueryAdmins = vm.pdQueryAdmins.concat(e.users);
                 }
             });
@@ -2611,7 +2633,7 @@ define(['js/app'], function (myApp) {
             if (vm.feedbackQuery.departments) {
                 if (vm.feedbackQuery.roles) {
                     vm.queryRoles.map(e => {
-                        if (vm.feedbackQuery.roles.indexOf(e._id) >= 0) {
+                        if (e._id != "" && (vm.feedbackQuery.roles.indexOf(e._id) >= 0)) {
                             e.users.map(f => admins.push(f.adminName))
                         }
                     })
@@ -2990,7 +3012,7 @@ define(['js/app'], function (myApp) {
                 if (vm.playerDomain.departments) {
                     if (vm.playerDomain.roles) {
                         vm.pdQueryRoles.map(e => {
-                            if (vm.playerDomain.roles.indexOf(e._id) >= 0) {
+                            if (e._id && (vm.playerDomain.roles.indexOf(e._id) >= 0)) {
                                 e.users.map(f => admins.push(f._id))
                             }
                         })
@@ -3209,7 +3231,7 @@ define(['js/app'], function (myApp) {
             if (vm.playerQuery.departments) {
                 if (vm.playerQuery.roles) {
                     vm.queryRoles.map(e => {
-                        if (vm.playerQuery.roles.indexOf(e._id) >= 0) {
+                        if (e._id && (vm.playerQuery.roles.indexOf(e._id) >= 0)) {
                             e.users.map(f => admins.push(f.adminName))
                         }
                     })
@@ -3487,7 +3509,7 @@ define(['js/app'], function (myApp) {
             if (vm.dxNewPlayerQuery.departments) {
                 if (vm.dxNewPlayerQuery.roles) {
                     vm.queryRoles.map(e => {
-                        if (vm.dxNewPlayerQuery.roles.indexOf(e._id) >= 0) {
+                        if (e._id != "" && (vm.dxNewPlayerQuery.roles.indexOf(e._id) >= 0)) {
                             e.users.map(f => admins.push(f.adminName))
                         }
                     })
@@ -6330,6 +6352,20 @@ define(['js/app'], function (myApp) {
                     vm.selectedProposal.data = proposalDetail;
                 }
 
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name && vm.selectedProposal.type.name == 'PlayerLoseReturnRewardGroup') {
+                    let proposalDetail = vm.selectedProposal.data;
+                    let checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
+                    for (let i in proposalDetail) {
+                        if (checkForHexRegExp.test(proposalDetail[i]) || i == 'playerLevelName') {
+                            delete proposalDetail[i];
+                        }
+                    }
+                    proposalDetail.defineLoseValue = $translate($scope.loseValueType[vm.selectedProposal.data.defineLoseValue]);
+                    if (vm.selectedProposal.data.rewardPercent) {
+                        proposalDetail.rewardPercent = vm.selectedProposal.data.rewardPercent + "%";
+                    }
+                }
+
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
                         vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
@@ -6675,6 +6711,9 @@ define(['js/app'], function (myApp) {
                                     let parentId;
                                     vm.queryDepartments = [];
                                     vm.queryRoles = [];
+                                    vm.queryAdmins = [];
+
+                                    vm.queryDepartments.push({_id:'', departmentName:'N/A'});
 
                                     data.data.map(e => {
                                         if (e.departmentName == vm.selectedPlatform.name) {
@@ -6744,6 +6783,9 @@ define(['js/app'], function (myApp) {
                                     let parentId;
                                     vm.pdQueryDepartments = [];
                                     vm.pdQueryRoles = [];
+                                    vm.pdQueryAdmins = [];
+
+                                    vm.pdQueryDepartments.push({_id:'', departmentName:'N/A'});
 
                                     data.data.map(e => {
                                         if (e.departmentName == vm.selectedPlatform.name) {
@@ -6839,6 +6881,8 @@ define(['js/app'], function (myApp) {
                                 vm.queryDepartments = [];
                                 vm.queryRoles = [];
 
+                                vm.queryDepartments.push({_id:'', departmentName:'N/A'});
+
                                 data.data.map(e => {
                                     if (e.departmentName == vm.selectedPlatform.name) {
                                         vm.queryDepartments.push(e);
@@ -6925,6 +6969,7 @@ define(['js/app'], function (myApp) {
                             let parentId;
                             vm.queryDepartments = [];
                             vm.queryRoles = [];
+                            vm.queryAdmins = [];
 
                             data.data.map(e => {
                                 if (e.departmentName == vm.selectedPlatform.name) {

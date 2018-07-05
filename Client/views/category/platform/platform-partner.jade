@@ -448,7 +448,7 @@ p
                             tr
                                 th {{'PARTNER_NAME' | translate}}
                                 th {{'REAL_NAME' | translate}}
-                                th(ng-repeat= "grp in vm.partnerCommissionLog[0].rawCommissions") {{grp.groupName=="noGroup" ? "" : grp.groupName | translate}} {{"Commission" | translate}}
+                                th(ng-repeat= "grp in vm.selectedPartnerCommissionPreview.rawCommissions") {{grp.groupName=="noGroup" ? "" : grp.groupName | translate}} {{"Commission" | translate}}
                                 th {{'TOTAL_REWARD_FEE' | translate}}
                                 th {{'TOTAL_PLATFORM_FEE' | translate}}
                                 th {{'TOTAL_TOPUP_FEE' | translate}}
