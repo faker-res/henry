@@ -568,6 +568,22 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+        function commonPageChangeHandler(curP, pageSize, objKey, serchFunc) {
+            let isChange = false;
+            if (!curP) {
+                curP = 1;
+            }
+            if (vm[objKey] && pageSize != vm[objKey].limit) {
+                isChange = true;
+                vm[objKey].limit = pageSize;
+            }
+            if (vm[objKey] && (curP - 1) * pageSize != vm[objKey].index) {
+                isChange = true;
+                vm[objKey].index = (curP - 1) * pageSize;
+            }
+            if (isChange) return serchFunc.call(this);
+        }
+
             //set selected platform node
             async function selectPlatformNode (platformObj, option)  {
                 vm.selectedPlatform = {
@@ -663,10 +679,7 @@ define(['js/app'], function (myApp) {
                 //load partner
                 utilService.actionAfterLoaded("#partnerTablePage", function () {
                     vm.advancedPartnerQueryObj.pageObj = utilService.createPageForPagingTable("#partnerTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
-                        var index = (curP - 1) * pageSize;
-                        vm.advancedPartnerQueryObj.index = index;
-                        vm.advancedPartnerQueryObj.limit = pageSize;
-                        vm.commonPageChangeHandler(curP, pageSize, "advancedPartnerQueryObj", vm.getPlatformPartnersData());
+                        commonPageChangeHandler(curP, pageSize, "advancedPartnerQueryObj", vm.getPlatformPartnersData);
                     });
                 })
 
@@ -1263,31 +1276,6 @@ define(['js/app'], function (myApp) {
                 return result
             }
 
-            vm.searchForExactPlayerDebounced = $scope.debounceSearch(function (playerExactSearchText) {
-                //console.log("playerExactSearchText", playerExactSearchText);
-                if (playerExactSearchText === "") {
-                    vm.getPlatformPlayersData(true);
-                    return;
-                }
-                var apiQuery = {
-                    platform: vm.selectedPlatform.id,
-                    name: playerExactSearchText
-                };
-                socketService.$socket($scope.AppSocket, 'getPlayerInfo', apiQuery, function (reply) {
-                    var toDisplay = [];
-                    if (reply.data) {
-                        toDisplay.push(reply.data);
-                        vm.searchPlayerCount = 1;
-                        vm.playerTableQuery.pageObj.init({maxCount: 1}, true);
-                    } else {
-                        vm.searchPlayerCount = 0;
-                        vm.playerTableQuery.pageObj.init({maxCount: 0}, true);
-                    }
-                    $scope.safeApply();
-                    setPlayerTableData(toDisplay);
-                });
-            });
-
             var setPlayerTableData = function (data) {
                 return setTableData(vm.playerTable, data);
             };
@@ -1832,21 +1820,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
-                var isChange = false;
-                if (!curP) {
-                    curP = 1;
-                }
-                if (pageSize != vm[objKey].limit) {
-                    isChange = true;
-                    vm[objKey].limit = pageSize;
-                }
-                if ((curP - 1) * pageSize != vm[objKey].index) {
-                    isChange = true;
-                    vm[objKey].index = (curP - 1) * pageSize;
-                }
-                if (isChange) return searchFunc.call(this);
-            };
+
 
             //check if value is pass in before data table function is call
             vm.onClickPlayerCheck = function (recordId, callback, param) {
@@ -2951,7 +2925,7 @@ define(['js/app'], function (myApp) {
                     vm.smsLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.smsLog.query.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.smsLog.pageObj = utilService.createPageForPagingTable(tablePageId, {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "smsLog", vm.searchSMSLogPartner)
+                        commonPageChangeHandler(curP, pageSize, "smsLog", vm.searchSMSLogPartner)
                     });
                     // Be user friendly: Fetch some results immediately!
                     vm.searchSMSLogPartner(true);
@@ -3388,7 +3362,7 @@ define(['js/app'], function (myApp) {
                     vm.playerRewardHistory.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.playerRewardHistory.type = 'all';
                     vm.playerRewardHistory.pageObj = utilService.createPageForPagingTable("#playerRewardHistoryTblPage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "playerRewardHistory", vm.getPlayerRewardHistoryRecord)
+                        commonPageChangeHandler(curP, pageSize, "playerRewardHistory", vm.getPlayerRewardHistoryRecord)
                     });
                     vm.getPlayerRewardHistoryRecord(true);
                 });
@@ -3471,7 +3445,7 @@ define(['js/app'], function (myApp) {
                     vm.playerBonusHistory.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.playerBonusHistory.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.playerBonusHistory.pageObj = utilService.createPageForPagingTable("#playerBonusHistoryTblPage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "playerBonusHistory", vm.getPlayerBonusHistoryRecord)
+                        commonPageChangeHandler(curP, pageSize, "playerBonusHistory", vm.getPlayerBonusHistoryRecord)
                     });
                     vm.getPlayerBonusHistoryRecord(true);
                 });
@@ -3556,39 +3530,9 @@ define(['js/app'], function (myApp) {
                     vm.playerCreditLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.playerCreditLog.query.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.playerCreditLog.pageObj = utilService.createPageForPagingTable("#playerCreditLogTblPage", {pageSize: 50}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "playerCreditLog", vm.getPlayerCreditLogData)
+                        commonPageChangeHandler(curP, pageSize, "playerCreditLog", vm.getPlayerCreditLogData)
                     });
                     vm.getPlayerCreditLogData(true);
-                });
-            }
-
-            vm.getPlayerCreditLogData = function (newSearch) {
-                if (!authService.checkViewPermission('Platform', 'Player', 'playerDailyCreditLog')) {
-                    return;
-                }
-                let sendQuery = {
-                    playerId: vm.selectedSinglePlayer._id,
-                    from: vm.playerCreditLog.query.startTime.data('datetimepicker').getLocalDate(),
-                    to: vm.playerCreditLog.query.endTime.data('datetimepicker').getLocalDate(),
-                    index: newSearch ? 0 : vm.playerCreditLog.index,
-                    limit: newSearch ? vm.playerCreditLog.limit : (vm.playerCreditLog.limit || 50),
-                    sortCol: vm.playerCreditLog.sortCol || null
-                };
-                socketService.$socket($scope.AppSocket, 'getPlayerCreditsDaily', sendQuery, function (data) {
-                    console.log('getPlayerDailyCredit', data);
-                    var tblData = data && data.data ? data.data.data.map(item => {
-                        item.createTime$ = vm.dateReformat(item.createTime);
-                        item.validCredit = (item.validCredit).toFixed(2);
-                        item.lockedCredit = (item.lockedCredit).toFixed(2);
-                        item.gameCredit = (item.gameCredit).toFixed(2);
-                        item.providerStr$ = '(' + ((item.targetProviders && item.targetProviders.length > 0) ? item.targetProviders.map(pro => {
-                            return pro.name + ' ';
-                        }) : $translate('all')) + ')';
-                        return item;
-                    }) : [];
-                    var size = data.data ? data.data.size : 0;
-                    vm.playerCreditLog.totalCount = size;
-                    vm.drawPlayerCreditLogTable(newSearch, tblData, size);
                 });
             }
             vm.drawPlayerCreditLogTable = function (newSearch, tblData, size) {
@@ -3626,7 +3570,7 @@ define(['js/app'], function (myApp) {
                     vm.playerApiLog.startDate.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.playerApiLog.endDate.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.playerApiLog.pageObj = utilService.createPageForPagingTable("#playerApiLogTblPage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "playerApiLog", vm.getPlayerApiLogData);
+                        commonPageChangeHandler(curP, pageSize, "playerApiLog", vm.getPlayerApiLogData);
                     });
                     vm.getPlayerApiLogData(true);
                 });
@@ -3731,7 +3675,7 @@ define(['js/app'], function (myApp) {
                 vm.playerRewardPointsLog = {};
                 utilService.actionAfterLoaded('#modalPlayerRewardPointsLog.in #playerRewardPointsLogTblPage', function () {
                     vm.playerRewardPointsLog.pageObj = utilService.createPageForPagingTable("#playerRewardPointsLogTblPage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "playerRewardPointsLog", vm.getPlayerRewardPointsLogData);
+                        commonPageChangeHandler(curP, pageSize, "playerRewardPointsLog", vm.getPlayerRewardPointsLogData);
                     });
                     vm.getPlayerRewardPointsLogData(true);
                 });
@@ -4546,408 +4490,6 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.drawSinglePlayerFeedback = function (data) {
-                let playerList = [], extendedResult = [];
-                vm.curFeedbackPlayer = data.data.data;
-                vm.feedbackPlayersPara.total = data.data.total || 0;
-                vm.feedbackPlayersPara.index = data.data.index + 1;
-
-                if (vm.curFeedbackPlayer && !$.isEmptyObject(vm.curFeedbackPlayer)) {
-                    playerList.push(vm.curFeedbackPlayer);
-                    //process data for extended table
-                    if (vm.curFeedbackPlayer.consumptionDetail && !$.isEmptyObject(vm.curFeedbackPlayer.consumptionDetail)) {
-                        vm.playerFeedbackResultExtended = vm.curFeedbackPlayer.consumptionDetail;
-                        vm.playerFeedbackResultExtended.manualTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.manualTopUpAmount).toFixed(2);
-                        vm.playerFeedbackResultExtended.onlineTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.onlineTopUpAmount).toFixed(2);
-                        vm.playerFeedbackResultExtended.weChatTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.weChatTopUpAmount).toFixed(2);
-                        vm.playerFeedbackResultExtended.aliPayTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.aliPayTopUpAmount).toFixed(2);
-                        vm.playerFeedbackResultExtended.topUpAmount$ = parseFloat(vm.curFeedbackPlayer.topUpSum).toFixed(2);
-                        vm.playerFeedbackResultExtended.bonusAmount$ = parseFloat(vm.playerFeedbackResultExtended.bonusAmount).toFixed(2);
-                        vm.playerFeedbackResultExtended.rewardAmount$ = parseFloat(vm.playerFeedbackResultExtended.rewardAmount).toFixed(2);
-                        vm.playerFeedbackResultExtended.consumptionReturnAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionReturnAmount).toFixed(2);
-                        vm.playerFeedbackResultExtended.consumptionAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionAmount).toFixed(2);
-                        vm.playerFeedbackResultExtended.validConsumptionAmount$ = parseFloat(vm.playerFeedbackResultExtended.validConsumptionAmount).toFixed(2);
-                        vm.playerFeedbackResultExtended.consumptionBonusAmount$ = parseFloat(vm.curFeedbackPlayer.bonusAmountSum).toFixed(2);
-
-                        vm.playerFeedbackResultExtended.playerLevel$ = "";
-                        if (vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel]) {
-                            vm.playerFeedbackResultExtended.playerLevel$ = vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel].name;
-                        }
-                        else {
-                            vm.playerFeedbackResultExtended.playerLevel$ = "";
-                        }
-
-                        vm.playerFeedbackResultExtended.credibility$ = "";
-                        if (vm.playerFeedbackResultExtended.credibilityRemarks) {
-                            for (let i = 0; i < vm.playerFeedbackResultExtended.credibilityRemarks.length; i++) {
-                                for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                                    if (vm.playerFeedbackResultExtended.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
-                                        vm.playerFeedbackResultExtended.credibility$ += vm.credibilityRemarks[j].name + "<br>";
-                                    }
-                                }
-                            }
-                        }
-
-                        vm.playerFeedbackResultExtended.providerArr = [];
-                        for (var key in vm.playerFeedbackResultExtended.providerDetail) {
-                            if (vm.playerFeedbackResultExtended.providerDetail.hasOwnProperty(key)) {
-                                vm.playerFeedbackResultExtended.providerDetail[key].providerId = key;
-                                vm.playerFeedbackResultExtended.providerArr.push(vm.playerFeedbackResultExtended.providerDetail[key]);
-                            }
-                        }
-
-                        vm.playerFeedbackResultExtended.provider$ = "";
-                        if (vm.playerFeedbackResultExtended.providerDetail) {
-                            for (let i = 0; i < vm.playerFeedbackResultExtended.providerArr.length; i++) {
-                                vm.playerFeedbackResultExtended.providerArr[i].amount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].amount).toFixed(2);
-                                vm.playerFeedbackResultExtended.providerArr[i].bonusAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount).toFixed(2);
-                                vm.playerFeedbackResultExtended.providerArr[i].validAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].validAmount).toFixed(2);
-                                vm.playerFeedbackResultExtended.providerArr[i].profit = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount / vm.playerFeedbackResultExtended.providerArr[i].validAmount * -100).toFixed(2) + "%";
-                                for (let j = 0; j < vm.allProviders.length; j++) {
-                                    if (vm.playerFeedbackResultExtended.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
-                                        vm.playerFeedbackResultExtended.providerArr[i].name = vm.allProviders[j].name;
-                                        vm.playerFeedbackResultExtended.provider$ += vm.allProviders[j].name + "<br>";
-                                    }
-                                }
-                            }
-                        }
-
-                        vm.playerFeedbackResultExtended.profit$ = 0;
-                        if (vm.playerFeedbackResultExtended.consumptionBonusAmount != 0 && vm.playerFeedbackResultExtended.validConsumptionAmount != 0) {
-                            vm.playerFeedbackResultExtended.profit$ = parseFloat((vm.playerFeedbackResultExtended.consumptionBonusAmount / vm.playerFeedbackResultExtended.validConsumptionAmount) * -100).toFixed(2) + "%";
-                        }
-
-                        vm.playerFeedbackResultExtended.topUpTimes = vm.curFeedbackPlayer.topUpTimes || 0;
-                        vm.playerFeedbackResultExtended.bonusTimes = vm.curFeedbackPlayer.withdrawTimes || 0;
-                        vm.playerFeedbackResultExtended.consumptionTimes = vm.curFeedbackPlayer.consumptionTimes || 0;
-                        extendedResult.push(vm.playerFeedbackResultExtended);
-                    } //end processing for extended table
-                }
-
-                setTableData(vm.playerFeedbackTable, playerList);
-                vm.drawExtendedFeedbackTable(extendedResult);
-
-                $('#platformFeedbackSpin').hide();
-                if (!vm.curFeedbackPlayer) {
-                    $scope.safeApply();
-                    return;
-                }
-
-                vm.addFeedback = {
-                    playerId: vm.curFeedbackPlayer ? vm.curFeedbackPlayer._id : null,
-                    platform: vm.curFeedbackPlayer ? vm.curFeedbackPlayer.platform : null
-                };
-                if (vm.curFeedbackPlayer._id) {
-                    vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
-                        vm.curPlayerFeedbackDetail = data;
-
-                        vm.curPlayerFeedbackDetail.forEach(item => {
-                            item.result$ = item.resultName ? item.resultName : $translate(item.result);
-                        });
-
-                        $scope.safeApply();
-                    });
-                    vm.getPlayerCredibilityComment(vm.curFeedbackPlayer._id);
-                    $scope.safeApply();
-                } else {
-                    vm.curPlayerFeedbackDetail = {};
-                    $scope.safeApply();
-                }
-            };
-            vm.submitPlayerFeedbackQuery = function (isNewSearch) {
-                if (!vm.selectedPlatform) return;
-                if (vm.ctiData.hasOnGoingMission) {
-                    if (isNewSearch) {
-                        vm.feedbackPlayersPara.index = 1;
-                    }
-                    return vm.getCallOutMissionPlayerDetail();
-                }
-                console.log('vm.feedback', vm.playerFeedbackQuery);
-                vm.exportPlayerFilter = JSON.parse(JSON.stringify(vm.playerFeedbackQuery))
-                let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
-                let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
-                let sendQuery = {platform: vm.selectedPlatform.id};
-                let sendQueryOr = [];
-
-                if (vm.playerFeedbackQuery.playerType && vm.playerFeedbackQuery.playerType != null) {
-                    sendQuery.playerType = vm.playerFeedbackQuery.playerType;
-                }
-
-                if (vm.playerFeedbackQuery.playerLevel !== "all") {
-                    sendQuery.playerLevel = vm.playerFeedbackQuery.playerLevel;
-                }
-
-                if (vm.playerFeedbackQuery.credibilityRemarks && vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
-                    let tempArr = [];
-                    if (vm.playerFeedbackQuery.credibilityRemarks.includes("")) {
-                        vm.playerFeedbackQuery.credibilityRemarks.forEach(remark => {
-                            if(remark != "") {
-                                tempArr.push(remark);
-                            }
-                        });
-                        sendQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
-                    } else {
-                        sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
-                    }
-                }
-
-                if (vm.playerFeedbackQuery.lastAccess === "range") {
-                    sendQuery.lastAccessTime = {
-                        $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.lastAccessFormal)),
-                        $gte: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.lastAccessLatter)),
-                    };
-                } else {
-                    let range = vm.playerFeedbackQuery.lastAccess.split("-");
-                    sendQuery.lastAccessTime = {
-                        $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), parseInt(range[0])))
-                    };
-                    if (range[1]) {
-                        sendQuery.lastAccessTime["$gte"] = utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), parseInt(range[1])));
-                    }
-                }
-
-                if (vm.playerFeedbackQuery.filterFeedback) {
-                    let lastFeedbackTimeExist = {
-                        lastFeedbackTime: null
-                    };
-                    let lastFeedbackTime = {
-                        lastFeedbackTime: {
-                            $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
-                        }
-                    };
-                    sendQueryOr.push(lastFeedbackTimeExist);
-                    sendQueryOr.push(lastFeedbackTime);
-                    sendQuery["$or"] = sendQueryOr;
-                }
-
-                if (vm.playerFeedbackQuery.depositCountOperator && vm.playerFeedbackQuery.depositCountFormal != null) {
-                    switch (vm.playerFeedbackQuery.depositCountOperator) {
-                        case ">=":
-                            sendQuery.topUpTimes = {
-                                $gte: vm.playerFeedbackQuery.depositCountFormal
-                            };
-                            break;
-                        case "=":
-                            sendQuery.topUpTimes = vm.playerFeedbackQuery.depositCountFormal;
-                            break;
-                        case "<=":
-                            sendQuery.topUpTimes = {
-                                $lte: vm.playerFeedbackQuery.depositCountFormal
-                            };
-                            break;
-                        case "range":
-                            if (vm.playerFeedbackQuery.depositCountLatter != null) {
-                                sendQuery.topUpTimes = {
-                                    $lte: vm.playerFeedbackQuery.depositCountLatter,
-                                    $gte: vm.playerFeedbackQuery.depositCountFormal
-                                };
-                            }
-                            break;
-                    }
-                }
-
-
-                if (vm.playerFeedbackQuery.playerValueOperator && vm.playerFeedbackQuery.playerValueFormal != null) {
-                    switch (vm.playerFeedbackQuery.playerValueOperator) {
-                        case ">=":
-                            sendQuery.valueScore = {
-                                $gte: vm.playerFeedbackQuery.playerValueFormal
-                            };
-                            break;
-                        case "=":
-                            sendQuery.valueScore = vm.playerFeedbackQuery.playerValueFormal;
-                            break;
-                        case "<=":
-                            sendQuery.valueScore = {
-                                $lte: vm.playerFeedbackQuery.playerValueFormal
-                            };
-                            break;
-                        case "range":
-                            if (vm.playerFeedbackQuery.playerValueLatter != null) {
-                                sendQuery.valueScore = {
-                                    $lte: vm.playerFeedbackQuery.playerValueLatter,
-                                    $gte: vm.playerFeedbackQuery.playerValueFormal
-                                };
-                            }
-                            break;
-                    }
-                }
-
-                if (vm.playerFeedbackQuery.consumptionTimesOperator && vm.playerFeedbackQuery.consumptionTimesFormal != null) {
-                    switch (vm.playerFeedbackQuery.consumptionTimesOperator) {
-                        case ">=":
-                            sendQuery.consumptionTimes = {
-                                $gte: vm.playerFeedbackQuery.consumptionTimesFormal
-                            };
-                            break;
-                        case "=":
-                            sendQuery.consumptionTimes = vm.playerFeedbackQuery.consumptionTimesFormal;
-                            break;
-                        case "<=":
-                            sendQuery.consumptionTimes = {
-                                $lte: vm.playerFeedbackQuery.consumptionTimesFormal
-                            };
-                            break;
-                        case "range":
-                            if (vm.playerFeedbackQuery.consumptionTimesLatter != null) {
-                                sendQuery.consumptionTimes = {
-                                    $lte: vm.playerFeedbackQuery.consumptionTimesLatter,
-                                    $gte: vm.playerFeedbackQuery.consumptionTimesFormal
-                                };
-                            }
-                            break;
-                    }
-                }
-
-                if (vm.playerFeedbackQuery.bonusAmountOperator && vm.playerFeedbackQuery.bonusAmountFormal != null) {
-                    switch (vm.playerFeedbackQuery.bonusAmountOperator) {
-                        case ">=":
-                            sendQuery.bonusAmountSum = {
-                                $gte: vm.playerFeedbackQuery.bonusAmountFormal
-                            };
-                            break;
-                        case "=":
-                            sendQuery.bonusAmountSum = vm.playerFeedbackQuery.bonusAmountFormal;
-                            break;
-                        case "<=":
-                            sendQuery.bonusAmountSum = {
-                                $lte: vm.playerFeedbackQuery.bonusAmountFormal
-                            };
-                            break;
-                        case "range":
-                            if (vm.playerFeedbackQuery.bonusAmountLatter != null) {
-                                sendQuery.bonusAmountSum = {
-                                    $lte: vm.playerFeedbackQuery.bonusAmountLatter,
-                                    $gte: vm.playerFeedbackQuery.bonusAmountFormal
-                                };
-                            }
-                            break;
-                    }
-                }
-
-                if (vm.playerFeedbackQuery.withdrawTimesOperator && vm.playerFeedbackQuery.withdrawTimesFormal != null) {
-                    switch (vm.playerFeedbackQuery.withdrawTimesOperator) {
-                        case ">=":
-                            sendQuery.withdrawTimes = {
-                                $gte: vm.playerFeedbackQuery.withdrawTimesFormal
-                            };
-                            break;
-                        case "=":
-                            sendQuery.withdrawTimes = vm.playerFeedbackQuery.withdrawTimesFormal;
-                            break;
-                        case "<=":
-                            sendQuery.withdrawTimes = {
-                                $lte: vm.playerFeedbackQuery.withdrawTimesFormal
-                            };
-                            break;
-                        case "range":
-                            if (vm.playerFeedbackQuery.withdrawTimesLatter != null) {
-                                sendQuery.withdrawTimes = {
-                                    $lte: vm.playerFeedbackQuery.withdrawTimesLatter,
-                                    $gte: vm.playerFeedbackQuery.withdrawTimesFormal
-                                };
-                            }
-                            break;
-                    }
-                }
-
-                if (vm.playerFeedbackQuery.topUpSumOperator && vm.playerFeedbackQuery.topUpSumFormal != null) {
-                    switch (vm.playerFeedbackQuery.topUpSumOperator) {
-                        case ">=":
-                            sendQuery.topUpSum = {
-                                $gte: vm.playerFeedbackQuery.topUpSumFormal
-                            };
-                            break;
-                        case "=":
-                            sendQuery.topUpSum = vm.playerFeedbackQuery.topUpSumFormal;
-                            break;
-                        case "<=":
-                            sendQuery.topUpSum = {
-                                $lte: vm.playerFeedbackQuery.topUpSumFormal
-                            };
-                            break;
-                        case "range":
-                            if (vm.playerFeedbackQuery.topUpSumLatter != null) {
-                                sendQuery.topUpSum = {
-                                    $lte: vm.playerFeedbackQuery.topUpSumLatter,
-                                    $gte: vm.playerFeedbackQuery.topUpSumFormal
-                                };
-                            }
-                            break;
-                    }
-                }
-
-                if (vm.playerFeedbackQuery.gameProviderId && vm.playerFeedbackQuery.gameProviderId.length > 0) {
-                    sendQuery.gameProviderPlayed = {$in: vm.playerFeedbackQuery.gameProviderId};
-                }
-
-                if (vm.playerFeedbackQuery.isNewSystem === "old") {
-                    sendQuery.isNewSystem = {$ne: true};
-                } else if (vm.playerFeedbackQuery.isNewSystem === "new") {
-                    sendQuery.isNewSystem = true;
-                }
-                if (startTime && endTime) {
-                    sendQuery.registrationTime = {$gte: startTime, $lt: endTime};
-                }
-
-                let admins = [];
-
-                if (vm.playerFeedbackQuery.departments) {
-                    if (vm.playerFeedbackQuery.roles) {
-                        vm.queryRoles.map(e => {
-                            if (e._id != "" && (vm.playerFeedbackQuery.roles.indexOf(e._id) >= 0)) {
-                                e.users.map(f => admins.push(f._id))
-                            }
-                        })
-                    } else {
-                        vm.queryRoles.map(e => e.users.map(f => {if (f._id != "") {admins.push(f._id)}}))
-                    }
-                }
-
-                if ( (vm.playerFeedbackQuery.admins && vm.playerFeedbackQuery.admins.length > 0) || admins.length) {
-                    sendQuery.csOfficer = vm.playerFeedbackQuery.admins && vm.playerFeedbackQuery.admins.length > 0 ? vm.playerFeedbackQuery.admins : admins;
-                }
-
-                $('#platformFeedbackSpin').show();
-                console.log('sendQuery', sendQuery);
-                vm.exportQuery = sendQuery;
-                console.log('vm.playerFeedbackSearchType', vm.playerFeedbackSearchType);
-                if (isNewSearch) {
-                    vm.feedbackPlayersPara.index = 1;
-                    vm.playerFeedbackQuery.index = 0;
-                }
-                if (vm.playerFeedbackSearchType == "one") {
-                    socketService.$socket($scope.AppSocket, 'getSinglePlayerFeedbackQuery', {
-                        query: sendQuery,
-                        index: vm.feedbackPlayersPara.index - 1
-                    }, function (data) {
-                        console.log('_getSinglePlayerFeedbackQuery', data);
-                        vm.drawSinglePlayerFeedback(data);
-                    });
-                }
-                else {
-                    socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
-                        query: sendQuery,
-                        index: vm.playerFeedbackQuery.index,
-                        limit: vm.playerFeedbackQuery.limit,
-                        sortCol: vm.playerFeedbackQuery.sortCol
-                    }, function (data) {
-                        console.log('_getPlayerFeedbackQuery', data);
-                        let playerList = data.data.data;
-                        console.log(playerList);
-                        setTableData(vm.playerFeedbackTable, playerList);
-                        vm.playerFeedbackQuery.total = data.data.total || 0;
-                        vm.playerFeedbackQuery.index = data.data.index || 0;
-                        vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total}, isNewSearch);
-
-                        vm.feedbackPlayersPara.total = vm.playerFeedbackQuery.total;
-                        $('#platformFeedbackSpin').hide();
-                        $scope.safeApply();
-                    });
-                }
-                vm.playerCredibilityComment = [];
-                $scope.safeApply();
-            };
             vm.drawExtendedFeedbackTable = function (data) {
                 var tableOptions = {
                     data: data,
@@ -5464,7 +5006,6 @@ define(['js/app'], function (myApp) {
                         setPartnerTableData(reply.data.data);
                         // vm.partners = reply.data.data;
                         vm.searchPartnerCount = reply.data.size;
-                        vm.advancedPartnerQueryObj.pageObj.init({maxCount: size}, true);
                     })
                 });
             });
@@ -6464,6 +6005,7 @@ define(['js/app'], function (myApp) {
                 });
                 vm.partnerTable = $('#partnerDataTable').DataTable(tableOptions);
                 utilService.setDataTablePageInput('partnerDataTable', vm.partnerTable, $translate);
+                vm.advancedPartnerQueryObj.pageObj.init({maxCount: data.size}, !Boolean(vm.advancedPartnerQueryObj.index));
 
                 createPartnerAdvancedSearchFilters({
                     tableOptions: tableOptions,
@@ -6793,7 +6335,7 @@ define(['js/app'], function (myApp) {
                 vm.duplicatePhoneNumber = {};
                 utilService.actionAfterLoaded('#duplicatePhoneNumberLog.in #duplicatePhoneNumberLogTablePage', function () {
                     vm.duplicatePhoneNumber.pageObj = utilService.createPageForPagingTable("#duplicatePhoneNumberLogTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "duplicatePhoneNumber", vm.loadPhoneNumberRecord);
+                        commonPageChangeHandler(curP, pageSize, "duplicatePhoneNumber", vm.loadPhoneNumberRecord);
                     });
                     vm.loadPhoneNumberRecord(true);
                 });
@@ -7674,7 +7216,7 @@ define(['js/app'], function (myApp) {
                     vm.partnerApiLog.startDate.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.partnerApiLog.endDate.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.partnerApiLog.pageObj = utilService.createPageForPagingTable("#partnerApiLogTblPage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "partnerApiLog", vm.getPartnerApiLogData);
+                        commonPageChangeHandler(curP, pageSize, "partnerApiLog", vm.getPartnerApiLogData);
                     });
                     vm.getPartnerApiLogData(true);
                 });
@@ -7867,7 +7409,7 @@ define(['js/app'], function (myApp) {
                     utilService.clearDatePickerDate(vm.totalReferralPlayer.loginEnd);
 
                     vm.totalReferralPlayer.pageObj = utilService.createPageForPagingTable("#totalReferralPlayersTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "totalReferralPlayer", vm.getPagePartnerReferralPlayers)
+                        commonPageChangeHandler(curP, pageSize, "totalReferralPlayer", vm.getPagePartnerReferralPlayers)
                     });
                     vm.getPagePartnerReferralPlayers(true)
                 })
@@ -12926,21 +12468,7 @@ define(['js/app'], function (myApp) {
                     .replace(/>/g, '&gt;');
             }
 
-            vm.commonPageChangeHandler = function (curP, pageSize, objKey, serchFunc) {
-                var isChange = false;
-                if (!curP) {
-                    curP = 1;
-                }
-                if (vm[objKey] && pageSize != vm[objKey].limit) {
-                    isChange = true;
-                    vm[objKey].limit = pageSize;
-                }
-                if (vm[objKey] && (curP - 1) * pageSize != vm[objKey].index) {
-                    isChange = true;
-                    vm[objKey].index = (curP - 1) * pageSize;
-                }
-                if (isChange) return serchFunc.call(this);
-            }
+
 
             vm.commonSortChangeHandler = function (a, objName, searchFunc) {
                 if (!a.aaSorting[0] || !objName || !vm[objName] || !searchFunc) return;
@@ -13574,7 +13102,7 @@ define(['js/app'], function (myApp) {
                     vm.forbidGameLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 180)));
                     vm.forbidGameLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.forbidGameLog.pageObj = utilService.createPageForPagingTable("#forbidGameTblPage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "forbidGameLog", vm.getForbidGameLog)
+                        commonPageChangeHandler(curP, pageSize, "forbidGameLog", vm.getForbidGameLog)
                     });
                     vm.getForbidGameLog(true);
                 });
