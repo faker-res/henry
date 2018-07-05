@@ -6664,6 +6664,15 @@ define(['js/app'], function (myApp) {
             //show partner info modal
             vm.showPartnerInfoModal = function (partnerName) {
                 $('#modalPartnerInfo').modal().show();
+                $scope.$evalAsync(() => {
+                    vm.selectedPartnerCommissionPreview = false;
+                });
+                $scope.$socketPromise('getSelectedPartnerCommissionPreview', {platformObjId: vm.selectedPlatform.id, partnerName: partnerName}).then(data => {
+                    console.log('getSelectedPartnerCommissionPreview', data);
+                    $scope.$evalAsync(() => {
+                        vm.selectedPartnerCommissionPreview = data && data.data ? data.data : false;
+                    });
+                });
             };
 
             vm.showActivePartnerInfoModal = function (partnerObjId, activeType) {
