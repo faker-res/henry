@@ -422,12 +422,16 @@ function getCtiUrls (platformId) {
     let urls = [
         "http://jsh.tel400.me/cti/",
         "http://jinbailinewcro.tel400.me/cti/",
+        "http://blb.tel400.me/cti/",
+        "http://rb.tel400.me/cti/",
+        "http://xbet.tel400.me/cti/",
     ];
 
     if (platformId == '6') {
         urls = [
             "http://jinbailinewcro.tel400.me/cti/",
             "http://ruibodl.tel400.me/cti/",
+            "http://jbldl.tel400.me/cti/",
             "http://jinbailitw.tel400.me/cti/",
             "http://jinbailitz.tel400.me/cti/",
         ];
@@ -442,7 +446,7 @@ function getCtiUrls (platformId) {
     } else if (platformId == '8') {
         urls = [
             "http://bbetasiadl.tel400.me/cti/",
-            "http://jsh.tel400.me/cti/",
+            "http://bbetasiatw.tel400.me/cti/",
             "http://buyuhuang.tel400.me/cti/",
             "http://jinbailinewcro.tel400.me/cti/",
         ];

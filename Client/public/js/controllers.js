@@ -948,12 +948,16 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             let urls = [
                 "http://jsh.tel400.me/cti/previewcallout.action",
                 "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
+                "http://blb.tel400.me/cti/previewcallout.action",
+                "http://rb.tel400.me/cti/previewcallout.action",
+                "http://xbet.tel400.me/cti/previewcallout.action",
             ];
 
             if (platformId == '6') {
                 urls = [
                     "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
                     "http://ruibodl.tel400.me/cti/previewcallout.action",
+                    "http://jbldl.tel400.me/cti/previewcallout.action",
                     "http://jinbailitw.tel400.me/cti/previewcallout.action",
                     "http://jinbailitz.tel400.me/cti/previewcallout.action",
                 ];
@@ -968,7 +972,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             } else if (platformId == '8') {
                 urls = [
                     "http://bbetasiadl.tel400.me/cti/previewcallout.action",
-                    "http://jsh.tel400.me/cti/previewcallout.action",
+                    "http://bbetasiatw.tel400.me/cti/previewcallout.action",
                     "http://buyuhuang.tel400.me/cti/previewcallout.action",
                     "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
                 ];
