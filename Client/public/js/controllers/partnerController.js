@@ -5482,7 +5482,7 @@ define(['js/app'], function (myApp) {
                             }
                         });
                         setPartnerTableData(reply.data.data);
-                        vm.partners = reply.data.data;
+                        // vm.partners = reply.data.data;
                         vm.searchPartnerCount = reply.data.size;
                         vm.advancedPartnerQueryObj.pageObj.init({maxCount: size}, true);
                     })
@@ -5543,63 +5543,68 @@ define(['js/app'], function (myApp) {
             })
         }
 
-            vm.getReferralsList = function (partner) {
-                socketService.$socket($scope.AppSocket, 'getReferralsList', partner, function (data) {
-                    let promArr = [];
-
-                    if (vm.totalPlayerDownlineBoolean) {
-                        promArr.push(getTotalPlayerDownline(partner));
-                    }
-                    if (vm.dailyActivePlayerBoolean) {
-                        vm.getDailyActivePlayerCount(data.data, partner);
-                    }
-                    if (vm.weeklyActivePlayerBoolean) {
-                        vm.getWeeklyActivePlayerCount(data.data, partner);
-                    }
-                    if (vm.monthlyActivePlayerBoolean) {
-                        vm.getMonthlyActivePlayerCount(data.data, partner);
-                    }
-                    if (vm.validPlayersBoolean) {
-                        vm.getValidPlayersCount(data.data, partner);
-                    }
-                    if (vm.totalChildrenDepositBoolean) {
-                        vm.getTotalChildrenDeposit(data.data, partner);
-                    }
-                    if (vm.totalChildrenBalanceBoolean) {
-                        vm.getTotalChildrenBalance(data.data, partner);
-                    }
-                    if (vm.totalSettledCommissionBoolean) {
-                        vm.getTotalSettledCommission(partner);
-                    }
-
-                    return Promise.all(promArr).then(() => vm.drawPartnerTable(partner));
-                })
+        function getDailyActivePlayerCount(referral, partner) {
+            let sendQuery = {
+                referral: referral,
+                platform: vm.selectedPlatform.id
             };
 
-
-
-            vm.getDailyActivePlayerCount = function (referral, partner) {
-                let sendQuery = {
-                    referral: referral,
-                    platform: vm.selectedPlatform.id
-                };
-
-                socketService.$socket($scope.AppSocket, 'getDailyActivePlayerCount', sendQuery, function (data) {
-                    // append back daily active player into draw table data
-                    data.data.forEach( inData => {
-                        if (inData && inData.partnerId) {
-                            let index = partner.data.findIndex(p => p._id === inData.partnerId);
-                            if (index !== -1) {
-                                partner.data[index].dailyActivePlayer = inData.size ? inData.size : 0;
-                                partner.data[index].dailyActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
-                            }
+            return $scope.$socketPromise('getDailyActivePlayerCount', sendQuery).then(function (data) {
+                // append back daily active player into draw table data
+                data.data.forEach( inData => {
+                    console.log('partner.data', partner.data);
+                    console.log('inData', inData);
+                    if (inData && inData.partnerId) {
+                        let index = partner.data.findIndex(p => p._id === inData.partnerId);
+                        if (index !== -1) {
+                            partner.data[index].dailyActivePlayer = inData.size ? inData.size : 0;
+                            partner.data[index].dailyActivePlayerObjArr = inData.downLiner ? inData.downLiner : [];
                         }
-                    });
-                    vm.partnerLoadingDailyActivePlayer = false;
-                    vm.dailyActivePlayerBoolean = false;
-                    // vm.drawPartnerTable(partner);
-                })
-            };
+                    }
+                });
+                vm.partnerLoadingDailyActivePlayer = false;
+                vm.dailyActivePlayerBoolean = false;
+            })
+        }
+
+        function getReferralsList(partner) {
+            return $scope.$socketPromise('getReferralsList', partner).then(function (data) {
+                let promArr = [];
+
+                if (vm.totalPlayerDownlineBoolean) {
+                    promArr.push(getTotalPlayerDownline(partner));
+                }
+                if (vm.dailyActivePlayerBoolean) {
+                    promArr.push(getDailyActivePlayerCount(data.data, partner));
+                }
+                if (vm.weeklyActivePlayerBoolean) {
+                    vm.getWeeklyActivePlayerCount(data.data, partner);
+                }
+                if (vm.monthlyActivePlayerBoolean) {
+                    vm.getMonthlyActivePlayerCount(data.data, partner);
+                }
+                if (vm.validPlayersBoolean) {
+                    vm.getValidPlayersCount(data.data, partner);
+                }
+                if (vm.totalChildrenDepositBoolean) {
+                    vm.getTotalChildrenDeposit(data.data, partner);
+                }
+                if (vm.totalChildrenBalanceBoolean) {
+                    vm.getTotalChildrenBalance(data.data, partner);
+                }
+                if (vm.totalSettledCommissionBoolean) {
+                    vm.getTotalSettledCommission(partner);
+                }
+
+                return Promise.all(promArr).then(() => partner.data);
+            })
+        }
+
+
+
+
+
+
 
             vm.getWeeklyActivePlayerCount = function (referral, partner) {
                 let sendQuery = {
@@ -5798,7 +5803,7 @@ define(['js/app'], function (myApp) {
             };
 
             //draw partner table based on data
-            vm.drawPartnerTable = function (data) {
+            vm.drawPartnerTable = async function (data) {
                 //convert decimal to 2 digits
                 data.data.forEach((partner) => {
                     if (partner.credits) {
@@ -5821,8 +5826,7 @@ define(['js/app'], function (myApp) {
                     partner.totalSettledCommission = partner.totalSettledCommission ? parseFloat(partner.totalSettledCommission).toFixed(2) : 0;
                 });
 
-                vm.partners = data.data;
-                vm.getReferralsList(data);
+                vm.partners = await getReferralsList(data);
                 vm.platformPartnerCount = data.size;
                 vm.selectedPartnerCount = 0;
                 vm.searchPartnerCount = data.size;
