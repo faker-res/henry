@@ -25696,6 +25696,7 @@ define(['js/app'], function (myApp) {
 
             };
             vm.commissionSettingDeleteRow = (idx, valueCollection) => {
+                vm.updateCommissionRateRequirement = true;
                 valueCollection.splice(idx, 1);
 
                 if (valueCollection.length == 0) {
