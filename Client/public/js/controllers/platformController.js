@@ -22194,6 +22194,9 @@ define(['js/app'], function (myApp) {
                 if (rewardPointsEvent.target && (rewardPointsEvent.target.betType && rewardPointsEvent.target.betType.length == 0)) {
                     delete rewardPointsEvent.target.betType;
                 }
+                if (rewardPointsEvent.target && !rewardPointsEvent.target.gameType) {
+                    delete rewardPointsEvent.target.gameType;
+                }
                 delete rewardPointsEvent.isEditing;
                 if (rewardPointsEvent.period == 6) {
                     rewardPointsEvent.customPeriodStartTime = rewardPointsEvent.customPeriodStartTime.data('datetimepicker').getLocalDate();
