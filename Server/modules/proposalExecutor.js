@@ -1789,6 +1789,7 @@ var proposalExecutor = {
                             accountName: partner.bankAccountName || "",
                             accountType: partner.bankAccountType || "",
                             accountCity: partner.bankAccountCity || "",
+                            accountProvince: partner.bankAccountProvince || "",
                             accountNo: partner.bankAccount || "",
                             bankAddress: partner.bankAddress || "",
                             bankName: partner.bankName || "",
