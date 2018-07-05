@@ -150,7 +150,7 @@ let dbCallOutMission = {
             }
         ).then(
             () => {
-                return dbconfig.collection_callOutMission.findOneAndUpdate({_id: mission._id}, {status: constCallOutMissionStatus.CANCELLED}, {new: true}).lean();
+                return dbconfig.collection_callOutMission.findOneAndUpdate({_id: mission._id}, {status: constCallOutMissionStatus.CANCELLED, isUsing: false}, {new: true}).lean();
             }
         );
     },
@@ -176,13 +176,14 @@ let dbCallOutMission = {
                 return dbconfig.collection_callOutMission.findOne({
                     platform: platform._id,
                     admin: admin._id,
-                    status: {
-                        $in: [
-                            constCallOutMissionStatus.CREATED,
-                            constCallOutMissionStatus.ON_GOING,
-                            constCallOutMissionStatus.PAUSED
-                        ]
-                    }
+                    // status: {
+                    //     $in: [
+                    //         constCallOutMissionStatus.CREATED,
+                    //         constCallOutMissionStatus.ON_GOING,
+                    //         constCallOutMissionStatus.PAUSED
+                    //     ]
+                    // }
+                    isUsing: true
                 }).lean();
             }
         ).then(
@@ -192,6 +193,37 @@ let dbCallOutMission = {
                 }
 
                 return getUpdatedMissionDetail(platform, admin, callOutMissionData, limit, index);
+            }
+        );
+    },
+
+    confirmMissionFinish: (platformObjId, adminObjId, missionName) => {
+        let platform, admin;
+
+        let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
+        let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
+
+        return Promise.all([platformProm, adminProm]).then(
+            data => {
+                ([platform, admin] = data);
+
+                if (!platform ) {
+                    return Promise.reject({name: "DataError", message: "Platform not found."});
+                }
+
+                if (!admin) {
+                    return Promise.reject({name: "DataError", message: "No admin acc"});
+                }
+
+                return dbconfig.collection_callOutMission.findOneAndUpdate({
+                    platform: platform._id,
+                    admin: admin._id,
+                    status: constCallOutMissionStatus.FINISHED,
+                    missionName: missionName,
+                    isUsing: true
+                }, {
+                    isUsing: false
+                }).lean();
             }
         );
     },
@@ -269,7 +301,8 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
     ).then(
         calleeList => {
             let outputData = {};
-            outputData.hasOnGoingMission = Boolean(ctiMissionStatus != constCallOutMissionStatus.FINISHED);
+            // outputData.hasOnGoingMission = Boolean(ctiMissionStatus != constCallOutMissionStatus.FINISHED);
+            outputData.hasOnGoingMission = true;
             outputData = Object.assign({}, outputData, mission);
             outputData.callee = calleeList;
 
@@ -384,7 +417,7 @@ function getCalleeList (query, sortCol) {
 
 function getCtiUrls (platformId) {
     platformId = platformId ? String(platformId) : "10";
-    // platformId = 10; // debug param, use this when testing on local
+    platformId = 10; // debug param, use this when testing on local
 
     let urls = [
         "http://jsh.tel400.me/cti/",

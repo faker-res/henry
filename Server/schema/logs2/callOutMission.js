@@ -17,6 +17,8 @@ let callOutMissionSchema = new Schema({
     createTime: {type: Date, default: Date.now, index: true},
     // status - refer to constCallOutMissionStatus
     status: {type: Number, index: true, default: 0},
+    // does admin still using this CTI mission
+    isUsing: {type: Boolean, index: true, default: true}
 });
 
 // callOutMissionSchema.index({platform: 1, startTime: 1, endTime: 1, device: 1, pageName: 1, buttonName: 1});

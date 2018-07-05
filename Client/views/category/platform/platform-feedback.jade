@@ -147,6 +147,8 @@
                 button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission",ng-click='vm.toggleCallOutMissionStatus()') {{"Pause/Resume Mission" | translate}}
             .inlineBlk
                 button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission",ng-click='vm.stopCallOutMission()') {{"Stop Mission" | translate}}
+            .inlineBlk
+                button.btn.btn-success(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton",ng-click='vm.endCallOutMission()') {{"Finish Mission" | translate}}
             span#platformFeedbackSpin.collapse
                 i.fa.fa-spinner.fa-spin
             span.margin-left-5

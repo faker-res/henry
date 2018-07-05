@@ -16045,6 +16045,24 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.endCallOutMission = function() {
+                socketService.$socket($scope.AppSocket, 'endCallOutMission', {
+                    platformObjId: vm.selectedPlatform.id,
+                    missionName: vm.ctiData.missionName
+                }, function (data) {
+                    console.log("endCallOutMission ret" , data);
+                    $scope.$evalAsync(function(){
+                        vm.ctiData = {};
+                        vm.feedbackPlayersPara.total = 0;
+                        vm.callOutMissionStatus = "";
+                        setTableData(vm.playerFeedbackTable, []);
+                        vm.drawExtendedFeedbackTable([]);
+                        vm.playerCredibilityComment = [];
+                        vm.curPlayerFeedbackDetail = {};
+                    });
+                });
+            };
+
             vm.getCtiData = function() {
                 $('#platformFeedbackSpin').show();
                 socketService.$socket($scope.AppSocket, 'getUpdatedAdminMissionStatusFromCti', {
@@ -16061,8 +16079,9 @@ define(['js/app'], function (myApp) {
                         vm.playerFeedbackQuery.index = playerFeedbackDetail.index || 0;
                         vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total});
                         vm.feedbackPlayersPara.total = vm.playerFeedbackQuery.total;
+                        vm.showFinishCalloutMissionButton = Boolean(vm.ctiData.status == '3');
 
-                        let players = [];
+                        // let players = [];
                         let completedAmount = 0;
                         vm.callOutMissionStatusText = '';
 
