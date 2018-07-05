@@ -140,11 +140,17 @@ let dbCallOutMission = {
                     return Promise.reject({message: "This mission is finished."})
                 }
 
+                if (mission.status == constCallOutMissionStatus.PAUSED) {
+                    return updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.ON_GOING).then(
+                        () => updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED)
+                    );
+                }
+
                 return updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED); //.catch().then(() => deleteCtiMission(platform, missionName));
             }
         ).then(
             () => {
-                return dbconfig.collection_callOutMission.findOneAndUpdate({_id: mission._id}, {status: constCallOutMissionStatus.CANCELLED}, {new: true}).lean();
+                return dbconfig.collection_callOutMission.findOneAndUpdate({_id: mission._id}, {status: constCallOutMissionStatus.CANCELLED, isUsing: false}, {new: true}).lean();
             }
         );
     },
@@ -170,13 +176,14 @@ let dbCallOutMission = {
                 return dbconfig.collection_callOutMission.findOne({
                     platform: platform._id,
                     admin: admin._id,
-                    status: {
-                        $in: [
-                            constCallOutMissionStatus.CREATED,
-                            constCallOutMissionStatus.ON_GOING,
-                            constCallOutMissionStatus.PAUSED
-                        ]
-                    }
+                    // status: {
+                    //     $in: [
+                    //         constCallOutMissionStatus.CREATED,
+                    //         constCallOutMissionStatus.ON_GOING,
+                    //         constCallOutMissionStatus.PAUSED
+                    //     ]
+                    // }
+                    isUsing: true
                 }).lean();
             }
         ).then(
@@ -186,6 +193,37 @@ let dbCallOutMission = {
                 }
 
                 return getUpdatedMissionDetail(platform, admin, callOutMissionData, limit, index);
+            }
+        );
+    },
+
+    confirmMissionFinish: (platformObjId, adminObjId, missionName) => {
+        let platform, admin;
+
+        let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
+        let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
+
+        return Promise.all([platformProm, adminProm]).then(
+            data => {
+                ([platform, admin] = data);
+
+                if (!platform ) {
+                    return Promise.reject({name: "DataError", message: "Platform not found."});
+                }
+
+                if (!admin) {
+                    return Promise.reject({name: "DataError", message: "No admin acc"});
+                }
+
+                return dbconfig.collection_callOutMission.findOneAndUpdate({
+                    platform: platform._id,
+                    admin: admin._id,
+                    status: constCallOutMissionStatus.FINISHED,
+                    missionName: missionName,
+                    isUsing: true
+                }, {
+                    isUsing: false
+                }).lean();
             }
         );
     },
@@ -263,7 +301,8 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
     ).then(
         calleeList => {
             let outputData = {};
-            outputData.hasOnGoingMission = Boolean(ctiMissionStatus != constCallOutMissionStatus.FINISHED);
+            // outputData.hasOnGoingMission = Boolean(ctiMissionStatus != constCallOutMissionStatus.FINISHED);
+            outputData.hasOnGoingMission = true;
             outputData = Object.assign({}, outputData, mission);
             outputData.callee = calleeList;
 
@@ -378,6 +417,7 @@ function getCalleeList (query, sortCol) {
 
 function getCtiUrls (platformId) {
     platformId = platformId ? String(platformId) : "10";
+    // platformId = 10; // debug param, use this when testing on local
 
     let urls = [
         "http://jsh.tel400.me/cti/",
@@ -605,7 +645,7 @@ function callCtiApiWithRetry (platformId, path, param) {
                     if (err || (resp && body && Number(JSON.parse(body).result) != 1)) {
                         console.log("try no.", nextTriedTimes, link);
                         console.error(err || body);
-                        resolve(tryCallCtiApi(nextTriedTimes), body);
+                        resolve(tryCallCtiApi(nextTriedTimes, body));
                         return;
                     }
 
@@ -613,7 +653,7 @@ function callCtiApiWithRetry (platformId, path, param) {
                         // throw this to prevent passing undefined to JSON.parse function
                         console.log("try no.", nextTriedTimes, link);
                         console.error('Post request get nothing for ' + link);
-                        resolve(tryCallCtiApi(nextTriedTimes), lastBody);
+                        resolve(tryCallCtiApi(nextTriedTimes, lastBody));
                         return;
                     }
 
@@ -621,7 +661,7 @@ function callCtiApiWithRetry (platformId, path, param) {
                 });
             } catch (err) {
                 console.error(err);
-                resolve(tryCallCtiApi(nextTriedTimes), lastBody);
+                resolve(tryCallCtiApi(nextTriedTimes, lastBody));
             }
         });
     }
