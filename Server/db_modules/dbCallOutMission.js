@@ -140,6 +140,12 @@ let dbCallOutMission = {
                     return Promise.reject({message: "This mission is finished."})
                 }
 
+                if (mission.status == constCallOutMissionStatus.PAUSED) {
+                    return updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.ON_GOING).then(
+                        () => updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED)
+                    );
+                }
+
                 return updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED); //.catch().then(() => deleteCtiMission(platform, missionName));
             }
         ).then(
@@ -378,6 +384,7 @@ function getCalleeList (query, sortCol) {
 
 function getCtiUrls (platformId) {
     platformId = platformId ? String(platformId) : "10";
+    // platformId = 10; // debug param, use this when testing on local
 
     let urls = [
         "http://jsh.tel400.me/cti/",
@@ -605,7 +612,7 @@ function callCtiApiWithRetry (platformId, path, param) {
                     if (err || (resp && body && Number(JSON.parse(body).result) != 1)) {
                         console.log("try no.", nextTriedTimes, link);
                         console.error(err || body);
-                        resolve(tryCallCtiApi(nextTriedTimes), body);
+                        resolve(tryCallCtiApi(nextTriedTimes, body));
                         return;
                     }
 
@@ -613,7 +620,7 @@ function callCtiApiWithRetry (platformId, path, param) {
                         // throw this to prevent passing undefined to JSON.parse function
                         console.log("try no.", nextTriedTimes, link);
                         console.error('Post request get nothing for ' + link);
-                        resolve(tryCallCtiApi(nextTriedTimes), lastBody);
+                        resolve(tryCallCtiApi(nextTriedTimes, lastBody));
                         return;
                     }
 
@@ -621,7 +628,7 @@ function callCtiApiWithRetry (platformId, path, param) {
                 });
             } catch (err) {
                 console.error(err);
-                resolve(tryCallCtiApi(nextTriedTimes), lastBody);
+                resolve(tryCallCtiApi(nextTriedTimes, lastBody));
             }
         });
     }
