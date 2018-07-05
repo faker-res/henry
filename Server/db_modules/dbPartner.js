@@ -6140,6 +6140,7 @@ let dbPartner = {
                 prom = generateSkipCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
             }
             else {
+                console.log('commSet step0', partnerObjId)
                 prom = dbPartner.generatePartnerCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
             }
             proms.push(prom);
@@ -6150,9 +6151,14 @@ let dbPartner = {
 
     generatePartnerCommissionLog: function (partnerObjId, commissionType, startTime, endTime) {
         let downLinesRawCommissionDetails, partnerCommissionLog;
+        console.log('commSet step1', partnerObjId)
         return dbPartner.calculatePartnerCommissionDetail(partnerObjId, commissionType, startTime, endTime)
             .then(
             commissionDetail => {
+                console.log('commSet step8', partnerObjId)
+                if (commissionDetail.disableCommissionSettlement) {
+                    return undefined;
+                }
                 downLinesRawCommissionDetails = commissionDetail.downLinesRawCommissionDetail || [];
 
                 delete commissionDetail.downLinesRawCommissionDetail;
@@ -6170,6 +6176,7 @@ let dbPartner = {
             }
         ).then(
             partnerCommissionLogData => {
+                console.log('commSet step9', partnerObjId)
                 if (!partnerCommissionLogData) {
                     return undefined;
                 }
@@ -6192,6 +6199,7 @@ let dbPartner = {
             }
         ).then(
             downLinesRawCommissionDetail => {
+                console.log('commSet step10', partnerObjId)
                 if (!downLinesRawCommissionDetail) {
                     return undefined;
                 }
@@ -6316,6 +6324,7 @@ let dbPartner = {
                         message: "Error in getting partner data",
                     });
                 }
+                console.log('commSet step2', partnerObjId)
 
                 partner = data;
                 platform = data.platform;
@@ -6333,6 +6342,7 @@ let dbPartner = {
             data => {
                 downLines = data[0];
                 providerGroups = data[1];
+                console.log('commSet step3', partnerObjId)
 
                 let commissionRateTableProm = getAllCommissionRateTable(platform._id, commissionType, partner._id, providerGroups);
                 let activePlayerRequirementProm = getRelevantActivePlayerRequirement(platform._id, commissionType);
@@ -6353,6 +6363,7 @@ let dbPartner = {
                 rewardProposalTypes = data[3];
 
                 partnerCommissionRateConfig = data[4];
+                console.log('commSet step4', partnerObjId)
 
                 let downLinesRawDetailProms = [];
 
@@ -6365,6 +6376,7 @@ let dbPartner = {
             }
         ).then(
             downLinesRawData => {
+                console.log('commSet step7', partnerObjId)
                 downLinesRawCommissionDetail = downLinesRawData;
 
                 activeDownLines = getActiveDownLineCount(downLinesRawCommissionDetail);
@@ -6456,6 +6468,7 @@ let dbPartner = {
                     withdrawFeeRate: partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal / 100,
                     status: constPartnerCommissionLogStatus.PREVIEW,
                     nettCommission: nettCommission,
+                    disableCommissionSettlement: Boolean(partner.permission && partner.permission.disableCommSettlement),
                 };
             }
         );
@@ -8779,9 +8792,7 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
         }
     ]).allowDiskUse(true).read("secondaryPreferred").then(
         consumptionData => {
-            console.log('playerConsumptionRecord debug log', playerObjId, 'startTime', new Date(startTime));
-            console.log('playerConsumptionRecord debug log', playerObjId, 'endTime', new Date(endTime));
-            console.log('playerConsumptionRecord debug log', playerObjId, 'aggregate result', consumptionData);
+            console.log('commSet step5a', partnerObjId)
             if (!consumptionData || !consumptionData[0]) {
                 consumptionData = [];
             }
@@ -8852,6 +8863,7 @@ function getPlayerCommissionTopUpDetail (playerObjId, startTime, endTime, topUpT
         }
     ]).read("secondaryPreferred").then(
         topUpData => {
+            console.log('commSet step5b', partnerObjId)
             if (!topUpData || !topUpData[0]) {
                 topUpData = [];
             }
@@ -8916,6 +8928,7 @@ function getPlayerCommissionWithdrawDetail (playerObjId, startTime, endTime) {
         }
     ]).read("secondaryPreferred").then(
         withdrawalInfo => {
+            console.log('commSet step5c', partnerObjId)
             if (!withdrawalInfo || !withdrawalInfo[0]) {
                 withdrawalInfo = [{}];
             }
@@ -9276,6 +9289,7 @@ function getAllPlayerCommissionRawDetails (playerObjId, commissionType, startTim
 
     return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm, rewardDetailProm, namesProm]).then(
         data => {
+            console.log('commSet step6', partnerObjId)
             let consumptionDetail = data[0];
             let topUpDetail = data[1];
             let withdrawalDetail = data[2];
@@ -9374,6 +9388,7 @@ function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewar
 
     return rewardProm.then(
         rewardData => {
+            console.log('commSet step5d', partnerObjId)
             if (!rewardData || !rewardData[0]) {
                 rewardData = [];
             }
