@@ -8757,6 +8757,15 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
                     $gte: new Date(startTime),
                     $lt: new Date(endTime)
                 },
+                $or: [
+                    {isDuplicate: {$exists: false}},
+                    {
+                        $and: [
+                            {isDuplicate: {$exists: true}},
+                            {isDuplicate: false}
+                        ]
+                    }
+                ]
             }
         },
         {
@@ -8770,6 +8779,9 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
         }
     ]).allowDiskUse(true).read("secondaryPreferred").then(
         consumptionData => {
+            console.log('playerConsumptionRecord debug log', playerObjId, 'startTime', new Date(startTime));
+            console.log('playerConsumptionRecord debug log', playerObjId, 'endTime', new Date(endTime));
+            console.log('playerConsumptionRecord debug log', playerObjId, 'aggregate result', consumptionData);
             if (!consumptionData || !consumptionData[0]) {
                 consumptionData = [];
             }
