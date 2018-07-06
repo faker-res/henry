@@ -6519,6 +6519,10 @@ define(['js/app'], function (myApp) {
                     );
                     vm.commissionRateConfig = jQuery.extend(true, {}, vm.srcCommissionRateConfig);
                     vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
+                    vm.partnerCommissionObj = {};
+                    vm.partnerCommissionObj.data = commonService.applyPartnerCustomRate(selectedPartner._id, vm.partnerCommission, vm.customPartnerCommission);
+                    vm.commissionSettingIsEditAll = {};
+                    vm.commissionRateIsEditAll = false;
 
                     let option = {
                         $scope: $scope,
@@ -6544,7 +6548,7 @@ define(['js/app'], function (myApp) {
                             filteredBankTypeList: vm.filteredBankTypeList,
                             filterBankName: vm.filterBankName,
                             isEditingPartnerPaymentShowVerify: vm.isEditingPartnerPaymentShowVerify,
-                            partnerCommission: commonService.applyPartnerCustomRate(selectedPartner._id, vm.partnerCommission, vm.customPartnerCommission),
+                            partnerCommission: vm.partnerCommissionObj.data,
                             commissionSettingTab: vm.commissionSettingTab,
                             playerConsumptionTableHeader: vm.playerConsumptionTableHeader,
                             rateAfterRebatePromo: vm.rateAfterRebatePromo,
@@ -6554,12 +6558,17 @@ define(['js/app'], function (myApp) {
                             rateAfterRebateTotalWithdrawal: vm.rateAfterRebateTotalWithdrawal,
                             commissionRateConfig: commonService.applyPartnerCustomRate(selectedPartner._id, vm.commissionRateConfig, vm.custCommissionRateConfig),
                             commissionSettingEditRow: vm.commissionSettingEditRow,
+                            commissionSettingEditAll: vm.commissionSettingEditAll,
+                            commissionSettingIsEditAll: vm.getCommissionSettingIsEditAll,
                             commissionSettingCancelRow: vm.commissionSettingCancelRow,
                             selectedCommissionTab: vm.selectedCommissionTab,
                             customizeCommissionRate: vm.customizeCommissionRate,
+                            customizeCommissionRateAll: vm.customizeCommissionRateAll,
                             resetAllCustomizedCommissionRate: vm.resetAllCustomizedCommissionRate,
                             customizePartnerRate: vm.customizePartnerRate,
                             commissionRateEditRow: vm.commissionRateEditRow,
+                            commissionRateEditAll: vm.commissionRateEditAll,
+                            commissionRateIsEditAll: vm.getCommissionRateIsEditAll,
                             currentProvince: vm.currentProvince,
                             provinceList: vm.provinceList,
                             changeProvince: vm.changeProvince,
@@ -10387,6 +10396,21 @@ define(['js/app'], function (myApp) {
                 valueCollection[idx].isEditing = true;
                 vm.partnerCommission.isEditing = true;
             };
+
+            vm.commissionSettingEditAll = (index, data, flag) => {
+                if (data.hasOwnProperty("showConfig") && data.showConfig.hasOwnProperty("commissionSetting")) {
+                    data.showConfig.commissionSetting.forEach(setting => {
+                        setting.isEditing = flag;
+                    })
+                }
+
+                vm.commissionSettingIsEditAll[index] = flag
+            }
+
+            vm.getCommissionSettingIsEditAll = (index) => {
+                return vm.commissionSettingIsEditAll[index];
+            }
+
             vm.commissionSettingCancelRow = (idx, valueCollection, originalCollection, isCancelByRow, isFromCustomizedPage, originalCustomizedConfig) => {
                 if (valueCollection[idx].isCreateNew) {
                     valueCollection[idx].isCreateNew = false;
@@ -10495,6 +10519,20 @@ define(['js/app'], function (myApp) {
             vm.commissionRateEditRow = (field, flag) => {
                 vm.commissionRateConfig.isEditing[field] = flag;
             };
+
+            vm.commissionRateEditAll = (flag) => {
+                vm.commissionRateConfig.isEditing["rateAfterRebatePromo"] = flag;
+                vm.commissionRateConfig.isEditing["rateAfterRebatePlatform"] = flag;
+                vm.commissionRateConfig.isEditing["rateAfterRebateGameProviderGroup"] = flag;
+                vm.commissionRateConfig.isEditing["rateAfterRebateTotalDeposit"] = flag;
+                vm.commissionRateConfig.isEditing["rateAfterRebateTotalWithdrawal"] = flag;
+                vm.commissionRateIsEditAll = flag
+            };
+
+            vm.getCommissionRateIsEditAll = () => {
+                return vm.commissionRateIsEditAll;
+            }
+
             vm.showHideSubmitCommissionConfigButton = (valueCollection) => {
                 if (valueCollection && valueCollection.length > 0) {
                     vm.partnerCommission.isEditing = false;
@@ -10635,7 +10673,44 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.customizeCommissionRateAll = (idx, setting, newConfig, oldConfig) => {
+                // let setting;
+                // let newConfig;
+                // let oldConfig;
+
+                // Convert back commissionRate to percentage
+                newConfig.commissionSetting.forEach(e => {
+                    e.commissionRate = parseFloat((e.commissionRate / 100).toFixed(4));
+                });
+
+                // Check setting has changed or not
+                if (newConfig || isRevert) {
+                    let sendData = {
+                        partnerObjId: vm.selectedSinglePartner._id,
+                        settingObjId: setting.srcConfig._id,
+                        field: "commissionRate",
+                        oldConfig: oldConfig,
+                        newConfig: newConfig,
+                        isRevert: false,
+                        isPlatformRate: false
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
+                        $scope.$evalAsync(() => {
+                            vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id);
+                            vm.getPlatformPartnersData();
+                        });
+                    });
+                }
+            };
+
             vm.resetAllCustomizedCommissionRate = function () {
+                if (vm.commissionSettingIsEditAll) {
+                    for (let key in vm.commissionSettingIsEditAll) {
+                        vm.commissionSettingIsEditAll[key] = false;
+                    }
+                }
+
                 let sendData = {
                     partnerObjId: vm.selectedSinglePartner._id,
                     field: "Reset all commission rate",
