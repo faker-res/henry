@@ -12618,6 +12618,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.searchSMSLog = function (newSearch) {
+                var platformId = (vm.selectedPlatform.data && vm.selectedPlatform.data.platformId) ? vm.selectedPlatform.data.platformId : null;
                 var requestData = {
                     // playerId: vm.selectedSinglePlayer.playerId,
                     isAdmin: vm.smsLog.query.isAdmin,
@@ -12627,7 +12628,9 @@ define(['js/app'], function (myApp) {
                     endTime: vm.smsLog.query.endTime.data('datetimepicker').getLocalDate(),//$('#smsLogQuery .endTime   input').val() || undefined,
                     index: newSearch ? 0 : vm.smsLog.index,
                     limit: newSearch ? 10 : vm.smsLog.limit,
+                    platformId: platformId
                 };
+
                 if (vm.smsLog.type == "single") {
                     requestData.playerId = vm.selectedSinglePlayer.playerId;
                 }
