@@ -17467,8 +17467,9 @@ function determineRegistrationInterface(inputData, adminName, adminId) {
         inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
     }
 
-    if (inputData.registrationInterface !== constPlayerRegistrationInterface.BACKSTAGE) {
-        inputData.loginTimes = 1;
+    //after created a new player in other interface, login record is created
+    if (inputData.registrationInterface === constPlayerRegistrationInterface.BACKSTAGE) {
+        inputData.loginTimes = 0;
     }
     else if (adminName) {
         // insert related CS name when account is opened from backstage
