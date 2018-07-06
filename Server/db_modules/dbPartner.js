@@ -6367,10 +6367,15 @@ let dbPartner = {
 
                 let downLinesRawDetailProms = [];
 
-                downLines.map(player => {
-                    let prom = getAllPlayerCommissionRawDetails(player._id, commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, paymentProposalTypes, rewardProposalTypes, activePlayerRequirement);
-                    downLinesRawDetailProms.push(prom);
-                });
+                if (downLines.length > 200) {
+                    return getAllPlayerCommissionRawDetailsWithSettlement(downLines, commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, paymentProposalTypes, rewardProposalTypes, activePlayerRequirement);
+                }
+                else {
+                    downLines.map(player => {
+                        let prom = getAllPlayerCommissionRawDetails(player._id, commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, paymentProposalTypes, rewardProposalTypes, activePlayerRequirement);
+                        downLinesRawDetailProms.push(prom);
+                    });
+                }
 
                 return Promise.all(downLinesRawDetailProms);
             }
@@ -8641,6 +8646,19 @@ let dbPartner = {
         )
     },
 
+    handleGetAllPlayerCommissionRawDetails: (playerObjIds, commissionType, startTime, endTime, providerGroups, topUpTypes, rewardTypes, activePlayerRequirement) => {
+        if (!playerObjIds || playerObjIds.length <= 0) {
+            return [];
+        }
+
+        let proms = [];
+        playerObjIds.map(playerObjId => {
+            let prom = getAllPlayerCommissionRawDetails(playerObjId, commissionType, new Date(startTime), new Date(endTime), providerGroups, topUpTypes, rewardTypes, activePlayerRequirement);
+            proms.push(prom);
+        });
+
+        return Promise.all(proms);
+    },
 };
 
 
@@ -8765,7 +8783,7 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
     return dbconfig.collection_playerConsumptionRecord.aggregate([
         {
             $match: {
-                playerId: playerObjId,
+                playerId: ObjectId(playerObjId),
                 createTime: {
                     $gte: new Date(startTime),
                     $lt: new Date(endTime)
@@ -10309,4 +10327,47 @@ function clearCustomizedPartnerCommissionConfig (platform, commissionType, provi
         query.provider = provider;
     }
     return dbconfig.collection_partnerCommissionConfig.remove(query);
+}
+
+function getAllPlayerCommissionRawDetailsWithSettlement (players, commissionType, startTime, endTime, providerGroups, topUpTypes, rewardTypes, activePlayerRequirement) {
+    let playerObjIdArr = [];
+    let details = [];
+    players.map(player => {
+        playerObjIdArr.push(player._id);
+    });
+
+    let stream = dbconfig.collection_players.find({_id: {$in: playerObjIdArr}},{_id: 1}).cursor({batchSize: 500});
+    let balancer = new SettlementBalancer();
+
+    return balancer.initConns().then(function () {
+        return Q(
+            balancer.processStream(
+                {
+                    stream: stream,
+                    batchSize: constSystemParam.BATCH_SIZE,
+                    makeRequest: function (playerIdObjs, request) {
+                        request("player", "getAllPlayerCommissionRawDetails", {
+                            playerObjIds: playerIdObjs.map(function (playerIdObj) {
+                                return playerIdObj._id;
+                            }),
+                            commissionType,
+                            startTime,
+                            endTime,
+                            providerGroups,
+                            topUpTypes,
+                            rewardTypes,
+                            activePlayerRequirement
+                        });
+                    },
+                    processResponse: function (record) {
+                        details = details.concat(record.data);
+                    }
+                }
+            )
+        );
+    }).then(
+        () => {
+            return details;
+        }
+    );
 }
