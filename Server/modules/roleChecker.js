@@ -402,6 +402,7 @@ var roleChecker = {
                 PartnerCommission: ['createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig','getPartnerCommissionRateConfig',
                 'createUpdatePartnerCommissionRateConfig','createUpdatePartnerCommissionConfigWithGameProviderGroup','getPartnerCommissionConfigWithGameProviderGroup'],
                 platformBasic: [],
+                phoneFilterConfig: [],
                 bonusBasic:['bonusBasic'],
                 autoApproval: ['updateAutoApprovalConfig'],
                 Monitor: [],

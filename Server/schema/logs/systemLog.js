@@ -14,7 +14,9 @@ var systemLogSchema = new Schema ({
     //Level of the log: such as "info", "error"
     level: String,
     //Any associated error
-    error: {type: String, required: false}
+    error: {type: String, required: false},
+    //platforms of the admin creating the log
+    platforms: [{type: Schema.ObjectId, ref: 'platform'}]
 });
 
 module.exports = systemLogSchema;
