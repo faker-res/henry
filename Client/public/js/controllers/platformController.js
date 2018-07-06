@@ -26326,7 +26326,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.useEbetWallet = vm.selectedPlatform.data.useEbetWallet;
 
 
-                $scope.safeApply();
+                // $scope.safeApply();
             };
 
             vm.getPhoneFilterConfig = function () {
@@ -26353,7 +26353,6 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
-                // $scope.safeApply();
             };
 
             vm.getPartnerBasic = function () {
