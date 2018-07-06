@@ -706,7 +706,7 @@ define(['js/app'], function (myApp) {
                 if(vm.showPlatform.presetModuleSetting && vm.showPlatform.presetModuleSetting.length > 0){
                     vm.showPlatform.presetModuleSetting.forEach(p => {
 
-                        p.displayable = ( p.displayable == 0 || p.displayable == 1 )? p.displayable.toString() : null ;
+                        p.displayStatus = ( p.displayStatus == 0 || p.displayStatus == 1 )? p.displayStatus.toString() : null ;
                         vm.presetModuleSettingData.push($.extend({}, p));
                     })
                 }
@@ -727,7 +727,7 @@ define(['js/app'], function (myApp) {
 
                             if (p.content && p.content.length > 0){
                                 p.content.forEach( q => {
-                                    q.displayable = ( q.displayable == 0 || q.displayable == 1 )? q.displayable.toString() : null ;
+                                    q.displayStatus = ( q.displayStatus == 0 || q.displayStatus == 1 )? q.displayStatus.toString() : null ;
                                 })
                             }
 
@@ -742,7 +742,7 @@ define(['js/app'], function (myApp) {
 
                             if (p.content && p.content.length > 0){
                                 p.content.forEach( q => {
-                                    q.displayable = ( q.displayable == 0 || q.displayable == 1 )? q.displayable.toString() : null ;
+                                    q.displayStatus = ( q.displayStatus == 0 || q.displayStatus == 1 )? q.displayStatus.toString() : null ;
                                 })
                             }
 

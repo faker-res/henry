@@ -244,6 +244,55 @@ var dbPlatform = {
             });
     },
 
+    getTemplateSetting: function (platformId, url){
+        if (!platformId){
+            return Promise.reject({
+                name: "DBError",
+                message: "platformId is not available"});
+        }
+
+        let result = [];
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then( platformData => {
+            if (!platformData){
+                return Promise.reject({
+                    name: "DBError",
+                    message: "Could not find the platform"});
+            }
+
+            if(!url){
+                // get back preset template setting
+                if (platformData.presetModuleSetting && platformData.presetModuleSetting.length > 0){
+
+                    result.push({templateId: null, functionList: platformData.presetModuleSetting.filter( p => {return p.displayStatus == 1})});
+
+                }
+                
+            }else{
+                // get the special template setting
+                if (platformData.specialModuleSetting && platformData.specialModuleSetting.length > 0) {
+
+                    let functionList = [];
+
+                    platformData.specialModuleSetting.forEach(module => {
+
+                        if(module.domainName && module.domainName.findIndex(p => p.toLowerCase() == url.trim().toLowerCase()) != -1){
+
+                            if(module.content && module.content.length > 0 ){
+                                module.content = module.content.filter(p => {return p.displayStatus == 1})
+                            }
+                            result.push({templateId: module._id, functionList: module.content});
+
+                        }
+                    })
+
+                }
+            }
+
+            return result
+
+        })
+    },
+
     /**
      * Search the platform information of the platform by  platformName or _id
      * @param {Object} platformData - Query
