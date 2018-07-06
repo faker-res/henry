@@ -856,7 +856,7 @@ var dbPlatform = {
             queryOrArray.push({pastMonthTopUpSum: {$gt: 0}});
             queryOrArray.push({pastMonthConsumptionSum: {$gt: 0}});
             queryOrArray.push({pastMonthWithdrawSum: {$gt: 0}});
-            queryOrArray.push({pastMonthBonusAmountSum: {$gt: 0}});
+            queryOrArray.push({pastMonthBonusAmountSum: {$ne: 0}});
             updateData.pastMonthTopUpSum = 0;
             updateData.pastMonthConsumptionSum = 0;
             updateData.pastMonthWithdrawSum = 0;
@@ -867,7 +867,7 @@ var dbPlatform = {
             queryOrArray.push({weeklyTopUpSum: {$gt: 0}});
             queryOrArray.push({weeklyConsumptionSum: {$gt: 0}});
             queryOrArray.push({weeklyWithdrawSum: {$gt: 0}});
-            queryOrArray.push({weeklyBonusAmountSum: {$gt: 0}});
+            queryOrArray.push({weeklyBonusAmountSum: {$ne: 0}});
             updateData.weeklyTopUpSum = 0;
             updateData.weeklyConsumptionSum = 0;
             updateData.weeklyWithdrawSum = 0;
