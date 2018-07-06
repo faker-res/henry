@@ -654,7 +654,19 @@ let dbPlayerInfo = {
             ).then(
                 data => {
                     if (data) {
-                        dbPlayerInfo.createPlayerLoginRecord(data);
+                        // dbPlayerInfo.createPlayerLoginRecord(data);
+                        let newPlayerData = data;
+
+                        newPlayerData.password = inputData.password ? inputData.password : (newPlayerData.password || "");
+                        newPlayerData.inputDevice = inputData.inputDevice ? inputData.inputDevice : (newPlayerData.inputDevice || "");
+                        newPlayerData.platformId = platformId ? platformId : (newPlayerData.platformId || "");
+                        newPlayerData.name = platformPrefix ? newPlayerData.name.replace(platformPrefix, '') : (newPlayerData.name || "");
+                        newPlayerData.ua = inputData.ua ? inputData.ua : (newPlayerData.userAgent || "");
+                        newPlayerData.mobileDetect = inputData.md ? inputData.md : (newPlayerData.mobileDetect || "");
+
+                        //after created new player, need to create login record and apply login reward
+                        dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect);
+
                         //todo::temp disable similar player untill ip is correct
                         if (data.lastLoginIp && data.lastLoginIp != "undefined") {
                             dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
@@ -13835,6 +13847,7 @@ let dbPlayerInfo = {
         if (query.name) {
             getPlayerProm = dbconfig.collection_players.findOne({name: query.name}, {_id: 1}).lean();
         }
+        console.log("debug player report 5", query.name)
 
         return getPlayerProm.then(
             player => {
@@ -13843,6 +13856,9 @@ let dbPlayerInfo = {
                 if (player) {
                     relevantPlayerQuery.playerId = player._id;
                 }
+
+                console.log("debug player report 6", player)
+                console.log("debug player report 7", relevantPlayerQuery)
 
                 // relevant players are the players who played any game within given time period
                 let playerObjArr = [];
@@ -13856,6 +13872,8 @@ let dbPlayerInfo = {
                                 return String(playerIdObj._id);
                             });
                         }
+                        console.log("debug player report 1", consumptionData)
+                        console.log("debug player report 2", playerObjArr)
                         let proposalQuery = {
                             mainType: {$in: ["PlayerBonus", "TopUp"]},
                             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
@@ -13883,6 +13901,7 @@ let dbPlayerInfo = {
                         for (let j = 0; j < playerObjArr.length; j++) {
                             playerObjArr[j] = ObjectId(playerObjArr[j]);
                         }
+                        console.log("debug player report 3", playerObjArr)
                         return playerObjArr;
                     }
                 );
@@ -14502,6 +14521,8 @@ let dbPlayerInfo = {
                     if (!data[5]) {
                         return "";
                     }
+
+                    console.log("debug player report 4", data[0]);
 
                     result.gameDetail = data[0];
                     result.consumptionTimes = 0;

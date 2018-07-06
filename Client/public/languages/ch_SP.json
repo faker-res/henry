@@ -1669,7 +1669,7 @@
   "LOGOFF": "注销",
   "forbidPlayerFromLogin": "登入网站",
   "forbidPartnerFromLogin": "登入网站",
-  "Partner is forbidden to apply bonus": "代理被禁止提款",
+  "Partner is forbidden to apply bonus": "您暂时被禁止提款，请联系代理经理",
   "forbidPlayerFromEnteringGame" : "登入游戏",
   "CHEAT_NEW_ACCOUNT_REWARD": "骗开户优惠",
   "TOPUP_ATTENTION": "存款留意",
@@ -3916,6 +3916,7 @@
   "FRONT_END_STATUS": "前端状态",
   "UNREAD": "未读",
   "EDIT_ALL_FEE_RATE": "编辑所有费用比例",
-  "EDIT_ALL_COMMISSION_RATE": "编辑所有佣金比例"
+  "EDIT_ALL_COMMISSION_RATE": "编辑所有佣金比例",
+  "phoneFilterConfig": "黑白名单设置"
 
 }

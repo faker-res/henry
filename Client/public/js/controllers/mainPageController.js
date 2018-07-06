@@ -16,6 +16,8 @@ define(['js/app'], function (myApp) {
             vm.policytoggle = {};
 
             vm.allAdminActions = [];
+            vm.roleNameToBeAttached = [];
+            vm.roleNameToBeDetached = [];
 
             //vm.dataTableCols = [
             //    {field: 'index', title: '#', show: true},
@@ -105,7 +107,7 @@ define(['js/app'], function (myApp) {
                     ignoreCase: false,
                     exactMatch: true
                 }])[0];
-                socketService.$socket($scope.AppSocket, 'deleteDepartmentsById', {_ids: [vm.SelectedDepartmentNode.id]}, success);
+                socketService.$socket($scope.AppSocket, 'deleteDepartmentsById', {_ids: [vm.SelectedDepartmentNode.id], departmentName: vm.SelectedDepartmentNode.departData.departmentName}, success);
                 function success(data) {
                     vm.SelectedDepartmentText = parentFindNode.text;
                     vm.getAllDepartmentData();
@@ -409,7 +411,8 @@ define(['js/app'], function (myApp) {
                 var data = sendData || {
                         departmentId: vm.SelectedDepartmentNode.id,
                         curParentId: vm.SelectedDepartmentNode.departData.parent,
-                        newParentId: vm.newDepartmentNode.id
+                        newParentId: vm.newDepartmentNode.id,
+                        departmentName: vm.SelectedDepartmentNode.departData.departmentName
                     };
                 //console.log(data);
                 //if (data.curParentId == data.newParentId) {
@@ -525,16 +528,32 @@ define(['js/app'], function (myApp) {
 
                     var data = {
                         AdminObjIds: [vm.curUser._id],
-                        RoleObjIds: roleIds
+                        RoleObjIds: roleIds,
+                        RoleDetails: {
+                            curUser: vm.curUser.adminName,
+                            roleName: vm.roleNameToBeAttached}
                     };
                     console.log(data);
                     socketService.$socket($scope.AppSocket, 'attachRolesToUsersById', data, success);
                     function success(data) {
                         vm.getDepartmentFullData();
                         vm.getDepartmentUsersData();
+                        vm.roleNameToBeAttached = [];
                         $scope.$apply();
                     }
                 });
+            };
+            vm.attachRoleName = function(roleId, roleName){
+                if(vm.roleToBeAttached){
+                    if(vm.roleToBeAttached[roleId]){
+                        vm.roleNameToBeAttached.push(roleName);
+                    }else{
+                        let indexNo = vm.roleNameToBeAttached.findIndex(r => r == roleName)
+                        if(indexNo != -1){
+                            vm.roleNameToBeAttached.splice(indexNo, 1);
+                        }
+                    }
+                }
             };
             vm.beforeDetachingRole = function () {
                 $scope.assertEqual(vm.selectedUsersCount, 1);
@@ -573,18 +592,33 @@ define(['js/app'], function (myApp) {
 
                     var data = {
                         AdminObjIds: [vm.curUser._id],
-                        RoleObjIds: roleIds
+                        RoleObjIds: roleIds,
+                        RoleDetails: {
+                            curUser: vm.curUser.adminName,
+                            roleName: vm.roleNameToBeDetached}
                     };
                     console.log("detach", data);
                     socketService.$socket($scope.AppSocket, 'detachRolesFromUsersById', data, success);
                     function success(data) {
                         vm.getDepartmentFullData();
                         vm.getDepartmentUsersData();
+                        vm.roleNameToBeDetached = [];
                         $scope.$apply();
                     }
                 });
             }
-
+            vm.detachRoleName = function(roleId, roleName){
+                if(vm.roleToBeDetached){
+                    if(vm.roleToBeDetached[roleId]){
+                        vm.roleNameToBeDetached.push(roleName);
+                    }else{
+                        let indexNo = vm.roleNameToBeDetached.findIndex(r => r == roleName)
+                        if(indexNo != -1){
+                            vm.roleNameToBeDetached.splice(indexNo, 1);
+                        }
+                    }
+                }
+            };
             vm.getAllChildrenDepartmentIds = function (departmentNode) {
                 var userIds = [];
                 //console.log(departmentNode.text, vm.departmentNodes[departmentNode.id].departData.users);
@@ -772,7 +806,7 @@ define(['js/app'], function (myApp) {
                     }
                 }
                 console.log("deleteUsers", userIds);
-                socketService.$socket($scope.AppSocket, 'deleteAdminInfosById', {_ids: userIds}, success);
+                socketService.$socket($scope.AppSocket, 'deleteAdminInfosById', {_ids: userIds, selectedUsers: vm.selectedUsers}, success);
                 function success(data) {
                     console.log(data);
                     vm.selectedUsers = {};
@@ -974,13 +1008,16 @@ define(['js/app'], function (myApp) {
             }
             vm.submitMoveUser = function () {
                 var adminIDList = [];
+                var adminNameList = [];
                 $.each(vm.selectedUsers, function (i, v) {
                     adminIDList.push(i);
+                    adminNameList.push(v.adminName);
                 });
                 var data = {
                     adminId: adminIDList,
                     curDepartmentId: vm.SelectedDepartmentNode.id,
                     newDepartmentId: vm.newDepartmentNode.id,
+                    adminName: adminNameList
                 };
                 console.log(data);
                 if (data.curDepartmentId == data.newDepartmentId) {
@@ -1228,7 +1265,7 @@ define(['js/app'], function (myApp) {
                 vm.processRoleData();
             }
             vm.deleteRole = function () {
-                socketService.$socket($scope.AppSocket, 'deleteRolesById', {_ids: [vm.roleSelected._id]}, success);
+                socketService.$socket($scope.AppSocket, 'deleteRolesById', {_ids: [vm.roleSelected._id], roleName: vm.roleSelected.roleName}, success);
                 function success(data) {
                     //todo::store data to vm
                     vm.getDepartmentFullData();
@@ -1535,7 +1572,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.submitResetAdminPassword = function () {
-                socketService.$socket($scope.AppSocket, 'resetAdminPassword', {adminId: vm.curUser._id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'resetAdminPassword', {adminId: vm.curUser._id, adminName: vm.curUser.adminName}, function (data) {
                     vm.newAdminPassword = data.data;
                     $scope.safeApply();
                 });

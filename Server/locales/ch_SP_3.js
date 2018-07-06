@@ -131,6 +131,7 @@ var simplifiedChinese = {
     "Player is not enable": "用户没有发现或无效密码",
     "Player is forbidden to login": "玩家被禁止登录",
     "Partner is forbidden to login": "代理被禁止登录",
+    "Partner is forbidden to apply bonus": "您暂时被禁止提款，请联系代理经理",
     "Player does not have enough credit.": "玩家额度不够",
     "Player does not have valid payment information": "玩家支付信息无效",
     "Player does not have enough Expenses.": "玩家投注额度不够",
