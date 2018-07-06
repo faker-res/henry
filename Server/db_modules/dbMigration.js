@@ -1833,9 +1833,6 @@ var dbMigration = {
                     platform: partnerObj.platform
                 }, data.updateData);
             }
-        ).then(
-            res => dbMigration.resHandler(data, "partner", "updatePartner"),
-            error => dbMigration.errorHandler("partner", "updatePartner", data, error)
         );
     },
 
