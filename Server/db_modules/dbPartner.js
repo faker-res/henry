@@ -2252,7 +2252,7 @@ let dbPartner = {
                     // }
                         partner = partnerData;
                         if (partnerData.bankName == null || !partnerData.bankAccountName || !partnerData.bankAccountType || !partnerData.bankAccountCity
-                            || !partnerData.bankAccount || !partnerData.bankAccountProvince) {
+                            || !partnerData.bankAccount || !partnerData.bankAccountProvince || (partnerData.bankAccount && partnerData.bankAccount.indexOf("*") > -1)) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
                                 name: "DataError",
