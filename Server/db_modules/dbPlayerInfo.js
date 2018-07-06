@@ -13845,10 +13845,9 @@ let dbPlayerInfo = {
         };
 
         if (query.name) {
-            getPlayerProm = dbconfig.collection_players.findOne({name: query.name}, {_id: 1}).lean();
+            getPlayerProm = dbconfig.collection_players.findOne({name: query.name, platform: platform}, {_id: 1}).lean();
         }
-        console.log("debug player report 5", query.name)
-
+        console.log("debug player report 2", query.name)
         return getPlayerProm.then(
             player => {
                 let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}};
@@ -13856,10 +13855,7 @@ let dbPlayerInfo = {
                 if (player) {
                     relevantPlayerQuery.playerId = player._id;
                 }
-
-                console.log("debug player report 6", player)
-                console.log("debug player report 7", relevantPlayerQuery)
-
+                console.log("debug player report 1", relevantPlayerQuery)
                 // relevant players are the players who played any game within given time period
                 let playerObjArr = [];
                 return dbconfig.collection_playerConsumptionRecord.aggregate([
@@ -13867,13 +13863,13 @@ let dbPlayerInfo = {
                     {$group: {_id: "$playerId"}}
                 ]).read("secondaryPreferred").then(
                     consumptionData => {
+                        console.log("debug player report 3", consumptionData)
                         if (consumptionData && consumptionData.length) {
                             playerObjArr = consumptionData.map(function (playerIdObj) {
                                 return String(playerIdObj._id);
                             });
                         }
-                        console.log("debug player report 1", consumptionData)
-                        console.log("debug player report 2", playerObjArr)
+
                         let proposalQuery = {
                             mainType: {$in: ["PlayerBonus", "TopUp"]},
                             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
@@ -13901,7 +13897,7 @@ let dbPlayerInfo = {
                         for (let j = 0; j < playerObjArr.length; j++) {
                             playerObjArr[j] = ObjectId(playerObjArr[j]);
                         }
-                        console.log("debug player report 3", playerObjArr)
+                        console.log("debug player report 4", playerObjArr)
                         return playerObjArr;
                     }
                 );
@@ -14521,8 +14517,6 @@ let dbPlayerInfo = {
                     if (!data[5]) {
                         return "";
                     }
-
-                    console.log("debug player report 4", data[0]);
 
                     result.gameDetail = data[0];
                     result.consumptionTimes = 0;
@@ -17467,8 +17461,9 @@ function determineRegistrationInterface(inputData, adminName, adminId) {
         inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
     }
 
-    if (inputData.registrationInterface !== constPlayerRegistrationInterface.BACKSTAGE) {
-        inputData.loginTimes = 1;
+    //after created a new player in other interface, login record is created
+    if (inputData.registrationInterface === constPlayerRegistrationInterface.BACKSTAGE) {
+        inputData.loginTimes = 0;
     }
     else if (adminName) {
         // insert related CS name when account is opened from backstage
