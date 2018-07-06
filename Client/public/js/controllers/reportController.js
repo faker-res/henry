@@ -5676,7 +5676,8 @@ define(['js/app'], function (myApp) {
                 player: vm.actionLogQuery.player,
                 index: vm.actionLogQuery.index,
                 limit: vm.actionLogQuery.limit || 10,
-                sortCol: vm.actionLogQuery.sortCol || {}
+                sortCol: vm.actionLogQuery.sortCol || {},
+                platformObjId: vm.selectedPlatformID || null
             }
 
             console.log('query', query);
@@ -5688,6 +5689,14 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
                 vm.drawActionLogReportTable(data.data.data.map(item => {
                     item.operationTime$ = utilService.$getTimeFromStdTimeFormat(item.operationTime);
+                    item.platformName = [];
+                    if(item.platforms){
+                        item.platforms.forEach(platform => {
+                            if(platform){
+                                item.platformName.push(platform.name);
+                            }
+                        })
+                    }
                     return item;
                 }), vm.actionLogQuery.totalCount, newSearch);
 
@@ -5709,8 +5718,8 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' '}],
                 columns: [
                     {title: $translate("adminName"), data: "adminName"},
-                    {title: $translate('playerId'), data: "playerId"},
-                    //{title: $translate('TYPE'), data: "action"},
+                    //{title: $translate('playerId'), data: "playerId"},
+                    {title: $translate("platform"), data: "platformName", bSortable: false},
                     {
                         title: $translate('TYPE'), data: "action", sClass: "sumText",
                         render: function (data) {
