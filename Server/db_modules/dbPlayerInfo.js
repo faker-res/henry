@@ -654,7 +654,19 @@ let dbPlayerInfo = {
             ).then(
                 data => {
                     if (data) {
-                        dbPlayerInfo.createPlayerLoginRecord(data);
+                        // dbPlayerInfo.createPlayerLoginRecord(data);
+                        let newPlayerData = data;
+
+                        newPlayerData.password = inputData.password ? inputData.password : (newPlayerData.password || "");
+                        newPlayerData.inputDevice = inputData.inputDevice ? inputData.inputDevice : (newPlayerData.inputDevice || "");
+                        newPlayerData.platformId = platformId ? platformId : (newPlayerData.platformId || "");
+                        newPlayerData.name = platformPrefix ? newPlayerData.name.replace(platformPrefix, '') : (newPlayerData.name || "");
+                        newPlayerData.ua = inputData.ua ? inputData.ua : (newPlayerData.userAgent || "");
+                        newPlayerData.mobileDetect = inputData.md ? inputData.md : (newPlayerData.mobileDetect || "");
+
+                        //after created new player, need to create login record and apply login reward
+                        dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect);
+
                         //todo::temp disable similar player untill ip is correct
                         if (data.lastLoginIp && data.lastLoginIp != "undefined") {
                             dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
@@ -4545,7 +4557,7 @@ let dbPlayerInfo = {
                         lastLoginIp: playerData.lastLoginIp,
                         userAgent: newAgentArray,
                         lastAccessTime: new Date().getTime(),
-                        $inc: {loginTimes: 1}
+                        // $inc: {loginTimes: 1} //added login record above
                     };
                     var geoInfo = {};
                     // if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
