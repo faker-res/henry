@@ -245,13 +245,8 @@ var dbPlatform = {
     },
 
     getTemplateSetting: function (platformId, url){
-        if (!platformId){
-            return Promise.reject({
-                name: "DBError",
-                message: "platformId is not available"});
-        }
-
         let result = [];
+
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then( platformData => {
             if (!platformData){
                 return Promise.reject({
