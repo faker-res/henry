@@ -13856,6 +13856,8 @@ let dbPlayerInfo = {
                                 return String(playerIdObj._id);
                             });
                         }
+                        console.log("debug player report 1", consumptionData)
+                        console.log("debug player report 2", playerObjArr)
                         let proposalQuery = {
                             mainType: {$in: ["PlayerBonus", "TopUp"]},
                             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
@@ -13883,6 +13885,7 @@ let dbPlayerInfo = {
                         for (let j = 0; j < playerObjArr.length; j++) {
                             playerObjArr[j] = ObjectId(playerObjArr[j]);
                         }
+                        console.log("debug player report 3", playerObjArr)
                         return playerObjArr;
                     }
                 );
@@ -14502,6 +14505,8 @@ let dbPlayerInfo = {
                     if (!data[5]) {
                         return "";
                     }
+
+                    console.log("debug player report 4", data[0]);
 
                     result.gameDetail = data[0];
                     result.consumptionTimes = 0;
