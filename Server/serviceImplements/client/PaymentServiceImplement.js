@@ -127,7 +127,8 @@ var PaymentServiceImplement = function () {
             data.userAgent = userAgent;
         }
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && Number.isInteger(data.amount) && data.amount < 10000000);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.addManualTopupRequest, [data.userAgent, conn.playerId, data, "CLIENT", false, false, false, data.bPMSGroup, data.topUpReturnCode, data.bPMSGroup], isValidData, true, false, false).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.addManualTopupRequest, [data.userAgent, conn.playerId, data, "CLIENT", false, false, false,
+            data.bPMSGroup, data.topUpReturnCode, data.supportMode], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
@@ -176,7 +177,8 @@ var PaymentServiceImplement = function () {
         //     isValidData = false;
         // }
 
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestWechatTopup, [!Boolean(data.notUseQR), data.userAgent, conn.playerId, data.amount, data.wechatName, data.wechatAccount, data.bonusCode, "CLIENT", null, null, null, new Date(), data.limitedOfferObjId, data.topUpReturnCode], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestWechatTopup, [!Boolean(data.notUseQR), data.userAgent, conn.playerId, data.amount, data.wechatName,
+            data.wechatAccount, data.bonusCode, "CLIENT", null, null, null, new Date(), data.limitedOfferObjId, data.topUpReturnCode, data.bPMSGroup], isValidData);
 
     };
 
@@ -387,7 +389,7 @@ var PaymentServiceImplement = function () {
                 userIp = forwardedIp[0].trim();
             }
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.requestBankTypeByUserName, [conn.playerId, data.clientType, userIp], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.requestBankTypeByUserName, [conn.playerId, data.clientType, userIp, data.supportMode], isValidData);
     };
 
 };

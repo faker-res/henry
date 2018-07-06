@@ -1039,7 +1039,7 @@ var dbPlayerTopUpRecord = {
      * @param playerID
      * @param inputData
      */
-    addManualTopupRequest: function (userAgent, playerId, inputData, entryType, adminId, adminName, fromFPMS, bPMSGroup, topUpReturnCode) {
+    addManualTopupRequest: function (userAgent, playerId, inputData, entryType, adminId, adminName, fromFPMS, bPMSGroup, topUpReturnCode, supportMode) {
         var player = null;
         var proposal = null;
         var request = null;
@@ -1267,6 +1267,9 @@ var dbPlayerTopUpRecord = {
                     };
                     if (!bPMSGroup) {
                         requestData.groupBankcardList = player.bankCardGroup ? player.bankCardGroup.banks : [];
+                    }
+                    if( supportMode ){
+                        requestData.supportMode = supportMode;
                     }
                     if (fromFPMS) {
                         let cTime = inputData.createTime ? new Date(inputData.createTime) : new Date();
