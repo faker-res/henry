@@ -1183,6 +1183,7 @@ var dbPlayerTopUpRecord = {
                 proposalData.bPMSGroup = Boolean(bPMSGroup);
                 proposalData.bonusCode = inputData.bonusCode;
                 proposalData.topUpReturnCode = topUpReturnCode;
+                proposalData.supportMode = inputData.supportMode;
                 proposalData.creator = entryType == "ADMIN" ? {
                     type: 'admin',
                     name: adminName,
@@ -1267,6 +1268,9 @@ var dbPlayerTopUpRecord = {
                     };
                     if (!bPMSGroup) {
                         requestData.groupBankcardList = player.bankCardGroup ? player.bankCardGroup.banks : [];
+                    }
+                    if( inputData.supportMode ){
+                        requestData.supportMode = inputData.supportMode;
                     }
                     if (fromFPMS) {
                         let cTime = inputData.createTime ? new Date(inputData.createTime) : new Date();

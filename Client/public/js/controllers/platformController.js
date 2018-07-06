@@ -20787,7 +20787,6 @@ define(['js/app'], function (myApp) {
                     $('.spicker').selectpicker('refresh');
                 }, 0);
             };
-
             vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
                 if (type == 'add') {
                     switch (configType) {
@@ -22328,21 +22327,20 @@ define(['js/app'], function (myApp) {
 
             vm.getRewardPointsEventByCategory = (category) => {
                 vm.rewardPointsEvent = [];
-                $scope.safeApply();
                 return $scope.$socketPromise('getRewardPointsEventByCategory', {
                     platformObjId: vm.selectedPlatform.id,
                     category: category
                 }).then((data) => {
-                    console.log('getRewardPointsEventByCategory', data.data);
-                    vm.rewardPointsEvent = data.data;
-                    $.each(vm.rewardPointsEvent, function (idx, val) {
-                        vm.rewardPointsEventPeriodChange(idx, val);
-                        vm.rewardPointsEventSetDisable(idx, val, true, true);
-                        vm.rewardPointsEventOld.push($.extend(true, {}, val));
-                        vm.refreshSPicker();
+                    $scope.$evalAsync(()=>{
+                        console.log('getRewardPointsEventByCategory', data.data);
+                        vm.rewardPointsEvent = data.data;
+                        $.each(vm.rewardPointsEvent, function (idx, val) {
+                            vm.rewardPointsEventPeriodChange(idx, val);
+                            vm.rewardPointsEventSetDisable(idx, val, true, true);
+                            vm.rewardPointsEventOld.push($.extend(true, {}, val));
+                        });
+                        vm.endLoadWeekDay();
                     });
-                    $scope.safeApply();
-                    vm.endLoadWeekDay();
                 });
             };
 
@@ -22372,6 +22370,12 @@ define(['js/app'], function (myApp) {
                 }
                 if (rewardPointsEvent.target && !rewardPointsEvent.target.depositMethod) {
                     delete rewardPointsEvent.target.depositMethod;
+                }
+                if (rewardPointsEvent.target && (rewardPointsEvent.target.betType && rewardPointsEvent.target.betType.length == 0)) {
+                    delete rewardPointsEvent.target.betType;
+                }
+                if (rewardPointsEvent.target && !rewardPointsEvent.target.gameType) {
+                    delete rewardPointsEvent.target.gameType;
                 }
                 delete rewardPointsEvent.isEditing;
                 if (rewardPointsEvent.period == 6) {
@@ -22449,9 +22453,7 @@ define(['js/app'], function (myApp) {
                     vm.updateRewardPointsEvent(x, vm.rewardPointsEvent[x]);
                     vm.rewardPointsEventSetDisable(x, vm.rewardPointsEvent[x], true, true);
                 }
-
                 vm.rewardPointsEventUpdateAll = false;
-                $scope.safeApply();
             }
 
             vm.rewardPointsEventReset = (idx) => {
