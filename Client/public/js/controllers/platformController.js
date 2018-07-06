@@ -21335,6 +21335,9 @@ define(['js/app'], function (myApp) {
                     case 'callRequestConfig':
                         vm.getCallRequestConfig();
                         break;
+                    case 'phoneFilterConfig':
+                        vm.getPhoneFilterConfig();
+                        break;
                 }
             };
 
@@ -26317,19 +26320,27 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.smsVerificationExpireTime = vm.selectedPlatform.data.smsVerificationExpireTime;
                 vm.platformBasic.usePointSystem = vm.selectedPlatform.data.usePointSystem;
                 vm.platformBasic.usePhoneNumberTwoStepsVerification = vm.selectedPlatform.data.usePhoneNumberTwoStepsVerification;
-                vm.platformBasic.whiteListingPhoneNumbers$ = "";
-                vm.platformBasic.blackListingPhoneNumbers$ = "";
                 vm.platformBasic.playerForbidApplyBonusNeedCsApproval = vm.selectedPlatform.data.playerForbidApplyBonusNeedCsApproval;
                 vm.platformBasic.unreadMailMaxDuration = vm.selectedPlatform.data.unreadMailMaxDuration;
                 vm.platformBasic.manualRewardSkipAuditAmount = vm.selectedPlatform.data.manualRewardSkipAuditAmount || 0;
                 vm.platformBasic.useEbetWallet = vm.selectedPlatform.data.useEbetWallet;
 
+
+                $scope.safeApply();
+            };
+
+            vm.getPhoneFilterConfig = function () {
+                vm.phoneFilterConfig = vm.phoneFilterConfig || {};
+                vm.phoneFilterConfig.whiteListingPhoneNumbers$ = "";
+                vm.phoneFilterConfig.blackListingPhoneNumbers$ = "";
+
+
                 if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
                     let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
                     for (let i = 0, len = phones.length; i < len; i++) {
                         let phone = phones[i];
-                        vm.platformBasic.whiteListingPhoneNumbers$ += phone;
-                        i !== (len - 1) ? vm.platformBasic.whiteListingPhoneNumbers$ += "\n" : "";
+                        vm.phoneFilterConfig.whiteListingPhoneNumbers$ += phone;
+                        i !== (len - 1) ? vm.phoneFilterConfig.whiteListingPhoneNumbers$ += "\n" : "";
                     }
                 }
 
@@ -26337,12 +26348,12 @@ define(['js/app'], function (myApp) {
                     let phones = vm.selectedPlatform.data.blackListingPhoneNumbers;
                     for (let i = 0, len = phones.length; i < len; i++) {
                         let phone = phones[i];
-                        vm.platformBasic.blackListingPhoneNumbers$ += phone;
-                        i !== (len - 1) ? vm.platformBasic.blackListingPhoneNumbers$ += "\n" : "";
+                        vm.phoneFilterConfig.blackListingPhoneNumbers$ += phone;
+                        i !== (len - 1) ? vm.phoneFilterConfig.blackListingPhoneNumbers$ += "\n" : "";
                     }
                 }
 
-                $scope.safeApply();
+                // $scope.safeApply();
             };
 
             vm.getPartnerBasic = function () {
@@ -26804,6 +26815,9 @@ define(['js/app'], function (myApp) {
                     case 'callRequestConfig':
                         updateCallRequestConfig(vm.callRequestConfig);
                         break;
+                    case 'phoneFilterConfig':
+                        updatePhoneFilter(vm.phoneFilterConfig);
+                        break;
                 }
             };
 
@@ -26939,25 +26953,6 @@ define(['js/app'], function (myApp) {
             }
 
             function updatePlatformBasic(srcData) {
-                let whiteListingPhoneNumbers = [];
-                let blackListingPhoneNumbers = [];
-
-                if (srcData.whiteListingPhoneNumbers$) {
-                    let phones = srcData.whiteListingPhoneNumbers$.split(/\r?\n/);
-                    for (let i = 0, len = phones.length; i < len; i++) {
-                        let phone = phones[i].trim();
-                        if (phone) whiteListingPhoneNumbers.push(phone);
-                    }
-                }
-
-                if (srcData.blackListingPhoneNumbers$) {
-                    let phones = srcData.blackListingPhoneNumbers$.split(/\r?\n/);
-                    for (let i = 0, len = phones.length; i < len; i++) {
-                        let phone = phones[i].trim();
-                        if (phone) blackListingPhoneNumbers.push(phone);
-                    }
-                }
-
                 let sendData = {
                     query: {_id: vm.selectedPlatform.id},
                     updateData: {
@@ -26985,8 +26980,6 @@ define(['js/app'], function (myApp) {
                         requireSMSVerificationForPaymentUpdate: srcData.requireSMSVerificationForPaymentUpdate,
                         smsVerificationExpireTime: srcData.smsVerificationExpireTime,
                         useProviderGroup: srcData.useProviderGroup,
-                        whiteListingPhoneNumbers: whiteListingPhoneNumbers,
-                        blackListingPhoneNumbers: blackListingPhoneNumbers,
                         usePointSystem: srcData.usePointSystem,
                         usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification,
                         playerForbidApplyBonusNeedCsApproval: srcData.playerForbidApplyBonusNeedCsApproval,
@@ -27006,6 +26999,39 @@ define(['js/app'], function (myApp) {
                         vm.unlockPlatformProviderGroup()
                     }
 
+                });
+            }
+
+            function updatePhoneFilter(srcData) {
+                let whiteListingPhoneNumbers = [];
+                let blackListingPhoneNumbers = [];
+
+                if (srcData.whiteListingPhoneNumbers$) {
+                    let phones = srcData.whiteListingPhoneNumbers$.split(/\r?\n/);
+                    for (let i = 0, len = phones.length; i < len; i++) {
+                        let phone = phones[i].trim();
+                        if (phone) whiteListingPhoneNumbers.push(phone);
+                    }
+                }
+
+                if (srcData.blackListingPhoneNumbers$) {
+                    let phones = srcData.blackListingPhoneNumbers$.split(/\r?\n/);
+                    for (let i = 0, len = phones.length; i < len; i++) {
+                        let phone = phones[i].trim();
+                        if (phone) blackListingPhoneNumbers.push(phone);
+                    }
+                }
+
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {
+                        whiteListingPhoneNumbers: whiteListingPhoneNumbers,
+                        blackListingPhoneNumbers: blackListingPhoneNumbers,
+                    }
+                };
+
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
                 });
             }
 
