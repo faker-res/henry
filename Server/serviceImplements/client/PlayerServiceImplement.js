@@ -51,6 +51,9 @@ let PlayerServiceImplement = function () {
                 device: ua.device.name || (md && md.mobile()) ? md.mobile() : 'PC',
                 os: ua.os.name || ''
             }];
+            data.ua = ua;
+            data.md = md;
+            data.inputDevice = inputDevice;
 
             if (data.phoneNumber) {
                 var queryRes = queryPhoneLocation(data.phoneNumber);

@@ -478,6 +478,8 @@ define(['js/app'], function (myApp) {
                 vm.initPartnerDisplayDataModal();
             } else if (tabName && tabName == "system-settlement") {
                 vm.prepareSettlementHistory();
+            } else if (tabName && tabName == "frontend-module-setting"){
+                vm.initFrontendModuleSettingModal();
             }
         };
         vm.isValidCompanyId = function (live800CompanyIdTXT) {
@@ -620,6 +622,18 @@ define(['js/app'], function (myApp) {
 
         vm.setPlatformFooter = function (platformAction) {
             vm.platformAction = platformAction;
+        };
+
+        vm.getFrontEndPresetModuleSetting = function() {
+            vm.presetModuleSettingData = [];
+
+            if(vm.showPlatform.presetModuleSetting && vm.showPlatform.presetModuleSetting.length > 0){
+                vm.showPlatform.presetModuleSetting.forEach(p => {
+
+                    p.displayable = ( p.displayable == 0 || p.displayable == 1 )? p.displayable.toString() : null ;
+                    vm.presetModuleSettingData.push($.extend({}, p));
+                })
+            }
         };
 
         vm.retrievePlatformData = function(platformData) {
@@ -822,7 +836,6 @@ define(['js/app'], function (myApp) {
             vm.showDailySettlement = nowDate != dailyDate;
             vm.showWeeklySettlement = (nowDate != weeklyDate) && (vm.selectedPlatform.data.weeklySettlementDay == new Date().getDay());
             vm.platformSettlement = {};
-            vm.advancedPartnerQueryObj = {limit: 10, index: 0};
             vm.getCredibilityRemarks();
             vm.partnerAdvanceSearchQuery = {
                 creditsOperator: ">=",
@@ -846,16 +859,6 @@ define(['js/app'], function (myApp) {
 
             if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read'))
                 vm.getAdminNameByDepartment(vm.selectedPlatform.data.department);
-
-            //load partner
-            utilService.actionAfterLoaded("#partnerTablePage", function () {
-                vm.advancedPartnerQueryObj.pageObj = utilService.createPageForPagingTable("#partnerTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
-                    var index = (curP - 1) * pageSize;
-                    vm.advancedPartnerQueryObj.index = index;
-                    vm.advancedPartnerQueryObj.limit = pageSize;
-                    vm.commonPageChangeHandler(curP, pageSize, "advancedPartnerQueryObj", vm.getPlatformPartnersData());
-                });
-            })
 
             Q.all([vm.getAllPlayerLevels(), vm.getAllPartnerLevels()]).then(
                 function (data) {
@@ -883,7 +886,6 @@ define(['js/app'], function (myApp) {
                         vm.loadAlldepartment();
                         vm.rewardTabClicked();
                         vm.getPlatformPlayersData(true, true);
-                        // vm.getPlatformPartnersData();
                         vm.getPlatformGameData();
                         vm.loadProposalTypeData();
                         vm.loadBankCardGroupData();
@@ -1017,63 +1019,6 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'syncPlatform', {}, function (data) {
 
             })
-        };
-
-        vm.loadTab = (tabName) => {
-            vm.platformPageName = tabName;
-
-            switch (tabName) {
-                case "Player":
-                    vm.activatePlayerTab();
-                    break;
-                case "Feedback":
-                    vm.initPlayerFeedback();
-                    break;
-                case "FeedbackAdmin":
-                    initFeedbackAdmin();
-                    break;
-                case "Partner":
-                    vm.partnerCommission = {};
-                    vm.getPlatformPartnersData();
-                    vm.getCommissionRateGameProviderGroup();
-                    vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
-
-                    break;
-                case "Game":
-                    vm.platformGameTabClicked();
-                    break;
-                case "GameGroup":
-                    vm.loadGameGroupData();
-                    break;
-                case "Reward":
-                    vm.rewardTabClicked();
-                    break;
-                case "Config":
-                    vm.configTabClicked();
-                    break;
-                case "MessageTemplates":
-                    vm.getPlatformMessageTemplates();
-                    break;
-                case "Announcement:":
-                    vm.getPlatformAnnouncements();
-                    break;
-                case "MultiMessage":
-                    vm.initSendMultiMessage(true);
-                    break;
-                case "VertificationSMS":
-                    vm.initVertificationSMS();
-                    break;
-                case "RegistrationUrlConfig":
-                    vm.initPlatformOfficer();
-                    break;
-                case "batchPermit":
-                    vm.initBatchPermit();
-                // setTimeout(() => {
-                //     $('#partnerDataTable').resize();
-                // }, 300);
-            }
-
-            commonService.updatePageTile($translate, "platform", tabName);
         };
 
         vm.showPlatformDetailModal = function () {
@@ -1967,6 +1912,7 @@ define(['js/app'], function (myApp) {
             if (vm.selectedPlatform && vm.selectedPlatform.data) {
                 if (vm.showPlatform) {
                     vm.showPlatform.demoPlayerPrefix = vm.selectedPlatform.data.demoPlayerPrefix;
+                    vm.getFrontEndPresetModuleSetting();
                 }
             }
         };
@@ -1984,6 +1930,10 @@ define(['js/app'], function (myApp) {
                 vm.showPlatform.department = vm.showPlatform.department._id;
             }
 
+            if (vm.presetModuleSettingData){
+                vm.showPlatform.presetModuleSetting =  vm.presetModuleSettingData;
+            }
+
             socketService.$socket($scope.AppSocket, 'updatePlatform',
                 {
                     query: {_id: vm.selectedPlatform.id},
@@ -1993,6 +1943,7 @@ define(['js/app'], function (myApp) {
                     vm.curPlatformText = vm.showPlatform.name;
                     loadPlatformData({loadAll: false});
                     vm.editFrontEndDisplay = false;
+                    vm.getFrontEndPresetModuleSetting();
                     vm.syncPlatform();
                 });
         };
@@ -9623,6 +9574,13 @@ define(['js/app'], function (myApp) {
             vm.showPartnerAdvertisementRecord = true;
             vm.editPartnerAdvertisementRecord = false;
             vm.partnerAdvertisementWebDevice = true;
+        };
+
+        vm.initFrontendModuleSettingModal = function () {
+            $('#presetModuleTab').addClass('active');
+            $('#specialModuleTab').removeClass('active');
+            $scope.safeApply();
+            vm.moduleDisplayDataTab = "presetModulePanel";
         };
 
         vm.updatePlayerFeedbackData = function (modalId, tableId, opt) {
@@ -18749,6 +18707,20 @@ define(['js/app'], function (myApp) {
                     vm.selectedProposal.data = proposalDetail;
                 }
 
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name && vm.selectedProposal.type.name == 'PlayerLoseReturnRewardGroup') {
+                    let proposalDetail = vm.selectedProposal.data;
+                    let checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
+                    for (let i in proposalDetail) {
+                        if (checkForHexRegExp.test(proposalDetail[i]) || i == 'playerLevelName') {
+                            delete proposalDetail[i];
+                        }
+                    }
+                    proposalDetail.defineLoseValue = $translate($scope.loseValueType[vm.selectedProposal.data.defineLoseValue]);
+                    if (vm.selectedProposal.data.rewardPercent) {
+                        proposalDetail.rewardPercent = vm.selectedProposal.data.rewardPercent + "%";
+                    }
+                }
+
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
                         vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
@@ -21393,25 +21365,6 @@ define(['js/app'], function (myApp) {
                     }
                 });
             });
-
-            $('#partnerDataTable').on('order.dt', function (event, a, b) {
-                // console.log(event, a, b);
-                if (!a.aaSorting[0]) return;
-                var sortCol = a.aaSorting[0][0];
-                var sortDire = a.aaSorting[0][1];
-                var sortKey = a.aoColumns[sortCol].data;
-                // vm.advancedPartnerQueryObj.aaSorting = a.aaSorting;
-                if (sortKey) {
-                    vm.advancedPartnerQueryObj.sortCol = vm.advancedPartnerQueryObj.sortCol || {};
-                    var preVal = vm.advancedPartnerQueryObj.sortCol[sortKey];
-                    vm.advancedPartnerQueryObj.sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
-                    if (vm.advancedPartnerQueryObj.sortCol[sortKey] != preVal) {
-                        vm.advancedPartnerQueryObj.sortCol = {};
-                        vm.advancedPartnerQueryObj.sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
-                        vm.getPartnersByAdvanceQueryDebounced();
-                    }
-                }
-            });
             vm.getAllMessageTypes();
             vm.linkProvider();
             $.getScript("dataSource/data.js").then(
@@ -21831,6 +21784,52 @@ define(['js/app'], function (myApp) {
         };
 
         utilService.actionAfterLoaded('#resetPlayerQuery', function () {
+            if(!localStorage.getItem('custom_history')) {
+                localStorage.setItem('custom_history', '');
+            }
+
+            $( "#playerTableNameSearch" ).autocomplete({
+                source: function( req, resp ) {
+                    var term = req.term;
+                    var data = [];
+                    var temp = localStorage.getItem('custom_history');
+                    if (temp.length) {
+                        temp = temp.split(",");
+                        data = temp;
+                    }
+
+                    data = $.map(data,function(val){
+                        if(val.indexOf(term) != -1)
+                            return val;
+                        else
+                            return null;
+                    });
+                    resp( data );
+
+                }
+            });
+
+            $('#playerTableNameSearch').on('blur', function() {
+                var data = [];
+                var temp = localStorage.getItem('custom_history');
+                if (temp.length) {
+                    temp = temp.split(",");
+                    data = temp;
+                }
+                if ($.trim(this.value).length > 0) {
+                    if(data.indexOf(this.value) != -1){
+                        return;
+                    }
+                    data.push(this.value);
+                    localStorage.setItem('custom_history', data);
+                }
+            });
+
+            $('body .ui-autocomplete').css({
+                "overflow-y": "scroll",
+                "max-height": "200px",
+            });
+
             $('#resetPlayerQuery').off('click');
             $('#resetPlayerQuery').click(function () {
                 utilService.clearDatePickerDate('#regDateTimePicker');

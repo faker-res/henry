@@ -131,6 +131,7 @@ var simplifiedChinese = {
     "Player is not enable": "用户没有发现或无效密码",
     "Player is forbidden to login": "玩家被禁止登录",
     "Partner is forbidden to login": "代理被禁止登录",
+    "Partner is forbidden to apply bonus": "您暂时被禁止提款，请联系代理经理",
     "Player does not have enough credit.": "玩家额度不够",
     "Partner does not have enough credit.": "代理额度不够",
     "Player does not have valid payment information": "玩家支付信息无效",
@@ -346,7 +347,8 @@ var simplifiedChinese = {
     "Username must be alphanumeric": "用户名只能为数字和字母",
     "Username must be at least": "用户名必须是至少",
     "Username must be less than": "用户名必须是少过",
-    "characters": "位的数字和字母"
+    "characters": "位的数字和字母",
+    "Cannot find commission rate, please ensure that you had configure the setting properly.": "使用佣金预测页面必须先设置佣金模式。"
     //todo::add missing messages here
 
     /*

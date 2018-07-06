@@ -427,7 +427,7 @@ let dbPlayerInfo = {
 
                     //check if manual player creation from FPMS, return true (manual creation from FPMS do not have userAgent)
                     if(inputData.userAgent){
-                        if (!platformObj.requireSMSVerification && bypassSMSVerify) {
+                        if (!platformObj.requireSMSVerification || bypassSMSVerify) {
                             return true;
                         }else if(platformObj.requireSMSVerification){
                             return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode);
@@ -654,7 +654,19 @@ let dbPlayerInfo = {
             ).then(
                 data => {
                     if (data) {
-                        dbPlayerInfo.createPlayerLoginRecord(data);
+                        // dbPlayerInfo.createPlayerLoginRecord(data);
+                        let newPlayerData = data;
+
+                        newPlayerData.password = inputData.password ? inputData.password : (newPlayerData.password || "");
+                        newPlayerData.inputDevice = inputData.inputDevice ? inputData.inputDevice : (newPlayerData.inputDevice || "");
+                        newPlayerData.platformId = platformId ? platformId : (newPlayerData.platformId || "");
+                        newPlayerData.name = platformPrefix ? newPlayerData.name.replace(platformPrefix, '') : (newPlayerData.name || "");
+                        newPlayerData.ua = inputData.ua ? inputData.ua : (newPlayerData.userAgent || "");
+                        newPlayerData.mobileDetect = inputData.md ? inputData.md : (newPlayerData.mobileDetect || "");
+
+                        //after created new player, need to create login record and apply login reward
+                        dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect);
+
                         //todo::temp disable similar player untill ip is correct
                         if (data.lastLoginIp && data.lastLoginIp != "undefined") {
                             dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
@@ -4545,7 +4557,7 @@ let dbPlayerInfo = {
                         lastLoginIp: playerData.lastLoginIp,
                         userAgent: newAgentArray,
                         lastAccessTime: new Date().getTime(),
-                        $inc: {loginTimes: 1}
+                        // $inc: {loginTimes: 1} //added login record above
                     };
                     var geoInfo = {};
                     // if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
@@ -5271,8 +5283,12 @@ let dbPlayerInfo = {
 
                             if (playerData.platform.useProviderGroup) {
                                 // Platform supporting provider group
-                                return dbPlayerCreditTransfer.playerCreditTransferToProviderWithProviderGroup(
-                                    playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                                if(playerData.platform.useEbetWallet) {
+                                    // if use eBet Wallet
+                                } else {
+                                    return dbPlayerCreditTransfer.playerCreditTransferToProviderWithProviderGroup(
+                                        playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                                }
                             } else if (playerData.platform.canMultiReward) {
                                 // Platform supporting multiple rewards will use new function first
                                 return dbPlayerCreditTransfer.playerCreditTransferToProvider(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
@@ -5762,8 +5778,12 @@ let dbPlayerInfo = {
 
                                 if (playerObj.platform.useProviderGroup) {
                                     // Platform supporting provider group
-                                    return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
-                                        data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
+                                    if(playerObj.platform.useEbetWallet) {
+                                        // if use eBet Wallet
+                                    } else {
+                                        return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
+                                            data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
+                                    }
                                 } else if (playerObj.platform.canMultiReward) {
                                     // Platform supporting multiple rewards will use new function first
                                     return dbPlayerCreditTransfer.playerCreditTransferFromProvider(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
@@ -11154,6 +11174,10 @@ let dbPlayerInfo = {
                                                     if (status == 1 && paymentData.merchants[i].status == "ENABLED" && paymentData.merchants[i].targetDevices == clientType) {
                                                         if (type.status == 2 || type.maxDepositAmount < paymentData.merchants[i].permerchantLimits) {
                                                             type.maxDepositAmount = paymentData.merchants[i].permerchantLimits;
+                                                        }
+
+                                                        if (type.status == 2 || paymentData.merchants[i].permerchantminLimits < type.minDepositAmount) {
+                                                            type.minDepositAmount = paymentData.merchants[i].permerchantminLimits;
                                                         }
 
                                                         type.status = status;

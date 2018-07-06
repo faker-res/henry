@@ -1067,9 +1067,17 @@ tbody td.tbodyNoWrap {
     --font-size-large: 18px;
 }
 
+body {
+    padding-right: 0 !important;
+}
+
 .noWrap, .noWrap * {
     word-wrap: normal;
     white-space: nowrap;
+}
+
+.sPickDepartment {
+    max-width: 155px;
 }
 
 a.dropdown-toggle text {
@@ -3796,6 +3804,15 @@ input[type='number'].leftALignNumber {
 }
 
 #modalUpdatePlatform .nav-tabs>li.active>a {
+    border: 1px solid #337AB7;
+    border-bottom: none;
+}
+
+#platformSetting .nav-tabs>li {
+    cursor: pointer;
+}
+
+#platformSetting .nav-tabs>li.active>a {
     border: 1px solid #337AB7;
     border-bottom: none;
 }

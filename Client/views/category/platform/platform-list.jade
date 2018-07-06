@@ -218,6 +218,8 @@
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlatformDetailTab('partner-display-data')") {{"PARTNER_DISPLAY_DATA" | translate}}
                     li(ng-class="vm.selectedPlatformDetailTab == 'system-settlement' ? 'active' : null")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlatformDetailTab('system-settlement')", ng-show="vm.platformAction!='create'&&vm.platformAction!='edit'") {{"SYSTEM_SETTLEMENT" | translate}}
+                    li(ng-class="vm.selectedPlatformDetailTab == 'frontend-module-setting' ? 'active' : null")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showPlatformDetailTab('frontend-module-setting')") {{"FRONTEND_MODULE_SETTING" | translate}}
                 .panel.panel-primary(style="border-radius:0 !important;")
                     .panel-body
                         .well(ng-show="vm.platformAction=='delete'")
@@ -227,15 +229,16 @@
                                 strong.text-danger {{vm.selectedPlatform.text}} ?
                         include ./platform-detail-form
             .modal-footer
-                button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('create');vm.initPlatform(true);vm.clearShowPlatform();", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction&&vm.playerDisplayDataTab != 'advertisementPanel'") {{"CREATE" | translate}}
-                button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('delete')", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction && vm.playerDisplayDataTab != 'advertisementPanel' && vm.partnerDisplayDataTab != 'partnerAdvertisementPanel'") {{"DELETE" | translate}}
+                button.btn.btn-primary.common-button( ng-if=" !vm.platformAction && vm.selectedPlatformDetailTab == 'frontend-module-setting' && vm.moduleDisplayDataTab === 'specialModulePanel' && !vm.addNewSpecialModule", ng-click="vm.addNewSpecialModule = true; vm.setPlatformFooter('save')") {{ 'ADD NEW MODULE' | translate}}
+                button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('create');vm.initPlatform(true);vm.clearShowPlatform();", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction&&vm.playerDisplayDataTab != 'advertisementPanel' && vm.selectedPlatformDetailTab!='frontend-module-setting'") {{"CREATE" | translate}}
+                button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('delete')", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction && vm.playerDisplayDataTab != 'advertisementPanel' && vm.partnerDisplayDataTab != 'partnerAdvertisementPanel' && vm.selectedPlatformDetailTab!='frontend-module-setting' ") {{"DELETE" | translate}}
                 button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('edit');vm.initPlatform(true);vm.updatePlatformConfig();", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction&&vm.playerDisplayDataTab != 'advertisementPanel'") {{"EDIT" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal', ng-click="vm.openReplicatePlatformSettingModal()", ng-show="checkViewPermission('Platform', 'Platform', 'ReplicateSetting') && vm.selectedPlatformDetailTab == 'backstage-settings' && !vm.platformAction") {{"Replicate Other Platform Setting" | translate}}
 
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='create'", ng-click="vm.createNewPlatform();vm.setPlatformFooter(null);", ng-disabled="form_new_platform.$invalid || vm.showPlatform.platformId == ''|| !vm.showPlatform.platformId") {{"CREATE" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='delete'", ng-click="vm.deletePlatform();vm.setPlatformFooter(null)") {{"CONFIRM" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled="vm.csDepartmentError || vm.qiDepartmentError", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='edit'", ng-click="vm.updatePlatformAction();vm.setPlatformFooter(null)") {{"CONFIRM" | translate}}
-                button.btn.btn-warning.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction", ng-click="vm.setPlatformFooter(null);vm.cancelUpdatePlatformConfig(); vm.editFrontEndDisplay = false") {{"CANCEL" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction|| vm.selectedPlatformDetailTab == 'frontend-module-setting' ", ng-click="vm.setPlatformFooter(null);vm.cancelUpdatePlatformConfig(); vm.editFrontEndDisplay = false") {{"CANCEL" | translate}}
 
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlayerConsecutiveConsumptionSettlement($event);vm.setPlatformFooter(null)")
                     text {{"Player Consecutive Consumption Settlement" | translate}}

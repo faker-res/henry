@@ -142,6 +142,22 @@ var platformSchema = new Schema({
         isImg: {type: Number},
         content: {type: String}
     }],
+    //for frontend-module-setting
+    presetModuleSetting: [{
+        _id: false,
+        functionId: {type: Number},
+        displayable: {type: Number},
+        functionName: {type: String}
+    }],
+    specialModuleSetting: [{
+        content: [{
+            _id: false,
+            functionId: {type: Number},
+            displayable: {type: Number},
+            functionName: {type: String},
+        }],
+        domainName:[]
+    }],
 
     //email address used when sending emails to players
     csEmail: {type: String},
@@ -248,6 +264,8 @@ var platformSchema = new Schema({
     usePointSystem: {type: Boolean, default: false},
     // if use phone number 2 steps verification
     usePhoneNumberTwoStepsVerification: {type: Boolean, default: false},
+    // if use eBet Wallet
+    useEbetWallet: {type: Boolean, default: false},
     // maximum length for player name included platform prefix
     playerNameMaxLength: {type: Number, default: 0},
     // minimum length for player name included platform prefix

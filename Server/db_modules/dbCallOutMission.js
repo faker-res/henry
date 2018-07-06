@@ -140,11 +140,17 @@ let dbCallOutMission = {
                     return Promise.reject({message: "This mission is finished."})
                 }
 
+                if (mission.status == constCallOutMissionStatus.PAUSED) {
+                    return updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.ON_GOING).then(
+                        () => updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED)
+                    );
+                }
+
                 return updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED); //.catch().then(() => deleteCtiMission(platform, missionName));
             }
         ).then(
             () => {
-                return dbconfig.collection_callOutMission.findOneAndUpdate({_id: mission._id}, {status: constCallOutMissionStatus.CANCELLED}, {new: true}).lean();
+                return dbconfig.collection_callOutMission.findOneAndUpdate({_id: mission._id}, {status: constCallOutMissionStatus.CANCELLED, isUsing: false}, {new: true}).lean();
             }
         );
     },
@@ -170,13 +176,14 @@ let dbCallOutMission = {
                 return dbconfig.collection_callOutMission.findOne({
                     platform: platform._id,
                     admin: admin._id,
-                    status: {
-                        $in: [
-                            constCallOutMissionStatus.CREATED,
-                            constCallOutMissionStatus.ON_GOING,
-                            constCallOutMissionStatus.PAUSED
-                        ]
-                    }
+                    // status: {
+                    //     $in: [
+                    //         constCallOutMissionStatus.CREATED,
+                    //         constCallOutMissionStatus.ON_GOING,
+                    //         constCallOutMissionStatus.PAUSED
+                    //     ]
+                    // }
+                    isUsing: true
                 }).lean();
             }
         ).then(
@@ -187,7 +194,38 @@ let dbCallOutMission = {
 
                 return getUpdatedMissionDetail(platform, admin, callOutMissionData, limit, index);
             }
-        )
+        );
+    },
+
+    confirmMissionFinish: (platformObjId, adminObjId, missionName) => {
+        let platform, admin;
+
+        let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
+        let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
+
+        return Promise.all([platformProm, adminProm]).then(
+            data => {
+                ([platform, admin] = data);
+
+                if (!platform ) {
+                    return Promise.reject({name: "DataError", message: "Platform not found."});
+                }
+
+                if (!admin) {
+                    return Promise.reject({name: "DataError", message: "No admin acc"});
+                }
+
+                return dbconfig.collection_callOutMission.findOneAndUpdate({
+                    platform: platform._id,
+                    admin: admin._id,
+                    status: constCallOutMissionStatus.FINISHED,
+                    missionName: missionName,
+                    isUsing: true
+                }, {
+                    isUsing: false
+                }).lean();
+            }
+        );
     },
 };
 
@@ -239,12 +277,32 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
         }
     ).then(
         () => {
-            return dbconfig.collection_callOutMissionCallee.find({platform: platform._id, admin: admin._id, mission: mission._id}).populate({path: "player", model: dbconfig.collection_players}).lean();
+            return dbconfig.collection_callOutMissionCallee.find({platform: platform._id, admin: admin._id, mission: mission._id}).lean();
+        }
+    ).then(
+        calleeList => {
+            let proms = [];
+            calleeList.map(callee => {
+                let prom = dbconfig.collection_players.findOne({_id: callee.player})
+                    .populate({path: "partner", model: dbconfig.collection_partner})
+                    .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+                    .lean().then(
+                        playerData => {
+                            callee.player = playerData;
+                            return callee;
+                        }
+                    );
+
+                proms.push(prom);
+            });
+
+            return Promise.all(proms);
         }
     ).then(
         calleeList => {
             let outputData = {};
-            outputData.hasOnGoingMission = Boolean(ctiMissionStatus != constCallOutMissionStatus.FINISHED);
+            // outputData.hasOnGoingMission = Boolean(ctiMissionStatus != constCallOutMissionStatus.FINISHED);
+            outputData.hasOnGoingMission = true;
             outputData = Object.assign({}, outputData, mission);
             outputData.callee = calleeList;
 
@@ -256,17 +314,14 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
                     return callee.player;
                 });
 
-                return getPlayerDetails(playersData).then(playersDetail => {
-                    let feedbackPlayerDetail = {
-                        data: playersDetail,
-                        index: index,
-                        total: total
-                    };
+                let feedbackPlayerDetail = {
+                    data: playersData,
+                    index: index,
+                    total: total
+                };
 
-                    outputData.feedbackPlayerDetail = feedbackPlayerDetail;
-                    return outputData;
-                });
-
+                outputData.feedbackPlayerDetail = feedbackPlayerDetail;
+                return outputData;
             }
 
             return outputData;
@@ -362,46 +417,56 @@ function getCalleeList (query, sortCol) {
 
 function getCtiUrls (platformId) {
     platformId = platformId ? String(platformId) : "10";
+    // platformId = 10; // debug param, use this when testing on local
 
     let urls = [
-        "http://eu.tel400.me/cti/",
-        "http://jinbailitw.tel400.me/cti/",
-        "http://jinbailinewcro.tel400.me/cti/",
-        "http://b8a.tel400.me/cti/",
-        "http://bbet8.tel400.me/cti/",
-        "http://xindelitz.tel400.me/cti/",
-        "http://buyuhuang.tel400.me/cti/",
-        "http://hm.tel400.me/cti/",
         "http://jsh.tel400.me/cti/",
+        "http://jinbailinewcro.tel400.me/cti/",
+        "http://blb.tel400.me/cti/",
+        "http://rb.tel400.me/cti/",
+        "http://xbet.tel400.me/cti/",
     ];
 
     if (platformId == '6') {
-        let jblUrl = urls[2];
-        urls[2] = urls[0];
-        urls[0] = jblUrl;
+        urls = [
+            "http://jinbailinewcro.tel400.me/cti/",
+            "http://ruibodl.tel400.me/cti/",
+            "http://jbldl.tel400.me/cti/",
+            "http://jinbailitw.tel400.me/cti/",
+            "http://jinbailitz.tel400.me/cti/",
+        ];
     } else if (platformId == '2' || platformId == '7') {
-        let bbetUrl = urls[4];
-        urls[4] = urls[0];
-        urls[0] = bbetUrl;
-        let xdlUrl = urls[3];
-        urls[3] = urls[1];
-        urls[1] = xdlUrl;
+        urls = [
+            "http://bbet8dl.tel400.me/cti/",
+            "http://bbet8.tel400.me/cti/",
+            "http://b8a.tel400.me/cti/",
+            "http://xindelitz.tel400.me/cti/",
+            "http://jinbailinewcro.tel400.me/cti/",
+        ];
     } else if (platformId == '8') {
-        let jshUrl = urls[6];
-        urls[6] = urls[0];
-        urls[0] = jshUrl;
+        urls = [
+            "http://bbetasiadl.tel400.me/cti/",
+            "http://bbetasiatw.tel400.me/cti/",
+            "http://buyuhuang.tel400.me/cti/",
+            "http://jinbailinewcro.tel400.me/cti/",
+        ];
     } else if (platformId == '5') {
-        let bylUrl = urls[7];
-        urls[7] = urls[0];
-        urls[0] = bylUrl;
-    } else if (platformId == '10') {
-        let jshUrl = urls[8];
-        urls[8] = urls[0];
-        urls[0] = jshUrl;
+        urls = [
+            "http://haomendl.tel400.me/cti/",
+            "http://hm.tel400.me/cti/",
+            "http://jinbailinewcro.tel400.me/cti/",
+        ];
     } else if (platformId == '3' || platformId == '9') {
-        let byhUrl = urls[6];
-        urls[6] = urls[0];
-        urls[0] = byhUrl;
+        urls = [
+            "http://buyuhuang.tel400.me/cti/",
+            "http://jinbailinewcro.tel400.me/cti/",
+        ];
+    } else if (platformId == '4') {
+        urls = [
+            "http://eudl.tel400.me/cti/",
+            "http://eu.tel400.me/cti/",
+            "http://jinbailinewcro.tel400.me/cti/",
+        ];
     }
 
     return urls;
@@ -584,7 +649,7 @@ function callCtiApiWithRetry (platformId, path, param) {
                     if (err || (resp && body && Number(JSON.parse(body).result) != 1)) {
                         console.log("try no.", nextTriedTimes, link);
                         console.error(err || body);
-                        resolve(tryCallCtiApi(nextTriedTimes), body);
+                        resolve(tryCallCtiApi(nextTriedTimes, body));
                         return;
                     }
 
@@ -592,7 +657,7 @@ function callCtiApiWithRetry (platformId, path, param) {
                         // throw this to prevent passing undefined to JSON.parse function
                         console.log("try no.", nextTriedTimes, link);
                         console.error('Post request get nothing for ' + link);
-                        resolve(tryCallCtiApi(nextTriedTimes), lastBody);
+                        resolve(tryCallCtiApi(nextTriedTimes, lastBody));
                         return;
                     }
 
@@ -600,7 +665,7 @@ function callCtiApiWithRetry (platformId, path, param) {
                 });
             } catch (err) {
                 console.error(err);
-                resolve(tryCallCtiApi(nextTriedTimes), lastBody);
+                resolve(tryCallCtiApi(nextTriedTimes, lastBody));
             }
         });
     }

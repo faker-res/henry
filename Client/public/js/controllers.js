@@ -27,8 +27,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     //};
 
     // Dev log switch
-    let consoleLog = null;
-    $scope.enableLogging = false;
+    let consoleLog, consoleInfo;
+    $scope.enableLogging = $cookies.get('devLog') ? JSON.parse($cookies.get('devLog')) : false;
     $scope.toggleDevLog = (isFirstLoad) => {
         if (!isFirstLoad) {
             $scope.enableLogging = !$scope.enableLogging;
@@ -36,13 +36,18 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
         if (!$scope.enableLogging) {
             consoleLog = console.log;
+            consoleInfo = console.info;
             window['console']['log'] = () => {};
+            window['console']['info'] = () => {};
+            $cookies.put('devLog', 'false');
         } else {
-            if (consoleLog === null) {
+            if (!consoleLog || !consoleInfo) {
                 return;
             }
 
             window['console']['log'] = consoleLog;
+            window['console']['info'] = consoleInfo;
+            $cookies.put('devLog', 'true');
         }
     };
     $scope.toggleDevLog(true);
@@ -941,44 +946,58 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             // let url = "http://eu.tel400.me/cti/previewcallout.action";//http://101.78.133.213/cti/previewcallout.action";
 
             let urls = [
-                "http://eu.tel400.me/cti/previewcallout.action",
-                "http://jinbailitw.tel400.me/cti/previewcallout.action",
+                "http://jsh.tel400.me/cti/previewcallout.action",
                 "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
-                "http://b8a.tel400.me/cti/previewcallout.action",
-                "http://bbet8.tel400.me/cti/previewcallout.action",
-                "http://xindelitz.tel400.me/cti/previewcallout.action",
-                "http://buyuhuang.tel400.me/cti/previewcallout.action",
-                "http://hm.tel400.me/cti/previewcallout.action",
-                "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
+                "http://blb.tel400.me/cti/previewcallout.action",
+                "http://rb.tel400.me/cti/previewcallout.action",
+                "http://xbet.tel400.me/cti/previewcallout.action",
             ];
 
             if (platformId == '6') {
-                let jblUrl = urls[2];
-                urls[2] = urls[0];
-                urls[0] = jblUrl;
-                let jblUrl1 = urls[2];
-                urls[2] = urls[8];
-                urls[8] = jblUrl1;
+                urls = [
+                    "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
+                    "http://ruibodl.tel400.me/cti/previewcallout.action",
+                    "http://jbldl.tel400.me/cti/previewcallout.action",
+                    "http://jinbailitw.tel400.me/cti/previewcallout.action",
+                    "http://jinbailitz.tel400.me/cti/previewcallout.action",
+                ];
             } else if (platformId == '2' || platformId == '7') {
-                let bbetUrl = urls[4];
-                urls[4] = urls[0];
-                urls[0] = bbetUrl;
-                let xdlUrl = urls[3];
-                urls[3] = urls[1];
-                urls[1] = xdlUrl;
+                urls = [
+                    "http://bbet8dl.tel400.me/cti/previewcallout.action",
+                    "http://bbet8.tel400.me/cti/previewcallout.action",
+                    "http://b8a.tel400.me/cti/previewcallout.action",
+                    "http://xindelitz.tel400.me/cti/previewcallout.action",
+                    "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
+                ];
             } else if (platformId == '8') {
-                let jshUrl = urls[3];
-                urls[3] = urls[0];
-                urls[0] = jshUrl;
-            } else if (platformId == '9') {
-                let jshUrl = urls[6];
-                urls[6] = urls[0];
-                urls[0] = jshUrl;
+                urls = [
+                    "http://bbetasiadl.tel400.me/cti/previewcallout.action",
+                    "http://bbetasiatw.tel400.me/cti/previewcallout.action",
+                    "http://buyuhuang.tel400.me/cti/previewcallout.action",
+                    "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
+                ];
             } else if (platformId == '5') {
-                let bylUrl = urls[7];
-                urls[7] = urls[0];
-                urls[0] = bylUrl;
-            }
+                urls = [
+                    "http://haomendl.tel400.me/cti/previewcallout.action",
+                    "http://hm.tel400.me/cti/previewcallout.action",
+                    "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
+                ];
+            } else if (platformId == '3' || platformId == '9') {
+                urls = [
+                    "http://buyuhuang.tel400.me/cti/previewcallout.action",
+                    "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
+                ];
+            } else if (platformId == '4') {
+                urls = [
+                    "http://eudl.tel400.me/cti/previewcallout.action",
+                    "http://eu.tel400.me/cti/previewcallout.action",
+                    "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
+                ];
+            } /*else if (platformId == '10') {
+                urls = [
+                    "http://jsh.tel400.me/cti/",
+                ];
+            }*/
 
             performPhoneCall();
 
@@ -1750,8 +1769,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         function callback() {
 
             if (queryDone[0] && queryDone[1] && queryDone[2] && queryDone[3] ){
-                // profileDetailTimeOut = setTimeout(loadProfitDetail, 60000);
-                profileDetailTimeOut = setTimeout(loadProfitDetail, 3000);
+                profileDetailTimeOut = setTimeout(loadProfitDetail, 60000);
                 return profileDetailTimeOut; // update every minute
             }
             else{

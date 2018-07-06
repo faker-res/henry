@@ -746,7 +746,15 @@ define(['js/app'], function (myApp) {
                         },
                         sClass: 'merchantCount'
                     },
-                    {title: $translate('Business Acc/ Bank Acc'), data: "merchantNo$", sClass: 'merchantCount'},
+                    {
+                        title: $translate('Business Acc/ Bank Acc'),
+                        data: "merchantNo$",
+                        render: function (data, type, row) {
+                            var text = data;
+                            return '<div style = "width: 90px; word-break: break-all; white-space: normal">' + text + '</div>'
+                        },
+                        sClass: 'merchantCount',
+                        "width": "90px"},
                     {title: $translate('Total Business Acc'), data: "merchantCount$", sClass: 'merchantCount'},
                     {title: $translate('STATUS'), data: "status$"},
                     {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass: "playerCount"},
@@ -766,8 +774,9 @@ define(['js/app'], function (myApp) {
                             return '<div>' + text + '</div>'
                         }
                     },
-                    {title: $translate('START_TIME'), data: "remark$"},
+                    {title: $translate('REMARKS'), data: "remark$"},
                 ],
+                "autoWidth": false,
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                     if (aData.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)) {
