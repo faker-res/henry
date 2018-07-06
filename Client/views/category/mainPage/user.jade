@@ -172,10 +172,10 @@
                                 div(ng-if='vm.avaliableRoles.length > 0')
                                     div(ng-repeat="(i,v) in vm.avaliableRoles")
                                         label {{v.roleName}}
-                                            input.pull-left(type='checkbox', ng-model='vm.roleToBeAttached[v._id]')
+                                            input.pull-left(type='checkbox', ng-model='vm.roleToBeAttached[v._id]', ng-change="vm.attachRoleName(v._id, v.roleName)")
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-disabled='vm.numberOfTruthyProps(vm.roleToBeAttached) == 0', ng-click="vm.submitAttachRoles();") {{"ADD_ROLE" | translate}}
-                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal', ng-click="vm.roleNameToBeAttached = [];") {{"CANCEL" | translate}}
 
 #modalDetachRolesFromUser.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
@@ -199,10 +199,10 @@
                                 div(ng-if='vm.curUser.roles.length > 0')
                                     div(ng-repeat="(i,v) in vm.curUser.roles")
                                         label {{v.roleName}}
-                                            input.pull-left(type='checkbox', ng-model='vm.roleToBeDetached[v._id]')
+                                            input.pull-left(type='checkbox', ng-model='vm.roleToBeDetached[v._id]', ng-change="vm.detachRoleName(v._id, v.roleName)")
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-disabled='vm.numberOfTruthyProps(vm.roleToBeDetached) == 0', ng-click="vm.submitDetachRoles();") {{"DETACH_ROLE" | translate}}
-                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal', ng-click="vm.roleNameToBeDetached = [];") {{"CANCEL" | translate}}
 
 #modalThisAdminLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style="width:80%")
