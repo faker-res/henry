@@ -1579,6 +1579,9 @@ var dbPlatform = {
             if(data.partnerId){
                 query.partnerId = data.partnerId;
             }
+            if(data.platformId){
+                query.platformId = data.platformId;
+            }
             // Strip any fields which have value `undefined`
             query = JSON.parse(JSON.stringify(query));
             addOptionalTimeLimitsToQuery(data, query, 'createTime');
