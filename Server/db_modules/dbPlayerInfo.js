@@ -14079,6 +14079,7 @@ let dbPlayerInfo = {
             );
         }).then(
             () => {
+                console.log("YH-CHECKING----first result", result);
                 // handle index limit sortcol here
                 if (Object.keys(sortCol).length > 0) {
                     result.sort(function (a, b) {
@@ -14120,7 +14121,9 @@ let dbPlayerInfo = {
                 }
 
                 // Output filter promote way
+                console.log("YH-CHECKING----before filtering", result);
                 result = query.csPromoteWay && query.csPromoteWay.length > 0 ? result.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : result;
+                console.log("YH-CHECKING----after filtering", result);
                 result = query.admins && query.admins.length > 0 ? result.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : result;
 
                 result = result.concat(
@@ -14128,6 +14131,7 @@ let dbPlayerInfo = {
                         return result.indexOf(e) === -1;
                     }));
 
+                console.log("YH-CHECKING----final result", result);
                 for (let i = 0, len = limit; i < len; i++) {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
