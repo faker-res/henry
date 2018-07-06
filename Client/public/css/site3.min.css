@@ -1076,6 +1076,10 @@ body {
     white-space: nowrap;
 }
 
+.sPickDepartment {
+    max-width: 155px;
+}
+
 a.dropdown-toggle text {
     position: absolute;
     right: 0;

@@ -1790,6 +1790,7 @@ var dbMigration = {
     updatePartner: function (data) {
         var platformObjId = null;
         var partnerObj = null;
+        console.log("updatePartner1", data);
         return dbconfig.collection_platform.findOne({platformId: data.platform}).then(
             platformData => {
                 if (platformData) {
@@ -1805,6 +1806,7 @@ var dbMigration = {
             }
         ).then(
             partnerData => {
+                console.log("updatePartner2", data);
                 if (partnerData) {
                     var parentProm = null;
                     partnerObj = partnerData;
@@ -1822,6 +1824,7 @@ var dbMigration = {
             }
         ).then(
             parentData => {
+                console.log("updatePartner3", data);
                 if (parentData) {
                     data.updateData.parent = parentData._id;
                 }
@@ -1834,8 +1837,8 @@ var dbMigration = {
                 }, data.updateData);
             }
         ).then(
-            res => dbMigration.resHandler(data, "partner", "updatePartner"),
-            error => dbMigration.errorHandler("partner", "updatePartner", data, error)
+            data => console.log,
+            error => console.log
         );
     },
 

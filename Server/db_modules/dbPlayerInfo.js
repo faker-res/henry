@@ -11176,6 +11176,10 @@ let dbPlayerInfo = {
                                                             type.maxDepositAmount = paymentData.merchants[i].permerchantLimits;
                                                         }
 
+                                                        if (type.status == 2 || paymentData.merchants[i].permerchantminLimits < type.minDepositAmount) {
+                                                            type.minDepositAmount = paymentData.merchants[i].permerchantminLimits;
+                                                        }
+
                                                         type.status = status;
                                                     }
                                                 }
