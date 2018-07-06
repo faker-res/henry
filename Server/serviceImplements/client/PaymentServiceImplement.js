@@ -128,7 +128,7 @@ var PaymentServiceImplement = function () {
         }
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && Number.isInteger(data.amount) && data.amount < 10000000);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.addManualTopupRequest, [data.userAgent, conn.playerId, data, "CLIENT", false, false, false,
-            data.bPMSGroup, data.topUpReturnCode, data.supportMode], isValidData, true, false, false).then(
+            data.bPMSGroup, data.topUpReturnCode], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
