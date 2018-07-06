@@ -1780,6 +1780,8 @@ var proposalExecutor = {
                             }
                         }
 
+                        let cTime = proposalData && proposalData.createTime ? new Date(proposalData.createTime) : new Date();
+                        let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
                         var message = {
                             proposalId: proposalData.proposalId,
                             platformId: partner.platform.platformId,
@@ -1789,11 +1791,13 @@ var proposalExecutor = {
                             accountName: partner.bankAccountName || "",
                             accountType: partner.bankAccountType || "",
                             accountCity: partner.bankAccountCity || "",
+                            accountProvince: partner.bankAccountProvince || "",
                             accountNo: partner.bankAccount || "",
                             bankAddress: partner.bankAddress || "",
                             bankName: partner.bankName || "",
                             phone: decryptedPhoneNo || "",
-                            email: partner.email || ""
+                            email: partner.email || "",
+                            applyTime: cTimeString
                         };
                         return pmsAPI.bonus_applyBonus(message).then(
                             bonusData => {
@@ -3639,7 +3643,13 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                             }
                         });
 
-                        return Promise.all(calCreditArr);
+                        return Promise.all(calCreditArr).then(data=>{
+                            console.log("createRewardTaskForProposal Promise.all.then.innerPromise.all success",data);
+                            return data;
+                        },err=>{
+                            console.log("createRewardTaskForProposal Promise.all.then.innerPromise.all error",err)
+                            return err;
+                        });
                     }
                 });
         }

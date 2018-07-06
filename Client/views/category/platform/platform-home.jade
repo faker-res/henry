@@ -133,6 +133,11 @@
                             a.common-tab(data-toggle="tab", href="#batchPermit", ng-click="vm.loadTab('batchPermit');")
                                 .fa.fa-cogs.margin-right-5
                                 text.span {{"Batch Setting" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'Platform','Read')")
+                            a.common-tab(data-toggle="tab", href="#platformSetting", ng-click="vm.loadTab('platformSetting');")
+                                .fa.fa-cogs.margin-right-5
+                                text.span {{"platformSetting" | translate}}
+
                 .panel-body.common-right-panel-body
                     div.tab-content
                         #Game.tab-pane.fade
@@ -177,6 +182,8 @@
                             include ./platform-reward-point
                         #batchPermit.tab-pane.fade
                             include ./platform-batch-permit
+                        #platformSetting.tab-pane.fade
+                            include ./platform-platform-setting
 
                             //ui-view
                         //#bankCardGroup.tab-pane.fade
@@ -442,26 +449,8 @@
                     button.btn.btn-primary.common-button(ng-click='vm.searchSMSLog()', style='vertical-align: bottom') {{"SEARCH" | translate}}
                 div(style='max-height: 400px; max-height: 50vh; overflow: auto')
                     label {{"Total" | translate}} {{vm.smsLog.totalCount}} {{"records" | translate}}
-                    table.simple-table.display(style='min-width: 100%; width: 100%')
-                        thead
-                            tr
-                                th {{"date" | translate}}
-                                th {{"Admin" | translate}}
-                                th {{"Recipient" | translate}}
-                                th {{"Channel" | translate}}
-                                th {{"CONTENT" | translate}}
-                                th {{"STATUS" | translate}}
-                        tbody
-                            tr(ng-repeat='(i,smsLog) in vm.smsLog.searchResults')
-                                td {{smsLog.createTime$}}
-                                td {{smsLog.adminName}}
-                                td {{smsLog.recipientName}}
-                                td {{smsLog.channel}}
-                                td {{smsLog.message}}
-                                td(ng-if='smsLog.status !== "failure"') {{smsLog.status$}}
-                                td(ng-if='smsLog.status === "failure"')
-                                    text.sn-hoverable-text(title='{{smsLog.error}}', sn-tooltip) {{smsLog.status$}}
                     br
+                    table#groupSmsLogTable.common-table.display(style='min-width:100%')
                     #groupSmsLogTablePage
             .modal-footer
                 button.common-button.btn.btn-primary(data-dismiss='modal') {{"CLOSE" | translate}}

@@ -60,6 +60,7 @@
                 "performUnlockPlatformProviderGroup",
                 "settlePartnersCommission",
                 "getCurrentPartnersCommission",
+                "getAllPlayerCommissionRawDetails",
                 "getConsumptionActivePlayerAfterTopupQueryMatch"
             ];
             addServiceFunctions(sinonet, this, functionNames);

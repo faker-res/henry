@@ -35,6 +35,12 @@ function socketActionBankCardGroup(socketIO, socket) {
             socketUtil.emitter(self.socket, dbCallOutMission.getUpdatedAdminMissionStatusFromCti, [data.platformObjId, getAdminId(), data.limit, data.index], actionName, isValidData);
         },
 
+        endCallOutMission: function endCallOutMission(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbCallOutMission.confirmMissionFinish, [data.platformObjId, getAdminId(), data.missionName], actionName, isValidData);
+        },
+
     };
     socketActionBankCardGroup.actions = this.actions;
 }

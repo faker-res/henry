@@ -856,7 +856,7 @@ var dbPlatform = {
             queryOrArray.push({pastMonthTopUpSum: {$gt: 0}});
             queryOrArray.push({pastMonthConsumptionSum: {$gt: 0}});
             queryOrArray.push({pastMonthWithdrawSum: {$gt: 0}});
-            queryOrArray.push({pastMonthBonusAmountSum: {$gt: 0}});
+            queryOrArray.push({pastMonthBonusAmountSum: {$ne: 0}});
             updateData.pastMonthTopUpSum = 0;
             updateData.pastMonthConsumptionSum = 0;
             updateData.pastMonthWithdrawSum = 0;
@@ -867,7 +867,7 @@ var dbPlatform = {
             queryOrArray.push({weeklyTopUpSum: {$gt: 0}});
             queryOrArray.push({weeklyConsumptionSum: {$gt: 0}});
             queryOrArray.push({weeklyWithdrawSum: {$gt: 0}});
-            queryOrArray.push({weeklyBonusAmountSum: {$gt: 0}});
+            queryOrArray.push({weeklyBonusAmountSum: {$ne: 0}});
             updateData.weeklyTopUpSum = 0;
             updateData.weeklyConsumptionSum = 0;
             updateData.weeklyWithdrawSum = 0;
@@ -1561,13 +1561,11 @@ var dbPlatform = {
     },
 
     searchSMSLog: function (data, index, limit) {
-        if (data && (data.playerId || data.partnerId)) {
+        if (data) {
             index = index || 0;
             limit = limit || constSystemParam.MAX_RECORD_NUM;
             var query = {
                 status: data.status === 'all' ? undefined : data.status,
-                playerId: data.playerId || undefined,
-                partnerId: data.partnerId || undefined,
                 type: {$nin: ["registration"]}
             };
             if (data.isAdmin && !data.isSystem) {
@@ -1575,7 +1573,15 @@ var dbPlatform = {
             } else if (data.isSystem && !data.isAdmin) {
                 query.adminName = {$eq: null};
             }
-
+            if(data.playerId){
+                query.playerId = data.playerId;
+            }
+            if(data.partnerId){
+                query.partnerId = data.partnerId;
+            }
+            if(data.platformId){
+                query.platformId = data.platformId;
+            }
             // Strip any fields which have value `undefined`
             query = JSON.parse(JSON.stringify(query));
             addOptionalTimeLimitsToQuery(data, query, 'createTime');
@@ -3327,9 +3333,9 @@ var dbPlatform = {
         ).then(
             platformStringData => {
                 platformString = platformStringData;
-            
+
                 url = platform.callRequestUrlConfig;
-                
+
                 let path = "/servlet/TelephoneApplication?phone=" + phoneNumber + "&captcha=" + captcha + "&platform=" + platformString + "&random=" + randomNumber + "&callback=jsonp1";
 
                 let link = url + path;
@@ -4074,7 +4080,7 @@ function getPlatformStringForCallback (platformStringArray, playerId, lineId) {
             if (!player || !player.playerLevel || requiredPlayerLevel.value < player.playerLevel.value) {
                 return Promise.reject({message: "Player level is not enough"});
             }
-            
+
             return platformString;
         }
     );
@@ -4115,14 +4121,14 @@ function getPartnerCommNextSettDate(settMode, curTime = dbUtility.getFirstDayOfY
 }
 
 function calculatePartnerCommissionInfo (platformObjId, commissionType, startTime, endTime, isSkip) {
-    let stream = dbconfig.collection_partner.find({platform: platformObjId, commissionType: commissionType}, {_id: 1}).cursor({batchSize: 1});
+    let stream = dbconfig.collection_partner.find({platform: platformObjId, commissionType: commissionType}, {_id: 1}).cursor({batchSize: 100});
 
     let balancer = new SettlementBalancer();
     return balancer.initConns().then(function () {
         return balancer.processStream(
             {
                 stream: stream,
-                batchSize: constSystemParam.BATCH_SIZE,
+                batchSize: 100,
                 makeRequest: function (partners, request) {
                     request("player", "settlePartnersCommission", {
                         commissionType: commissionType,
