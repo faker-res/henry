@@ -712,6 +712,74 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.getFrontEndSpecialModuleSetting = function(platformData) {
+                vm.addNewSpecialModule = false;
+                vm.specialModuleSettingData = [];
+                vm.newDomainName = [];
+                vm.newFunctionName = [];
+                vm.newFunctionId = [];
+                vm.newDisplayable = [];
+                vm.newSpecialModuleSetting = {content:[], domainName:[]};
+
+                if (platformData && platformData.data){
+                    if (platformData.data.specialModuleSetting && platformData.data.specialModuleSetting.length > 0){
+                        platformData.data.specialModuleSetting.forEach(p => {
+
+                            if (p.content && p.content.length > 0){
+                                p.content.forEach( q => {
+                                    q.displayable = ( q.displayable == 0 || q.displayable == 1 )? q.displayable.toString() : null ;
+                                })
+                            }
+
+                            vm.specialModuleSettingData.push($.extend(true,{}, p));
+
+                        })
+                    }
+                }
+                else{
+                    if(vm.showPlatform.specialModuleSetting && vm.showPlatform.specialModuleSetting.length > 0){
+                        vm.showPlatform.specialModuleSetting.forEach(p => {
+
+                            if (p.content && p.content.length > 0){
+                                p.content.forEach( q => {
+                                    q.displayable = ( q.displayable == 0 || q.displayable == 1 )? q.displayable.toString() : null ;
+                                })
+                            }
+
+                            vm.specialModuleSettingData.push($.extend(true,{}, p));
+
+                        })
+                    }
+                }
+
+            };
+
+            vm.addNewSpecialModuleSetting = function() {
+                if (vm.newSpecialModuleSetting && vm.newSpecialModuleSetting.content && vm.newSpecialModuleSetting.domainName && (vm.newSpecialModuleSetting.content.length > 0 || vm.newSpecialModuleSetting.domainName.length > 0)){
+                    if (!vm.specialModuleSettingData){
+                        vm.specialModuleSettingData = [];
+                    }
+
+                    vm.specialModuleSettingData.push($.extend(true, {}, vm.newSpecialModuleSetting));
+                    vm.updatePlatformAction();
+
+                }
+            };
+
+            vm.removeModule = function (moduleId, index) {
+                if (vm.specialModuleSettingData && moduleId){
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_SPECIAL_MODULE_SETTING'),
+                        text: $translate('Confirm to delete this special module setting ?')
+                    }).then(function () {
+                        vm.specialModuleSettingData = vm.specialModuleSettingData.filter( a => {return a._id != moduleId});
+                        vm.updatePlatformAction();
+
+                    });
+
+                }
+            };
+
             vm.retrievePlatformData = function(platformData) {
 
                 let newList = [
@@ -2094,6 +2162,7 @@ define(['js/app'], function (myApp) {
                     if (vm.showPlatform) {
                         vm.showPlatform.demoPlayerPrefix = vm.selectedPlatform.data.demoPlayerPrefix;
                         vm.getFrontEndPresetModuleSetting();
+                        vm.getFrontEndSpecialModuleSetting();
                     }
                 }
             };
@@ -2115,6 +2184,10 @@ define(['js/app'], function (myApp) {
                     vm.showPlatform.presetModuleSetting =  vm.presetModuleSettingData;
                 }
 
+                if(vm.specialModuleSettingData){
+                    vm.showPlatform.specialModuleSetting =  vm.specialModuleSettingData;
+                }
+
                 socketService.$socket($scope.AppSocket, 'updatePlatform',
                     {
                         query: {_id: vm.selectedPlatform.id},
@@ -2125,6 +2198,7 @@ define(['js/app'], function (myApp) {
                         loadPlatformData({loadAll: false});
                         vm.editFrontEndDisplay = false;
                         vm.getFrontEndPresetModuleSetting();
+                        vm.getFrontEndSpecialModuleSetting(data);
                         vm.syncPlatform();
                     });
             };
@@ -9881,6 +9955,7 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
                 vm.moduleDisplayDataTab = "presetModulePanel";
                 vm.getFrontEndPresetModuleSetting();
+                vm.getFrontEndSpecialModuleSetting();
             };
 
             vm.updatePlayerFeedbackData = function (modalId, tableId, opt) {
@@ -20822,38 +20897,45 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.updateCollectionInEdit = function (type, collection, data, collectionCopy) {
+            vm.updateCollectionInEdit = function (type, collection, data, collectionCopy, isNotObject) {
                 if (type == 'add') {
-                    let newObj = {};
 
-                    // // check again if there is duplication of sms title after updating the promoCodeType
-                    // if (data.smsTitle && vm.promoCodeType1BeforeEdit && vm.promoCodeType2BeforeEdit && vm.promoCodeType3BeforeEdit){
-                    //
-                    //     let filterPromoCodeType1 = vm.promoCodeType1BeforeEdit.map(p => p.smsTitle);
-                    //     let filterPromoCodeType2 = vm.promoCodeType2BeforeEdit.map(p => p.smsTitle);
-                    //     let filterPromoCodeType3 = vm.promoCodeType3BeforeEdit.map(p => p.smsTitle);
-                    //
-                    //     let promoCodeSMSTitleCheckList = filterPromoCodeType1.concat(filterPromoCodeType2, filterPromoCodeType3);
-                    //
-                    //     if (promoCodeSMSTitleCheckList.indexOf(data.smsTitle) != -1){
-                    //         vm.smsTitleDuplicationBoolean = true;
-                    //         return socketService.showErrorMessage($translate("Banner title cannot be repeated!"));
-                    //     }
-                    //     else{
-                    //         vm.smsTitleDuplicationBoolean = false;
-                    //     }
-                    // }
+                    if (!isNotObject) {
 
-                    Object.keys(data).forEach(e => {
-                        newObj[e] = data[e];
-                    });
+                        let newObj = {};
 
-                    // update the copy to check for duplication
-                    if (collectionCopy){
-                        collectionCopy.push(newObj);
+                        // // check again if there is duplication of sms title after updating the promoCodeType
+                        // if (data.smsTitle && vm.promoCodeType1BeforeEdit && vm.promoCodeType2BeforeEdit && vm.promoCodeType3BeforeEdit){
+                        //
+                        //     let filterPromoCodeType1 = vm.promoCodeType1BeforeEdit.map(p => p.smsTitle);
+                        //     let filterPromoCodeType2 = vm.promoCodeType2BeforeEdit.map(p => p.smsTitle);
+                        //     let filterPromoCodeType3 = vm.promoCodeType3BeforeEdit.map(p => p.smsTitle);
+                        //
+                        //     let promoCodeSMSTitleCheckList = filterPromoCodeType1.concat(filterPromoCodeType2, filterPromoCodeType3);
+                        //
+                        //     if (promoCodeSMSTitleCheckList.indexOf(data.smsTitle) != -1){
+                        //         vm.smsTitleDuplicationBoolean = true;
+                        //         return socketService.showErrorMessage($translate("Banner title cannot be repeated!"));
+                        //     }
+                        //     else{
+                        //         vm.smsTitleDuplicationBoolean = false;
+                        //     }
+                        // }
+
+                        Object.keys(data).forEach(e => {
+                            newObj[e] = data[e];
+                        });
+
+                        // update the copy to check for duplication
+                        if (collectionCopy) {
+                            collectionCopy.push(newObj);
+                        }
+
+                        collection.push(newObj);
                     }
-
-                    collection.push(newObj);
+                    else{
+                        collection.push(data);
+                    }
                     collection.forEach((elem, index, arr) => {
                         let id = '#expDate1-' + index;
                         let provId = '#promoProviders-' + index;

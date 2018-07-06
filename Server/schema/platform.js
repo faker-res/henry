@@ -149,6 +149,15 @@ var platformSchema = new Schema({
         displayable: {type: Number},
         functionName: {type: String}
     }],
+    specialModuleSetting: [{
+        content: [{
+            _id: false,
+            functionId: {type: Number},
+            displayable: {type: Number},
+            functionName: {type: String},
+        }],
+        domainName:[]
+    }],
 
     //email address used when sending emails to players
     csEmail: {type: String},
