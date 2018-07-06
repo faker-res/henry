@@ -4557,7 +4557,7 @@ let dbPlayerInfo = {
                         lastLoginIp: playerData.lastLoginIp,
                         userAgent: newAgentArray,
                         lastAccessTime: new Date().getTime(),
-                        // $inc: {loginTimes: 1} //added login record above
+                        $inc: {loginTimes: 1}
                     };
                     var geoInfo = {};
                     // if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
