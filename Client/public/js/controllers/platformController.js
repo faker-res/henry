@@ -721,9 +721,9 @@ define(['js/app'], function (myApp) {
                 vm.newDisplayable = [];
                 vm.newSpecialModuleSetting = {content:[], domainName:[]};
 
-                if (platformData){
-                    if (platformData.specialModuleSetting && platformData.specialModuleSetting.length > 0){
-                        platformData.specialModuleSetting.forEach(p => {
+                if (platformData && platformData.data){
+                    if (platformData.data.specialModuleSetting && platformData.data.specialModuleSetting.length > 0){
+                        platformData.data.specialModuleSetting.forEach(p => {
 
                             if (p.content && p.content.length > 0){
                                 p.content.forEach( q => {
@@ -2198,7 +2198,7 @@ define(['js/app'], function (myApp) {
                         loadPlatformData({loadAll: false});
                         vm.editFrontEndDisplay = false;
                         vm.getFrontEndPresetModuleSetting();
-                        vm.getFrontEndSpecialModuleSetting(data.data);
+                        vm.getFrontEndSpecialModuleSetting(data);
                         vm.syncPlatform();
                     });
             };
