@@ -13835,6 +13835,7 @@ let dbPlayerInfo = {
         if (query.name) {
             getPlayerProm = dbconfig.collection_players.findOne({name: query.name}, {_id: 1}).lean();
         }
+        console.log("debug player report 5", query.name)
 
         return getPlayerProm.then(
             player => {
@@ -13843,6 +13844,9 @@ let dbPlayerInfo = {
                 if (player) {
                     relevantPlayerQuery.playerId = player._id;
                 }
+
+                console.log("debug player report 6", player)
+                console.log("debug player report 7", relevantPlayerQuery)
 
                 // relevant players are the players who played any game within given time period
                 let playerObjArr = [];
