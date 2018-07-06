@@ -13835,7 +13835,7 @@ let dbPlayerInfo = {
         if (query.name) {
             getPlayerProm = dbconfig.collection_players.findOne({name: query.name, platform: platform}, {_id: 1}).lean();
         }
-
+        console.log("debug player report 2", query.name)
         return getPlayerProm.then(
             player => {
                 let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}};
@@ -13843,7 +13843,7 @@ let dbPlayerInfo = {
                 if (player) {
                     relevantPlayerQuery.playerId = player._id;
                 }
-
+                console.log("debug player report 1", relevantPlayerQuery)
                 // relevant players are the players who played any game within given time period
                 let playerObjArr = [];
                 return dbconfig.collection_playerConsumptionRecord.aggregate([
@@ -13851,6 +13851,7 @@ let dbPlayerInfo = {
                     {$group: {_id: "$playerId"}}
                 ]).read("secondaryPreferred").then(
                     consumptionData => {
+                        console.log("debug player report 3", consumptionData)
                         if (consumptionData && consumptionData.length) {
                             playerObjArr = consumptionData.map(function (playerIdObj) {
                                 return String(playerIdObj._id);
@@ -13884,7 +13885,7 @@ let dbPlayerInfo = {
                         for (let j = 0; j < playerObjArr.length; j++) {
                             playerObjArr[j] = ObjectId(playerObjArr[j]);
                         }
-
+                        console.log("debug player report 4", playerObjArr)
                         return playerObjArr;
                     }
                 );
@@ -13892,7 +13893,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
-                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}, platform: platform},{_id: 1});
+                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}},{_id: 1});
                 let stream = playerProm.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
 
