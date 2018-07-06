@@ -705,8 +705,10 @@ define(['js/app'], function (myApp) {
 
                 if(vm.showPlatform.presetModuleSetting && vm.showPlatform.presetModuleSetting.length > 0){
                     vm.showPlatform.presetModuleSetting.forEach(p => {
+                        if (p && p.hasOwnProperty('displayStatus')){
+                            p.displayStatus = ( p.displayStatus == 0 || p.displayStatus == 1 )? p.displayStatus.toString() : null ;
+                        }
 
-                        p.displayStatus = ( p.displayStatus == 0 || p.displayStatus == 1 )? p.displayStatus.toString() : null ;
                         vm.presetModuleSettingData.push($.extend({}, p));
                     })
                 }
@@ -725,9 +727,11 @@ define(['js/app'], function (myApp) {
                     if (platformData.data.specialModuleSetting && platformData.data.specialModuleSetting.length > 0){
                         platformData.data.specialModuleSetting.forEach(p => {
 
-                            if (p.content && p.content.length > 0){
+                            if (p && p.content && p.content.length > 0){
                                 p.content.forEach( q => {
-                                    q.displayStatus = ( q.displayStatus == 0 || q.displayStatus == 1 )? q.displayStatus.toString() : null ;
+                                    if (q && q.hasOwnProperty('displayStatus')) {
+                                        q.displayStatus = ( q.displayStatus == 0 || q.displayStatus == 1 ) ? q.displayStatus.toString() : null;
+                                    }
                                 })
                             }
 
@@ -740,9 +744,11 @@ define(['js/app'], function (myApp) {
                     if(vm.showPlatform.specialModuleSetting && vm.showPlatform.specialModuleSetting.length > 0){
                         vm.showPlatform.specialModuleSetting.forEach(p => {
 
-                            if (p.content && p.content.length > 0){
+                            if (p && p.content && p.content.length > 0){
                                 p.content.forEach( q => {
-                                    q.displayStatus = ( q.displayStatus == 0 || q.displayStatus == 1 )? q.displayStatus.toString() : null ;
+                                    if (q && q.hasOwnProperty('displayStatus')) {
+                                        q.displayStatus = ( q.displayStatus == 0 || q.displayStatus == 1 ) ? q.displayStatus.toString() : null;
+                                    }
                                 })
                             }
 
