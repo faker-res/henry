@@ -13904,7 +13904,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
-                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}},{_id: 1});
+                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}, platform: platform},{_id: 1});
                 let stream = playerProm.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
 
