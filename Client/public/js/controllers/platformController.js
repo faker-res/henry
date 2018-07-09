@@ -24032,7 +24032,12 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('CREATED_BY'),
                             data: "adminName"
+                        },
+                        {
+                            title: $translate('REMARK'),
+                            data: "remark"
                         }
+
                     ],
                     "paging": false,
                     fnRowCallback: vm.promoCodeHistoryTableRow

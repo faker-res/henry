@@ -57,7 +57,9 @@ let promoCodeSchema = new Schema({
     //admin id, that create this promo code
     adminId: {type: Schema.ObjectId},
     //admin name, that create this promo code
-    adminName: {type: String}
+    adminName: {type: String},
+    // remark
+    remark: {type: String}
 
 });
 
