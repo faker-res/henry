@@ -27,7 +27,6 @@ const dbPartner = require('./../db_modules/dbPartner');
 const rsaCrypto = require('./../modules/rsaCrypto');
 const errorUtils = require('../modules/errorUtils');
 const localization = require("../modules/localization");
-const dbPlayerUtil = require('./../db_common/dbPlayerUtility');
 
 const dbPlayerMail = {
 
@@ -407,6 +406,7 @@ const dbPlayerMail = {
             requireCaptchaInSMS = "partnerRequireCaptchaInSMS";
             seletedDb = dbPartner;
         }
+        let isSpam = false;
 
 
 
@@ -424,6 +424,16 @@ const dbPlayerMail = {
                 if (platformData) {
                     platform = platformData;
                     platformObjId = platform._id;
+                    // verify captcha if necessary
+                    if (platform[requireCaptchaInSMS]) {
+                        if (!captchaValidation) {
+                            return Q.reject({
+                                status: constServerCode.INVALID_CAPTCHA,
+                                name: "DataError",
+                                message: "Invalid image captcha"
+                            });
+                        }
+                    }
 
                     if (purpose && purpose == constSMSPurpose.REGISTRATION) {
                         let letterNumber = /^[0-9a-zA-Z]+$/;
@@ -457,32 +467,10 @@ const dbPlayerMail = {
                                 });
                             }
                         }
-                        return dbPlayerUtil.setPhoneNumberState(telNum, "GetSMSCode")
-                    }
-                    return true;
-                } else {
-                    return Q.reject({
-                        name: "DataError",
-                        message: "Platform does not exist"
-                    });
-                }
-            }
-        ).then(
-            phoneNumberState => {
-                if (phoneNumberState) {
-                    // verify captcha if necessary
-                    if (platform[requireCaptchaInSMS]) {
-                        if (!captchaValidation) {
-                            return Q.reject({
-                                status: constServerCode.INVALID_CAPTCHA,
-                                name: "DataError",
-                                message: "Invalid image captcha"
-                            });
-                        }
                     }
 
-                    if(telNum && platform.blackListingPhoneNumbers){
-                        let indexNo = platform.blackListingPhoneNumbers.findIndex(p => p == telNum);
+                    if(telNum && platformData.blackListingPhoneNumbers){
+                        let indexNo = platformData.blackListingPhoneNumbers.findIndex(p => p == telNum);
 
                         if(indexNo != -1){
                             return Q.reject({name: "DataError", message: localization.localization.translate("This phone number is already used. Please insert other phone number.")});
@@ -530,8 +518,8 @@ const dbPlayerMail = {
                     return Promise.all([smsChannelProm, smsVerificationLogProm, messageTemplateProm, validPhoneNumberProm, getPartnerProm]);
                 } else {
                     return Q.reject({
-                        status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
-                        message: "Verification SMS already sent within last minute"
+                        name: "DataError",
+                        message: "Platform does not exist"
                     });
                 }
             }
@@ -571,6 +559,7 @@ const dbPlayerMail = {
 
                     // Check whether verification sms sent in last minute
                     if (lastMinuteHistory && lastMinuteHistory.tel) {
+                        isSpam = true;
                         return Q.reject({
                             status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
                             message: "Verification SMS already sent within last minute"
@@ -682,7 +671,7 @@ const dbPlayerMail = {
                 return true;
             },
             error => {
-                if (isFailedSms && purpose && purpose == constSMSPurpose.REGISTRATION) {
+                if (isFailedSms && purpose && purpose == constSMSPurpose.REGISTRATION && !isSpam) {
                     if (inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined") {
                         return dbUtility.getGeoIp(inputData.lastLoginIp).then(
                             ipData => {
