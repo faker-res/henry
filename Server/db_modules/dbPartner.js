@@ -6720,6 +6720,7 @@ let dbPartner = {
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         sortCol = sortCol || {'_id': -1};
         let query = {
+            platform: ObjectId(platformObjId),
             startTime: {
                 $gte: startTime,
                 $lte: endTime
