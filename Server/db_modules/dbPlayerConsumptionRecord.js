@@ -2336,7 +2336,7 @@ function updateRTG (oldData, newData) {
                                     },
                                     statusUpdObj,
                                     {new: true}
-                                )
+                                ).then(res => dbRewardTask.completeRewardTaskGroup(res, res.status))
                             }
                         }
                     ).catch(errorUtils.reportError);
