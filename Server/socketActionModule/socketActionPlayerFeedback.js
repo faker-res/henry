@@ -21,6 +21,12 @@ function socketActionPlayerFeedback(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerFeedback.createPlayerFeedback, [data], actionName, isValidData);
         },
 
+        bulkCreatePlayerFeedback: function bulkCreatePlayerFeedback(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerId && data.platform);
+            socketUtil.emitter(self.socket, dbPlayerFeedback.bulkCreatePlayerFeedback, [data], actionName, isValidData);
+        },
+
         /**
          * Get player feedback info by playerId or _id
          * @param {json} data - It has to contain playerId

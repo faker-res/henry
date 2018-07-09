@@ -505,7 +505,7 @@ var dbPartnerWeekSummary = {
 
                                 const markDone = () => {
                                     partner.datePartnerLevelMigrationWasLastProcessed = startTime;
-                                    return partner.save();
+                                    return dbconfig.collection_partner.findOneAndUpdate({_id: partner._id, platform: partner.platform}, {datePartnerLevelMigrationWasLastProcessed: startTime}).lean();
                                     // Or if we want to avoid save middleware:
                                     //return dbUtil.findOneAndUpdateForShard(
                                     //    dbconfig.collection_partner,
@@ -756,7 +756,7 @@ var dbPartnerWeekSummary = {
 
                             const markPartnerAsDone = function () {
                                 partner.dateConsumptionReturnRewardWasLastAwarded = startTime;
-                                return partner.save();
+                                return dbconfig.collection_partner.findOneAndUpdate({_id: partner._id, platform: partner.platform}, {dateConsumptionReturnRewardWasLastAwarded: startTime}).lean();
                             };
 
                             return createProposalForPartner.then(markPartnerAsDone);
