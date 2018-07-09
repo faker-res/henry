@@ -15238,7 +15238,17 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.playerFeedbackQuery.credibilityRemarks && vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
-                    sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
+                    let tempArr = [];
+                    if (vm.playerFeedbackQuery.credibilityRemarks.includes("")) {
+                        vm.playerFeedbackQuery.credibilityRemarks.forEach(remark => {
+                            if (remark != "") {
+                                tempArr.push(remark);
+                            }
+                        });
+                        sendQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
+                    } else {
+                        sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
+                    }
                 }
 
                 if (vm.playerFeedbackQuery.lastAccess === "range") {
