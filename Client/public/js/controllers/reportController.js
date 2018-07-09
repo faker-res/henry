@@ -2634,11 +2634,11 @@ define(['js/app'], function (myApp) {
                 if (vm.feedbackQuery.roles) {
                     vm.queryRoles.map(e => {
                         if (e._id != "" && (vm.feedbackQuery.roles.indexOf(e._id) >= 0)) {
-                            e.users.map(f => admins.push(f.adminName))
+                            e.users.map(f => admins.push(f._id))
                         }
                     })
                 } else {
-                    vm.queryRoles.map(e => e.users.map(f => admins.push(f.adminName)))
+                    vm.queryRoles.map(e => e.users.map(f => admins.push(f._id)))
                 }
             }
 
@@ -2656,6 +2656,8 @@ define(['js/app'], function (myApp) {
             }
             if(vm.feedbackQuery.admins && vm.feedbackQuery.admins.length > 0) {
                 query.admins = vm.feedbackQuery.admins;
+            } else if (admins && admins.length > 0) {
+                query.admins = admins;
             }
 
             query.start = vm.feedbackQuery.start.data('datetimepicker').getLocalDate();

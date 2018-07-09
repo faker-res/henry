@@ -15238,7 +15238,17 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.playerFeedbackQuery.credibilityRemarks && vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
-                    sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
+                    let tempArr = [];
+                    if (vm.playerFeedbackQuery.credibilityRemarks.includes("")) {
+                        vm.playerFeedbackQuery.credibilityRemarks.forEach(remark => {
+                            if (remark != "") {
+                                tempArr.push(remark);
+                            }
+                        });
+                        sendQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
+                    } else {
+                        sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
+                    }
                 }
 
                 if (vm.playerFeedbackQuery.lastAccess === "range") {
@@ -16149,19 +16159,14 @@ define(['js/app'], function (myApp) {
             };
 
             vm.stopCallOutMission = function() {
+                $('#platformFeedbackSpin').show();
                 socketService.$socket($scope.AppSocket, 'stopCallOutMission', {
                     platformObjId: vm.selectedPlatform.id,
                     missionName: vm.ctiData.missionName
                 }, function (data) {
                     console.log("stopCallOutMission ret" , data);
                     $scope.$evalAsync(function(){
-                        vm.ctiData = {};
-                        vm.feedbackPlayersPara.total = 0;
-                        vm.callOutMissionStatus = "";
-                        setTableData(vm.playerFeedbackTable, []);
-                        vm.drawExtendedFeedbackTable([]);
-                        vm.playerCredibilityComment = [];
-                        vm.curPlayerFeedbackDetail = {};
+                        vm.submitPlayerFeedbackQuery();
                     });
                 });
             };
@@ -16206,6 +16211,8 @@ define(['js/app'], function (myApp) {
                         let completedAmount = 0;
                         vm.callOutMissionStatusText = '';
 
+                        vm.bulkPlayersToAddFeedback = [];
+
                         vm.ctiData.callee.forEach(callee => {
                             if (callee.player) {
                                 callee.player.callOutMissionStatus = callee.status;
@@ -16224,6 +16231,10 @@ define(['js/app'], function (myApp) {
 
                             if (callee.status != 0) {
                                 completedAmount++;
+                            }
+
+                            if (callee.status == 2) {
+                                vm.bulkPlayersToAddFeedback.push(callee.player._id)
                             }
                         });
 
@@ -26499,8 +26510,6 @@ define(['js/app'], function (myApp) {
                 vm.partnerBasic.partnerAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.partnerAllowSamePhoneNumberToRegister;
                 vm.partnerBasic.partnerSamePhoneNumberRegisterCount = vm.selectedPlatform.data.partnerSamePhoneNumberRegisterCount;
                 vm.partnerBasic.partnerAllowSameRealNameToRegister = vm.selectedPlatform.data.partnerAllowSameRealNameToRegister;
-                vm.partnerBasic.whiteListingPhoneNumbers = "";
-                vm.partnerBasic.blackListingPhoneNumbers = "";
                 vm.partnerBasic.partnerRequireSMSVerification = vm.selectedPlatform.data.partnerRequireSMSVerification;
                 vm.partnerBasic.partnerRequireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.partnerRequireSMSVerificationForPasswordUpdate;
                 vm.partnerBasic.partnerRequireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.partnerRequireSMSVerificationForPaymentUpdate;
@@ -26511,23 +26520,6 @@ define(['js/app'], function (myApp) {
                 vm.partnerBasic.partnerUnreadMailMaxDuration = vm.selectedPlatform.data.partnerUnreadMailMaxDuration;
                 vm.partnerBasic.partnerDefaultCommissionGroup = vm.selectedPlatform.data.partnerDefaultCommissionGroup.toString();
 
-                if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
-                    let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
-                    for (let i = 0, len = phones.length; i < len; i++) {
-                        let phone = phones[i];
-                        vm.partnerBasic.whiteListingPhoneNumbers += phone;
-                        i !== (len - 1) ? vm.partnerBasic.whiteListingPhoneNumbers += "\n" : "";
-                    }
-                }
-
-                if (vm.selectedPlatform.data.blackListingPhoneNumbers && vm.selectedPlatform.data.blackListingPhoneNumbers.length > 0) {
-                    let phones = vm.selectedPlatform.data.blackListingPhoneNumbers;
-                    for (let i = 0, len = phones.length; i < len; i++) {
-                        let phone = phones[i];
-                        vm.partnerBasic.blackListingPhoneNumbers += phone;
-                        i !== (len - 1) ? vm.partnerBasic.blackListingPhoneNumbers += "\n" : "";
-                    }
-                }
                 $scope.safeApply();
             }
 
@@ -27180,24 +27172,6 @@ define(['js/app'], function (myApp) {
             }
 
             function updatePartnerBasic(srcData) {
-                let whiteListingPhoneNumbers = [];
-                let blackListingPhoneNumbers = [];
-
-                if (srcData.whiteListingPhoneNumbers) {
-                    let phones = srcData.whiteListingPhoneNumbers.split(/\r?\n/);
-                    for (let i = 0, len = phones.length; i < len; i++) {
-                        let phone = phones[i].trim();
-                        if (phone) whiteListingPhoneNumbers.push(phone);
-                    }
-                }
-
-                if (srcData.blackListingPhoneNumbers) {
-                    let phones = srcData.blackListingPhoneNumbers.split(/\r?\n/);
-                    for (let i = 0, len = phones.length; i < len; i++) {
-                        let phone = phones[i].trim();
-                        if (phone) blackListingPhoneNumbers.push(phone);
-                    }
-                }
                 let sendData = {
                     query: {_id: vm.selectedPlatform.id},
                     updateData: {
@@ -27206,8 +27180,6 @@ define(['js/app'], function (myApp) {
                         partnerAllowSamePhoneNumberToRegister: srcData.partnerAllowSamePhoneNumberToRegister,
                         partnerSamePhoneNumberRegisterCount: srcData.partnerAllowSamePhoneNumberToRegister,
                         partnerAllowSameRealNameToRegister: srcData.partnerAllowSameRealNameToRegister,
-                        whiteListingPhoneNumbers: whiteListingPhoneNumbers,
-                        blackListingPhoneNumbers: blackListingPhoneNumbers,
                         partnerRequireSMSVerification: srcData.partnerRequireSMSVerification,
                         partnerRequireSMSVerificationForPasswordUpdate: srcData.partnerRequireSMSVerificationForPasswordUpdate,
                         partnerRequireSMSVerificationForPaymentUpdate: srcData.partnerRequireSMSVerificationForPaymentUpdate,
