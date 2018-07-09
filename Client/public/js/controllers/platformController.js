@@ -779,6 +779,7 @@ define(['js/app'], function (myApp) {
                         text: $translate('Confirm to delete this special module setting ?')
                     }).then(function () {
                         vm.specialModuleSettingData = vm.specialModuleSettingData.filter( a => {return a._id != moduleId});
+                        vm.setPlatformFooter(null);
                         vm.updatePlatformAction();
 
                     });
