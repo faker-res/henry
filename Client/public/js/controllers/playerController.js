@@ -630,7 +630,7 @@ define(['js/app'], function (myApp) {
             if(vm.showPlatform.presetModuleSetting && vm.showPlatform.presetModuleSetting.length > 0){
                 vm.showPlatform.presetModuleSetting.forEach(p => {
 
-                    p.displayable = ( p.displayable == 0 || p.displayable == 1 )? p.displayable.toString() : null ;
+                    p.displayStatus = ( p.displayStatus == 0 || p.displayStatus == 1 )? p.displayStatus.toString() : null ;
                     vm.presetModuleSettingData.push($.extend({}, p));
                 })
             }

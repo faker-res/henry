@@ -146,14 +146,14 @@ var platformSchema = new Schema({
     presetModuleSetting: [{
         _id: false,
         functionId: {type: Number},
-        displayable: {type: Number},
+        displayStatus: {type: Number},
         functionName: {type: String}
     }],
     specialModuleSetting: [{
         content: [{
             _id: false,
             functionId: {type: Number},
-            displayable: {type: Number},
+            displayStatus: {type: Number},
             functionName: {type: String},
         }],
         domainName:[]
