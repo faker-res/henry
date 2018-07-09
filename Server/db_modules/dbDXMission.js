@@ -1208,7 +1208,7 @@ let dbDXMission = {
                                                             phoneData.totalConsumptionTime = summary.totalConsumptionTime;
                                                             phoneData.totalConsumptionAmount = summary.totalConsumptionAmount;
                                                             phoneData.totalDepositAmount = summary.totalDepositAmount;
-                                                            phoneData.phoneNumber = summary.phoneNumber;
+                                                            phoneData.phoneNumber = dbUtil.encodePhoneNum(summary.phoneNumber);
                                                             phoneData.alerted = summary.alerted;
                                                         }
                                                     }else{
