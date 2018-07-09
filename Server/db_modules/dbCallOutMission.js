@@ -417,7 +417,7 @@ function getCalleeList (query, sortCol) {
 
 function getCtiUrls (platformId) {
     platformId = platformId ? String(platformId) : "10";
-    platformId = 10; // debug param, use this when testing on local
+    // platformId = 10; // debug param, use this when testing on local
 
     let urls = [
         "http://jsh.tel400.me/cti/",
