@@ -4557,7 +4557,7 @@ let dbPlayerInfo = {
                         lastLoginIp: playerData.lastLoginIp,
                         userAgent: newAgentArray,
                         lastAccessTime: new Date().getTime(),
-                        // $inc: {loginTimes: 1} //added login record above
+                        $inc: {loginTimes: 1}
                     };
                     var geoInfo = {};
                     // if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
@@ -13845,7 +13845,7 @@ let dbPlayerInfo = {
         };
 
         if (query.name) {
-            getPlayerProm = dbconfig.collection_players.findOne({name: query.name}, {_id: 1}).lean();
+            getPlayerProm = dbconfig.collection_players.findOne({name: query.name, platform: platform}, {_id: 1}).lean();
         }
 
         return getPlayerProm.then(
@@ -13863,11 +13863,13 @@ let dbPlayerInfo = {
                     {$group: {_id: "$playerId"}}
                 ]).read("secondaryPreferred").then(
                     consumptionData => {
+
                         if (consumptionData && consumptionData.length) {
                             playerObjArr = consumptionData.map(function (playerIdObj) {
                                 return String(playerIdObj._id);
                             });
                         }
+
                         let proposalQuery = {
                             mainType: {$in: ["PlayerBonus", "TopUp"]},
                             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
@@ -13895,6 +13897,7 @@ let dbPlayerInfo = {
                         for (let j = 0; j < playerObjArr.length; j++) {
                             playerObjArr[j] = ObjectId(playerObjArr[j]);
                         }
+
                         return playerObjArr;
                     }
                 );
@@ -14076,6 +14079,7 @@ let dbPlayerInfo = {
             );
         }).then(
             () => {
+                console.log("YH-CHECKING----first result", result);
                 // handle index limit sortcol here
                 if (Object.keys(sortCol).length > 0) {
                     result.sort(function (a, b) {
@@ -14117,7 +14121,9 @@ let dbPlayerInfo = {
                 }
 
                 // Output filter promote way
+                console.log("YH-CHECKING----before filtering", result);
                 result = query.csPromoteWay && query.csPromoteWay.length > 0 ? result.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : result;
+                console.log("YH-CHECKING----after filtering", result);
                 result = query.admins && query.admins.length > 0 ? result.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : result;
 
                 result = result.concat(
@@ -14125,6 +14131,7 @@ let dbPlayerInfo = {
                         return result.indexOf(e) === -1;
                     }));
 
+                console.log("YH-CHECKING----final result", result);
                 for (let i = 0, len = limit; i < len; i++) {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
@@ -17458,8 +17465,9 @@ function determineRegistrationInterface(inputData, adminName, adminId) {
         inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
     }
 
-    if (inputData.registrationInterface !== constPlayerRegistrationInterface.BACKSTAGE) {
-        inputData.loginTimes = 1;
+    //after created a new player in other interface, login record is created
+    if (inputData.registrationInterface === constPlayerRegistrationInterface.BACKSTAGE) {
+        inputData.loginTimes = 0;
     }
     else if (adminName) {
         // insert related CS name when account is opened from backstage

@@ -705,8 +705,10 @@ define(['js/app'], function (myApp) {
 
                 if(vm.showPlatform.presetModuleSetting && vm.showPlatform.presetModuleSetting.length > 0){
                     vm.showPlatform.presetModuleSetting.forEach(p => {
+                        if (p && p.hasOwnProperty('displayStatus')){
+                            p.displayStatus = ( p.displayStatus == 0 || p.displayStatus == 1 )? p.displayStatus.toString() : null ;
+                        }
 
-                        p.displayable = ( p.displayable == 0 || p.displayable == 1 )? p.displayable.toString() : null ;
                         vm.presetModuleSettingData.push($.extend({}, p));
                     })
                 }
@@ -725,9 +727,11 @@ define(['js/app'], function (myApp) {
                     if (platformData.data.specialModuleSetting && platformData.data.specialModuleSetting.length > 0){
                         platformData.data.specialModuleSetting.forEach(p => {
 
-                            if (p.content && p.content.length > 0){
+                            if (p && p.content && p.content.length > 0){
                                 p.content.forEach( q => {
-                                    q.displayable = ( q.displayable == 0 || q.displayable == 1 )? q.displayable.toString() : null ;
+                                    if (q && q.hasOwnProperty('displayStatus')) {
+                                        q.displayStatus = ( q.displayStatus == 0 || q.displayStatus == 1 ) ? q.displayStatus.toString() : null;
+                                    }
                                 })
                             }
 
@@ -740,9 +744,11 @@ define(['js/app'], function (myApp) {
                     if(vm.showPlatform.specialModuleSetting && vm.showPlatform.specialModuleSetting.length > 0){
                         vm.showPlatform.specialModuleSetting.forEach(p => {
 
-                            if (p.content && p.content.length > 0){
+                            if (p && p.content && p.content.length > 0){
                                 p.content.forEach( q => {
-                                    q.displayable = ( q.displayable == 0 || q.displayable == 1 )? q.displayable.toString() : null ;
+                                    if (q && q.hasOwnProperty('displayStatus')) {
+                                        q.displayStatus = ( q.displayStatus == 0 || q.displayStatus == 1 ) ? q.displayStatus.toString() : null;
+                                    }
                                 })
                             }
 
@@ -773,6 +779,7 @@ define(['js/app'], function (myApp) {
                         text: $translate('Confirm to delete this special module setting ?')
                     }).then(function () {
                         vm.specialModuleSettingData = vm.specialModuleSettingData.filter( a => {return a._id != moduleId});
+                        vm.setPlatformFooter(null);
                         vm.updatePlatformAction();
 
                     });
@@ -12116,6 +12123,42 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.initBulkAddPlayerFeedback = () => {
+                vm.bulkPlayersToAddFeedback = [];
+                vm.ctiData.callee.map(callee => {
+                    if (callee.status == 2) {
+                        vm.bulkPlayersToAddFeedback.push(callee.player._id)
+                    }
+                });
+                $('#modalBulkAddPlayerFeedback').modal().show()
+            };
+
+            vm.bulkAddPlayerFeedback = () => {
+                vm.bulkPlayersToAddFeedback = vm.bulkPlayersToAddFeedback || [];
+                let resultName = vm.allPlayerFeedbackResults.filter(item => {
+                    return item.key == vm.playerFeedback.result;
+                });
+                resultName = resultName.length > 0 ? resultName[0].value : "";
+                let sendData = {
+                    playerId: vm.bulkPlayersToAddFeedback,
+                    platform: vm.selectedPlatform.id,
+                    createTime: Date.now(),
+                    adminId: authService.adminId,
+                    content: vm.playerFeedback.content,
+                    result: vm.playerFeedback.result,
+                    resultName: resultName,
+                    topic: vm.playerFeedback.topic
+                };
+                console.log('add feedback', sendData);
+                socketService.$socket($scope.AppSocket, 'bulkCreatePlayerFeedback', sendData, function (data) {
+                    console.log('feedbackadded', data);
+                    $scope.$evalAsync(() => {
+                        vm.playerFeedback = {};
+                    });
+                });
+
+            };
+
             vm.updatePartnerFeedback = function () {
                 let resultName = vm.allPartnerFeedbackResults.filter(item => {
                     return item.key === vm.partnerFeedback.result;
@@ -16157,7 +16200,7 @@ define(['js/app'], function (myApp) {
                         vm.playerFeedbackQuery.index = playerFeedbackDetail.index || 0;
                         vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total});
                         vm.feedbackPlayersPara.total = vm.playerFeedbackQuery.total;
-                        vm.showFinishCalloutMissionButton = Boolean(vm.ctiData.status == '3');
+                        vm.showFinishCalloutMissionButton = Boolean(vm.ctiData.status == $scope.constCallOutMissionStatus.FINISHED || vm.ctiData.status == $scope.constCallOutMissionStatus.CANCELLED);
 
                         // let players = [];
                         let completedAmount = 0;
@@ -16197,6 +16240,10 @@ define(['js/app'], function (myApp) {
                             vm.callOutMissionStatusText = $translate("On Going");
                         } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.PAUSED) {
                             vm.callOutMissionStatusText = $translate("Paused");
+                        } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.FINISHED) {
+                            vm.callOutMissionStatusText = $translate("Finished");
+                        } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.CANCELLED) {
+                            vm.callOutMissionStatusText = $translate("Gave Up");
                         }
 
                         $scope.$evalAsync(function () {
@@ -23986,7 +24033,12 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('CREATED_BY'),
                             data: "adminName"
+                        },
+                        {
+                            title: $translate('REMARK'),
+                            data: "remark"
                         }
+
                     ],
                     "paging": false,
                     fnRowCallback: vm.promoCodeHistoryTableRow
@@ -26447,8 +26499,6 @@ define(['js/app'], function (myApp) {
                 vm.partnerBasic.partnerAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.partnerAllowSamePhoneNumberToRegister;
                 vm.partnerBasic.partnerSamePhoneNumberRegisterCount = vm.selectedPlatform.data.partnerSamePhoneNumberRegisterCount;
                 vm.partnerBasic.partnerAllowSameRealNameToRegister = vm.selectedPlatform.data.partnerAllowSameRealNameToRegister;
-                vm.partnerBasic.whiteListingPhoneNumbers = "";
-                vm.partnerBasic.blackListingPhoneNumbers = "";
                 vm.partnerBasic.partnerRequireSMSVerification = vm.selectedPlatform.data.partnerRequireSMSVerification;
                 vm.partnerBasic.partnerRequireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.partnerRequireSMSVerificationForPasswordUpdate;
                 vm.partnerBasic.partnerRequireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.partnerRequireSMSVerificationForPaymentUpdate;
@@ -26459,23 +26509,6 @@ define(['js/app'], function (myApp) {
                 vm.partnerBasic.partnerUnreadMailMaxDuration = vm.selectedPlatform.data.partnerUnreadMailMaxDuration;
                 vm.partnerBasic.partnerDefaultCommissionGroup = vm.selectedPlatform.data.partnerDefaultCommissionGroup.toString();
 
-                if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
-                    let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
-                    for (let i = 0, len = phones.length; i < len; i++) {
-                        let phone = phones[i];
-                        vm.partnerBasic.whiteListingPhoneNumbers += phone;
-                        i !== (len - 1) ? vm.partnerBasic.whiteListingPhoneNumbers += "\n" : "";
-                    }
-                }
-
-                if (vm.selectedPlatform.data.blackListingPhoneNumbers && vm.selectedPlatform.data.blackListingPhoneNumbers.length > 0) {
-                    let phones = vm.selectedPlatform.data.blackListingPhoneNumbers;
-                    for (let i = 0, len = phones.length; i < len; i++) {
-                        let phone = phones[i];
-                        vm.partnerBasic.blackListingPhoneNumbers += phone;
-                        i !== (len - 1) ? vm.partnerBasic.blackListingPhoneNumbers += "\n" : "";
-                    }
-                }
                 $scope.safeApply();
             }
 
@@ -27128,24 +27161,6 @@ define(['js/app'], function (myApp) {
             }
 
             function updatePartnerBasic(srcData) {
-                let whiteListingPhoneNumbers = [];
-                let blackListingPhoneNumbers = [];
-
-                if (srcData.whiteListingPhoneNumbers) {
-                    let phones = srcData.whiteListingPhoneNumbers.split(/\r?\n/);
-                    for (let i = 0, len = phones.length; i < len; i++) {
-                        let phone = phones[i].trim();
-                        if (phone) whiteListingPhoneNumbers.push(phone);
-                    }
-                }
-
-                if (srcData.blackListingPhoneNumbers) {
-                    let phones = srcData.blackListingPhoneNumbers.split(/\r?\n/);
-                    for (let i = 0, len = phones.length; i < len; i++) {
-                        let phone = phones[i].trim();
-                        if (phone) blackListingPhoneNumbers.push(phone);
-                    }
-                }
                 let sendData = {
                     query: {_id: vm.selectedPlatform.id},
                     updateData: {
@@ -27154,8 +27169,6 @@ define(['js/app'], function (myApp) {
                         partnerAllowSamePhoneNumberToRegister: srcData.partnerAllowSamePhoneNumberToRegister,
                         partnerSamePhoneNumberRegisterCount: srcData.partnerAllowSamePhoneNumberToRegister,
                         partnerAllowSameRealNameToRegister: srcData.partnerAllowSameRealNameToRegister,
-                        whiteListingPhoneNumbers: whiteListingPhoneNumbers,
-                        blackListingPhoneNumbers: blackListingPhoneNumbers,
                         partnerRequireSMSVerification: srcData.partnerRequireSMSVerification,
                         partnerRequireSMSVerificationForPasswordUpdate: srcData.partnerRequireSMSVerificationForPasswordUpdate,
                         partnerRequireSMSVerificationForPaymentUpdate: srcData.partnerRequireSMSVerificationForPaymentUpdate,

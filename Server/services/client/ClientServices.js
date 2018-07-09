@@ -128,7 +128,8 @@
                 "getUserInfoFromPopUp",
                 "createPlayerFromTel",
                 "getPlatformSetting",
-                "turnUrlToQr"
+                "turnUrlToQr",
+                "getTemplateSetting"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

@@ -129,14 +129,14 @@ function preparePartnerLevelMigrationsTest (platformId) {
                             summary.validConsumptionSum = 0;
                             partner.failMeetingTargetWeeks = 9999999999;
                             return summary.save().then(
-                                () => partner.save()
+                                // () => partner.save()
                                 // Or if we want to avoid save middleware:
-                                //() => dbUtil.findOneAndUpdateForShard(
-                                //    dbconfig.collection_partner,
-                                //    {_id: partner._id},
-                                //    {failMeetingTargetWeeks: partner.failMeetingTargetWeeks},
-                                //    constShardKeys.collection_partner
-                                //)
+                                () => dbUtil.findOneAndUpdateForShard(
+                                   dbconfig.collection_partner,
+                                   {_id: partner._id},
+                                   {failMeetingTargetWeeks: partner.failMeetingTargetWeeks},
+                                   constShardKeys.collection_partner
+                                )
                             );
                         }
                         else if (action === 'punish') {

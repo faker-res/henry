@@ -50,6 +50,21 @@ var dbPlayerFeedback = {
         return deferred.promise;
     },
 
+    bulkCreatePlayerFeedback: (playersFeedbackData) => {
+        let playerIds = playersFeedbackData.playerId;
+        let proms = [];
+
+        playerIds.map(playerId => {
+            let clonedPlayersFeedbackData = JSON.parse(JSON.stringify(playersFeedbackData));
+            clonedPlayersFeedbackData.playerId = playerId;
+
+            let prom = dbPlayerFeedback.createPlayerFeedback(clonedPlayersFeedbackData);
+            proms.push(prom);
+        });
+
+        return Promise.all(proms);
+    },
+
     /**
      * Get all player Feedbacks information  by  playerId  or _id
      * @param {String} query - Query string
