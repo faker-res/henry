@@ -2515,6 +2515,31 @@ var dbPlatform = {
                             }
                         });
 
+                        if (subject === 'player') {
+                            returnedObj.accountMaxLength = platformData.playerNameMaxLength ? platformData.playerNameMaxLength: 0;
+                            returnedObj.accountMinLength = platformData.playerNameMinLength ? platformData.playerNameMinLength: 0;
+                            returnedObj.minDepositAmount = platformData.minTopUpAmount ? platformData.minTopUpAmount: 0;
+                            returnedObj.needSMSForTrailAccount = platformData.requireSMSVerificationForDemoPlayer ? 1 : 0;
+                            returnedObj.needSMSForRegister = platformData.requireSMSVerification ? 1 : 0;
+                            returnedObj.needSMSForModifyPassword = platformData.requireSMSVerificationForPasswordUpdate ? 1 : 0;
+                            returnedObj.needSMSForModifyBankInfo = platformData.requireSMSVerificationForPaymentUpdate ? 1 : 0;
+                            returnedObj.needImageCodeForLogin = platformData.requireLogInCaptcha ? 1 : 0;
+                            returnedObj.needImageCodeForSendSMSCode = platformData.requireCaptchaInSMS ? 1 : 0;
+                            returnedObj.twoStepsForModifyPhoneNumber = platformData.usePhoneNumberTwoStepsVerification ? 1 : 0;
+                        }
+
+                        if (subject === 'partner') {
+                            returnedObj.accountMaxLength = platformData.partnerNameMaxLength ? platformData.partnerNameMaxLength: 0;
+                            returnedObj.accountMinLength = platformData.partnerNameMinLength ? platformData.partnerNameMinLength: 0;
+                            returnedObj.needSMSForRegister = platformData.partnerRequireSMSVerification ? 1 : 0;
+                            returnedObj.needSMSForModifyPassword = platformData.partnerRequireSMSVerificationForPasswordUpdate ? 1 : 0;
+                            returnedObj.needSMSForModifyBankInfo = platformData.partnerRequireSMSVerificationForPaymentUpdate ? 1 : 0;
+                            returnedObj.needImageCodeForLogin = platformData.partnerRequireLogInCaptcha ? 1 : 0;
+                            returnedObj.needImageCodeForSendSMSCode = platformData.partnerRequireCaptchaInSMS ? 1 : 0;
+                            returnedObj.twoStepsForModifyPhoneNumber = platformData.partnerUsePhoneNumberTwoStepsVerification ? 1 : 0;
+                            returnedObj.defaultCommissionType = platformData.partnerDefaultCommissionGroup ? platformData.partnerDefaultCommissionGroup : 0;
+                        }
+
                         if (data.platformId) {
                             if (subject == 'player'){
                                 return dbconfig.collection_playerPageAdvertisementInfo.find({
