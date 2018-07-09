@@ -1126,14 +1126,6 @@
                                 td
                                     input(type='checkbox', ng-model='vm.partnerBasic.partnerAllowSameRealNameToRegister', ng-disabled='!vm.configTableEdit')
                             tr
-                                td {{'Whitelisting Phone Number' | translate}}
-                                td
-                                    textarea(ng-model='vm.partnerBasic.whiteListingPhoneNumbers', ng-disabled='!vm.configTableEdit')
-                            tr
-                                td {{'Blacklisting Phone Number' | translate}}
-                                td
-                                    textarea(ng-model='vm.partnerBasic.blackListingPhoneNumbers', ng-disabled='!vm.configTableEdit')
-                            tr
                                 td {{'partnerRequireSMSVerification' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.partnerBasic.partnerRequireSMSVerification', ng-disabled='!vm.configTableEdit')

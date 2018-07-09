@@ -2800,8 +2800,9 @@ let dbPlayerReward = {
                         useConsumption: !promoCodeObj.isSharedWithXIMA,
                         promoCodeName: promoCodeObj.bannerText,
                         eventName: "优惠代码",
-                        eventCode: "YHDM"
-                    },
+                        eventCode: "YHDM",
+                        remark: promoCodeObj.remark
+                        },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
                 };

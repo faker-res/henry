@@ -1429,8 +1429,8 @@ form(name="form_new_platform" ,novalidate)
                                 th(colspan = 4) {{"A. "}} {{"PRESET_MODULE" |translate}}
                             tr
                                 th(style="width: 20%", ng-if='!vm.isNotAllowEdit') {{"ACTION_BUTTON" | translate}}
-                                th(style="width: 20%;") {{"Display ID" | translate}}
-                                th(style="width: 40%;") {{"Display Title" | translate}}
+                                th(style="width: 20%;") {{"FUNCTION ID" | translate}}
+                                th(style="width: 40%;") {{"FUNCTION NAME" | translate}}
                                 th(style="width: 20%;") {{"DISPLAYABLE" | translate}}
                         tbody
                             tr(ng-repeat= 'item in vm.presetModuleSettingData')
@@ -1442,21 +1442,21 @@ form(name="form_new_platform" ,novalidate)
                                     input.form-control(type='text', value='{{item.functionName}}', ng-model='item.functionName')
                                 td(ng-if="!vm.isNotAllowEdit")
                                     div
-                                        select.form-control(ng-model='item.displayable', style='max-width:300px', required)
+                                        select.form-control(ng-model='item.displayStatus', style='max-width:300px', required)
                                             option(value=0) {{'NO' | translate}}
                                             option(value=1) {{'YES' | translate}}
 
 
                                 td(ng-if="vm.isNotAllowEdit", ) {{ item.functionId ? item.functionId : ''}}
                                 td(ng-if="vm.isNotAllowEdit", ) {{ item.functionName ? item.functionName : ''}}
-                                td(ng-if="vm.isNotAllowEdit", style="width: 30%") {{ (item.displayable == 0 || item.displayable == 1 ?  item.displayable == 1 ? 'YES' : 'NO' : '') | translate}}
+                                td(ng-if="vm.isNotAllowEdit", style="width: 30%") {{ (item.displayStatus == 0 || item.displayStatus == 1 ?  item.displayStatus == 1 ? 'YES' : 'NO' : '') | translate}}
 
 
                             tr(ng-if='!vm.isNotAllowEdit')
                                 td(colspan=4) {{'ADD' | translate}}
                             tr(ng-if='!vm.isNotAllowEdit')
                                 td
-                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.presetModuleSettingData, {displayable: vm.newDisplayable, functionId: vm.newFunctionId, functionName: vm.newFunctionName}); vm.newFunctionId=""; vm.newFunctionName=""; vm.newDisplayable="";')
+                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.presetModuleSettingData, {displayStatus: vm.newDisplayable, functionId: vm.newFunctionId, functionName: vm.newFunctionName}); vm.newFunctionId=""; vm.newFunctionName=""; vm.newDisplayable="";')
 
                                 td
                                     input.form-control(type="text", ng-model="vm.newFunctionId")
@@ -1470,8 +1470,8 @@ form(name="form_new_platform" ,novalidate)
 
 
             #specialModulePanel.panel-body(ng-if="vm.moduleDisplayDataTab === 'specialModulePanel'", style="background-color: white;")
-                div.col-md-6(ng-repeat= '(i,v) in vm.specialModuleSettingData', style="float:none; display: inline-block; vertical-align: top; margin-bottom: 40px;")
-                    button(style= 'width:20px; height:20px; background-color:#337ab7;', class='fa fa-times close', ng-click='vm.removeModule(v._id, i)')
+                div.col-md-6(ng-repeat= '(i,v) in vm.specialModuleSettingData', style="float:none; display: inline-block; vertical-align: top; margin-bottom: 40px; margin-top: 30px")
+                    button(ng-if='!vm.isNotAllowEdit' style= 'width:20px; height:20px; background-color:#337ab7;', class='fa fa-times close', ng-click='vm.removeModule(v._id, i)')
                     table.simple-table
                         thead
                             tr
@@ -1491,21 +1491,21 @@ form(name="form_new_platform" ,novalidate)
                                     input.form-control(type='text', value='{{item.functionName}}', ng-model='item.functionName')
                                 td(ng-if="!vm.isNotAllowEdit")
                                     div
-                                        select.form-control(ng-model='item.displayable', style='max-width:300px', required)
+                                        select.form-control(ng-model='item.displayStatus', style='max-width:300px', required)
                                             option(value=0) {{'NO' | translate}}
                                             option(value=1) {{'YES' | translate}}
 
 
                                 td(ng-if="vm.isNotAllowEdit", ) {{ item.functionId ? item.functionId : ''}}
                                 td(ng-if="vm.isNotAllowEdit", ) {{ item.functionName ? item.functionName : ''}}
-                                td(ng-if="vm.isNotAllowEdit", style="width: 30%") {{ (item.displayable == 0 || item.displayable == 1 ?  item.displayable == 1 ? 'YES' : 'NO' : '') | translate}}
+                                td(ng-if="vm.isNotAllowEdit", style="width: 30%") {{ (item.displayStatus == 0 || item.displayStatus == 1 ?  item.displayStatus == 1 ? 'YES' : 'NO' : '') | translate}}
 
 
                             tr(ng-if='!vm.isNotAllowEdit')
                                 td(colspan=4) {{'ADD' | translate}}
                             tr(ng-if='!vm.isNotAllowEdit')
                                 td
-                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", v.content, {displayable: vm.newDisplayable[i], functionId: vm.newFunctionId[i], functionName: vm.newFunctionName[i]}); vm.newFunctionId[i]=""; vm.newFunctionName[i]=""; vm.newDisplayable[i]="";')
+                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", v.content, {displayStatus: vm.newDisplayable[i], functionId: vm.newFunctionId[i], functionName: vm.newFunctionName[i]}); vm.newFunctionId[i]=""; vm.newFunctionName[i]=""; vm.newDisplayable[i]="";')
 
                                 td
                                     input.form-control(type="text", ng-model="vm.newFunctionId[i]")
@@ -1573,7 +1573,7 @@ form(name="form_new_platform" ,novalidate)
                                             input.form-control(type='text', value='{{item.functionName}}', ng-model='item.functionName')
                                         td
                                             div
-                                                select.form-control(ng-model='item.displayable', style='max-width:300px', required)
+                                                select.form-control(ng-model='item.displayStatus', style='max-width:300px', required)
                                                     option(value=0) {{'NO' | translate}}
                                                     option(value=1) {{'YES' | translate}}
 
@@ -1581,7 +1581,7 @@ form(name="form_new_platform" ,novalidate)
                                         td(colspan=4) {{'ADD' | translate}}
                                     tr(ng-if='!vm.newSpecialModuleSetting.content || vm.newSpecialModuleSetting.content.length == 0 || vm.addNewSpecialModule')
                                         td
-                                            i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.newSpecialModuleSetting.content, {displayable: vm.newDisplayable, functionId: vm.newFunctionId, functionName: vm.newFunctionName}); vm.newFunctionId=""; vm.newFunctionName=""; vm.newDisplayable="";')
+                                            i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.newSpecialModuleSetting.content, {displayStatus: vm.newDisplayable, functionId: vm.newFunctionId, functionName: vm.newFunctionName}); vm.newFunctionId=""; vm.newFunctionName=""; vm.newDisplayable="";')
 
                                         td
                                             input.form-control(type="text", ng-model="vm.newFunctionId")

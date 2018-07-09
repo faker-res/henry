@@ -42,6 +42,7 @@
                                 th(style="width:100px") {{"PROMO_CODE" | translate}}
                                 th {{"SMS_INTERMAIL" | translate}}
                                 th(style="width:80px") {{"ALLOWED_SEND_SMS" | translate}}
+                                th(style="width:150px") {{"REMARKS" | translate}}
                                 th(style="width:20px")
                                     i.fa.fa-plus
                         tbody
@@ -102,6 +103,8 @@
                                     input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "false", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                     text {{'No' | translate}}
                                 td
+                                    input.form-control(style="display:block;overflow:auto;" type='string', ng-model='promoCode.remark', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
+                                td
                                     i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode1, 1)')
 
                     br
@@ -129,6 +132,7 @@
                                 th(style="width:100px") {{"PROMO_CODE" | translate}}
                                 th {{"SMS_INTERMAIL" | translate}}
                                 th(style="width:80px") {{"ALLOWED_SEND_SMS" | translate}}
+                                th(style="width:150px") {{"REMARKS" | translate}}
                                 th(style="width:20px")
                                     i.fa.fa-plus
                         tbody
@@ -187,6 +191,8 @@
                                     input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "false", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                     text {{'No' | translate}}
                                 td
+                                    input.form-control(type='string', ng-model='promoCode.remark', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
+                                td
                                     i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode2, 2)')
                     br
                     .pull-right
@@ -215,6 +221,7 @@
                                 th(style="width:100px") {{"PROMO_CODE" | translate}}
                                 th {{"SMS_INTERMAIL" | translate}}
                                 th(style="width:80px") {{"ALLOWED_SEND_SMS" | translate}}
+                                th(style="width:150px") {{"REMARKS" | translate}}
                                 th(style="width:20px")
                                     i.fa.fa-plus
                         tbody
@@ -276,6 +283,8 @@
                                     br
                                     input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "false", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                     text {{'No' | translate}}
+                                td
+                                    input.form-control(type='string', ng-model='promoCode.remark', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                 td
                                     i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode3, 3)')
                     br

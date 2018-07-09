@@ -144,9 +144,11 @@
             .inlineBlk
                 button.btn.btn-warning(ng-if="checkViewPermission('Platform','Feedback','Export') && !vm.ctiData.hasOnGoingMission", ng-disabled='vm.showExportButton()', ng-click='vm.exportPlayerQuery()') {{"PLAYER_EXPORT_BATCH" | translate}}
             .inlineBlk
-                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission",ng-click='vm.toggleCallOutMissionStatus()') {{"Pause/Resume Mission" | translate}}
+                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission && !vm.showFinishCalloutMissionButton",ng-click='vm.toggleCallOutMissionStatus()') {{"Pause/Resume Mission" | translate}}
             .inlineBlk
-                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission",ng-click='vm.stopCallOutMission()') {{"Stop Mission" | translate}}
+                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission && !vm.showFinishCalloutMissionButton",ng-click='vm.stopCallOutMission()') {{"Stop Mission" | translate}}
+            .inlineBlk
+                button.btn.btn-warning(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton",ng-click='vm.initBulkAddPlayerFeedback()') {{"Failed Call Player Feedback" | translate}}
             .inlineBlk
                 button.btn.btn-success(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton",ng-click='vm.endCallOutMission()') {{"Finish Mission" | translate}}
             span#platformFeedbackSpin.collapse

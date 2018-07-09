@@ -1729,7 +1729,7 @@ let dbPartner = {
             isMatch => {
                 if (isMatch) {
                     partnerObj.password = newPassword;
-                    return partnerObj.save();
+                    return dbconfig.collection_partner.findOneAndUpdate({_id: partnerObj._id, platform: partnerObj.platform}, {password: newPassword}).lean();
                 }
                 else {
                     return Q.reject({
