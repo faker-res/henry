@@ -111,6 +111,35 @@ const dbPlayerUtility = {
         );
     },
 
+    setPhoneNumberState: (phoneNumber, stateName) => {
+        stateName = "last" + stateName;
+
+        let matchQ = {phoneNumber: phoneNumber};
+        let updateQChild = {};
+        updateQChild[stateName] = true;
+        let updateQ = {$currentDate: updateQChild};
+        let offSetTime = new Date() - 1000;
+
+        return dbconfig.collection_phoneNumberState.findOne({phoneNumber: phoneNumber}).lean().then(
+            stateRec => {
+                if (!stateRec) {
+                    return new dbconfig.collection_phoneNumberState(matchQ).save();
+                } else {
+                    if (stateRec[stateName]) {
+                        // Double layer time verification
+                        if (stateRec[stateName].getTime() > offSetTime) {
+                            return false;
+                        } else {
+                            matchQ[stateName] = {$lt: offSetTime};
+                        }
+                    }
+
+                    return dbconfig.collection_phoneNumberState.findOneAndUpdate(matchQ, updateQ, {new: true});
+                }
+            }
+        )
+    },
+
     //endregion
 
     //region Credit
