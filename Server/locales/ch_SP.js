@@ -349,7 +349,8 @@ var simplifiedChinese = {
     "Username must be at least": "用户名必须是至少",
     "Username must be less than": "用户名必须是少过",
     "characters": "位的数字和字母",
-    "Cannot find commission rate, please ensure that you had configure the setting properly.": "使用佣金预测页面必须先设置佣金模式。"
+    "Cannot find commission rate, please ensure that you had configure the setting properly.": "使用佣金预测页面必须先设置佣金模式。",
+    "Error finding reward event": "玩家无此权限"
     //todo::add missing messages here
 
     /*
