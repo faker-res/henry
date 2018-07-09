@@ -13845,9 +13845,8 @@ let dbPlayerInfo = {
         };
 
         if (query.name) {
-            getPlayerProm = dbconfig.collection_players.findOne({name: query.name}, {_id: 1}).lean();
+            getPlayerProm = dbconfig.collection_players.findOne({name: query.name, platform: platform}, {_id: 1}).lean();
         }
-        console.log("debug player report 5", query.name)
 
         return getPlayerProm.then(
             player => {
@@ -13857,9 +13856,6 @@ let dbPlayerInfo = {
                     relevantPlayerQuery.playerId = player._id;
                 }
 
-                console.log("debug player report 6", player)
-                console.log("debug player report 7", relevantPlayerQuery)
-
                 // relevant players are the players who played any game within given time period
                 let playerObjArr = [];
                 return dbconfig.collection_playerConsumptionRecord.aggregate([
@@ -13867,13 +13863,13 @@ let dbPlayerInfo = {
                     {$group: {_id: "$playerId"}}
                 ]).read("secondaryPreferred").then(
                     consumptionData => {
+
                         if (consumptionData && consumptionData.length) {
                             playerObjArr = consumptionData.map(function (playerIdObj) {
                                 return String(playerIdObj._id);
                             });
                         }
-                        console.log("debug player report 1", consumptionData)
-                        console.log("debug player report 2", playerObjArr)
+
                         let proposalQuery = {
                             mainType: {$in: ["PlayerBonus", "TopUp"]},
                             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
@@ -13901,7 +13897,7 @@ let dbPlayerInfo = {
                         for (let j = 0; j < playerObjArr.length; j++) {
                             playerObjArr[j] = ObjectId(playerObjArr[j]);
                         }
-                        console.log("debug player report 3", playerObjArr)
+
                         return playerObjArr;
                     }
                 );
@@ -14083,6 +14079,7 @@ let dbPlayerInfo = {
             );
         }).then(
             () => {
+                console.log("YH-CHECKING----first result", result);
                 // handle index limit sortcol here
                 if (Object.keys(sortCol).length > 0) {
                     result.sort(function (a, b) {
@@ -14124,7 +14121,9 @@ let dbPlayerInfo = {
                 }
 
                 // Output filter promote way
+                console.log("YH-CHECKING----before filtering", result);
                 result = query.csPromoteWay && query.csPromoteWay.length > 0 ? result.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : result;
+                console.log("YH-CHECKING----after filtering", result);
                 result = query.admins && query.admins.length > 0 ? result.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : result;
 
                 result = result.concat(
@@ -14132,6 +14131,7 @@ let dbPlayerInfo = {
                         return result.indexOf(e) === -1;
                     }));
 
+                console.log("YH-CHECKING----final result", result);
                 for (let i = 0, len = limit; i < len; i++) {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
@@ -14521,8 +14521,6 @@ let dbPlayerInfo = {
                     if (!data[5]) {
                         return "";
                     }
-
-                    console.log("debug player report 4", data[0]);
 
                     result.gameDetail = data[0];
                     result.consumptionTimes = 0;

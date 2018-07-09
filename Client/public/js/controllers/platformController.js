@@ -705,8 +705,10 @@ define(['js/app'], function (myApp) {
 
                 if(vm.showPlatform.presetModuleSetting && vm.showPlatform.presetModuleSetting.length > 0){
                     vm.showPlatform.presetModuleSetting.forEach(p => {
+                        if (p && p.hasOwnProperty('displayStatus')){
+                            p.displayStatus = ( p.displayStatus == 0 || p.displayStatus == 1 )? p.displayStatus.toString() : null ;
+                        }
 
-                        p.displayable = ( p.displayable == 0 || p.displayable == 1 )? p.displayable.toString() : null ;
                         vm.presetModuleSettingData.push($.extend({}, p));
                     })
                 }
@@ -725,9 +727,11 @@ define(['js/app'], function (myApp) {
                     if (platformData.data.specialModuleSetting && platformData.data.specialModuleSetting.length > 0){
                         platformData.data.specialModuleSetting.forEach(p => {
 
-                            if (p.content && p.content.length > 0){
+                            if (p && p.content && p.content.length > 0){
                                 p.content.forEach( q => {
-                                    q.displayable = ( q.displayable == 0 || q.displayable == 1 )? q.displayable.toString() : null ;
+                                    if (q && q.hasOwnProperty('displayStatus')) {
+                                        q.displayStatus = ( q.displayStatus == 0 || q.displayStatus == 1 ) ? q.displayStatus.toString() : null;
+                                    }
                                 })
                             }
 
@@ -740,9 +744,11 @@ define(['js/app'], function (myApp) {
                     if(vm.showPlatform.specialModuleSetting && vm.showPlatform.specialModuleSetting.length > 0){
                         vm.showPlatform.specialModuleSetting.forEach(p => {
 
-                            if (p.content && p.content.length > 0){
+                            if (p && p.content && p.content.length > 0){
                                 p.content.forEach( q => {
-                                    q.displayable = ( q.displayable == 0 || q.displayable == 1 )? q.displayable.toString() : null ;
+                                    if (q && q.hasOwnProperty('displayStatus')) {
+                                        q.displayStatus = ( q.displayStatus == 0 || q.displayStatus == 1 ) ? q.displayStatus.toString() : null;
+                                    }
                                 })
                             }
 
@@ -12116,6 +12122,42 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.initBulkAddPlayerFeedback = () => {
+                vm.bulkPlayersToAddFeedback = [];
+                vm.ctiData.callee.map(callee => {
+                    if (callee.status == 2) {
+                        vm.bulkPlayersToAddFeedback.push(callee.player._id)
+                    }
+                });
+                $('#modalBulkAddPlayerFeedback').modal().show()
+            };
+
+            vm.bulkAddPlayerFeedback = () => {
+                vm.bulkPlayersToAddFeedback = vm.bulkPlayersToAddFeedback || [];
+                let resultName = vm.allPlayerFeedbackResults.filter(item => {
+                    return item.key == vm.playerFeedback.result;
+                });
+                resultName = resultName.length > 0 ? resultName[0].value : "";
+                let sendData = {
+                    playerId: vm.bulkPlayersToAddFeedback,
+                    platform: vm.selectedPlatform.id,
+                    createTime: Date.now(),
+                    adminId: authService.adminId,
+                    content: vm.playerFeedback.content,
+                    result: vm.playerFeedback.result,
+                    resultName: resultName,
+                    topic: vm.playerFeedback.topic
+                };
+                console.log('add feedback', sendData);
+                socketService.$socket($scope.AppSocket, 'bulkCreatePlayerFeedback', sendData, function (data) {
+                    console.log('feedbackadded', data);
+                    $scope.$evalAsync(() => {
+                        vm.playerFeedback = {};
+                    });
+                });
+
+            };
+
             vm.updatePartnerFeedback = function () {
                 let resultName = vm.allPartnerFeedbackResults.filter(item => {
                     return item.key === vm.partnerFeedback.result;
@@ -16157,7 +16199,7 @@ define(['js/app'], function (myApp) {
                         vm.playerFeedbackQuery.index = playerFeedbackDetail.index || 0;
                         vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total});
                         vm.feedbackPlayersPara.total = vm.playerFeedbackQuery.total;
-                        vm.showFinishCalloutMissionButton = Boolean(vm.ctiData.status == '3');
+                        vm.showFinishCalloutMissionButton = Boolean(vm.ctiData.status == $scope.constCallOutMissionStatus.FINISHED || vm.ctiData.status == $scope.constCallOutMissionStatus.CANCELLED);
 
                         // let players = [];
                         let completedAmount = 0;
@@ -16197,6 +16239,10 @@ define(['js/app'], function (myApp) {
                             vm.callOutMissionStatusText = $translate("On Going");
                         } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.PAUSED) {
                             vm.callOutMissionStatusText = $translate("Paused");
+                        } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.FINISHED) {
+                            vm.callOutMissionStatusText = $translate("Finished");
+                        } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.CANCELLED) {
+                            vm.callOutMissionStatusText = $translate("Gave Up");
                         }
 
                         $scope.$evalAsync(function () {
