@@ -16159,19 +16159,14 @@ define(['js/app'], function (myApp) {
             };
 
             vm.stopCallOutMission = function() {
+                $('#platformFeedbackSpin').show();
                 socketService.$socket($scope.AppSocket, 'stopCallOutMission', {
                     platformObjId: vm.selectedPlatform.id,
                     missionName: vm.ctiData.missionName
                 }, function (data) {
                     console.log("stopCallOutMission ret" , data);
                     $scope.$evalAsync(function(){
-                        vm.ctiData = {};
-                        vm.feedbackPlayersPara.total = 0;
-                        vm.callOutMissionStatus = "";
-                        setTableData(vm.playerFeedbackTable, []);
-                        vm.drawExtendedFeedbackTable([]);
-                        vm.playerCredibilityComment = [];
-                        vm.curPlayerFeedbackDetail = {};
+                        vm.submitPlayerFeedbackQuery();
                     });
                 });
             };
@@ -16216,6 +16211,8 @@ define(['js/app'], function (myApp) {
                         let completedAmount = 0;
                         vm.callOutMissionStatusText = '';
 
+                        vm.bulkPlayersToAddFeedback = [];
+
                         vm.ctiData.callee.forEach(callee => {
                             if (callee.player) {
                                 callee.player.callOutMissionStatus = callee.status;
@@ -16234,6 +16231,10 @@ define(['js/app'], function (myApp) {
 
                             if (callee.status != 0) {
                                 completedAmount++;
+                            }
+
+                            if (callee.status == 2) {
+                                vm.bulkPlayersToAddFeedback.push(callee.player._id)
                             }
                         });
 
