@@ -12122,6 +12122,42 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.initBulkAddPlayerFeedback = () => {
+                vm.bulkPlayersToAddFeedback = [];
+                vm.ctiData.callee.map(callee => {
+                    if (callee.status == 2) {
+                        vm.bulkPlayersToAddFeedback.push(callee.player._id)
+                    }
+                });
+                $('#modalBulkAddPlayerFeedback').modal().show()
+            };
+
+            vm.bulkAddPlayerFeedback = () => {
+                vm.bulkPlayersToAddFeedback = vm.bulkPlayersToAddFeedback || [];
+                let resultName = vm.allPlayerFeedbackResults.filter(item => {
+                    return item.key == vm.playerFeedback.result;
+                });
+                resultName = resultName.length > 0 ? resultName[0].value : "";
+                let sendData = {
+                    playerId: vm.bulkPlayersToAddFeedback,
+                    platform: vm.selectedPlatform.id,
+                    createTime: Date.now(),
+                    adminId: authService.adminId,
+                    content: vm.playerFeedback.content,
+                    result: vm.playerFeedback.result,
+                    resultName: resultName,
+                    topic: vm.playerFeedback.topic
+                };
+                console.log('add feedback', sendData);
+                socketService.$socket($scope.AppSocket, 'bulkCreatePlayerFeedback', sendData, function (data) {
+                    console.log('feedbackadded', data);
+                    $scope.$evalAsync(() => {
+                        vm.playerFeedback = {};
+                    });
+                });
+
+            };
+
             vm.updatePartnerFeedback = function () {
                 let resultName = vm.allPartnerFeedbackResults.filter(item => {
                     return item.key === vm.partnerFeedback.result;
@@ -16163,7 +16199,7 @@ define(['js/app'], function (myApp) {
                         vm.playerFeedbackQuery.index = playerFeedbackDetail.index || 0;
                         vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total});
                         vm.feedbackPlayersPara.total = vm.playerFeedbackQuery.total;
-                        vm.showFinishCalloutMissionButton = Boolean(vm.ctiData.status == '3');
+                        vm.showFinishCalloutMissionButton = Boolean(vm.ctiData.status == $scope.constCallOutMissionStatus.FINISHED || vm.ctiData.status == $scope.constCallOutMissionStatus.CANCELLED);
 
                         // let players = [];
                         let completedAmount = 0;
@@ -16203,6 +16239,10 @@ define(['js/app'], function (myApp) {
                             vm.callOutMissionStatusText = $translate("On Going");
                         } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.PAUSED) {
                             vm.callOutMissionStatusText = $translate("Paused");
+                        } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.FINISHED) {
+                            vm.callOutMissionStatusText = $translate("Finished");
+                        } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.CANCELLED) {
+                            vm.callOutMissionStatusText = $translate("Gave Up");
                         }
 
                         $scope.$evalAsync(function () {

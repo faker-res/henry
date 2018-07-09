@@ -35,6 +35,7 @@ const dbPartner = require("./../db_modules/dbPartner");
 const qrCode = require('qrcode');
 const http = require('http');
 const https = require('https');
+const localization = require("../modules/localization");
 
 // constants
 const constProposalEntryType = require('../const/constProposalEntryType');
@@ -3359,6 +3360,14 @@ var dbPlatform = {
                         name: "DBError",
                         message: "Platform does not exist"
                     });
+                }
+
+                if(phoneNumber && platformData.blackListingPhoneNumbers){
+                    let indexNo = platformData.blackListingPhoneNumbers.findIndex(p => p == phoneNumber);
+
+                    if(indexNo != -1){
+                        return Q.reject({name: "DataError", message: localization.localization.translate("Invalid phone number, unable to call")});
+                    }
                 }
 
                 platform = platformData;
