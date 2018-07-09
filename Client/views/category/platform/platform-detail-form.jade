@@ -1429,8 +1429,8 @@ form(name="form_new_platform" ,novalidate)
                                 th(colspan = 4) {{"A. "}} {{"PRESET_MODULE" |translate}}
                             tr
                                 th(style="width: 20%", ng-if='!vm.isNotAllowEdit') {{"ACTION_BUTTON" | translate}}
-                                th(style="width: 20%;") {{"Display ID" | translate}}
-                                th(style="width: 40%;") {{"Display Title" | translate}}
+                                th(style="width: 20%;") {{"FUNCTION ID" | translate}}
+                                th(style="width: 40%;") {{"FUNCTION NAME" | translate}}
                                 th(style="width: 20%;") {{"DISPLAYABLE" | translate}}
                         tbody
                             tr(ng-repeat= 'item in vm.presetModuleSettingData')
@@ -1470,8 +1470,8 @@ form(name="form_new_platform" ,novalidate)
 
 
             #specialModulePanel.panel-body(ng-if="vm.moduleDisplayDataTab === 'specialModulePanel'", style="background-color: white;")
-                div.col-md-6(ng-repeat= '(i,v) in vm.specialModuleSettingData', style="float:none; display: inline-block; vertical-align: top; margin-bottom: 40px;")
-                    button(style= 'width:20px; height:20px; background-color:#337ab7;', class='fa fa-times close', ng-click='vm.removeModule(v._id, i)')
+                div.col-md-6(ng-repeat= '(i,v) in vm.specialModuleSettingData', style="float:none; display: inline-block; vertical-align: top; margin-bottom: 40px; margin-top: 30px")
+                    button(ng-if='!vm.isNotAllowEdit' style= 'width:20px; height:20px; background-color:#337ab7;', class='fa fa-times close', ng-click='vm.removeModule(v._id, i)')
                     table.simple-table
                         thead
                             tr
