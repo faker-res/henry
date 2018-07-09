@@ -30,13 +30,11 @@ var PartnerServiceImplement = function () {
     };
 
     this.updatePartner.onRequest = function (wsFunc, conn, data) {
-        console.log("updatePartner#1", data);
         var isValidData = Boolean(data && data.partnerName && data.platform != null && data.updateData);
-        // if (!isValidData) {
-        //     errorUtils.logMigrationDataInvalidError(this, data);
-        // }
+        if (!isValidData) {
+            errorUtils.logMigrationDataInvalidError(this, data);
+        }
         data.partnerName = String(data.partnerName).toLowerCase();
-        console.log("updatePartner#2", isValidData);
         WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.updatePartner, [data], isValidData);
     };
 
