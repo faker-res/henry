@@ -12145,8 +12145,9 @@ define(['js/app'], function (myApp) {
                 console.log('add feedback', sendData);
                 socketService.$socket($scope.AppSocket, 'bulkCreatePlayerFeedback', sendData, function (data) {
                     console.log('feedbackadded', data);
-                    vm.playerFeedback = {};
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {
+                        vm.playerFeedback = {};
+                    });
                 });
 
             };
