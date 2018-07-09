@@ -1221,7 +1221,7 @@
                     select.spicker.form-control(ng-model='vm.feedbackQuery.roles', multiple, data-actions-box='true' data-width="200px", ng-change="vm.setQueryAdmins(vm.feedbackQuery)", ng-options='a._id as a.roleName | translate for (i,a) in vm.queryRoles', bsp)
                 div
                     label {{"FEEDBACK_ADMIN"|translate}}
-                    select.spicker.form-control(ng-model='vm.feedbackQuery.admins', multiple, data-actions-box='true', data-width="200px", ng-options='a._id != "" as a.adminName | translate for (i,a) in vm.queryAdmins', bsp)
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.admins', multiple, data-actions-box='true', data-width="200px", ng-options='a._id as a.adminName | translate for (i,a) in vm.queryAdmins', bsp)
                 div
                     label {{"CREDIBILITY"|translate}}
                     select.spicker.form-control(ng-model='vm.feedbackQuery.credibility', multiple, data-actions-box='true', ng-options='a._id as a.name for (i,a) in vm.filterCredibilityRemarks', bsp)
