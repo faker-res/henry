@@ -229,6 +229,7 @@
                                 strong.text-danger {{vm.selectedPlatform.text}} ?
                         include ./platform-detail-form
             .modal-footer
+                button.btn.btn-primary.common-button( ng-if=" !vm.platformAction && vm.selectedPlatformDetailTab == 'frontend-module-setting' && vm.moduleDisplayDataTab === 'specialModulePanel' && !vm.addNewSpecialModule", ng-click="vm.addNewSpecialModule = true; vm.setPlatformFooter('save')") {{ 'ADD NEW MODULE' | translate}}
                 button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('create');vm.initPlatform(true);vm.clearShowPlatform();", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction&&vm.playerDisplayDataTab != 'advertisementPanel' && vm.selectedPlatformDetailTab!='frontend-module-setting'") {{"CREATE" | translate}}
                 button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('delete')", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction && vm.playerDisplayDataTab != 'advertisementPanel' && vm.partnerDisplayDataTab != 'partnerAdvertisementPanel' && vm.selectedPlatformDetailTab!='frontend-module-setting' ") {{"DELETE" | translate}}
                 button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('edit');vm.initPlatform(true);vm.updatePlatformConfig();", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction&&vm.playerDisplayDataTab != 'advertisementPanel'") {{"EDIT" | translate}}

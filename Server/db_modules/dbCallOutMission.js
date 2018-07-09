@@ -150,7 +150,7 @@ let dbCallOutMission = {
             }
         ).then(
             () => {
-                return dbconfig.collection_callOutMission.findOneAndUpdate({_id: mission._id}, {status: constCallOutMissionStatus.CANCELLED, isUsing: false}, {new: true}).lean();
+                return dbconfig.collection_callOutMission.findOneAndUpdate({_id: mission._id}, {status: constCallOutMissionStatus.CANCELLED}, {new: true}).lean();
             }
         );
     },
@@ -417,7 +417,7 @@ function getCalleeList (query, sortCol) {
 
 function getCtiUrls (platformId) {
     platformId = platformId ? String(platformId) : "10";
-    // platformId = 10; // debug param, use this when testing on local
+    platformId = 10; // debug param, use this when testing on local
 
     let urls = [
         "http://jsh.tel400.me/cti/",

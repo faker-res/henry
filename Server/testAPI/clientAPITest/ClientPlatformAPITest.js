@@ -162,6 +162,15 @@
         });
     };
 
+    proto.getTemplateSetting = function (callback, requestData) {
+        this._service.getTemplateSetting.request(requestData);
+        this._service.getTemplateSetting.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     if (isNode) {
         module.exports = ClientPlatformAPITest;
     } else {

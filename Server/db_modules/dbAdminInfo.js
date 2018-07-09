@@ -399,7 +399,7 @@ var dbAdminInfo = {
         return dbconfig.collection_systemLog.find(query).sort({operationTime: -1}).limit(limit).exec();
     },
 
-    getActionLogPageReport: function (action, admin, player, startTime, endTime, index, limit, sortCol) {
+    getActionLogPageReport: function (action, admin, player, startTime, endTime, index, limit, sortCol, platformObjId) {
         var query = {};
         var sortCol = sortCol || {operationTime: -1}
         index = index || 0;
@@ -422,7 +422,12 @@ var dbAdminInfo = {
                 query.action = {$in: action};
             }
         }
-        var a = dbconfig.collection_systemLog.find(query).sort(sortCol).skip(index).limit(limit).exec();
+        if(platformObjId) {
+            query.platforms = platformObjId
+        }
+
+        var a = dbconfig.collection_systemLog.find(query).sort(sortCol).skip(index).limit(limit)
+            .populate({path: "platforms", model: dbconfig.collection_platform, select: "name"});
         var b = dbconfig.collection_systemLog.find(query).count();
         return Q.all([a, b]).then(
             data => {

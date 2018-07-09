@@ -67,7 +67,7 @@ function socketActionDepartment(socketIO, socket) {
         deleteDepartmentsById: function deleteDepartmentsById(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data._ids);
-            socketUtil.emitter(self.socket, dbDepartment.removeDepartmentsById, [data._ids], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbDepartment.removeDepartmentsById, [data._ids, data.departmentName], actionName, isValidData);
         },
 
         /**
@@ -178,7 +178,7 @@ function socketActionDepartment(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data && data.departmentId  && data.newParentId
                                       && (data.curParentId != data.newParentId) && (data.departmentId != data.newParentId));
-            socketUtil.emitter(self.socket, dbDepartment.updateDepartmentParent, [data.departmentId, data.curParentId, data.newParentId], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbDepartment.updateDepartmentParent, [data.departmentId, data.curParentId, data.newParentId, data.departmentName], actionName, isDataValid);
         },
 
         /**

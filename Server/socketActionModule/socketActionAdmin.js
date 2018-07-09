@@ -151,7 +151,7 @@ function socketActionAdmin(socketIO, socket) {
         deleteAdminInfosById: function deleteAdminInfosById(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data._ids);
-            socketUtil.emitter(self.socket, dbAdminInfo.removeAdminInfosById, [data._ids], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbAdminInfo.removeAdminInfosById, [data._ids, data.selectedUsers], actionName, isValidData);
         },
 
         /**
@@ -222,7 +222,7 @@ function socketActionAdmin(socketIO, socket) {
         updateAdminDepartment: function updateAdminDepartment(data) {
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data && data.adminId && data.curDepartmentId && data.newDepartmentId && (data.curDepartmentId != data.newDepartmentId));
-            socketUtil.emitter(self.socket, dbAdminInfo.updateAdminDepartment, [data.adminId, data.curDepartmentId, data.newDepartmentId], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbAdminInfo.updateAdminDepartment, [data.adminId, data.curDepartmentId, data.newDepartmentId, data.adminName], actionName, isDataValid);
         },
 
         /**
@@ -238,7 +238,7 @@ function socketActionAdmin(socketIO, socket) {
         getActionLogPageReport: function getActionLogPageReport(data) {
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data);
-            socketUtil.emitter(self.socket, dbAdminInfo.getActionLogPageReport, [data.action, data.admin, data.player, data.startTime, data.endTime, data.index, data.limit, data.sortCol], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbAdminInfo.getActionLogPageReport, [data.action, data.admin, data.player, data.startTime, data.endTime, data.index, data.limit, data.sortCol, data.platformObjId], actionName, isDataValid);
         },
 
         /**
@@ -254,7 +254,7 @@ function socketActionAdmin(socketIO, socket) {
             var actionName = arguments.callee.name;
             var randomPSW = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
             var isValidData = Boolean(data && data.adminId);
-            socketUtil.emitter(self.socket, dbAdminInfo.resetAdminPassword, [data.adminId, randomPSW], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbAdminInfo.resetAdminPassword, [data.adminId, randomPSW, data.adminName], actionName, isValidData);
         },
 
         getAdminNameByDepartment: function getAdminNameByDepartment(data) {

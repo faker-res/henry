@@ -654,7 +654,19 @@ let dbPlayerInfo = {
             ).then(
                 data => {
                     if (data) {
-                        dbPlayerInfo.createPlayerLoginRecord(data);
+                        // dbPlayerInfo.createPlayerLoginRecord(data);
+                        let newPlayerData = data;
+
+                        newPlayerData.password = inputData.password ? inputData.password : (newPlayerData.password || "");
+                        newPlayerData.inputDevice = inputData.inputDevice ? inputData.inputDevice : (newPlayerData.inputDevice || "");
+                        newPlayerData.platformId = platformId ? platformId : (newPlayerData.platformId || "");
+                        newPlayerData.name = platformPrefix ? newPlayerData.name.replace(platformPrefix, '') : (newPlayerData.name || "");
+                        newPlayerData.ua = inputData.ua ? inputData.ua : (newPlayerData.userAgent || "");
+                        newPlayerData.mobileDetect = inputData.md ? inputData.md : (newPlayerData.mobileDetect || "");
+
+                        //after created new player, need to create login record and apply login reward
+                        dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect);
+
                         //todo::temp disable similar player untill ip is correct
                         if (data.lastLoginIp && data.lastLoginIp != "undefined") {
                             dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
@@ -13833,7 +13845,7 @@ let dbPlayerInfo = {
         };
 
         if (query.name) {
-            getPlayerProm = dbconfig.collection_players.findOne({name: query.name}, {_id: 1}).lean();
+            getPlayerProm = dbconfig.collection_players.findOne({name: query.name, platform: platform}, {_id: 1}).lean();
         }
 
         return getPlayerProm.then(
@@ -13851,11 +13863,13 @@ let dbPlayerInfo = {
                     {$group: {_id: "$playerId"}}
                 ]).read("secondaryPreferred").then(
                     consumptionData => {
+
                         if (consumptionData && consumptionData.length) {
                             playerObjArr = consumptionData.map(function (playerIdObj) {
                                 return String(playerIdObj._id);
                             });
                         }
+
                         let proposalQuery = {
                             mainType: {$in: ["PlayerBonus", "TopUp"]},
                             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
@@ -13883,6 +13897,7 @@ let dbPlayerInfo = {
                         for (let j = 0; j < playerObjArr.length; j++) {
                             playerObjArr[j] = ObjectId(playerObjArr[j]);
                         }
+
                         return playerObjArr;
                     }
                 );
@@ -14064,6 +14079,7 @@ let dbPlayerInfo = {
             );
         }).then(
             () => {
+                console.log("YH-CHECKING----first result", result);
                 // handle index limit sortcol here
                 if (Object.keys(sortCol).length > 0) {
                     result.sort(function (a, b) {
@@ -14105,7 +14121,9 @@ let dbPlayerInfo = {
                 }
 
                 // Output filter promote way
+                console.log("YH-CHECKING----before filtering", result);
                 result = query.csPromoteWay && query.csPromoteWay.length > 0 ? result.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : result;
+                console.log("YH-CHECKING----after filtering", result);
                 result = query.admins && query.admins.length > 0 ? result.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : result;
 
                 result = result.concat(
@@ -14113,6 +14131,7 @@ let dbPlayerInfo = {
                         return result.indexOf(e) === -1;
                     }));
 
+                console.log("YH-CHECKING----final result", result);
                 for (let i = 0, len = limit; i < len; i++) {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
@@ -17446,8 +17465,9 @@ function determineRegistrationInterface(inputData, adminName, adminId) {
         inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
     }
 
-    if (inputData.registrationInterface !== constPlayerRegistrationInterface.BACKSTAGE) {
-        inputData.loginTimes = 1;
+    //after created a new player in other interface, login record is created
+    if (inputData.registrationInterface === constPlayerRegistrationInterface.BACKSTAGE) {
+        inputData.loginTimes = 0;
     }
     else if (adminName) {
         // insert related CS name when account is opened from backstage

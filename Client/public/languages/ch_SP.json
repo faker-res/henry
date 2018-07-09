@@ -1669,7 +1669,7 @@
   "LOGOFF": "注销",
   "forbidPlayerFromLogin": "登入网站",
   "forbidPartnerFromLogin": "登入网站",
-  "Partner is forbidden to apply bonus": "代理被禁止提款",
+  "Partner is forbidden to apply bonus": "您暂时被禁止提款，请联系代理经理",
   "forbidPlayerFromEnteringGame" : "登入游戏",
   "CHEAT_NEW_ACCOUNT_REWARD": "骗开户优惠",
   "TOPUP_ATTENTION": "存款留意",
@@ -3301,8 +3301,15 @@
   "Player does not have permission for this limited offer. Please contact cs for more detail.": "玩家无参加秒杀礼包的权限，详情请联系客服。",
   "Convert reward points amount must greater than 0": "兑换积分的数量必须大于0",
   "PLATFORM_ID": "平台ID（唯一、不可更改）",
+  "FUNCTION ID": "功能ID",
+  "FUNCTION NAME": "功能名称",
+  "DOMAIN NAME": "域名",
   "DELETE_ADVERTISEMENT": "删除广告",
+  "DELETE_SPECIAL_MODULE_SETTING": "删除特殊模板",
   "Confirm to delete advertisement ?": "确定删除广告？",
+  "Confirm to delete this special module setting ?": "确定删除这个特殊模板 ？",
+  "ADD NEW MODULE": "新增特殊模板",
+  "'S DOMAIN_NAME": "的域名",
   "Confirm to turn advertisement on ?": "确定开启广告？",
   "Confirm to turn advertisement off ?": "确定关闭广告？",
   "ANY_PAGE": "任一页面",
@@ -3865,6 +3872,9 @@
   "REGISTRATION_URL": "开户网址",
   "On Going": "拨号中",
   "Paused": "暂停中",
+  "Gave Up": "已放弃",
+  "Finished": "已完成",
+  "Failed Call Player Feedback": "添加播电失败玩家的回访",
   "PLATFORM_SHORTFORM": "平台缩写（与结算共用的名称如：PA）",
   "CALL_REQUEST_URL_CONFIG": "请求回电域名配置（与运维确认）",
   "LINE_ID_CUSTOM": "线路ID（自定义）",
@@ -3909,6 +3919,7 @@
   "FRONT_END_STATUS": "前端状态",
   "UNREAD": "未读",
   "EDIT_ALL_FEE_RATE": "编辑所有费用比例",
-  "EDIT_ALL_COMMISSION_RATE": "编辑所有佣金比例"
+  "EDIT_ALL_COMMISSION_RATE": "编辑所有佣金比例",
+  "phoneFilterConfig": "黑白名单设置"
 
 }
