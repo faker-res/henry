@@ -1381,10 +1381,11 @@ let dbPlayerCreditTransfer = {
                 console.log("transfer in gameProviderGroup", gameProviderGroup)
                 // Calculate total amount needed to transfer to CPMS
                 transferAmount = validTransferAmount + lockedTransferAmount;
-                transferWallet[0] = validTransferAmount;
-                if(!transferWallet.hasOwnProperty(gameProviderGroup.ebetWallet)) {
+                transferWallet[0] = 0;
+                if(gameProviderGroup.hasOwnProperty('ebetWallet')) {
                     transferWallet[gameProviderGroup.ebetWallet] = 0;
                 }
+                transferWallet[0] += validTransferAmount;
                 transferWallet[gameProviderGroup.ebetWallet] += lockedTransferAmount;
 
                 // Check player have enough credit
