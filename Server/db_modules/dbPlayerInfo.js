@@ -647,7 +647,13 @@ let dbPlayerInfo = {
                 }
             ).then(
                 data => {
-                    inputData = determineRegistrationInterface(inputData, adminName, adminId);
+                    inputData = determineRegistrationInterface(inputData);
+
+                    if (adminName && adminId) {
+                        // note that it is always backstage create when adminName is exist
+                        inputData.accAdmin = adminName;
+                        inputData.csOfficer = ObjectId(adminId);
+                    }
 
                     return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate);
                 }
@@ -665,7 +671,9 @@ let dbPlayerInfo = {
                         newPlayerData.mobileDetect = inputData.md ? inputData.md : (newPlayerData.mobileDetect || "");
 
                         //after created new player, need to create login record and apply login reward
-                        dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect);
+                        if (!adminName) { // except the case where player is created on backstage (by admin)
+                            dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect);
+                        }
 
                         //todo::temp disable similar player untill ip is correct
                         if (data.lastLoginIp && data.lastLoginIp != "undefined") {
@@ -4507,9 +4515,9 @@ let dbPlayerInfo = {
 
                     newAgentArray = playerObj.userAgent || [];
                     uaObj = {
-                        browser: userAgent.browser.name || '',
-                        device: userAgent.device.name || (mobileDetect && mobileDetect.mobile()) ? mobileDetect.mobile() : 'PC',
-                        os: userAgent.os.name || '',
+                        browser: userAgent && userAgent.browser && userAgent.browser.name || '',
+                        device: userAgent && userAgent.device && userAgent.device.name || (mobileDetect && mobileDetect.mobile()) ? mobileDetect.mobile() : 'PC',
+                        os: userAgent && userAgent.os && userAgent.os.name || '',
                     };
                     var bExit = false;
                     if (newAgentArray && typeof newAgentArray.forEach == "function") {
@@ -17420,7 +17428,7 @@ function checkPhoneNumberWhiteList(inputData, platformObj) {
 
 }
 
-function determineRegistrationInterface(inputData, adminName, adminId) {
+function determineRegistrationInterface(inputData) {
     if (inputData.domain && inputData.domain.indexOf('fpms8') !== -1) {
         inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
     }
@@ -17453,16 +17461,6 @@ function determineRegistrationInterface(inputData, adminName, adminId) {
     }
     else {
         inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
-    }
-
-    //after created a new player in other interface, login record is created
-    if (inputData.registrationInterface === constPlayerRegistrationInterface.BACKSTAGE) {
-        inputData.loginTimes = 0;
-    }
-    else if (adminName) {
-        // insert related CS name when account is opened from backstage
-        inputData.accAdmin = adminName;
-        inputData.csOfficer = ObjectId(adminId);
     }
 
     return inputData;
