@@ -6210,7 +6210,7 @@ let dbPartner = {
         );
     },
 
-    getCurrentPartnerCommissionDetail: function (platformObjId, commissionType, partnerName) {
+    getCurrentPartnerCommissionDetail: function (platformObjId, commissionType, partnerName, startTime, endTime) {
         let result = [];
         let query = {platform: platformObjId};
         commissionType = commissionType || constPartnerCommissionType.DAILY_BONUS_AMOUNT;
@@ -6238,6 +6238,8 @@ let dbPartner = {
                         }
                         request("player", "getCurrentPartnersCommission", {
                             commissionType: commissionType,
+                            startTime: startTime,
+                            endTime: endTime,
                             partnerObjIdArr: partners.map(function (partner) {
                                 return partner._id;
                             })
@@ -6255,8 +6257,12 @@ let dbPartner = {
         )
     },
 
-    generateCurrentPartnersCommissionDetail: function (partnerObjIds, commissionType) {
+    generateCurrentPartnersCommissionDetail: function (partnerObjIds, commissionType, startTime, endTime) {
         let currentPeriod = getCurrentCommissionPeriod(commissionType);
+
+        if (startTime && endTime) {
+            currentPeriod = {startTime, endTime};
+        }
 
         let proms = [];
 
@@ -8660,8 +8666,38 @@ let dbPartner = {
 
         return Promise.all(proms);
     },
+
+    getPreviousCommissionPeriod: (pastX, partnerName, commissionType) => {
+        if (partnerName) {
+            return dbconfig.collection_partner.findOne({partnerName: partnerName}, {commissionType: 1}).lean().then(
+                partner => {
+                    if (!partner) {
+                        return Promise.reject({message: "Partner not found."});
+                    }
+
+                    return getPreviousNCommissionPeriod(partner.commissionType, Number(pastX));
+                }
+            );
+        }
+        else if (commissionType) {
+            return getPreviousNCommissionPeriod(commissionType, Number(pastX));
+        }
+        else {
+            return Promise.reject({message: "Please insert either commission type or partner name for search."});
+        }
+    },
 };
 
+function getPreviousNCommissionPeriod (commissionType, n) {
+    n = n > 987 ? 987 : n;
+    let commissionPeriod = getCurrentCommissionPeriod(commissionType);
+
+    for (let i = 0; i < n; i++) {
+        commissionPeriod = getPreviousCommissionPeriod (commissionType, commissionPeriod);
+    }
+
+    return commissionPeriod;
+}
 
 function calculateRawCommission (totalDownLineConsumption, commissionRate) {
     return Number(totalDownLineConsumption) * Number(commissionRate);
