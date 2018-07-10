@@ -584,7 +584,6 @@ var dbQualityInspection = {
 
             console.log("SELECT * FROM chat_content WHERE " + queryObj + excludeMongoQuery + paginationQuery);
             connection.query("SELECT store_time,company_id,msg_id,operator_id,operator_name,content, close_reason, close_name FROM chat_content WHERE " + queryObj + excludeMongoQuery + " ORDER BY store_time " + paginationQuery, function (error, results, fields) {
-            //connection.query("SELECT * FROM chat_content WHERE " + queryObj + excludeMongoQuery + " ORDER BY store_time " + paginationQuery, function (error, results, fields) {
                 if (error) {
                     console.log(error)
                 }
