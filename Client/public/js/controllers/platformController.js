@@ -1214,6 +1214,9 @@ define(['js/app'], function (myApp) {
                     case "Feedback":
                         vm.initPlayerFeedback();
                         break;
+                    case "AutoFeedback":
+                        // vm.initPlayerFeedback();
+                        break;
                     case "FeedbackAdmin":
                         initFeedbackAdmin();
                         break;

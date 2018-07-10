@@ -65,6 +65,10 @@
                             a.common-tab(data-toggle="tab", href="#Feedback", ng-click="vm.loadTab('Feedback');")
                                 .fa.fa-volume-control-phone.margin-right-5
                                 text.span {{"FEEDBACK" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'AutoFeedback', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#AutoFeedback", ng-click="vm.loadTab('AutoFeedback');")
+                                .fa.fa-volume-control-phone.margin-right-5
+                                text.span {{"AUTO_FEEDBACK" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'FeedbackQuery', 'Read')")
                             a.common-tab(data-toggle="tab", href="#FeedbackAdmin", ng-click="vm.loadTab('FeedbackAdmin');")
                                 .fa.fa-volume-control-phone.margin-right-5
@@ -144,6 +148,8 @@
                             include ./platform-game
                         #Feedback.tab-pane.fade
                             include ./platform-feedback
+                        #AutoFeedback.tab-pane.fade
+                            include ./platform-auto-feedback
                         #FeedbackAdmin.tab-pane.fade
                             include ./platform-feedbackAdmin
                         #GameGroup.tab-pane.fade

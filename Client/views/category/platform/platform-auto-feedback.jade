@@ -1,0 +1,137 @@
+style.
+    .bg-secondary {
+        background-color: #868E96;
+    }
+.row
+    .col-md-12
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedAutoFeedbackTab === "create"}', ng-click='vm.autoFeedbackTabClicked("create")')
+            span {{"Create Feedback Mission" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedAutoFeedbackTab === "overview"}', ng-click='vm.autoFeedbackTabClicked("overview")')
+            span {{"Feedback Mission Overview" | translate}}
+
+    //.col-md-12
+        .panel.panel-primary
+            .panel-heading.panel-heading-sm
+                label {{"rewardPoint" | translate}}
+            .panel-body.common-right-sub-panel-body(ng-if="!vm.curPlatformText")
+            .panel-body.common-right-sub-panel-body(ng-if="vm.curPlatformText")
+                .text-center(ng-if='!vm.selectedRewardPointTab')
+                    label.text-danger {{'Please select a type' | translate}}
+
+                // Tab - rewardPointsRule
+                div#createPromoCodePage(ng-if='vm.selectedRewardPointTab=="rewardPointsRule" && checkViewPermission("Platform", "rewardPoints", "rewardPointsRule")')
+                    .full-width-input-block
+                        label {{"intervalPeriod" | translate}}
+                        select.form-control(ng-model='vm.rewardPointsLvlConfig.intervalPeriod' ng-change='vm.rewardPointsLvlConfigPeriodChange()' ng-options="+(i) as v | translate for (i,v) in constRewardPointsIntervalPeriod" ng-disabled='!vm.isRewardPointsLvlConfigEditing', required)
+                    .full-width-input-block(style='padding-left:50%' ng-if="vm.rewardPointsLvlConfig.intervalPeriod==6")
+                        div.dateTimePicker(id="rewardPointsLvlConfigStartDate" style="display: inline-block; width: 48%" ng-if="vm.rewardPointsLvlConfig.intervalPeriod==6")
+                        span(ng-if="vm.rewardPointsLvlConfig.intervalPeriod==6" style='font-size:23px') &nbsp;{{ 'to' | translate}}&nbsp;
+                        div.dateTimePicker(id="rewardPointsLvlConfigEndDate" style="display: inline-block; width: 48%" ng-if="vm.rewardPointsLvlConfig.intervalPeriod==6")
+                    .full-width-input-block
+                        label {{"applyMethod" | translate}}
+                        select.form-control(ng-model='vm.rewardPointsLvlConfig.applyMethod' ng-options="+(i) as v | translate for (i,v) in constRewardPointsApplyMethod" ng-disabled='!vm.isRewardPointsLvlConfigEditing', required)
+                    br
+                    br
+                    table.simple-table(style="width:100%")
+                        thead
+                            tr
+                                th {{'playerLevel' | translate}}
+                                th {{'dailyMaxPoints' | translate}}
+                                th {{'pointToCreditManualRate (N points : 1 Credit)' | translate}}
+                                th {{'pointToCreditManualMaxPoints' | translate}}
+                                th {{'pointToCreditAutoRate (N points : 1 credit)' | translate}}
+                                th {{'pointToCreditAutoMaxPoints' | translate}}
+                                th {{'spendingAmountOnReward' | translate}}
+                                th {{'providerGroup' | translate}}
+                        tbody
+                            tr(ng-repeat='(idx,val) in vm.rewardPointsLvlConfig.params')
+                                td(ng-repeat='(k,v) in vm.allPlayerLvl' ng-if='val.levelObjId==v._id') {{v.name}}
+                                td
+                                    input.form-control(type='number' ng-model='val.dailyMaxPoints' ng-disabled='!vm.isRewardPointsLvlConfigEditing')
+                                td
+                                    input.form-control(type='number' ng-model='val.pointToCreditManualRate' ng-disabled='!vm.isRewardPointsLvlConfigEditing')
+                                td
+                                    input.form-control(type='number' ng-model='val.pointToCreditManualMaxPoints' ng-disabled='!vm.isRewardPointsLvlConfigEditing')
+                                td
+                                    input.form-control(type='number' ng-model='val.pointToCreditAutoRate' ng-disabled='!vm.isRewardPointsLvlConfigEditing')
+                                td
+                                    input.form-control(type='number' ng-model='val.pointToCreditAutoMaxPoints' ng-disabled='!vm.isRewardPointsLvlConfigEditing')
+                                td
+                                    input.form-control(type='number' ng-model='val.spendingAmountOnReward' ng-disabled='!vm.isRewardPointsLvlConfigEditing')
+                                td
+                                    select.form-control(ng-model="val.providerGroup" ng-options="v._id as v.name | translate for (i,v) in vm.gameProviderGroup" ng-disabled='!vm.isRewardPointsLvlConfigEditing')
+                                        option(value='') {{'LOCAL_CREDIT' | translate}}
+                    br
+                    .pull-right
+                        button.btn.btn-danger.common-button(ng-if='vm.isRewardPointsLvlConfigEditing' ng-click='vm.rewardPointsLvlConfigSetDisable(true);vm.rewardPointsTabClicked("rewardPointsRule")') {{'CANCEL' | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.isRewardPointsLvlConfigEditing' ng-click='vm.rewardPointsLvlConfigSubmit()') {{'CONFIRM' | translate}}
+                        button.btn.btn-primary.common-button(ng-if='!vm.isRewardPointsLvlConfigEditing' ng-click='vm.rewardPointsLvlConfigSetDisable(false);')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+
+
+                // Tab - loginRewardPoints
+                div#createLoginRewardPoints(ng-if='vm.selectedRewardPointTab=="loginRewardPoints" && checkViewPermission("Platform", "rewardPoints", "loginRewardPoints")')
+                    table.simple-table(style="width:100%")
+                        thead
+                            tr
+                                th {{'rewardPointsCategory' | translate}}
+                                th {{'LEVEL' | translate}}↑
+                                th {{'refreshPeriod' | translate}}
+                                th {{'displayOrder' | translate}}
+                                th {{'userAgent' | translate}}
+                                th {{'targetDestination' | translate}}
+                                th {{'consecutiveCount' | translate}}
+                                th {{'rewardPoints' | translate}}
+                                th {{'rewardTitle' | translate}}
+                                th {{'rewardContent' | translate}}
+                                th
+                        tbody
+                            tr(ng-repeat="(idx,val) in vm.rewardPointsEvent | orderBy: 'index'" ng-class="{'bg-secondary': !val.status}")
+                                td {{'loginRewardPoints' | translate}}
+                                td(style="min-width:80px;")
+                                    select.form-control(ng-model="val.level" ng-disabled='!val.isEditing')
+                                        option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
+                                td(style="min-width:150px;")
+                                    select.form-control(ng-model='val.period' ng-change='vm.rewardPointsEventPeriodChange(idx,val)' ng-options="+(i) as v | translate for (i,v) in constRewardPointsIntervalPeriod" ng-disabled='!val.isEditing' required)
+                                    br(ng-if="val.period==6")
+                                    div.dateTimePicker(id="rewardPointsEventStartDate-{{idx}}" style="display: inline-block" ng-if="val.period==6")
+                                    div(ng-if="val.period==6") {{ 'to' | translate}}
+                                    div.dateTimePicker(id="rewardPointsEventEndDate-{{idx}}" style="display: inline-block" ng-if="val.period==6")
+                                td(style="min-width:80px;")
+                                    input.form-control(type='number' style="width:100%;" ng-model='val.index' ng-disabled='!val.isEditing')
+                                td(style="min-width:150px;")
+                                    select.form-control(ng-model='val.userAgent' ng-options="+(i) as v | translate for (i,v) in vm.userAgentWithSelectAll" ng-disabled='!val.isEditing')
+                                td
+                                    select.spicker.form-control(ng-model="val.target.targetDestination" multiple, data-container="body" data-width='100%' data-actions-box='true' ng-disabled='!val.isEditing')
+                                        option(style="display: inline-block" value='') {{"ANY_PAGE" | translate}}
+                                        option(style="display: inline-block" ng-repeat='(i,v) in vm.allGameProviders', value='{{v._id}}') {{v.name}}
+                                td(style="min-width:60px;")
+                                    input.form-control(type='number' ng-model='val.consecutiveCount' ng-disabled='!val.isEditing')
+                                td(style="min-width:80px;")
+                                    input.form-control(type='number' ng-model='val.rewardPoints' ng-disabled='!val.isEditing')
+                                td(style="min-width:150px;")
+                                    input.form-control(type='text' ng-model='val.rewardTitle' ng-disabled='!val.isEditing' required)
+                                td(style="min-width:200px;")
+                                    input.form-control(type='text' ng-model='val.rewardContent' ng-disabled='!val.isEditing')
+                                td(style="min-width:200px;")
+                                    button.btn.btn-primary(ng-if='val.isEditing && !val._id' ng-click='vm.createRewardPointsEvent(val);vm.endLoadWeekDay();' ng-disabled='!val.rewardTitle' style='margin: 0 5px;') {{'CONFIRM' | translate}}
+                                    button.btn.btn-primary(ng-if='val.isEditing && val._id' ng-click='vm.updateRewardPointsEvent(idx,val);' ng-disabled='!val.rewardTitle' style='margin: 0 5px;') {{'CONFIRM' | translate}}
+                                    button.btn.btn-danger(ng-if='val.isEditing' ng-click='vm.rewardPointsEventSetDisable(idx,val,true);vm.rewardPointsEventReset(idx);' style='margin: 0 5px;') {{'CANCEL' | translate}}
+                                    button.btn.btn-primary(ng-if='!val.isEditing' ng-click='vm.rewardPointsEventSetDisable(idx,val,false);' style='margin: 0 5px;') {{'EDIT' | translate}}
+                                    button.btn.btn-danger(ng-if='!val.isEditing' data-toggle="modal", data-target='#modalDeleteRewardPointsEvent' ng-click="vm.deletingRewardPointsEvent=val" style='margin: 0 5px;') {{'DELETE' | translate}}
+                                    button.btn(class="{{val.status? 'btn-danger':'btn-success'}}" ng-if='!val.isEditing' ng-click='val.status = !val.status; vm.updateRewardPointsEvent(idx,val);' style='margin: 0px 5px;') {{val.status? 'Closed':'Open' | translate}}
+
+                    br
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-if='!vm.rewardPointsEventUpdateAll' ng-click='vm.rewardPointsEventSetEditStatusAll();')
+                            text {{'EDIT_ALL' | translate}}
+                            img.img-edit
+                        button.btn.btn-primary.common-button(ng-if='vm.rewardPointsEventUpdateAll' ng-click='vm.updateAllRewardPointsEvent();')
+                            text {{'UPDATE_ALL' | translate}}
+                            img.img-edit
+                        button.btn.btn-primary.common-button(ng-click='vm.rewardPointsEventAddNewRow(constRewardPointsTaskCategory.LOGIN_REWARD_POINTS);vm.endLoadWeekDay();')
+                            text {{'ADD' | translate}}
+                            img.img-create
+
+
