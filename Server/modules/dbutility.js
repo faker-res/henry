@@ -973,7 +973,7 @@ var dbUtility = {
         return decodeURIComponent(results[2].replace(/\+/g, " "));
     },
 
-    getInputDevice: function (inputUserAgent, isPartnerProposal) {
+    getInputDevice: function (inputUserAgent, isPartnerProposal, adminInfo) {
         if (Number.isInteger(inputUserAgent)) {
             return inputUserAgent;
         }
@@ -992,6 +992,14 @@ var dbUtility = {
         }];
 
         let inputDevice="";
+
+        function isEmpty(obj) {
+            for(var key in obj) {
+                if(obj.hasOwnProperty(key))
+                    return false;
+            }
+            return true;
+        }
 
         if (userAgentInput && userAgentInput[0] && inputUserAgent) {
             let userAgent = userAgentInput[0];
@@ -1020,8 +1028,15 @@ var dbUtility = {
                 }
             }
         } else {
-            inputDevice = constPlayerRegistrationInterface.BACKSTAGE;
+            if(adminInfo && !isEmpty(adminInfo)){
+                inputDevice = constPlayerRegistrationInterface.BACKSTAGE;
+            }else if (isPartnerProposal) {
+                inputDevice = constPlayerRegistrationInterface.H5_AGENT;
+            }else {
+                inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
+            }
         }
+
         return inputDevice;
     },
     getInputDeviceType: function (inputUserAgent) {
