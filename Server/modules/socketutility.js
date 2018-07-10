@@ -64,7 +64,7 @@ var socketUtility = {
                     function (result) {
                         socket.emit(("_" + event), {success: true, data: result});
 
-                        dblog.createSystemLog(logData);
+                        dblog.createSystemLog(logData, result);
                     }
                 ).catch(
                     function (err) {

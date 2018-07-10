@@ -7352,8 +7352,8 @@ define(['js/app'], function (myApp) {
                         text: "createUpdatePlayerCreditProposal",
                         action: "createUpdatePlayerCreditProposal"
                     },
-                    {group: "PLAYER", text: "Forbid TopUp Types", action: "createForbidTopUpLog"},
-                    {group: "PLAYER", text: "createPlayerFeedback", action: "createPlayerFeedback"},
+                    //{group: "PLAYER", text: "Forbid TopUp Types", action: "createForbidTopUpLog"},
+                    {group: "PLAYER", text: "addPlayerFeedback", action: "createPlayerFeedback"},
 
                     // {group: "PLAYER", text: "updatePlayerStatus", action: "updatePlayerStatus"},
                     // {
