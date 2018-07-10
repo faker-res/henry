@@ -405,6 +405,53 @@ var dbPlayerConsumptionRecord = {
         newRecord.save().then(
             function (data) {
                 record = data;
+                if (record) {
+                    //update player consumption sum
+                    var playerProm = dbconfig.collection_players.findOneAndUpdate(
+                        {_id: record.playerId, platform: record.platformId},
+                        {
+                            $inc: {
+                                consumptionSum: record.validAmount,
+                                dailyConsumptionSum: isSameDay ? record.validAmount : 0,
+                                weeklyConsumptionSum: record.validAmount,
+                                pastMonthConsumptionSum: record.validAmount,
+                                consumptionTimes: 1,
+                                bonusAmountSum: record.bonusAmount,
+                                dailyBonusAmountSum: record.bonusAmount,
+                                weeklyBonusAmountSum: record.bonusAmount,
+                                pastMonthBonusAmountSum: record.bonusAmount,
+                                creditBalance: -record.validAmount
+                            }
+                        }
+                    ).exec();
+                    return playerProm;
+                }
+            },
+            function (error) {
+                deferred.reject({name: "DBError", message: "Error creating consumption record", error: error});
+            }
+        ).then(
+            function (data) {
+                //ensure credit balance isn't less than 0
+                if (record) {
+                    var creditProm = dbconfig.collection_players.findOneAndUpdate(
+                        {_id: record.playerId, platform: record.platformId, creditBalance: {$lt: 0}},
+                        {creditBalance: 0},
+                        {new: true}
+                    ).lean().exec();
+                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).catch(errorUtils.reportError);
+                    return Q.all([creditProm, levelProm]);
+                }
+            },
+            function (error) {
+                deferred.reject({
+                    name: "DBError",
+                    message: "Error in updating player or consumption summary, or in checking reward task",
+                    error: error
+                });
+            }
+        ).then(
+            () => {
                 if (record && !record.bDirty) {
                     //check player's reward task
                     return dbRewardTask.checkPlayerRewardTaskForConsumption(record);
@@ -413,8 +460,8 @@ var dbPlayerConsumptionRecord = {
                     return true;
                 }
             },
-            function (error) {
-                deferred.reject({name: "DBError", message: "Error creating consumption record", error: error});
+            error => {
+                deferred.reject({name: "DBError", message: "Error in checking player level", error: error});
             }
         ).then(
             //check if player has double top up reward and if this consumption record is from double top up reward
@@ -499,53 +546,6 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             function (data) {
-                if (record) {
-                    //update player consumption sum
-                    var playerProm = dbconfig.collection_players.findOneAndUpdate(
-                        {_id: record.playerId, platform: record.platformId},
-                        {
-                            $inc: {
-                                consumptionSum: record.validAmount,
-                                dailyConsumptionSum: isSameDay ? record.validAmount : 0,
-                                weeklyConsumptionSum: record.validAmount,
-                                pastMonthConsumptionSum: record.validAmount,
-                                consumptionTimes: 1,
-                                bonusAmountSum: record.bonusAmount,
-                                dailyBonusAmountSum: record.bonusAmount,
-                                weeklyBonusAmountSum: record.bonusAmount,
-                                pastMonthBonusAmountSum: record.bonusAmount,
-                                creditBalance: -record.validAmount
-                            }
-                        }
-                    ).exec();
-                    return playerProm;
-                }
-            },
-            function (error) {
-                deferred.reject({name: "DBError", message: "Error in creating player consumption", error: error});
-            }
-        ).then(
-            function (data) {
-                //ensure credit balance isn't less than 0
-                if (record) {
-                    var creditProm = dbconfig.collection_players.findOneAndUpdate(
-                        {_id: record.playerId, platform: record.platformId, creditBalance: {$lt: 0}},
-                        {creditBalance: 0},
-                        {new: true}
-                    ).lean().exec();
-                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).catch(errorUtils.reportError);
-                    return Q.all([creditProm, levelProm]);
-                }
-            },
-            function (error) {
-                deferred.reject({
-                    name: "DBError",
-                    message: "Error in updating player or consumption summary, or in checking reward task",
-                    error: error
-                });
-            }
-        ).then(
-            function (data) {
                 if (data[0]) {
                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(data[0].platform, data[0], {}).catch(errorUtils.reportError);
                 }
@@ -555,12 +555,14 @@ var dbPlayerConsumptionRecord = {
                 deferred.resolve(record);
             },
             function (error) {
-                deferred.reject({name: "DBError", message: "Error in checking player level", error: error});
+                deferred.reject({name: "DBError", message: "Error in creating player consumption", error: error});
             }
         );
 
         return deferred.promise;
     },
+
+
 
     /**
      * TODO:: WORK IN PROGRESS
@@ -578,8 +580,24 @@ var dbPlayerConsumptionRecord = {
                 record = res;
 
                 if (record) {
-                    // check player's on-going reward task group
-                    return dbRewardTask.checkPlayerRewardTaskGroupForConsumption(record, platformObj);
+                    // Update player consumption sum
+                    return dbconfig.collection_players.findOneAndUpdate(
+                        {_id: record.playerId, platform: record.platformId},
+                        {
+                            $inc: {
+                                consumptionSum: record.validAmount,
+                                dailyConsumptionSum: isSameDay ? record.validAmount : 0,
+                                weeklyConsumptionSum: record.validAmount,
+                                pastMonthConsumptionSum: record.validAmount,
+                                bonusAmountSum: record.bonusAmount,
+                                dailyBonusAmountSum: record.bonusAmount,
+                                weeklyBonusAmountSum: record.bonusAmount,
+                                pastMonthBonusAmountSum: record.bonusAmount,
+                                consumptionTimes: 1
+                            }
+                        },
+                        {new: true}
+                    ).exec();
                 }
                 else {
                     return Promise.reject({name: "DBError", message: "Error creating consumption record", error: error});
@@ -587,43 +605,6 @@ var dbPlayerConsumptionRecord = {
             },
             error => {
                 return Promise.reject({name: "DBError", message: "Error creating consumption record", error: error});
-            }
-        ).then(
-            returnableAmt => {
-                let readyXIMAAmt = returnableAmt ? returnableAmt : 0;
-                let nonXIMAAmt = record.validAmount - readyXIMAAmt;
-
-                return updateConsumptionSumamry(record, readyXIMAAmt, nonXIMAAmt);
-            },
-            error => {
-                return Promise.reject({name: "DBError", message: "Error checking player reward task group", error: error});
-            }
-        ).then(
-            () => {
-                // Update player consumption sum
-                return dbconfig.collection_players.findOneAndUpdate(
-                    {_id: record.playerId, platform: record.platformId},
-                    {
-                        $inc: {
-                            consumptionSum: record.validAmount,
-                            dailyConsumptionSum: isSameDay ? record.validAmount : 0,
-                            weeklyConsumptionSum: record.validAmount,
-                            pastMonthConsumptionSum: record.validAmount,
-                            bonusAmountSum: record.bonusAmount,
-                            dailyBonusAmountSum: record.bonusAmount,
-                            weeklyBonusAmountSum: record.bonusAmount,
-                            pastMonthBonusAmountSum: record.bonusAmount,
-                            consumptionTimes: 1
-                        }
-                    }
-                ).exec();
-            },
-            error => {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Error in upserting consumption summary record",
-                    error: error
-                });
             }
         ).then(
             (playerUpdatedData) => {
@@ -644,7 +625,25 @@ var dbPlayerConsumptionRecord = {
                 });
             }
         ).then(
-            data => {
+            () => {
+                // check player's on-going reward task group
+                return dbRewardTask.checkPlayerRewardTaskGroupForConsumption(record, platformObj);
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Error in checking player level", error: error});
+            }
+        ).then(
+            returnableAmt => {
+                let readyXIMAAmt = returnableAmt ? returnableAmt : 0;
+                let nonXIMAAmt = record.validAmount - readyXIMAAmt;
+
+                return updateConsumptionSumamry(record, readyXIMAAmt, nonXIMAAmt);
+            },
+            error => {
+                return Promise.reject({name: "DBError", message: "Error checking player reward task group", error: error});
+            }
+        ).then(
+            () => {
                 if (playerData) {
                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, {}).catch(errorUtils.reportError);
                 }
@@ -655,7 +654,11 @@ var dbPlayerConsumptionRecord = {
                 return record
             },
             error => {
-                return Q.reject({name: "DBError", message: "Error in checking player level", error: error});
+                return Promise.reject({
+                    name: "DBError",
+                    message: "Error in upserting consumption summary record",
+                    error: error
+                });
             }
         );
     },

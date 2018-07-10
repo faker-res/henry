@@ -112,7 +112,7 @@
                         option(ng-repeat='(i,v) in vm.proposalStatusList', value='{{v}}', ng-selected='vm.proposalQuery.status==v._id') {{v | translate}}
                 div
                     label {{"RELATED_ACCOUNT" | translate}}
-                    input(style='width:180px;').form-control(ng-model='vm.proposalQuery.relatedAccount', type='text')
+                    input.form-control(ng-model='vm.proposalQuery.relatedAccount' type='text' style='width:180px;')
 
                 div
                     label {{"Start date"|translate}}
@@ -122,7 +122,7 @@
                     .endTime
                 div
                     label {{"Proposal No"|translate}}
-                    input(style='width:110px;').noGrey.form-control(type="text", ng-model="vm.proposalQuery.proposalId", ng-change='vm.hideOtherConditions("#proposalReportQuery",vm.proposalQuery.proposalId,".noGrey")')
+                    input.noGrey.form-control(type="text", ng-model="vm.proposalQuery.proposalId", ng-change='vm.hideOtherConditions("#proposalReportQuery",vm.proposalQuery.proposalId,".noGrey")', style='width:110px;')
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchProposalRecord(true)') {{'SEARCH' | translate}}
@@ -1143,6 +1143,14 @@
                 div
                     label {{"PARTNER_NAME" | translate}}
                     input.form-control.span.input-sm(type="text", ng-model="vm.realTimeCommissionQuery.partnerName")
+                div
+                    label {{"COMMISSION_TYPE" | translate}}
+                    select.form-control(ng-model='vm.selectCommissionPeriod' style='max-width:300px')
+                        option(value='') {{"CURRENT_PERIOD" | translate}}
+                        option(value='1') {{"PREVIOUS_X_PERIOD" | translate}}
+                div(ng-if='vm.selectCommissionPeriod')
+                    label {{'　'}}
+                    input.form-control.span.input-sm(type="number" step='1' ng-model='vm.selectedCommissionPeriod' style='max-width: 61px' min=0 ng-change='vm.getSelectedCommissionPeriod()')
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchRealTimePartnerCommissionData()') {{'SEARCH' | translate}}

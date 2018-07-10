@@ -23,7 +23,9 @@ var qualityInspectionSchema = new Schema({
         timeoutRate: {type: Number, default: 0},
         inspectionRate: {type: Number, default: 0},
         review: {type: String}
-    }]
+    }],
+    closeReason: {type: String},
+    closeName: {type: String}
 
 });
 
