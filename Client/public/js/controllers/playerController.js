@@ -9437,10 +9437,9 @@ define(['js/app'], function (myApp) {
                             }
                         }
                         return r;
-                    })
+                    });
                     vm.curRewardTask = res.data;
                     console.log('vm.curRewardTask', vm.curRewardTask);
-                    $scope.safeApply();
                     if (callback) {
                         callback(vm.curRewardTask);
                     }
@@ -10505,7 +10504,6 @@ define(['js/app'], function (myApp) {
         }
 
         vm.playerApplyRewardCodeChange = function (obj) {
-            console.log('received', obj);
             vm.playerApplyEventResult = null;
             if (!obj) return;
             let rewardObj = angular.fromJson(obj);
@@ -10577,8 +10575,6 @@ define(['js/app'], function (myApp) {
 
             // PlayerConsecutiveLoginReward
             vm.playerApplyRewardShow.manualSignConsecutiveLogin = type == "PlayerConsecutiveLoginReward";
-
-            $scope.safeApply();
         };
         vm.applyPreviousConsecutiveLoginReward = function () {
             let sendQuery = {
@@ -10663,18 +10659,14 @@ define(['js/app'], function (myApp) {
         };
 
         vm.initManualUnlockRewardTask = function () {
-            vm.manualUnlockRewardTask = {
-                resMsg: $translate("Reward task is not available")
-            };
+            vm.manualUnlockRewardTask = {};
             vm.manualUnlockRewardTaskIndexList = [0];
-            vm.getRewardTaskDetail(vm.selectedSinglePlayer._id).then(function (data) {
-                if (data) {
-                    vm.manualUnlockRewardTask.resMsg = "";
-                }
-            });
+            // vm.getRewardTaskDetail(vm.selectedSinglePlayer._id).then(function (data) {
+            //     if (data) {
+            //         vm.manualUnlockRewardTask.resMsg = "";
+            //     }
+            // });
             vm.selectedRewards = [];
-            // $('#modalManualUnlockRewardTask').modal();
-            $scope.safeApply();
         };
 
         vm.updateManualUnlockRewardTaskIndexList = function (index, checked) {
@@ -12342,9 +12334,6 @@ define(['js/app'], function (myApp) {
             $scope.$evalAsync(vm.displayProviderGroupCredit());
         }
         vm.displayProviderGroupCredit = function () {
-            console.log('displayProviderGroupCredit');
-            let playerId = vm.selectedSinglePlayer.playerId;
-            let platformId = vm.selectedPlatform.data.platformId;
             socketService.$socket($scope.AppSocket, 'getCreditDetail', {playerObjId: vm.selectedSinglePlayer._id}, function (data) {
                 console.log('getCreditDetail', data);
                 vm.playerCreditDetails = data.data.lockedCreditList;
@@ -12390,7 +12379,6 @@ define(['js/app'], function (myApp) {
                         }
 
                         vm.playerCreditDetails.sort(compare);
-                        $scope.safeApply();
                     }
                 )
             })
