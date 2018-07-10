@@ -16,6 +16,8 @@ var rewardPointsProgress = new Schema({
     isApplied: {type: Boolean, default: false},
     // reward points event
     rewardPointsEventObjId: {type: Schema.ObjectId, ref: 'player', index: true},
+    //for login reward points
+    turnQualifiedLoginDate: {type: Date},
     //for game reward points
     todayWinCount: {type: Number},
     todayConsumptionAmountProgress: {type: Number},
