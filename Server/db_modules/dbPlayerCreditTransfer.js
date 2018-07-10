@@ -1386,7 +1386,9 @@ let dbPlayerCreditTransfer = {
                     transferWallet[gameProviderGroup.ebetWallet] = 0;
                 }
                 transferWallet[0] += validTransferAmount;
-                transferWallet[gameProviderGroup.ebetWallet] += lockedTransferAmount;
+                if(gameProviderGroup.hasOwnProperty('ebetWallet')) {
+                    transferWallet[gameProviderGroup.ebetWallet] += lockedTransferAmount;
+                }
 
                 // Check player have enough credit
                 if (transferAmount < 1 || amount == 0) {
