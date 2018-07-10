@@ -245,7 +245,7 @@
                     select.spicker.form-control(ng-model='vm.playerQuery.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.playerQuery)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
                 div.sPickDepartment
                     label {{"REGISTRATION_ADMIN"|translate}}
-                    select.spicker.form-control(ng-model='vm.playerQuery.admins', bsp, multiple, data-actions-box='true', style="max-width:155px", ng-options='dp.adminName === "N/A" ? dp._id : dp.adminName as dp.adminName | translate for dp in vm.queryAdmins')
+                    select.spicker.form-control(ng-model='vm.playerQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp.adminName === "N/A" ? dp._id : dp.adminName as dp.adminName | translate for dp in vm.queryAdmins')
                 div
                     label {{"Consumption Times"|translate}}
                     select.form-control(ng-model="vm.playerQuery.consumptionTimesOperator" style="width:75px;display:inline-block")
@@ -846,7 +846,7 @@
                     select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.dxNewPlayerQuery)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
                 div.sPickDepartment
                     label {{"REGISTRATION_ADMIN"|translate}}
-                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.admins', bsp, multiple, data-actions-box='true',style='max-width:155px', ng-options='dp.adminName === "N/A" ? dp._id : dp.adminName as dp.adminName | translate for dp in vm.queryAdmins')
+                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp.adminName === "N/A" ? dp._id : dp.adminName as dp.adminName | translate for dp in vm.queryAdmins')
                 div
                     label {{"PlayerValue"|translate}}
                     select.form-control(ng-model="vm.dxNewPlayerQuery.valueScoreOperator" style="width:75px;display:inline-block")
@@ -988,7 +988,7 @@
                     select.spicker.form-control(ng-model='vm.playerDomain.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setPDQueryAdmins()", ng-options='dp._id as dp.roleName | translate for dp in vm.pdQueryRoles')
                 div.sPickDepartment
                     label {{"REGISTRATION_ADMIN"|translate}}
-                    select.spicker.form-control(ng-model='vm.playerDomain.admins', bsp, multiple, data-actions-box='true',style='max-width:155px', ng-options='dp._id as dp.adminName | translate for dp in vm.pdQueryAdmins')
+                    select.spicker.form-control(ng-model='vm.playerDomain.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.pdQueryAdmins')
                 div
                     label {{"Registration Domain"|translate}}
                     input.form-control(type="text", ng-model="vm.playerDomain.domain")
