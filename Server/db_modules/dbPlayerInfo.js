@@ -3703,7 +3703,7 @@ let dbPlayerInfo = {
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS,
                 };
-                proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false);
+                proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
                 var proms = records.map(rec =>
                     dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                         {_id: rec._id, createTime: rec.createTime, bDirty: {$ne: true}},
@@ -3928,7 +3928,7 @@ let dbPlayerInfo = {
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
                         };
-                        proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false);
+                        proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
                         var proposalProm = dbProposal.createProposalWithTypeId(data[1].executeProposal, proposalData);
                         var playerProm = dbconfig.collection_players.findOneAndUpdate(
                             {_id: data[0]._id, platform: data[0].platform._id},
@@ -5291,8 +5291,10 @@ let dbPlayerInfo = {
 
                             if (playerData.platform.useProviderGroup) {
                                 // Platform supporting provider group
-                                if(playerData.platform.useEbetWallet) {
+                                if(playerData.platform.useEbetWallet && providerData.name.toUpperCase() === "EBET") {
                                     // if use eBet Wallet
+                                    return dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(
+                                        playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
                                 } else {
                                     return dbPlayerCreditTransfer.playerCreditTransferToProviderWithProviderGroup(
                                         playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
@@ -5786,8 +5788,11 @@ let dbPlayerInfo = {
 
                                 if (playerObj.platform.useProviderGroup) {
                                     // Platform supporting provider group
-                                    if(playerObj.platform.useEbetWallet) {
+                                    if(playerObj.platform.useEbetWallet && data[1].name.toUpperCase() === "EBET") {
                                         // if use eBet Wallet
+                                        console.log("using eBetWallet");
+                                        return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(
+                                            data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
                                     } else {
                                         return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
                                             data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
@@ -10008,7 +10013,7 @@ let dbPlayerInfo = {
                                                 entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                                 userType: newPlayerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                                             };
-                                            newProposal.inputDevice = dbUtility.getInputDevice(userAgent, false);
+                                            newProposal.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
 
                                             return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_BONUS, newProposal);
                                         }
@@ -11611,7 +11616,7 @@ let dbPlayerInfo = {
             }
         ).then(
             withdrawData => {
-                let checkInputDevice = dbUtility.getInputDevice(userAgent, false);
+                let checkInputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
 
                 // checkInputDevice 0 is BACKSTAGE, CS can still apply top up return from backstage
                 if (!withdrawData || checkInputDevice === 0) {
@@ -11746,7 +11751,7 @@ let dbPlayerInfo = {
                                 proposalData.data.providers = eventData.param.providers;
                             }
 
-                            proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false);
+                            proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
                             return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                                 {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
                                 {
@@ -12077,7 +12082,7 @@ let dbPlayerInfo = {
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
                     };
-                    proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false);
+                    proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
 
                     // Set percentage to 100% if not available
                     if (eventParam.rewardAmount && !eventParam.rewardPercentage) {
@@ -12298,7 +12303,7 @@ let dbPlayerInfo = {
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
                         };
-                        proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false);
+                        proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
                         return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                             {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
                             {
@@ -13062,7 +13067,7 @@ let dbPlayerInfo = {
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
                     };
-                    proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false);
+                    proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
                     return dbProposal.createProposalWithTypeId(rewardEvent.executeProposal, proposalData);
                 }
                 else {
@@ -13163,7 +13168,7 @@ let dbPlayerInfo = {
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
                     };
-                    proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false);
+                    proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
                     return dbProposal.createProposalWithTypeId(rewardEvent.executeProposal, proposalData);
                 }
                 else {
@@ -13398,7 +13403,7 @@ let dbPlayerInfo = {
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
                         };
-                        proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false);
+                        proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
                         return dbconfig.collection_playerTopUpRecord.findOneAndUpdate(
                             {_id: record._id, createTime: record.createTime, bDirty: {$ne: true}},
                             {
