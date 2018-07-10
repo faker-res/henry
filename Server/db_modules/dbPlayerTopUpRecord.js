@@ -1213,7 +1213,15 @@ var dbPlayerTopUpRecord = {
                     entryType: constProposalEntryType[entryType],
                     userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                 };
-                newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr, false);//newProposal.isPartner
+                let adminInfo = {};
+                if(entryType == "ADMIN"){
+                    adminInfo = {
+                        type: 'admin',
+                        name: adminName,
+                        id: adminId
+                    }
+                }
+                newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr, false, adminInfo);//newProposal.isPartner
                 return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_MANUAL_TOP_UP, newProposal);
             }
         ).then(
@@ -2070,7 +2078,15 @@ var dbPlayerTopUpRecord = {
                         //createTime: createTime ? new Date(createTime) : new Date(),
                         userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                     };
-                    newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr, false);
+                    let adminInfo = {};
+                    if(entryType == "ADMIN"){
+                        adminInfo = {
+                            type: 'admin',
+                            name: adminName,
+                            id: adminId
+                        }
+                    }
+                    newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr, false, adminInfo);
                     return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_ALIPAY_TOP_UP, newProposal);
                 })
             .then(
@@ -2517,7 +2533,15 @@ var dbPlayerTopUpRecord = {
                             //createTime: createTime ? new Date(createTime) : new Date(),
                             userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                         };
-                        newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr, false);
+                        let adminInfo = {};
+                        if(entryType == "ADMIN"){
+                            adminInfo = {
+                                type: 'admin',
+                                name: adminName,
+                                id: adminId
+                            }
+                        }
+                        newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr, false, adminInfo);
                         return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_WECHAT_TOP_UP, newProposal);
                     }
                     else {

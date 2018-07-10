@@ -1650,6 +1650,7 @@ var proposal = {
                                         if (prom.data && prom.data.phoneNumber && !displayPhoneNum) {
                                             prom.data.phoneNumber = dbutility.encodePhoneNum(prom.data.phoneNumber);
                                         }
+
                                         if (prom.data && prom.data.userAgent) {
                                             prom.inputDevice = dbutility.getInputDevice(prom.data.userAgent, false);
                                         }

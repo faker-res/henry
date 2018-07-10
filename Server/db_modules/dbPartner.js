@@ -2363,7 +2363,7 @@ let dbPartner = {
                                         isPartner: true
 
                                     };
-                                    newProposal.inputDevice = dbUtil.getInputDevice(userAgent, false);
+                                    newProposal.inputDevice = dbUtil.getInputDevice(userAgent, false, adminInfo);
 
                                     return dbProposal.createProposalWithTypeName(partner.platform._id, constProposalType.PARTNER_BONUS, newProposal);
                                 }
