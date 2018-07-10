@@ -1378,6 +1378,7 @@ let dbPlayerCreditTransfer = {
                     rewardTaskGroupObjId = rewardTaskGroup._id;
                 }
 
+                console.log("transfer in gameProviderGroup", gameProviderGroup)
                 // Calculate total amount needed to transfer to CPMS
                 transferAmount = validTransferAmount + lockedTransferAmount;
                 transferWallet[0] = validTransferAmount;
