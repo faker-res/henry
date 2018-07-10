@@ -5283,8 +5283,10 @@ let dbPlayerInfo = {
 
                             if (playerData.platform.useProviderGroup) {
                                 // Platform supporting provider group
-                                if(playerData.platform.useEbetWallet) {
+                                if(playerData.platform.useEbetWallet && providerData.name.toUpperCase() === "EBET") {
                                     // if use eBet Wallet
+                                    return dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(
+                                        playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
                                 } else {
                                     return dbPlayerCreditTransfer.playerCreditTransferToProviderWithProviderGroup(
                                         playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
@@ -5778,8 +5780,11 @@ let dbPlayerInfo = {
 
                                 if (playerObj.platform.useProviderGroup) {
                                     // Platform supporting provider group
-                                    if(playerObj.platform.useEbetWallet) {
+                                    if(playerObj.platform.useEbetWallet && data[1].name.toUpperCase() === "EBET") {
                                         // if use eBet Wallet
+                                        console.log("using eBetWallet");
+                                        return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(
+                                            data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
                                     } else {
                                         return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
                                             data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
