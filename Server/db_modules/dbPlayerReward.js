@@ -1308,7 +1308,7 @@ let dbPlayerReward = {
                                 });
                             }
                             let bProposal = false;
-                            player.inputDevice = dbUtility.getInputDevice(userAgent, false);
+                            player.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
                             let proc = () => {
                                 queryTime = dateArr.pop();
                                 return processConsecutiveLoginRewardRequest(player, queryTime, event, adminInfo, isPrevious).then(
@@ -3555,7 +3555,7 @@ let dbPlayerReward = {
                     }
                 }
 
-                let inputDevice = dbUtility.getInputDevice(userAgent, false);
+                let inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
                 let repeatDay = "";
                 let selectedProvider = "";
                 let isSelectAllProvider = false;
@@ -5056,7 +5056,7 @@ let dbPlayerReward = {
                                 entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                 userType: constProposalUserType.PLAYERS
                             };
-                            proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false);
+                            proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
 
                             if (applyDetail.consecutiveNumber) {
                                 proposalData.data.consecutiveNumber = applyDetail.consecutiveNumber;
@@ -5137,7 +5137,7 @@ let dbPlayerReward = {
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS
                         };
-                        proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false);
+                        proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
 
                         // Custom proposal data field
                         if (applyAmount > 0) {

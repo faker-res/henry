@@ -350,7 +350,8 @@ var simplifiedChinese = {
     "Username must be less than": "用户名必须是少过",
     "characters": "位的数字和字母",
     "Cannot find commission rate, please ensure that you had configure the setting properly.": "使用佣金预测页面必须先设置佣金模式。",
-    "Error finding reward event": "玩家无此权限"
+    "Error finding reward event": "玩家无此权限",
+    "Partner does not have valid payment information": "请重新绑定您的银行卡。"
     //todo::add missing messages here
 
     /*
@@ -358,7 +359,6 @@ var simplifiedChinese = {
      "Partner is updating bank info": "_________",
      "Cannot find partner": "_________",
      "Partner does not have enough credit.": "_________",
-     "Partner does not have valid payment information": "_________",
      //"Partner does not have enough Expenses.": "_________",
      //"Partner does not have this permission": "_________",
      "Partner is not found" : "_________",
