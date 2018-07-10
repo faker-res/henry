@@ -1729,7 +1729,7 @@ let dbPartner = {
             isMatch => {
                 if (isMatch) {
                     partnerObj.password = newPassword;
-                    return partnerObj.save();
+                    return dbconfig.collection_partner.findOneAndUpdate({_id: partnerObj._id, platform: partnerObj.platform}, {password: newPassword}).lean();
                 }
                 else {
                     return Q.reject({
@@ -2252,7 +2252,7 @@ let dbPartner = {
                     // }
                         partner = partnerData;
                         if (partnerData.bankName == null || !partnerData.bankAccountName || !partnerData.bankAccountType || !partnerData.bankAccountCity
-                            || !partnerData.bankAccount || !partnerData.bankAccountProvince) {
+                            || !partnerData.bankAccount || !partnerData.bankAccountProvince || (partnerData.bankAccount && partnerData.bankAccount.indexOf("*") > -1)) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
                                 name: "DataError",
@@ -6140,6 +6140,7 @@ let dbPartner = {
                 prom = generateSkipCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
             }
             else {
+                console.log('commSet step0', partnerObjId)
                 prom = dbPartner.generatePartnerCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
             }
             proms.push(prom);
@@ -6150,9 +6151,14 @@ let dbPartner = {
 
     generatePartnerCommissionLog: function (partnerObjId, commissionType, startTime, endTime) {
         let downLinesRawCommissionDetails, partnerCommissionLog;
+        console.log('commSet step1', partnerObjId)
         return dbPartner.calculatePartnerCommissionDetail(partnerObjId, commissionType, startTime, endTime)
             .then(
             commissionDetail => {
+                console.log('commSet step8', partnerObjId)
+                if (commissionDetail.disableCommissionSettlement) {
+                    return undefined;
+                }
                 downLinesRawCommissionDetails = commissionDetail.downLinesRawCommissionDetail || [];
 
                 delete commissionDetail.downLinesRawCommissionDetail;
@@ -6163,10 +6169,14 @@ let dbPartner = {
                     startTime: startTime,
                     endTime: endTime,
                     commissionType: commissionType,
-                }, commissionDetail, {upsert: true, new: true}).lean();
+                }, commissionDetail, {upsert: true, new: true}).lean().catch(err => {
+                    console.error('partnerCommissionLog died with param:', commissionDetail, err);
+                    return Promise.reject(err);
+                })
             }
         ).then(
             partnerCommissionLogData => {
+                console.log('commSet step9', partnerObjId)
                 if (!partnerCommissionLogData) {
                     return undefined;
                 }
@@ -6178,7 +6188,10 @@ let dbPartner = {
                     detail.platform = partnerCommissionLog.platform;
                     detail.partnerCommissionLog = partnerCommissionLog._id;
 
-                    let prom = dbconfig.collection_downLinesRawCommissionDetail.findOneAndUpdate({platform: detail.platform, partnerCommissionLog: detail.partnerCommissionLog, name: detail.name}, detail, {upsert: true, new: true}).catch(errorUtils.reportError);
+                    let prom = dbconfig.collection_downLinesRawCommissionDetail.findOneAndUpdate({platform: detail.platform, partnerCommissionLog: detail.partnerCommissionLog, name: detail.name}, detail, {upsert: true, new: true}).catch(err => {
+                        console.error('downLinesRawCommissionDetail died with param:', detail, err);
+                        errorUtils.reportError(err);
+                    });
                     proms.push(prom);
                 });
 
@@ -6186,6 +6199,7 @@ let dbPartner = {
             }
         ).then(
             downLinesRawCommissionDetail => {
+                console.log('commSet step10', partnerObjId)
                 if (!downLinesRawCommissionDetail) {
                     return undefined;
                 }
@@ -6310,6 +6324,7 @@ let dbPartner = {
                         message: "Error in getting partner data",
                     });
                 }
+                console.log('commSet step2', partnerObjId)
 
                 partner = data;
                 platform = data.platform;
@@ -6327,6 +6342,7 @@ let dbPartner = {
             data => {
                 downLines = data[0];
                 providerGroups = data[1];
+                console.log('commSet step3', partnerObjId)
 
                 let commissionRateTableProm = getAllCommissionRateTable(platform._id, commissionType, partner._id, providerGroups);
                 let activePlayerRequirementProm = getRelevantActivePlayerRequirement(platform._id, commissionType);
@@ -6347,18 +6363,25 @@ let dbPartner = {
                 rewardProposalTypes = data[3];
 
                 partnerCommissionRateConfig = data[4];
+                console.log('commSet step4', partnerObjId)
 
                 let downLinesRawDetailProms = [];
 
-                downLines.map(player => {
-                    let prom = getAllPlayerCommissionRawDetails(player._id, commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, paymentProposalTypes, rewardProposalTypes, activePlayerRequirement);
-                    downLinesRawDetailProms.push(prom);
-                });
+                if (downLines.length > 200) {
+                    return getAllPlayerCommissionRawDetailsWithSettlement(downLines, commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, paymentProposalTypes, rewardProposalTypes, activePlayerRequirement);
+                }
+                else {
+                    downLines.map(player => {
+                        let prom = getAllPlayerCommissionRawDetails(player._id, commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, paymentProposalTypes, rewardProposalTypes, activePlayerRequirement);
+                        downLinesRawDetailProms.push(prom);
+                    });
+                }
 
                 return Promise.all(downLinesRawDetailProms);
             }
         ).then(
             downLinesRawData => {
+                console.log('commSet step7', partnerObjId)
                 downLinesRawCommissionDetail = downLinesRawData;
 
                 activeDownLines = getActiveDownLineCount(downLinesRawCommissionDetail);
@@ -6450,6 +6473,7 @@ let dbPartner = {
                     withdrawFeeRate: partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal / 100,
                     status: constPartnerCommissionLogStatus.PREVIEW,
                     nettCommission: nettCommission,
+                    disableCommissionSettlement: Boolean(partner.permission && partner.permission.disableCommSettlement),
                 };
             }
         );
@@ -6696,6 +6720,7 @@ let dbPartner = {
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         sortCol = sortCol || {'_id': -1};
         let query = {
+            platform: ObjectId(platformObjId),
             startTime: {
                 $gte: startTime,
                 $lte: endTime
@@ -8622,6 +8647,19 @@ let dbPartner = {
         )
     },
 
+    handleGetAllPlayerCommissionRawDetails: (playerObjIds, commissionType, startTime, endTime, providerGroups, topUpTypes, rewardTypes, activePlayerRequirement) => {
+        if (!playerObjIds || playerObjIds.length <= 0) {
+            return [];
+        }
+
+        let proms = [];
+        playerObjIds.map(playerObjId => {
+            let prom = getAllPlayerCommissionRawDetails(playerObjId, commissionType, new Date(startTime), new Date(endTime), providerGroups, topUpTypes, rewardTypes, activePlayerRequirement);
+            proms.push(prom);
+        });
+
+        return Promise.all(proms);
+    },
 };
 
 
@@ -8746,11 +8784,20 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
     return dbconfig.collection_playerConsumptionRecord.aggregate([
         {
             $match: {
-                playerId: playerObjId,
+                playerId: ObjectId(playerObjId),
                 createTime: {
                     $gte: new Date(startTime),
                     $lt: new Date(endTime)
                 },
+                $or: [
+                    {isDuplicate: {$exists: false}},
+                    {
+                        $and: [
+                            {isDuplicate: {$exists: true}},
+                            {isDuplicate: false}
+                        ]
+                    }
+                ]
             }
         },
         {
@@ -9250,10 +9297,22 @@ function getPaymentProposalTypes (platformObjId) {
 }
 
 function getAllPlayerCommissionRawDetails (playerObjId, commissionType, startTime, endTime, providerGroups, topUpTypes, rewardTypes, activePlayerRequirement) {
-    let consumptionDetailProm = getPlayerCommissionConsumptionDetail(playerObjId, startTime, endTime, providerGroups);
-    let topUpDetailProm = getPlayerCommissionTopUpDetail(playerObjId, startTime, endTime, topUpTypes);
-    let withdrawalDetailProm = getPlayerCommissionWithdrawDetail(playerObjId, startTime, endTime);
-    let rewardDetailProm = getPlayerCommissionRewardDetail(playerObjId, startTime, endTime, rewardTypes);
+    let consumptionDetailProm = getPlayerCommissionConsumptionDetail(playerObjId, startTime, endTime, providerGroups).catch(err => {
+        console.error('getPlayerCommissionConsumptionDetail died', playerObjId, err);
+        return Promise.reject(err);
+    });
+    let topUpDetailProm = getPlayerCommissionTopUpDetail(playerObjId, startTime, endTime, topUpTypes).catch(err => {
+        console.error('getPlayerCommissionTopUpDetail died', playerObjId, err);
+        return Promise.reject(err);
+    });
+    let withdrawalDetailProm = getPlayerCommissionWithdrawDetail(playerObjId, startTime, endTime).catch(err => {
+        console.error('getPlayerCommissionWithdrawDetail died', playerObjId, err);
+        return Promise.reject(err);
+    });
+    let rewardDetailProm = getPlayerCommissionRewardDetail(playerObjId, startTime, endTime, rewardTypes).catch(err => {
+        console.error('getPlayerCommissionRewardDetail died', playerObjId, err);
+        return Promise.reject(err);
+    });
     let namesProm = dbconfig.collection_players.findOne({_id: playerObjId}, {name:1, realName:1}).lean();
 
     return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm, rewardDetailProm, namesProm]).then(
@@ -10269,4 +10328,47 @@ function clearCustomizedPartnerCommissionConfig (platform, commissionType, provi
         query.provider = provider;
     }
     return dbconfig.collection_partnerCommissionConfig.remove(query);
+}
+
+function getAllPlayerCommissionRawDetailsWithSettlement (players, commissionType, startTime, endTime, providerGroups, topUpTypes, rewardTypes, activePlayerRequirement) {
+    let playerObjIdArr = [];
+    let details = [];
+    players.map(player => {
+        playerObjIdArr.push(player._id);
+    });
+
+    let stream = dbconfig.collection_players.find({_id: {$in: playerObjIdArr}},{_id: 1}).cursor({batchSize: 500});
+    let balancer = new SettlementBalancer();
+
+    return balancer.initConns().then(function () {
+        return Q(
+            balancer.processStream(
+                {
+                    stream: stream,
+                    batchSize: constSystemParam.BATCH_SIZE,
+                    makeRequest: function (playerIdObjs, request) {
+                        request("player", "getAllPlayerCommissionRawDetails", {
+                            playerObjIds: playerIdObjs.map(function (playerIdObj) {
+                                return playerIdObj._id;
+                            }),
+                            commissionType,
+                            startTime,
+                            endTime,
+                            providerGroups,
+                            topUpTypes,
+                            rewardTypes,
+                            activePlayerRequirement
+                        });
+                    },
+                    processResponse: function (record) {
+                        details = details.concat(record.data);
+                    }
+                }
+            )
+        );
+    }).then(
+        () => {
+            return details;
+        }
+    );
 }

@@ -31,6 +31,7 @@ var simplifiedChinese = {
     "No consumption record for this player": "玩家没有投注记录",
     "Invalid ranking mode": "无效排行模式",
     "Cannot find this downline": "查无此下线",
+    "Invalid phone number, unable to call": "此电话号码无效，无法拨打",
 
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",
@@ -133,6 +134,7 @@ var simplifiedChinese = {
     "Player is not enable": "用户没有发现或无效密码",
     "Player is forbidden to login": "玩家被禁止登录",
     "Partner is forbidden to login": "代理被禁止登录",
+    "Partner is forbidden to apply bonus": "您暂时被禁止提款，请联系代理经理",
     "Player does not have enough credit.": "玩家额度不够",
     "Partner does not have enough credit.": "代理额度不够",
     "Player does not have valid payment information": "玩家支付信息无效",

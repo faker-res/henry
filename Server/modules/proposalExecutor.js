@@ -2107,14 +2107,6 @@ var proposalExecutor = {
                         updateObj,
                         {new: true}
                     ).then(
-                        newPartner => {
-                            //make sure credit can not be negative number
-                            if (newPartner.credits < 0) {
-                                newPartner.credits = 0;
-                            }
-                            return newPartner.save();
-                        }
-                    ).then(
                         partner => {
                             if (!partner) {
                                 deferred.reject({

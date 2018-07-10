@@ -108,7 +108,7 @@ let dbApiLog = {
                     let apiLog = new dbConfig.collection_apiLog(logData);
                     apiLog.save().then().catch(errorUtils.reportError);
 
-                    if(actionName == "login"){
+                    if (actionName === "login" || actionName === "player - create") {
                         let actionLog = new dbConfig.collection_actionLog(logData);
                         actionLog.save().then().catch(errorUtils.reportError);
                     }

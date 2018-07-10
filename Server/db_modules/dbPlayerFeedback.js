@@ -50,6 +50,21 @@ var dbPlayerFeedback = {
         return deferred.promise;
     },
 
+    bulkCreatePlayerFeedback: (playersFeedbackData) => {
+        let playerIds = playersFeedbackData.playerId;
+        let proms = [];
+
+        playerIds.map(playerId => {
+            let clonedPlayersFeedbackData = JSON.parse(JSON.stringify(playersFeedbackData));
+            clonedPlayersFeedbackData.playerId = playerId;
+
+            let prom = dbPlayerFeedback.createPlayerFeedback(clonedPlayersFeedbackData);
+            proms.push(prom);
+        });
+
+        return Promise.all(proms);
+    },
+
     /**
      * Get all player Feedbacks information  by  playerId  or _id
      * @param {String} query - Query string
@@ -618,7 +633,8 @@ var dbPlayerFeedback = {
             "127.0.0.1",
             "10.168.11.155",
             "103.29.22.118",
-            "10.167.11.154"
+            "10.167.11.154",
+            "203.90.255.250"
         ];
 
         if (!allowedIP.includes(ipAddress)) {

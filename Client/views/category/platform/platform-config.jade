@@ -44,6 +44,8 @@
                         span {{"Bulk Call Setting" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "callRequestConfig"}', ng-click='vm.configTabClicked("callRequestConfig")')
                         span {{"callRequestConfig" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "phoneFilterConfig"}', ng-click='vm.configTabClicked("phoneFilterConfig")')
+                        span {{"phoneFilterConfig" | translate}}
 
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary
@@ -962,14 +964,6 @@
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.samePhoneNumberRegisterCount}}
                                     input(type='number', ng-show='vm.configTableEdit && vm.platformBasic.showAllowSamePhoneNumberToRegister', min=1, ng-model='vm.platformBasic.samePhoneNumberRegisterCount')
                             tr
-                                td {{'Whitelisting Phone Number' | translate}}
-                                td
-                                    textarea(ng-model='vm.platformBasic.whiteListingPhoneNumbers$', ng-disabled='!vm.configTableEdit')
-                            tr
-                                td {{'Blacklisting Phone Number' | translate}}
-                                td
-                                    textarea(ng-model='vm.platformBasic.blackListingPhoneNumbers$', ng-disabled='!vm.configTableEdit')
-                            tr
                                 td {{'PLAYER_MULTIPLE_REWARD' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.canMultiReward', ng-disabled='!vm.configTableEdit')
@@ -1131,14 +1125,6 @@
                                 td {{'partnerAllowSameRealNameToRegister' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.partnerBasic.partnerAllowSameRealNameToRegister', ng-disabled='!vm.configTableEdit')
-                            tr
-                                td {{'Whitelisting Phone Number' | translate}}
-                                td
-                                    textarea(ng-model='vm.partnerBasic.whiteListingPhoneNumbers', ng-disabled='!vm.configTableEdit')
-                            tr
-                                td {{'Blacklisting Phone Number' | translate}}
-                                td
-                                    textarea(ng-model='vm.partnerBasic.blackListingPhoneNumbers', ng-disabled='!vm.configTableEdit')
                             tr
                                 td {{'partnerRequireSMSVerification' | translate}}
                                 td
@@ -1705,6 +1691,27 @@
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("bulkPhoneCallSetting")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("bulkPhoneCallSetting")') {{"CONFIRM" | translate}}
+                div(ng-if='vm.selectedConfigTab=="phoneFilterConfig"')
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'NAME' | translate}}
+                                th {{'VALUE' | translate}}
+                        tbody
+                            tr
+                                td {{'Whitelisting Phone Number' | translate}}
+                                td
+                                    textarea(ng-model='vm.phoneFilterConfig.whiteListingPhoneNumbers$', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Blacklisting Phone Number' | translate}}
+                                td
+                                    textarea(ng-model='vm.phoneFilterConfig.blackListingPhoneNumbers$', ng-disabled='!vm.configTableEdit')
+                            
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'phoneFilterConfig')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("phoneFilterConfig")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("phoneFilterConfig")') {{"CONFIRM" | translate}}
 
 
                 //div(ng-if='vm.selectedConfigTab=="announcement"')

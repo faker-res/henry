@@ -406,6 +406,7 @@ const dbPlayerMail = {
             requireCaptchaInSMS = "partnerRequireCaptchaInSMS";
             seletedDb = dbPartner;
         }
+        let isSpam = false;
 
 
 
@@ -558,6 +559,7 @@ const dbPlayerMail = {
 
                     // Check whether verification sms sent in last minute
                     if (lastMinuteHistory && lastMinuteHistory.tel) {
+                        isSpam = true;
                         return Q.reject({
                             status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
                             message: "Verification SMS already sent within last minute"
@@ -669,7 +671,7 @@ const dbPlayerMail = {
                 return true;
             },
             error => {
-                if (isFailedSms && purpose && purpose == constSMSPurpose.REGISTRATION) {
+                if (isFailedSms && purpose && purpose == constSMSPurpose.REGISTRATION && !isSpam) {
                     if (inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined") {
                         return dbUtility.getGeoIp(inputData.lastLoginIp).then(
                             ipData => {

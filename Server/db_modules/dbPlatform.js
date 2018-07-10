@@ -35,6 +35,7 @@ const dbPartner = require("./../db_modules/dbPartner");
 const qrCode = require('qrcode');
 const http = require('http');
 const https = require('https');
+const localization = require("../modules/localization");
 
 // constants
 const constProposalEntryType = require('../const/constProposalEntryType');
@@ -242,6 +243,50 @@ var dbPlatform = {
                         return err? reject({name: "DBError", message: "Error in getting QR code", error: err}): resolve(imgCode);
                     });
             });
+    },
+
+    getTemplateSetting: function (platformId, url){
+        let result = [];
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then( platformData => {
+            if (!platformData){
+                return Promise.reject({
+                    name: "DBError",
+                    message: "Could not find the platform"});
+            }
+
+            if(!url){
+                // get back preset template setting
+                if (platformData.presetModuleSetting && platformData.presetModuleSetting.length > 0){
+
+                    result.push({templateId: null, functionList: platformData.presetModuleSetting.filter( p => {return p.displayStatus == 1})});
+
+                }
+                
+            }else{
+                // get the special template setting
+                if (platformData.specialModuleSetting && platformData.specialModuleSetting.length > 0) {
+
+                    let functionList = [];
+
+                    platformData.specialModuleSetting.forEach(module => {
+
+                        if(module.domainName && module.domainName.findIndex(p => p.toLowerCase() == url.trim().toLowerCase()) != -1){
+
+                            if(module.content && module.content.length > 0 ){
+                                module.content = module.content.filter(p => {return p.displayStatus == 1})
+                            }
+                            result.push({templateId: module._id, functionList: module.content});
+
+                        }
+                    })
+
+                }
+            }
+
+            return result
+
+        })
     },
 
     /**
@@ -856,7 +901,7 @@ var dbPlatform = {
             queryOrArray.push({pastMonthTopUpSum: {$gt: 0}});
             queryOrArray.push({pastMonthConsumptionSum: {$gt: 0}});
             queryOrArray.push({pastMonthWithdrawSum: {$gt: 0}});
-            queryOrArray.push({pastMonthBonusAmountSum: {$gt: 0}});
+            queryOrArray.push({pastMonthBonusAmountSum: {$ne: 0}});
             updateData.pastMonthTopUpSum = 0;
             updateData.pastMonthConsumptionSum = 0;
             updateData.pastMonthWithdrawSum = 0;
@@ -867,7 +912,7 @@ var dbPlatform = {
             queryOrArray.push({weeklyTopUpSum: {$gt: 0}});
             queryOrArray.push({weeklyConsumptionSum: {$gt: 0}});
             queryOrArray.push({weeklyWithdrawSum: {$gt: 0}});
-            queryOrArray.push({weeklyBonusAmountSum: {$gt: 0}});
+            queryOrArray.push({weeklyBonusAmountSum: {$ne: 0}});
             updateData.weeklyTopUpSum = 0;
             updateData.weeklyConsumptionSum = 0;
             updateData.weeklyWithdrawSum = 0;
@@ -1578,6 +1623,9 @@ var dbPlatform = {
             }
             if(data.partnerId){
                 query.partnerId = data.partnerId;
+            }
+            if(data.platformId){
+                query.platformId = data.platformId;
             }
             // Strip any fields which have value `undefined`
             query = JSON.parse(JSON.stringify(query));
@@ -2512,6 +2560,31 @@ var dbPlatform = {
                             }
                         });
 
+                        if (subject === 'player') {
+                            returnedObj.accountMaxLength = platformData.playerNameMaxLength ? platformData.playerNameMaxLength: 0;
+                            returnedObj.accountMinLength = platformData.playerNameMinLength ? platformData.playerNameMinLength: 0;
+                            returnedObj.minDepositAmount = platformData.minTopUpAmount ? platformData.minTopUpAmount: 0;
+                            returnedObj.needSMSForTrailAccount = platformData.requireSMSVerificationForDemoPlayer ? 1 : 0;
+                            returnedObj.needSMSForRegister = platformData.requireSMSVerification ? 1 : 0;
+                            returnedObj.needSMSForModifyPassword = platformData.requireSMSVerificationForPasswordUpdate ? 1 : 0;
+                            returnedObj.needSMSForModifyBankInfo = platformData.requireSMSVerificationForPaymentUpdate ? 1 : 0;
+                            returnedObj.needImageCodeForLogin = platformData.requireLogInCaptcha ? 1 : 0;
+                            returnedObj.needImageCodeForSendSMSCode = platformData.requireCaptchaInSMS ? 1 : 0;
+                            returnedObj.twoStepsForModifyPhoneNumber = platformData.usePhoneNumberTwoStepsVerification ? 1 : 0;
+                        }
+
+                        if (subject === 'partner') {
+                            returnedObj.accountMaxLength = platformData.partnerNameMaxLength ? platformData.partnerNameMaxLength: 0;
+                            returnedObj.accountMinLength = platformData.partnerNameMinLength ? platformData.partnerNameMinLength: 0;
+                            returnedObj.needSMSForRegister = platformData.partnerRequireSMSVerification ? 1 : 0;
+                            returnedObj.needSMSForModifyPassword = platformData.partnerRequireSMSVerificationForPasswordUpdate ? 1 : 0;
+                            returnedObj.needSMSForModifyBankInfo = platformData.partnerRequireSMSVerificationForPaymentUpdate ? 1 : 0;
+                            returnedObj.needImageCodeForLogin = platformData.partnerRequireLogInCaptcha ? 1 : 0;
+                            returnedObj.needImageCodeForSendSMSCode = platformData.partnerRequireCaptchaInSMS ? 1 : 0;
+                            returnedObj.twoStepsForModifyPhoneNumber = platformData.partnerUsePhoneNumberTwoStepsVerification ? 1 : 0;
+                            returnedObj.defaultCommissionType = platformData.partnerDefaultCommissionGroup ? platformData.partnerDefaultCommissionGroup : 0;
+                        }
+
                         if (data.platformId) {
                             if (subject == 'player'){
                                 return dbconfig.collection_playerPageAdvertisementInfo.find({
@@ -3312,6 +3385,14 @@ var dbPlatform = {
                         name: "DBError",
                         message: "Platform does not exist"
                     });
+                }
+
+                if(phoneNumber && platformData.blackListingPhoneNumbers){
+                    let indexNo = platformData.blackListingPhoneNumbers.findIndex(p => p == phoneNumber);
+
+                    if(indexNo != -1){
+                        return Q.reject({name: "DataError", message: localization.localization.translate("Invalid phone number, unable to call")});
+                    }
                 }
 
                 platform = platformData;
@@ -4118,14 +4199,14 @@ function getPartnerCommNextSettDate(settMode, curTime = dbUtility.getFirstDayOfY
 }
 
 function calculatePartnerCommissionInfo (platformObjId, commissionType, startTime, endTime, isSkip) {
-    let stream = dbconfig.collection_partner.find({platform: platformObjId, commissionType: commissionType}, {_id: 1}).cursor({batchSize: 1});
+    let stream = dbconfig.collection_partner.find({platform: platformObjId, commissionType: commissionType}, {_id: 1}).cursor({batchSize: 100});
 
     let balancer = new SettlementBalancer();
     return balancer.initConns().then(function () {
         return balancer.processStream(
             {
                 stream: stream,
-                batchSize: constSystemParam.BATCH_SIZE,
+                batchSize: 100,
                 makeRequest: function (partners, request) {
                     request("player", "settlePartnersCommission", {
                         commissionType: commissionType,

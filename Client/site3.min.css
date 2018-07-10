@@ -1076,6 +1076,10 @@ body {
     white-space: nowrap;
 }
 
+.sPickDepartment {
+    max-width: 155px;
+}
+
 a.dropdown-toggle text {
     position: absolute;
     right: 0;
@@ -3800,6 +3804,15 @@ input[type='number'].leftALignNumber {
 }
 
 #modalUpdatePlatform .nav-tabs>li.active>a {
+    border: 1px solid #337AB7;
+    border-bottom: none;
+}
+
+#platformSetting .nav-tabs>li {
+    cursor: pointer;
+}
+
+#platformSetting .nav-tabs>li.active>a {
     border: 1px solid #337AB7;
     border-bottom: none;
 }

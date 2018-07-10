@@ -2107,6 +2107,8 @@ function updateLoginProgressCount(progress, event, provider) {
         progress.count = 1;
         progress.isApplied = false;
         progress.isApplicable = false;
+        delete progress.turnQualifiedLoginDate;
+        progress.$unset = {turnQualifiedLoginDate: 1};
         commonLoginProgressUpdate(progress, provider);
         progressUpdated = true;
     }
@@ -2133,6 +2135,13 @@ function updateLoginProgressCount(progress, event, provider) {
 
     if (progress.count >= event.consecutiveCount) {
         progress.isApplicable = true;
+    }
+
+    if (!progress.turnQualifiedLoginDate && progress.isApplicable) {
+        progress.turnQualifiedLoginDate = new Date();
+        if (progress.$unset) {
+            delete progress.$unset;
+        }
     }
     return progressUpdated;
 }
@@ -2448,6 +2457,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
             let rewards = {};
             let status = 0;
             let providerIds = [];
+            let turnQualifiedLoginDate;
 
             if (reward.period) {
                 let periodTime = getEventPeriodTime(reward);
@@ -2466,7 +2476,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                     if (item.rewardPointsEventObjId && item.rewardPointsEventObjId.toString() === reward._id.toString()
                         && item.lastUpdateTime >= rewardStartTime && item.lastUpdateTime <= rewardEndTime) {
                         currentGoal = item.count;
-
+                        turnQualifiedLoginDate = item.turnQualifiedLoginDate || "";
                         if (item.isApplied) {
                             status = 2;
                         }
@@ -2503,7 +2513,8 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
                         "providerId": providerIds,
                         "goal": reward.consecutiveCount,
-                        "currentGoal": currentGoal
+                        "currentGoal": currentGoal,
+                        "turnQualifiedLoginDate": turnQualifiedLoginDate
                     }
                     break;
                 }

@@ -26,8 +26,77 @@ var dbLogger = {
         if (adminActionRecordData.level === constSystemLogLevel.ACTION && adminActionRecordData.action && adminActionRecordData.action.indexOf("get") >= 0) {
             return;
         }
-        var record = new dbconfig.collection_systemLog(adminActionRecordData);
-        record.save().then().catch(err => errorSavingLog(err, adminActionRecordData));
+
+        return dbconfig.collection_admin.findOne({adminName: adminActionRecordData.adminName}).then(
+            adminData => {
+                if(adminData && adminData.departments){
+                    return dbconfig.collection_department.find({_id: {$in: adminData.departments}}, {platforms: 1});
+                }
+            }
+        ).then(
+            departments => {
+                if(departments && departments.length > 0){
+                    let platformArray = [];
+
+                    departments.forEach(department => {
+                        if(department && department.platforms && department.platforms.length > 0){
+                            department.platforms.forEach(data => {
+                                platformArray.push(data);
+                            })
+                        }
+                    });
+
+                    return platformArray;
+                }
+            }
+        ).then(
+            platformArr => {
+                if(platformArr && platformArr.length > 0){
+                    adminActionRecordData.platforms = platformArr;
+                }
+
+                let logAction = adminActionRecordData.action;
+
+                if(logAction == "createDepartmentWithParent" ){
+                    adminActionRecordData.error = adminActionRecordData.data[0].departmentName;
+                }else if(logAction == "updateDepartmentParent" && adminActionRecordData.data[3]){
+                    adminActionRecordData.error = adminActionRecordData.data[3];
+                }else if(logAction == "updateDepartment" && adminActionRecordData.data[1].departmentName){
+                    adminActionRecordData.error = adminActionRecordData.data[1].departmentName;
+                }else if(logAction == "deleteDepartmentsById" && adminActionRecordData.data[1]){
+                    adminActionRecordData.error = adminActionRecordData.data[1];
+                }else if(logAction == "createRoleForDepartment" && adminActionRecordData.data[0].roleName){
+                    adminActionRecordData.error = adminActionRecordData.data[0].roleName;
+                }else if(logAction == "deleteRolesById" && adminActionRecordData.data[1]){
+                    adminActionRecordData.error = adminActionRecordData.data[1];
+                }else if(logAction == "updateRole" && adminActionRecordData.data[0].roleName){
+                    adminActionRecordData.error = adminActionRecordData.data[0].roleName;
+                }else if(logAction == "attachRolesToUsersById" && adminActionRecordData.data[2]){
+                    adminActionRecordData.error = "用户名: " + adminActionRecordData.data[2].curUser + " ; 添加角色: " + adminActionRecordData.data[2].roleName;
+                }else if(logAction == "detachRolesFromUsersById" && adminActionRecordData.data[2]){
+                    adminActionRecordData.error = "用户名: " + adminActionRecordData.data[2].curUser + " ; 移除角色: " + adminActionRecordData.data[2].roleName;
+                }else if(logAction == "createAdminForDepartment" && adminActionRecordData.data[0].adminName){
+                    adminActionRecordData.error = adminActionRecordData.data[0].adminName;
+                }else if(logAction == "updateAdmin" && adminActionRecordData.data[1].adminName){
+                    adminActionRecordData.error = adminActionRecordData.data[1].adminName;
+                }else if(logAction == "deleteAdminInfosById"){
+                    let userNames = [];
+                    for(var key in adminActionRecordData.data[1]){
+                        userNames.push(adminActionRecordData.data[1][key].adminName);
+                    }
+                    adminActionRecordData.error = userNames;
+                }else if(logAction == "updateAdminDepartment" && adminActionRecordData.data[3]){
+                    adminActionRecordData.error = adminActionRecordData.data[3];
+                }else if(logAction == "resetAdminPassword" && adminActionRecordData.data[2]){
+                    adminActionRecordData.error = adminActionRecordData.data[2];
+                }
+
+
+                var record = new dbconfig.collection_systemLog(adminActionRecordData);
+                return record.save().then().catch(err => errorSavingLog(err, adminActionRecordData));
+            }
+        )
+
     },
 
     /**

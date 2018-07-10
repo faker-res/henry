@@ -2634,11 +2634,11 @@ define(['js/app'], function (myApp) {
                 if (vm.feedbackQuery.roles) {
                     vm.queryRoles.map(e => {
                         if (e._id != "" && (vm.feedbackQuery.roles.indexOf(e._id) >= 0)) {
-                            e.users.map(f => admins.push(f.adminName))
+                            e.users.map(f => admins.push(f._id))
                         }
                     })
                 } else {
-                    vm.queryRoles.map(e => e.users.map(f => admins.push(f.adminName)))
+                    vm.queryRoles.map(e => e.users.map(f => admins.push(f._id)))
                 }
             }
 
@@ -2656,6 +2656,8 @@ define(['js/app'], function (myApp) {
             }
             if(vm.feedbackQuery.admins && vm.feedbackQuery.admins.length > 0) {
                 query.admins = vm.feedbackQuery.admins;
+            } else if (admins && admins.length > 0) {
+                query.admins = admins;
             }
 
             query.start = vm.feedbackQuery.start.data('datetimepicker').getLocalDate();
@@ -5698,7 +5700,8 @@ define(['js/app'], function (myApp) {
                 player: vm.actionLogQuery.player,
                 index: vm.actionLogQuery.index,
                 limit: vm.actionLogQuery.limit || 10,
-                sortCol: vm.actionLogQuery.sortCol || {}
+                sortCol: vm.actionLogQuery.sortCol || {},
+                platformObjId: vm.selectedPlatformID || null
             }
 
             console.log('query', query);
@@ -5710,6 +5713,14 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
                 vm.drawActionLogReportTable(data.data.data.map(item => {
                     item.operationTime$ = utilService.$getTimeFromStdTimeFormat(item.operationTime);
+                    item.platformName = [];
+                    if(item.platforms){
+                        item.platforms.forEach(platform => {
+                            if(platform){
+                                item.platformName.push(platform.name);
+                            }
+                        })
+                    }
                     return item;
                 }), vm.actionLogQuery.totalCount, newSearch);
 
@@ -5731,8 +5742,8 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' '}],
                 columns: [
                     {title: $translate("adminName"), data: "adminName"},
-                    {title: $translate('playerId'), data: "playerId"},
-                    //{title: $translate('TYPE'), data: "action"},
+                    //{title: $translate('playerId'), data: "playerId"},
+                    {title: $translate("platform"), data: "platformName", bSortable: false},
                     {
                         title: $translate('TYPE'), data: "action", sClass: "sumText",
                         render: function (data) {

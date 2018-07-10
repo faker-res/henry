@@ -180,7 +180,7 @@ const dbPlayerPayment = {
         );
     },
 
-    requestBankTypeByUserName: function (playerId, clientType, userIp) {
+    requestBankTypeByUserName: function (playerId, clientType, userIp, supportMode) {
         let playerObj;
         let returnData;
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
@@ -195,7 +195,8 @@ const dbPlayerPayment = {
                                 queryId: serverInstance.getQueryId(),
                                 platformId: playerData.platform.platformId,
                                 username: playerData.name,
-                                ip: userIp
+                                ip: userIp,
+                                supportMode: supportMode
                             }
                         );
                     }

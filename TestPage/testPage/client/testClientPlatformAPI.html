@@ -286,6 +286,25 @@
     </div>
 </div>
 
+<h3>Get Template Setting (获取模板设置)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform ID
+            <input name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>url
+            <input name="url">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="getTemplateSetting">Get Template Setting</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlatformAPITest','testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPlatformAPITest, ClientConnectionAPITest) {

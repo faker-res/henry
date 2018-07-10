@@ -1834,8 +1834,8 @@ var dbMigration = {
                 }, data.updateData);
             }
         ).then(
-            res => dbMigration.resHandler(data, "partner", "updatePartner"),
-            error => dbMigration.errorHandler("partner", "updatePartner", data, error)
+            data => console.log,
+            error => console.log
         );
     },
 

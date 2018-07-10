@@ -705,10 +705,85 @@ define(['js/app'], function (myApp) {
 
                 if(vm.showPlatform.presetModuleSetting && vm.showPlatform.presetModuleSetting.length > 0){
                     vm.showPlatform.presetModuleSetting.forEach(p => {
+                        if (p && p.hasOwnProperty('displayStatus')){
+                            p.displayStatus = ( p.displayStatus == 0 || p.displayStatus == 1 )? p.displayStatus.toString() : null ;
+                        }
 
-                        p.displayable = ( p.displayable == 0 || p.displayable == 1 )? p.displayable.toString() : null ;
                         vm.presetModuleSettingData.push($.extend({}, p));
                     })
+                }
+            };
+
+            vm.getFrontEndSpecialModuleSetting = function(platformData) {
+                vm.addNewSpecialModule = false;
+                vm.specialModuleSettingData = [];
+                vm.newDomainName = [];
+                vm.newFunctionName = [];
+                vm.newFunctionId = [];
+                vm.newDisplayable = [];
+                vm.newSpecialModuleSetting = {content:[], domainName:[]};
+
+                if (platformData && platformData.data){
+                    if (platformData.data.specialModuleSetting && platformData.data.specialModuleSetting.length > 0){
+                        platformData.data.specialModuleSetting.forEach(p => {
+
+                            if (p && p.content && p.content.length > 0){
+                                p.content.forEach( q => {
+                                    if (q && q.hasOwnProperty('displayStatus')) {
+                                        q.displayStatus = ( q.displayStatus == 0 || q.displayStatus == 1 ) ? q.displayStatus.toString() : null;
+                                    }
+                                })
+                            }
+
+                            vm.specialModuleSettingData.push($.extend(true,{}, p));
+
+                        })
+                    }
+                }
+                else{
+                    if(vm.showPlatform.specialModuleSetting && vm.showPlatform.specialModuleSetting.length > 0){
+                        vm.showPlatform.specialModuleSetting.forEach(p => {
+
+                            if (p && p.content && p.content.length > 0){
+                                p.content.forEach( q => {
+                                    if (q && q.hasOwnProperty('displayStatus')) {
+                                        q.displayStatus = ( q.displayStatus == 0 || q.displayStatus == 1 ) ? q.displayStatus.toString() : null;
+                                    }
+                                })
+                            }
+
+                            vm.specialModuleSettingData.push($.extend(true,{}, p));
+
+                        })
+                    }
+                }
+
+            };
+
+            vm.addNewSpecialModuleSetting = function() {
+                if (vm.newSpecialModuleSetting && vm.newSpecialModuleSetting.content && vm.newSpecialModuleSetting.domainName && (vm.newSpecialModuleSetting.content.length > 0 || vm.newSpecialModuleSetting.domainName.length > 0)){
+                    if (!vm.specialModuleSettingData){
+                        vm.specialModuleSettingData = [];
+                    }
+
+                    vm.specialModuleSettingData.push($.extend(true, {}, vm.newSpecialModuleSetting));
+                    vm.updatePlatformAction();
+
+                }
+            };
+
+            vm.removeModule = function (moduleId, index) {
+                if (vm.specialModuleSettingData && moduleId){
+                    GeneralModal.confirm({
+                        title: $translate('DELETE_SPECIAL_MODULE_SETTING'),
+                        text: $translate('Confirm to delete this special module setting ?')
+                    }).then(function () {
+                        vm.specialModuleSettingData = vm.specialModuleSettingData.filter( a => {return a._id != moduleId});
+                        vm.setPlatformFooter(null);
+                        vm.updatePlatformAction();
+
+                    });
+
                 }
             };
 
@@ -2094,6 +2169,7 @@ define(['js/app'], function (myApp) {
                     if (vm.showPlatform) {
                         vm.showPlatform.demoPlayerPrefix = vm.selectedPlatform.data.demoPlayerPrefix;
                         vm.getFrontEndPresetModuleSetting();
+                        vm.getFrontEndSpecialModuleSetting();
                     }
                 }
             };
@@ -2115,6 +2191,10 @@ define(['js/app'], function (myApp) {
                     vm.showPlatform.presetModuleSetting =  vm.presetModuleSettingData;
                 }
 
+                if(vm.specialModuleSettingData){
+                    vm.showPlatform.specialModuleSetting =  vm.specialModuleSettingData;
+                }
+
                 socketService.$socket($scope.AppSocket, 'updatePlatform',
                     {
                         query: {_id: vm.selectedPlatform.id},
@@ -2125,6 +2205,7 @@ define(['js/app'], function (myApp) {
                         loadPlatformData({loadAll: false});
                         vm.editFrontEndDisplay = false;
                         vm.getFrontEndPresetModuleSetting();
+                        vm.getFrontEndSpecialModuleSetting(data);
                         vm.syncPlatform();
                     });
             };
@@ -9881,6 +9962,7 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
                 vm.moduleDisplayDataTab = "presetModulePanel";
                 vm.getFrontEndPresetModuleSetting();
+                vm.getFrontEndSpecialModuleSetting();
             };
 
             vm.updatePlayerFeedbackData = function (modalId, tableId, opt) {
@@ -12041,6 +12123,42 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.initBulkAddPlayerFeedback = () => {
+                vm.bulkPlayersToAddFeedback = [];
+                vm.ctiData.callee.map(callee => {
+                    if (callee.status == 2) {
+                        vm.bulkPlayersToAddFeedback.push(callee.player._id)
+                    }
+                });
+                $('#modalBulkAddPlayerFeedback').modal().show()
+            };
+
+            vm.bulkAddPlayerFeedback = () => {
+                vm.bulkPlayersToAddFeedback = vm.bulkPlayersToAddFeedback || [];
+                let resultName = vm.allPlayerFeedbackResults.filter(item => {
+                    return item.key == vm.playerFeedback.result;
+                });
+                resultName = resultName.length > 0 ? resultName[0].value : "";
+                let sendData = {
+                    playerId: vm.bulkPlayersToAddFeedback,
+                    platform: vm.selectedPlatform.id,
+                    createTime: Date.now(),
+                    adminId: authService.adminId,
+                    content: vm.playerFeedback.content,
+                    result: vm.playerFeedback.result,
+                    resultName: resultName,
+                    topic: vm.playerFeedback.topic
+                };
+                console.log('add feedback', sendData);
+                socketService.$socket($scope.AppSocket, 'bulkCreatePlayerFeedback', sendData, function (data) {
+                    console.log('feedbackadded', data);
+                    $scope.$evalAsync(() => {
+                        vm.playerFeedback = {};
+                    });
+                });
+
+            };
+
             vm.updatePartnerFeedback = function () {
                 let resultName = vm.allPartnerFeedbackResults.filter(item => {
                     return item.key === vm.partnerFeedback.result;
@@ -12618,6 +12736,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.searchSMSLog = function (newSearch) {
+                var platformId = (vm.selectedPlatform.data && vm.selectedPlatform.data.platformId) ? vm.selectedPlatform.data.platformId : null;
                 var requestData = {
                     // playerId: vm.selectedSinglePlayer.playerId,
                     isAdmin: vm.smsLog.query.isAdmin,
@@ -12627,7 +12746,9 @@ define(['js/app'], function (myApp) {
                     endTime: vm.smsLog.query.endTime.data('datetimepicker').getLocalDate(),//$('#smsLogQuery .endTime   input').val() || undefined,
                     index: newSearch ? 0 : vm.smsLog.index,
                     limit: newSearch ? 10 : vm.smsLog.limit,
+                    platformId: platformId
                 };
+
                 if (vm.smsLog.type == "single") {
                     requestData.playerId = vm.selectedSinglePlayer.playerId;
                 }
@@ -15117,7 +15238,17 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.playerFeedbackQuery.credibilityRemarks && vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
-                    sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
+                    let tempArr = [];
+                    if (vm.playerFeedbackQuery.credibilityRemarks.includes("")) {
+                        vm.playerFeedbackQuery.credibilityRemarks.forEach(remark => {
+                            if (remark != "") {
+                                tempArr.push(remark);
+                            }
+                        });
+                        sendQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
+                    } else {
+                        sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
+                    }
                 }
 
                 if (vm.playerFeedbackQuery.lastAccess === "range") {
@@ -16028,19 +16159,14 @@ define(['js/app'], function (myApp) {
             };
 
             vm.stopCallOutMission = function() {
+                $('#platformFeedbackSpin').show();
                 socketService.$socket($scope.AppSocket, 'stopCallOutMission', {
                     platformObjId: vm.selectedPlatform.id,
                     missionName: vm.ctiData.missionName
                 }, function (data) {
                     console.log("stopCallOutMission ret" , data);
                     $scope.$evalAsync(function(){
-                        vm.ctiData = {};
-                        vm.feedbackPlayersPara.total = 0;
-                        vm.callOutMissionStatus = "";
-                        setTableData(vm.playerFeedbackTable, []);
-                        vm.drawExtendedFeedbackTable([]);
-                        vm.playerCredibilityComment = [];
-                        vm.curPlayerFeedbackDetail = {};
+                        vm.submitPlayerFeedbackQuery();
                     });
                 });
             };
@@ -16079,11 +16205,13 @@ define(['js/app'], function (myApp) {
                         vm.playerFeedbackQuery.index = playerFeedbackDetail.index || 0;
                         vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total});
                         vm.feedbackPlayersPara.total = vm.playerFeedbackQuery.total;
-                        vm.showFinishCalloutMissionButton = Boolean(vm.ctiData.status == '3');
+                        vm.showFinishCalloutMissionButton = Boolean(vm.ctiData.status == $scope.constCallOutMissionStatus.FINISHED || vm.ctiData.status == $scope.constCallOutMissionStatus.CANCELLED);
 
                         // let players = [];
                         let completedAmount = 0;
                         vm.callOutMissionStatusText = '';
+
+                        vm.bulkPlayersToAddFeedback = [];
 
                         vm.ctiData.callee.forEach(callee => {
                             if (callee.player) {
@@ -16104,6 +16232,10 @@ define(['js/app'], function (myApp) {
                             if (callee.status != 0) {
                                 completedAmount++;
                             }
+
+                            if (callee.status == 2) {
+                                vm.bulkPlayersToAddFeedback.push(callee.player._id)
+                            }
                         });
 
                         if (vm.playerFeedbackSearchType=="many") {
@@ -16119,6 +16251,10 @@ define(['js/app'], function (myApp) {
                             vm.callOutMissionStatusText = $translate("On Going");
                         } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.PAUSED) {
                             vm.callOutMissionStatusText = $translate("Paused");
+                        } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.FINISHED) {
+                            vm.callOutMissionStatusText = $translate("Finished");
+                        } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.CANCELLED) {
+                            vm.callOutMissionStatusText = $translate("Gave Up");
                         }
 
                         $scope.$evalAsync(function () {
@@ -18387,6 +18523,10 @@ define(['js/app'], function (myApp) {
                     );
                     vm.commissionRateConfig = jQuery.extend(true, {}, vm.srcCommissionRateConfig);
                     vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
+                    vm.partnerCommissionObj = {};
+                    vm.partnerCommissionObj.data = commonService.applyPartnerCustomRate(selectedPartner._id, vm.partnerCommission, vm.customPartnerCommission);
+                    vm.commissionSettingIsEditAll = {};
+                    vm.commissionRateIsEditAll = false;
 
                     let option = {
                         $scope: $scope,
@@ -18412,7 +18552,7 @@ define(['js/app'], function (myApp) {
                             filteredBankTypeList: vm.filteredBankTypeList,
                             filterBankName: vm.filterBankName,
                             isEditingPartnerPaymentShowVerify: vm.isEditingPartnerPaymentShowVerify,
-                            partnerCommission: commonService.applyPartnerCustomRate(selectedPartner._id, vm.partnerCommission, vm.customPartnerCommission),
+                            partnerCommission: vm.partnerCommissionObj.data,
                             commissionSettingTab: vm.commissionSettingTab,
                             playerConsumptionTableHeader: vm.playerConsumptionTableHeader,
                             rateAfterRebatePromo: vm.rateAfterRebatePromo,
@@ -18422,12 +18562,17 @@ define(['js/app'], function (myApp) {
                             rateAfterRebateTotalWithdrawal: vm.rateAfterRebateTotalWithdrawal,
                             commissionRateConfig: commonService.applyPartnerCustomRate(selectedPartner._id, vm.commissionRateConfig, vm.custCommissionRateConfig),
                             commissionSettingEditRow: vm.commissionSettingEditRow,
+                            commissionSettingEditAll: vm.commissionSettingEditAll,
+                            commissionSettingIsEditAll: vm.getCommissionSettingIsEditAll,
                             commissionSettingCancelRow: vm.commissionSettingCancelRow,
                             selectedCommissionTab: vm.selectedCommissionTab,
                             customizeCommissionRate: vm.customizeCommissionRate,
+                            customizeCommissionRateAll: vm.customizeCommissionRateAll,
                             resetAllCustomizedCommissionRate: vm.resetAllCustomizedCommissionRate,
                             customizePartnerRate: vm.customizePartnerRate,
                             commissionRateEditRow: vm.commissionRateEditRow,
+                            commissionRateEditAll: vm.commissionRateEditAll,
+                            commissionRateIsEditAll: vm.getCommissionRateIsEditAll,
                             currentProvince: vm.currentProvince,
                             provinceList: vm.provinceList,
                             changeProvince: vm.changeProvince,
@@ -20778,7 +20923,6 @@ define(['js/app'], function (myApp) {
                     $('.spicker').selectpicker('refresh');
                 }, 0);
             };
-
             vm.updatePlayerValueConfigInEdit = function (type, configType, data) {
                 if (type == 'add') {
                     switch (configType) {
@@ -20811,38 +20955,45 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.updateCollectionInEdit = function (type, collection, data, collectionCopy) {
+            vm.updateCollectionInEdit = function (type, collection, data, collectionCopy, isNotObject) {
                 if (type == 'add') {
-                    let newObj = {};
 
-                    // // check again if there is duplication of sms title after updating the promoCodeType
-                    // if (data.smsTitle && vm.promoCodeType1BeforeEdit && vm.promoCodeType2BeforeEdit && vm.promoCodeType3BeforeEdit){
-                    //
-                    //     let filterPromoCodeType1 = vm.promoCodeType1BeforeEdit.map(p => p.smsTitle);
-                    //     let filterPromoCodeType2 = vm.promoCodeType2BeforeEdit.map(p => p.smsTitle);
-                    //     let filterPromoCodeType3 = vm.promoCodeType3BeforeEdit.map(p => p.smsTitle);
-                    //
-                    //     let promoCodeSMSTitleCheckList = filterPromoCodeType1.concat(filterPromoCodeType2, filterPromoCodeType3);
-                    //
-                    //     if (promoCodeSMSTitleCheckList.indexOf(data.smsTitle) != -1){
-                    //         vm.smsTitleDuplicationBoolean = true;
-                    //         return socketService.showErrorMessage($translate("Banner title cannot be repeated!"));
-                    //     }
-                    //     else{
-                    //         vm.smsTitleDuplicationBoolean = false;
-                    //     }
-                    // }
+                    if (!isNotObject) {
 
-                    Object.keys(data).forEach(e => {
-                        newObj[e] = data[e];
-                    });
+                        let newObj = {};
 
-                    // update the copy to check for duplication
-                    if (collectionCopy){
-                        collectionCopy.push(newObj);
+                        // // check again if there is duplication of sms title after updating the promoCodeType
+                        // if (data.smsTitle && vm.promoCodeType1BeforeEdit && vm.promoCodeType2BeforeEdit && vm.promoCodeType3BeforeEdit){
+                        //
+                        //     let filterPromoCodeType1 = vm.promoCodeType1BeforeEdit.map(p => p.smsTitle);
+                        //     let filterPromoCodeType2 = vm.promoCodeType2BeforeEdit.map(p => p.smsTitle);
+                        //     let filterPromoCodeType3 = vm.promoCodeType3BeforeEdit.map(p => p.smsTitle);
+                        //
+                        //     let promoCodeSMSTitleCheckList = filterPromoCodeType1.concat(filterPromoCodeType2, filterPromoCodeType3);
+                        //
+                        //     if (promoCodeSMSTitleCheckList.indexOf(data.smsTitle) != -1){
+                        //         vm.smsTitleDuplicationBoolean = true;
+                        //         return socketService.showErrorMessage($translate("Banner title cannot be repeated!"));
+                        //     }
+                        //     else{
+                        //         vm.smsTitleDuplicationBoolean = false;
+                        //     }
+                        // }
+
+                        Object.keys(data).forEach(e => {
+                            newObj[e] = data[e];
+                        });
+
+                        // update the copy to check for duplication
+                        if (collectionCopy) {
+                            collectionCopy.push(newObj);
+                        }
+
+                        collection.push(newObj);
                     }
-
-                    collection.push(newObj);
+                    else{
+                        collection.push(data);
+                    }
                     collection.forEach((elem, index, arr) => {
                         let id = '#expDate1-' + index;
                         let provId = '#promoProviders-' + index;
@@ -21326,6 +21477,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'callRequestConfig':
                         vm.getCallRequestConfig();
+                        break;
+                    case 'phoneFilterConfig':
+                        vm.getPhoneFilterConfig();
                         break;
                 }
             };
@@ -22319,21 +22473,20 @@ define(['js/app'], function (myApp) {
 
             vm.getRewardPointsEventByCategory = (category) => {
                 vm.rewardPointsEvent = [];
-                $scope.safeApply();
                 return $scope.$socketPromise('getRewardPointsEventByCategory', {
                     platformObjId: vm.selectedPlatform.id,
                     category: category
                 }).then((data) => {
-                    console.log('getRewardPointsEventByCategory', data.data);
-                    vm.rewardPointsEvent = data.data;
-                    $.each(vm.rewardPointsEvent, function (idx, val) {
-                        vm.rewardPointsEventPeriodChange(idx, val);
-                        vm.rewardPointsEventSetDisable(idx, val, true, true);
-                        vm.rewardPointsEventOld.push($.extend(true, {}, val));
-                        vm.refreshSPicker();
+                    $scope.$evalAsync(()=>{
+                        console.log('getRewardPointsEventByCategory', data.data);
+                        vm.rewardPointsEvent = data.data;
+                        $.each(vm.rewardPointsEvent, function (idx, val) {
+                            vm.rewardPointsEventPeriodChange(idx, val);
+                            vm.rewardPointsEventSetDisable(idx, val, true, true);
+                            vm.rewardPointsEventOld.push($.extend(true, {}, val));
+                        });
+                        vm.endLoadWeekDay();
                     });
-                    $scope.safeApply();
-                    vm.endLoadWeekDay();
                 });
             };
 
@@ -22363,6 +22516,12 @@ define(['js/app'], function (myApp) {
                 }
                 if (rewardPointsEvent.target && !rewardPointsEvent.target.depositMethod) {
                     delete rewardPointsEvent.target.depositMethod;
+                }
+                if (rewardPointsEvent.target && (rewardPointsEvent.target.betType && rewardPointsEvent.target.betType.length == 0)) {
+                    delete rewardPointsEvent.target.betType;
+                }
+                if (rewardPointsEvent.target && !rewardPointsEvent.target.gameType) {
+                    delete rewardPointsEvent.target.gameType;
                 }
                 delete rewardPointsEvent.isEditing;
                 if (rewardPointsEvent.period == 6) {
@@ -22440,9 +22599,7 @@ define(['js/app'], function (myApp) {
                     vm.updateRewardPointsEvent(x, vm.rewardPointsEvent[x]);
                     vm.rewardPointsEventSetDisable(x, vm.rewardPointsEvent[x], true, true);
                 }
-
                 vm.rewardPointsEventUpdateAll = false;
-                $scope.safeApply();
             }
 
             vm.rewardPointsEventReset = (idx) => {
@@ -23887,7 +24044,12 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('CREATED_BY'),
                             data: "adminName"
+                        },
+                        {
+                            title: $translate('REMARK'),
+                            data: "remark"
                         }
+
                     ],
                     "paging": false,
                     fnRowCallback: vm.promoCodeHistoryTableRow
@@ -25740,6 +25902,21 @@ define(['js/app'], function (myApp) {
                 valueCollection[idx].isEditing = true;
                 vm.partnerCommission.isEditing = true;
             };
+
+            vm.commissionSettingEditAll = (index, data, flag) => {
+                if (data.hasOwnProperty("showConfig") && data.showConfig.hasOwnProperty("commissionSetting")) {
+                    data.showConfig.commissionSetting.forEach(setting => {
+                        setting.isEditing = flag;
+                    })
+                }
+
+                vm.commissionSettingIsEditAll[index] = flag
+            }
+
+            vm.getCommissionSettingIsEditAll = (index) => {
+                return vm.commissionSettingIsEditAll[index];
+            }
+
             vm.commissionSettingCancelRow = (idx, valueCollection, originalCollection, isCancelByRow, isFromCustomizedPage, originalCustomizedConfig) => {
                 if (valueCollection[idx].isCreateNew) {
                     valueCollection[idx].isCreateNew = false;
@@ -25850,6 +26027,20 @@ define(['js/app'], function (myApp) {
             vm.commissionRateEditRow = (field, flag) => {
                 vm.commissionRateConfig.isEditing[field] = flag;
             };
+
+            vm.commissionRateEditAll = (flag) => {
+                vm.commissionRateConfig.isEditing["rateAfterRebatePromo"] = flag;
+                vm.commissionRateConfig.isEditing["rateAfterRebatePlatform"] = flag;
+                vm.commissionRateConfig.isEditing["rateAfterRebateGameProviderGroup"] = flag;
+                vm.commissionRateConfig.isEditing["rateAfterRebateTotalDeposit"] = flag;
+                vm.commissionRateConfig.isEditing["rateAfterRebateTotalWithdrawal"] = flag;
+                vm.commissionRateIsEditAll = flag
+            };
+
+            vm.getCommissionRateIsEditAll = () => {
+                return vm.commissionRateIsEditAll;
+            }
+
             vm.showHideSubmitCommissionConfigButton = (valueCollection) => {
                 if (valueCollection && valueCollection.length > 0) {
                     vm.partnerCommission.isEditing = false;
@@ -26003,7 +26194,44 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.customizeCommissionRateAll = (idx, setting, newConfig, oldConfig) => {
+                // let setting;
+                // let newConfig;
+                // let oldConfig;
+
+                // Convert back commissionRate to percentage
+                newConfig.commissionSetting.forEach(e => {
+                    e.commissionRate = parseFloat((e.commissionRate / 100).toFixed(4));
+                });
+
+                // Check setting has changed or not
+                if (newConfig || isRevert) {
+                    let sendData = {
+                        partnerObjId: vm.selectedSinglePartner._id,
+                        settingObjId: setting.srcConfig._id,
+                        field: "commissionRate",
+                        oldConfig: oldConfig,
+                        newConfig: newConfig,
+                        isRevert: false,
+                        isPlatformRate: false
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
+                        $scope.$evalAsync(() => {
+                            vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id);
+                            vm.getPlatformPartnersData();
+                        });
+                    });
+                }
+            };
+
             vm.resetAllCustomizedCommissionRate = function () {
+                if (vm.commissionSettingIsEditAll) {
+                    for (let key in vm.commissionSettingIsEditAll) {
+                        vm.commissionSettingIsEditAll[key] = false;
+                    }
+                }
+
                 let sendData = {
                     partnerObjId: vm.selectedSinglePartner._id,
                     field: "Reset all commission rate",
@@ -26240,19 +26468,27 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.smsVerificationExpireTime = vm.selectedPlatform.data.smsVerificationExpireTime;
                 vm.platformBasic.usePointSystem = vm.selectedPlatform.data.usePointSystem;
                 vm.platformBasic.usePhoneNumberTwoStepsVerification = vm.selectedPlatform.data.usePhoneNumberTwoStepsVerification;
-                vm.platformBasic.whiteListingPhoneNumbers$ = "";
-                vm.platformBasic.blackListingPhoneNumbers$ = "";
                 vm.platformBasic.playerForbidApplyBonusNeedCsApproval = vm.selectedPlatform.data.playerForbidApplyBonusNeedCsApproval;
                 vm.platformBasic.unreadMailMaxDuration = vm.selectedPlatform.data.unreadMailMaxDuration;
                 vm.platformBasic.manualRewardSkipAuditAmount = vm.selectedPlatform.data.manualRewardSkipAuditAmount || 0;
                 vm.platformBasic.useEbetWallet = vm.selectedPlatform.data.useEbetWallet;
 
+
+                // $scope.safeApply();
+            };
+
+            vm.getPhoneFilterConfig = function () {
+                vm.phoneFilterConfig = vm.phoneFilterConfig || {};
+                vm.phoneFilterConfig.whiteListingPhoneNumbers$ = "";
+                vm.phoneFilterConfig.blackListingPhoneNumbers$ = "";
+
+
                 if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
                     let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
                     for (let i = 0, len = phones.length; i < len; i++) {
                         let phone = phones[i];
-                        vm.platformBasic.whiteListingPhoneNumbers$ += phone;
-                        i !== (len - 1) ? vm.platformBasic.whiteListingPhoneNumbers$ += "\n" : "";
+                        vm.phoneFilterConfig.whiteListingPhoneNumbers$ += phone;
+                        i !== (len - 1) ? vm.phoneFilterConfig.whiteListingPhoneNumbers$ += "\n" : "";
                     }
                 }
 
@@ -26260,12 +26496,11 @@ define(['js/app'], function (myApp) {
                     let phones = vm.selectedPlatform.data.blackListingPhoneNumbers;
                     for (let i = 0, len = phones.length; i < len; i++) {
                         let phone = phones[i];
-                        vm.platformBasic.blackListingPhoneNumbers$ += phone;
-                        i !== (len - 1) ? vm.platformBasic.blackListingPhoneNumbers$ += "\n" : "";
+                        vm.phoneFilterConfig.blackListingPhoneNumbers$ += phone;
+                        i !== (len - 1) ? vm.phoneFilterConfig.blackListingPhoneNumbers$ += "\n" : "";
                     }
                 }
 
-                $scope.safeApply();
             };
 
             vm.getPartnerBasic = function () {
@@ -26275,8 +26510,6 @@ define(['js/app'], function (myApp) {
                 vm.partnerBasic.partnerAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.partnerAllowSamePhoneNumberToRegister;
                 vm.partnerBasic.partnerSamePhoneNumberRegisterCount = vm.selectedPlatform.data.partnerSamePhoneNumberRegisterCount;
                 vm.partnerBasic.partnerAllowSameRealNameToRegister = vm.selectedPlatform.data.partnerAllowSameRealNameToRegister;
-                vm.partnerBasic.whiteListingPhoneNumbers = "";
-                vm.partnerBasic.blackListingPhoneNumbers = "";
                 vm.partnerBasic.partnerRequireSMSVerification = vm.selectedPlatform.data.partnerRequireSMSVerification;
                 vm.partnerBasic.partnerRequireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.partnerRequireSMSVerificationForPasswordUpdate;
                 vm.partnerBasic.partnerRequireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.partnerRequireSMSVerificationForPaymentUpdate;
@@ -26287,23 +26520,6 @@ define(['js/app'], function (myApp) {
                 vm.partnerBasic.partnerUnreadMailMaxDuration = vm.selectedPlatform.data.partnerUnreadMailMaxDuration;
                 vm.partnerBasic.partnerDefaultCommissionGroup = vm.selectedPlatform.data.partnerDefaultCommissionGroup.toString();
 
-                if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
-                    let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
-                    for (let i = 0, len = phones.length; i < len; i++) {
-                        let phone = phones[i];
-                        vm.partnerBasic.whiteListingPhoneNumbers += phone;
-                        i !== (len - 1) ? vm.partnerBasic.whiteListingPhoneNumbers += "\n" : "";
-                    }
-                }
-
-                if (vm.selectedPlatform.data.blackListingPhoneNumbers && vm.selectedPlatform.data.blackListingPhoneNumbers.length > 0) {
-                    let phones = vm.selectedPlatform.data.blackListingPhoneNumbers;
-                    for (let i = 0, len = phones.length; i < len; i++) {
-                        let phone = phones[i];
-                        vm.partnerBasic.blackListingPhoneNumbers += phone;
-                        i !== (len - 1) ? vm.partnerBasic.blackListingPhoneNumbers += "\n" : "";
-                    }
-                }
                 $scope.safeApply();
             }
 
@@ -26727,6 +26943,9 @@ define(['js/app'], function (myApp) {
                     case 'callRequestConfig':
                         updateCallRequestConfig(vm.callRequestConfig);
                         break;
+                    case 'phoneFilterConfig':
+                        updatePhoneFilter(vm.phoneFilterConfig);
+                        break;
                 }
             };
 
@@ -26862,25 +27081,6 @@ define(['js/app'], function (myApp) {
             }
 
             function updatePlatformBasic(srcData) {
-                let whiteListingPhoneNumbers = [];
-                let blackListingPhoneNumbers = [];
-
-                if (srcData.whiteListingPhoneNumbers$) {
-                    let phones = srcData.whiteListingPhoneNumbers$.split(/\r?\n/);
-                    for (let i = 0, len = phones.length; i < len; i++) {
-                        let phone = phones[i].trim();
-                        if (phone) whiteListingPhoneNumbers.push(phone);
-                    }
-                }
-
-                if (srcData.blackListingPhoneNumbers$) {
-                    let phones = srcData.blackListingPhoneNumbers$.split(/\r?\n/);
-                    for (let i = 0, len = phones.length; i < len; i++) {
-                        let phone = phones[i].trim();
-                        if (phone) blackListingPhoneNumbers.push(phone);
-                    }
-                }
-
                 let sendData = {
                     query: {_id: vm.selectedPlatform.id},
                     updateData: {
@@ -26908,8 +27108,6 @@ define(['js/app'], function (myApp) {
                         requireSMSVerificationForPaymentUpdate: srcData.requireSMSVerificationForPaymentUpdate,
                         smsVerificationExpireTime: srcData.smsVerificationExpireTime,
                         useProviderGroup: srcData.useProviderGroup,
-                        whiteListingPhoneNumbers: whiteListingPhoneNumbers,
-                        blackListingPhoneNumbers: blackListingPhoneNumbers,
                         usePointSystem: srcData.usePointSystem,
                         usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification,
                         playerForbidApplyBonusNeedCsApproval: srcData.playerForbidApplyBonusNeedCsApproval,
@@ -26932,6 +27130,39 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            function updatePhoneFilter(srcData) {
+                let whiteListingPhoneNumbers = [];
+                let blackListingPhoneNumbers = [];
+
+                if (srcData.whiteListingPhoneNumbers$) {
+                    let phones = srcData.whiteListingPhoneNumbers$.split(/\r?\n/);
+                    for (let i = 0, len = phones.length; i < len; i++) {
+                        let phone = phones[i].trim();
+                        if (phone) whiteListingPhoneNumbers.push(phone);
+                    }
+                }
+
+                if (srcData.blackListingPhoneNumbers$) {
+                    let phones = srcData.blackListingPhoneNumbers$.split(/\r?\n/);
+                    for (let i = 0, len = phones.length; i < len; i++) {
+                        let phone = phones[i].trim();
+                        if (phone) blackListingPhoneNumbers.push(phone);
+                    }
+                }
+
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {
+                        whiteListingPhoneNumbers: whiteListingPhoneNumbers,
+                        blackListingPhoneNumbers: blackListingPhoneNumbers,
+                    }
+                };
+
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
+                });
+            }
+
             vm.partnerCommissionName = function getPartnerCommisionName() {
                 if (vm.partnerBasic.partnerDefaultCommissionGroup) {
                     return Object.keys(vm.constPartnerCommisionType)[vm.partnerBasic.partnerDefaultCommissionGroup];
@@ -26941,24 +27172,6 @@ define(['js/app'], function (myApp) {
             }
 
             function updatePartnerBasic(srcData) {
-                let whiteListingPhoneNumbers = [];
-                let blackListingPhoneNumbers = [];
-
-                if (srcData.whiteListingPhoneNumbers) {
-                    let phones = srcData.whiteListingPhoneNumbers.split(/\r?\n/);
-                    for (let i = 0, len = phones.length; i < len; i++) {
-                        let phone = phones[i].trim();
-                        if (phone) whiteListingPhoneNumbers.push(phone);
-                    }
-                }
-
-                if (srcData.blackListingPhoneNumbers) {
-                    let phones = srcData.blackListingPhoneNumbers.split(/\r?\n/);
-                    for (let i = 0, len = phones.length; i < len; i++) {
-                        let phone = phones[i].trim();
-                        if (phone) blackListingPhoneNumbers.push(phone);
-                    }
-                }
                 let sendData = {
                     query: {_id: vm.selectedPlatform.id},
                     updateData: {
@@ -26967,8 +27180,6 @@ define(['js/app'], function (myApp) {
                         partnerAllowSamePhoneNumberToRegister: srcData.partnerAllowSamePhoneNumberToRegister,
                         partnerSamePhoneNumberRegisterCount: srcData.partnerAllowSamePhoneNumberToRegister,
                         partnerAllowSameRealNameToRegister: srcData.partnerAllowSameRealNameToRegister,
-                        whiteListingPhoneNumbers: whiteListingPhoneNumbers,
-                        blackListingPhoneNumbers: blackListingPhoneNumbers,
                         partnerRequireSMSVerification: srcData.partnerRequireSMSVerification,
                         partnerRequireSMSVerificationForPasswordUpdate: srcData.partnerRequireSMSVerificationForPasswordUpdate,
                         partnerRequireSMSVerificationForPaymentUpdate: srcData.partnerRequireSMSVerificationForPaymentUpdate,
