@@ -443,7 +443,7 @@ const dbPlayerMail = {
                             return Q.reject({
                                 status: constServerCode.DATA_INVALID,
                                 name: "DBError",
-                                message: localization.localization.translate("Username must be alphanumeric")
+                                message: "Username must be alphanumeric"
                             });
                         }
 
