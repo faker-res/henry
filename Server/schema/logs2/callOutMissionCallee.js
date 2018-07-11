@@ -21,6 +21,8 @@ let callOutMissionCalleeSchema = new Schema({
     phoneNumber: {type: String},
     // calling time
     callingTime: {type: Date},
+    // call count / redial times
+    callCount: {type: Number, default: 0},
     // status - refer to constCallOutMissionCalleeStatus
     status: {type: Number, default: 0},
     // is the player added feedback record
