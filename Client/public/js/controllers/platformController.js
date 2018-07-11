@@ -1027,12 +1027,14 @@ define(['js/app'], function (myApp) {
                             // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
                             console.log('vm.platformPageName', vm.platformPageName);
 
+                            let callbackAfterDepartmentLoad;
+
                             switch (vm.platformPageName) {
                                 case "GameGroup":
                                     vm.loadGameGroupData();
                                     break;
                                 case "Feedback":
-                                    vm.initPlayerFeedback();
+                                    callbackAfterDepartmentLoad = vm.initPlayerFeedback;
                                     // vm.submitPlayerFeedbackQuery();
                                     break;
                                 case "MessageTemplates":
@@ -1045,7 +1047,7 @@ define(['js/app'], function (myApp) {
                             //     case "Player":
                             vm.playersQueryCreated = false;
                             vm.configTabClicked();
-                            vm.loadAlldepartment();
+                            vm.loadAlldepartment(callbackAfterDepartmentLoad);
                             vm.rewardTabClicked();
                             vm.getPlatformRewardProposal();
                             vm.getPlatformPlayersData(true, true);
@@ -16382,14 +16384,14 @@ define(['js/app'], function (myApp) {
 
                         vm.queryDepartments.push({_id:'', departmentName:'N/A'});
 
-                        vm.departments.map(e => {
+                        vm.currentPlatformDepartment.map(e => {
                             if (e.departmentName == vm.selectedPlatform.data.name) {
                                 vm.queryDepartments.push(e);
                                 parentId = e._id;
                             }
                         });
 
-                        vm.departments.map(e => {
+                        vm.currentPlatformDepartment.map(e => {
                             if (String(parentId) == String(e.parent)) {
                                 vm.queryDepartments.push(e);
                             }
@@ -27696,7 +27698,7 @@ define(['js/app'], function (myApp) {
             }
 
             // right panel required functions
-            vm.loadAlldepartment = function () {
+            vm.loadAlldepartment = function (callback) {
 
                 if (!authService.checkViewPermission('Platform', 'Proposal', 'Create') && !authService.checkViewPermission('Platform', 'Proposal', 'Update')) {
                     return;
@@ -27708,7 +27710,19 @@ define(['js/app'], function (myApp) {
                         vm.departments = data.data;
                     })
                 }
-            }
+
+                // getting admin's department might not get the required department by platform for some features
+                socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform.id},
+                    data => {
+                        $scope.$evalAsync(() => {
+                            vm.currentPlatformDepartment = data.data;
+                            if (typeof(callback) == 'function') {
+                                callback(data.data);
+                            }
+                        });
+                    }
+                );
+            };
             vm.initStep = function () {
                 vm.tempNewNodeName = '';
                 vm.tempNewNodeDepartment = '';
