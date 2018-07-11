@@ -621,7 +621,7 @@ let dbPlayerInfo = {
                             }
 
                             // get only when promoteWay is selected
-                            if (inputData && inputData.promoteWay) {
+                            if (inputData && !inputData.adminName) {
                                 let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
                                     domain: {
                                         $regex: inputData.domain,
