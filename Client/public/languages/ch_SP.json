@@ -3645,6 +3645,8 @@
   "fixPlatformWeeklySettlement": "修复平台每周结算",
   "createPlayer": "创建玩家",
   "getPlayerReferrals": "被推荐玩家",
+  "modifyPlayerCredibilityRemark": "编辑信用评价",
+  "updatePlayerCredibilityRemark": "信用评价",
   "createUpdatePlayerBankInfoProposal": "创建更新玩家银行资料提案",
   "submitRepairPaymentProposal": "提交补单提案",
   "updatePlayerPermission": "更新玩家权限",

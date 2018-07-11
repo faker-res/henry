@@ -25,6 +25,7 @@ const bcrypt = require('bcrypt');
 
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
+const dbApiLog = require("../db_modules/dbApiLog");
 
 let dbDXMission = {
 
@@ -670,7 +671,7 @@ let dbDXMission = {
 
     },
 
-    createPlayerFromCode: function (code, deviceData, domain) {
+    createPlayerFromCode: function (code, deviceData, domain, loginDetails, conn, wsFunc) {
         if (!code) {
             return Promise.reject({
                 errorMessage: "Invalid code for creating player"
@@ -692,7 +693,7 @@ let dbDXMission = {
                     return loginDefaultPasswordPlayer(dxPhone);
                 }
                 else {
-                    return createPlayer(dxPhone, deviceData, domain);
+                    return createPlayer(dxPhone, deviceData, domain, loginDetails, conn, wsFunc);
                 }
             }
         )
@@ -1535,8 +1536,10 @@ function generateDXPlayerName (lastXDigit, platformPrefix, dxPrefix, dxPhone, tr
     );
 }
 
-function createPlayer (dxPhone, deviceData, domain) {
+function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) {
     let platform = dxPhone.platform;
+    let playerPassword = dxPhone.dxMission.password || "888888";
+
 
     if (!dxPhone.dxMission) {
         dxPhone.dxMission = {
@@ -1581,6 +1584,20 @@ function createPlayer (dxPhone, deviceData, domain) {
         function (playerData) {
             let profile = {name: playerData.name, password: playerData.password};
             let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+            let newPlayerData = JSON.parse(JSON.stringify(playerData));
+
+            if (loginDetails) {
+                newPlayerData.password = playerPassword ? playerPassword : (newPlayerData.password || "");
+                newPlayerData.inputDevice = loginDetails.inputDevice ? loginDetails.inputDevice : (newPlayerData.inputDevice || "");
+                newPlayerData.platformId = platform.platformId ? platform.platformId : (newPlayerData.platformId || "");
+                newPlayerData.name = platformPrefix ? newPlayerData.name.replace(platformPrefix, '') : (newPlayerData.name || "");
+                newPlayerData.ua = loginDetails.ua ? loginDetails.ua : (newPlayerData.userAgent || "");
+                newPlayerData.mobileDetect = loginDetails.md ? loginDetails.md : (newPlayerData.mobileDetect || "");
+                //after created new player, need to create login record and apply login reward
+                dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect).catch(errorUtils.reportError);
+                dbApiLog.createApiLog(conn, wsFunc, null, null, newPlayerData).catch(errorUtils.reportError);
+            }
 
             if (!dxMission.loginUrl) {
                 dxMission.loginUrl = "localhost:3000";

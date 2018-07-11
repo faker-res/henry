@@ -5,6 +5,7 @@ var constServerCode = require('./../../const/constServerCode');
 const uaParser = require('ua-parser-js');
 const geoip = require('geoip-lite');
 const dbutility = require('./../../modules/dbutility');
+const mobileDetect = require('mobile-detect');
 
 var DXMissionServiceImplement = function () {
     DXMissionService.call(this);
@@ -37,6 +38,11 @@ var DXMissionServiceImplement = function () {
             os: ua.os.name || ''
         }];
         // var userAgentString = uaString;
+        let loginDetails = {
+            inputDevice: dbutility.getInputDevice(conn.upgradeReq.headers['user-agent']),
+            md: new mobileDetect(uaString),
+            ua: ua
+        };
 
         var lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
@@ -63,7 +69,7 @@ var DXMissionServiceImplement = function () {
         }
 
         var isValidData = Boolean(data && data.code);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbDxMission.createPlayerFromCode, [data.code, deviceData, data.domain], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbDxMission.createPlayerFromCode, [data.code, deviceData, data.domain, loginDetails, conn, wsFunc], isValidData, false, false, true);
     };
 
     this.insertPhoneToTask.expectsData = '';
