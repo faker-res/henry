@@ -8,7 +8,7 @@ const dbUtility = require('./../modules/dbutility');
 const mobileDetect = require('mobile-detect');
 
 let dbApiLog = {
-    createApiLog: function (conn, wsFunc, actionResult, reqData) {
+    createApiLog: function (conn, wsFunc, actionResult, reqData, playerData) {
         let playerObjId, actionName, ipAddress, platform;
         let geoIpProm = Promise.resolve();
         let actionToLog = [
@@ -30,14 +30,20 @@ let dbApiLog = {
             "requestConsumeRebate",
             "createFirstTopUpRewardProposal",
             "applyProviderReward",
-            "applyRewardEvent"
+            "applyRewardEvent",
+            "submitDXCode"
         ];
 
-        if (['login','create'].includes(wsFunc.name) &&  wsFunc._service.name === 'player') {
-            playerObjId = actionResult._id;
-            platform = actionResult.platform;
+        if (wsFunc.name == 'submitDXCode' && playerData && playerData._id && playerData.platform) {
+            playerObjId = playerData._id;
+            platform = playerData.platform;
         } else {
-            playerObjId = conn.playerObjId;
+            if (['login', 'create'].includes(wsFunc.name) && wsFunc._service.name === 'player') {
+                playerObjId = actionResult._id;
+                platform = actionResult.platform;
+            } else {
+                playerObjId = conn.playerObjId;
+            }
         }
 
         if (["create", "update", "add", "delete", "get", "search"].includes(wsFunc.name)) {
@@ -107,8 +113,7 @@ let dbApiLog = {
                 if (playerObjId) {
                     let apiLog = new dbConfig.collection_apiLog(logData);
                     apiLog.save().then().catch(errorUtils.reportError);
-
-                    if (actionName === "login" || actionName === "player - create") {
+                    if (actionName === "login" || actionName === "player - create" || actionName === "submitDXCode") {
                         let actionLog = new dbConfig.collection_actionLog(logData);
                         actionLog.save().then().catch(errorUtils.reportError);
                     }
