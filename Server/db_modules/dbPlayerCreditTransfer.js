@@ -1378,13 +1378,17 @@ let dbPlayerCreditTransfer = {
                     rewardTaskGroupObjId = rewardTaskGroup._id;
                 }
 
+                console.log("transfer in gameProviderGroup", gameProviderGroup);
                 // Calculate total amount needed to transfer to CPMS
                 transferAmount = validTransferAmount + lockedTransferAmount;
-                transferWallet[0] = validTransferAmount;
-                if(!transferWallet.hasOwnProperty(gameProviderGroup.ebetWallet)) {
+                transferWallet[0] = 0;
+                if(gameProviderGroup.hasOwnProperty('ebetWallet')) {
                     transferWallet[gameProviderGroup.ebetWallet] = 0;
                 }
-                transferWallet[gameProviderGroup.ebetWallet] += lockedTransferAmount;
+                transferWallet[0] += validTransferAmount;
+                if(gameProviderGroup.hasOwnProperty('ebetWallet')) {
+                    transferWallet[gameProviderGroup.ebetWallet] += lockedTransferAmount;
+                }
 
                 // Check player have enough credit
                 if (transferAmount < 1 || amount == 0) {
@@ -1454,6 +1458,7 @@ let dbPlayerCreditTransfer = {
                             // Second log before call cpmsAPI
                             dbLogger.createPlayerCreditTransferStatusLog(playerObjId, player.playerId, player.name, platform, platformId, "transferIn",
                                 id, providerShortId, transferAmount, lockedTransferAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
+                            console.log("dPCT.playerTransferIn transferWallet", transferWallet);
                             return dPCT.playerTransferIn(
                                 {
                                     username: userName,
@@ -1483,6 +1488,7 @@ let dbPlayerCreditTransfer = {
         ).then(
             res => {
                 if (res) {
+                    console.log("dPCT.playerTransferIn res", res);
                     // CPMS call is success
                     // Log credit change when transfer success
                     dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, -validTransferAmount, constPlayerCreditChangeType.TRANSFER_IN, playerCredit, 0, -lockedTransferAmount, null, {

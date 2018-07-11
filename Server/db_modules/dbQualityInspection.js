@@ -253,6 +253,8 @@ var dbQualityInspection = {
                 live800Chat.operatorName = item.operator_name;
                 live800Chat.live800Acc['id'] = item.company_id+'-'+item.operator_name;
                 live800Chat.live800Acc['name'] = item.operator_name;
+                live800Chat.closeReason = item.close_reason;
+                live800Chat.closeName = item.close_name;
                 let dom = new JSDOM(item.content);
                 let content = [];
                 let he = dom.window.document.getElementsByTagName("he");
@@ -581,7 +583,7 @@ var dbQualityInspection = {
             }
 
             console.log("SELECT * FROM chat_content WHERE " + queryObj + excludeMongoQuery + paginationQuery);
-            connection.query("SELECT store_time,company_id,msg_id,operator_id,operator_name,content FROM chat_content WHERE " + queryObj + excludeMongoQuery + " ORDER BY store_time " + paginationQuery, function (error, results, fields) {
+            connection.query("SELECT store_time,company_id,msg_id,operator_id,operator_name,content, close_reason, close_name FROM chat_content WHERE " + queryObj + excludeMongoQuery + " ORDER BY store_time " + paginationQuery, function (error, results, fields) {
                 if (error) {
                     console.log(error)
                 }

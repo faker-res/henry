@@ -2551,6 +2551,37 @@ define(['js/app'], function (myApp) {
 
 
         ////////////////////PARTNER REAL TIME COMMISSION REPORT//////////////////////
+        vm.getSelectedCommissionPeriod = () => {
+            if (vm.selectedCommissionPeriod) {
+                let query = {pastX: vm.selectedCommissionPeriod};
+
+                if (vm.realTimeCommissionQuery.partnerName) {
+                    query.partnerName = vm.realTimeCommissionQuery.partnerName;
+                } else if (vm.realTimeCommissionQuery.commissionType) {
+                    query.commissionType = vm.realTimeCommissionQuery.commissionType;
+                } else {
+                    return;
+                }
+
+                $scope.$socketPromise('getPreviousCommissionPeriod', query).then(
+                    data => {
+                        vm.commissionPeriodUsed = data.data;
+                        let startTime = utilService.$getTimeFromStdTimeFormat(vm.commissionPeriodUsed.startTime);
+                        let endTime = utilService.$getTimeFromStdTimeFormat(vm.commissionPeriodUsed.endTime);
+                        $scope.$evalAsync(() => {
+                            vm.realTimeCommissionLoadingStatus = startTime + " ~ " + endTime;
+                        });
+                    }
+                )
+            }
+            else {
+                vm.commissionPeriodUsed = false;
+                $scope.$evalAsync(() => {
+                    vm.realTimeCommissionLoadingStatus = '';
+                });
+            }
+        };
+
         vm.searchRealTimePartnerCommissionData = function () {
             let loadingSpinner = $('#realTimeCommissionTableSpin');
             loadingSpinner.show();
@@ -2565,6 +2596,11 @@ define(['js/app'], function (myApp) {
                 vm.realTimeCommissionLoadingStatus = $translate("Please insert either commission type or partner name for search");
                 loadingSpinner.hide();
                 return;
+            }
+
+            if (vm.commissionPeriodUsed && vm.commissionPeriodUsed.startTime && vm.commissionPeriodUsed.endTime) {
+                query.startTime = vm.commissionPeriodUsed.startTime;
+                query.endTime = vm.commissionPeriodUsed.endTime;
             }
 
             socketService.$socket($scope.AppSocket, 'getCurrentPartnerCommissionDetail', query, function (data) {
@@ -7147,6 +7183,8 @@ define(['js/app'], function (myApp) {
                 vm.realTimeCommissionLoadingStatus = "";
                 vm.realTimeCommissionData = [];
                 vm.partnerCommVar = {};
+                vm.selectCommissionPeriod = '';
+                vm.selectedCommissionPeriod = 0;
             } else if (choice == "PARTNERCOMMISSION_REPORT") {
                 vm.partnerCommissionQuery = {};
                 vm.partnerCommissionQuery.status = 'all';
@@ -7314,8 +7352,8 @@ define(['js/app'], function (myApp) {
                         text: "createUpdatePlayerCreditProposal",
                         action: "createUpdatePlayerCreditProposal"
                     },
-                    {group: "PLAYER", text: "Forbid TopUp Types", action: "createForbidTopUpLog"},
-                    {group: "PLAYER", text: "createPlayerFeedback", action: "createPlayerFeedback"},
+                    //{group: "PLAYER", text: "Forbid TopUp Types", action: "createForbidTopUpLog"},
+                    {group: "PLAYER", text: "addPlayerFeedback", action: "createPlayerFeedback"},
 
                     // {group: "PLAYER", text: "updatePlayerStatus", action: "updatePlayerStatus"},
                     // {

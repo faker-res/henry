@@ -1728,8 +1728,24 @@ let dbPartner = {
         ).then(
             isMatch => {
                 if (isMatch) {
-                    partnerObj.password = newPassword;
-                    return dbconfig.collection_partner.findOneAndUpdate({_id: partnerObj._id, platform: partnerObj.platform}, {password: newPassword}).lean();
+                    let updateDefer = Q.defer();
+                    bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
+                        if (err) {
+                            updateDefer.reject(err);
+                        }
+                        bcrypt.hash(newPassword, salt, function (err, hash) {
+                            if (err) {
+                                updateDefer.reject(err);
+                            }
+                            // override the cleartext password with the hashed one
+                            dbconfig.collection_partner.findOneAndUpdate({_id: partnerObj._id, platform: partnerObj.platform}, {password: hash}).lean().then(
+                                updateDefer.resolve, updateDefer.reject
+                            );
+
+                        });
+                    });
+                    return updateDefer.promise;
+
                 }
                 else {
                     return Q.reject({
@@ -6210,7 +6226,7 @@ let dbPartner = {
         );
     },
 
-    getCurrentPartnerCommissionDetail: function (platformObjId, commissionType, partnerName) {
+    getCurrentPartnerCommissionDetail: function (platformObjId, commissionType, partnerName, startTime, endTime) {
         let result = [];
         let query = {platform: platformObjId};
         commissionType = commissionType || constPartnerCommissionType.DAILY_BONUS_AMOUNT;
@@ -6238,6 +6254,8 @@ let dbPartner = {
                         }
                         request("player", "getCurrentPartnersCommission", {
                             commissionType: commissionType,
+                            startTime: startTime,
+                            endTime: endTime,
                             partnerObjIdArr: partners.map(function (partner) {
                                 return partner._id;
                             })
@@ -6255,8 +6273,12 @@ let dbPartner = {
         )
     },
 
-    generateCurrentPartnersCommissionDetail: function (partnerObjIds, commissionType) {
+    generateCurrentPartnersCommissionDetail: function (partnerObjIds, commissionType, startTime, endTime) {
         let currentPeriod = getCurrentCommissionPeriod(commissionType);
+
+        if (startTime && endTime) {
+            currentPeriod = {startTime, endTime};
+        }
 
         let proms = [];
 
@@ -8660,8 +8682,38 @@ let dbPartner = {
 
         return Promise.all(proms);
     },
+
+    getPreviousCommissionPeriod: (pastX, partnerName, commissionType) => {
+        if (partnerName) {
+            return dbconfig.collection_partner.findOne({partnerName: partnerName}, {commissionType: 1}).lean().then(
+                partner => {
+                    if (!partner) {
+                        return Promise.reject({message: "Partner not found."});
+                    }
+
+                    return getPreviousNCommissionPeriod(partner.commissionType, Number(pastX));
+                }
+            );
+        }
+        else if (commissionType) {
+            return getPreviousNCommissionPeriod(commissionType, Number(pastX));
+        }
+        else {
+            return Promise.reject({message: "Please insert either commission type or partner name for search."});
+        }
+    },
 };
 
+function getPreviousNCommissionPeriod (commissionType, n) {
+    n = n > 987 ? 987 : n;
+    let commissionPeriod = getCurrentCommissionPeriod(commissionType);
+
+    for (let i = 0; i < n; i++) {
+        commissionPeriod = getPreviousCommissionPeriod (commissionType, commissionPeriod);
+    }
+
+    return commissionPeriod;
+}
 
 function calculateRawCommission (totalDownLineConsumption, commissionRate) {
     return Number(totalDownLineConsumption) * Number(commissionRate);

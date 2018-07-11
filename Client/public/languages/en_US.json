@@ -284,6 +284,7 @@
   "FEEDBACK_PLAYER": "Feedback Player",
   "FEEDBACK_PARTNER": "Feedback Partner",
   "FEEDBACK": "Feedback",
+  "AUTO_FEEDBACK": "Auto Feedback",
   "FEEDBACK_RESULT_KEY": "Feedback Result Key",
   "FEEDBACK_RESULT": "Feedback Result",
   "ADD_FEEDBACK_RESULT": "Add Feedback Result",
@@ -1552,6 +1553,10 @@
   "ALL_REWARD_MANUAL_APPROVAL_RATE": "All Reward Manual Approval Ratio",
   "MISCELLANEOUS_MANUAL_APPROVAL_RATE": "Miscellaneous Manual Approval Ratio",
   "ALL_PROPOSAL_MANUAL_APPROVAL_RATE": "All Proposal Manual Approval Ratio",
+
+  "SELECT_PERIOD": "Select Period",
+  "CURRENT_PERIOD": "Current Period",
+  "PREVIOUS_X_PERIOD": "Previous X Period",
 
   "DX_NEWACCOUNT_REPORT": "Telemarketing New Account Report",
   "REAL_TIME_COMMISSION_REPORT": "Real Time Commission Report",

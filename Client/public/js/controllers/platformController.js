@@ -22,7 +22,7 @@ define(['js/app'], function (myApp) {
             vm.existRealName = false;
             vm.rewardPointsChange = {};
             vm.rewardPointsConvert = {};
-            vm.platformPageName = 'Player';
+            vm.platformPageName = 'Feedback';
             vm.platformToReplicate = "";
 
             // constants declaration
@@ -1213,6 +1213,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case "Feedback":
                         vm.initPlayerFeedback();
+                        break;
+                    case "AutoFeedback":
+                        // vm.initPlayerFeedback();
                         break;
                     case "FeedbackAdmin":
                         initFeedbackAdmin();

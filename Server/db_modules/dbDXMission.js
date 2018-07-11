@@ -573,7 +573,7 @@ let dbDXMission = {
                                     bonusProm = dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: constProposalType.PLAYER_BONUS}).then(
                                         proposalType => {
                                             if(proposalType){
-                                                return dbconfig.collection_proposal.find({type: proposalType._id, 'data.playerObjId': player._id, status: constProposalStatus.APPROVED}).then(
+                                                return dbconfig.collection_proposal.find({type: proposalType._id, 'data.playerObjId': player._id, status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}}).then(
                                                     proposalData => {
                                                         if(proposalData && proposalData.length > 0){
                                                             if(proposalData.length > 1){
@@ -1327,7 +1327,7 @@ let dbDXMission = {
                     bonusProm = dbconfig.collection_proposalType.findOne({platformId: platform, name: constProposalType.PLAYER_BONUS}).then(
                         proposalType => {
                             if(proposalType){
-                                return dbconfig.collection_proposal.find({type: proposalType._id, 'data.playerObjId': playerData._id, status: constProposalStatus.APPROVED}).then(
+                                return dbconfig.collection_proposal.find({type: proposalType._id, 'data.playerObjId': playerData._id, status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}}).then(
                                     proposalData => {
                                         if(proposalData && proposalData.length > 0){
                                             if(proposalData.length > 1){

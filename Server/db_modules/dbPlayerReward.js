@@ -5179,7 +5179,7 @@ let dbPlayerReward = {
                         }
 
                         if (eventData.type.name === constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
-                            if (eventData.condition && eventData.condition.defineLoseValue) {
+                            if (eventData.condition && eventData.condition.defineLoseValue && typeof(eventData.condition.defineLoseValue) != 'undefined') {
                                 proposalData.data.defineLoseValue = eventData.condition.defineLoseValue;
 
                                 if (eventData.condition.defineLoseValue.indexOf("2") > -1 || eventData.condition.defineLoseValue.indexOf("3") > -1) {

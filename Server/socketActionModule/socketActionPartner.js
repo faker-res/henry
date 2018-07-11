@@ -479,7 +479,7 @@ function socketActionPartner(socketIO, socket) {
         getCurrentPartnerCommissionDetail: function getCurrentPartnerCommissionDetail (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && (data.commissionType || data.partnerName));
-            socketUtil.emitter(self.socket, dbPartner.getCurrentPartnerCommissionDetail, [data.platformObjId, data.commissionType, data.partnerName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPartner.getCurrentPartnerCommissionDetail, [data.platformObjId, data.commissionType, data.partnerName, data.startTime, data.endTime], actionName, isValidData);
         },
 
         getReferralsList: function getReferralsList (data) {
@@ -550,15 +550,22 @@ function socketActionPartner(socketIO, socket) {
 
         cancelPartnerCommissionPreview: function cancelPartnerCommissionPreview (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data, data.commSettLog, data.partnerCommLogId);
+            let isValidData = Boolean(data && data.commSettLog && data.partnerCommLogId);
             socketUtil.emitter(self.socket, dbPartner.cancelPartnerCommissionPreview, [data.commSettLog, data.partnerCommLogId], actionName, isValidData);
         },
 
         getSelectedPartnerCommissionPreview: function getSelectedPartnerCommissionPreview (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data, data.platformObjId, data.partnerName);
+            let isValidData = Boolean(data && data.platformObjId && data.partnerName);
             socketUtil.emitter(self.socket, dbPartner.getSelectedPartnerCommissionLog, [data.platformObjId, data.partnerName], actionName, isValidData);
         },
+
+        getPreviousCommissionPeriod: function getPreviousCommissionPeriod (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.pastX);
+            socketUtil.emitter(self.socket, dbPartner.getPreviousCommissionPeriod, [data.pastX, data.partnerName, data.commissionType], actionName, isValidData);
+        },
+
     };
 
     socketActionPartner.actions = this.actions;
