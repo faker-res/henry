@@ -620,7 +620,6 @@ let dbPlayerInfo = {
                                 proms.push(domainProm);
                             }
 
-                            // get only when promoteWay is selected
                             if (inputData && !inputData.adminName) {
                                 let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
                                     domain: {
