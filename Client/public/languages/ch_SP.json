@@ -1604,6 +1604,7 @@
   "startProviderDailySettlement": "开始提供商每日结算",
   "startPlatformDailySettlement": "开始平台每日结算",
   "startPlatformWeeklySettlement": "开始平台每周结算",
+  "addPlayerFeedback": "添加玩家回访结果",
   "createPlayerFeedback": "创建玩家回访结果",
   "resetPlayerPassword": "重置玩家密码",
   "updatePlayerPayment": "更新玩家支付",
