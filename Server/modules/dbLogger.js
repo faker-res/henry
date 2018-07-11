@@ -108,6 +108,8 @@ var dbLogger = {
                     adminActionRecordData.error = "提案号：" + resultData.proposalId;
                 }else if (logAction == 'createPlayerFeedback' && playerData && playerData.name) {
                     adminActionRecordData.error = "帐号：" + playerData.name;
+                }else if (logAction == 'updatePlayerCredibilityRemark' && resultData && resultData.name) {
+                    adminActionRecordData.error = "帐号：" + resultData.name;
                 }
 
 

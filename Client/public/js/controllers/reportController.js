@@ -7362,7 +7362,8 @@ define(['js/app'], function (myApp) {
                     //     action: "transferPlayerCreditFromProvider"
                     // },
                     {group: "PLAYER", text: "transferPlayerCreditToProvider", action: "transferPlayerCreditToProvider"},
-                    {group: "PLAYER", text: "PlayerPermission", action: "updatePlayerPermission"},
+                    {group: "PLAYER", text: "updatePlayerPermission", action: "updatePlayerPermission"},
+                    {group: "PLAYER", text: "modifyPlayerCredibilityRemark", action: "updatePlayerCredibilityRemark"},
 
                     {group: "PARTNER", text: "createPartner", action: "createPartner"},
                     {group: "PARTNER", text: "createPartnerWithParent", action: "createPartnerWithParent"},
