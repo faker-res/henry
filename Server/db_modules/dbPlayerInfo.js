@@ -647,7 +647,13 @@ let dbPlayerInfo = {
                 }
             ).then(
                 data => {
-                    inputData = determineRegistrationInterface(inputData, adminName, adminId);
+                    inputData = determineRegistrationInterface(inputData);
+
+                    if (adminName && adminId) {
+                        // note that it is always backstage create when adminName is exist
+                        inputData.accAdmin = adminName;
+                        inputData.csOfficer = ObjectId(adminId);
+                    }
 
                     return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate);
                 }
@@ -665,7 +671,9 @@ let dbPlayerInfo = {
                         newPlayerData.mobileDetect = inputData.md ? inputData.md : (newPlayerData.mobileDetect || "");
 
                         //after created new player, need to create login record and apply login reward
-                        dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect);
+                        if (!adminName) { // except the case where player is created on backstage (by admin)
+                            dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect);
+                        }
 
                         //todo::temp disable similar player untill ip is correct
                         if (data.lastLoginIp && data.lastLoginIp != "undefined") {
@@ -3036,228 +3044,217 @@ let dbPlayerInfo = {
      * @param {String} paymentChannelName
      */
     playerTopUp: function (playerId, amount, paymentChannelName, topUpType, proposalData) {
-        var deferred = Q.defer();
-        let playerData;
+        function topupUpdateRTG(playerData, platformData, amount) {
+            player = playerData;
+            platform = platformData;
+
+            return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: player._id}).then(
+                rtgData => {
+                    if (rtgData && rtgData.length) {
+                        let calCreditArr = [];
+
+                        rtgData.forEach(rtg => {
+                            if(rtg) {
+                                if (rtg.providerGroup && rtg.providerGroup._id) {
+                                    rtg.totalCredit = rtg.rewardAmt || 0;
+                                    let calCreditProm = dbconfig.collection_gameProviderGroup.findOne({_id: rtg.providerGroup._id})
+                                        .populate({path: "providers", model: dbconfig.collection_gameProvider}).lean().then(
+                                            providerGroup => {
+                                                if (providerGroup && providerGroup.providers && providerGroup.providers.length) {
+                                                    return getProviderCredit(providerGroup.providers, player.name, platform.platformId).then(
+                                                        credit => {
+                                                            if(credit){
+                                                                rtg.totalCredit += credit;
+                                                            }
+
+                                                            return rtg;
+                                                        }
+                                                    )
+                                                }
+                                            }
+                                        );
+
+                                    calCreditArr.push(calCreditProm);
+                                } else if (!rtg.providerGroup) {
+                                    rtg.totalCredit = player && player.validCredit ? player.validCredit : 0;
+
+                                    // Offset validCredit with just reloaded amount
+                                    rtg.totalCredit -= amount;
+
+                                    let calCreditProm = getProviderCredit(platform.gameProviders, player.name, platform.platformId).then(
+                                        credit => {
+                                            if(credit){
+                                                rtg.totalCredit += credit;
+                                            }
+
+                                            return rtg;
+                                        }
+                                    );
+
+                                    calCreditArr.push(calCreditProm);
+                                }
+                            }
+                        });
+                        return Promise.all(calCreditArr);
+                    }
+                }
+            ).then(
+                rewardTaskGroup => {
+                    if (rewardTaskGroup) {
+                        let rtgArr = [];
+
+                        rewardTaskGroup.forEach(
+                            rtg => {
+                                if(rtg && platform && rtg._id && rtg.totalCredit >= 0 && platform.autoUnlockWhenInitAmtLessThanLostThreshold
+                                    && platform.autoApproveLostThreshold && rtg.totalCredit <= platform.autoApproveLostThreshold) {
+
+                                    rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
+
+                                    dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then( rewards => {
+                                        if (rewards){
+
+                                            return dbRewardTask.getRewardTasksRecord(rewards, rtg, proposalData);
+                                        }
+                                    }).then( records => {
+                                        if (records){
+                                            return dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId).catch(errorUtils.reportError);
+                                        }
+                                    })
+                                }
+                            }
+                        )
+
+                        return Promise.all(rtgArr);
+                    }
+                }
+            ).then(() => dbPlayerInfo.checkFreeAmountRewardTaskGroup(player._id, player.platform, amount))
+        }
+
+        let player = {};
         let useProviderGroup = false;
         let platform;
 
-        let playerProm = dbconfig.collection_players.findOne({_id: playerId}).lean();
+        return dbUtility.findOneAndUpdateForShard(
+            dbconfig.collection_players,
+            {_id: playerId},
+            {
+                $inc: {
+                    validCredit: amount,
+                    topUpSum: amount,
+                    dailyTopUpSum: amount,
+                    weeklyTopUpSum: amount,
+                    pastMonthTopUpSum: amount,
+                    topUpTimes: 1,
+                    creditBalance: amount
+                }
+            },
+            constShardKeys.collection_players
+        ).then(
+            data => {
+                if (data) {
+                    if (data.platform) {
+                        return dbconfig.collection_platform.findOne({_id: data.platform})
+                            .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean().then(
+                            platformData => {
+                                if (platformData) {
+                                    platform = platformData;
 
-        Promise.all([playerProm]).then(playerData => {
-            let player = playerData && playerData[0] ? playerData[0] : [];
-            if (player && player.platform) {
-                let platformProm = dbconfig.collection_platform.findOne({_id: player.platform})
-                    .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean();
-
-                return Promise.all([platformProm]).then(platformData => {
-                    if (platformData && platformData[0]) {
-                        platform = platformData[0];
-                        let calCreditArr = [];
-                        return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: player._id})
-                            .then(rtgData => {
-                                if (rtgData && rtgData.length) {
-                                    rtgData.forEach(rtg => {
-                                        if(rtg) {
-                                            if (rtg.providerGroup && rtg.providerGroup._id) {
-                                                rtg.totalCredit = rtg.rewardAmt || 0;
-                                                let calCreditProm = dbconfig.collection_gameProviderGroup.findOne({_id: rtg.providerGroup._id})
-                                                    .populate({path: "providers", model: dbconfig.collection_gameProvider}).lean().then(
-                                                        providerGroup => {
-                                                            if (providerGroup && providerGroup.providers && providerGroup.providers.length) {
-                                                                return getProviderCredit(providerGroup.providers, player.name, platform.platformId).then(
-                                                                    credit => {
-                                                                        if(credit){
-                                                                            rtg.totalCredit += credit;
-                                                                        }
-
-                                                                        return rtg;
-                                                                    }
-                                                                )
-                                                            }
-                                                        }
-                                                );
-
-                                                calCreditArr.push(calCreditProm);
-                                            } else if (!rtg.providerGroup) {
-                                                rtg.totalCredit = player && player.validCredit ? player.validCredit : 0;
-                                                let calCreditProm = getProviderCredit(platform.gameProviders, player.name, platform.platformId).then(
-                                                    credit => {
-                                                        if(credit){
-                                                            rtg.totalCredit += credit;
-                                                        }
-
-                                                        return rtg;
-                                                    }
-                                                );
-
-                                                calCreditArr.push(calCreditProm);
-                                            }
+                                    if (platformData.useProviderGroup) {
+                                        useProviderGroup = platformData.useProviderGroup;
                                     }
-                                    });
-                                    return Promise.all(calCreditArr);
                                 }
-                            });
-                    }
-                });
 
-            }
-        }).then(
-            rewardTaskGroup => {
-                if(rewardTaskGroup){
-                    let rtgArr = [];
-                    let unlockRewardsArr = [];
-                    rewardTaskGroup.forEach(
-                        rtg => {
-                            if(rtg && platform && rtg._id && rtg.totalCredit && platform.autoUnlockWhenInitAmtLessThanLostThreshold
-                                && platform.autoApproveLostThreshold && rtg.totalCredit <= platform.autoApproveLostThreshold){
-
-                                rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
-
-                                dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then( rewards => {
-                                    if (rewards){
-
-                                        return dbRewardTask.getRewardTasksRecord(rewards, rtg, proposalData);
-                                    }
-                                }).then( records => {
-
-                                    if (records){
-                                        return dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId).catch(errorUtils.reportError);
-                                    }
-                                })
+                                return data;
                             }
-                        }
-                    )
-
-                    return Promise.all(rtgArr);
+                        )
+                    }
                 }
             }
-        ).then(() => {
+        ).then(
+            function (data) {
+                if (data) {
+                    player = data;
 
-            dbUtility.findOneAndUpdateForShard(
-                dbconfig.collection_players,
-                {_id: playerId},
-                {
-                    $inc: {
-                        validCredit: amount,
-                        topUpSum: amount,
-                        dailyTopUpSum: amount,
-                        weeklyTopUpSum: amount,
-                        pastMonthTopUpSum: amount,
-                        topUpTimes: 1,
-                        creditBalance: amount
-                    }
-                },
-                constShardKeys.collection_players
-            ).then(data => {
-                    if (data) {
-                        if (data.platform) {
-                            return dbconfig.collection_platform.findOne({_id: data.platform}).then(
-                                    platformData => {
-                                        if (platformData) {
-                                            if (platformData.useProviderGroup) {
-                                                useProviderGroup = platformData.useProviderGroup;
-                                            }
-                                        }
+                    let logData = null;
+                    let recordData = {
+                        playerId: player._id,
+                        platformId: player.platform,
+                        amount: amount,
+                        topUpType: topUpType,
+                        createTime: proposalData ? proposalData.createTime : new Date(),
+                        bDirty: false
+                    };
 
-                                        return data;
-                                    }
-                                )
+                    if (proposalData && proposalData.data) {
+                        if (topUpType == constPlayerTopUpType.MANUAL) {
+                            recordData.bankCardType = proposalData.data.bankCardType;
+                            recordData.bankTypeId = proposalData.data.bankTypeId;
+                            recordData.depositMethod = proposalData.data.depositMethod;
                         }
+                        else if (topUpType == constPlayerTopUpType.ONLINE) {
+                            recordData.merchantTopUpType = proposalData.data.topupType;
+                        }
+                        logData = proposalData.data;
+                        recordData.proposalId = proposalData.proposalId;
+                        recordData.userAgent = proposalData.data.userAgent;
                     }
+                    let newRecord = new dbconfig.collection_playerTopUpRecord(recordData);
+                    let recordProm = newRecord.save();
+                    let type = "";
+                    switch (topUpType) {
+                        case constPlayerTopUpType.ONLINE:
+                            type = constPlayerCreditChangeType.TOP_UP;
+                            break;
+                        case constPlayerTopUpType.MANUAL:
+                            type = constPlayerCreditChangeType.MANUAL_TOP_UP;
+                            break;
+                        case constPlayerTopUpType.ALIPAY:
+                            type = constPlayerCreditChangeType.ALIPAY_TOP_UP;
+                            break;
+                        case constPlayerTopUpType.WECHAT:
+                            type = constPlayerCreditChangeType.WECHAT_TOP_UP;
+                            break;
+                        case constPlayerTopUpType.QUICKPAY:
+                            type = constPlayerCreditChangeType.QUICKPAY_TOP_UP;
+                            break;
+                        default:
+                            type = constPlayerCreditChangeType.TOP_UP;
+                            break;
+                    }
+                    let logProm = dbLogger.createCreditChangeLogWithLockedCredit(playerId, data.platform, amount, type, data.validCredit, data.lockedCredit, data.lockedCredit, null, logData);
+
+                    return Promise.all([recordProm, logProm]);
                 }
-            ).then(
-                function (data) {
-                    if (data) {
-                        playerData = data;
-
-                        var recordData = {
-                            playerId: data._id,
-                            platformId: data.platform,
-                            amount: amount,
-                            topUpType: topUpType,
-                            createTime: proposalData ? proposalData.createTime : new Date(),
-                            bDirty: false
-                        };
-                        var logData = null;
-                        if (proposalData && proposalData.data) {
-                            if (topUpType == constPlayerTopUpType.MANUAL) {
-                                recordData.bankCardType = proposalData.data.bankCardType;
-                                recordData.bankTypeId = proposalData.data.bankTypeId;
-                                recordData.depositMethod = proposalData.data.depositMethod;
-                            }
-                            else if (topUpType == constPlayerTopUpType.ONLINE) {
-                                recordData.merchantTopUpType = proposalData.data.topupType;
-                            }
-                            logData = proposalData.data;
-                            recordData.proposalId = proposalData.proposalId;
-                            recordData.userAgent = proposalData.data.userAgent;
-                        }
-                        var newRecord = new dbconfig.collection_playerTopUpRecord(recordData);
-                        var recordProm = newRecord.save();
-                        var type = "";
-                        switch (topUpType) {
-                            case constPlayerTopUpType.ONLINE:
-                                type = constPlayerCreditChangeType.TOP_UP;
-                                break;
-                            case constPlayerTopUpType.MANUAL:
-                                type = constPlayerCreditChangeType.MANUAL_TOP_UP;
-                                break;
-                            case constPlayerTopUpType.ALIPAY:
-                                type = constPlayerCreditChangeType.ALIPAY_TOP_UP;
-                                break;
-                            case constPlayerTopUpType.WECHAT:
-                                type = constPlayerCreditChangeType.WECHAT_TOP_UP;
-                                break;
-                            case constPlayerTopUpType.QUICKPAY:
-                                type = constPlayerCreditChangeType.QUICKPAY_TOP_UP;
-                                break;
-                            default:
-                                type = constPlayerCreditChangeType.TOP_UP;
-                                break;
-                        }
-                        var logProm = dbLogger.createCreditChangeLogWithLockedCredit(playerId, data.platform, amount, type, data.validCredit, data.lockedCredit, data.lockedCredit, null, logData);
-                        // var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform).catch(console.log);
-                        let promArr;
-
-                        if (useProviderGroup) {
-                            var freeAmountRewardTaskGroupProm = dbPlayerInfo.checkFreeAmountRewardTaskGroup(playerId, data.platform, amount);
-                            promArr = [recordProm, logProm, freeAmountRewardTaskGroupProm];
-                        } else {
-                            promArr = [recordProm, logProm];
-                        }
-
-                        //no need to check player reward task status now.
-                        //var rewardTaskProm = dbRewardTask.checkPlayerRewardTaskStatus(playerId);
-                        return Q.all(promArr);
-                    }
-                    else {
-                        deferred.reject({name: "DataError", message: "Can't update player credit."});
-                    }
-                },
-                function (error) {
-                    deferred.reject({name: "DBError", message: "Error finding player.", error: error});
+                else {
+                    return Promise.reject({name: "DataError", message: "Can't update player credit."});
                 }
-            ).then(
-                function (data) {
-                    if (data && data[0]) {
-                        let topupRecordData = data[0];
-                        topupRecordData.topUpRecordId = topupRecordData._id;
-                        // Async - Check reward group task to apply on player top up
-                        dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, topupRecordData).catch(errorUtils.reportError);
-                        checkLimitedOfferToApply(proposalData, topupRecordData._id);
-                        dbConsumptionReturnWithdraw.clearXimaWithdraw(playerData._id).catch(errorUtils.reportError);
-                        dbPlayerInfo.checkPlayerLevelUp(playerId, playerData.platform).catch(console.log);
-                        deferred.resolve(data && data[0]);
-                    }
-                },
-                function (error) {
-                    errorUtils.reportError(error);
-                    deferred.reject({name: "DBError", message: "Error creating top up record", error: error});
-                }
-            );
-        });
+            },
+            function (error) {
+                return Promise.reject({name: "DBError", message: "Error finding player.", error: error});
+            }
+        ).then(
+            function (data) {
+                if (data && data[0]) {
+                    let topupRecordData = data[0];
+                    topupRecordData.topUpRecordId = topupRecordData._id;
+                    // Async - Check reward group task to apply on player top up
+                    dbPlayerReward.checkAvailableRewardGroupTaskToApply(player.platform, player, topupRecordData).catch(errorUtils.reportError);
+                    checkLimitedOfferToApply(proposalData, topupRecordData._id);
+                    dbConsumptionReturnWithdraw.clearXimaWithdraw(player._id).catch(errorUtils.reportError);
+                    dbPlayerInfo.checkPlayerLevelUp(playerId, player.platform).catch(console.log);
 
-        return deferred.promise;
+                    if (useProviderGroup) {
+                        topupUpdateRTG(player, platform, amount);
+                    }
+
+                    return Promise.resolve(data && data[0]);
+                }
+            },
+            function (error) {
+                errorUtils.reportError(error);
+                return Promise.reject({name: "DBError", message: "Error creating top up record", error: error});
+            }
+        );
     },
 
     /*
@@ -4518,9 +4515,9 @@ let dbPlayerInfo = {
 
                     newAgentArray = playerObj.userAgent || [];
                     uaObj = {
-                        browser: userAgent.browser.name || '',
-                        device: userAgent.device.name || (mobileDetect && mobileDetect.mobile()) ? mobileDetect.mobile() : 'PC',
-                        os: userAgent.os.name || '',
+                        browser: userAgent && userAgent.browser && userAgent.browser.name || '',
+                        device: userAgent && userAgent.device && userAgent.device.name || (mobileDetect && mobileDetect.mobile()) ? mobileDetect.mobile() : 'PC',
+                        os: userAgent && userAgent.os && userAgent.os.name || '',
                     };
                     var bExit = false;
                     if (newAgentArray && typeof newAgentArray.forEach == "function") {
@@ -17431,7 +17428,7 @@ function checkPhoneNumberWhiteList(inputData, platformObj) {
 
 }
 
-function determineRegistrationInterface(inputData, adminName, adminId) {
+function determineRegistrationInterface(inputData) {
     if (inputData.domain && inputData.domain.indexOf('fpms8') !== -1) {
         inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
     }
@@ -17464,16 +17461,6 @@ function determineRegistrationInterface(inputData, adminName, adminId) {
     }
     else {
         inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
-    }
-
-    //after created a new player in other interface, login record is created
-    if (inputData.registrationInterface === constPlayerRegistrationInterface.BACKSTAGE) {
-        inputData.loginTimes = 0;
-    }
-    else if (adminName) {
-        // insert related CS name when account is opened from backstage
-        inputData.accAdmin = adminName;
-        inputData.csOfficer = ObjectId(adminId);
     }
 
     return inputData;

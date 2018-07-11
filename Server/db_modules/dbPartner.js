@@ -1728,8 +1728,24 @@ let dbPartner = {
         ).then(
             isMatch => {
                 if (isMatch) {
-                    partnerObj.password = newPassword;
-                    return dbconfig.collection_partner.findOneAndUpdate({_id: partnerObj._id, platform: partnerObj.platform}, {password: newPassword}).lean();
+                    let updateDefer = Q.defer();
+                    bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
+                        if (err) {
+                            updateDefer.reject(err);
+                        }
+                        bcrypt.hash(newPassword, salt, function (err, hash) {
+                            if (err) {
+                                updateDefer.reject(err);
+                            }
+                            // override the cleartext password with the hashed one
+                            dbconfig.collection_partner.findOneAndUpdate({_id: partnerObj._id, platform: partnerObj.platform}, {password: hash}).lean().then(
+                                updateDefer.resolve, updateDefer.reject
+                            );
+
+                        });
+                    });
+                    return updateDefer.promise;
+
                 }
                 else {
                     return Q.reject({
