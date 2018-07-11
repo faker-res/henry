@@ -620,7 +620,7 @@ let dbPlayerInfo = {
                                 proms.push(domainProm);
                             }
 
-                            if (inputData && !inputData.adminName) {
+                            if (inputData && !adminName) {
                                 let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
                                     domain: {
                                         $regex: inputData.domain,
