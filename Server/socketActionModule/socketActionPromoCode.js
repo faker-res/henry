@@ -54,6 +54,18 @@ function socketActionPromoCode(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerReward.updatePromoCodeSMSContent, [ObjectId(data.platformObjId), data.promoCodeSMSContent, data.isDelete], actionName, isValidData);
         },
 
+        getPromoCodeTemplate: function getPromoCodeTemplate(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodeTemplate, [data.platformObjId], actionName, isValidData);
+        },
+
+        updatePromoCodeTemplate: function updatePromoCodeTemplate(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.promoCodeTemplate );
+            socketUtil.emitter(self.socket, dbPlayerReward.updatePromoCodeTemplate, [ObjectId(data.platformObjId), data.promoCodeTemplate], actionName, isValidData);
+        },
+
         updatePromoCodeIsDeletedFlag: function updatePromoCodeIsDeletedFlag(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.promoCodeTypeObjId);
