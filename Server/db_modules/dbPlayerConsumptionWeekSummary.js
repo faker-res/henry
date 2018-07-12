@@ -25,6 +25,7 @@ const constProposalStatus = require("../const/constProposalStatus");
 const constProposalEntryType = require("../const/constProposalEntryType");
 const constProposalUserType = require('../const/constProposalUserType');
 const constSettlementPeriod = require('../const/constSettlementPeriod');
+const constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
 
 const dbOps = require("../db_common/dbOperations");
 const dbPropUtil = require("../db_common/dbProposalUtility");
@@ -370,7 +371,7 @@ var dbPlayerConsumptionWeekSummary = {
                                     }
                                 } else {
                                     // if userAgent is null, inputDevice should be H5 player or partner
-                                    proposalData.inputDevice = dbutility.getInputDevice(userAgent);
+                                    proposalData.inputDevice = bRequest ? dbutility.getInputDevice(userAgent) : constPlayerRegistrationInterface.BACKSTAGE;
                                     proposalData.creator = {
                                         type: 'player',
                                         name: playerData.name,
