@@ -26539,11 +26539,11 @@ define(['js/app'], function (myApp) {
 
             vm.getFinancialSettlementConfig = function () {
                 vm.financialSettlementConfig = vm.financialSettlementConfig || {};
-                vm.financialSettlementConfig.financialSettlement = vm.selectedPlatform.data.financialSettlement;
-                vm.financialSettlementConfig.minFinancialPointNotification = vm.selectedPlatform.data.minFinancialPointNotification;
-                vm.financialSettlementConfig.financialPointNotification = vm.selectedPlatform.data.financialPointNotification? "1": "0";
-                vm.financialSettlementConfig.minFinancialPointDisableWithdrawal = vm.selectedPlatform.data.minFinancialPointDisableWithdrawal;
-                vm.financialSettlementConfig.financialPointDisableWithdrawal = vm.selectedPlatform.data.financialPointDisableWithdrawal? "1": "0";
+                vm.financialSettlementConfig.financialSettlementToggle = vm.selectedPlatform.data.financialSettlement.financialSettlementToggle;
+                vm.financialSettlementConfig.minFinancialPointNotification = vm.selectedPlatform.data.financialSettlement.minFinancialPointNotification;
+                vm.financialSettlementConfig.financialPointNotification = vm.selectedPlatform.data.financialSettlement.financialPointNotification? "1": "0";
+                vm.financialSettlementConfig.minFinancialPointDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.minFinancialPointDisableWithdrawal;
+                vm.financialSettlementConfig.financialPointDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.financialPointDisableWithdrawal? "1": "0";
             }
 
             vm.getPartnerBasic = function () {
@@ -27361,11 +27361,11 @@ define(['js/app'], function (myApp) {
                 let sendData = {
                     query: {_id: vm.selectedPlatform.id},
                     updateData: {
-                        financialSettlement: srcData.financialSettlement,
-                        minFinancialPointNotification: srcData.minFinancialPointNotification,
-                        financialPointNotification: financialPointNotification,
-                        minFinancialPointDisableWithdrawal: srcData.minFinancialPointDisableWithdrawal,
-                        financialPointDisableWithdrawal: financialPointDisableWithdrawal,
+                        "financialSettlement.financialSettlementToggle": srcData.financialSettlementToggle,
+                        "financialSettlement.minFinancialPointNotification": srcData.minFinancialPointNotification,
+                        "financialSettlement.financialPointNotification": financialPointNotification,
+                        "financialSettlement.minFinancialPointDisableWithdrawal": srcData.minFinancialPointDisableWithdrawal,
+                        "financialSettlement.financialPointDisableWithdrawal": financialPointDisableWithdrawal,
                     }
                 }
 
