@@ -21577,6 +21577,9 @@ define(['js/app'], function (myApp) {
                     case 'phoneFilterConfig':
                         vm.getPhoneFilterConfig();
                         break;
+                    case 'financialSettlementConfig':
+                        vm.getFinancialSettlementConfig();
+                        break;
                 }
             };
 
@@ -26625,6 +26628,15 @@ define(['js/app'], function (myApp) {
 
             };
 
+            vm.getFinancialSettlementConfig = function () {
+                vm.financialSettlementConfig = vm.financialSettlementConfig || {};
+                vm.financialSettlementConfig.financialSettlementToggle = vm.selectedPlatform.data.financialSettlement.financialSettlementToggle;
+                vm.financialSettlementConfig.minFinancialPointNotification = vm.selectedPlatform.data.financialSettlement.minFinancialPointNotification;
+                vm.financialSettlementConfig.financialPointNotification = vm.selectedPlatform.data.financialSettlement.financialPointNotification? "1": "0";
+                vm.financialSettlementConfig.minFinancialPointDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.minFinancialPointDisableWithdrawal;
+                vm.financialSettlementConfig.financialPointDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.financialPointDisableWithdrawal? "1": "0";
+            }
+
             vm.getPartnerBasic = function () {
                 vm.partnerBasic = vm.partnerBasic || {};
                 vm.partnerBasic.partnerNameMaxLength = vm.selectedPlatform.data.partnerNameMaxLength;
@@ -27071,6 +27083,9 @@ define(['js/app'], function (myApp) {
                     case 'promoCodeTemplate':
                         updatePromoCodeTemplate();
                         break;
+                    case 'financialSettlementConfig':
+                        updateFinancialSettlementConfig(vm.financialSettlementConfig);
+                        break;
 
                 }
             };
@@ -27419,6 +27434,31 @@ define(['js/app'], function (myApp) {
                         blackListingPhoneNumbers: blackListingPhoneNumbers,
                     }
                 };
+
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updateFinancialSettlementConfig(srcData) {
+                let financialPointNotification = false;
+                let financialPointDisableWithdrawal = false;
+                if (srcData.financialPointNotification == "1") {
+                    financialPointNotification = true;
+                }
+                if (srcData.financialPointDisableWithdrawal == "1") {
+                    financialPointDisableWithdrawal = true;
+                }
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {
+                        "financialSettlement.financialSettlementToggle": srcData.financialSettlementToggle,
+                        "financialSettlement.minFinancialPointNotification": srcData.minFinancialPointNotification,
+                        "financialSettlement.financialPointNotification": financialPointNotification,
+                        "financialSettlement.minFinancialPointDisableWithdrawal": srcData.minFinancialPointDisableWithdrawal,
+                        "financialSettlement.financialPointDisableWithdrawal": financialPointDisableWithdrawal,
+                    }
+                }
 
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                     loadPlatformData({loadAll: false});
