@@ -447,7 +447,8 @@ var roleChecker = {
                 userGroupConfig: [],
                 activatePromoCode: ['updatePromoCodesActive'],
                 applyPromoCode: [],
-                promoCodeAnalysis: ['getPromoCodeTypeByObjId']
+                promoCodeAnalysis: ['getPromoCodeTypeByObjId'],
+                promoCodeTemplate: ['updatePromoCodeTemplate']
             },
             "RegistrationUrlConfig": {
                 Read: ['getAllOfficer', 'getAllPromoteWay', 'getAllUrl', 'getAdminNameByDepartment'],
