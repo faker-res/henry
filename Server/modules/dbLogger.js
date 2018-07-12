@@ -116,6 +116,10 @@ var dbLogger = {
                     adminActionRecordData.error = "帐号：" + resultData.name;
                 }else if (logAction == 'createPartner' && adminActionRecordData.data[0] && adminActionRecordData.data[0].partnerName){
                     adminActionRecordData.error = "帐号：" + adminActionRecordData.data[0].partnerName;
+                }else if ((logAction == 'createPlayerFeedbackResult' || logAction == 'createPlayerFeedbackTopic'
+                        || logAction == 'createPartnerFeedbackResult' || logAction == 'createPartnerFeedbackTopic')
+                    && adminActionRecordData.data[0] && adminActionRecordData.data[0].value){
+                    adminActionRecordData.error = "添加" + adminActionRecordData.data[0].value;
                 }
 
 
