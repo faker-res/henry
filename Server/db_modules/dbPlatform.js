@@ -3454,7 +3454,13 @@ var dbPlatform = {
                 let link = url + path;
 
                 return new Promise((resolve, reject) => {
-                    request.get(link, {strictSSL: false}, (err, res, body) => {
+                    let options = {
+                        jsonp: false,
+                        jsonpCallback:"jsonp1",
+                        dataType: "jsonp",
+                        strictSSL: false
+                    };
+                    request.get(link, options, (err, res, body) => {
                         if (err) {
                             reject({code: constServerCode.EXTERNAL_API_FAILURE, message: err});
                         } else {
