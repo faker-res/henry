@@ -1670,7 +1670,6 @@ var dbPlatform = {
         index = index || 0;
         limit = limit || constSystemParam.MAX_RECORD_NUM;
 
-
         var query = {
             platformId: data.platformId,
             createTime: {
@@ -1724,6 +1723,7 @@ var dbPlatform = {
                 '$gte': data.startTime,
                 '$lte': data.endTime
             },
+            tel: data.tel || undefined
         };
 
         data.recipientName ? query.recipientName = data.recipientName : "";

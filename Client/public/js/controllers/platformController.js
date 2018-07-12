@@ -2402,8 +2402,7 @@ define(['js/app'], function (myApp) {
                 vm.externalUserRecordQuery = {};
                 vm.externalUserRecordQuery.index = 0;
                 vm.externalUserRecordQuery.limit = 10;
-
-
+                
                 vm.initQueryTimeFilter('userInfoRecordQueryDiv', function () {
                 });
                 utilService.actionAfterLoaded('#userInfoTable', function () {
