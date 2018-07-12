@@ -14,6 +14,7 @@ var pmsAPI = require('../externalAPI/pmsAPI');
 var rsaCrypto = require('../modules/rsaCrypto');
 const constSMSPurpose = require('../const/constSMSPurpose');
 const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
+var localization = require("../modules/localization");
 
 var dbLogger = {
 
@@ -57,6 +58,9 @@ var dbLogger = {
 
                 if (adminActionRecordData.action == 'createPlayerFeedback' && resultData && resultData.playerId) {
                     return dbconfig.collection_players.findOne({_id: resultData.playerId}, {name: 1});
+                } else if ((adminActionRecordData.action == 'resetPlayerPassword' || adminActionRecordData.action == 'createUpdateTopUpGroupLog')
+                    && adminActionRecordData && adminActionRecordData.data[0]) {
+                    return dbconfig.collection_players.findOne({_id: adminActionRecordData.data[0]}, {name: 1});
                 }
             }
         ).then(
@@ -103,11 +107,29 @@ var dbLogger = {
                 }else if ((logAction == 'createUpdatePlayerInfoProposal' || logAction == 'createUpdatePlayerPhoneProposal'
                         || logAction == 'createUpdatePlayerEmailProposal' || logAction == 'createUpdatePlayerQQProposal'
                         || logAction == 'createUpdatePlayerWeChatProposal' || logAction == 'createUpdatePlayerBankInfoProposal'
-                        || logAction == 'submitRepairPaymentProposal' || logAction == 'createUpdatePlayerCreditProposal')
+                        || logAction == 'submitRepairPaymentProposal' || logAction == 'createUpdatePlayerCreditProposal'
+                        || logAction == 'createUpdatePartnerInfoProposal' || logAction == 'createUpdatePartnerPhoneProposal'
+                        || logAction == 'createUpdatePartnerEmailProposal' || logAction == 'createUpdatePartnerQQProposal'
+                        || logAction == 'createUpdatePartnerWeChatProposal' || logAction == 'createUpdatePartnerCommissionTypeProposal'
+                        || logAction == 'createUpdatePartnerBankInfoProposal' || logAction == 'customizePartnerCommission')
                     && resultData && resultData.proposalId){
                     adminActionRecordData.error = "提案号：" + resultData.proposalId;
-                }else if (logAction == 'createPlayerFeedback' && playerData && playerData.name) {
+                }else if ((logAction == 'createPlayerFeedback' || logAction == 'resetPlayerPassword') && playerData && playerData.name) {
                     adminActionRecordData.error = "帐号：" + playerData.name;
+                }else if (logAction == 'updatePlayerCredibilityRemark' && resultData && resultData.name) {
+                    adminActionRecordData.error = "帐号：" + resultData.name;
+                }else if (logAction == 'createPartner' && adminActionRecordData.data[0] && adminActionRecordData.data[0].partnerName){
+                    adminActionRecordData.error = "帐号：" + adminActionRecordData.data[0].partnerName;
+                }else if ((logAction == 'createPlayerFeedbackResult' || logAction == 'createPlayerFeedbackTopic'
+                        || logAction == 'createPartnerFeedbackResult' || logAction == 'createPartnerFeedbackTopic')
+                    && adminActionRecordData.data[0] && adminActionRecordData.data[0].value){
+                    adminActionRecordData.error = "添加" + adminActionRecordData.data[0].value;
+                }else if (logAction == 'createUpdateTopUpGroupLog' && playerData && playerData.name && Object.keys(adminActionRecordData.data[2]).length){
+                    let topupGroup = '';
+                    Object.keys(adminActionRecordData.data[2]).forEach(el => {
+                        topupGroup += localization.localization.translate(el) + "（" + adminActionRecordData.data[2][el] + "）";
+                    })
+                    adminActionRecordData.error = "帐号：" + playerData.name + "、" + topupGroup;
                 }
 
 

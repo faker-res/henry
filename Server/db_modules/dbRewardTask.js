@@ -2432,7 +2432,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                 statusUpdObj.status = constRewardTaskStatus.NO_CREDIT;
                             }
 
-                            if (updatedRTG.curConsumption >= updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
+                            if (currentConsumption >= targetConsumption) {
                                 statusUpdObj.status = constRewardTaskStatus.ACHIEVED;
                             }
 

@@ -1313,6 +1313,37 @@ let dbPlayerCreditTransfer = {
         );
     },
 
+    playerCreditTransferToEbetWallets: function (playerObjId, platform, amount, userName, platformId, adminName, cpName, forSync) {
+        let prom = [];
+        let hasEbetWalletSettings = false;
+        return dbConfig.collection_gameProviderGroup.find({
+            platform: platform
+        }).populate(
+            {path: "providers", model: dbConfig.collection_gameProvider}
+        ).lean().then(groups => {
+            if(groups && groups.length > 0) {
+                groups.forEach(group => {
+                    if(group && group.providers && group.providers.length > 0) {
+                        if(group.hasOwnProperty('ebetWallet')) {
+                            hasEbetWalletSettings = true;
+                            group.providers.forEach(provider => {
+                                prom.push(this.playerCreditTransferToEbetWallet(playerObjId, platform, provider._id, amount,
+                                    provider.providerId, userName, platformId, adminName, cpName, forSync));
+                            });
+                        }
+                    }
+                });
+                if(hasEbetWalletSettings) {
+                    return Promise.all(prom).catch(err => {
+                        errorUtils.reportError(err);
+                    });
+                } else {
+                    return Promise.reject({message: "No wallet is set for EBET provider."});
+                }
+            }
+        });
+    },
+
     playerCreditTransferToEbetWallet: function (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) {
         let dPCT = this;
         let gameAmount = 0;

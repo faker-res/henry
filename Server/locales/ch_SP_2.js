@@ -41,6 +41,11 @@ var simplifiedChinese = {
     "WEB_AGENT": "WEB代理",
     "WEB_PLAYER": "WEB玩家",
 
+    "bankCardGroup": "银行卡组",
+    "merchantGroup": "商户组",
+    "alipayGroup": "支付宝组",
+    "wechatPayGroup": "微信支付组",
+
     "Error in getting ID": "获得ID出错",
     "Error in getting player, game or provider": "无法获得玩家，游戏或供应商",
     "Error in getting player, paymentChannel or platform": "没能得到玩家， 支付渠道或平台",
