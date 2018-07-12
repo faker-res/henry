@@ -1313,7 +1313,7 @@ let dbPlayerCreditTransfer = {
         );
     },
 
-    playerCreditTransferToEbetWallets: function (playerObjId, platform, amount, userName, platformId, adminName, cpName, forSync) {
+    playerCreditTransferToEbetWallets: function (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) {
         let prom = [];
         let hasEbetWalletSettings = false;
         return dbConfig.collection_gameProviderGroup.find({
@@ -1323,18 +1323,39 @@ let dbPlayerCreditTransfer = {
         ).lean().then(groups => {
             if(groups && groups.length > 0) {
                 groups.forEach(group => {
-                    if(group && group.providers && group.providers.length > 0) {
+                    // if(group && group.providers && group.providers.length > 0) {
                         if(group.hasOwnProperty('ebetWallet')) {
                             hasEbetWalletSettings = true;
-                            group.providers.forEach(provider => {
-                                prom.push(this.playerCreditTransferToEbetWallet(playerObjId, platform, provider._id, amount,
-                                    provider.providerId, userName, platformId, adminName, cpName, forSync));
-                            });
+                            // group.providers.forEach(provider => {
+                                prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(group, playerObjId, platform, providerId, amount,
+                                    providerShortId, userName, platformId, adminName, cpName, forSync));
+                            // });
                         }
-                    }
+                    // }
                 });
                 if(hasEbetWalletSettings) {
-                    return Promise.all(prom).catch(err => {
+                    return Promise.all(prom).then(data => {
+                        let providerCredit = 0, playerCredit = 0, rewardCredit = 0, transferPlayerCredit = 0, transferRewardCredit = 0;
+                        data.forEach(item => {
+                            providerCredit += parseFloat(item.providerCredit);
+                            playerCredit += parseFloat(item.playerCredit);
+                            rewardCredit += parseFloat(item.rewardCredit);
+                            transferPlayerCredit += parseFloat(item.transferCredit.playerCredit);
+                            transferRewardCredit += parseFloat(item.transferCredit.rewardCredit);
+                        });
+                        return {
+                            playerId: data[0].playerId,
+                            providerId: data[0].providerId,
+                            providerCredit: providerCredit.toFixed(2),
+                            playerCredit: playerCredit.toFixed(2),
+                            rewardCredit: rewardCredit.toFixed(2),
+                            transferCredit: {
+                                playerCredit: parseFloat(gameAmount - rewardAmount).toFixed(2),
+                                rewardCredit: parseFloat(rewardAmount).toFixed(2)
+                            }
+                        }
+                            // }
+                    }).catch(err => {
                         errorUtils.reportError(err);
                     });
                 } else {
@@ -1344,7 +1365,7 @@ let dbPlayerCreditTransfer = {
         });
     },
 
-    playerCreditTransferToEbetWallet: function (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) {
+    playerCreditTransferToEbetWallet: function (gameProviderGroup, playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) {
         let dPCT = this;
         let gameAmount = 0;
         let rewardAmount = 0;
@@ -1361,16 +1382,16 @@ let dbPlayerCreditTransfer = {
         let playerProm = dbConfig.collection_players.findOne({_id: playerObjId}).populate(
             {path: "lastPlayedProvider", model: dbConfig.collection_gameProvider}
         ).lean();
-        let providerGroupProm = dbConfig.collection_gameProviderGroup.findOne({
-            platform: platform,
-            providers: providerId
-        }).lean();
+        // let providerGroupProm = dbConfig.collection_gameProviderGroup.findOne({
+        //     platform: platform,
+        //     providers: providerId
+        // }).lean();
 
         // Search provider group
-        return Promise.all([playerProm, providerGroupProm]).then(
+        return playerProm.then(
             res => {
-                player = res[0];
-                gameProviderGroup = res[1];
+                player = res;
+                // gameProviderGroup = res[1];
 
                 // Check if player exist
                 if (!player) {
