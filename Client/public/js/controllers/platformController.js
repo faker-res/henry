@@ -1430,7 +1430,7 @@ define(['js/app'], function (myApp) {
 
             //Delete selected platform
             vm.deletePlatform = function () {
-                socketService.$socket($scope.AppSocket, 'deletePlatformById', {_ids: [vm.selectedPlatform.id]}, function (data) {
+                socketService.$socket($scope.AppSocket, 'deletePlatformById', {_ids: [vm.selectedPlatform.id], name: vm.selectedPlatform.text}, function (data) {
                     vm.curPlatformText = "";
                     vm.selectedPlatform = null;
                     loadPlatformData();
@@ -3457,15 +3457,18 @@ define(['js/app'], function (myApp) {
                 } else if (type === "RENAME") {
                     sendString = 'renameProviderInPlatformById';
                     sendData.providerNickName = vm.selectedProviderNickName;
+                    sendData.providerOriNickName = vm.selectedProviderOriNickName;
                     sendData.providerPrefix = vm.selectedProviderPrefix;
                 } else if (type == "DETACH") {
                     sendString = 'removeProviderFromPlatformById';
                 } else if (type == "ENABLE") {
                     sendString = 'updateProviderFromPlatformById';
                     sendData.isEnable = true;
+                    sendData.providerName = data.name || "";
                 } else if (type == "DISABLE") {
                     sendString = 'updateProviderFromPlatformById';
                     sendData.isEnable = false;
+                    sendData.providerName = data.name || "";
                 }
                 socketService.$socket($scope.AppSocket, sendString, sendData, function (data) {
                     console.log(data);
@@ -27660,12 +27663,15 @@ define(['js/app'], function (myApp) {
                     let sendData = {
                         platformObjId: vm.selectedPlatform.id,
                         gameProviderGroup: vm.gameProviderGroup.map(e => {
-                            return {
+                            let gameProviderGroupData = {
                                 providerGroupId: e.providerGroupId,
                                 name: e.name,
-                                providers: e.providers,
-                                ebetWallet: e.ebetWallet ? e.ebetWallet : 0
+                                providers: e.providers
                             };
+                            if(e.hasOwnProperty('ebetWallet')) {
+                                gameProviderGroupData.ebetWallet = e.ebetWallet;
+                            }
+                            return gameProviderGroupData;
                         })
                     };
 
