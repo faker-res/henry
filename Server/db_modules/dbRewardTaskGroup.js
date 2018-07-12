@@ -206,6 +206,8 @@ let dbRewardTaskGroup = {
      * @returns {Promise}
      */
     unlockRewardTaskInRewardTaskGroup: (rewardTaskGroupId, incRewardAmount, incConsumptionAmount, adminId, adminName) => {
+        let unlockTime = new Date();
+
         return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
             _id: ObjectId(rewardTaskGroupId)
         }, {
@@ -214,12 +216,16 @@ let dbRewardTaskGroup = {
                 curConsumption: incConsumptionAmount
             },
             unlockBy: adminName,
-            unlockTime: new Date()
+            unlockTime: unlockTime
         }, {
             new: true
         }).then(
             updatedData => {
-                if (updatedData && (updatedData.currentAmt <= 0 || updatedData.curConsumption >= updatedData.targetConsumption + updatedData.forbidXIMAAmt)) {
+                if (updatedData
+                    && (updatedData.currentAmt <= 0 || updatedData.curConsumption >= updatedData.targetConsumption + updatedData.forbidXIMAAmt)
+                    // Concurrency measurement
+                    && updatedData.unlockTime.getTime() === unlockTime.getTime()
+                ) {
                     return dbRewardTask.completeRewardTaskGroup(updatedData, constRewardTaskStatus.MANUAL_UNLOCK);
                 }
             }
