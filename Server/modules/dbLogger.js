@@ -23,6 +23,15 @@ var dbLogger = {
      * @param {json} adminActionRecordData - The data of the log -  Refer to systemLog schema.
      */
     createSystemLog: function (adminActionRecordData, resultData) {
+        let inputDevice = {
+            1: "WEB",
+            3: "H5"
+        };
+
+        if(!adminActionRecordData){
+            return;
+        }
+
         //only store non-get actions
         if (adminActionRecordData.level === constSystemLogLevel.ACTION && adminActionRecordData.action && adminActionRecordData.action.indexOf("get") >= 0) {
             return;
@@ -130,6 +139,35 @@ var dbLogger = {
                         topupGroup += localization.localization.translate(el) + "（" + adminActionRecordData.data[2][el] + "）";
                     })
                     adminActionRecordData.error = "帐号：" + playerData.name + "、" + topupGroup;
+                }else if(logAction == "createPlatform" && adminActionRecordData.data[0].name){
+                    adminActionRecordData.error = "创建" + adminActionRecordData.data[0].name + "产品";
+                }else if(logAction == "deletePlatformById" && adminActionRecordData.data[1]){
+                    adminActionRecordData.error = "删除" + adminActionRecordData.data[1] + "产品";
+                }else if(logAction == "updatePlatform" && resultData.name){
+                    adminActionRecordData.error = "更新" + resultData.name + "产品";
+                }else if(logAction == "createNewPlayerAdvertisementRecord" && resultData.inputDevice){
+                    adminActionRecordData.error = "添加玩家广告(" + inputDevice[resultData.inputDevice] + ")";
+                }else if(logAction == "savePlayerAdvertisementRecordChanges" && resultData.inputDevice){
+                    adminActionRecordData.error = "编辑玩家广告(" + inputDevice[resultData.inputDevice] + ")";
+                }else if(logAction == "createNewPartnerAdvertisementRecord" && resultData.inputDevice){
+                    adminActionRecordData.error = "添加代理广告(" + inputDevice[resultData.inputDevice] + ")";
+                }else if(logAction == "savePartnerAdvertisementRecordChanges" && resultData.inputDevice){
+                    adminActionRecordData.error = "编辑代理广告(" + inputDevice[resultData.inputDevice] + ")";
+                }else if(logAction == "renameProviderInPlatformById" && adminActionRecordData.data && adminActionRecordData.data.length > 4
+                    && adminActionRecordData.data[2] &&  adminActionRecordData.data[4]){
+                    adminActionRecordData.error = adminActionRecordData.data[4] + "修改为" + adminActionRecordData.data[2];
+                }else if(logAction == "updateProviderFromPlatformById" && adminActionRecordData.data && adminActionRecordData.data.length > 3
+                    && typeof adminActionRecordData.data[2] != "undefined" && adminActionRecordData.data[3]){
+                    if(adminActionRecordData.data[2]){
+                        adminActionRecordData.error = "启用" + adminActionRecordData.data[3];
+                    }else{
+                        adminActionRecordData.error = "禁用" + adminActionRecordData.data[3];
+                    }
+                }else if(logAction == "attachGamesToPlatform" && resultData && resultData.success && resultData.success.length > 0 && resultData.success[0].name){
+                    adminActionRecordData.error = "添加" + resultData.success[0].name;
+                }else if(logAction == "detachGamesFromPlatform" && adminActionRecordData.data && adminActionRecordData.data.length > 1
+                        && adminActionRecordData.data[1].length > 0 &&  adminActionRecordData.data[1][0].name){
+                    adminActionRecordData.error = "移除" + adminActionRecordData.data[1][0].name;
                 }
 
 
