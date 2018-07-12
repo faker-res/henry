@@ -85,6 +85,7 @@ let playerPageAdvertisementInfoSchema = require('./../schema/playerPageAdvertise
 let partnerPageAdvertisementInfoSchema = require('./../schema/partnerPageAdvertisementInfo');
 
 let smsGroupSchema = require('./../schema/smsGroup');
+let promoCodeTemplateSchema = require('./../schema/promoCodeTemplate');
 let qualityInspectionSchema = require('./../schema/qualityInspection');
 let live800RecordDaySummarySchema = require('./../schema/live800RecordDaySummary');
 /////////////////////////Schema models/////////////////////////////////////
@@ -207,6 +208,8 @@ let playerPageAdvertisementInfoModel = db_admin.model('playerPageAdvertisementIn
 let partnerPageAdvertisementInfoModel = db_admin.model('partnerPageAdvertisementInfo', partnerPageAdvertisementInfoSchema, 'partnerPageAdvertisementInfo');
 
 let smsGroupModel = db_admin.model('smsGroup', smsGroupSchema, 'smsGroup');
+
+let promoCodeTemplateModel = db_admin.model('promoCodeTemplate', promoCodeTemplateSchema, 'promoCodeTemplate');
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
 var playerFeedbackModel = db_player.model('playerFeedback', playerFeedbackSchema, 'playerFeedback');
@@ -514,6 +517,7 @@ var dbProperties = {
     collection_partnerPageAdvertisementInfo: partnerPageAdvertisementInfoModel,
 
     collection_smsGroup: smsGroupModel,
+    collection_promoCodeTemplate: promoCodeTemplateModel,
 
     //logs
     collection_playerMail: playerMailModel,
