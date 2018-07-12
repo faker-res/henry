@@ -2430,7 +2430,7 @@ let dbPlayerReward = {
                 if (playerData) {
                     player = playerData;
 
-                    return dbPlayerUtil.setPlayerState(player._id, "GeneratePromoCode");
+                    return dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", true);
                 }
                 else {
                     return Promise.reject({name: "DataError", message: "Invalid player data"});
@@ -2470,9 +2470,15 @@ let dbPlayerReward = {
                         SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
                     }
                     messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName, adminObjId);
+                    dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
                     return newPromoCode.code;
                 }
 
+            }
+        ).catch(
+            err => {
+                dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
+                throw err;
             }
         )
     },
