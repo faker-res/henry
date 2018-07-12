@@ -416,7 +416,17 @@ var platformSchema = new Schema({
     }],
     // CDN/FTP route setting
     playerRouteSetting:{type: String},
-    partnerRouteSetting:{type: String}
+    partnerRouteSetting:{type: String},
+    // financial settlement switch
+    financialSettlement: {type: Boolean, default: false},
+    // financial settlement minimum point to show notification
+    minFinancialPointNotification: {type: Number, default: 0},
+    // financial settlement minimum point notification switch
+    financialPointNotification: {type: Boolean, default: false},
+    // financial settlement minimum point to disable withdrawal
+    minFinancialPointDisableWithdrawal: {type: Number, default: 0},
+    // financial settlement minimum point to disable withdrawal switch
+    financialPointDisableWithdrawal: {type: Boolean, default: false}
 });
 
 //add platform id before save
