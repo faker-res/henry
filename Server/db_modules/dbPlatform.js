@@ -1639,6 +1639,36 @@ var dbPlatform = {
             )
         }
     },
+    getExternalUserInfo: function (data, index, limit){
+        var sortCol = data.sortCol || {createTime: -1};
+        index = index || 0;
+        limit = limit || constSystemParam.MAX_RECORD_NUM;
+
+
+        var query = {
+            platformId: data.platformId,
+            createTime: {
+                '$gte': data.startTime,
+                '$lte': data.endTime
+            },
+        };
+
+        let returnData = {};
+        returnData.totalCount = 0;
+        returnData.userInfoData = [];
+
+        let a = dbconfig.collection_playerDataFromExternalSource.find(query).sort(sortCol).skip(index).limit(limit);
+        let b = dbconfig.collection_playerDataFromExternalSource.find(query).count();
+
+        return Q.all([a, b]).then( result => {
+            if (result && result[0] && result[1]){
+
+               returnData.totalCount = result[1];
+               returnData.userInfoData = result[0];
+            }
+            return returnData
+        })
+    },
     vertificationSMS: function (data, index, limit) {
         var sortCol = data.sortCol || {createTime: -1};
         index = index || 0;
@@ -1668,7 +1698,6 @@ var dbPlatform = {
                 '$gte': data.startTime,
                 '$lte': data.endTime
             },
-            tel: data.tel || undefined
         };
 
         data.recipientName ? query.recipientName = data.recipientName : "";
@@ -3336,22 +3365,24 @@ var dbPlatform = {
 
         console.log("YH------CHECKING------", data);
 
-        // if (data && data.length > 0){
-        //
-        //     data.forEach( inData => {
-        //        let record = {};
-        //
-        //        record.platformId = inData.platformId || "";
-        //        record.phoneNumber = inData.phoneNumber || "";
-        //        record.name = inData.name || "";
-        //
-        //        prom.push(checkAndInsertRecord(record.platformId,record.phoneNumber,record.name));
-        //     })
-        // }
+        if (data && data.length > 0){
+
+            data.forEach( inData => {
+                if (inData) {
+
+                    var platformId = inData.platformId || "";
+                    var phoneNumber = inData.phoneNumber || "";
+                    var name = inData.name || "";
+                    var createTime = inData.createTime? new Date(inData.createTime) : new Date();
+
+                    prom.push(checkAndInsertRecord(platformId, phoneNumber, name, createTime));
+                }
+            })
+        }
 
         return Promise.all(prom);
 
-        function checkAndInsertRecord (platformId, phoneNumber, name){
+        function checkAndInsertRecord (platformId, phoneNumber, name, createTime){
             return dbconfig.collection_playerDataFromExternalSource.findOne({
                     platformId: platformId,
                     phoneNumber: phoneNumber,
@@ -3362,7 +3393,8 @@ var dbPlatform = {
                     let dataTobeSaved = {
                         platformId: platformId || "",
                         phoneNumber: phoneNumber || "",
-                        name: name || ""
+                        name: name || "",
+                        createTime: createTime || new Date()
                     };
 
                     let playerData = new dbconfig.collection_playerDataFromExternalSource(dataTobeSaved);
