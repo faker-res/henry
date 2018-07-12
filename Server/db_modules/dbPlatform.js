@@ -3456,6 +3456,7 @@ var dbPlatform = {
                 return new Promise((resolve, reject) => {
                     let options = {
                         jsonp: false,
+                        json: true,
                         jsonpCallback:"jsonp1",
                         dataType: "jsonp",
                         strictSSL: false
@@ -3465,9 +3466,13 @@ var dbPlatform = {
                             reject({code: constServerCode.EXTERNAL_API_FAILURE, message: err});
                         } else {
                             console.log('callBackToUser API output:', body);
-                            console.log('callBackToUser API res:', res);
-                            let bodyJson = JSON.parse(body);
-                            console.log('callBackToUser API json:', bodyJson);
+                            let bodyJson = body.replace("jsonp1(", "").replace(")", "").replace(/'/g, '"');
+                            try {
+                                bodyJson = JSON.parse(String(bodyJson));
+                            } catch (e) {
+                                console.error(e);
+                            }
+                            console.log('callBackToUser API json:', bodyJson, bodyJson.code, bodyJson.msg);
                             if (bodyJson && bodyJson.code == "0") {
                                 resolve(true);
                             }
