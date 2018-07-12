@@ -5274,8 +5274,8 @@ let dbPlayerInfo = {
                                 // Platform supporting provider group
                                 if(playerData.platform.useEbetWallet && providerData.name.toUpperCase() === "EBET") {
                                     // if use eBet Wallet
-                                    return dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(
-                                        playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                                    return dbPlayerCreditTransfer.playerCreditTransferToEbetWallets(
+                                        playerData._id, playerData.platform._id, amount, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
                                 } else {
                                     return dbPlayerCreditTransfer.playerCreditTransferToProviderWithProviderGroup(
                                         playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
