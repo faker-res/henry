@@ -1733,9 +1733,9 @@
                                     text(ng-if="vm.financialSettlementConfig.financialPointNotification == '0'") {{"DISABLED" | translate}}
                                     text(ng-if="vm.financialSettlementConfig.financialPointNotification == '1'") {{"ENABLED" | translate}}
                                 td(ng-show="vm.configTableEdit")
-                                    input.form-control(type='number' style = 'max-width:50%;display:inline' ng-model='vm.financialSettlementConfig.minFinancialPointNotification', ng-disabled='!vm.configTableEdit')
+                                    input.form-control(type='number' style = 'max-width:50%;display:inline' ng-model='vm.financialSettlementConfig.minFinancialPointNotification', ng-disabled='vm.financialSettlementConfig.financialSettlement')
                                     text {{" / "}}
-                                    select.form-control(style = 'max-width:40%;display:inline' ng-model="vm.financialSettlementConfig.financialPointNotification")
+                                    select.form-control(style = 'max-width:40%;display:inline' ng-model="vm.financialSettlementConfig.financialPointNotification", ng-disabled='vm.financialSettlementConfig.financialSettlement')
                                         option(value = 0) {{"DISABLED" | translate}}
                                         option(value = 1) {{"ENABLED" | translate}}
                             tr
@@ -1745,9 +1745,9 @@
                                     text(ng-if="vm.financialSettlementConfig.financialPointDisableWithdrawal == '0'") {{"DISABLED" | translate}}
                                     text(ng-if="vm.financialSettlementConfig.financialPointDisableWithdrawal == '1'") {{"ENABLED" | translate}}
                                 td(ng-show="vm.configTableEdit")
-                                    input.form-control(type='number' style = 'max-width:50%;display:inline' ng-model='vm.financialSettlementConfig.minFinancialPointDisableWithdrawal', ng-disabled='!vm.configTableEdit')
+                                    input.form-control(type='number' style = 'max-width:50%;display:inline' ng-model='vm.financialSettlementConfig.minFinancialPointDisableWithdrawal', ng-disabled='vm.financialSettlementConfig.financialSettlement')
                                     text {{" / "}}
-                                    select.form-control(style = 'max-width:40%;display:inline' ng-model="vm.financialSettlementConfig.financialPointDisableWithdrawal")
+                                    select.form-control(style = 'max-width:40%;display:inline' ng-model="vm.financialSettlementConfig.financialPointDisableWithdrawal", ng-disabled='vm.financialSettlementConfig.financialSettlement')
                                         option(value = 0) {{"DISABLED" | translate}}
                                         option(value = 1) {{"ENABLED" | translate}}
 
@@ -1756,6 +1756,9 @@
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("financialSettlementConfig")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("financialSettlementConfig")') {{"CONFIRM" | translate}}
+                    br
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Config', 'financialSettlementConfig')") {{"add/deduct financial points" | translate}}
 
 
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
