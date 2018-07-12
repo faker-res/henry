@@ -7378,6 +7378,7 @@ define(['js/app'], function (myApp) {
                     {group: "PARTNER", text: "Update partner bank information", action: "createUpdatePartnerBankInfoProposal"},
                     {group: "PARTNER", text: "RESET_PASSWORD", action: "resetPartnerPassword"},
                     {group: "PARTNER", text: "customizePartnerCommission", action: "customizePartnerCommission"},
+                    {group: "PARTNER", text: "updatePartnerPermission", action: "updatePartnerPermission"},
 
                     {group: "Platform Game", text: "PROVIDER_NICKNAME", action: "renameProviderInPlatformById"},
                     {group: "Platform Game", text: "ENABLE/DISABLE", action: "updateProviderFromPlatformById"},

@@ -3653,6 +3653,7 @@
   "requestClearProposalLimit": "解锁提案锁定名单",
   "createUpdateTopUpGroupLog": "编辑充值分组",
   "customizePartnerCommission": "客制化代理参数",
+  "updatePartnerPermission": "变更代理主权限",
   "createPlayerFeedbackResult": "添加回访结果",
   "createPlayerFeedbackTopic": "添加回访主题",
   "createPartnerFeedbackResult": "添加回访结果",

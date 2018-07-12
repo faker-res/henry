@@ -62,6 +62,8 @@ var simplifiedChinese = {
     "rewardPointsTask": "积分任务",
     "levelChange": "等级变动",
     "TransferIn": "转入",
+    "disableCommSettlement": "禁用代理佣金结算",
+    "forbidPartnerFromLogin": "登入网站",
 
     "Error in getting ID": "获得ID出错",
     "Error in getting player, game or provider": "无法获得玩家，游戏或供应商",
