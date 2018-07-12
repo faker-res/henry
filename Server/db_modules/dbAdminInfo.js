@@ -491,7 +491,10 @@ var dbAdminInfo = {
 
 };
 
-function getAllAdminFromChildDepartments (departmentIds) {
+function getAllAdminFromChildDepartments (departmentIds, count) {
+    count = count || 0;
+    count++;
+
     let admins = [];
     let department;
     return dbconfig.collection_department.find({_id:{$in: departmentIds}}, {departmentName:1, children:1, users:1})
@@ -523,8 +526,8 @@ function getAllAdminFromChildDepartments (departmentIds) {
                     }
                 }
 
-                if (department.children && department.children.length > 0) {
-                    let childDepartmentProm = getAllAdminFromChildDepartments(department.children);
+                if (department.children && department.children.length > 0 && count <= 10) {
+                    let childDepartmentProm = getAllAdminFromChildDepartments(department.children, count);
                     childDeparmentProms.push(childDepartmentProm);
                 }
             }

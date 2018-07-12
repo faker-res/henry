@@ -103,11 +103,23 @@ var dbLogger = {
                 }else if ((logAction == 'createUpdatePlayerInfoProposal' || logAction == 'createUpdatePlayerPhoneProposal'
                         || logAction == 'createUpdatePlayerEmailProposal' || logAction == 'createUpdatePlayerQQProposal'
                         || logAction == 'createUpdatePlayerWeChatProposal' || logAction == 'createUpdatePlayerBankInfoProposal'
-                        || logAction == 'submitRepairPaymentProposal' || logAction == 'createUpdatePlayerCreditProposal')
+                        || logAction == 'submitRepairPaymentProposal' || logAction == 'createUpdatePlayerCreditProposal'
+                        || logAction == 'createUpdatePartnerInfoProposal' || logAction == 'createUpdatePartnerPhoneProposal'
+                        || logAction == 'createUpdatePartnerEmailProposal' || logAction == 'createUpdatePartnerQQProposal'
+                        || logAction == 'createUpdatePartnerWeChatProposal' || logAction == 'createUpdatePartnerCommissionTypeProposal'
+                        || logAction == 'createUpdatePartnerBankInfoProposal' || logAction == 'customizePartnerCommission')
                     && resultData && resultData.proposalId){
                     adminActionRecordData.error = "提案号：" + resultData.proposalId;
                 }else if (logAction == 'createPlayerFeedback' && playerData && playerData.name) {
                     adminActionRecordData.error = "帐号：" + playerData.name;
+                }else if (logAction == 'updatePlayerCredibilityRemark' && resultData && resultData.name) {
+                    adminActionRecordData.error = "帐号：" + resultData.name;
+                }else if (logAction == 'createPartner' && adminActionRecordData.data[0] && adminActionRecordData.data[0].partnerName){
+                    adminActionRecordData.error = "帐号：" + adminActionRecordData.data[0].partnerName;
+                }else if ((logAction == 'createPlayerFeedbackResult' || logAction == 'createPlayerFeedbackTopic'
+                        || logAction == 'createPartnerFeedbackResult' || logAction == 'createPartnerFeedbackTopic')
+                    && adminActionRecordData.data[0] && adminActionRecordData.data[0].value){
+                    adminActionRecordData.error = "添加" + adminActionRecordData.data[0].value;
                 }
 
 

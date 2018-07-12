@@ -128,13 +128,13 @@
                     input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
                     span.add-on
                         i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-            .inlineBlk
+            .inlineBlk.sPickDepartment
                 label {{"REGISTRATION_DEPARTMENT"|translate}}
                 select.spicker.form-control(ng-model='vm.playerFeedbackQuery.departments', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryRole(vm.playerFeedbackQuery)", ng-options='dp._id as dp.departmentName | translate for dp in vm.queryDepartments')
-            .inlineBlk
+            .inlineBlk.sPickDepartment
                 label {{"REGISTRATION_ROLE"|translate}}
                 select.spicker.form-control(ng-model='vm.playerFeedbackQuery.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.playerFeedbackQuery)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
-            .inlineBlk
+            .inlineBlk.sPickDepartment
                 label {{"REGISTRATION_ADMIN"|translate}}
                 select.spicker.form-control(ng-model='vm.playerFeedbackQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.queryAdmins')
             .inlineBlk

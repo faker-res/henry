@@ -91,7 +91,9 @@ var dbQualityInspection = {
                 }
 
                 if(operatorId!='all'){
-                    queryQA.live800Acc.name = {$in: operatorId};
+                    queryQA.live800Acc = {
+                        name: {$in: operatorId}
+                    }
                 }
 
                 queryQA.companyId = {$in: companyId};
@@ -654,6 +656,8 @@ var dbQualityInspection = {
                 live800Chat.live800Acc['id'] = item.company_id + '-' + item.operator_name;
                 live800Chat.live800Acc['name'] = item.operator_name;
                 live800Chat.operatorName = item.operator_name;
+                live800Chat.closeReason = item.close_reason;
+                live800Chat.closeName = item.close_name;
 
                 let dom = new JSDOM(item.content);
                 let content = [];
