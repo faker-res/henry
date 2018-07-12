@@ -1324,7 +1324,7 @@ let dbPlayerCreditTransfer = {
             if(groups && groups.length > 0) {
                 groups.forEach(group => {
                     if(group && group.providers && group.providers.length > 0) {
-                        if(group.hasOwnProperty('eBetWallet')) {
+                        if(group.hasOwnProperty('ebetWallet')) {
                             hasEbetWalletSettings = true;
                             group.providers.forEach(provider => {
                                 prom.push(this.playerCreditTransferToEbetWallet(playerObjId, platform, provider._id, amount,
