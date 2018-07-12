@@ -218,7 +218,13 @@ var dbPlatform = {
      * @param query
      */
     getBasicPlatformSetting: function (query) {
-        return dbconfig.collection_platform.findOne(query, {_id: 0, platformId: 1, name: 1, prefix: 1, partnerPrefix: 1}).lean().then(data=> {
+        return dbconfig.collection_platform.findOne(query, {
+            _id: 0,
+            platformId: 1,
+            name: 1,
+            prefix: 1,
+            partnerPrefix: 1
+        }).lean().then(data => {
             if (data) {
                 data.platformName = data.name ? data.name : "";
                 data.playerAccountPrefix = data.prefix ? data.prefix : "";
@@ -238,32 +244,41 @@ var dbPlatform = {
      * @param targetUrl
      */
     turnUrlToQr: function (targetUrl) {
-            return new Promise((resolve, reject) => {
-                return qrCode.toDataURL(targetUrl, (err, imgCode) => {
-                        return err? reject({name: "DBError", message: "Error in getting QR code", error: err}): resolve(imgCode);
-                    });
+        return new Promise((resolve, reject) => {
+            return qrCode.toDataURL(targetUrl, (err, imgCode) => {
+                return err ? reject({
+                    name: "DBError",
+                    message: "Error in getting QR code",
+                    error: err
+                }) : resolve(imgCode);
             });
+        });
     },
 
-    getTemplateSetting: function (platformId, url){
+    getTemplateSetting: function (platformId, url) {
         let result = [];
 
-        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then( platformData => {
-            if (!platformData){
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(platformData => {
+            if (!platformData) {
                 return Promise.reject({
                     name: "DBError",
-                    message: "Could not find the platform"});
+                    message: "Could not find the platform"
+                });
             }
 
-            if(!url){
+            if (!url) {
                 // get back preset template setting
-                if (platformData.presetModuleSetting && platformData.presetModuleSetting.length > 0){
+                if (platformData.presetModuleSetting && platformData.presetModuleSetting.length > 0) {
 
-                    result.push({templateId: null, functionList: platformData.presetModuleSetting.filter( p => {return p.displayStatus == 1})});
+                    result.push({
+                        templateId: null, functionList: platformData.presetModuleSetting.filter(p => {
+                            return p.displayStatus == 1
+                        })
+                    });
 
                 }
-                
-            }else{
+
+            } else {
                 // get the special template setting
                 if (platformData.specialModuleSetting && platformData.specialModuleSetting.length > 0) {
 
@@ -271,10 +286,12 @@ var dbPlatform = {
 
                     platformData.specialModuleSetting.forEach(module => {
 
-                        if(module.domainName && module.domainName.findIndex(p => p.toLowerCase() == url.trim().toLowerCase()) != -1){
+                        if (module.domainName && module.domainName.findIndex(p => p.toLowerCase() == url.trim().toLowerCase()) != -1) {
 
-                            if(module.content && module.content.length > 0 ){
-                                module.content = module.content.filter(p => {return p.displayStatus == 1})
+                            if (module.content && module.content.length > 0) {
+                                module.content = module.content.filter(p => {
+                                    return p.displayStatus == 1
+                                })
                             }
                             result.push({templateId: module._id, functionList: module.content});
 
@@ -855,29 +872,32 @@ var dbPlatform = {
         dbconfig.collection_admin.findOne({_id: adminId})
             .populate({path: "departments", model: dbconfig.collection_department})
             .then(
-            function (data) {
-                if (data && data.departments && data.departments.length > 0) {
-                    //if root department, show all the platforms
-                    //else only show department platform
-                    if (data.departments[0].parent) {
-                        if (data.departments[0].platforms && data.departments[0].platforms.length > 0) {
-                            return dbconfig.collection_platform.find({_id: {$in: data.departments[0].platforms}})
-                                .populate({path: "csDepartment", model: dbconfig.collection_department})
-                                .populate({path: "qiDepartment", model: dbconfig.collection_department}).exec();
+                function (data) {
+                    if (data && data.departments && data.departments.length > 0) {
+                        //if root department, show all the platforms
+                        //else only show department platform
+                        if (data.departments[0].parent) {
+                            if (data.departments[0].platforms && data.departments[0].platforms.length > 0) {
+                                return dbconfig.collection_platform.find({_id: {$in: data.departments[0].platforms}})
+                                    .populate({path: "csDepartment", model: dbconfig.collection_department})
+                                    .populate({path: "qiDepartment", model: dbconfig.collection_department}).exec();
+                            }
+                            else {
+                                deferred.reject({name: "DataError", message: "No platform available."});
+                            }
                         }
                         else {
-                            deferred.reject({name: "DataError", message: "No platform available."});
+                            return dbconfig.collection_platform.find().populate({
+                                path: "csDepartment",
+                                model: dbconfig.collection_department
+                            }).populate({path: "qiDepartment", model: dbconfig.collection_department}).exec();
                         }
                     }
-                    else {
-                        return dbconfig.collection_platform.find().populate({path: "csDepartment", model: dbconfig.collection_department}).populate({path: "qiDepartment", model: dbconfig.collection_department}).exec();
-                    }
+                },
+                function (error) {
+                    deferred.reject({name: "DBError", message: "Error finding user.", error: error});
                 }
-            },
-            function (error) {
-                deferred.reject({name: "DBError", message: "Error finding user.", error: error});
-            }
-        ).then(
+            ).then(
             function (data) {
                 deferred.resolve(data);
             },
@@ -896,7 +916,13 @@ var dbPlatform = {
     resetPlatformPlayerLevelData: function (platformObjId, bWeek) {
         //if daily settlement, and if it is the first day of the month, then reset monthly amount
         var queryOrArray = [{dailyTopUpSum: {$gt: 0}}, {dailyConsumptionSum: {$gt: 0}}, {dailyWithdrawSum: {$gt: 0}}, {dailyBonusAmountSum: {$gt: 0}}, {dailyTopUpIncentiveAmount: {$gt: 0}}];
-        var updateData = {dailyTopUpSum: 0, dailyConsumptionSum: 0, dailyWithdrawSum: 0, dailyBonusAmountSum: 0, dailyTopUpIncentiveAmount: 0};
+        var updateData = {
+            dailyTopUpSum: 0,
+            dailyConsumptionSum: 0,
+            dailyWithdrawSum: 0,
+            dailyBonusAmountSum: 0,
+            dailyTopUpIncentiveAmount: 0
+        };
         if (dbUtility.isFirstDayOfMonthSG()) {
             queryOrArray.push({pastMonthTopUpSum: {$gt: 0}});
             queryOrArray.push({pastMonthConsumptionSum: {$gt: 0}});
@@ -1618,13 +1644,13 @@ var dbPlatform = {
             } else if (data.isSystem && !data.isAdmin) {
                 query.adminName = {$eq: null};
             }
-            if(data.playerId){
+            if (data.playerId) {
                 query.playerId = data.playerId;
             }
-            if(data.partnerId){
+            if (data.partnerId) {
                 query.partnerId = data.partnerId;
             }
-            if(data.platformId){
+            if (data.platformId) {
                 query.platformId = data.platformId;
             }
             // Strip any fields which have value `undefined`
@@ -1645,7 +1671,7 @@ var dbPlatform = {
         limit = limit || constSystemParam.MAX_RECORD_NUM;
         let smsVerificationExpireField = "smsVerificationExpireTime"; //to determine whether check player or partner sms expired time
         let fieldOption = {smsVerificationExpireTime: 1};
-        let partnerInputDevice =  [
+        let partnerInputDevice = [
             constPlayerRegistrationInterface.APP_AGENT,
             constPlayerRegistrationInterface.H5_AGENT,
             constPlayerRegistrationInterface.WEB_AGENT
@@ -1695,10 +1721,10 @@ var dbPlatform = {
         ).then(
             smsLogsWithCount => {
                 if (smsLogsWithCount.length > 0) {
-                    let promises =  smsLogsWithCount.map(function (sms) {
+                    let promises = smsLogsWithCount.map(function (sms) {
                         if (sms.tel) {
-                            if(sms.purpose == constSMSPurpose.PARTNER_REGISTRATION || sms.purpose == constSMSPurpose.PARTNER_OLD_PHONE_NUMBER || sms.purpose == constSMSPurpose.PARTNER_NEW_PHONE_NUMBER
-                            || sms.purpose == constSMSPurpose.PARTNER_UPDATE_PASSWORD || sms.purpose == constSMSPurpose.PARTNER_UPDATE_BANK_INFO_FIRST || sms.purpose == constSMSPurpose.PARTNER_UPDATE_BANK_INFO){
+                            if (sms.purpose == constSMSPurpose.PARTNER_REGISTRATION || sms.purpose == constSMSPurpose.PARTNER_OLD_PHONE_NUMBER || sms.purpose == constSMSPurpose.PARTNER_NEW_PHONE_NUMBER
+                                || sms.purpose == constSMSPurpose.PARTNER_UPDATE_PASSWORD || sms.purpose == constSMSPurpose.PARTNER_UPDATE_BANK_INFO_FIRST || sms.purpose == constSMSPurpose.PARTNER_UPDATE_BANK_INFO) {
                                 //check phone number with partner
                                 return dbPlatform.checkPhoneNumWithPartner(sms.tel, data.platformObjId, sms).then(
                                     smsTel => {
@@ -1706,7 +1732,7 @@ var dbPlatform = {
                                         return sms;
                                     }
                                 );
-                            }else{
+                            } else {
                                 //check phone number with real player
                                 return dbPlatform.checkPhoneNumWithRealPlayer(sms.tel, data.platformObjId, sms).then(
                                     smsTel => {
@@ -2489,8 +2515,8 @@ var dbPlatform = {
             let listName;
             let platformData;
 
-            if (subject == 'player'){
-                returnedObj= {
+            if (subject == 'player') {
+                returnedObj = {
                     wechatList: [],
                     qqList: [],
                     telList: [],
@@ -2504,7 +2530,7 @@ var dbPlatform = {
                     playerSpreadUrl: [],
                 };
                 listName = [
-                    ['csEmailImageUrlList','emailList'],
+                    ['csEmailImageUrlList', 'emailList'],
                     ['csPhoneList', 'telList'],
                     ['csQQList', 'qqList'],
                     ['csUrlList', 'live800'],
@@ -2516,8 +2542,8 @@ var dbPlatform = {
                     ['playerWebLogoUrlList', 'platformLogoUrl']
                 ];
             }
-            else if (subject == 'partner'){
-                returnedObj= {
+            else if (subject == 'partner') {
+                returnedObj = {
                     partnerEmail: [],
                     partnerCSPhoneNumber: [],
                     partnerCSQQNumber: [],
@@ -2552,8 +2578,8 @@ var dbPlatform = {
                     if (data) {
 
                         platformData = data;
-                        listName.forEach( list => {
-                            if(data[list[0]]){
+                        listName.forEach(list => {
+                            if (data[list[0]]) {
 
                                 returnedObj[list[1]] = dbPlatform.appendRouteSetting(data, list[0], subject);
 
@@ -2561,9 +2587,9 @@ var dbPlatform = {
                         });
 
                         if (subject === 'player') {
-                            returnedObj.accountMaxLength = platformData.playerNameMaxLength ? platformData.playerNameMaxLength: 0;
-                            returnedObj.accountMinLength = platformData.playerNameMinLength ? platformData.playerNameMinLength: 0;
-                            returnedObj.minDepositAmount = platformData.minTopUpAmount ? platformData.minTopUpAmount: 0;
+                            returnedObj.accountMaxLength = platformData.playerNameMaxLength ? platformData.playerNameMaxLength : 0;
+                            returnedObj.accountMinLength = platformData.playerNameMinLength ? platformData.playerNameMinLength : 0;
+                            returnedObj.minDepositAmount = platformData.minTopUpAmount ? platformData.minTopUpAmount : 0;
                             returnedObj.needSMSForTrailAccount = platformData.requireSMSVerificationForDemoPlayer ? 1 : 0;
                             returnedObj.needSMSForRegister = platformData.requireSMSVerification ? 1 : 0;
                             returnedObj.needSMSForModifyPassword = platformData.requireSMSVerificationForPasswordUpdate ? 1 : 0;
@@ -2574,8 +2600,8 @@ var dbPlatform = {
                         }
 
                         if (subject === 'partner') {
-                            returnedObj.accountMaxLength = platformData.partnerNameMaxLength ? platformData.partnerNameMaxLength: 0;
-                            returnedObj.accountMinLength = platformData.partnerNameMinLength ? platformData.partnerNameMinLength: 0;
+                            returnedObj.accountMaxLength = platformData.partnerNameMaxLength ? platformData.partnerNameMaxLength : 0;
+                            returnedObj.accountMinLength = platformData.partnerNameMinLength ? platformData.partnerNameMinLength : 0;
                             returnedObj.needSMSForRegister = platformData.partnerRequireSMSVerification ? 1 : 0;
                             returnedObj.needSMSForModifyPassword = platformData.partnerRequireSMSVerificationForPasswordUpdate ? 1 : 0;
                             returnedObj.needSMSForModifyBankInfo = platformData.partnerRequireSMSVerificationForPaymentUpdate ? 1 : 0;
@@ -2586,20 +2612,23 @@ var dbPlatform = {
                         }
 
                         if (data.platformId) {
-                            if (subject == 'player'){
+                            if (subject == 'player') {
                                 return dbconfig.collection_playerPageAdvertisementInfo.find({
                                     platformId: data._id,
                                     inputDevice: inputDevice
                                 }).sort({orderNo: 1}).lean();
                             }
-                            else if (subject == 'partner'){
+                            else if (subject == 'partner') {
                                 return dbconfig.collection_partnerPageAdvertisementInfo.find({
                                     platformId: data._id,
                                     inputDevice: inputDevice
                                 }).sort({orderNo: 1}).lean();
                             }
-                            else{
-                                return Q.reject({name: "DBError", message: "No advertisement Information exists with id: " + platformId});
+                            else {
+                                return Q.reject({
+                                    name: "DBError",
+                                    message: "No advertisement Information exists with id: " + platformId
+                                });
                             }
                         }
                     } else {
@@ -2610,7 +2639,7 @@ var dbPlatform = {
                 advertisementInfo => {
                     if (advertisementInfo) {
                         advertisementInfo.map(info => {
-                            if(info){
+                            if (info) {
                                 let activityListObj = {};
                                 if (info.advertisementCode) {
                                     activityListObj.code = info.advertisementCode;
@@ -2643,12 +2672,12 @@ var dbPlatform = {
                                 if (info.imageButton && info.imageButton.length > 0) {
                                     let buttonList = [];
                                     info.imageButton.forEach(b => {
-                                        if(b){
+                                        if (b) {
                                             let buttonObj = {};
                                             if (b.buttonName) {
                                                 buttonObj.btn = b.buttonName;
                                             }
-                                            if(b.url) {
+                                            if (b.url) {
                                                 if (b.url.indexOf("http") === -1) {
                                                     if (subject === 'player' && platformData.playerRouteSetting) {
                                                         buttonObj.btnImg = platformData.playerRouteSetting.trim() + b.url.trim();
@@ -2675,14 +2704,17 @@ var dbPlatform = {
                                     }
                                 }
 
-                                if (subject == 'player'){
+                                if (subject == 'player') {
                                     returnedObj.activityList.push(activityListObj);
                                 }
-                                else if (subject == 'partner'){
+                                else if (subject == 'partner') {
                                     returnedObj.partnerActivityList.push(activityListObj);
                                 }
-                                else{
-                                    return Q.reject({name: "DBError", message: "Missing of default param: 'partner' or 'player'."});
+                                else {
+                                    return Q.reject({
+                                        name: "DBError",
+                                        message: "Missing of default param: 'partner' or 'player'."
+                                    });
                                 }
                             }
                         })
@@ -2696,11 +2728,11 @@ var dbPlatform = {
     },
 
     appendRouteSetting: function (data, list, subject) {
-        if (data && list){
+        if (data && list) {
 
             // check if the "http / https" exist or not
-            if (data[list].length > 0){
-                data[list].forEach( pair => {
+            if (data[list].length > 0) {
+                data[list].forEach(pair => {
 
                     if (pair.content.indexOf(',') !== -1) {
                         let splitString = pair.content.split(',');
@@ -2709,7 +2741,7 @@ var dbPlatform = {
                             let comString = [];
                             splitString.forEach(indString => {
 
-                                if (pair.isImg === 1 && indString.indexOf("http") === -1 ) {
+                                if (pair.isImg === 1 && indString.indexOf("http") === -1) {
                                     if (subject === 'player' && data.playerRouteSetting) {
                                         comString.push(data.playerRouteSetting.trim() + indString.trim());
                                     } else if (subject === 'partner' && data.partnerRouteSetting) {
@@ -2727,7 +2759,7 @@ var dbPlatform = {
                         }
                     }
                     else {
-                        if (pair.isImg === 1 && pair.content.indexOf("http") === -1 ) {
+                        if (pair.isImg === 1 && pair.content.indexOf("http") === -1) {
                             if (subject === 'player' && data.playerRouteSetting) {
                                 pair.content = data.playerRouteSetting.trim() + pair.content.trim();
                             } else if (subject === 'partner' && data.partnerRouteSetting) {
@@ -2828,7 +2860,7 @@ var dbPlatform = {
             }, {new: true});
     },
 
-    createClickCountLog: (platformId, device, pageName, buttonName, registerClickApp=false, registerClickWeb=false, registerClickH5=false, ipAddress) => {
+    createClickCountLog: (platformId, device, pageName, buttonName, registerClickApp = false, registerClickWeb = false, registerClickH5 = false, ipAddress) => {
         let todayTime = dbUtility.getTodaySGTime();
         registerClickApp = registerClickApp === 'true' ? true : registerClickApp;
         registerClickWeb = registerClickWeb === 'true' ? true : registerClickWeb;
@@ -2848,7 +2880,7 @@ var dbPlatform = {
                 let countObj = {};
                 let uniqueIp = {};
 
-                switch(true) {
+                switch (true) {
                     case registerClickApp:
                         countObj = {
                             count: 1,
@@ -2876,7 +2908,7 @@ var dbPlatform = {
                 }
 
                 dbconfig.collection_clickCount
-                    .update(clickCountObj, {$inc: countObj , $addToSet: uniqueIp}, {upsert: true})
+                    .update(clickCountObj, {$inc: countObj, $addToSet: uniqueIp}, {upsert: true})
                     .exec()
                     .catch(errorUtils.reportError);
             }
@@ -3037,12 +3069,12 @@ var dbPlatform = {
 
         return Promise.all(promArr).then(
             result => {
-                if(result){
+                if (result) {
                     let promArr = [];
                     partnerSettDetail = result;
 
                     result.map(r => {
-                        if(r && r.settStartTime && r.settEndTime){
+                        if (r && r.settStartTime && r.settEndTime) {
                             promArr.push(dbPlatform.isPreview(r.settStartTime, r.settEndTime, platformObjId, r.mode));
                         }
                     });
@@ -3052,12 +3084,12 @@ var dbPlatform = {
             }
         ).then(
             checkPreviewResult => {
-                if(checkPreviewResult){
+                if (checkPreviewResult) {
                     partnerSettDetail.map(settDetail => {
-                        if(settDetail){
+                        if (settDetail) {
                             checkPreviewResult.forEach(checkPreview => {
-                                if(checkPreview){
-                                    if(settDetail.mode == checkPreview.settMode && settDetail.settStartTime == checkPreview.startTime && settDetail.settEndTime == checkPreview.endTime){
+                                if (checkPreview) {
+                                    if (settDetail.mode == checkPreview.settMode && settDetail.settStartTime == checkPreview.startTime && settDetail.settEndTime == checkPreview.endTime) {
                                         settDetail.isPreview = checkPreview.isPreview;
                                     }
                                 }
@@ -3083,14 +3115,14 @@ var dbPlatform = {
 
         return dbconfig.collection_partnerCommSettLog.findOne(query).then(
             result => {
-                if(result){
+                if (result) {
                     return {
                         settMode: settMode,
                         startTime: startTime,
                         endTime: endTime,
                         isPreview: true
                     }
-                }else{
+                } else {
                     return {
                         settMode: settMode,
                         startTime: startTime,
@@ -3114,7 +3146,7 @@ var dbPlatform = {
 
         return dbconfig.collection_partner.find({platform: platformObjId, commissionType: settMode}).count().then(
             partnerCount => {
-                if(partnerCount && partnerCount > 0){
+                if (partnerCount && partnerCount > 0) {
                     calculatePartnerCommissionInfo(platformObjId, settMode, startTime, endTime, isSkip).catch(errorUtils.reportError);
 
                     return dbconfig.collection_partnerCommSettLog.update({
@@ -3129,7 +3161,7 @@ var dbPlatform = {
                         upsert: true,
                         new: true
                     });
-                }else{
+                } else {
                     return Q.reject({name: "DBError", error: "Cannot preview, setting is incomplete"});
                 }
             }
@@ -3301,7 +3333,7 @@ var dbPlatform = {
         );
     },
 
-    getClientData: function(platformId){
+    getClientData: function (platformId) {
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 return platformData ? platformData.clientData : "";
@@ -3309,17 +3341,17 @@ var dbPlatform = {
         );
     },
 
-    saveClientData: function(platformId, clientData){
+    saveClientData: function (platformId, clientData) {
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
-                if(platformData){
+                if (platformData) {
                     return dbconfig.collection_platform.findOneAndUpdate({_id: platformData._id}, {clientData: clientData}).then(
                         res => {
                             return clientData;
                         }
                     );
                 }
-                else{
+                else {
                     return Q.reject({
                         status: constServerCode.INVALID_PARAM,
                         name: "DataError",
@@ -3330,7 +3362,7 @@ var dbPlatform = {
         );
     },
 
-    savePlayerInformationFromPopUp: function(data){
+    savePlayerInformationFromPopUp: function (data) {
 
         let prom = [];
 
@@ -3351,14 +3383,14 @@ var dbPlatform = {
 
         return Promise.all(prom);
 
-        function checkAndInsertRecord (platformId, phoneNumber, name){
+        function checkAndInsertRecord(platformId, phoneNumber, name) {
             return dbconfig.collection_playerDataFromExternalSource.findOne({
                     platformId: platformId,
                     phoneNumber: phoneNumber,
                     name: name,
                 }
-            ).then( res => {
-                if(!res){
+            ).then(res => {
+                if (!res) {
                     let dataTobeSaved = {
                         platformId: platformId || "",
                         phoneNumber: phoneNumber || "",
@@ -3368,7 +3400,7 @@ var dbPlatform = {
                     let playerData = new dbconfig.collection_playerDataFromExternalSource(dataTobeSaved);
                     return playerData.save().then().catch(err => errorUtils.reportError(err));
                 }
-                else{
+                else {
                     return;
                 }
             })
@@ -3387,11 +3419,14 @@ var dbPlatform = {
                     });
                 }
 
-                if(phoneNumber && platformData.blackListingPhoneNumbers){
+                if (phoneNumber && platformData.blackListingPhoneNumbers) {
                     let indexNo = platformData.blackListingPhoneNumbers.findIndex(p => p == phoneNumber);
 
-                    if(indexNo != -1){
-                        return Q.reject({name: "DataError", message: localization.localization.translate("Invalid phone number, unable to call")});
+                    if (indexNo != -1) {
+                        return Q.reject({
+                            name: "DataError",
+                            message: localization.localization.translate("Invalid phone number, unable to call")
+                        });
                     }
                 }
 
@@ -3423,8 +3458,19 @@ var dbPlatform = {
                         if (err) {
                             reject({code: constServerCode.EXTERNAL_API_FAILURE, message: err});
                         } else {
-                            console.log('callBackToUser API output', body);
-                            resolve(true);
+                            console.log('callBackToUser API output:', body);
+                            console.log('callBackToUser API res:', res);
+                            let bodyJson = JSON.parse(body);
+                            console.log('callBackToUser API json:', bodyJson);
+                            if (bodyJson && bodyJson.code == "0") {
+                                resolve(true);
+                            }
+                            else {
+                                reject({
+                                    code: constServerCode.EXTERNAL_API_FAILURE,
+                                    message: bodyJson ? bodyJson.msg : ""
+                                });
+                            }
                         }
                     });
                 });
@@ -3471,7 +3517,9 @@ var dbPlatform = {
                     requestProtocol.get(link, (resp) => {
                         resp.setEncoding('base64');
                         let body = "data:" + resp.headers["content-type"] + ";base64,";
-                        resp.on('data', (data) => { body += data});
+                        resp.on('data', (data) => {
+                            body += data
+                        });
                         resp.on('end', () => {
                             resolve({
                                 randomNumber: randomNumber,
@@ -3604,7 +3652,7 @@ var dbPlatform = {
             // 玩家等级
             // playerLevel schema
             let copyPlayerLevelProm = dbconfig.collection_playerLevel.remove({platform: replicateTo._id}).then(
-                ()=>{
+                () => {
                     return dbconfig.collection_playerLevel.find({platform: replicateFrom._id}).lean()
                 }
             ).then(
@@ -3652,7 +3700,7 @@ var dbPlatform = {
             // playerCredibilityRemark
             let copyPlayerCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.remove({platform: replicateTo._id}).then(
                 () => {
-                    return dbconfig.collection_playerCredibilityRemark.find({platform: replicateFrom._id}).lean() ;
+                    return dbconfig.collection_playerCredibilityRemark.find({platform: replicateFrom._id}).lean();
                 }
             ).then(
                 playerCredibilityRemarks => {
@@ -4091,8 +4139,14 @@ var dbPlatform = {
 
                 // 积分活动 - 登入积分、游戏积分
                 // rewardPointsEvent
-                let copyRewardPointEventProm = dbconfig.collection_rewardPointsEvent.remove({platformObjId: replicateTo._id, category: {$in: [constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, constRewardPointsTaskCategory.TOPUP_REWARD_POINTS]}}).then(
-                    () => dbconfig.collection_rewardPointsEvent.find({platformObjId: replicateFrom._id, category: {$in: [constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, constRewardPointsTaskCategory.TOPUP_REWARD_POINTS]}}).lean()
+                let copyRewardPointEventProm = dbconfig.collection_rewardPointsEvent.remove({
+                    platformObjId: replicateTo._id,
+                    category: {$in: [constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, constRewardPointsTaskCategory.TOPUP_REWARD_POINTS]}
+                }).then(
+                    () => dbconfig.collection_rewardPointsEvent.find({
+                        platformObjId: replicateFrom._id,
+                        category: {$in: [constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, constRewardPointsTaskCategory.TOPUP_REWARD_POINTS]}
+                    }).lean()
                 ).then(
                     rewardPointsEvents => {
                         let proms = [];
@@ -4115,7 +4169,7 @@ var dbPlatform = {
     },
 };
 
-function getPlatformStringForCallback (platformStringArray, playerId, lineId) {
+function getPlatformStringForCallback(platformStringArray, playerId, lineId) {
     lineId = lineId || 0;
     let platformString = "";
 
@@ -4139,7 +4193,10 @@ function getPlatformStringForCallback (platformStringArray, playerId, lineId) {
 
     let playerProm = "";
     if (playerId) {
-        playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
+        playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate({
+            path: "playerLevel",
+            model: dbconfig.collection_playerLevel
+        }).lean();
     }
 
     if (!playerProm) {
@@ -4198,8 +4255,11 @@ function getPartnerCommNextSettDate(settMode, curTime = dbUtility.getFirstDayOfY
     }
 }
 
-function calculatePartnerCommissionInfo (platformObjId, commissionType, startTime, endTime, isSkip) {
-    let stream = dbconfig.collection_partner.find({platform: platformObjId, commissionType: commissionType}, {_id: 1}).cursor({batchSize: 100});
+function calculatePartnerCommissionInfo(platformObjId, commissionType, startTime, endTime, isSkip) {
+    let stream = dbconfig.collection_partner.find({
+        platform: platformObjId,
+        commissionType: commissionType
+    }, {_id: 1}).cursor({batchSize: 100});
 
     let balancer = new SettlementBalancer();
     return balancer.initConns().then(function () {

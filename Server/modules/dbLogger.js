@@ -21,7 +21,7 @@ var dbLogger = {
      * Create the log information of every action operated by Admin user
      * @param {json} adminActionRecordData - The data of the log -  Refer to systemLog schema.
      */
-    createSystemLog: function (adminActionRecordData) {
+    createSystemLog: function (adminActionRecordData, resultData) {
         //only store non-get actions
         if (adminActionRecordData.level === constSystemLogLevel.ACTION && adminActionRecordData.action && adminActionRecordData.action.indexOf("get") >= 0) {
             return;
@@ -54,6 +54,13 @@ var dbLogger = {
                 if(platformArr && platformArr.length > 0){
                     adminActionRecordData.platforms = platformArr;
                 }
+
+                if (adminActionRecordData.action == 'createPlayerFeedback' && resultData && resultData.playerId) {
+                    return dbconfig.collection_players.findOne({_id: resultData.playerId}, {name: 1});
+                }
+            }
+        ).then(
+            playerData => {
 
                 let logAction = adminActionRecordData.action;
 
@@ -89,6 +96,30 @@ var dbLogger = {
                     adminActionRecordData.error = adminActionRecordData.data[3];
                 }else if(logAction == "resetAdminPassword" && adminActionRecordData.data[2]){
                     adminActionRecordData.error = adminActionRecordData.data[2];
+                }else if(logAction == 'createPlayer' && adminActionRecordData.data[0] && adminActionRecordData.data[0].name){
+                    adminActionRecordData.error = "帐号：" + adminActionRecordData.data[0].name;
+                }else if (logAction == 'createDemoPlayer' && resultData && resultData.playerData && resultData.playerData.name){
+                    adminActionRecordData.error = "帐号：" + resultData.playerData.name;
+                }else if ((logAction == 'createUpdatePlayerInfoProposal' || logAction == 'createUpdatePlayerPhoneProposal'
+                        || logAction == 'createUpdatePlayerEmailProposal' || logAction == 'createUpdatePlayerQQProposal'
+                        || logAction == 'createUpdatePlayerWeChatProposal' || logAction == 'createUpdatePlayerBankInfoProposal'
+                        || logAction == 'submitRepairPaymentProposal' || logAction == 'createUpdatePlayerCreditProposal'
+                        || logAction == 'createUpdatePartnerInfoProposal' || logAction == 'createUpdatePartnerPhoneProposal'
+                        || logAction == 'createUpdatePartnerEmailProposal' || logAction == 'createUpdatePartnerQQProposal'
+                        || logAction == 'createUpdatePartnerWeChatProposal' || logAction == 'createUpdatePartnerCommissionTypeProposal'
+                        || logAction == 'createUpdatePartnerBankInfoProposal' || logAction == 'customizePartnerCommission')
+                    && resultData && resultData.proposalId){
+                    adminActionRecordData.error = "提案号：" + resultData.proposalId;
+                }else if (logAction == 'createPlayerFeedback' && playerData && playerData.name) {
+                    adminActionRecordData.error = "帐号：" + playerData.name;
+                }else if (logAction == 'updatePlayerCredibilityRemark' && resultData && resultData.name) {
+                    adminActionRecordData.error = "帐号：" + resultData.name;
+                }else if (logAction == 'createPartner' && adminActionRecordData.data[0] && adminActionRecordData.data[0].partnerName){
+                    adminActionRecordData.error = "帐号：" + adminActionRecordData.data[0].partnerName;
+                }else if ((logAction == 'createPlayerFeedbackResult' || logAction == 'createPlayerFeedbackTopic'
+                        || logAction == 'createPartnerFeedbackResult' || logAction == 'createPartnerFeedbackTopic')
+                    && adminActionRecordData.data[0] && adminActionRecordData.data[0].value){
+                    adminActionRecordData.error = "添加" + adminActionRecordData.data[0].value;
                 }
 
 

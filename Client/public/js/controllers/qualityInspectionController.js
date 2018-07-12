@@ -476,6 +476,7 @@ define(['js/app'], function (myApp) {
                         });
                         item.editable = false;
                         item.createTime = utilService.getFormatTime(item.createTime);
+                        item.closeName$ = item.closeReason && item.closeReason == "operatorClosed" ? "客服 " + item.closeName : "访客";
 
                         return item;
                     });
@@ -906,6 +907,8 @@ define(['js/app'], function (myApp) {
                                 if(data.createTime){
                                     data.createTime = utilService.getFormatTime(data.createTime);
                                 }
+
+                                data.closeName$ = data.closeReason && data.closeReason == "operatorClosed" ? "客服 " + data.closeName : "访客";
                             }
 
                             return data;
@@ -997,6 +1000,8 @@ define(['js/app'], function (myApp) {
                                 if(data.createTime){
                                     data.createTime = utilService.getFormatTime(data.createTime);
                                 }
+
+                                data.closeName$ = data.closeReason && data.closeReason == "operatorClosed" ? "客服 " + data.closeName : "访客";
                             }
 
                             return data;
@@ -1091,6 +1096,8 @@ define(['js/app'], function (myApp) {
                                     data.createTime = utilService.getFormatTime(data.createTime);
                                 }
 
+                                data.closeName$ = data.closeReason && data.closeReason == "operatorClosed" ? "客服 " + data.closeName : "访客";
+
                                 return data;
                             }
                         })
@@ -1182,6 +1189,8 @@ define(['js/app'], function (myApp) {
                                 if(data.createTime){
                                     data.createTime = utilService.getFormatTime(data.createTime);
                                 }
+
+                                data.closeName$ = data.closeReason && data.closeReason == "operatorClosed" ? "客服 " + data.closeName : "访客";
 
                                 return data;
                             }

@@ -368,8 +368,8 @@ var dbPlayerConsumptionWeekSummary = {
                                         type: 'admin',
                                         id: adminId
                                     }
-                                } else if (userAgent) {
-                                    // userAgent no null means is not system
+                                } else {
+                                    // if userAgent is null, inputDevice should be H5 player or partner
                                     proposalData.inputDevice = dbutility.getInputDevice(userAgent);
                                     proposalData.creator = {
                                         type: 'player',

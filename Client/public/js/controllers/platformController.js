@@ -22,7 +22,7 @@ define(['js/app'], function (myApp) {
             vm.existRealName = false;
             vm.rewardPointsChange = {};
             vm.rewardPointsConvert = {};
-            vm.platformPageName = 'Player';
+            vm.platformPageName = 'Feedback';
             vm.platformToReplicate = "";
 
             // constants declaration
@@ -1027,12 +1027,14 @@ define(['js/app'], function (myApp) {
                             // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
                             console.log('vm.platformPageName', vm.platformPageName);
 
+                            let callbackAfterDepartmentLoad;
+
                             switch (vm.platformPageName) {
                                 case "GameGroup":
                                     vm.loadGameGroupData();
                                     break;
                                 case "Feedback":
-                                    vm.initPlayerFeedback();
+                                    callbackAfterDepartmentLoad = vm.initPlayerFeedback;
                                     // vm.submitPlayerFeedbackQuery();
                                     break;
                                 case "MessageTemplates":
@@ -1045,7 +1047,7 @@ define(['js/app'], function (myApp) {
                             //     case "Player":
                             vm.playersQueryCreated = false;
                             vm.configTabClicked();
-                            vm.loadAlldepartment();
+                            vm.loadAlldepartment(callbackAfterDepartmentLoad);
                             vm.rewardTabClicked();
                             vm.getPlatformRewardProposal();
                             vm.getPlatformPlayersData(true, true);
@@ -16382,14 +16384,14 @@ define(['js/app'], function (myApp) {
 
                         vm.queryDepartments.push({_id:'', departmentName:'N/A'});
 
-                        vm.departments.map(e => {
+                        vm.currentPlatformDepartment.map(e => {
                             if (e.departmentName == vm.selectedPlatform.data.name) {
                                 vm.queryDepartments.push(e);
                                 parentId = e._id;
                             }
                         });
 
-                        vm.departments.map(e => {
+                        vm.currentPlatformDepartment.map(e => {
                             if (String(parentId) == String(e.parent)) {
                                 vm.queryDepartments.push(e);
                             }
@@ -21673,6 +21675,7 @@ define(['js/app'], function (myApp) {
                 vm.promoCode2HasMoreThanOne = false;
                 vm.promoCode3HasMoreThanOne = false;
                 vm.smsTitleDuplicationBoolean = false;
+                vm.promoCodeTemplateEdit = false;
 
                 vm.newPromoCode1 = [];
                 vm.newPromoCode2 = [];
@@ -21694,8 +21697,13 @@ define(['js/app'], function (myApp) {
                 vm.durationGroupConfig = [];
                 vm.modalYesNo = {};
 
+                vm.promoCodeTemplateData = [];
+                vm.deletedPromoCodeTemplateData = [];
+                vm.newPromoCode = {};
+
                 loadPromoCodeTypes();
                 loadPromoCodeUserGroup();
+                loadPromoCodeTemplate();
 
                 switch (choice) {
                     case 'create':
@@ -21814,6 +21822,7 @@ define(['js/app'], function (myApp) {
                             });
                             vm.getPromoCodeAnalysis2(true)
                         });
+
                 }
             };
 
@@ -22866,6 +22875,25 @@ define(['js/app'], function (myApp) {
 
                 //vm.getPromoCodeUserGroup();
                 vm.getAllPromoCodeUserGroup();
+            }
+
+            function loadPromoCodeTemplate() {
+                socketService.$socket($scope.AppSocket, 'getPromoCodeTemplate', {
+                    platformObjId: vm.selectedPlatform.id
+                }, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.promoCodeTemplateSetting = (data && data.data) ? data.data : [];
+
+                        if (vm.promoCodeTemplateSetting && vm.promoCodeTemplateSetting.length > 0){
+
+                            vm.promoCodeTemplateSetting.forEach(p => {
+                                if (p){
+                                    vm.promoCodeTemplateData.push($.extend(true, {}, p));
+                                }
+                            })
+                        }
+                    })
+                });
             }
 
             function loadDelayDurationGroup() {
@@ -26949,8 +26977,148 @@ define(['js/app'], function (myApp) {
                     case 'phoneFilterConfig':
                         updatePhoneFilter(vm.phoneFilterConfig);
                         break;
+                    case 'promoCodeTemplate':
+                        updatePromoCodeTemplate();
+                        break;
+
                 }
             };
+
+            vm.checkPromoCodeField = function (insertData, type){
+                if (!insertData && !type) {
+                    return false;
+                }
+
+                if (!insertData.amount) {
+                    if (type == 3) {
+                        return socketService.showErrorMessage($translate("Promo Reward % is required"));
+                    } else if (type == 2) {
+                        return socketService.showErrorMessage($translate("Promo Reward Amount Y is required"));
+                    }
+                    else {
+                        return socketService.showErrorMessage($translate("Promo Reward Amount X is required"));
+                    }
+                }
+                else if (type != 2 && isNaN(insertData.minTopUpAmount)) {
+                    return socketService.showErrorMessage($translate("Promo Min Top Up Amount is required"));
+                }
+                else if (type == 3 && isNaN(insertData.maxRewardAmount)) {
+                    return socketService.showErrorMessage($translate("Promo Max Top Up Amount is required"));
+                }
+                else if (isNaN(insertData.requiredConsumption)) {
+                    if (type == 3) {
+                        return socketService.showErrorMessage($translate("Type C Promo Consumption is required"));
+                    } else {
+                        return socketService.showErrorMessage($translate("Promo Consumption is required"));
+                    }
+                }
+
+                return true;
+            };
+
+            vm.updatePromoCodeTemplateInEdit = function (func, collection, data, type) {
+                if (func == 'add') {
+
+                    if (collection && data && type) {
+                        let returnedMsg = vm.checkPromoCodeField(data, type);
+                        vm.promoCodeFieldCheckFlag = false;
+                        if (returnedMsg) {
+
+                            let newObj = {};
+                            Object.keys(data).forEach(e => {
+                                newObj[e] = data[e];
+                            });
+
+                            collection.push(newObj);
+                        }
+                        else {
+                            vm.promoCodeFieldCheckFlag = true;
+                        }
+                    }
+                }
+                else if (func == 'remove') {
+
+                    if (data && collection) {
+                        let index = null;
+                        if (data._id){
+                            index = collection.findIndex(p => p._id == data._id);
+                        }
+                        else{
+                            index = collection.findIndex(p => p.typeName == data.typeName);
+                        }
+
+                        if (typeof index == 'number'){
+                            if (collection[index]._id){
+                                collection[index].status = 'removed';
+                                vm.deletedPromoCodeTemplateData.push(collection[index]);
+                            }
+                            collection.splice(index, 1);
+                        }
+
+                    }
+
+                }
+            };
+
+            vm.initNewPromoCodeTemplate = function(type) {
+
+                if (!type){
+                    vm.newPromoCodeTemplate1 = {
+                        disableWithdraw: false,
+                        isSharedWithXIMA: true
+                    };
+                    vm.newPromoCodeTemplate2 = {
+                        disableWithdraw: false,
+                        isSharedWithXIMA: true
+                    };
+                    vm.newPromoCodeTemplate3 = {
+                        disableWithdraw: false,
+                        isSharedWithXIMA: true
+                    };
+                }
+                else {
+                    if (!vm.promoCodeFieldCheckFlag) {
+                        if (type == 1) {
+                            vm.newPromoCodeTemplate1 = {
+                                disableWithdraw: false,
+                                isSharedWithXIMA: true
+                            };
+                        }
+                        else if (type == 2) {
+                            vm.newPromoCodeTemplate2 = {
+                                disableWithdraw: false,
+                                isSharedWithXIMA: true
+                            };
+                        }
+                        else if (type == 3) {
+                            vm.newPromoCodeTemplate3 = {
+                                disableWithdraw: false,
+                                isSharedWithXIMA: true
+                            };
+                        }
+                    }
+                }
+            };
+
+            function updatePromoCodeTemplate (){
+
+                if (vm.deletedPromoCodeTemplateData && vm.deletedPromoCodeTemplateData.length > 0){
+                    vm.promoCodeTemplateData = vm.promoCodeTemplateData.concat(vm.deletedPromoCodeTemplateData);
+                }
+                if (vm.promoCodeTemplateData){
+                    vm.promoCodeTemplateSetting = vm.promoCodeTemplateData;
+                }
+
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    promoCodeTemplate: vm.promoCodeTemplateSetting,
+                };
+
+                socketService.$socket($scope.AppSocket, 'updatePromoCodeTemplate', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
+                    vm.deletedPromoCodeTemplateData = [];
+                });
+            }
 
             function updatePlayerLevels(arr, index, deltaValue, callback) {
                 if (index >= arr.length) {
@@ -27696,7 +27864,7 @@ define(['js/app'], function (myApp) {
             }
 
             // right panel required functions
-            vm.loadAlldepartment = function () {
+            vm.loadAlldepartment = function (callback) {
 
                 if (!authService.checkViewPermission('Platform', 'Proposal', 'Create') && !authService.checkViewPermission('Platform', 'Proposal', 'Update')) {
                     return;
@@ -27708,7 +27876,19 @@ define(['js/app'], function (myApp) {
                         vm.departments = data.data;
                     })
                 }
-            }
+
+                // getting admin's department might not get the required department by platform for some features
+                socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform.id},
+                    data => {
+                        $scope.$evalAsync(() => {
+                            vm.currentPlatformDepartment = data.data;
+                            if (typeof(callback) == 'function') {
+                                callback(data.data);
+                            }
+                        });
+                    }
+                );
+            };
             vm.initStep = function () {
                 vm.tempNewNodeName = '';
                 vm.tempNewNodeDepartment = '';

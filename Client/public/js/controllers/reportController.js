@@ -7347,13 +7347,9 @@ define(['js/app'], function (myApp) {
                     {group: "PLAYER", text: "resetPlayerPassword", action: "resetPlayerPassword"},
 
                     {group: "PLAYER", text: "Repair Payment", action: "submitRepairPaymentProposal"},
-                    {
-                        group: "PLAYER",
-                        text: "createUpdatePlayerCreditProposal",
-                        action: "createUpdatePlayerCreditProposal"
-                    },
-                    {group: "PLAYER", text: "Forbid TopUp Types", action: "createForbidTopUpLog"},
-                    {group: "PLAYER", text: "createPlayerFeedback", action: "createPlayerFeedback"},
+                    {group: "PLAYER", text: "createUpdatePlayerCreditProposal", action: "createUpdatePlayerCreditProposal"},
+                    //{group: "PLAYER", text: "Forbid TopUp Types", action: "createForbidTopUpLog"},
+                    {group: "PLAYER", text: "addPlayerFeedback", action: "createPlayerFeedback"},
 
                     // {group: "PLAYER", text: "updatePlayerStatus", action: "updatePlayerStatus"},
                     // {
@@ -7362,7 +7358,11 @@ define(['js/app'], function (myApp) {
                     //     action: "transferPlayerCreditFromProvider"
                     // },
                     {group: "PLAYER", text: "transferPlayerCreditToProvider", action: "transferPlayerCreditToProvider"},
-                    {group: "PLAYER", text: "PlayerPermission", action: "updatePlayerPermission"},
+                    {group: "PLAYER", text: "updatePlayerPermission", action: "updatePlayerPermission"},
+                    {group: "PLAYER", text: "modifyPlayerCredibilityRemark", action: "updatePlayerCredibilityRemark"},
+
+                    {group: "Feedback", text: "ADD_FEEDBACK_RESULT", action: ["createPlayerFeedbackResult", "createPartnerFeedbackResult"]},
+                    {group: "Feedback", text: "ADD_FEEDBACK_TOPIC", action: ["createPlayerFeedbackTopic", "createPartnerFeedbackTopic"]},
 
                     {group: "PARTNER", text: "createPartner", action: "createPartner"},
                     {group: "PARTNER", text: "createPartnerWithParent", action: "createPartnerWithParent"},
@@ -7373,11 +7373,7 @@ define(['js/app'], function (myApp) {
                     {group: "PARTNER", text: "Update partner QQ", action: "createUpdatePartnerQQProposal"},
                     {group: "PARTNER", text: "Update partner WeChat", action: "createUpdatePartnerWeChatProposal"},
                     {group: "PARTNER", text: "Update partner commission type", action: "createUpdatePartnerCommissionTypeProposal"},
-                    {
-                        group: "PARTNER",
-                        text: "Update partner bank information",
-                        action: "createUpdatePartnerBankInfoProposal"
-                    },
+                    {group: "PARTNER", text: "Update partner bank information", action: "createUpdatePartnerBankInfoProposal"},
                     {group: "PARTNER", text: "RESET_PASSWORD", action: "resetPartnerPassword"},
 
                     {group: "Platform Game", text: "PROVIDER_NICKNAME", action: "renameProviderInPlatformById"},
