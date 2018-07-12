@@ -70,6 +70,11 @@ var dbLogger = {
                 } else if ((adminActionRecordData.action == 'resetPlayerPassword' || adminActionRecordData.action == 'createUpdateTopUpGroupLog')
                     && adminActionRecordData && adminActionRecordData.data[0]) {
                     return dbconfig.collection_players.findOne({_id: adminActionRecordData.data[0]}, {name: 1});
+                } else if (adminActionRecordData.action == 'updatePlayerPermission' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0]._id) {
+                    return dbconfig.collection_players.findOne({_id: adminActionRecordData.data[0]._id}, {name: 1});
+                } else if (adminActionRecordData.action == 'transferPlayerCreditToProvider' && adminActionRecordData && adminActionRecordData.data[0]) {
+                    return adminActionRecordData.data[5] ? dbconfig.collection_players.findOne({name: playerId}, {name: 1})
+                        : dbconfig.collection_players.findOne({playerId: playerId}, {name: 1});
                 }
             }
         ).then(
@@ -168,6 +173,23 @@ var dbLogger = {
                 }else if(logAction == "detachGamesFromPlatform" && adminActionRecordData.data && adminActionRecordData.data.length > 1
                         && adminActionRecordData.data[1].length > 0 &&  adminActionRecordData.data[1][0].name){
                     adminActionRecordData.error = "移除" + adminActionRecordData.data[1][0].name;
+                }else if (logAction == 'requestClearProposalLimit' && adminActionRecordData.data[0] && adminActionRecordData.data[0].username){
+                    adminActionRecordData.error = "帐号：" + adminActionRecordData.data[0].username;
+                }else if (logAction == 'updatePlayerPermission' && playerData && playerData.name && Object.keys(adminActionRecordData.data[2]).length){
+                    let permissionChange = '';
+                    Object.keys(adminActionRecordData.data[2]).forEach(el => {
+                        let prevPermission = !adminActionRecordData.data[2][el];
+                        if(el == 'disableWechatPay' || el == 'forbidPlayerFromLogin' || el == 'forbidPlayerFromEnteringGame' || el == 'banReward') {
+                            permissionChange += localization.localization.translate(el) + "（" + localization.localization.translate(adminActionRecordData.data[2][el])
+                                + " -> " + localization.localization.translate(prevPermission) + "）";
+                        } else {
+                            permissionChange += localization.localization.translate(el) + "（" + localization.localization.translate(prevPermission)
+                                + " -> " + localization.localization.translate(adminActionRecordData.data[2][el]) + "）";
+                        }
+                    })
+                    adminActionRecordData.error = "帐号：" + playerData.name + "、" + permissionChange;
+                }else if (logAction == 'transferPlayerCreditToProvider' && playerData && playerData.name && resultData && resultData.transferId){
+                    adminActionRecordData.error = "帐号：" + playerData.name + "、" + localization.localization.translate("TransferIn") + "ID：" + resultData.transferId;
                 }
 
 
