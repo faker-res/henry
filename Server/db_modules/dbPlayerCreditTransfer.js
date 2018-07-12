@@ -1330,6 +1330,8 @@ let dbPlayerCreditTransfer = {
                             providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync));
                     }
                 });
+                prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(null, playerObjId, platform,
+                    providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync));
                 if(hasEbetWalletSettings) {
                     return Promise.all(prom).then(data => {
                         let providerCredit = 0, playerCredit = 0, rewardCredit = 0, transferPlayerCredit = 0, transferRewardCredit = 0;
@@ -1422,8 +1424,9 @@ let dbPlayerCreditTransfer = {
 
                 if (rewardTaskGroup) {
                     // There is on-going reward task group
+                    validTransferAmount = 0;
                     lockedTransferAmount += parseInt(rewardTaskGroup.rewardAmt);
-                    rewardTaskGroup._inputFreeAmt += validTransferAmount;
+                    // rewardTaskGroup._inputFreeAmt += validTransferAmount;
                     rewardTaskGroupObjId = rewardTaskGroup._id;
                 }
 
