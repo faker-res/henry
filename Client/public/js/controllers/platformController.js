@@ -27571,12 +27571,15 @@ define(['js/app'], function (myApp) {
                     let sendData = {
                         platformObjId: vm.selectedPlatform.id,
                         gameProviderGroup: vm.gameProviderGroup.map(e => {
-                            return {
+                            let gameProviderGroupData = {
                                 providerGroupId: e.providerGroupId,
                                 name: e.name,
-                                providers: e.providers,
-                                ebetWallet: e.ebetWallet ? e.ebetWallet : 0
+                                providers: e.providers
                             };
+                            if(e.hasOwnProperty('ebetWallet')) {
+                                gameProviderGroupData.ebetWallet = e.ebetWallet;
+                            }
+                            return gameProviderGroupData;
                         })
                     };
 
