@@ -1315,6 +1315,7 @@ let dbPlayerCreditTransfer = {
 
     playerCreditTransferToEbetWallets: function (playerObjId, platform, amount, userName, platformId, adminName, cpName, forSync) {
         let prom = [];
+        let hasEbetWalletSettings = false;
         return dbConfig.collection_gameProviderGroup.find({
             platform: platform
         }).populate(
@@ -1323,13 +1324,22 @@ let dbPlayerCreditTransfer = {
             if(groups && groups.length > 0) {
                 groups.forEach(group => {
                     if(group && group.providers && group.providers.length > 0) {
-                        group.providers.forEach(provider => {
-                            prom.push(this.playerCreditTransferToEbetWallet(playerObjId, platform, provider._id, amount,
-                                provider.providerId, userName, platformId, adminName, cpName, forSync));
-                        });
-                        return Promise.all(prom).catch(err => {errorUtils.reportError(err);});
+                        if(group.hasOwnProperty('eBetWallet')) {
+                            hasEbetWalletSettings = true;
+                            group.providers.forEach(provider => {
+                                prom.push(this.playerCreditTransferToEbetWallet(playerObjId, platform, provider._id, amount,
+                                    provider.providerId, userName, platformId, adminName, cpName, forSync));
+                            });
+                        }
                     }
                 });
+                if(hasEbetWalletSettings) {
+                    return Promise.all(prom).catch(err => {
+                        errorUtils.reportError(err);
+                    });
+                } else {
+                    return Promise.reject({message: "No wallet is set for EBET provider."});
+                }
             }
         });
     },
