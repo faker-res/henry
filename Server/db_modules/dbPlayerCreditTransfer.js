@@ -1377,7 +1377,7 @@ let dbPlayerCreditTransfer = {
         let transferAmount = 0;
         let transferWallet = {};
 
-        let player, gameProviderGroup, rewardTaskGroupObjId;
+        let player, rewardTaskGroupObjId;
 
         let playerProm = dbConfig.collection_players.findOne({_id: playerObjId}).populate(
             {path: "lastPlayedProvider", model: dbConfig.collection_gameProvider}
