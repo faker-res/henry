@@ -1323,15 +1323,12 @@ let dbPlayerCreditTransfer = {
         ).lean().then(groups => {
             if(groups && groups.length > 0) {
                 groups.forEach(group => {
-                    // if(group && group.providers && group.providers.length > 0) {
-                        if(group.hasOwnProperty('ebetWallet')) {
-                            hasEbetWalletSettings = true;
-                            // group.providers.forEach(provider => {
-                                prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(group, playerObjId, platform, providerId, amount,
-                                    providerShortId, userName, platformId, adminName, cpName, forSync));
-                            // });
-                        }
-                    // }
+                    console.log('playerCreditTransferToEbetWallets group', group);
+                    if(group.hasOwnProperty('ebetWallet')) {
+                        hasEbetWalletSettings = true;
+                        prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(group, playerObjId, platform,
+                            providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync));
+                    }
                 });
                 if(hasEbetWalletSettings) {
                     return Promise.all(prom).then(data => {
@@ -1350,14 +1347,14 @@ let dbPlayerCreditTransfer = {
                             playerCredit: playerCredit.toFixed(2),
                             rewardCredit: rewardCredit.toFixed(2),
                             transferCredit: {
-                                playerCredit: parseFloat(gameAmount - rewardAmount).toFixed(2),
-                                rewardCredit: parseFloat(rewardAmount).toFixed(2)
+                                playerCredit: transferPlayerCredit.toFixed(2),
+                                rewardCredit: transferRewardCredit.toFixed(2)
                             }
                         }
-                            // }
-                    }).catch(err => {
-                        errorUtils.reportError(err);
-                    });
+                    })
+                    // .catch(err => {
+                    //     errorUtils.reportError(err);
+                    // });
                 } else {
                     return Promise.reject({message: "No wallet is set for EBET provider."});
                 }
@@ -1456,6 +1453,7 @@ let dbPlayerCreditTransfer = {
             }
         ).then(
             res => {
+                console.log("transfer in second then",gameProviderGroup.name, res);
                 if (res && res[0] && res[1]) {
                     let updatedPlayerData = res[0];
                     let updatedGroupData = res[1];
@@ -1496,6 +1494,7 @@ let dbPlayerCreditTransfer = {
             }
         ).then(
             res => {
+                console.log("transfer in third then",gameProviderGroup.name, res);
                 if (res) {
                     // Operation on player credit is success on FPMS side
                     bTransfered = true;
