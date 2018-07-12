@@ -21822,11 +21822,7 @@ define(['js/app'], function (myApp) {
                             });
                             vm.getPromoCodeAnalysis2(true)
                         });
-                    case 'promoCodeTemplate':
 
-
-
-                        break;
                 }
             };
 
@@ -26982,7 +26978,6 @@ define(['js/app'], function (myApp) {
                         updatePhoneFilter(vm.phoneFilterConfig);
                         break;
                     case 'promoCodeTemplate':
-
                         updatePromoCodeTemplate();
                         break;
 
