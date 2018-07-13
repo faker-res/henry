@@ -1262,6 +1262,8 @@ define(['js/app'], function (myApp) {
                     // setTimeout(() => {
                     //     $('#partnerDataTable').resize();
                     // }, 300);
+                    case "externalUserInfo":
+                        vm.initExternalUserInfo();
                 }
 
                 commonService.updatePageTile($translate, "platform", tabName);
@@ -1428,7 +1430,7 @@ define(['js/app'], function (myApp) {
 
             //Delete selected platform
             vm.deletePlatform = function () {
-                socketService.$socket($scope.AppSocket, 'deletePlatformById', {_ids: [vm.selectedPlatform.id]}, function (data) {
+                socketService.$socket($scope.AppSocket, 'deletePlatformById', {_ids: [vm.selectedPlatform.id], name: vm.selectedPlatform.text}, function (data) {
                     vm.curPlatformText = "";
                     vm.selectedPlatform = null;
                     loadPlatformData();
@@ -2395,6 +2397,92 @@ define(['js/app'], function (myApp) {
                     })
                 });
             }
+
+            vm.initExternalUserInfo = function () {
+                vm.externalUserRecordQuery = {};
+                vm.externalUserRecordQuery.index = 0;
+                vm.externalUserRecordQuery.limit = 10;
+                
+                vm.initQueryTimeFilter('userInfoRecordQueryDiv', function () {
+                });
+                utilService.actionAfterLoaded('#userInfoTable', function () {
+                    vm.externalUserRecordQuery.pageObj = utilService.createPageForPagingTable("#userInfoTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "externalUserRecordQuery", vm.submitUserInfoRecordQuery)
+                    });
+                    vm.submitUserInfoRecordQuery(true);
+                })
+            }
+
+            vm.submitUserInfoRecordQuery = function (newSearch) {
+                var sendQuery = {
+                    startTime: vm.queryPara['userInfoRecordQueryDiv'].startTime.data('datetimepicker').getLocalDate() || new Date(0),
+                    endTime: vm.queryPara['userInfoRecordQueryDiv'].endTime.data('datetimepicker').getLocalDate() || new Date(0),
+                    index: newSearch ? 0 : vm.externalUserRecordQuery.index,
+                    limit: newSearch ? 10 : vm.externalUserRecordQuery.limit,
+                    platformId: vm.selectedPlatform.data.platformId,
+                    sortCol: vm.externalUserRecordQuery.sortCol
+                };
+
+                $('#loadUserInfoIcon').show();
+
+                socketService.$socket($scope.AppSocket, 'getExternalUserInfo', sendQuery, function (data) {
+
+                    $scope.$evalAsync(() => {
+                        console.log("getExternalUserInfo result", data);
+                        vm.externalUserRecordQuery.loading = false;
+                        let size = data.data.totalCount || 0;
+                        let result = data.data.userInfoData || [];
+
+                        vm.externalUserInfoData = result;
+
+                        vm.drawExternalUserInfoTable(result.map(item => {
+                            if (item) {
+                                item.createTime = vm.dateReformat(item.createTime);
+                                if (item.phoneNumber) {
+                                    let numLength = item.phoneNumber.length;
+                                    item.phoneNumber = item.phoneNumber.substring(0, 3) + "******" + item.phoneNumber.slice(-numLength + 9);
+                                }
+
+                                return item;
+                            }
+                        }), size, newSearch);
+
+                        vm.externalUserRecordQuery.totalCount = size;
+                        vm.externalUserRecordQuery.pageObj.init({maxCount: size}, newSearch);
+                        $('#loadUserInfoIcon').hide();
+
+                    });
+                })
+            }
+
+            vm.drawExternalUserInfoTable = function (data, size, newSearch) {
+                var option = $.extend({}, vm.generalDataTableOptions, {
+                    data: data,
+                    order: vm.externalUserRecordQuery.aaSorting || [[1, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {'title': $translate("User's Name"), data: 'name'},
+
+                        {'title': $translate('Clicking Time'), data: 'createTime', bSortable: true},
+                        {'title': $translate('phoneNumber'), data: 'phoneNumber'},
+                    ],
+                    bSortClasses: false,
+                    paging: false,
+                    
+                });
+                vm.externalUserRecordQuery.tableObj = $('#userInfoTable').DataTable(option);
+                $('#userInfoTable').off('order.dt');
+                $('#userInfoTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'externalUserRecordQuery', vm.submitUserInfoRecordQuery);
+                });
+                setTimeout(function () {
+                    $('#userInfoTable').resize();
+                }, 100);
+            }
+
             vm.initVertificationSMS = function () {
                 vm.smsRecordQuery = {};
                 vm.smsRecordQuery.purpose = "";
@@ -3368,15 +3456,18 @@ define(['js/app'], function (myApp) {
                 } else if (type === "RENAME") {
                     sendString = 'renameProviderInPlatformById';
                     sendData.providerNickName = vm.selectedProviderNickName;
+                    sendData.providerOriNickName = vm.selectedProviderOriNickName;
                     sendData.providerPrefix = vm.selectedProviderPrefix;
                 } else if (type == "DETACH") {
                     sendString = 'removeProviderFromPlatformById';
                 } else if (type == "ENABLE") {
                     sendString = 'updateProviderFromPlatformById';
                     sendData.isEnable = true;
+                    sendData.providerName = data.name || "";
                 } else if (type == "DISABLE") {
                     sendString = 'updateProviderFromPlatformById';
                     sendData.isEnable = false;
+                    sendData.providerName = data.name || "";
                 }
                 socketService.$socket($scope.AppSocket, sendString, sendData, function (data) {
                     console.log(data);
@@ -16413,7 +16504,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true,
                         pickTime: true,
                     });
-                    vm.playerFeedbackQuery.registerEndTime = $('#registerEndTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
+                    vm.playerFeedbackQuery.registerEndTime = $('#registerEndTimePicker').data('datetimepicker').setDate(new Date(utilService.setLocalDayStartTime(new Date()).getTime() - 30*60*1000 ));
 
                     vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {pageSize: vm.playerFeedbackQuery.limit}, $translate, function (curP, pageSize) {
                         var isChange = false;
@@ -21486,6 +21577,9 @@ define(['js/app'], function (myApp) {
                     case 'phoneFilterConfig':
                         vm.getPhoneFilterConfig();
                         break;
+                    case 'financialSettlementConfig':
+                        vm.getFinancialSettlementConfig();
+                        break;
                 }
             };
 
@@ -21675,6 +21769,7 @@ define(['js/app'], function (myApp) {
                 vm.promoCode2HasMoreThanOne = false;
                 vm.promoCode3HasMoreThanOne = false;
                 vm.smsTitleDuplicationBoolean = false;
+                vm.promoCodeTemplateEdit = false;
 
                 vm.newPromoCode1 = [];
                 vm.newPromoCode2 = [];
@@ -21696,8 +21791,13 @@ define(['js/app'], function (myApp) {
                 vm.durationGroupConfig = [];
                 vm.modalYesNo = {};
 
+                vm.promoCodeTemplateData = [];
+                vm.deletedPromoCodeTemplateData = [];
+                vm.newPromoCode = {};
+
                 loadPromoCodeTypes();
                 loadPromoCodeUserGroup();
+                loadPromoCodeTemplate();
 
                 switch (choice) {
                     case 'create':
@@ -21816,6 +21916,7 @@ define(['js/app'], function (myApp) {
                             });
                             vm.getPromoCodeAnalysis2(true)
                         });
+
                 }
             };
 
@@ -22868,6 +22969,25 @@ define(['js/app'], function (myApp) {
 
                 //vm.getPromoCodeUserGroup();
                 vm.getAllPromoCodeUserGroup();
+            }
+
+            function loadPromoCodeTemplate() {
+                socketService.$socket($scope.AppSocket, 'getPromoCodeTemplate', {
+                    platformObjId: vm.selectedPlatform.id
+                }, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.promoCodeTemplateSetting = (data && data.data) ? data.data : [];
+
+                        if (vm.promoCodeTemplateSetting && vm.promoCodeTemplateSetting.length > 0){
+
+                            vm.promoCodeTemplateSetting.forEach(p => {
+                                if (p){
+                                    vm.promoCodeTemplateData.push($.extend(true, {}, p));
+                                }
+                            })
+                        }
+                    })
+                });
             }
 
             function loadDelayDurationGroup() {
@@ -26455,6 +26575,9 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic = vm.platformBasic || {};
                 vm.platformBasic.playerNameMaxLength = vm.selectedPlatform.data.playerNameMaxLength;
                 vm.platformBasic.playerNameMinLength = vm.selectedPlatform.data.playerNameMinLength;
+                vm.platformBasic.playerPasswordMaxLength = vm.selectedPlatform.data.playerPasswordMaxLength;
+                vm.platformBasic.playerPasswordMinLength = vm.selectedPlatform.data.playerPasswordMinLength;
+                vm.platformBasic.prefix = vm.selectedPlatform.data.prefix;
                 vm.platformBasic.samePhoneNumberRegisterCount = vm.selectedPlatform.data.samePhoneNumberRegisterCount;
                 vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
                 vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
@@ -26508,10 +26631,23 @@ define(['js/app'], function (myApp) {
 
             };
 
+            vm.getFinancialSettlementConfig = function () {
+                vm.financialSettlementConfig = vm.financialSettlementConfig || {};
+                vm.financialSettlementConfig.financialSettlementToggle = vm.selectedPlatform.data.financialSettlement.financialSettlementToggle;
+                vm.financialSettlementConfig.minFinancialPointNotification = vm.selectedPlatform.data.financialSettlement.minFinancialPointNotification;
+                vm.financialSettlementConfig.financialPointNotification = vm.selectedPlatform.data.financialSettlement.financialPointNotification? "1": "0";
+                vm.financialSettlementConfig.minFinancialPointDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.minFinancialPointDisableWithdrawal;
+                vm.financialSettlementConfig.financialPointDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.financialPointDisableWithdrawal? "1": "0";
+            }
+
             vm.getPartnerBasic = function () {
                 vm.partnerBasic = vm.partnerBasic || {};
                 vm.partnerBasic.partnerNameMaxLength = vm.selectedPlatform.data.partnerNameMaxLength;
                 vm.partnerBasic.partnerNameMinLength = vm.selectedPlatform.data.partnerNameMinLength;
+                vm.partnerBasic.partnerPasswordMaxLength = vm.selectedPlatform.data.partnerPasswordMaxLength;
+                vm.partnerBasic.partnerPasswordMinLength = vm.selectedPlatform.data.partnerPasswordMinLength;
+                vm.partnerBasic.partnerPrefix = vm.selectedPlatform.data.partnerPrefix;
+                vm.partnerBasic.partnerCreatePlayerPrefix = vm.selectedPlatform.data.partnerCreatePlayerPrefix;
                 vm.partnerBasic.partnerAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.partnerAllowSamePhoneNumberToRegister;
                 vm.partnerBasic.partnerSamePhoneNumberRegisterCount = vm.selectedPlatform.data.partnerSamePhoneNumberRegisterCount;
                 vm.partnerBasic.partnerAllowSameRealNameToRegister = vm.selectedPlatform.data.partnerAllowSameRealNameToRegister;
@@ -26951,8 +27087,151 @@ define(['js/app'], function (myApp) {
                     case 'phoneFilterConfig':
                         updatePhoneFilter(vm.phoneFilterConfig);
                         break;
+                    case 'promoCodeTemplate':
+                        updatePromoCodeTemplate();
+                        break;
+                    case 'financialSettlementConfig':
+                        updateFinancialSettlementConfig(vm.financialSettlementConfig);
+                        break;
+
                 }
             };
+
+            vm.checkPromoCodeField = function (insertData, type){
+                if (!insertData && !type) {
+                    return false;
+                }
+
+                if (!insertData.amount) {
+                    if (type == 3) {
+                        return socketService.showErrorMessage($translate("Promo Reward % is required"));
+                    } else if (type == 2) {
+                        return socketService.showErrorMessage($translate("Promo Reward Amount Y is required"));
+                    }
+                    else {
+                        return socketService.showErrorMessage($translate("Promo Reward Amount X is required"));
+                    }
+                }
+                else if (type != 2 && isNaN(insertData.minTopUpAmount)) {
+                    return socketService.showErrorMessage($translate("Promo Min Top Up Amount is required"));
+                }
+                else if (type == 3 && isNaN(insertData.maxRewardAmount)) {
+                    return socketService.showErrorMessage($translate("Promo Max Top Up Amount is required"));
+                }
+                else if (isNaN(insertData.requiredConsumption)) {
+                    if (type == 3) {
+                        return socketService.showErrorMessage($translate("Type C Promo Consumption is required"));
+                    } else {
+                        return socketService.showErrorMessage($translate("Promo Consumption is required"));
+                    }
+                }
+
+                return true;
+            };
+
+            vm.updatePromoCodeTemplateInEdit = function (func, collection, data, type) {
+                if (func == 'add') {
+
+                    if (collection && data && type) {
+                        let returnedMsg = vm.checkPromoCodeField(data, type);
+                        vm.promoCodeFieldCheckFlag = false;
+                        if (returnedMsg) {
+
+                            let newObj = {};
+                            Object.keys(data).forEach(e => {
+                                newObj[e] = data[e];
+                            });
+
+                            collection.push(newObj);
+                        }
+                        else {
+                            vm.promoCodeFieldCheckFlag = true;
+                        }
+                    }
+                }
+                else if (func == 'remove') {
+
+                    if (data && collection) {
+                        let index = null;
+                        if (data._id){
+                            index = collection.findIndex(p => p._id == data._id);
+                        }
+                        else{
+                            index = collection.findIndex(p => p.typeName == data.typeName);
+                        }
+
+                        if (typeof index == 'number'){
+                            if (collection[index]._id){
+                                collection[index].status = 'removed';
+                                vm.deletedPromoCodeTemplateData.push(collection[index]);
+                            }
+                            collection.splice(index, 1);
+                        }
+
+                    }
+
+                }
+            };
+
+            vm.initNewPromoCodeTemplate = function(type) {
+
+                if (!type){
+                    vm.newPromoCodeTemplate1 = {
+                        disableWithdraw: false,
+                        isSharedWithXIMA: true
+                    };
+                    vm.newPromoCodeTemplate2 = {
+                        disableWithdraw: false,
+                        isSharedWithXIMA: true
+                    };
+                    vm.newPromoCodeTemplate3 = {
+                        disableWithdraw: false,
+                        isSharedWithXIMA: true
+                    };
+                }
+                else {
+                    if (!vm.promoCodeFieldCheckFlag) {
+                        if (type == 1) {
+                            vm.newPromoCodeTemplate1 = {
+                                disableWithdraw: false,
+                                isSharedWithXIMA: true
+                            };
+                        }
+                        else if (type == 2) {
+                            vm.newPromoCodeTemplate2 = {
+                                disableWithdraw: false,
+                                isSharedWithXIMA: true
+                            };
+                        }
+                        else if (type == 3) {
+                            vm.newPromoCodeTemplate3 = {
+                                disableWithdraw: false,
+                                isSharedWithXIMA: true
+                            };
+                        }
+                    }
+                }
+            };
+
+            function updatePromoCodeTemplate (){
+
+                if (vm.deletedPromoCodeTemplateData && vm.deletedPromoCodeTemplateData.length > 0){
+                    vm.promoCodeTemplateData = vm.promoCodeTemplateData.concat(vm.deletedPromoCodeTemplateData);
+                }
+                if (vm.promoCodeTemplateData){
+                    vm.promoCodeTemplateSetting = vm.promoCodeTemplateData;
+                }
+
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    promoCodeTemplate: vm.promoCodeTemplateSetting,
+                };
+
+                socketService.$socket($scope.AppSocket, 'updatePromoCodeTemplate', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
+                    vm.deletedPromoCodeTemplateData = [];
+                });
+            }
 
             function updatePlayerLevels(arr, index, deltaValue, callback) {
                 if (index >= arr.length) {
@@ -27106,6 +27385,9 @@ define(['js/app'], function (myApp) {
                         useLockedCredit: srcData.useLockedCredit,
                         playerNameMaxLength: srcData.playerNameMaxLength,
                         playerNameMinLength: srcData.playerNameMinLength,
+                        playerPasswordMaxLength: srcData.playerPasswordMaxLength,
+                        playerPasswordMinLength: srcData.playerPasswordMinLength,
+                        prefix: srcData.prefix,
                         bonusSetting: srcData.bonusSetting,
                         requireSMSVerification: srcData.requireSMSVerification,
                         requireSMSVerificationForDemoPlayer: srcData.requireSMSVerificationForDemoPlayer,
@@ -27168,6 +27450,31 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            function updateFinancialSettlementConfig(srcData) {
+                let financialPointNotification = false;
+                let financialPointDisableWithdrawal = false;
+                if (srcData.financialPointNotification == "1") {
+                    financialPointNotification = true;
+                }
+                if (srcData.financialPointDisableWithdrawal == "1") {
+                    financialPointDisableWithdrawal = true;
+                }
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {
+                        "financialSettlement.financialSettlementToggle": srcData.financialSettlementToggle,
+                        "financialSettlement.minFinancialPointNotification": srcData.minFinancialPointNotification,
+                        "financialSettlement.financialPointNotification": financialPointNotification,
+                        "financialSettlement.minFinancialPointDisableWithdrawal": srcData.minFinancialPointDisableWithdrawal,
+                        "financialSettlement.financialPointDisableWithdrawal": financialPointDisableWithdrawal,
+                    }
+                }
+
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
+                });
+            }
+
             vm.partnerCommissionName = function getPartnerCommisionName() {
                 if (vm.partnerBasic.partnerDefaultCommissionGroup) {
                     return Object.keys(vm.constPartnerCommisionType)[vm.partnerBasic.partnerDefaultCommissionGroup];
@@ -27182,6 +27489,10 @@ define(['js/app'], function (myApp) {
                     updateData: {
                         partnerNameMaxLength: srcData.partnerNameMaxLength,
                         partnerNameMinLength: srcData.partnerNameMinLength,
+                        partnerPasswordMaxLength: srcData.partnerPasswordMaxLength,
+                        partnerPasswordMinLength: srcData.partnerPasswordMinLength,
+                        partnerPrefix: srcData.partnerPrefix,
+                        partnerCreatePlayerPrefix: srcData.partnerCreatePlayerPrefix,
                         partnerAllowSamePhoneNumberToRegister: srcData.partnerAllowSamePhoneNumberToRegister,
                         partnerSamePhoneNumberRegisterCount: srcData.partnerAllowSamePhoneNumberToRegister,
                         partnerAllowSameRealNameToRegister: srcData.partnerAllowSameRealNameToRegister,
@@ -27405,12 +27716,15 @@ define(['js/app'], function (myApp) {
                     let sendData = {
                         platformObjId: vm.selectedPlatform.id,
                         gameProviderGroup: vm.gameProviderGroup.map(e => {
-                            return {
+                            let gameProviderGroupData = {
                                 providerGroupId: e.providerGroupId,
                                 name: e.name,
-                                providers: e.providers,
-                                ebetWallet: e.ebetWallet ? e.ebetWallet : 0
+                                providers: e.providers
                             };
+                            if(e.hasOwnProperty('ebetWallet')) {
+                                gameProviderGroupData.ebetWallet = e.ebetWallet;
+                            }
+                            return gameProviderGroupData;
                         })
                     };
 

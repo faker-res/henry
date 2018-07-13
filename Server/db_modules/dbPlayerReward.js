@@ -2400,6 +2400,51 @@ let dbPlayerReward = {
         return Promise.all(upsertProm);
     },
 
+    getPromoCodeTemplate: (platformObjId) => dbConfig.collection_promoCodeTemplate.find({
+        platformObjId: ObjectId(platformObjId)
+    }).lean(),
+
+
+    updatePromoCodeTemplate: (platformObjId, promoCodeTemplate) => {
+        let prom = [];
+
+        promoCodeTemplate.forEach(entry => {
+
+            if (entry) {
+
+                if (entry.hasOwnProperty("__v")) {
+                    delete entry.__v;
+                }
+
+                if (entry._id && entry.status && entry.status == 'removed') {
+
+                    prom.push(dbConfig.collection_promoCodeTemplate.remove({
+                        _id: ObjectId(entry._id)
+                    }))
+                }
+                else {
+
+                    if (entry._id) {
+                        delete entry._id;
+                    }
+
+                    prom.push(dbConfig.collection_promoCodeTemplate.findOneAndUpdate(
+                        {
+                            platformObjId: platformObjId,
+                            typeName: entry.typeName,
+                            type: entry.type,
+                        },
+                        entry,
+                        {upsert: true, setDefaultsOnInsert: true}
+                    ));
+                }
+            }
+
+        });
+
+        return Promise.all(prom);
+    },
+
     updatePromoCodeIsDeletedFlag: (platformObjId, promoCodeTypeObjId, isDeleted) => {
         return dbConfig.collection_promoCode.update({
             platformObjId: platformObjId,
@@ -2430,7 +2475,7 @@ let dbPlayerReward = {
                 if (playerData) {
                     player = playerData;
 
-                    return dbPlayerUtil.setPlayerState(player._id, "GeneratePromoCode");
+                    return dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", true);
                 }
                 else {
                     return Promise.reject({name: "DataError", message: "Invalid player data"});
@@ -2470,9 +2515,15 @@ let dbPlayerReward = {
                         SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
                     }
                     messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName, adminObjId);
+                    dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
                     return newPromoCode.code;
                 }
 
+            }
+        ).catch(
+            err => {
+                dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
+                throw err;
             }
         )
     },

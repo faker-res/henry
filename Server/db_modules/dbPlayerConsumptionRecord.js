@@ -919,7 +919,7 @@ var dbPlayerConsumptionRecord = {
                                 newRecord.providerId = providerId;
 
                                 // update RTG only if consumption record is updated
-                                updateRTG(oldData, recordData);
+                                findRTGToUpdate(oldData, recordData);
                             }
                             return newRecord;
                         }
@@ -2247,108 +2247,6 @@ var dbPlayerConsumptionRecord = {
 
 };
 
-function updateRTG (oldData, newData) {
-    let incBonusAmt = 0, incValidAmt = 0;
-
-    if (oldData && newData && (oldData.bonusAmount != newData.bonusAmount || oldData.validAmount != newData.validAmount)) {
-        incBonusAmt = newData.bonusAmount - oldData.bonusAmount;
-        incValidAmt = newData.validAmount - oldData.validAmount;
-
-        return dbRewardTaskGroup.getPlayerRewardTaskGroup(oldData.platformId, oldData.providerId, oldData.playerId, oldData.createTime).then(
-            RTG => {
-                // todo :: debug logs, remove later
-                console.log("debug #204CF5 find RTG", oldData.platformId, oldData.providerId, oldData.playerId, oldData.createTime);
-                if (RTG) {
-                    console.log("debug #204CF6 found RTG", oldData.playerId, RTG._id, incBonusAmt, incValidAmt);
-                    // Find available RTG to update
-                    return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
-                        _id: RTG._id
-                    }, {
-                        $inc: {
-                            currentAmt: incBonusAmt,
-                            curConsumption: incValidAmt
-                        }
-                    }, {
-                        new: true
-                    });
-                }
-            }
-        ).then(
-            updatedRTG => {
-                // Update consumption summary
-                let summAdjustXIMAAmt = 0, summAdjustNonXIMAAmt = 0;
-
-                if (updatedRTG && updatedRTG.forbidXIMAAmt > 0) {
-                    let offsetDiff = updatedRTG.curConsumption - updatedRTG.forbidXIMAAmt;
-                    let curConsumptionBeforeUpdate = updatedRTG.curConsumption - incValidAmt;
-
-                    if (offsetDiff <= 0 && curConsumptionBeforeUpdate <= updatedRTG.forbidXIMAAmt) {
-                        // Scenario 1: curConsumption is less than forbidXIMAAmt before and after update
-                        summAdjustNonXIMAAmt = incValidAmt;
-                    } else if (offsetDiff <= 0 && curConsumptionBeforeUpdate > updatedRTG.forbidXIMAAmt) {
-                        // Scenario 2: curConsumption is more than forbidXIMAAmt before update, but is less than after update
-                        summAdjustXIMAAmt = updatedRTG.forbidXIMAAmt - curConsumptionBeforeUpdate;
-                        summAdjustNonXIMAAmt = incValidAmt - summAdjustNonXIMAAmt;
-                    } else if (offsetDiff > 0 && curConsumptionBeforeUpdate < updatedRTG.forbidXIMAAmt) {
-                        // Scenario 3: curConsumption is less than forbidXIMAAmt before update, but is more than after update
-                        summAdjustNonXIMAAmt = updatedRTG.forbidXIMAAmt - curConsumptionBeforeUpdate;
-                        summAdjustXIMAAmt = incValidAmt - summAdjustNonXIMAAmt;
-                    } else {
-                        // Scenario 4: curConsumption is more than forbidXIMAAmt before and after update
-                        summAdjustXIMAAmt = incValidAmt;
-                    }
-                } else {
-                    // All credit reflect on summary valid credit
-                    summAdjustXIMAAmt = incValidAmt;
-                }
-
-                // Update consumption summary upon updating consumption record
-                updateConsumptionSumamry(oldData, summAdjustXIMAAmt, summAdjustNonXIMAAmt).catch(errorUtils.reportError);
-
-                // Unlock reward task group if necessary
-                if (updatedRTG) {
-                    dbconfig.collection_platform.findOne({_id: oldData.platformId}).then(
-                        platform => {
-                            // debugging platform is null
-                            if (!platform) {
-                                console.log('PLATFORM IS NULL! FIX THIS!!');
-                                console.log('oldData**', oldData);
-                                console.log('oldData.platformId**', oldData.platformId);
-                                platform = {};
-                            }
-
-                            // Check whether RTG status changed
-                            let statusUpdObj = {
-                                unlockTime: new Date()
-                            };
-
-                            // Check whether player has lost all credit
-                            platform.autoApproveLostThreshold = platform.autoApproveLostThreshold || 0;
-                            if (updatedRTG.currentAmt <= platform.autoApproveLostThreshold) {
-                                statusUpdObj.status = constRewardTaskStatus.NO_CREDIT;
-                            }
-
-                            if (updatedRTG.curConsumption >= updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
-                                statusUpdObj.status = constRewardTaskStatus.ACHIEVED;
-                            }
-
-                            if (statusUpdObj.status) {
-                                return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
-                                    {
-                                        _id: updatedRTG._id
-                                    },
-                                    statusUpdObj,
-                                    {new: true}
-                                ).then(res => dbRewardTask.completeRewardTaskGroup(res, res.status))
-                            }
-                        }
-                    ).catch(errorUtils.reportError);
-                }
-            }
-        )
-    }
-}
-
 function updateConsumptionSumamry(record, readyXIMAAmt, nonXIMAAmt) {
     // Update consumption summary record (XIMA purpose)
     let recordDateNoon = new Date(moment(record.createTime).tz('Asia/Singapore').startOf('day').toDate().getTime() + 12 * 60 * 60 * 1000);
@@ -2372,6 +2270,148 @@ function updateConsumptionSumamry(record, readyXIMAAmt, nonXIMAAmt) {
     };
 
     return dbPlayerConsumptionRecord.upsert(query, updateData);
+}
+
+function updateRTG (RTG, incBonusAmt, validAmtToAdd, oldData) {
+    return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
+        _id: RTG._id
+    }, {
+        $inc: {
+            currentAmt: incBonusAmt,
+            curConsumption: validAmtToAdd
+        }
+    }, {
+        new: true
+    }).then(
+        updatedRTG => {
+            // Update consumption summary
+            let summAdjustXIMAAmt = 0, summAdjustNonXIMAAmt = 0;
+
+            if (updatedRTG && updatedRTG.forbidXIMAAmt > 0) {
+                let offsetDiff = updatedRTG.curConsumption - updatedRTG.forbidXIMAAmt;
+                let curConsumptionBeforeUpdate = updatedRTG.curConsumption - validAmtToAdd;
+
+                if (offsetDiff <= 0 && curConsumptionBeforeUpdate <= updatedRTG.forbidXIMAAmt) {
+                    // Scenario 1: curConsumption is less than forbidXIMAAmt before and after update
+                    summAdjustNonXIMAAmt = validAmtToAdd;
+                } else if (offsetDiff <= 0 && curConsumptionBeforeUpdate > updatedRTG.forbidXIMAAmt) {
+                    // Scenario 2: curConsumption is more than forbidXIMAAmt before update, but is less than after update
+                    summAdjustXIMAAmt = updatedRTG.forbidXIMAAmt - curConsumptionBeforeUpdate;
+                    summAdjustNonXIMAAmt = validAmtToAdd - summAdjustNonXIMAAmt;
+                } else if (offsetDiff > 0 && curConsumptionBeforeUpdate < updatedRTG.forbidXIMAAmt) {
+                    // Scenario 3: curConsumption is less than forbidXIMAAmt before update, but is more than after update
+                    summAdjustNonXIMAAmt = updatedRTG.forbidXIMAAmt - curConsumptionBeforeUpdate;
+                    summAdjustXIMAAmt = validAmtToAdd - summAdjustNonXIMAAmt;
+                } else {
+                    // Scenario 4: curConsumption is more than forbidXIMAAmt before and after update
+                    summAdjustXIMAAmt = validAmtToAdd;
+                }
+            } else {
+                // All credit reflect on summary valid credit
+                summAdjustXIMAAmt = validAmtToAdd;
+            }
+
+            // Update consumption summary upon updating consumption record
+            updateConsumptionSumamry(oldData, summAdjustXIMAAmt, summAdjustNonXIMAAmt).catch(errorUtils.reportError);
+
+            // Unlock reward task group if necessary
+            if (updatedRTG) {
+                dbconfig.collection_platform.findOne({_id: oldData.platformId}).then(
+                    platform => {
+                        // debugging platform is null
+                        if (!platform) {
+                            console.log('PLATFORM IS NULL! FIX THIS!!');
+                            console.log('oldData**', oldData);
+                            console.log('oldData.platformId**', oldData.platformId);
+                            platform = {};
+                        }
+
+                        // Check whether RTG status changed
+                        let statusUpdObj = {
+                            unlockTime: new Date()
+                        };
+
+                        // Check whether player has lost all credit
+                        platform.autoApproveLostThreshold = platform.autoApproveLostThreshold || 0;
+                        if (updatedRTG.currentAmt <= platform.autoApproveLostThreshold) {
+                            statusUpdObj.status = constRewardTaskStatus.NO_CREDIT;
+                        }
+
+                        if (updatedRTG.curConsumption >= updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
+                            statusUpdObj.status = constRewardTaskStatus.ACHIEVED;
+                        }
+
+                        if (statusUpdObj.status) {
+                            return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                                {
+                                    _id: updatedRTG._id
+                                },
+                                statusUpdObj,
+                                {new: true}
+                            ).then(res => dbRewardTask.completeRewardTaskGroup(res, res.status))
+                        }
+                    }
+                ).catch(errorUtils.reportError);
+            }
+        }
+    );
+}
+
+function findRTGToUpdate (oldData, newData) {
+    let incBonusAmt = 0, incValidAmt = 0;
+
+    if (oldData && newData && (oldData.bonusAmount != newData.bonusAmount || oldData.validAmount != newData.validAmount)) {
+        incBonusAmt = newData.bonusAmount - oldData.bonusAmount;
+        incValidAmt = newData.validAmount - oldData.validAmount;
+
+        return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: oldData.playerId}).then(
+            RTGs => {
+                if (RTGs && RTGs.length) {
+                    let validAmtToAdd = 0;
+                    let filteredRTG = [];
+                    let freeRTG = {};
+
+                    // Filter RTGs
+                    RTGs.filter(RTG => {
+                        if (RTG) {
+                            if (RTG.providerGroup && RTG.providerGroup.providers && RTG.providerGroup.providers.length) {
+                                RTG.providerGroup.providers.forEach(provider => {
+                                    if (String(provider) === String(oldData.providerId)) {
+                                        filteredRTG.push(RTG);
+                                    }
+                                })
+                            } else {
+                                freeRTG = RTG;
+                            }
+                        }
+                    });
+
+                    if (freeRTG) { filteredRTG.push(freeRTG) }
+
+                    filteredRTG.forEach(RTG => {
+                        if (RTG && incValidAmt) {
+                            // Check current RTG amounts
+                            // Deny happening of negative RTG curConsumption
+                            let curConsumption = RTG.curConsumption > 0 ? RTG.curConsumption : 0;
+                            let targetConsumption = RTG.targetConsumption + RTG.forbidXIMAAmt;
+                            let currentDifference = targetConsumption - curConsumption;
+
+                            if (incValidAmt <= currentDifference) {
+                                validAmtToAdd = incValidAmt;
+                                incValidAmt = 0;
+                            } else {
+                                validAmtToAdd = currentDifference;
+                                incValidAmt -= currentDifference;
+                            }
+
+                            // Find available RTG to update
+                            updateRTG(RTG, incBonusAmt, validAmtToAdd, oldData);
+                        }
+                    })
+                }
+            }
+        )
+    }
 }
 
 // module.exports = dbPlayerConsumptionRecord;

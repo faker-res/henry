@@ -21,7 +21,7 @@
                     //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'AttachProvider')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalTachProvider', ng-click='vm.linkProvider("attach");vm.linkProviderType="ATTACH"')
                     //    text {{"ATTACH" | translate}}
                     //    .fa.fa-link
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'EditAttachedProvider')", ng-disabled="!vm.selectedPlatform || !vm.SelectedProvider", data-toggle="modal", data-target='#modalEditAttachedProvider', ng-click='vm.selectedProviderNickName=vm.getPlatformsNickNameForProvider(vm.selectedPlatform.data, vm.SelectedProvider); vm.selectedProviderPrefix=vm.getPlatformsPrefixForProvider(vm.selectedPlatform.data, vm.SelectedProvider); vm.linkProviderType="RENAME"')
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'EditAttachedProvider')", ng-disabled="!vm.selectedPlatform || !vm.SelectedProvider", data-toggle="modal", data-target='#modalEditAttachedProvider', ng-click='vm.selectedProviderNickName=vm.getPlatformsNickNameForProvider(vm.selectedPlatform.data, vm.SelectedProvider); vm.selectedProviderOriNickName=vm.getPlatformsNickNameForProvider(vm.selectedPlatform.data, vm.SelectedProvider); vm.selectedProviderPrefix=vm.getPlatformsPrefixForProvider(vm.selectedPlatform.data, vm.SelectedProvider); vm.linkProviderType="RENAME"')
                         text {{"RENAME" | translate}}
                         .fa.fa-pencil
                         //- img.img-edit
