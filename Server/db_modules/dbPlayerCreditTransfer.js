@@ -1400,14 +1400,12 @@ let dbPlayerCreditTransfer = {
                 validTransferAmount += amount > 0 ? amount : Math.floor(parseFloat(player.validCredit.toFixed(2)));
                 validTransferAmount = Math.floor(validTransferAmount);
 
-                let providerGroupId = gameProviderGroup._id;
-
                 // Search for reward task group of this player on this provider
                 return gameProviderGroup ?
                     dbConfig.collection_rewardTaskGroup.findOne({
                         platformId: platform,
                         playerId: playerObjId,
-                        providerGroup: providerGroupId,
+                        providerGroup: gameProviderGroup._id,
                         status: {$in: [constRewardTaskStatus.STARTED]}
                     }).lean() : null;
             }
