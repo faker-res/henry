@@ -1151,7 +1151,10 @@ let dbPlayerCreditTransfer = {
                                 playerTransferOutRequestData.wallet = eBetWalletObj;
                             }
                             return pCTFP.playerTransferOut(playerTransferOutRequestData).then(
-                                res => res,
+                                res => {
+                                    console.log("ebetwallet pCTFP.playerTransferOut", res);
+                                    return res;
+                                },
                                 error => {
                                     // let lockedAmount = rewardTask && rewardTask.currentAmount ? rewardTask.currentAmount : 0;
                                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
@@ -1343,9 +1346,7 @@ let dbPlayerCreditTransfer = {
                     }
                 });
                 checkAmountProm.push(
-                    dbConfig.collection_players.findOne({_id: playerObjId}).populate(
-                        {path: "lastPlayedProvider", model: dbConfig.collection_gameProvider}
-                    ).lean().then(player => {
+                    dbConfig.collection_players.findOne({_id: playerObjId}).lean().then(player => {
                         if(player && Math.floor(parseFloat(player.validCredit)) > 0) {
                             prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(null, playerObjId, platform,
                                 providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync))
