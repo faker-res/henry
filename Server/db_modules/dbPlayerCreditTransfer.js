@@ -1888,6 +1888,7 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
             gameProviderGroup = res;
             console.log("gameProviderGroup2",gameProviderGroup);
             if (gameProviderGroup) {
+                console.log("gameProviderGroup2 ID",gameProviderGroup._id);
                 // Search for reward task group of this player on this provider
                 let gameCreditProm = Promise.resolve(false);
                 let rewardTaskGroupProm = dbConfig.collection_rewardTaskGroup.findOne({
