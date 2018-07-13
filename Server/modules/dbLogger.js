@@ -76,7 +76,7 @@ var dbLogger = {
                     return adminActionRecordData.data[5] ? dbconfig.collection_players.findOne({name: playerId}, {name: 1})
                         : dbconfig.collection_players.findOne({playerId: playerId}, {name: 1});
                 } else if (adminActionRecordData.action == 'resetPartnerPassword' && adminActionRecordData && adminActionRecordData.data[0]) {
-                    return dbconfig.collection_partner.findOne({_id: adminActionRecordData.data[0]}, {partnerName: 1})
+                    return dbconfig.collection_partner.findOne({_id: adminActionRecordData.data[0]}, {partnerName: 1});
                 } else if (adminActionRecordData.action == 'updatePartnerPermission' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0]._id) {
                     return dbconfig.collection_partner.findOne({_id: adminActionRecordData.data[0]._id}, {partnerName: 1})
                 }else if((adminActionRecordData.action == "attachGamesToPlatform" || adminActionRecordData.action == "detachGamesFromPlatform") && adminActionRecordData.data && adminActionRecordData.data.length > 1
@@ -87,6 +87,9 @@ var dbLogger = {
                     adminActionRecordData.data[0].game && adminActionRecordData.data[0].game.length > 0 && adminActionRecordData.data[0].game[0]){
                     return dbconfig.collection_game.findOne({_id: adminActionRecordData.data[0].game[0]})
                         .populate({path: "provider", model: dbconfig.collection_gameProvider});
+                    return dbconfig.collection_partner.findOne({_id: adminActionRecordData.data[0]._id}, {partnerName: 1});
+                } else if (adminActionRecordData.action == 'createRewardEvent' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].type) {
+                    return dbconfig.collection_rewardType.findOne({_id: adminActionRecordData.data[0].type}, {name: 1});
                 }
             }
         ).then(
@@ -230,6 +233,12 @@ var dbLogger = {
                         delete adminActionRecordData.data[1].$addToSet;
                         adminActionRecordData.error = "移除" + adminActionRecordData.data[1].gameNames;
                     }
+                }else if (logAction == 'createRewardEvent' && data && data.name && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].name){
+                    adminActionRecordData.error = "创建" + localization.localization.translate(data.name) + "，" + adminActionRecordData.data[0].name;
+                }else if (logAction == 'deleteRewardEventByIds' && adminActionRecordData && adminActionRecordData.data[1]) {
+                    adminActionRecordData.error = "删除" + adminActionRecordData.data[1];
+                }else if (logAction == 'updateRewardEvent' && adminActionRecordData && adminActionRecordData.data[1] && adminActionRecordData.data[1].name) {
+                    adminActionRecordData.error = "更新" + adminActionRecordData.data[1].name;
                 }
 
 

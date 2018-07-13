@@ -65,6 +65,15 @@ var simplifiedChinese = {
     "disableCommSettlement": "禁用代理佣金结算",
     "forbidPartnerFromLogin": "登入网站",
 
+    "PlayerConsecutiveRewardGroup": "签到全勤（组）",
+    "PlayerConsumptionReturn": "玩家洗码",
+    "PlayerConsumptionRewardGroup": "投注额优惠（组）",
+    "PlayerFreeTrialRewardGroup": "免费体验金（组）",
+    "PlayerLimitedOfferReward": "秒杀礼包优惠",
+    "PlayerLoseReturnRewardGroup": "输值反利（組）",
+    "PlayerRandomRewardGroup": "随机抽奖（组）",
+    "PlayerTopUpReturnGroup": "存送金(组)",
+
     "Error in getting ID": "获得ID出错",
     "Error in getting player, game or provider": "无法获得玩家，游戏或供应商",
     "Error in getting player, paymentChannel or platform": "没能得到玩家， 支付渠道或平台",
