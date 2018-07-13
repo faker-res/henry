@@ -1925,6 +1925,9 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                 let providerPlayerObj = {gameCredit: res[0].credit ? parseInt(res[0].credit) : 0};
                 rewardGroupObj = res[1];
                 if(useEbetWallet === true) {
+                    console.log("res[0]",res[0]);
+                    console.log("gameProviderGroup.ebetWallet",gameProviderGroup.ebetWallet);
+                    console.log("res[0].wallet",res[0].wallet);
                     eBetWalletObj[gameProviderGroup.ebetWallet] = res[0].wallet[gameProviderGroup.ebetWallet];
                     let curWalletCredit = res[0].wallet[gameProviderGroup.ebetWallet];
                     console.log("rewardGroupObj",rewardGroupObj);
