@@ -21372,7 +21372,7 @@ define(['js/app'], function (myApp) {
             }
             vm.deleteReward = function (data) {
                 console.log('vm.showReward', vm.showReward);
-                socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {_ids: [vm.showReward._id]}, function (data) {
+                socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {_ids: [vm.showReward._id], name: vm.showReward.name}, function (data) {
                     //vm.allGameProvider = data.data;
                     vm.rewardTabClicked(function () {
                         vm.rewardEventClicked(0, vm.allRewardEvent[0])
