@@ -460,6 +460,10 @@ define(['js/app'], function (myApp) {
                     // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
+                "scrollX": true,
+                "autoWidth": true,
+                "sScrollY": 550,
+                "scrollCollapse": true,
                 columns: [
 
                     {
@@ -1310,12 +1314,12 @@ define(['js/app'], function (myApp) {
             var title, text;
             if (type == 'msg' && authService.checkViewPermission('Platform', 'Player', 'sendSMS')) {
                 vm.smsPlayer = {
-                    playerId: playerObjId.playerData.playerId,
-                    name: playerObjId.playerData.name,
-                    nickName: playerObjId.nickName || "",
+                    playerId: data.playerData.playerId,
+                    name: data.playerData.name,
+                    nickName: data.nickName || "",
                     platformId: vm.selectedPlatform.data.platformId,
                     channel: $scope.channelList[0],
-                    hasPhone: playerObjId.phoneNumber
+                    hasPhone: data.phoneNumber
                 }
                 vm.sendSMSResult = {};
                 $scope.safeApply();
@@ -1323,15 +1327,15 @@ define(['js/app'], function (myApp) {
                 vm.showSmsTab(null);
             } else if (type == 'tel') {
                 var phoneCall = {
-                    playerId: playerObjId.playerData.playerId,
-                    name: playerObjId.playerData.name,
-                    toText: playerObjId.playerData.playerName ? playerObjId.playerData.playerName : playerObjId.playerData.name,
+                    playerId: data.playerData.playerId,
+                    name: data.playerData.name,
+                    toText: data.playerData.playerName ? data.playerData.playerName : data.playerData.name,
                     platform: "jinshihao",
                     loadingNumber: true,
                 }
                 $scope.initPhoneCall(phoneCall);
-                socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: playerObjId.playerData_id}, function (data) {
-                    $scope.phoneCall.phone = data.data;
+                socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: data.playerData_id}, function (data) {
+                    $scope.phoneCall.phone = data.phoneNumber;
                     $scope.phoneCall.loadingNumber = false;
                     $scope.safeApply();
                     $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
@@ -3780,6 +3784,10 @@ define(['js/app'], function (myApp) {
                     // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
+                "scrollX": true,
+                "autoWidth": true,
+                "sScrollY": 550,
+                "scrollCollapse": true,
                 columns: [
                     {
                         title: $translate('ORDER'),
@@ -4207,6 +4215,10 @@ define(['js/app'], function (myApp) {
                     // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
+                "scrollX": true,
+                "autoWidth": true,
+                "sScrollY": 550,
+                "scrollCollapse": true,
                 columns: [
                     {
                         title: $translate('ORDER'),

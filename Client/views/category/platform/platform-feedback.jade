@@ -138,6 +138,13 @@
                 label {{"REGISTRATION_ADMIN"|translate}}
                 select.spicker.form-control(ng-model='vm.playerFeedbackQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.queryAdmins')
             .inlineBlk
+                label {{"CALL_PERMISSION"|translate}}
+                div
+                    select.form-control(ng-model="vm.playerFeedbackQuery.callPermission" style="width:105px;display:inline-block")
+                        option(value='false') {{'DISABLE'|translate}}
+                        option(value='true') {{'CALLABLE'|translate}}
+                        option(value='all') {{'ALL'|translate}}
+            .inlineBlk
                 button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="one";vm.submitPlayerFeedbackQuery(true);') {{"SEARCH_SINGLE" | translate}}
             .inlineBlk
                 button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="many";vm.submitPlayerFeedbackQuery(true);') {{"SEARCH_LIST" | translate}}

@@ -1314,6 +1314,7 @@ let dbPlayerCreditTransfer = {
     },
 
     playerCreditTransferToEbetWallets: function (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) {
+        let checkAmountProm = [];
         let prom = [];
         let hasEbetWalletSettings = false;
         return dbConfig.collection_gameProviderGroup.find({
@@ -1324,16 +1325,37 @@ let dbPlayerCreditTransfer = {
             if(groups && groups.length > 0) {
                 groups.forEach(group => {
                     console.log('playerCreditTransferToEbetWallets group', group);
-                    if(group.hasOwnProperty('ebetWallet')) {
+                    if(group.hasOwnProperty('ebetWallet') && group.ebetWallet > 0) {
                         hasEbetWalletSettings = true;
-                        prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(group, playerObjId, platform,
-                            providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync));
+                        checkAmountProm.push(
+                            dbConfig.collection_rewardTaskGroup.findOne({
+                                platformId: platform,
+                                playerId: playerObjId,
+                                providerGroup: group._id,
+                                status: {$in: [constRewardTaskStatus.STARTED]}
+                            }).lean().then(rtg => {
+                                if(rtg && rtg.rewardAmt > 0) {
+                                    prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(group, playerObjId, platform,
+                                        providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync));
+                                }
+                            })
+                        );
                     }
                 });
-                prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(null, playerObjId, platform,
-                    providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync));
+                checkAmountProm.push(
+                    dbConfig.collection_players.findOne({_id: playerObjId}).populate(
+                        {path: "lastPlayedProvider", model: dbConfig.collection_gameProvider}
+                    ).lean().then(player => {
+                        if(player && Math.floor(parseFloat(player.validCredit)) > 0) {
+                            prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(null, playerObjId, platform,
+                                providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync))
+                        }
+                    })
+                );
                 if(hasEbetWalletSettings) {
-                    return Promise.all(prom).then(data => {
+                    return Promise.all(checkAmountProm).then(() => {
+                        return Promise.all(prom)
+                    }).then(data => {
                         let providerCredit = 0, playerCredit = 0, rewardCredit = 0, transferPlayerCredit = 0, transferRewardCredit = 0;
                         data.forEach(item => {
                             if(item && item.providerCredit && item.playerCredit && item.rewardCredit &&
@@ -1400,14 +1422,12 @@ let dbPlayerCreditTransfer = {
                 validTransferAmount += amount > 0 ? amount : Math.floor(parseFloat(player.validCredit.toFixed(2)));
                 validTransferAmount = Math.floor(validTransferAmount);
 
-                let providerGroupId = gameProviderGroup ? gameProviderGroup._id : providerId;
-
                 // Search for reward task group of this player on this provider
                 return gameProviderGroup ?
                     dbConfig.collection_rewardTaskGroup.findOne({
                         platformId: platform,
                         playerId: playerObjId,
-                        providerGroup: providerGroupId,
+                        providerGroup: gameProviderGroup._id,
                         status: {$in: [constRewardTaskStatus.STARTED]}
                     }).lean() : null;
             }
@@ -1426,13 +1446,12 @@ let dbPlayerCreditTransfer = {
                 console.log("transfer in gameProviderGroup", gameProviderGroup);
                 // Calculate total amount needed to transfer to CPMS
                 transferAmount = validTransferAmount + lockedTransferAmount;
-                transferWallet[0] = 0;
-                if(gameProviderGroup.hasOwnProperty('ebetWallet')) {
-                    transferWallet[gameProviderGroup.ebetWallet] = 0;
-                }
-                transferWallet[0] += validTransferAmount;
-                if(gameProviderGroup.hasOwnProperty('ebetWallet')) {
-                    transferWallet[gameProviderGroup.ebetWallet] += lockedTransferAmount;
+                if(gameProviderGroup) {
+                    if (gameProviderGroup.hasOwnProperty('ebetWallet')) {
+                        transferWallet[gameProviderGroup.ebetWallet] = lockedTransferAmount;
+                    }
+                } else {
+                    transferWallet[0] = validTransferAmount;
                 }
 
                 // Check player have enough credit
@@ -1449,7 +1468,7 @@ let dbPlayerCreditTransfer = {
             }
         ).then(
             res => {
-                console.log("transfer in second then",gameProviderGroup.name, res);
+                console.log("transfer in second then",gameProviderGroup ? gameProviderGroup.name : 'null', res);
                 if (res && res[0] && res[1]) {
                     let updatedPlayerData = res[0];
                     let updatedGroupData = res[1];
@@ -1490,7 +1509,7 @@ let dbPlayerCreditTransfer = {
             }
         ).then(
             res => {
-                console.log("transfer in third then",gameProviderGroup.name, res);
+                console.log("transfer in third then",gameProviderGroup ? gameProviderGroup.name : 'null', res);
                 if (res) {
                     // Operation on player credit is success on FPMS side
                     bTransfered = true;
@@ -1534,8 +1553,9 @@ let dbPlayerCreditTransfer = {
             }
         ).then(
             res => {
-                if (res && gameProviderGroup.hasOwnProperty('ebetWallet') && res.wallet && res.wallet[gameProviderGroup.ebetWallet] == 0) {
-                    console.log("dPCT.playerTransferIn res", res);
+                console.log("dPCT.playerTransferIn res", res);
+                if (res && res.wallet && (gameProviderGroup && gameProviderGroup.hasOwnProperty('ebetWallet') && res.wallet[gameProviderGroup.ebetWallet] == 0 ||
+                        gameProviderGroup == null && res.wallet[0] == 0)) {
                     // CPMS call is success
                     // Log credit change when transfer success
                     dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, -validTransferAmount, constPlayerCreditChangeType.TRANSFER_IN, playerCredit, 0, -lockedTransferAmount, null, {
@@ -1579,7 +1599,8 @@ let dbPlayerCreditTransfer = {
                         });
 
                 }
-                else if (res && gameProviderGroup.hasOwnProperty('ebetWallet') && res.wallet && res.wallet[gameProviderGroup.ebetWallet] == 0) {
+                else if (res && res.wallet && (gameProviderGroup && gameProviderGroup.hasOwnProperty('ebetWallet') && res.wallet[gameProviderGroup.ebetWallet] > 0 ||
+                        gameProviderGroup == null && res.wallet[0] > 0)) {
                     dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, -validTransferAmount, constPlayerCreditChangeType.TRANSFER_IN_FAILED, playerCredit, 0, -lockedTransferAmount, null, {
                         providerId: providerShortId,
                         providerName: cpName,
