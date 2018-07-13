@@ -891,6 +891,12 @@ function searchPlayerFromExportProposal (proposal) {
         }
     }
 
+    if (proposalData.callPermission == 'true') {
+        query['permission.phoneCallFeedback'] = {$ne: false};
+    } else if (proposalData.callPermission == 'false') {
+        query['permission.phoneCallFeedback'] = false;
+    }
+
     if (proposalData.lastAccessTimeFrom || proposalData.lastAccessTimeTo) {
         query.lastAccessTime = {};
         if (proposalData.lastAccessTimeFrom) {
