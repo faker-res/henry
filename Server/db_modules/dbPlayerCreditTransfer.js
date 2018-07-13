@@ -1325,7 +1325,7 @@ let dbPlayerCreditTransfer = {
             if(groups && groups.length > 0) {
                 groups.forEach(group => {
                     console.log('playerCreditTransferToEbetWallets group', group);
-                    if(group.hasOwnProperty('ebetWallet') && group.ebetWallet != null) {
+                    if(group.hasOwnProperty('ebetWallet') && group.ebetWallet > 0) {
                         hasEbetWalletSettings = true;
                         checkAmountProm.push(
                             dbConfig.collection_rewardTaskGroup.findOne({
@@ -1342,8 +1342,16 @@ let dbPlayerCreditTransfer = {
                         );
                     }
                 });
-                prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(null, playerObjId, platform,
-                    providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync));
+                checkAmountProm.push(
+                    dbConfig.collection_players.findOne({_id: playerObjId}).populate(
+                        {path: "lastPlayedProvider", model: dbConfig.collection_gameProvider}
+                    ).lean().then(player => {
+                        if(player && Math.floor(parseFloat(player.validCredit)) > 0) {
+                            prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(null, playerObjId, platform,
+                                providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync))
+                        }
+                    })
+                );
                 if(hasEbetWalletSettings) {
                     return Promise.all(checkAmountProm).then(() => {
                         return Promise.all(prom)
