@@ -1333,8 +1333,10 @@ define(['js/app'], function (myApp) {
                     platform: "jinshihao",
                     loadingNumber: true,
                 }
+                console.log('playerData', data);
                 $scope.initPhoneCall(phoneCall);
                 socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: data.playerData._id}, function (data) {
+                    console.log('getPlayerPhoneNumber data', data);
                     $scope.phoneCall.phone = data.phoneNumber;
                     $scope.phoneCall.loadingNumber = false;
                     $scope.safeApply();
