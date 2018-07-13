@@ -15376,6 +15376,12 @@ define(['js/app'], function (myApp) {
                     sendQuery["$or"] = sendQueryOr;
                 }
 
+                if (vm.playerFeedbackQuery.callPermission == 'true') {
+                    sendQuery['permission.phoneCallFeedback'] = {$ne: false};
+                } else if (vm.playerFeedbackQuery.callPermission == 'false') {
+                    sendQuery['permission.phoneCallFeedback'] = false;
+                }
+
                 if (vm.playerFeedbackQuery.depositCountOperator && vm.playerFeedbackQuery.depositCountFormal != null) {
                     switch (vm.playerFeedbackQuery.depositCountOperator) {
                         case ">=":
@@ -15750,6 +15756,12 @@ define(['js/app'], function (myApp) {
                     } else {
                         sendQuery["$or"] = sendQueryOr;
                     }
+                }
+
+                if (vm.playerFeedbackQuery.callPermission == 'true') {
+                    sendQuery['permission.phoneCallFeedback'] = {$ne: false};
+                } else if (vm.playerFeedbackQuery.callPermission == 'false') {
+                    sendQuery['permission.phoneCallFeedback'] = false;
                 }
 
                 if (vm.playerFeedbackQuery.depositCountOperator && vm.playerFeedbackQuery.depositCountFormal != null) {
@@ -16467,6 +16479,7 @@ define(['js/app'], function (myApp) {
                 vm.playerFeedbackQuery.playerType = "Real Player (all)";
                 vm.playerFeedbackQuery.playerLevel = "all";
                 vm.playerFeedbackQuery.lastAccess = "15-28";
+                vm.playerFeedbackQuery.callPermission = "true";
                 setTimeout(
                     () => {
                         let parentId;

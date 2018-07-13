@@ -1558,6 +1558,9 @@
   "CURRENT_PERIOD": "Current Period",
   "PREVIOUS_X_PERIOD": "Previous X Period",
 
+  "CALL_PERMISSION": "Call Permission",
+  "CALLABLE": "Callable",
+
   "DX_NEWACCOUNT_REPORT": "Telemarketing New Account Report",
   "REAL_TIME_COMMISSION_REPORT": "Real Time Commission Report",
   "REAL_TIME_COMMISSION_FORCAST": "Real Time Commission Forecast",
