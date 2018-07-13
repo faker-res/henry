@@ -13,7 +13,9 @@ let playerBStateSchema = new Schema({
     // last update player level time
     lastApplyLevelUp: {type: Date, default: new Date()},
     // Player convert reward point
-    convertRewardPointsToCredit: {type: Boolean, default: false}
+    convertRewardPointsToCredit: {type: Boolean, default: false},
+    // Generate promo code
+    generatePromoCode: {type: Boolean, default: false}
 });
 
 module.exports = playerBStateSchema;

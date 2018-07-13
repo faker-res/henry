@@ -263,12 +263,14 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
                 if (Number(calleeDetail.callCount) > 0) {
                     let status = 0;
                     if (calleeDetail.callResult == 0) {
-                        status = constCallOutMissionCalleeStatus.FAILED;
+                        if (Number(calleeDetail.callCount) >= (platform.redialTimes || 1)) {
+                            status = constCallOutMissionCalleeStatus.FAILED;
+                        }
                     } else {
                         status = constCallOutMissionCalleeStatus.SUCCEEDED;
                     }
 
-                    let prom = dbconfig.collection_callOutMissionCallee.update({platform: platform._id, admin: admin._id, mission: mission._id, playerName: calleeDetail.custName}, {status: status, callingTime: calleeDetail.lastCallTime}).catch(errorUtils.reportError);
+                    let prom = dbconfig.collection_callOutMissionCallee.update({platform: platform._id, admin: admin._id, mission: mission._id, playerName: calleeDetail.custName}, {status: status, callingTime: calleeDetail.lastCallTime, callCount: calleeDetail.callCount}).catch(errorUtils.reportError);
                     proms.push(prom);
                 }
             });
@@ -417,6 +419,8 @@ function getCalleeList (query, sortCol) {
 
 function getCtiUrls (platformId) {
     platformId = platformId ? String(platformId) : "10";
+
+    // todo :: THIS ONE HAVE TO BE COMMENTED WHEN MERGE TO DEVELOP-1.1
     // platformId = 10; // debug param, use this when testing on local
 
     let urls = [

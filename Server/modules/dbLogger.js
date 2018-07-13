@@ -14,6 +14,7 @@ var pmsAPI = require('../externalAPI/pmsAPI');
 var rsaCrypto = require('../modules/rsaCrypto');
 const constSMSPurpose = require('../const/constSMSPurpose');
 const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
+var localization = require("../modules/localization");
 
 var dbLogger = {
 
@@ -21,7 +22,16 @@ var dbLogger = {
      * Create the log information of every action operated by Admin user
      * @param {json} adminActionRecordData - The data of the log -  Refer to systemLog schema.
      */
-    createSystemLog: function (adminActionRecordData) {
+    createSystemLog: function (adminActionRecordData, resultData) {
+        let inputDevice = {
+            1: "WEB",
+            3: "H5"
+        };
+
+        if(!adminActionRecordData){
+            return;
+        }
+
         //only store non-get actions
         if (adminActionRecordData.level === constSystemLogLevel.ACTION && adminActionRecordData.action && adminActionRecordData.action.indexOf("get") >= 0) {
             return;
@@ -54,6 +64,25 @@ var dbLogger = {
                 if(platformArr && platformArr.length > 0){
                     adminActionRecordData.platforms = platformArr;
                 }
+
+                if (adminActionRecordData.action == 'createPlayerFeedback' && resultData && resultData.playerId) {
+                    return dbconfig.collection_players.findOne({_id: resultData.playerId}, {name: 1});
+                } else if ((adminActionRecordData.action == 'resetPlayerPassword' || adminActionRecordData.action == 'createUpdateTopUpGroupLog')
+                    && adminActionRecordData && adminActionRecordData.data[0]) {
+                    return dbconfig.collection_players.findOne({_id: adminActionRecordData.data[0]}, {name: 1});
+                } else if (adminActionRecordData.action == 'updatePlayerPermission' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0]._id) {
+                    return dbconfig.collection_players.findOne({_id: adminActionRecordData.data[0]._id}, {name: 1});
+                } else if (adminActionRecordData.action == 'transferPlayerCreditToProvider' && adminActionRecordData && adminActionRecordData.data[0]) {
+                    return adminActionRecordData.data[5] ? dbconfig.collection_players.findOne({name: playerId}, {name: 1})
+                        : dbconfig.collection_players.findOne({playerId: playerId}, {name: 1});
+                } else if (adminActionRecordData.action == 'resetPartnerPassword' && adminActionRecordData && adminActionRecordData.data[0]) {
+                    return dbconfig.collection_partner.findOne({_id: adminActionRecordData.data[0]}, {partnerName: 1})
+                } else if (adminActionRecordData.action == 'updatePartnerPermission' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0]._id) {
+                    return dbconfig.collection_partner.findOne({_id: adminActionRecordData.data[0]._id}, {partnerName: 1})
+                }
+            }
+        ).then(
+            data => {
 
                 let logAction = adminActionRecordData.action;
 
@@ -89,6 +118,87 @@ var dbLogger = {
                     adminActionRecordData.error = adminActionRecordData.data[3];
                 }else if(logAction == "resetAdminPassword" && adminActionRecordData.data[2]){
                     adminActionRecordData.error = adminActionRecordData.data[2];
+                }else if(logAction == 'createPlayer' && adminActionRecordData.data[0] && adminActionRecordData.data[0].name){
+                    adminActionRecordData.error = "帐号：" + adminActionRecordData.data[0].name;
+                }else if (logAction == 'createDemoPlayer' && resultData && resultData.playerData && resultData.playerData.name){
+                    adminActionRecordData.error = "帐号：" + resultData.playerData.name;
+                }else if ((logAction == 'createUpdatePlayerInfoProposal' || logAction == 'createUpdatePlayerPhoneProposal'
+                    || logAction == 'createUpdatePlayerEmailProposal' || logAction == 'createUpdatePlayerQQProposal'
+                    || logAction == 'createUpdatePlayerWeChatProposal' || logAction == 'createUpdatePlayerBankInfoProposal'
+                    || logAction == 'submitRepairPaymentProposal' || logAction == 'createUpdatePlayerCreditProposal'
+                    || logAction == 'createUpdatePartnerInfoProposal' || logAction == 'createUpdatePartnerPhoneProposal'
+                    || logAction == 'createUpdatePartnerEmailProposal' || logAction == 'createUpdatePartnerQQProposal'
+                    || logAction == 'createUpdatePartnerWeChatProposal' || logAction == 'createUpdatePartnerCommissionTypeProposal'
+                    || logAction == 'createUpdatePartnerBankInfoProposal' || logAction == 'customizePartnerCommission')
+                    && resultData && resultData.proposalId){
+                    adminActionRecordData.error = "提案号：" + resultData.proposalId;
+                }else if ((logAction == 'createPlayerFeedback' || logAction == 'resetPlayerPassword') && data && data.name) {
+                    adminActionRecordData.error = "帐号：" + data.name;
+                }else if (logAction == 'updatePlayerCredibilityRemark' && resultData && resultData.name) {
+                    adminActionRecordData.error = "帐号：" + resultData.name;
+                }else if (logAction == 'createPartner' && adminActionRecordData.data[0] && adminActionRecordData.data[0].partnerName){
+                    adminActionRecordData.error = "帐号：" + adminActionRecordData.data[0].partnerName;
+                }else if ((logAction == 'createPlayerFeedbackResult' || logAction == 'createPlayerFeedbackTopic'
+                    || logAction == 'createPartnerFeedbackResult' || logAction == 'createPartnerFeedbackTopic')
+                    && adminActionRecordData.data[0] && adminActionRecordData.data[0].value){
+                    adminActionRecordData.error = "添加" + adminActionRecordData.data[0].value;
+                }else if (logAction == 'createUpdateTopUpGroupLog' && data && data.name && Object.keys(adminActionRecordData.data[2]).length){
+                    let topupGroup = '';
+                    Object.keys(adminActionRecordData.data[2]).forEach(el => {
+                        topupGroup += localization.localization.translate(el) + "（" + adminActionRecordData.data[2][el] + "）";
+                    })
+                    adminActionRecordData.error = "帐号：" + data.name + "、" + topupGroup;
+                }else if(logAction == "createPlatform" && adminActionRecordData.data[0].name){
+                    adminActionRecordData.error = "创建" + adminActionRecordData.data[0].name + "产品";
+                }else if(logAction == "deletePlatformById" && adminActionRecordData.data[1]){
+                    adminActionRecordData.error = "删除" + adminActionRecordData.data[1] + "产品";
+                }else if(logAction == "updatePlatform" && resultData.name){
+                    adminActionRecordData.error = "更新" + resultData.name + "产品";
+                }else if(logAction == "createNewPlayerAdvertisementRecord" && resultData.inputDevice){
+                    adminActionRecordData.error = "添加玩家广告(" + inputDevice[resultData.inputDevice] + ")";
+                }else if(logAction == "savePlayerAdvertisementRecordChanges" && resultData.inputDevice){
+                    adminActionRecordData.error = "编辑玩家广告(" + inputDevice[resultData.inputDevice] + ")";
+                }else if(logAction == "createNewPartnerAdvertisementRecord" && resultData.inputDevice){
+                    adminActionRecordData.error = "添加代理广告(" + inputDevice[resultData.inputDevice] + ")";
+                }else if(logAction == "savePartnerAdvertisementRecordChanges" && resultData.inputDevice){
+                    adminActionRecordData.error = "编辑代理广告(" + inputDevice[resultData.inputDevice] + ")";
+                }else if(logAction == "renameProviderInPlatformById" && adminActionRecordData.data && adminActionRecordData.data.length > 4
+                    && adminActionRecordData.data[2] &&  adminActionRecordData.data[4]){
+                    adminActionRecordData.error = adminActionRecordData.data[4] + "修改为" + adminActionRecordData.data[2];
+                }else if(logAction == "updateProviderFromPlatformById" && adminActionRecordData.data && adminActionRecordData.data.length > 3
+                    && typeof adminActionRecordData.data[2] != "undefined" && adminActionRecordData.data[3]){
+                    if(adminActionRecordData.data[2]){
+                        adminActionRecordData.error = "启用" + adminActionRecordData.data[3];
+                    }else{
+                        adminActionRecordData.error = "禁用" + adminActionRecordData.data[3];
+                    }
+                }else if(logAction == "attachGamesToPlatform" && resultData && resultData.success && resultData.success.length > 0 && resultData.success[0].name){
+                    adminActionRecordData.error = "添加" + resultData.success[0].name;
+                }else if(logAction == "detachGamesFromPlatform" && adminActionRecordData.data && adminActionRecordData.data.length > 1
+                    && adminActionRecordData.data[1].length > 0 &&  adminActionRecordData.data[1][0].name){
+                    adminActionRecordData.error = "移除" + adminActionRecordData.data[1][0].name;
+                }else if (logAction == 'requestClearProposalLimit' && adminActionRecordData.data[0] && adminActionRecordData.data[0].username){
+                    adminActionRecordData.error = "帐号：" + adminActionRecordData.data[0].username;
+                }else if ((logAction == 'updatePlayerPermission' || logAction == 'updatePartnerPermission')
+                    && data && (data.name || data.partnerName) && Object.keys(adminActionRecordData.data[2]).length){
+                    let permissionChange = '';
+                    let name = logAction == 'updatePlayerPermission' ? data.name : data.partnerName;
+                    Object.keys(adminActionRecordData.data[2]).forEach(el => {
+                        let prevPermission = !adminActionRecordData.data[2][el];
+                        if(el == 'disableWechatPay' || el == 'forbidPlayerFromLogin' || el == 'forbidPlayerFromEnteringGame' || el == 'banReward'
+                            || el == 'forbidPartnerFromLogin' || el == 'disableCommSettlement') {
+                            permissionChange += localization.localization.translate(el) + "（" + localization.localization.translate(adminActionRecordData.data[2][el])
+                                + " -> " + localization.localization.translate(prevPermission) + "）";
+                        } else {
+                            permissionChange += localization.localization.translate(el) + "（" + localization.localization.translate(prevPermission)
+                                + " -> " + localization.localization.translate(adminActionRecordData.data[2][el]) + "）";
+                        }
+                    })
+                    adminActionRecordData.error = "帐号：" + name + "、" + permissionChange;
+                }else if (logAction == 'transferPlayerCreditToProvider' && data && data.name && resultData && resultData.transferId){
+                    adminActionRecordData.error = "帐号：" + data.name + "、" + localization.localization.translate("TransferIn") + "ID：" + resultData.transferId;
+                }else if (logAction == 'resetPartnerPassword' && data && data.partnerName) {
+                    adminActionRecordData.error = "帐号：" + data.partnerName;
                 }
 
 

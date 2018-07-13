@@ -65,6 +65,10 @@
                             a.common-tab(data-toggle="tab", href="#Feedback", ng-click="vm.loadTab('Feedback');")
                                 .fa.fa-volume-control-phone.margin-right-5
                                 text.span {{"FEEDBACK" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'AutoFeedback', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#AutoFeedback", ng-click="vm.loadTab('AutoFeedback');")
+                                .fa.fa-volume-control-phone.margin-right-5
+                                text.span {{"AUTO_FEEDBACK" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'FeedbackQuery', 'Read')")
                             a.common-tab(data-toggle="tab", href="#FeedbackAdmin", ng-click="vm.loadTab('FeedbackAdmin');")
                                 .fa.fa-volume-control-phone.margin-right-5
@@ -137,6 +141,10 @@
                             a.common-tab(data-toggle="tab", href="#platformSetting", ng-click="vm.loadTab('platformSetting');")
                                 .fa.fa-cogs.margin-right-5
                                 text.span {{"platformSetting" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'getExternalUserInfo','Read')")
+                            a.common-tab(data-toggle="tab", href="#externalUserInfo", ng-click="vm.loadTab('externalUserInfo');")
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"External User Info" | translate}}
 
                 .panel-body.common-right-panel-body
                     div.tab-content
@@ -144,6 +152,8 @@
                             include ./platform-game
                         #Feedback.tab-pane.fade.in.active
                             include ./platform-feedback
+                        #AutoFeedback.tab-pane.fade
+                            include ./platform-auto-feedback
                         #FeedbackAdmin.tab-pane.fade
                             include ./platform-feedbackAdmin
                         #GameGroup.tab-pane.fade
@@ -184,6 +194,8 @@
                             include ./platform-batch-permit
                         #platformSetting.tab-pane.fade
                             include ./platform-platform-setting
+                        #externalUserInfo.tab-pane.fade
+                            include ./platform-externalUserInfo
 
                             //ui-view
                         //#bankCardGroup.tab-pane.fade

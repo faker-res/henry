@@ -84,7 +84,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                         tr(style="text-align:center;color:red")
                                                             td(style="width: 78.18px;")
                                                             td(style="width: 77.27px;")
-                                                            td(style="width: 250px;") 結束對話:访客关闭对话 ({{unreadEvaluation.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
+                                                            td(style="width: 250px;") 結束對話:{{ unreadEvaluation.closeName$ }}关闭对话 ({{unreadEvaluation.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
                                                             td(style="width: 77.27px;")
                                                             td(style="width: 77.27px;")
                                                             td(style="width: 180px;")
@@ -159,7 +159,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                         tr(style="text-align:center;color:red")
                                                             td.col-sm-1
                                                             td.col-sm-1
-                                                            td.col-sm-4 結束對話:访客关闭对话 ({{readEvaluation.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
+                                                            td.col-sm-4 結束對話:{{ readEvaluation.closeName$ }}关闭对话 ({{readEvaluation.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
                                                             td.col-sm-1
                                                             td.col-sm-1
                                                             td.col-sm-3
@@ -250,7 +250,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                         tr(style="text-align:center;color:red")
                                                             td(style="width: 80px;")
                                                             td(style="width: 89px;")
-                                                            td(style="width: 250px;") 結束對話:访客关闭对话 ({{appealEvaluation.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
+                                                            td(style="width: 250px;") 結束對話:{{ appealEvaluation.closeName$ }}关闭对话 ({{appealEvaluation.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
                                                             td(style="width: 80px;")
                                                             td(style="width: 80px;")
                                                             td(style="width: 180px;")
