@@ -155,6 +155,8 @@ let dbPartner = {
 
         let platformData = null;
         let partnerLevel = null;
+        let pPrefix = null;
+        let pName = null;
 
         if (!partnerdata.platform) {
             return Q.reject({
@@ -165,7 +167,7 @@ let dbPartner = {
 
         partnerdata.isNewSystem = true;
 
-        // Player name should be alphanumeric and max 15 characters
+        // Partner name should be alphanumeric and max 15 characters
         let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
         if (!partnerdata.partnerName.match(alphaNumRegex)) {
             // ignore for unit test
@@ -182,22 +184,78 @@ let dbPartner = {
             function (platform) {
                 if (platform) {
                     platformData = platform;
+                    pPrefix = platformData.partnerPrefix;
 
                     if (platformData.partnerDefaultCommissionGroup && !partnerdata.commissionType) {
                         partnerdata.commissionType = platformData.partnerDefaultCommissionGroup;
-                    };
-                    // attach platform prefix to player name if available
+                    }
+                    // attach platform prefix to partner name if available
                     if (platform.partnerPrefix) {
                         partnerdata.partnerName = platform.partnerPrefix + partnerdata.partnerName;
                     }
+                    pName = partnerdata.partnerName;
 
                     if ((platformData.partnerNameMaxLength > 0 && partnerdata.partnerName.length > platformData.partnerNameMaxLength) || (platformData.partnerNameMinLength > 0 && partnerdata.partnerName.length < platformData.partnerNameMinLength)) {
-                        deferred.reject({
-                            name: "DataError",
-                            message: "Partner Name length is not valid"
-                        });
-                        return Promise.reject(new Error());
+                        return {isPartnerNameValid: false};
+                    } else {
+                        return {isPartnerNameValid: true};
                     }
+                } else {
+                    deferred.reject({
+                        name: "DBError",
+                        message: "No such platform"
+                    });
+                }
+            },
+            function (error) {
+                deferred.reject({
+                    name: "DBError",
+                    message: "Error when finding platform",
+                    error: error
+                });
+            }
+        ).then(
+            function (data) {
+                if (data.isPartnerNameValid) {
+                    // check partner name must start with prefix
+                    if ( pName.indexOf(pPrefix) === 0) {
+                        return {isPartnerPrefixValid: true};
+                    } else {
+                        return {isPartnerPrefixValid: false};
+                    }
+                } else {
+                    return deferred.reject({name: "DBError", message: localization.localization.translate("Partner name should be between ") + platformData.partnerNameMinLength + " - " + platformData.partnerNameMaxLength + localization.localization.translate(" characters."),});
+                }
+            },
+            function (error) {
+                deferred.reject({
+                    name: "DBError",
+                    message: "Partner name should be between " + platformData.partnerNameMinLength + " - " + platformData.partnerNameMaxLength + " characters.",
+                    error: error
+                });
+            }
+        ).then(
+            function (data) {
+                if (data.isPartnerPrefixValid) {
+                    if ((platformData.partnerPasswordMaxLength > 0 && partnerdata.password.length > platformData.partnerPasswordMaxLength) || (platformData.partnerPasswordMinLength > 0 && partnerdata.password.length < platformData.partnerPasswordMinLength)) {
+                        return {isPartnerPasswordValid: false};
+                    } else {
+                        return {isPartnerPasswordValid: true};
+                    }
+                } else {
+                    return deferred.reject({name: "DBError", message: localization.localization.translate("Partner name should use ") + pPrefix + localization.localization.translate(" as prefix.")});
+                }
+            },
+            function (error) {
+                deferred.reject({
+                    name: "DBError",
+                    message: "Partner name should use " + pPrefix + " as prefix.",
+                    error: error
+                });
+            }
+        ).then(
+            function (data) {
+                if (data.isPartnerPasswordValid) {
                     let phoneNumber = (partnerdata.phoneNumber) || '';
                     if (platformData.whiteListingPhoneNumbers
                         && platformData.whiteListingPhoneNumbers.length > 0
@@ -205,7 +263,7 @@ let dbPartner = {
                         && platformData.whiteListingPhoneNumbers.indexOf(partnerdata.phoneNumber) > -1)
                         return {isPhoneNumberValid: true};
 
-                    if(phoneNumber){
+                    if (phoneNumber) {
                         if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
                             return dbPartner.isExceedPhoneNumberValidToRegister({
                                 phoneNumber: rsaCrypto.encrypt(phoneNumber),
@@ -218,21 +276,17 @@ let dbPartner = {
                                 platform: partnerdata.platform
                             });
                         }
-                    }else{
+                    } else {
                         return {isPhoneNumberValid: true};
                     }
-
                 } else {
-                    deferred.reject({
-                        name: "DBError",
-                        message: "No such platform"
-                    });
+                    return deferred.reject({name: "DBError", message: localization.localization.translate("Partner password should be between ") + platformData.partnerPasswordMinLength + " - " + platformData.partnerPasswordMaxLength + localization.localization.translate(" characters.")});
                 }
             },
             function (error) {
                 deferred.reject({
                     name: "DBError",
-                    message: "Error when finding platform",
+                    message: "Partner password should be between " + platformData.partnerPasswordMinLength + " - " + platformData.partnerPasswordMaxLength + " characters.",
                     error: error
                 });
             }
@@ -404,6 +458,14 @@ let dbPartner = {
             platform => {
                 if (platform) {
                     platformData = platform;
+                    let pName = inputData.name;
+                    let pPrefix = platformData.partnerPrefix;
+
+                    // check partner name must start with prefix
+                    if (pName.indexOf(pPrefix) !== 0) {
+                        return Q.reject({name: "DataError", message: localization.localization.translate("Partner name should use ") + platformData.partnerPrefix + localization.localization.translate(" as prefix.")});
+                    }
+
                     return dbconfig.collection_partner.findOne({partnerName: inputData.name}).lean()
                 }
                 else {

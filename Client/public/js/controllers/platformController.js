@@ -16504,7 +16504,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true,
                         pickTime: true,
                     });
-                    vm.playerFeedbackQuery.registerEndTime = $('#registerEndTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
+                    vm.playerFeedbackQuery.registerEndTime = $('#registerEndTimePicker').data('datetimepicker').setDate(new Date(utilService.getLocalTime(new Date()).getTime() - 30*60*1000 ));
 
                     vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {pageSize: vm.playerFeedbackQuery.limit}, $translate, function (curP, pageSize) {
                         var isChange = false;
@@ -22998,6 +22998,7 @@ define(['js/app'], function (myApp) {
 
             vm.checkPlayerName = function (el, id, index) {
                 let bgColor;
+                let blockedGroupName;
                 let cssPointer = id;
                 let rowNumber = index + 1;
                 let playerNameList = el.playerName ? el.playerName.split("\n") : el.playerName;
@@ -23012,6 +23013,7 @@ define(['js/app'], function (myApp) {
 
                             if (e.playerNames.indexOf(playerName.trim()) > -1 && e.isBlockPromoCodeUser) {
                                 isBlockPlayer = e.isBlockPromoCodeUser;
+                                blockedGroupName = e.name;
                             }
                         });
                     });
@@ -23022,6 +23024,7 @@ define(['js/app'], function (myApp) {
 
                     if (isBlockPlayer) {
                         el.isBlockPromoCodeUser = isBlockPlayer;
+                        el.blockedGroupName = blockedGroupName;
                     } else {
                         el.isBlockPromoCodeUser = false;
                     }
@@ -26575,6 +26578,9 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic = vm.platformBasic || {};
                 vm.platformBasic.playerNameMaxLength = vm.selectedPlatform.data.playerNameMaxLength;
                 vm.platformBasic.playerNameMinLength = vm.selectedPlatform.data.playerNameMinLength;
+                vm.platformBasic.playerPasswordMaxLength = vm.selectedPlatform.data.playerPasswordMaxLength;
+                vm.platformBasic.playerPasswordMinLength = vm.selectedPlatform.data.playerPasswordMinLength;
+                vm.platformBasic.prefix = vm.selectedPlatform.data.prefix;
                 vm.platformBasic.samePhoneNumberRegisterCount = vm.selectedPlatform.data.samePhoneNumberRegisterCount;
                 vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
                 vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
@@ -26641,6 +26647,10 @@ define(['js/app'], function (myApp) {
                 vm.partnerBasic = vm.partnerBasic || {};
                 vm.partnerBasic.partnerNameMaxLength = vm.selectedPlatform.data.partnerNameMaxLength;
                 vm.partnerBasic.partnerNameMinLength = vm.selectedPlatform.data.partnerNameMinLength;
+                vm.partnerBasic.partnerPasswordMaxLength = vm.selectedPlatform.data.partnerPasswordMaxLength;
+                vm.partnerBasic.partnerPasswordMinLength = vm.selectedPlatform.data.partnerPasswordMinLength;
+                vm.partnerBasic.partnerPrefix = vm.selectedPlatform.data.partnerPrefix;
+                vm.partnerBasic.partnerCreatePlayerPrefix = vm.selectedPlatform.data.partnerCreatePlayerPrefix;
                 vm.partnerBasic.partnerAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.partnerAllowSamePhoneNumberToRegister;
                 vm.partnerBasic.partnerSamePhoneNumberRegisterCount = vm.selectedPlatform.data.partnerSamePhoneNumberRegisterCount;
                 vm.partnerBasic.partnerAllowSameRealNameToRegister = vm.selectedPlatform.data.partnerAllowSameRealNameToRegister;
@@ -27378,6 +27388,9 @@ define(['js/app'], function (myApp) {
                         useLockedCredit: srcData.useLockedCredit,
                         playerNameMaxLength: srcData.playerNameMaxLength,
                         playerNameMinLength: srcData.playerNameMinLength,
+                        playerPasswordMaxLength: srcData.playerPasswordMaxLength,
+                        playerPasswordMinLength: srcData.playerPasswordMinLength,
+                        prefix: srcData.prefix,
                         bonusSetting: srcData.bonusSetting,
                         requireSMSVerification: srcData.requireSMSVerification,
                         requireSMSVerificationForDemoPlayer: srcData.requireSMSVerificationForDemoPlayer,
@@ -27479,6 +27492,10 @@ define(['js/app'], function (myApp) {
                     updateData: {
                         partnerNameMaxLength: srcData.partnerNameMaxLength,
                         partnerNameMinLength: srcData.partnerNameMinLength,
+                        partnerPasswordMaxLength: srcData.partnerPasswordMaxLength,
+                        partnerPasswordMinLength: srcData.partnerPasswordMinLength,
+                        partnerPrefix: srcData.partnerPrefix,
+                        partnerCreatePlayerPrefix: srcData.partnerCreatePlayerPrefix,
                         partnerAllowSamePhoneNumberToRegister: srcData.partnerAllowSamePhoneNumberToRegister,
                         partnerSamePhoneNumberRegisterCount: srcData.partnerAllowSamePhoneNumberToRegister,
                         partnerAllowSameRealNameToRegister: srcData.partnerAllowSameRealNameToRegister,
