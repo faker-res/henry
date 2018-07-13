@@ -1665,6 +1665,35 @@ var dbPlatform = {
             )
         }
     },
+    getExternalUserInfo: function (data, index, limit){
+        var sortCol = data.sortCol || {createTime: -1};
+        index = index || 0;
+        limit = limit || constSystemParam.MAX_RECORD_NUM;
+
+        var query = {
+            platformId: data.platformId,
+            createTime: {
+                '$gte': data.startTime,
+                '$lte': data.endTime
+            },
+        };
+
+        let returnData = {};
+        returnData.totalCount = 0;
+        returnData.userInfoData = [];
+
+        let a = dbconfig.collection_playerDataFromExternalSource.find(query).sort(sortCol).skip(index).limit(limit);
+        let b = dbconfig.collection_playerDataFromExternalSource.find(query).count();
+
+        return Q.all([a, b]).then( result => {
+            if (result && result[0] && result[1]){
+
+               returnData.totalCount = result[1];
+               returnData.userInfoData = result[0];
+            }
+            return returnData
+        })
+    },
     vertificationSMS: function (data, index, limit) {
         var sortCol = data.sortCol || {createTime: -1};
         index = index || 0;
@@ -2589,6 +2618,9 @@ var dbPlatform = {
                         if (subject === 'player') {
                             returnedObj.accountMaxLength = platformData.playerNameMaxLength ? platformData.playerNameMaxLength : 0;
                             returnedObj.accountMinLength = platformData.playerNameMinLength ? platformData.playerNameMinLength : 0;
+                            returnedObj.passwordMaxLength = platformData.playerPasswordMaxLength ? platformData.playerPasswordMaxLength : 0;
+                            returnedObj.passwordMinLength = platformData.playerPasswordMinLength ? platformData.playerPasswordMinLength : 0;
+                            returnedObj.accountPrefix = platformData.prefix ? platformData.prefix : "";
                             returnedObj.minDepositAmount = platformData.minTopUpAmount ? platformData.minTopUpAmount : 0;
                             returnedObj.needSMSForTrailAccount = platformData.requireSMSVerificationForDemoPlayer ? 1 : 0;
                             returnedObj.needSMSForRegister = platformData.requireSMSVerification ? 1 : 0;
@@ -2602,6 +2634,10 @@ var dbPlatform = {
                         if (subject === 'partner') {
                             returnedObj.accountMaxLength = platformData.partnerNameMaxLength ? platformData.partnerNameMaxLength : 0;
                             returnedObj.accountMinLength = platformData.partnerNameMinLength ? platformData.partnerNameMinLength : 0;
+                            returnedObj.passwordMaxLength = platformData.partnerPasswordMaxLength ? platformData.partnerPasswordMaxLength : 0;
+                            returnedObj.passwordMinLength = platformData.partnerPasswordMinLength ? platformData.partnerPasswordMinLength : 0;
+                            returnedObj.accountPrefix = platformData.partnerPrefix ? platformData.partnerPrefix : "";
+                            returnedObj.prefixForPartnerCreatePlayer = platformData.partnerCreatePlayerPrefix ? platformData.partnerCreatePlayerPrefix : "";
                             returnedObj.needSMSForRegister = platformData.partnerRequireSMSVerification ? 1 : 0;
                             returnedObj.needSMSForModifyPassword = platformData.partnerRequireSMSVerificationForPasswordUpdate ? 1 : 0;
                             returnedObj.needSMSForModifyBankInfo = platformData.partnerRequireSMSVerificationForPaymentUpdate ? 1 : 0;
@@ -3368,22 +3404,24 @@ var dbPlatform = {
 
         console.log("YH------CHECKING------", data);
 
-        // if (data && data.length > 0){
-        //
-        //     data.forEach( inData => {
-        //        let record = {};
-        //
-        //        record.platformId = inData.platformId || "";
-        //        record.phoneNumber = inData.phoneNumber || "";
-        //        record.name = inData.name || "";
-        //
-        //        prom.push(checkAndInsertRecord(record.platformId,record.phoneNumber,record.name));
-        //     })
-        // }
+        if (data && data.length > 0){
+
+            data.forEach( inData => {
+                if (inData) {
+
+                    var platformId = inData.platformId || "";
+                    var phoneNumber = inData.phoneNumber || "";
+                    var name = inData.name || "";
+                    var createTime = inData.createTime? new Date(inData.createTime) : new Date();
+
+                    prom.push(checkAndInsertRecord(platformId, phoneNumber, name, createTime));
+                }
+            })
+        }
 
         return Promise.all(prom);
 
-        function checkAndInsertRecord(platformId, phoneNumber, name) {
+        function checkAndInsertRecord (platformId, phoneNumber, name, createTime){
             return dbconfig.collection_playerDataFromExternalSource.findOne({
                     platformId: platformId,
                     phoneNumber: phoneNumber,
@@ -3394,7 +3432,8 @@ var dbPlatform = {
                     let dataTobeSaved = {
                         platformId: platformId || "",
                         phoneNumber: phoneNumber || "",
-                        name: name || ""
+                        name: name || "",
+                        createTime: createTime || new Date()
                     };
 
                     let playerData = new dbconfig.collection_playerDataFromExternalSource(dataTobeSaved);
@@ -3579,6 +3618,9 @@ var dbPlatform = {
                 "useLockedCredit",
                 "playerNameMaxLength",
                 "playerNameMinLength",
+                "playerPasswordMaxLength",
+                "playerPasswordMinLength",
+                "prefix",
                 "bonusSetting",
                 "requireSMSVerification",
                 "requireSMSVerificationForDemoPlayer",
@@ -3596,6 +3638,10 @@ var dbPlatform = {
                 "useEbetWallet",
                 "partnerNameMaxLength",
                 "partnerNameMinLength",
+                "partnerPasswordMaxLength",
+                "partnerPasswordMinLength",
+                "partnerPrefix",
+                "partnerCreatePlayerPrefix",
                 "partnerAllowSamePhoneNumberToRegister",
                 "partnerAllowSameRealNameToRegister",
                 "partnerSamePhoneNumberRegisterCount",

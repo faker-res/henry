@@ -897,6 +897,11 @@ function socketActionPlayer(socketIO, socket) {
             var isValidData = Boolean(data);
             socketUtil.emitter(self.socket, dbPlatform.vertificationSMS, [data, data.index, data.limit], actionName, isValidData);
         },
+       getExternalUserInfo: function getExternalUserInfo(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlatform.getExternalUserInfo, [data, data.index, data.limit], actionName, isValidData);
+        },
         verifyPlayerPhoneNumber: function verifyPlayerPhoneNumber(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerObjId != null && data.phoneNumber != null);

@@ -46,6 +46,8 @@
                         span {{"callRequestConfig" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "phoneFilterConfig"}', ng-click='vm.configTabClicked("phoneFilterConfig")')
                         span {{"phoneFilterConfig" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "financialSettlementConfig"}', ng-click='vm.configTabClicked("financialSettlementConfig")')
+                        span {{"financialSettlementConfig" | translate}}
 
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary
@@ -941,6 +943,21 @@
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.playerNameMinLength}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.playerNameMinLength')
                             tr
+                                td {{'playerPasswordMaxLength' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.playerPasswordMaxLength}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.playerPasswordMaxLength')
+                            tr
+                                td {{'playerPasswordMinLength' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.playerPasswordMinLength}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.playerPasswordMinLength')
+                            tr
+                                td {{'prefix' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.prefix}}
+                                    input(type='text', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.prefix')
+                            tr
                                 td {{'minTopUpAmount' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showMinTopupAmount}}
@@ -1112,6 +1129,26 @@
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerNameMinLength}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerNameMinLength')
+                            tr
+                                td {{'partnerPasswordMaxLength' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerPasswordMaxLength}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerPasswordMaxLength')
+                            tr
+                                td {{'partnerPasswordMinLength' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerPasswordMinLength}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerPasswordMinLength')
+                            tr
+                                td {{'partnerPrefix' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerPrefix}}
+                                    input(type='text', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerPrefix')
+                            tr
+                                td {{'partnerCreatePlayerPrefix' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerCreatePlayerPrefix}}
+                                    input(type='text', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerCreatePlayerPrefix')
                             tr
                                 td {{'partnerAllowSamePhoneNumberToRegister' | translate}}
                                 td
@@ -1574,7 +1611,7 @@
                                     select.spicker.form-control(disabled, ng-model='group.providers', multiple data-width="600px")
                                         option(ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}' ng-disabled="vm.checkProviderGrouped(v._id, group.providers)") {{v.name}}
                                 td
-                                    select.form-control(disabled, ng-model='group.ebetWallet' ng-options="+(i) as v | translate for (i,v) in vm.ebetWalletList")
+                                    select.form-control(ng-disabled = "!vm.configTableEdit" ng-model='group.ebetWallet' ng-options="+(i) as v | translate for (i,v) in vm.ebetWalletList")
                                 td(ng-if='vm.configTableEdit')
                                     button.btn.btn-danger.common-button(ng-click='vm.deleteProviderGroup($index,group)') {{"Delete" | translate}}
                             tr(ng-if='vm.configTableEdit')
@@ -1712,6 +1749,51 @@
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("phoneFilterConfig")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("phoneFilterConfig")') {{"CONFIRM" | translate}}
+
+                div(ng-if='vm.selectedConfigTab=="financialSettlementConfig"')
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'CONFIGURATION_DETAIL' | translate}}
+                                th {{'VALUE' | translate}}
+                        tbody
+                            tr
+                                td {{'Use FPMS system to handle all transactions' | translate}}
+                                td
+                                    input(type='checkbox' ng-model='vm.financialSettlementConfig.financialSettlementToggle', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Financial points notification (notification pop up once when value is lower than this config)' | translate}}
+                                td(ng-show="!vm.configTableEdit")
+                                    text {{vm.financialSettlementConfig.minFinancialPointNotification}} {{" / "}}
+                                    text(ng-if="vm.financialSettlementConfig.financialPointNotification == '0'") {{"DISABLED" | translate}}
+                                    text(ng-if="vm.financialSettlementConfig.financialPointNotification == '1'") {{"ENABLED" | translate}}
+                                td(ng-show="vm.configTableEdit")
+                                    input.form-control(type='number' style = 'max-width:50%;display:inline' ng-model='vm.financialSettlementConfig.minFinancialPointNotification', ng-disabled='vm.financialSettlementConfig.financialSettlementToggle')
+                                    text {{" / "}}
+                                    select.form-control(style = 'max-width:40%;display:inline' ng-model="vm.financialSettlementConfig.financialPointNotification", ng-disabled='vm.financialSettlementConfig.financialSettlementToggle')
+                                        option(value = 0) {{"DISABLED" | translate}}
+                                        option(value = 1) {{"ENABLED" | translate}}
+                            tr
+                                td {{'Financial points disable withdrawal(all withdrawal will be disable if the point is lower than this value)' | translate}}
+                                td(ng-show="!vm.configTableEdit")
+                                    text {{vm.financialSettlementConfig.minFinancialPointDisableWithdrawal}} {{" / "}}
+                                    text(ng-if="vm.financialSettlementConfig.financialPointDisableWithdrawal == '0'") {{"DISABLED" | translate}}
+                                    text(ng-if="vm.financialSettlementConfig.financialPointDisableWithdrawal == '1'") {{"ENABLED" | translate}}
+                                td(ng-show="vm.configTableEdit")
+                                    input.form-control(type='number' style = 'max-width:50%;display:inline' ng-model='vm.financialSettlementConfig.minFinancialPointDisableWithdrawal', ng-disabled='vm.financialSettlementConfig.financialSettlementToggle')
+                                    text {{" / "}}
+                                    select.form-control(style = 'max-width:40%;display:inline' ng-model="vm.financialSettlementConfig.financialPointDisableWithdrawal", ng-disabled='vm.financialSettlementConfig.financialSettlementToggle')
+                                        option(value = 0) {{"DISABLED" | translate}}
+                                        option(value = 1) {{"ENABLED" | translate}}
+
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'financialSettlementConfig')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("financialSettlementConfig")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("financialSettlementConfig")') {{"CONFIRM" | translate}}
+                    br
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Config', 'financialSettlementConfig')") {{"add/deduct financial points" | translate}}
 
 
                 //div(ng-if='vm.selectedConfigTab=="announcement"')

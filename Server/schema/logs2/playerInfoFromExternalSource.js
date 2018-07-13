@@ -8,9 +8,11 @@ var playerInfoFromExternalSource = new Schema({
     phoneNumber: {type: String, index: true},
     //player display name
     name: {type: String, index: true},
+    // the create time
+    createTime: {type: Date, default: Date.now, index: true}
 
 });
 
-// playerInfoFromExternalSource.js.index({ platformId: 1}, {unique: true});
+playerInfoFromExternalSource.index({platformId: 1, createTime: 1});
 
 module.exports = playerInfoFromExternalSource;

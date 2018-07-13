@@ -25,7 +25,7 @@ var PartnerServiceImplement = function () {
 
     this.register.expectsData = 'name: String, realName: String, platformId: String, password: String';
     this.register.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data.name && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH));
+        var isValidData = Boolean(data.name && data.platformId && data.password /*&& (data.password.length >= constSystemParam.PASSWORD_LENGTH)*/);
         if (data.smsCode || (conn.captchaCode && (conn.captchaCode == data.captcha))) {
             data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
             var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');

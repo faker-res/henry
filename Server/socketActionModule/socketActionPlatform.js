@@ -75,7 +75,7 @@ function socketActionPlatform(socketIO, socket) {
         deletePlatformById: function deletePlatformById(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data._ids);
-            socketUtil.emitter(self.socket, dbPlatform.deletePlatform, [data._ids], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.deletePlatform, [data._ids, data.name], actionName, isValidData);
         },
         /**
          * Add platform  to department
@@ -111,7 +111,7 @@ function socketActionPlatform(socketIO, socket) {
         renameProviderInPlatformById: function renameProviderInPlatformById(data) {
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data && data.providerId && data.platformId /*&& data.providerNickName && data.providerPrefix*/);
-            socketUtil.emitter(self.socket, dbPlatform.renameProviderInPlatformById, [data.platformId, data.providerId, data.providerNickName, data.providerPrefix], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbPlatform.renameProviderInPlatformById, [data.platformId, data.providerId, data.providerNickName, data.providerPrefix, data.providerOriNickName], actionName, isDataValid);
         },
 
         /**
@@ -121,7 +121,7 @@ function socketActionPlatform(socketIO, socket) {
         updateProviderFromPlatformById: function updateProviderFromPlatformById(data) {
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data && data.providerId && data.platformId);
-            socketUtil.emitter(self.socket, dbPlatform.updateProviderFromPlatformById, [data.platformId, data.providerId, data.isEnable], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbPlatform.updateProviderFromPlatformById, [data.platformId, data.providerId, data.isEnable, data.providerName], actionName, isDataValid);
         },
         /**
          * remove a providerId from the the "gameProviders" array of a platform and

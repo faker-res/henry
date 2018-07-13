@@ -10,11 +10,13 @@ var platformSchema = new Schema({
     name: {type: String, unique: true, required: true, dropDups: true, index: true},
     //platform code
     code: {type: String, unique: true, required: true, dropDups: true, index: true},
-    //platform prefix
+    //platform player prefix
     prefix: {type: String, default: ""},
     icon: {type: String},
     //platform partner prefix
     partnerPrefix: {type: String, default: ""},
+    // partner create player prefix
+    partnerCreatePlayerPrefix: {type: String, default: ""},
     //platform description
     description: String,
     //platform url
@@ -270,10 +272,18 @@ var platformSchema = new Schema({
     playerNameMaxLength: {type: Number, default: 0},
     // minimum length for player name included platform prefix
     playerNameMinLength: {type: Number, default: 0},
+    // maximum length for player password
+    playerPasswordMaxLength: {type: Number, default: 0},
+    // minimum length for player password
+    playerPasswordMinLength: {type: Number, default: 0},
     // maximum length for partner name included platform prefix
     partnerNameMaxLength: {type: Number, default: 0},
     // minimum length for partner name included platform prefix
     partnerNameMinLength: {type: Number, default: 0},
+    // maximum length for partner password
+    partnerPasswordMaxLength: {type: Number, default: 0},
+    // minimum length for partner password
+    partnerPasswordMinLength: {type: Number, default: 0},
     // allow partner same phone number to register
     partnerAllowSamePhoneNumberToRegister: {type: Boolean, default: true},
     // allow partner same real name to register
@@ -416,7 +426,20 @@ var platformSchema = new Schema({
     }],
     // CDN/FTP route setting
     playerRouteSetting:{type: String},
-    partnerRouteSetting:{type: String}
+    partnerRouteSetting:{type: String},
+    // financial settlement setting
+    financialSettlement: {
+        //financial settlement switch
+        financialSettlementToggle: {type: Boolean, default: false},
+        // financial settlement minimum point to show notification
+        minFinancialPointNotification: {type: Number, default: 0},
+        // financial settlement minimum point notification switch
+        financialPointNotification: {type: Boolean, default: false},
+        // financial settlement minimum point to disable withdrawal
+        minFinancialPointDisableWithdrawal: {type: Number, default: 0},
+        // financial settlement minimum point to disable withdrawal switch
+        financialPointDisableWithdrawal: {type: Boolean, default: false}
+    }
 });
 
 //add platform id before save

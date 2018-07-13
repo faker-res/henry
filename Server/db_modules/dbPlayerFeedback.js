@@ -878,8 +878,23 @@ function searchPlayerFromExportProposal (proposal) {
     }
 
     if (proposalData.credibilityRemarks && proposalData.credibilityRemarks.length > 0) {
-        proposalData.credibilityRemarks = proposalData.credibilityRemarks.filter(remarkObjId => Boolean(remarkObjId && String(remarkObjId).length === 24));
-        query.credibilityRemarks = {$in: proposalData.credibilityRemarks};
+        let tempArr = [];
+        if (proposalData.credibilityRemarks.includes("")) {
+            proposalData.credibilityRemarks.forEach(remark => {
+                if (remark != "") {
+                    tempArr.push(remark);
+                }
+            });
+            query.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
+        } else {
+            query.credibilityRemarks = {$in: proposalData.credibilityRemarks};
+        }
+    }
+
+    if (proposalData.callPermission == 'true') {
+        query['permission.phoneCallFeedback'] = {$ne: false};
+    } else if (proposalData.callPermission == 'false') {
+        query['permission.phoneCallFeedback'] = false;
     }
 
     if (proposalData.lastAccessTimeFrom || proposalData.lastAccessTimeTo) {
