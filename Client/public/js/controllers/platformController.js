@@ -2965,7 +2965,7 @@ define(['js/app'], function (myApp) {
                 })
             }
             vm.removeGameGroup = function () {
-                socketService.$socket($scope.AppSocket, 'deleteGameGroup', {_id: vm.SelectedGameGroupNode.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'deleteGameGroup', {_id: vm.SelectedGameGroupNode.id, groupName: vm.SelectedGameGroupNode.text}, function (data) {
                     console.log(data.data);
                     // vm.loadGameGroupData();
                     for (var i = 0; i < vm.platformGameGroupList.length; i++) {
@@ -2989,7 +2989,8 @@ define(['js/app'], function (myApp) {
                     update: {
                         name: vm.newGameGroup.name,
                         displayName: vm.newGameGroup.displayName,
-                        code: vm.newGameGroup.code
+                        code: vm.newGameGroup.code,
+                        originalName: vm.newGameGroup.orginalName
                     }
                 }
                 socketService.$socket($scope.AppSocket, 'renamePlatformGameGroup', sendData, function (data) {
@@ -3068,7 +3069,8 @@ define(['js/app'], function (myApp) {
                     sendData.update = {
                         "$addToSet": {
                             games: {"$each": gameArr}
-                        }
+                        },
+                        gameNames: vm.selectGameGroupGamesName
                     }
                 } else if (type === 'detach') {
                     sendData.update = {
@@ -3078,7 +3080,8 @@ define(['js/app'], function (myApp) {
                                     "$in": vm.selectGameGroupGames
                                 }
                             }
-                        }
+                        },
+                        gameNames: vm.selectGameGroupGamesName
                     }
                 }
                 GeneralModal.confirm({
@@ -3133,6 +3136,7 @@ define(['js/app'], function (myApp) {
             vm.initRenameGameGroup = function () {
                 vm.newGameGroup = {};
                 vm.newGameGroup.name = vm.SelectedGameGroupNode.groupData.name;
+                vm.newGameGroup.orginalName = vm.SelectedGameGroupNode.groupData.name;
                 vm.newGameGroup.displayName = vm.SelectedGameGroupNode.groupData.displayName;
                 vm.newGameGroup.code = vm.SelectedGameGroupNode.groupData.code;
             }
@@ -3348,7 +3352,9 @@ define(['js/app'], function (myApp) {
                 var sendData = {
                     groupId: vm.SelectedGameGroupNode.id,
                     curParentGroupId: vm.SelectedGameGroupNode.parent,
-                    newParentGroupId: $scope.gameGroupMove.isRoot ? vm.newGroupParent.id : null
+                    newParentGroupId: $scope.gameGroupMove.isRoot ? vm.newGroupParent.id : null,
+                    groupName: vm.SelectedGameGroupNode.groupData.name,
+                    newParentGroupName: $scope.gameGroupMove.isRoot ? vm.newGroupParent.groupData.name : null,
                 }
                 socketService.$socket($scope.AppSocket, 'updateGameGroupParent', sendData, success);
 
