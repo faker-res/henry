@@ -3816,6 +3816,8 @@
   "TARGET_SITE": "目标网站",
   "EXPORT_PLAYER_COUNT": "转移玩家总数",
   "BULK_CALL": "批量拨出",
+  "CALL_PERMISSION": "电话回访权限",
+  "CALLABLE": "可播电",
 
   "Please Enter Task Name": "请输入该任务 名称",
   "Please Enter Task Description": "请输入该任务 备注",

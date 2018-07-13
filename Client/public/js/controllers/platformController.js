@@ -15376,6 +15376,12 @@ define(['js/app'], function (myApp) {
                     sendQuery["$or"] = sendQueryOr;
                 }
 
+                if (vm.playerFeedbackQuery.callPermission == 'true') {
+                    sendQuery['permission.phoneCallFeedback'] = {$ne: false};
+                } else if (vm.playerFeedbackQuery.callPermission == 'false') {
+                    sendQuery['permission.phoneCallFeedback'] = false;
+                }
+
                 if (vm.playerFeedbackQuery.depositCountOperator && vm.playerFeedbackQuery.depositCountFormal != null) {
                     switch (vm.playerFeedbackQuery.depositCountOperator) {
                         case ">=":
@@ -15750,6 +15756,12 @@ define(['js/app'], function (myApp) {
                     } else {
                         sendQuery["$or"] = sendQueryOr;
                     }
+                }
+
+                if (vm.playerFeedbackQuery.callPermission == 'true') {
+                    sendQuery['permission.phoneCallFeedback'] = {$ne: false};
+                } else if (vm.playerFeedbackQuery.callPermission == 'false') {
+                    sendQuery['permission.phoneCallFeedback'] = false;
                 }
 
                 if (vm.playerFeedbackQuery.depositCountOperator && vm.playerFeedbackQuery.depositCountFormal != null) {
@@ -16467,6 +16479,7 @@ define(['js/app'], function (myApp) {
                 vm.playerFeedbackQuery.playerType = "Real Player (all)";
                 vm.playerFeedbackQuery.playerLevel = "all";
                 vm.playerFeedbackQuery.lastAccess = "15-28";
+                vm.playerFeedbackQuery.callPermission = "true";
                 setTimeout(
                     () => {
                         let parentId;
@@ -16504,7 +16517,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true,
                         pickTime: true,
                     });
-                    vm.playerFeedbackQuery.registerEndTime = $('#registerEndTimePicker').data('datetimepicker').setDate(new Date(utilService.setLocalDayStartTime(new Date()).getTime() - 30*60*1000 ));
+                    vm.playerFeedbackQuery.registerEndTime = $('#registerEndTimePicker').data('datetimepicker').setDate(new Date(utilService.getLocalTime(new Date()).getTime() - 30*60*1000 ));
 
                     vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {pageSize: vm.playerFeedbackQuery.limit}, $translate, function (curP, pageSize) {
                         var isChange = false;
@@ -21372,7 +21385,7 @@ define(['js/app'], function (myApp) {
             }
             vm.deleteReward = function (data) {
                 console.log('vm.showReward', vm.showReward);
-                socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {_ids: [vm.showReward._id]}, function (data) {
+                socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {_ids: [vm.showReward._id], name: vm.showReward.name}, function (data) {
                     //vm.allGameProvider = data.data;
                     vm.rewardTabClicked(function () {
                         vm.rewardEventClicked(0, vm.allRewardEvent[0])
@@ -22998,6 +23011,7 @@ define(['js/app'], function (myApp) {
 
             vm.checkPlayerName = function (el, id, index) {
                 let bgColor;
+                let blockedGroupName;
                 let cssPointer = id;
                 let rowNumber = index + 1;
                 let playerNameList = el.playerName ? el.playerName.split("\n") : el.playerName;
@@ -23012,6 +23026,7 @@ define(['js/app'], function (myApp) {
 
                             if (e.playerNames.indexOf(playerName.trim()) > -1 && e.isBlockPromoCodeUser) {
                                 isBlockPlayer = e.isBlockPromoCodeUser;
+                                blockedGroupName = e.name;
                             }
                         });
                     });
@@ -23022,6 +23037,7 @@ define(['js/app'], function (myApp) {
 
                     if (isBlockPlayer) {
                         el.isBlockPromoCodeUser = isBlockPlayer;
+                        el.blockedGroupName = blockedGroupName;
                     } else {
                         el.isBlockPromoCodeUser = false;
                     }

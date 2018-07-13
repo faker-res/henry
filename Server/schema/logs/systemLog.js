@@ -4,13 +4,13 @@ var Schema = mongoose.Schema;
 // AdminActionLog
 var systemLogSchema = new Schema ({
     //Admin LoginId
-    adminName: {type: String},
+    adminName: {type: String, index: true},
     //Action
     action: String,
     // Data sent
     data: JSON,
     // Date of action
-    operationTime: {type: Date, default: Date.now},
+    operationTime: {type: Date, default: Date.now, index: true},
     //Level of the log: such as "info", "error"
     level: String,
     //Any associated error

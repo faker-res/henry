@@ -1314,6 +1314,7 @@ let dbPlayerCreditTransfer = {
     },
 
     playerCreditTransferToEbetWallets: function (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) {
+        let checkAmountProm = [];
         let prom = [];
         let hasEbetWalletSettings = false;
         return dbConfig.collection_gameProviderGroup.find({
@@ -1324,16 +1325,37 @@ let dbPlayerCreditTransfer = {
             if(groups && groups.length > 0) {
                 groups.forEach(group => {
                     console.log('playerCreditTransferToEbetWallets group', group);
-                    if(group.hasOwnProperty('ebetWallet')) {
+                    if(group.hasOwnProperty('ebetWallet') && group.ebetWallet > 0) {
                         hasEbetWalletSettings = true;
-                        prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(group, playerObjId, platform,
-                            providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync));
+                        checkAmountProm.push(
+                            dbConfig.collection_rewardTaskGroup.findOne({
+                                platformId: platform,
+                                playerId: playerObjId,
+                                providerGroup: group._id,
+                                status: {$in: [constRewardTaskStatus.STARTED]}
+                            }).lean().then(rtg => {
+                                if(rtg && rtg.rewardAmt > 0) {
+                                    prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(group, playerObjId, platform,
+                                        providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync));
+                                }
+                            })
+                        );
                     }
                 });
-                prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(null, playerObjId, platform,
-                    providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync));
+                checkAmountProm.push(
+                    dbConfig.collection_players.findOne({_id: playerObjId}).populate(
+                        {path: "lastPlayedProvider", model: dbConfig.collection_gameProvider}
+                    ).lean().then(player => {
+                        if(player && Math.floor(parseFloat(player.validCredit)) > 0) {
+                            prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(null, playerObjId, platform,
+                                providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync))
+                        }
+                    })
+                );
                 if(hasEbetWalletSettings) {
-                    return Promise.all(prom).then(data => {
+                    return Promise.all(checkAmountProm).then(() => {
+                        return Promise.all(prom)
+                    }).then(data => {
                         let providerCredit = 0, playerCredit = 0, rewardCredit = 0, transferPlayerCredit = 0, transferRewardCredit = 0;
                         data.forEach(item => {
                             if(item && item.providerCredit && item.playerCredit && item.rewardCredit &&
@@ -1400,14 +1422,12 @@ let dbPlayerCreditTransfer = {
                 validTransferAmount += amount > 0 ? amount : Math.floor(parseFloat(player.validCredit.toFixed(2)));
                 validTransferAmount = Math.floor(validTransferAmount);
 
-                let providerGroupId = gameProviderGroup._id;
-
                 // Search for reward task group of this player on this provider
                 return gameProviderGroup ?
                     dbConfig.collection_rewardTaskGroup.findOne({
                         platformId: platform,
                         playerId: playerObjId,
-                        providerGroup: providerGroupId,
+                        providerGroup: gameProviderGroup._id,
                         status: {$in: [constRewardTaskStatus.STARTED]}
                     }).lean() : null;
             }
