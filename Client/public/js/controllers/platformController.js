@@ -22998,6 +22998,7 @@ define(['js/app'], function (myApp) {
 
             vm.checkPlayerName = function (el, id, index) {
                 let bgColor;
+                let blockedGroupName;
                 let cssPointer = id;
                 let rowNumber = index + 1;
                 let playerNameList = el.playerName ? el.playerName.split("\n") : el.playerName;
@@ -23012,6 +23013,7 @@ define(['js/app'], function (myApp) {
 
                             if (e.playerNames.indexOf(playerName.trim()) > -1 && e.isBlockPromoCodeUser) {
                                 isBlockPlayer = e.isBlockPromoCodeUser;
+                                blockedGroupName = e.name;
                             }
                         });
                     });
@@ -23022,6 +23024,7 @@ define(['js/app'], function (myApp) {
 
                     if (isBlockPlayer) {
                         el.isBlockPromoCodeUser = isBlockPlayer;
+                        el.blockedGroupName = blockedGroupName;
                     } else {
                         el.isBlockPromoCodeUser = false;
                     }
