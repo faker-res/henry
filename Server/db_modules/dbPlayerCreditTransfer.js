@@ -1872,6 +1872,7 @@ function playerCreditChangeWithRewardTaskGroup(playerObjId, platformObjId, rewar
 }
 
 function checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, gameProviderGroup, useEbetWallet) {
+    console.log("gameProviderGroup",gameProviderGroup);
     let gameProviderGroupProm = gameProviderGroup ? Promise.resolve(gameProviderGroup) :
         dbConfig.collection_gameProviderGroup.findOne({
             platform: platform,
@@ -1880,6 +1881,7 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
     return gameProviderGroupProm.then(
         res => {
             gameProviderGroup = res;
+            console.log("gameProviderGroup2",gameProviderGroup);
             if (gameProviderGroup) {
                 // Search for reward task group of this player on this provider
                 let gameCreditProm = Promise.resolve(false);
@@ -1920,8 +1922,9 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                 if(useEbetWallet === true) {
                     eBetWalletObj[gameProviderGroup.ebetWallet] = res[0].wallet[gameProviderGroup.ebetWallet];
                     let curWalletCredit = res[0].wallet[gameProviderGroup.ebetWallet];
+                    console.log("rewardGroupObj",rewardGroupObj);
                     if (rewardGroupObj) {
-                        amount = 0;
+                        amount = curWalletCredit;
                         updateObj = {
                             rewardAmt: curWalletCredit,
                             freeAmt: rewardGroupObj._inputFreeAmt,
