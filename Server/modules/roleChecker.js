@@ -407,6 +407,7 @@ var roleChecker = {
                 'createUpdatePartnerCommissionRateConfig','createUpdatePartnerCommissionConfigWithGameProviderGroup','getPartnerCommissionConfigWithGameProviderGroup'],
                 platformBasic: [],
                 phoneFilterConfig: [],
+                financialSettlementConfig: ['updatePlatform'],
                 bonusBasic:['bonusBasic'],
                 autoApproval: ['updateAutoApprovalConfig'],
                 Monitor: [],
@@ -437,6 +438,9 @@ var roleChecker = {
             "vertificationSMS": {
                 Read: ['vertificationSMSQuery']
             },
+            "getExternalUserInfo": {
+                Read: ['getExternalUserInfo']
+            },
             "promoCode": {
                 Read: ['getPromoCodeTypes', 'getPromoCodeUserGroup', 'getBlockPromoCodeUserGroup', 'getAllPromoCodeUserGroup'],
                 createPromoCode: ['generatePromoCode', 'checkPlayerHasPromoCode'],
@@ -447,7 +451,8 @@ var roleChecker = {
                 userGroupConfig: [],
                 activatePromoCode: ['updatePromoCodesActive'],
                 applyPromoCode: [],
-                promoCodeAnalysis: ['getPromoCodeTypeByObjId']
+                promoCodeAnalysis: ['getPromoCodeTypeByObjId'],
+                promoCodeTemplate: ['updatePromoCodeTemplate']
             },
             "RegistrationUrlConfig": {
                 Read: ['getAllOfficer', 'getAllPromoteWay', 'getAllUrl', 'getAdminNameByDepartment'],

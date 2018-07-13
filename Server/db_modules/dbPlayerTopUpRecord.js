@@ -659,9 +659,9 @@ var dbPlayerTopUpRecord = {
                         queryObj.createTime["$lt"] = new Date(queryEndTime);
                     }
                     if (bDirty != null) {
-                        queryObj.bDirty = bDirty;
+                        queryObj.usedEvent = {$ne: []};
                         if (bDirty == false) {
-                            queryObj.bDirty = {$ne: true};
+                            queryObj.usedEvent = [];
                         }
                     }
                     var countProm = dbconfig.collection_playerTopUpRecord.find(queryObj).count();
