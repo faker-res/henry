@@ -1262,6 +1262,8 @@ define(['js/app'], function (myApp) {
                     // setTimeout(() => {
                     //     $('#partnerDataTable').resize();
                     // }, 300);
+                    case "externalUserInfo":
+                        vm.initExternalUserInfo();
                 }
 
                 commonService.updatePageTile($translate, "platform", tabName);
@@ -2395,6 +2397,92 @@ define(['js/app'], function (myApp) {
                     })
                 });
             }
+
+            vm.initExternalUserInfo = function () {
+                vm.externalUserRecordQuery = {};
+                vm.externalUserRecordQuery.index = 0;
+                vm.externalUserRecordQuery.limit = 10;
+                
+                vm.initQueryTimeFilter('userInfoRecordQueryDiv', function () {
+                });
+                utilService.actionAfterLoaded('#userInfoTable', function () {
+                    vm.externalUserRecordQuery.pageObj = utilService.createPageForPagingTable("#userInfoTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "externalUserRecordQuery", vm.submitUserInfoRecordQuery)
+                    });
+                    vm.submitUserInfoRecordQuery(true);
+                })
+            }
+
+            vm.submitUserInfoRecordQuery = function (newSearch) {
+                var sendQuery = {
+                    startTime: vm.queryPara['userInfoRecordQueryDiv'].startTime.data('datetimepicker').getLocalDate() || new Date(0),
+                    endTime: vm.queryPara['userInfoRecordQueryDiv'].endTime.data('datetimepicker').getLocalDate() || new Date(0),
+                    index: newSearch ? 0 : vm.externalUserRecordQuery.index,
+                    limit: newSearch ? 10 : vm.externalUserRecordQuery.limit,
+                    platformId: vm.selectedPlatform.data.platformId,
+                    sortCol: vm.externalUserRecordQuery.sortCol
+                };
+
+                $('#loadUserInfoIcon').show();
+
+                socketService.$socket($scope.AppSocket, 'getExternalUserInfo', sendQuery, function (data) {
+
+                    $scope.$evalAsync(() => {
+                        console.log("getExternalUserInfo result", data);
+                        vm.externalUserRecordQuery.loading = false;
+                        let size = data.data.totalCount || 0;
+                        let result = data.data.userInfoData || [];
+
+                        vm.externalUserInfoData = result;
+
+                        vm.drawExternalUserInfoTable(result.map(item => {
+                            if (item) {
+                                item.createTime = vm.dateReformat(item.createTime);
+                                if (item.phoneNumber) {
+                                    let numLength = item.phoneNumber.length;
+                                    item.phoneNumber = item.phoneNumber.substring(0, 3) + "******" + item.phoneNumber.slice(-numLength + 9);
+                                }
+
+                                return item;
+                            }
+                        }), size, newSearch);
+
+                        vm.externalUserRecordQuery.totalCount = size;
+                        vm.externalUserRecordQuery.pageObj.init({maxCount: size}, newSearch);
+                        $('#loadUserInfoIcon').hide();
+
+                    });
+                })
+            }
+
+            vm.drawExternalUserInfoTable = function (data, size, newSearch) {
+                var option = $.extend({}, vm.generalDataTableOptions, {
+                    data: data,
+                    order: vm.externalUserRecordQuery.aaSorting || [[1, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {'title': $translate("User's Name"), data: 'name'},
+
+                        {'title': $translate('Clicking Time'), data: 'createTime', bSortable: true},
+                        {'title': $translate('phoneNumber'), data: 'phoneNumber'},
+                    ],
+                    bSortClasses: false,
+                    paging: false,
+                    
+                });
+                vm.externalUserRecordQuery.tableObj = $('#userInfoTable').DataTable(option);
+                $('#userInfoTable').off('order.dt');
+                $('#userInfoTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'externalUserRecordQuery', vm.submitUserInfoRecordQuery);
+                });
+                setTimeout(function () {
+                    $('#userInfoTable').resize();
+                }, 100);
+            }
+
             vm.initVertificationSMS = function () {
                 vm.smsRecordQuery = {};
                 vm.smsRecordQuery.purpose = "";
