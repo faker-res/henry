@@ -943,6 +943,21 @@
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.playerNameMinLength}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.playerNameMinLength')
                             tr
+                                td {{'playerPasswordMaxLength' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.playerPasswordMaxLength}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.playerPasswordMaxLength')
+                            tr
+                                td {{'playerPasswordMinLength' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.playerPasswordMinLength}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.playerPasswordMinLength')
+                            tr
+                                td {{'prefix' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.prefix}}
+                                    input(type='text', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.prefix')
+                            tr
                                 td {{'minTopUpAmount' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showMinTopupAmount}}
@@ -1114,6 +1129,26 @@
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerNameMinLength}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerNameMinLength')
+                            tr
+                                td {{'partnerPasswordMaxLength' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerPasswordMaxLength}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerPasswordMaxLength')
+                            tr
+                                td {{'partnerPasswordMinLength' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerPasswordMinLength}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerPasswordMinLength')
+                            tr
+                                td {{'partnerPrefix' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerPrefix}}
+                                    input(type='text', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerPrefix')
+                            tr
+                                td {{'partnerCreatePlayerPrefix' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerCreatePlayerPrefix}}
+                                    input(type='text', ng-show='vm.configTableEdit', min=0, ng-model='vm.partnerBasic.partnerCreatePlayerPrefix')
                             tr
                                 td {{'partnerAllowSamePhoneNumberToRegister' | translate}}
                                 td
