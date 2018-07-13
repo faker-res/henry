@@ -1400,7 +1400,7 @@ let dbPlayerCreditTransfer = {
                 validTransferAmount += amount > 0 ? amount : Math.floor(parseFloat(player.validCredit.toFixed(2)));
                 validTransferAmount = Math.floor(validTransferAmount);
 
-                let providerGroupId = gameProviderGroup ? gameProviderGroup._id : providerId;
+                let providerGroupId = gameProviderGroup._id;
 
                 // Search for reward task group of this player on this provider
                 return gameProviderGroup ?
@@ -1426,13 +1426,13 @@ let dbPlayerCreditTransfer = {
                 console.log("transfer in gameProviderGroup", gameProviderGroup);
                 // Calculate total amount needed to transfer to CPMS
                 transferAmount = validTransferAmount + lockedTransferAmount;
-                transferWallet[0] = 0;
-                if(gameProviderGroup.hasOwnProperty('ebetWallet')) {
-                    transferWallet[gameProviderGroup.ebetWallet] = 0;
-                }
-                transferWallet[0] += validTransferAmount;
-                if(gameProviderGroup.hasOwnProperty('ebetWallet')) {
-                    transferWallet[gameProviderGroup.ebetWallet] += lockedTransferAmount;
+                if(gameProviderGroup) {
+                    if (gameProviderGroup.hasOwnProperty('ebetWallet')) {
+                        transferWallet[gameProviderGroup.ebetWallet] = lockedTransferAmount;
+                    }
+                } else {
+                    transferWallet[0] = 0;
+                    transferWallet[0] += validTransferAmount;
                 }
 
                 // Check player have enough credit
@@ -1449,7 +1449,7 @@ let dbPlayerCreditTransfer = {
             }
         ).then(
             res => {
-                console.log("transfer in second then",gameProviderGroup.name, res);
+                console.log("transfer in second then",gameProviderGroup ? gameProviderGroup.name : 'null', res);
                 if (res && res[0] && res[1]) {
                     let updatedPlayerData = res[0];
                     let updatedGroupData = res[1];
@@ -1490,7 +1490,7 @@ let dbPlayerCreditTransfer = {
             }
         ).then(
             res => {
-                console.log("transfer in third then",gameProviderGroup.name, res);
+                console.log("transfer in third then",gameProviderGroup ? gameProviderGroup.name : 'null', res);
                 if (res) {
                     // Operation on player credit is success on FPMS side
                     bTransfered = true;
@@ -1534,8 +1534,9 @@ let dbPlayerCreditTransfer = {
             }
         ).then(
             res => {
-                if (res && gameProviderGroup.hasOwnProperty('ebetWallet') && res.wallet && res.wallet[gameProviderGroup.ebetWallet] == 0) {
-                    console.log("dPCT.playerTransferIn res", res);
+                console.log("dPCT.playerTransferIn res", res);
+                if (res && res.wallet && (gameProviderGroup && gameProviderGroup.hasOwnProperty('ebetWallet') && res.wallet[gameProviderGroup.ebetWallet] == 0 ||
+                        gameProviderGroup == null && res.wallet[0] == 0)) {
                     // CPMS call is success
                     // Log credit change when transfer success
                     dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, -validTransferAmount, constPlayerCreditChangeType.TRANSFER_IN, playerCredit, 0, -lockedTransferAmount, null, {
@@ -1579,7 +1580,8 @@ let dbPlayerCreditTransfer = {
                         });
 
                 }
-                else if (res && gameProviderGroup.hasOwnProperty('ebetWallet') && res.wallet && res.wallet[gameProviderGroup.ebetWallet] == 0) {
+                else if (res && res.wallet && (gameProviderGroup && gameProviderGroup.hasOwnProperty('ebetWallet') && res.wallet[gameProviderGroup.ebetWallet] > 0 ||
+                        gameProviderGroup == null && res.wallet[0] > 0)) {
                     dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, -validTransferAmount, constPlayerCreditChangeType.TRANSFER_IN_FAILED, playerCredit, 0, -lockedTransferAmount, null, {
                         providerId: providerShortId,
                         providerName: cpName,
