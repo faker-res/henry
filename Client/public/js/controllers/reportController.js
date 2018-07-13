@@ -7360,6 +7360,7 @@ define(['js/app'], function (myApp) {
                     {group: "PLAYER", text: "transferPlayerCreditToProvider", action: "transferPlayerCreditToProvider"},
                     {group: "PLAYER", text: "updatePlayerPermission", action: "updatePlayerPermission"},
                     {group: "PLAYER", text: "createUpdateTopUpGroupLog", action: "createUpdateTopUpGroupLog"},
+                    {group: "PLAYER", text: "requestClearProposalLimit", action: "requestClearProposalLimit"},
                     {group: "PLAYER", text: "modifyPlayerCredibilityRemark", action: "updatePlayerCredibilityRemark"},
 
                     {group: "Feedback", text: "ADD_FEEDBACK_RESULT", action: ["createPlayerFeedbackResult", "createPartnerFeedbackResult"]},
@@ -7377,6 +7378,7 @@ define(['js/app'], function (myApp) {
                     {group: "PARTNER", text: "Update partner bank information", action: "createUpdatePartnerBankInfoProposal"},
                     {group: "PARTNER", text: "RESET_PASSWORD", action: "resetPartnerPassword"},
                     {group: "PARTNER", text: "customizePartnerCommission", action: "customizePartnerCommission"},
+                    {group: "PARTNER", text: "updatePartnerPermission", action: "updatePartnerPermission"},
 
                     {group: "Platform Game", text: "PROVIDER_NICKNAME", action: "renameProviderInPlatformById"},
                     {group: "Platform Game", text: "ENABLE/DISABLE", action: "updateProviderFromPlatformById"},
