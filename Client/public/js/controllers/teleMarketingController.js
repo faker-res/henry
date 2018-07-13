@@ -1335,7 +1335,7 @@ define(['js/app'], function (myApp) {
                 }
                 $scope.initPhoneCall(phoneCall);
                 socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: data.playerData._id}, function (data) {
-                    $scope.phoneCall.phone = data.phoneNumber;
+                    $scope.phoneCall.phone = data.data;
                     $scope.phoneCall.loadingNumber = false;
                     $scope.safeApply();
                     $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
