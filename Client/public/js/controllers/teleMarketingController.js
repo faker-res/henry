@@ -460,6 +460,10 @@ define(['js/app'], function (myApp) {
                     // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
+                "scrollX": true,
+                "autoWidth": true,
+                "sScrollY": 550,
+                "scrollCollapse": true,
                 columns: [
 
                     {
@@ -3780,6 +3784,10 @@ define(['js/app'], function (myApp) {
                     // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
+                "scrollX": true,
+                "autoWidth": true,
+                "sScrollY": 550,
+                "scrollCollapse": true,
                 columns: [
                     {
                         title: $translate('ORDER'),
@@ -4207,6 +4215,10 @@ define(['js/app'], function (myApp) {
                     // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
+                "scrollX": true,
+                "autoWidth": true,
+                "sScrollY": 550,
+                "scrollCollapse": true,
                 columns: [
                     {
                         title: $translate('ORDER'),
