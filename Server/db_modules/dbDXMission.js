@@ -530,7 +530,10 @@ let dbDXMission = {
                                                 totalTopUpTime = topUpRecord.length;
                                                 if(topUpRecord.length > 1){
                                                     totalTopUpAmount = topUpRecord.reduce(function(previousValue, currentValue) {
-                                                        return (previousValue.amount || previousValue) + currentValue.amount;
+                                                        let previousAmount = typeof previousValue.amount != "undefined" ? previousValue.amount
+                                                            : previousValue;
+
+                                                        return previousAmount + currentValue.amount;
 
                                                     });
                                                 }else{
@@ -554,7 +557,10 @@ let dbDXMission = {
                                                 totalConsumptionTime = consumptionRecord.length;
                                                 if(consumptionRecord.length > 1){
                                                     totalConsumptionAmount = consumptionRecord.reduce(function(previousValue, currentValue) {
-                                                        return (previousValue.validAmount || previousValue) + currentValue.validAmount;
+                                                        let previousValidAmount = typeof previousValue.validAmount != "undefined" ? previousValue.validAmount
+                                                            : previousValue;
+
+                                                        return previousValidAmount + currentValue.validAmount;
                                                     });
                                                 }else{
                                                     totalConsumptionAmount = consumptionRecord[0].validAmount;
@@ -1297,7 +1303,10 @@ let dbDXMission = {
                             if(topUpRecord && topUpRecord.length > 0){
                                 if(topUpRecord.length > 1){
                                     totalTopUpAmount = topUpRecord.reduce(function(previousValue, currentValue) {
-                                        return (previousValue.amount || previousValue) + currentValue.amount;
+                                        let previousAmount = typeof previousValue.amount != "undefined" ? previousValue.amount
+                                            : previousValue;
+
+                                        return previousAmount + currentValue.amount;
                                     });
                                 }else{
                                     totalTopUpAmount = topUpRecord[0].amount;
@@ -1314,7 +1323,9 @@ let dbDXMission = {
                                 totalConsumptionTime = consumptionRecord.length;
                                 if(consumptionRecord.length > 1){
                                     totalConsumptionAmount = consumptionRecord.reduce(function(previousValue, currentValue) {
-                                        return (previousValue.validAmount || previousValue) + currentValue.validAmount;
+                                        let previousValidAmount = typeof previousValue.validAmount != "undefined" ? previousValue.validAmount
+                                            : previousValue;
+                                        return previousValidAmount + currentValue.validAmount;
                                     });
                                 }else{
                                     totalConsumptionAmount = consumptionRecord[0].validAmount;
