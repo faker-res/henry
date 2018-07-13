@@ -79,6 +79,14 @@ var dbLogger = {
                     return dbconfig.collection_partner.findOne({_id: adminActionRecordData.data[0]}, {partnerName: 1})
                 } else if (adminActionRecordData.action == 'updatePartnerPermission' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0]._id) {
                     return dbconfig.collection_partner.findOne({_id: adminActionRecordData.data[0]._id}, {partnerName: 1})
+                }else if((adminActionRecordData.action == "attachGamesToPlatform" || adminActionRecordData.action == "detachGamesFromPlatform") && adminActionRecordData.data && adminActionRecordData.data.length > 1
+                    && adminActionRecordData.data[1].length > 0 && adminActionRecordData.data[1][0].game){
+                    return dbconfig.collection_game.findOne({_id: adminActionRecordData.data[1][0].game})
+                        .populate({path: "provider", model: dbconfig.collection_gameProvider});
+                }else if((adminActionRecordData.action == "updateGameStatusToPlatform") && adminActionRecordData.data && adminActionRecordData.data.length > 0 &&
+                    adminActionRecordData.data[0].game && adminActionRecordData.data[0].game.length > 0 && adminActionRecordData.data[0].game[0]){
+                    return dbconfig.collection_game.findOne({_id: adminActionRecordData.data[0].game[0]})
+                        .populate({path: "provider", model: dbconfig.collection_gameProvider});
                 }
             }
         ).then(
@@ -172,11 +180,14 @@ var dbLogger = {
                     }else{
                         adminActionRecordData.error = "禁用" + adminActionRecordData.data[3];
                     }
-                }else if(logAction == "attachGamesToPlatform" && resultData && resultData.success && resultData.success.length > 0 && resultData.success[0].name){
-                    adminActionRecordData.error = "添加" + resultData.success[0].name;
-                }else if(logAction == "detachGamesFromPlatform" && adminActionRecordData.data && adminActionRecordData.data.length > 1
-                    && adminActionRecordData.data[1].length > 0 &&  adminActionRecordData.data[1][0].name){
-                    adminActionRecordData.error = "移除" + adminActionRecordData.data[1][0].name;
+                }else if(logAction == "attachGamesToPlatform" && data && data.provider && data.provider.name){
+                    adminActionRecordData.error = "添加" + data.provider.name;
+                }else if(logAction == "detachGamesFromPlatform" && data && data.provider && data.provider.name){
+                    adminActionRecordData.error = "移除" + data.provider.name;
+                }else if(logAction == 'updateGameStatusToPlatform' && data && data.provider && data.provider.name
+                    && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1].status){
+                    let action = adminActionRecordData.data[1].status == 1 ? "启用" : "维护";
+                    adminActionRecordData.error = "设置" + data.provider.name + action;
                 }else if (logAction == 'requestClearProposalLimit' && adminActionRecordData.data[0] && adminActionRecordData.data[0].username){
                     adminActionRecordData.error = "帐号：" + adminActionRecordData.data[0].username;
                 }else if ((logAction == 'updatePlayerPermission' || logAction == 'updatePartnerPermission')
