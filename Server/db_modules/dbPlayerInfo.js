@@ -11100,7 +11100,7 @@ let dbPlayerInfo = {
                             platformId: platformId,
                             providerId: providerId
                         };
-                        return cpmsAPI.player_grabPlayerTransferRecords(sendData);
+                        return cpmsAPI.manual(sendData);
                     } else {
                         return Q.reject({name: "DataError", message: "Cannot find player"})
                     }

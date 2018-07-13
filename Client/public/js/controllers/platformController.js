@@ -13789,6 +13789,38 @@ define(['js/app'], function (myApp) {
 
             };
 
+            vm.showFinancialPointsChange = function () {
+                vm.financialPointsChange = {
+                    pointChange: 0,
+                    remark: ""
+                };
+                $("#modalFinancialPointsChange").modal('show');
+                $("#modalFinancialPointsChange").on('shown.bs.modal', function (e) {
+                    // $scope.safeApply();
+                })
+            };
+
+            vm.updatePlatformFinancialPoints = function () {
+                var sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                    data: {
+                        updateAmount: vm.financialPointsChange.pointChange,
+                        remark: vm.financialPointsChange.remark,
+                        adminName: authService.adminName
+                    }
+                }
+
+                socketService.$socket($scope.AppSocket, 'updatePlatformFinancialPoints', sendData, function (data) {
+                    let newData = data.data;
+                    console.log('financial proposal', newData);
+                    if (data.data && data.data.stepInfo) {
+                        socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                    }
+                    // $scope.safeApply();
+                });
+            };
+
             vm.isDiffConsumptionProvider = function (providerArr, showModal) {
                 let isDiff = false;
                 let providerSourceArr;
@@ -26631,10 +26663,10 @@ define(['js/app'], function (myApp) {
             vm.getFinancialSettlementConfig = function () {
                 vm.financialSettlementConfig = vm.financialSettlementConfig || {};
                 vm.financialSettlementConfig.financialSettlementToggle = vm.selectedPlatform.data.financialSettlement.financialSettlementToggle;
-                vm.financialSettlementConfig.minFinancialPointNotification = vm.selectedPlatform.data.financialSettlement.minFinancialPointNotification;
-                vm.financialSettlementConfig.financialPointNotification = vm.selectedPlatform.data.financialSettlement.financialPointNotification? "1": "0";
-                vm.financialSettlementConfig.minFinancialPointDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.minFinancialPointDisableWithdrawal;
-                vm.financialSettlementConfig.financialPointDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.financialPointDisableWithdrawal? "1": "0";
+                vm.financialSettlementConfig.minFinancialPointsNotification = vm.selectedPlatform.data.financialSettlement.minFinancialPointsNotification;
+                vm.financialSettlementConfig.financialPointsNotification = vm.selectedPlatform.data.financialSettlement.financialPointsNotification? "1": "0";
+                vm.financialSettlementConfig.minFinancialPointsDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.minFinancialPointsDisableWithdrawal;
+                vm.financialSettlementConfig.financialPointsDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.financialPointsDisableWithdrawal? "1": "0";
             }
 
             vm.getPartnerBasic = function () {
@@ -27441,22 +27473,22 @@ define(['js/app'], function (myApp) {
             }
 
             function updateFinancialSettlementConfig(srcData) {
-                let financialPointNotification = false;
-                let financialPointDisableWithdrawal = false;
-                if (srcData.financialPointNotification == "1") {
-                    financialPointNotification = true;
+                let financialPointsNotification = false;
+                let financialPointsDisableWithdrawal = false;
+                if (srcData.financialPointsNotification == "1") {
+                    financialPointsNotification = true;
                 }
-                if (srcData.financialPointDisableWithdrawal == "1") {
-                    financialPointDisableWithdrawal = true;
+                if (srcData.financialPointsDisableWithdrawal == "1") {
+                    financialPointsDisableWithdrawal = true;
                 }
                 let sendData = {
                     query: {_id: vm.selectedPlatform.id},
                     updateData: {
                         "financialSettlement.financialSettlementToggle": srcData.financialSettlementToggle,
-                        "financialSettlement.minFinancialPointNotification": srcData.minFinancialPointNotification,
-                        "financialSettlement.financialPointNotification": financialPointNotification,
-                        "financialSettlement.minFinancialPointDisableWithdrawal": srcData.minFinancialPointDisableWithdrawal,
-                        "financialSettlement.financialPointDisableWithdrawal": financialPointDisableWithdrawal,
+                        "financialSettlement.minFinancialPointsNotification": srcData.minFinancialPointsNotification,
+                        "financialSettlement.financialPointsNotification": financialPointsNotification,
+                        "financialSettlement.minFinancialPointsDisableWithdrawal": srcData.minFinancialPointsDisableWithdrawal,
+                        "financialSettlement.financialPointsDisableWithdrawal": financialPointsDisableWithdrawal,
                     }
                 }
 

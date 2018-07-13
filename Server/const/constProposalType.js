@@ -68,7 +68,9 @@ const constProposalType = {
     PLAYER_CONVERT_REWARD_POINTS: "PlayerConvertRewardPoints",
     PLAYER_AUTO_CONVERT_REWARD_POINTS: "PlayerAutoConvertRewardPoints",
     BULK_EXPORT_PLAYERS_DATA: "BulkExportPlayerData",
-    PLAYER_LOSE_RETURN_REWARD_GROUP: "PlayerLoseReturnRewardGroup"
+    PLAYER_LOSE_RETURN_REWARD_GROUP: "PlayerLoseReturnRewardGroup",
+    FINANCIAL_POINTS_ADD: "FinancialPointsAdd",
+    FINANCIAL_POINTS_DEDUCT: "FinancialPointsDeduct"
 };
 
 module.exports = constProposalType;

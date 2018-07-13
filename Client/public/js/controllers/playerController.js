@@ -10239,7 +10239,7 @@ define(['js/app'], function (myApp) {
             let sendQuery = {
                 code: vm.playerApplyRewardPara.code,
                 playerId: vm.isOneSelectedPlayer().playerId,
-                data: {
+                data: {sho
                     topUpRecordId: vm.playerApplyRewardPara.topUpRecordId,
                     topUpRecordIds: idArr,
                     amount: vm.playerApplyRewardPara.amount,

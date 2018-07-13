@@ -1729,25 +1729,25 @@
                             tr
                                 td {{'Financial points notification (notification pop up once when value is lower than this config)' | translate}}
                                 td(ng-show="!vm.configTableEdit")
-                                    text {{vm.financialSettlementConfig.minFinancialPointNotification}} {{" / "}}
-                                    text(ng-if="vm.financialSettlementConfig.financialPointNotification == '0'") {{"DISABLED" | translate}}
-                                    text(ng-if="vm.financialSettlementConfig.financialPointNotification == '1'") {{"ENABLED" | translate}}
+                                    text {{vm.financialSettlementConfig.minFinancialPointsNotification}} {{" / "}}
+                                    text(ng-if="vm.financialSettlementConfig.financialPointsNotification == '0'") {{"DISABLED" | translate}}
+                                    text(ng-if="vm.financialSettlementConfig.financialPointsNotification == '1'") {{"ENABLED" | translate}}
                                 td(ng-show="vm.configTableEdit")
-                                    input.form-control(type='number' style = 'max-width:50%;display:inline' ng-model='vm.financialSettlementConfig.minFinancialPointNotification', ng-disabled='vm.financialSettlementConfig.financialSettlementToggle')
+                                    input.form-control(type='number' style = 'max-width:50%;display:inline' ng-model='vm.financialSettlementConfig.minFinancialPointsNotification', ng-disabled='vm.financialSettlementConfig.financialSettlementToggle')
                                     text {{" / "}}
-                                    select.form-control(style = 'max-width:40%;display:inline' ng-model="vm.financialSettlementConfig.financialPointNotification", ng-disabled='vm.financialSettlementConfig.financialSettlementToggle')
+                                    select.form-control(style = 'max-width:40%;display:inline' ng-model="vm.financialSettlementConfig.financialPointsNotification", ng-disabled='vm.financialSettlementConfig.financialSettlementToggle')
                                         option(value = 0) {{"DISABLED" | translate}}
                                         option(value = 1) {{"ENABLED" | translate}}
                             tr
                                 td {{'Financial points disable withdrawal(all withdrawal will be disable if the point is lower than this value)' | translate}}
                                 td(ng-show="!vm.configTableEdit")
-                                    text {{vm.financialSettlementConfig.minFinancialPointDisableWithdrawal}} {{" / "}}
-                                    text(ng-if="vm.financialSettlementConfig.financialPointDisableWithdrawal == '0'") {{"DISABLED" | translate}}
-                                    text(ng-if="vm.financialSettlementConfig.financialPointDisableWithdrawal == '1'") {{"ENABLED" | translate}}
+                                    text {{vm.financialSettlementConfig.minFinancialPointsDisableWithdrawal}} {{" / "}}
+                                    text(ng-if="vm.financialSettlementConfig.financialPointsDisableWithdrawal == '0'") {{"DISABLED" | translate}}
+                                    text(ng-if="vm.financialSettlementConfig.financialPointsDisableWithdrawal == '1'") {{"ENABLED" | translate}}
                                 td(ng-show="vm.configTableEdit")
-                                    input.form-control(type='number' style = 'max-width:50%;display:inline' ng-model='vm.financialSettlementConfig.minFinancialPointDisableWithdrawal', ng-disabled='vm.financialSettlementConfig.financialSettlementToggle')
+                                    input.form-control(type='number' style = 'max-width:50%;display:inline' ng-model='vm.financialSettlementConfig.minFinancialPointsDisableWithdrawal', ng-disabled='vm.financialSettlementConfig.financialSettlementToggle')
                                     text {{" / "}}
-                                    select.form-control(style = 'max-width:40%;display:inline' ng-model="vm.financialSettlementConfig.financialPointDisableWithdrawal", ng-disabled='vm.financialSettlementConfig.financialSettlementToggle')
+                                    select.form-control(style = 'max-width:40%;display:inline' ng-model="vm.financialSettlementConfig.financialPointsDisableWithdrawal", ng-disabled='vm.financialSettlementConfig.financialSettlementToggle')
                                         option(value = 0) {{"DISABLED" | translate}}
                                         option(value = 1) {{"ENABLED" | translate}}
 
@@ -1758,7 +1758,7 @@
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("financialSettlementConfig")') {{"CONFIRM" | translate}}
                     br
                     .pull-right
-                        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Config', 'financialSettlementConfig')") {{"add/deduct financial points" | translate}}
+                        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Config', 'financialSettlementConfig')", ng-click = 'vm.showFinancialPointsChange()') {{"add/deduct financial points" | translate}}
 
 
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
@@ -1819,6 +1819,36 @@
                     label {{"PREVIEW" | translate}}
                     .well(style="margin-bottom: 0px; padding-top: 15px; padding-bottom: 15px", ng-non-bindable)
                         .announcementPreview.html(style="max-height: 185px; overflow: auto; background-color: white")
+
+#modalFinancialPointsChange.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"add/deduct financial points" | translate}} {{"("}} {{vm.selectedPlatform.data.name}} {{")"}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                                    thead
+                                        tr
+                                            th {{'financial point change(+/-)' | translate}}
+                                            th {{'REMARKS' | translate}}
+                                    tbody
+                                        tr
+                                            td
+                                                input(type='number' ng-model='vm.financialPointsChange.pointChange')
+                                            td 
+                                                textarea(ng-model='vm.financialPointsChange.remark' style='width:80%')
+
+                                //.well
+                                    label {{"all provider group will force unlock"|translate}}
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal' ng-disabled='!(vm.financialPointsChange.pointChange && vm.financialPointsChange.remark)' ng-click='vm.updatePlatformFinancialPoints()') {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
 #modalLevelUpPeriod.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
         .modal-content

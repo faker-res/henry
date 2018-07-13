@@ -36,6 +36,7 @@ const qrCode = require('qrcode');
 const http = require('http');
 const https = require('https');
 const localization = require("../modules/localization");
+const dbProposal = require('./../db_modules/dbProposal');
 
 // constants
 const constProposalEntryType = require('../const/constProposalEntryType');
@@ -3575,6 +3576,37 @@ var dbPlatform = {
                     });
                 });
 
+            }
+        )
+    },
+
+    updatePlatformFinancialPoints: function (platformId, typeName, proposalData) {
+        //get proposal type id
+        let ptProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: typeName}).exec();
+
+        return ptProm.then(
+            (proposalType) => {
+                //check if there is pending proposal for this type
+                let queryObj = {
+                    type: proposalType._id,
+                    status: constProposalStatus.PENDING,
+                    "data.playerObjId": proposalData.data.playerObjId
+                }
+
+                return dbconfig.collection_proposal.findOne(queryObj).lean().then(
+                    pendingProposal => {
+                        if (pendingProposal) {
+                            return Q.reject({
+                                name: "DBError",
+                                message: "Player or partner already has a pending proposal for this type"
+                            });
+                        }
+                    }
+                )
+            }
+        ).then(
+            () => {
+                return dbProposal.createProposalWithTypeNameWithProcessInfo(platformId, typeName, proposalData)
             }
         )
     },
