@@ -1314,6 +1314,7 @@ let dbPlayerCreditTransfer = {
     },
 
     playerCreditTransferToEbetWallets: function (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) {
+        let checkAmountProm = [];
         let prom = [];
         let hasEbetWalletSettings = false;
         return dbConfig.collection_gameProviderGroup.find({
@@ -1324,16 +1325,29 @@ let dbPlayerCreditTransfer = {
             if(groups && groups.length > 0) {
                 groups.forEach(group => {
                     console.log('playerCreditTransferToEbetWallets group', group);
-                    if(group.hasOwnProperty('ebetWallet')) {
+                    if(group.hasOwnProperty('ebetWallet') && group.ebetWallet != null) {
                         hasEbetWalletSettings = true;
-                        prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(group, playerObjId, platform,
-                            providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync));
+                        checkAmountProm.push(
+                            dbConfig.collection_rewardTaskGroup.findOne({
+                                platformId: platform,
+                                playerId: playerObjId,
+                                providerGroup: group._id,
+                                status: {$in: [constRewardTaskStatus.STARTED]}
+                            }).lean().then(rtg => {
+                                if(rtg && rtg.rewardAmt > 0) {
+                                    prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(group, playerObjId, platform,
+                                        providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync));
+                                }
+                            })
+                        );
                     }
                 });
                 prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(null, playerObjId, platform,
                     providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync));
                 if(hasEbetWalletSettings) {
-                    return Promise.all(prom).then(data => {
+                    return Promise.all(checkAmountProm).then(() => {
+                        return Promise.all(prom)
+                    }).then(data => {
                         let providerCredit = 0, playerCredit = 0, rewardCredit = 0, transferPlayerCredit = 0, transferRewardCredit = 0;
                         data.forEach(item => {
                             if(item && item.providerCredit && item.playerCredit && item.rewardCredit &&
