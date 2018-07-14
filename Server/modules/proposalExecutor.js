@@ -248,6 +248,8 @@ var proposalExecutor = {
             this.executions.executeCustomizePartnerCommRate.des = "Customize Partner Commmission Rate";
             this.executions.executeSettlePartnerCommission.des = "Settle Partner Commission";
             this.executions.executeBulkExportPlayerData.des = "Bulk Export Player Data";
+            this.executions.executeFinancialPointsAdd.des = "Add Platform Financial Points";
+            this.executions.executeFinancialPointsDeduct.des = "Deduct Platform Financial Points";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -313,6 +315,8 @@ var proposalExecutor = {
             this.rejections.rejectCustomizePartnerCommRate.des = "Reject Customize Partner Commmission Rate";
             this.rejections.rejectSettlePartnerCommission.des = "Reject Settle Partner Commission";
             this.rejections.rejectBulkExportPlayerData.des = "Reject Bulk Export Player Data";
+            this.rejections.rejectFinancialPointsAdd.des = "Reject Add Platform Financial Points";
+            this.rejections.rejectFinancialPointsDeduct.des = " Reject Deduct Platform Financial Points";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -2827,6 +2831,45 @@ var proposalExecutor = {
                     deferred.resolve(proposalData);
                 }
             },
+
+            executeFinancialPointsAdd: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.platformId && proposalData.data.updateAmount) {
+                    proposalData.data.proposalId = proposalData.proposalId;
+                    return dbconfig.collection_platform.findOneAndUpdate({_id: proposalData.data.platformId},
+                        {
+                            $inc: {
+                                financialPoints: proposalData.data.updateAmount
+                            }
+                        }
+                    )
+                        .then(
+                            data => deferred.resolve(data),
+                            error => deferred.reject(error)
+                        );
+                } else {
+                    deferred.reject({name: "DataError", message: "Invalid input data"});
+                }
+            },
+
+            executeFinancialPointsDeduct: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.platformId && proposalData.data.updateAmount) {
+                    proposalData.data.proposalId = proposalData.proposalId;
+                    return dbconfig.collection_platform.findOneAndUpdate({_id: proposalData.data.platformId},
+                        {
+                            $inc: {
+                                financialPoints: proposalData.data.updateAmount
+                            }
+                        }
+                    )
+                        .then(
+                            data => deferred.resolve(data),
+                            error => deferred.reject(error)
+                        );
+                } else {
+                    deferred.reject({name: "DataError", message: "Invalid input data"});
+                }
+            },
+
         },
 
         /**
@@ -3532,6 +3575,14 @@ var proposalExecutor = {
                         deferred.resolve("Proposal is rejected");
                     }
                 );
+            },
+
+            rejectFinancialPointsAdd: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectFinancialPointsDeduct: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
             },
 
             rejectCustomizePartnerCommRate: function (proposalData, deferred) {

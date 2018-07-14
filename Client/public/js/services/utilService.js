@@ -851,6 +851,8 @@ define([], function () {
                 case "ManualUnlockPlayerReward":
                 case "PlayerRegistrationIntention":
                 case "PlayerLimitedOfferIntention":
+                case "FinancialPointsAdd":
+                case "FinancialPointsDeduct":
                 default:
                     groupName = "Others";
                     break;
