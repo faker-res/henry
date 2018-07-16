@@ -81,6 +81,7 @@ let dbPlayerCreditTransfer = require('../db_modules/dbPlayerCreditTransfer');
 let dbPlayerFeedback = require('../db_modules/dbPlayerFeedback');
 let dbPlayerLevel = require('../db_modules/dbPlayerLevel');
 let dbPlayerReward = require('../db_modules/dbPlayerReward');
+let dbPlatform = require('../db_modules/dbPlatform');
 let dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 let dbProposal = require('./../db_modules/dbProposal');
 let dbProposalType = require('./../db_modules/dbProposalType');
@@ -3154,6 +3155,17 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data) {
+                    let financialProposal = {
+                        creator: proposalData.creator,
+                        data: {
+                            updateAmount: proposalData.data.amount,
+                            remark: "",
+                            topUpProposalId: proposalData.proposalId,
+                            noExecuteRequire: true
+                        }
+                    };
+                    dbPlatform.changePlatformFinancialPoints(data.platform, proposalData.data.amount).catch(errorUtils.reportError);
+                    dbProposal.createProposalWithTypeNameWithProcessInfo(data.platform, constProposalType.FINANCIAL_POINTS_ADD, financialProposal).catch(errorUtils.reportError);
                     if (data.platform) {
                         return dbconfig.collection_platform.findOne({_id: data.platform})
                             .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean().then(
