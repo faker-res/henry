@@ -3792,6 +3792,8 @@
   "CURRENT_PERIOD": "本周期",
   "PREVIOUS_X_PERIOD": "前 X 周期",
   "Partner not found.": "搜索代理失败",
+  "Apply Commission Succeed": "结算佣金成功",
+  "PAST_COMMISSION_SETTLEMENT": "结算之前周期的佣金",
 
   "RECEIVE_BANK_TYPE": "收款银行类型",
   "RECEIVE_BANK_ACC": "收款银行账号",
@@ -3961,6 +3963,9 @@
   "Use FPMS system to handle all transactions": "使用本系统（FPMS）直接进行财务操作（银行卡、个人支付宝、个人微信、提款将可自行在本系统操作）",
   "Financial points notification (notification pop up once when value is lower than this config)": "财务点数提醒值（低于该数则登入弹出警示窗一次）",
   "Financial points disable withdrawal(all withdrawal will be disable if the point is lower than this value)": "财务点数停止付款值（低于该数则停止将提案送至财务部门）",
-  "add/deduct financial points": "增加/扣除财务点数"
+  "add/deduct financial points": "增加/扣除财务点数",
+  "FinancialPointsAdd": "财务点数增加",
+  "FinancialPointsDeduct": "财务点数扣除",
+  "financial point change(+/-)": "点数变化（可＋－）"
 
 }

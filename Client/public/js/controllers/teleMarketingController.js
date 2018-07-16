@@ -1334,8 +1334,8 @@ define(['js/app'], function (myApp) {
                     loadingNumber: true,
                 }
                 $scope.initPhoneCall(phoneCall);
-                socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: data.playerData_id}, function (data) {
-                    $scope.phoneCall.phone = data.phoneNumber;
+                socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: data.playerData._id}, function (data) {
+                    $scope.phoneCall.phone = data.data;
                     $scope.phoneCall.loadingNumber = false;
                     $scope.safeApply();
                     $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
