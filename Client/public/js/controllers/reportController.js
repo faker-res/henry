@@ -2553,7 +2553,7 @@ define(['js/app'], function (myApp) {
         ////////////////////PARTNER REAL TIME COMMISSION REPORT//////////////////////
         vm.getSelectedCommissionPeriod = () => {
             if (vm.selectedCommissionPeriod) {
-                let query = {pastX: vm.selectedCommissionPeriod};
+                let query = {pastX: vm.selectedCommissionPeriod, platformObjId: vm.selectedPlatform._id};
 
                 if (vm.realTimeCommissionQuery.partnerName) {
                     query.partnerName = vm.realTimeCommissionQuery.partnerName;
@@ -2619,9 +2619,34 @@ define(['js/app'], function (myApp) {
                                     vm.partnerCommVar.platformFeeTab = idxgroup;
                                 }
                             });
+
+                            if (vm.realTimeCommissionQuery.partnerName && vm.selectedCommissionPeriod && vm.realTimeCommissionData.length == 1) {
+                                vm.showRealTimeCommissionSettlementButton = true;
+                            }
                         }
                     });
                 });
+            }, function (error) {
+                loadingSpinner.hide();
+                vm.realTimeCommissionLoadingStatus = (error && error.errorMessage) || $translate("RESPONSE_TIMEOUT");
+                console.log('getCurrentPartnerCommissionDetail error', error);
+            });
+        };
+
+        vm.settlePastCommission = () => {
+            if (!vm.realTimeCommissionQuery.partnerName || !vm.selectedCommissionPeriod) {
+                return;
+            }
+
+            let query = {pastX: vm.selectedCommissionPeriod, platformObjId: vm.selectedPlatform._id, partnerName: vm.realTimeCommissionQuery.partnerName};
+            let loadingSpinner = $('#realTimeCommissionTableSpin');
+            loadingSpinner.show();
+
+            socketService.$socket($scope.AppSocket, 'settlePastCommission', query, function (data) {
+                loadingSpinner.hide();
+                console.log('settlePastCommission', data);
+
+                socketService.showConfirmMessage($translate("Apply Commission Succeed"), 10000)
             }, function (error) {
                 loadingSpinner.hide();
                 vm.realTimeCommissionLoadingStatus = (error && error.errorMessage) || $translate("RESPONSE_TIMEOUT");
