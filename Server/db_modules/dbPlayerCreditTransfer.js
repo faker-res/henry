@@ -1152,10 +1152,11 @@ let dbPlayerCreditTransfer = {
                             }
                             return pCTFP.playerTransferOut(playerTransferOutRequestData).then(
                                 res => {
-                                    console.log("ebetwallet pCTFP.playerTransferOut", res);
+                                    console.log("ebetwallet pCTFP.playerTransferOut success", res);
                                     return res;
                                 },
                                 error => {
+                                    console.log("ebetwallet pCTFP.playerTransferOut error", error);
                                     // let lockedAmount = rewardTask && rewardTask.currentAmount ? rewardTask.currentAmount : 0;
                                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
                                         providerShortId, amount, updateObj.rewardAmt, adminName, error, constPlayerCreditTransferStatus.FAIL);
@@ -1891,12 +1892,17 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                 console.log("gameProviderGroup2 ID",gameProviderGroup._id);
                 // Search for reward task group of this player on this provider
                 let gameCreditProm = Promise.resolve(false);
-                let rewardTaskGroupProm = dbConfig.collection_rewardTaskGroup.findOne({
-                    platformId: platform,
-                    playerId: playerObjId,
-                    providerGroup: gameProviderGroup._id,
-                    status: {$in: [constRewardTaskStatus.STARTED]}
-                }).lean();
+                let rewardTaskGroupProm;
+                if(useEbetWallet && gameProviderGroup && !gameProviderGroup._id) {
+                    rewardTaskGroupProm = Promise.resolve(null);
+                } else {
+                    rewardTaskGroupProm = dbConfig.collection_rewardTaskGroup.findOne({
+                        platformId: platform,
+                        playerId: playerObjId,
+                        providerGroup: gameProviderGroup._id,
+                        status: {$in: [constRewardTaskStatus.STARTED]}
+                    }).lean();
+                }
 
                 if (forSync) {
                     gameCreditProm = Promise.resolve({credit: amount});
