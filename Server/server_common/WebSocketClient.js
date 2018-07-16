@@ -68,7 +68,7 @@
                     //console.log(beat);
                     self._connection.send(JSON.stringify(beat));
                 }
-            }, 5 * 1000
+            }, 10 * 1000
         );
     },
 
