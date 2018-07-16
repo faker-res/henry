@@ -27953,7 +27953,7 @@ define(['js/app'], function (myApp) {
                     title: "Delete Announcement",
                     text: `Are you sure you want to delete the announcement "${ann.title}"?`
                 }).then(function () {
-                    $scope.$socketPromise('deletePlatformAnnouncementByIds', {_ids: [ann._id]})
+                    $scope.$socketPromise('deletePlatformAnnouncementByIds', {_ids: [ann._id], title: ann.title})
                         .done(function (data) {
                             vm.configTabClicked("announcement");
                         });

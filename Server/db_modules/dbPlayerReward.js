@@ -2830,6 +2830,11 @@ let dbPlayerReward = {
             }).lean();
         }).then(
             proposalTypeData => {
+                // determine applyAmount
+                let applyAmt = topUpProp && topUpProp.data.amount ? topUpProp.data.amount : 0;
+
+                if (promoCodeObj.promoCodeTypeObjId.type === 1) { applyAmt = 0 }
+
                 // create reward proposal
                 let proposalData = {
                     type: proposalTypeData._id,
@@ -2851,7 +2856,7 @@ let dbPlayerReward = {
                         disableWithdraw: promoCodeObj.disableWithdraw,
                         PROMO_CODE_TYPE: promoCodeObj.promoCodeTypeObjId.name,
                         promoCodeTypeValue: promoCodeObj.promoCodeTypeObjId.type,
-                        applyAmount: topUpProp && topUpProp.data.amount ? topUpProp.data.amount : 0,
+                        applyAmount: applyAmt,
                         topUpProposal: topUpProp && topUpProp.proposalId ? topUpProp.proposalId : null,
                         useLockedCredit: false,
                         useConsumption: !promoCodeObj.isSharedWithXIMA,
