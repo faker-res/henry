@@ -3653,16 +3653,16 @@ define(['js/app'], function (myApp) {
                         item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
                     }
 
-                    if (!item.phoneProvince | item.phoneProvince === 'null' || item.phoneProvince === 'undefined') {
+                    if (!item.phoneProvince || item.phoneProvince === 'null' || item.phoneProvince === 'undefined') {
                         item.phoneProvince = $translate('Unknown');
                     }
-                    if (!item.phoneCity | item.phoneCity === 'null' || item.phoneCity === 'undefined') {
+                    if (!item.phoneCity || item.phoneCity === 'null' || item.phoneCity === 'undefined') {
                         item.phoneCity = $translate('Unknown');
                     }
-                    if (!item.province | item.province === 'null' || item.province === 'undefined') {
+                    if (!item.province || item.province === 'null' || item.province === 'undefined') {
                         item.province = $translate('Unknown');
                     }
-                    if (!item.city | item.city === 'null' || item.city === 'undefined') {
+                    if (!item.city || item.city === 'null' || item.city === 'undefined') {
                         item.city = $translate('Unknown');
                     }
 
