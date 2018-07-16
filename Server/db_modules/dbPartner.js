@@ -191,9 +191,9 @@ let dbPartner = {
                         partnerdata.commissionType = platformData.partnerDefaultCommissionGroup;
                     }
                     // attach platform prefix to partner name if available
-                    if (platform.partnerPrefix) {
-                        partnerdata.partnerName = platform.partnerPrefix + partnerdata.partnerName;
-                    }
+                    // if (platform.partnerPrefix) {
+                    //     partnerdata.partnerName = platform.partnerPrefix + partnerdata.partnerName;
+                    // }
                     pName = partnerdata.partnerName;
 
                     if ((platformData.partnerNameMaxLength > 0 && partnerdata.partnerName.length > platformData.partnerNameMaxLength) || (platformData.partnerNameMinLength > 0 && partnerdata.partnerName.length < platformData.partnerNameMinLength)) {
