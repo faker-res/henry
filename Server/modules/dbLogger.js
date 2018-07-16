@@ -15,6 +15,7 @@ var rsaCrypto = require('../modules/rsaCrypto');
 const constSMSPurpose = require('../const/constSMSPurpose');
 const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 var localization = require("../modules/localization");
+const constRewardPointsTaskCategory = require('../const/constRewardPointsTaskCategory');
 
 var dbLogger = {
 
@@ -266,6 +267,38 @@ var dbLogger = {
                 }else if (logAction == 'deletePlatformAnnouncementByIds' && adminActionRecordData.data && adminActionRecordData.data.length > 1
                     && adminActionRecordData.data[1]) {
                     adminActionRecordData.error = "删除" + adminActionRecordData.data[1];
+                }else if (logAction == 'pushNotification' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].tittle) {
+                    adminActionRecordData.error = "添加" + adminActionRecordData.data[0].tittle;
+                }else if ((logAction == 'updateRewardPointsEvent' || logAction == 'createRewardPointsEvent')
+                    && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].category){
+                    let action = '';
+                    let rewardPointsCategory = '';
+                    if (adminActionRecordData.data[0].category == constRewardPointsTaskCategory.LOGIN_REWARD_POINTS) {
+                        rewardPointsCategory = 'LOGIN_REWARD_POINTS';
+                    } else if (adminActionRecordData.data[0].category == constRewardPointsTaskCategory.GAME_REWARD_POINTS) {
+                        rewardPointsCategory = 'GAME_REWARD_POINTS';
+                    } else if (adminActionRecordData.data[0].category == constRewardPointsTaskCategory.TOPUP_REWARD_POINTS) {
+                        rewardPointsCategory = 'TOPUP_REWARD_POINTS';
+                    }
+
+                    if (logAction == 'updateRewardPointsEvent') {
+                        action = "编辑";
+                    } else if (logAction == 'createRewardPointsEvent') {
+                        action = "添加";
+                    }
+
+                    adminActionRecordData.error = action + localization.localization.translate(rewardPointsCategory);
+                } else if (logAction == 'deleteRewardPointsEventById' && adminActionRecordData && adminActionRecordData.data[1]){
+                    let rewardPointsCategory = '';
+                    if (adminActionRecordData.data[1] == constRewardPointsTaskCategory.LOGIN_REWARD_POINTS) {
+                        rewardPointsCategory = 'LOGIN_REWARD_POINTS';
+                    } else if (adminActionRecordData.data[1] == constRewardPointsTaskCategory.GAME_REWARD_POINTS) {
+                        rewardPointsCategory = 'GAME_REWARD_POINTS';
+                    } else if (adminActionRecordData.data[1] == constRewardPointsTaskCategory.TOPUP_REWARD_POINTS) {
+                        rewardPointsCategory = 'TOPUP_REWARD_POINTS';
+                    }
+
+                    adminActionRecordData.error = "删除" + localization.localization.translate(rewardPointsCategory);
                 }
 
 
