@@ -1167,8 +1167,11 @@ let dbPlayerCreditTransfer = {
                                 );
                             }
                         );
-                    } else if (res[0] == 0 && res[2]) {  //if the amount if 0 but there is reward task group
+                    } else if (res[0] == 0 && res[2]) {  //if the amount is 0 but there is reward task group
                         return true;
+                    } else {
+                        // should not reach here
+                        return errorUtils.reportError(res);
                     }
                 }
             }
@@ -1657,7 +1660,8 @@ let dbPlayerCreditTransfer = {
 
     playerCreditTransferFromEbetWallets: function (playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync) {
         let checkRTGProm = [];
-        let prom = [];
+        let transferOut = Promise.resolve();
+        let transferOutSuccessData = [];
         let gameCredit;
         let hasEbetWalletSettings = false;
         return dbPlayerCreditTransfer.getPlayerGameCredit({
@@ -1689,8 +1693,17 @@ let dbPlayerCreditTransfer = {
                                 status: constRewardTaskStatus.STARTED
                             }).lean().then(RTG => {
                                 if(RTG) {
-                                    prom.push(dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(group, playerObjId, platform, providerId,
-                                        amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync));
+                                    transferOut = transferOut.then(() => {
+                                        setTimeout(
+                                            dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(group, playerObjId, platform, providerId,
+                                                amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
+                                                transferOutSuccessData.push(ret);
+                                            }).catch(err => {
+                                                return errorUtils.reportError(err);
+                                            }),
+                                            2000
+                                        );
+                                    });
                                 }
                             })
                         );
@@ -1700,13 +1713,20 @@ let dbPlayerCreditTransfer = {
                     let freeCreditGroupData = {
                         ebetWallet: 0
                     };
-                    prom.push(dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
-                        amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync));
+                    transferOut.then(() => {
+                        dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
+                            amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
+                            transferOutSuccessData.push(ret);
+                        }).catch(err => {
+                            return errorUtils.reportError(err);
+                        })
+                    });
+
                     return Promise.all(checkRTGProm).then(() => {
-                        return Promise.all(prom)
-                    }).then(data => {
+                        return transferOut;
+                    }).then(() => {
                         let providerCredit = 0, playerCredit = 0, rewardCredit = 0, transferPlayerCredit = 0, transferRewardCredit = 0;
-                        data.forEach(item => {
+                        transferOutSuccessData.forEach(item => {
                             if(item && item.providerCredit && item.playerCredit && item.rewardCredit &&
                                 item.transferCredit.playerCredit && item.transferCredit.rewardCredit) {
                                 providerCredit += parseFloat(item.providerCredit);
@@ -1717,8 +1737,8 @@ let dbPlayerCreditTransfer = {
                             }
                         });
                         return {
-                            playerId: data[0].playerId,
-                            providerId: data[0].providerId,
+                            playerId: transferOutSuccessData[0].playerId,
+                            providerId: transferOutSuccessData[0].providerId,
                             providerCredit: providerCredit.toFixed(2),
                             playerCredit: playerCredit.toFixed(2),
                             rewardCredit: rewardCredit.toFixed(2),
