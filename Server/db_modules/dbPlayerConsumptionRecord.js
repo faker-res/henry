@@ -2361,13 +2361,14 @@ function findRTGToUpdate (oldData, newData) {
     let incBonusAmt = 0, incValidAmt = 0;
 
     if (oldData && newData && (oldData.bonusAmount != newData.bonusAmount || oldData.validAmount != newData.validAmount)) {
-        incBonusAmt = newData.bonusAmount - oldData.bonusAmount;
-        incValidAmt = newData.validAmount - oldData.validAmount;
+        incBonusAmt = newData.bonusAmount - oldData.bonusAmount || 0;
+        incValidAmt = newData.validAmount - oldData.validAmount || 0;
 
         return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: oldData.playerId}).then(
             RTGs => {
                 if (RTGs && RTGs.length) {
                     let validAmtToAdd = 0;
+                    let validBonusToAdd = 0;
                     let filteredRTG = [];
                     let freeRTG = {};
 
@@ -2389,7 +2390,7 @@ function findRTGToUpdate (oldData, newData) {
                     if (freeRTG) { filteredRTG.push(freeRTG) }
 
                     filteredRTG.forEach(RTG => {
-                        if (RTG && incValidAmt) {
+                        if (RTG) {
                             // Check current RTG amounts
                             // Deny happening of negative RTG curConsumption
                             let curConsumption = RTG.curConsumption > 0 ? RTG.curConsumption : 0;
@@ -2404,8 +2405,22 @@ function findRTGToUpdate (oldData, newData) {
                                 incValidAmt -= currentDifference;
                             }
 
+                            // LBKeno condition where bonusAmount is sent on first time
+                            if (RTG.currentAmt + incBonusAmt >= 0) {
+                                validBonusToAdd = incBonusAmt;
+                                incBonusAmt = 0;
+                            } else {
+                                validBonusToAdd = -RTG.currentAmt;
+
+                                if (incBonusAmt >= 0) {
+                                    incBonusAmt -= RTG.currentAmt;
+                                } else {
+                                    incBonusAmt += RTG.currentAmt;
+                                }
+                            }
+
                             // Find available RTG to update
-                            updateRTG(RTG, incBonusAmt, validAmtToAdd, oldData);
+                            updateRTG(RTG, validBonusToAdd, validAmtToAdd, oldData);
                         }
                     })
                 }
