@@ -252,6 +252,10 @@ var dbLogger = {
                     adminActionRecordData.error = "更新" + adminActionRecordData.data[1].name;
                 }else if (logAction == 'updateProposalTypeProcessSteps' && resultData && resultData[0] && resultData[0].name){
                     adminActionRecordData.error = "保存（" + localization.localization.translate(resultData[0].name) + "）审核流程";
+                }else if (logAction == 'createMessageTemplate' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].type) {
+                    adminActionRecordData.error = "创建（" + localization.localization.translate(adminActionRecordData.data[0].type) + '）';
+                }else if (logAction == 'updateMessageTemplate' && adminActionRecordData && adminActionRecordData.data[1] && adminActionRecordData.data[1].type ) {
+                    adminActionRecordData.error = "更新（" + localization.localization.translate(adminActionRecordData.data[1].type) + '）';
                 }else if (logAction == 'createUpdatePartnerCommissionConfigWithGameProviderGroup' && data && data.name) {
                     adminActionRecordData.error = data.name + "佣金:" + constPartnerCommisionTypeCN[resultData.commissionType];
                 }else if (logAction == 'createPlatformAnnouncement' && resultData && resultData.title) {
