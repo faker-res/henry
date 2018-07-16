@@ -1664,6 +1664,16 @@ let dbPlayerCreditTransfer = {
         let transferOutSuccessData = [];
         let gameCredit;
         let hasEbetWalletSettings = false;
+        let waitTimePerRequest = 2000; //2seconds for one transaction
+        let delayTransferOut = ()=>{
+            return new Promise ((resolve) => {
+                setTimeout(() => {
+                        return resolve();
+                    }, waitTimePerRequest
+                );
+            });
+        };
+
         return dbPlayerCreditTransfer.getPlayerGameCredit({
             username: userName,
             platformId: platformId,
@@ -1694,16 +1704,13 @@ let dbPlayerCreditTransfer = {
                             }).lean().then(RTG => {
                                 if(RTG) {
                                     transferOut = transferOut.then(() => {
-                                        setTimeout(
-                                            dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(group, playerObjId, platform, providerId,
-                                                amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
-                                                transferOutSuccessData.push(ret);
-                                            }).catch(err => {
-                                                return errorUtils.reportError(err);
-                                            }),
-                                            2000
-                                        );
-                                    });
+                                        return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(group, playerObjId, platform, providerId,
+                                            amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
+                                            transferOutSuccessData.push(ret);
+                                        }).catch(err => {
+                                            return errorUtils.reportError(err);
+                                        });
+                                    }).then(delayTransferOut);
                                 }
                             })
                         );
@@ -1714,7 +1721,7 @@ let dbPlayerCreditTransfer = {
                         ebetWallet: 0
                     };
                     transferOut.then(() => {
-                        dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
+                        return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
                             amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
                             transferOutSuccessData.push(ret);
                         }).catch(err => {
