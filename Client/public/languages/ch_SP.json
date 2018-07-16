@@ -3691,7 +3691,7 @@
   "createPartnerCommissionConfig": "添加代理提成设置",
   "updatePartnerCommissionLevel": "更新代理提成等级",
   "getPartnerCommissionConfig": "获取代理提成设置",
-  "createMessageTemplate": "添加消息模板",
+  "createMessageTemplate": "创建消息模板",
   "updateMessageTemplate": "更新消息模板",
   "createPlatformAnnouncement": "添加平台公告",
   "updatePlatformAnnouncement": "更新平台公告",
@@ -3792,6 +3792,8 @@
   "CURRENT_PERIOD": "本周期",
   "PREVIOUS_X_PERIOD": "前 X 周期",
   "Partner not found.": "搜索代理失败",
+  "Apply Commission Succeed": "结算佣金成功",
+  "PAST_COMMISSION_SETTLEMENT": "结算之前周期的佣金",
 
   "RECEIVE_BANK_TYPE": "收款银行类型",
   "RECEIVE_BANK_ACC": "收款银行账号",

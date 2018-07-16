@@ -239,6 +239,12 @@ var dbLogger = {
                     adminActionRecordData.error = "删除" + adminActionRecordData.data[1];
                 }else if (logAction == 'updateRewardEvent' && adminActionRecordData && adminActionRecordData.data[1] && adminActionRecordData.data[1].name) {
                     adminActionRecordData.error = "更新" + adminActionRecordData.data[1].name;
+                }else if (logAction == 'updateProposalTypeProcessSteps' && resultData && resultData[0] && resultData[0].name){
+                    adminActionRecordData.error = "保存（" + localization.localization.translate(resultData[0].name) + "）审核流程";
+                }else if (logAction == 'createMessageTemplate' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].type) {
+                    adminActionRecordData.error = "创建（" + localization.localization.translate(adminActionRecordData.data[0].type) + '）';
+                }else if (logAction == 'updateMessageTemplate' && adminActionRecordData && adminActionRecordData.data[1] && adminActionRecordData.data[1].type ) {
+                    adminActionRecordData.error = "更新（" + localization.localization.translate(adminActionRecordData.data[1].type) + '）';
                 }
 
 

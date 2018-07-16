@@ -2553,7 +2553,7 @@ define(['js/app'], function (myApp) {
         ////////////////////PARTNER REAL TIME COMMISSION REPORT//////////////////////
         vm.getSelectedCommissionPeriod = () => {
             if (vm.selectedCommissionPeriod) {
-                let query = {pastX: vm.selectedCommissionPeriod};
+                let query = {pastX: vm.selectedCommissionPeriod, platformObjId: vm.selectedPlatform._id};
 
                 if (vm.realTimeCommissionQuery.partnerName) {
                     query.partnerName = vm.realTimeCommissionQuery.partnerName;
@@ -2619,9 +2619,34 @@ define(['js/app'], function (myApp) {
                                     vm.partnerCommVar.platformFeeTab = idxgroup;
                                 }
                             });
+
+                            if (vm.realTimeCommissionQuery.partnerName && vm.selectedCommissionPeriod && vm.realTimeCommissionData.length == 1) {
+                                vm.showRealTimeCommissionSettlementButton = true;
+                            }
                         }
                     });
                 });
+            }, function (error) {
+                loadingSpinner.hide();
+                vm.realTimeCommissionLoadingStatus = (error && error.errorMessage) || $translate("RESPONSE_TIMEOUT");
+                console.log('getCurrentPartnerCommissionDetail error', error);
+            });
+        };
+
+        vm.settlePastCommission = () => {
+            if (!vm.realTimeCommissionQuery.partnerName || !vm.selectedCommissionPeriod) {
+                return;
+            }
+
+            let query = {pastX: vm.selectedCommissionPeriod, platformObjId: vm.selectedPlatform._id, partnerName: vm.realTimeCommissionQuery.partnerName};
+            let loadingSpinner = $('#realTimeCommissionTableSpin');
+            loadingSpinner.show();
+
+            socketService.$socket($scope.AppSocket, 'settlePastCommission', query, function (data) {
+                loadingSpinner.hide();
+                console.log('settlePastCommission', data);
+
+                socketService.showConfirmMessage($translate("Apply Commission Succeed"), 10000)
             }, function (error) {
                 loadingSpinner.hide();
                 vm.realTimeCommissionLoadingStatus = (error && error.errorMessage) || $translate("RESPONSE_TIMEOUT");
@@ -7415,12 +7440,11 @@ define(['js/app'], function (myApp) {
                     {group: "REWARD", text: "deleteRewardEventByIds", action: "deleteRewardEventByIds"},
                     {group: "REWARD", text: "updateRewardEvent", action: "updateRewardEvent"},
 
-                    {
-                        group: "Proposal",
-                        text: "updateProposalTypeProcessSteps",
-                        action: "updateProposalTypeProcessSteps"
-                    },
-                    {group: "Proposal", text: "updateProposalProcessStep", action: "updateProposalProcessStep"},
+                    {group: "PROPOSAL_PROCESS", text: "updateProposalTypeProcessSteps", action: "updateProposalTypeProcessSteps"},
+                    //{group: "Proposal", text: "updateProposalProcessStep", action: "updateProposalProcessStep"},
+
+                    {group: "MessageTemplates", text: "createMessageTemplate", action: "createMessageTemplate"},
+                    {group: "MessageTemplates", text: "updateMessageTemplate", action: "updateMessageTemplate"},
 
                     {group: "PlayerLevel", text: "createPlayerLevel", action: "createPlayerLevel"},
                     {group: "PlayerLevel", text: "updatePlayerLevel", action: "updatePlayerLevel"},
@@ -7433,9 +7457,6 @@ define(['js/app'], function (myApp) {
                         text: "Partner Commission",
                         action: ['createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig']
                     },
-
-                    {group: "MessageTemplates", text: "ADD", action: "createMessageTemplate"},
-                    {group: "MessageTemplates", text: "UPDATE", action: "updateMessageTemplate"},
 
                     {group: "ANNOUNCEMENTS", text: "ADD", action: "createPlatformAnnouncement"},
                     {group: "ANNOUNCEMENTS", text: "UPDATE", action: "updatePlatformAnnouncement"},

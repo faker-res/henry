@@ -1134,7 +1134,7 @@
             #realTimeCommissionQuery.block-query.col-md-12.well
                 div
                     label {{"COMMISSION_TYPE" | translate}}
-                    select.form-control(ng-model='vm.realTimeCommissionQuery.commissionType' style='max-width:300px')
+                    select.form-control(ng-model='vm.realTimeCommissionQuery.commissionType' style='max-width:300px' ng-change="vm.showRealTimeCommissionSettlementButton = false")
                         option(value='1') {{"DAILY_BONUS_AMOUNT" | translate}}
                         option(value='2') {{"WEEKLY_BONUS_AMOUNT" | translate}}
                         option(value='3') {{"BIWEEKLY_BONUS_AMOUNT" | translate}}
@@ -1142,13 +1142,13 @@
                         option(value='5') {{"WEEKLY_CONSUMPTION" | translate}}
                 div
                     label {{"PARTNER_NAME" | translate}}
-                    input.form-control.span.input-sm(type="text", ng-model="vm.realTimeCommissionQuery.partnerName")
+                    input.form-control.span.input-sm(type="text", ng-model="vm.realTimeCommissionQuery.partnerName" ng-change="vm.showRealTimeCommissionSettlementButton = false")
                 div
                     label {{"COMMISSION_TYPE" | translate}}
-                    select.form-control(ng-model='vm.selectCommissionPeriod' style='max-width:300px')
+                    select.form-control(ng-model='vm.selectCommissionPeriod' style='max-width:300px' ng-change="vm.showRealTimeCommissionSettlementButton = false")
                         option(value='') {{"CURRENT_PERIOD" | translate}}
                         option(value='1') {{"PREVIOUS_X_PERIOD" | translate}}
-                div(ng-if='vm.selectCommissionPeriod')
+                div(ng-if='vm.selectCommissionPeriod' ng-change="vm.showRealTimeCommissionSettlementButton = false")
                     label {{'　'}}
                     input.form-control.span.input-sm(type="number" step='1' ng-model='vm.selectedCommissionPeriod' style='max-width: 61px' min=0 ng-change='vm.getSelectedCommissionPeriod()')
                 div
@@ -1195,6 +1195,10 @@
                             text.span {{v.pastActiveDownLines[0]? v.pastActiveDownLines[0] : "-" | translate}} {{","}} {{v.pastActiveDownLines[1]? v.pastActiveDownLines[1] : "-" | translate}} {{","}} {{v.pastActiveDownLines[2]? v.pastActiveDownLines[2] : "-" | translate}}
                         td
                             text.span {{calculateTotalSum(v.pastNettCommission, "", "")}} {{" ("}} {{v.pastNettCommission[0]? v.pastNettCommission[0] : "-" | translate}} {{","}} {{v.pastNettCommission[1]? v.pastNettCommission[1] : "-" | translate}} {{","}} {{v.pastNettCommission[2]? v.pastNettCommission[2] : "-" | translate}} {{")"}}
+            .clearfix
+            div
+                br
+                button.btn.btn-primary.common-button.pull-right(ng-if='vm.showRealTimeCommissionSettlementButton && checkViewPermission("Report", "General","PAST_COMMISSION_SETTLEMENT")' ng-click='vm.settlePastCommission()') {{ "SettleCommission" | translate}}
 
 
         div(ng-if='vm.showPageName=="FEEDBACK_REPORT"')
