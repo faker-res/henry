@@ -16,6 +16,9 @@
             .inlineBlk(style="width:200px;")
                 label.control-label {{'CREDIBILITY' | translate}}
                 select.form-control#selectCredibilityRemarkFeedback(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.playerFeedbackQuery.credibilityRemarks')
+            .inlineBlk(style="width:200px;")
+                label.control-label {{'CREDIBILITY_FILTER' | translate}}
+                select.form-control#selectCredibilityRemarkFeedbackFilter(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.playerFeedbackQuery.credibilityRemarksFilter')
             .inlineBlk
                 //上次登入（距今）
                 label {{"LAST_ACCESS_TILL_NOW"|translate}}
