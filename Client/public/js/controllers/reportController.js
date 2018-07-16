@@ -3653,6 +3653,21 @@ define(['js/app'], function (myApp) {
                         item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
                     }
 
+                    if (!item.phoneProvince || item.phoneProvince === 'null' || item.phoneProvince === 'undefined') {
+                        item.phoneProvince = $translate('Unknown');
+                    }
+                    if (!item.phoneCity || item.phoneCity === 'null' || item.phoneCity === 'undefined') {
+                        item.phoneCity = $translate('Unknown');
+                    }
+                    if (!item.province || item.province === 'null' || item.province === 'undefined') {
+                        item.province = $translate('Unknown');
+                    }
+                    if (!item.city || item.city === 'null' || item.city === 'undefined') {
+                        item.city = $translate('Unknown');
+                    }
+
+                    item.phoneArea$ = item.phoneProvince + " " + item.phoneCity;
+                    item.ipArea$ = item.province + " " + item.city;
 
                     return item;
                 }), data.data.size, newSearch);
@@ -3683,6 +3698,8 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'validConsumptionAmount', 'aTargets': [15], bSortable: true},
                     {'sortCol': 'consumptionBonusAmount', 'aTargets': [16], bSortable: true},
                     {'sortCol': 'consumptionAmount', 'aTargets': [18], bSortable: true},
+                    {'sortCol': 'phoneArea', 'aTargets': [19], bSortable: true},
+                    {'sortCol': 'ipArea', 'aTargets': [20], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -3716,7 +3733,9 @@ define(['js/app'], function (myApp) {
                     {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: "sumProfit"},
                     {title: $translate('csOfficer'), data: "csOfficer"},
                     {title: $translate('csPromoteWay'), data: "csPromoteWay"},
-                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"}
+                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"},
+                    {title: $translate("PHONE_LOCATION"), data: "phoneArea$"},
+                    {title: $translate("IP_LOCATION"), data: "ipArea$"},
                 ],
                 "paging": false,
                 // "dom": '<"top">rt<"bottom"il><"clear">',
