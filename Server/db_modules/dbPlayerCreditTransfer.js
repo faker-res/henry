@@ -1363,7 +1363,7 @@ let dbPlayerCreditTransfer = {
                 );
                 if(hasEbetWalletSettings) {
                     return Promise.all(checkAmountProm).then(() => {
-                        return Promise.all(prom)
+                        return Promise.all(prom);
                     }).then(data => {
                         if(data && data.length > 0) {
                             let providerCredit = 0, playerCredit = 0, rewardCredit = 0, transferPlayerCredit = 0,
@@ -1720,16 +1720,16 @@ let dbPlayerCreditTransfer = {
                     let freeCreditGroupData = {
                         ebetWallet: 0
                     };
-                    transferOut.then(() => {
-                        return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
-                            amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
-                            transferOutSuccessData.push(ret);
-                        }).catch(err => {
-                            return errorUtils.reportError(err);
-                        })
-                    });
 
                     return Promise.all(checkRTGProm).then(() => {
+                        transferOut.then(() => {
+                            return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
+                                amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
+                                transferOutSuccessData.push(ret);
+                            }).catch(err => {
+                                return errorUtils.reportError(err);
+                            })
+                        });
                         return transferOut;
                     }).then(() => {
                         let providerCredit = 0, playerCredit = 0, rewardCredit = 0, transferPlayerCredit = 0, transferRewardCredit = 0;
