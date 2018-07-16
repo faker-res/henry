@@ -623,6 +623,7 @@ var roleChecker = {
                 FEEDBACK_REPORT: ['getDepartmentDetailsByPlatformObjId'],
                 PARTNER_SETTLEMENT_HISTORY_REPORT: [],
                 REAL_TIME_COMMISSION_REPORT: ['getCurrentPartnerCommissionDetail'],
+                PAST_COMMISSION_SETTLEMENT: ['settlePastCommission'],
             },
             Reward: {
                 Read: ['getPlatformRewardPageReport', 'getRewardProposalReportByType'],

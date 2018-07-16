@@ -563,7 +563,13 @@ function socketActionPartner(socketIO, socket) {
         getPreviousCommissionPeriod: function getPreviousCommissionPeriod (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.pastX);
-            socketUtil.emitter(self.socket, dbPartner.getPreviousCommissionPeriod, [data.pastX, data.partnerName, data.commissionType], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPartner.getPreviousCommissionPeriod, [data.pastX, data.platformObjId, data.partnerName, data.commissionType], actionName, isValidData);
+        },
+
+        settlePastCommission: function settlePastCommission (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.pastX && data.platformObjId && data.partnerName);
+            socketUtil.emitter(self.socket, dbPartner.settlePastCommission, [data.partnerName, data.platformObjId, data.pastX, adminInfo], actionName, isValidData);
         },
 
     };
