@@ -7396,12 +7396,8 @@ define(['js/app'], function (myApp) {
                     {group: "REWARD", text: "deleteRewardEventByIds", action: "deleteRewardEventByIds"},
                     {group: "REWARD", text: "updateRewardEvent", action: "updateRewardEvent"},
 
-                    {
-                        group: "Proposal",
-                        text: "updateProposalTypeProcessSteps",
-                        action: "updateProposalTypeProcessSteps"
-                    },
-                    {group: "Proposal", text: "updateProposalProcessStep", action: "updateProposalProcessStep"},
+                    {group: "PROPOSAL_PROCESS", text: "updateProposalTypeProcessSteps", action: "updateProposalTypeProcessSteps"},
+                    //{group: "Proposal", text: "updateProposalProcessStep", action: "updateProposalProcessStep"},
 
                     {group: "PlayerLevel", text: "createPlayerLevel", action: "createPlayerLevel"},
                     {group: "PlayerLevel", text: "updatePlayerLevel", action: "updatePlayerLevel"},
