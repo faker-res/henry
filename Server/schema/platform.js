@@ -432,14 +432,15 @@ var platformSchema = new Schema({
         //financial settlement switch
         financialSettlementToggle: {type: Boolean, default: false},
         // financial settlement minimum point to show notification
-        minFinancialPointNotification: {type: Number, default: 0},
+        minFinancialPointsNotification: {type: Number, default: 0},
         // financial settlement minimum point notification switch
-        financialPointNotification: {type: Boolean, default: false},
+        financialPointsNotification: {type: Boolean, default: false},
         // financial settlement minimum point to disable withdrawal
-        minFinancialPointDisableWithdrawal: {type: Number, default: 0},
+        minFinancialPointsDisableWithdrawal: {type: Number, default: 0},
         // financial settlement minimum point to disable withdrawal switch
-        financialPointDisableWithdrawal: {type: Boolean, default: false}
-    }
+        financialPointsDisableWithdrawal: {type: Boolean, default: false}
+    },
+    financialPoints: {type: Number, default: 0}
 });
 
 //add platform id before save

@@ -5848,7 +5848,7 @@ let dbPlayerInfo = {
                                     if(playerObj.platform.useEbetWallet && data[1].name.toUpperCase() === "EBET") {
                                         // if use eBet Wallet
                                         console.log("using eBetWallet");
-                                        return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(
+                                        return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallets(
                                             data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
                                     } else {
                                         return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
@@ -11181,7 +11181,7 @@ let dbPlayerInfo = {
                             platformId: platformId,
                             providerId: providerId
                         };
-                        return cpmsAPI.player_grabPlayerTransferRecords(sendData);
+                        return cpmsAPI.manual(sendData);
                     } else {
                         return Q.reject({name: "DataError", message: "Cannot find player"})
                     }
@@ -14115,6 +14115,7 @@ let dbPlayerInfo = {
             registrationTime: {$gte: startDate, $lt: endDate},
             isTestPlayer: false
         };
+        let playerData = null;
 
         if (query.userType) {
             switch (query.userType) {
@@ -14149,6 +14150,7 @@ let dbPlayerInfo = {
                                 endTime: moment(query.start).add(query.days, "day"),
                                 query: query,
                                 playerObjIds: playerIdObjs.map(function (playerIdObj) {
+                                    playerData = playerIdObjs;
                                     return playerIdObj._id;
                                 }),
                                 option: {
@@ -14207,6 +14209,20 @@ let dbPlayerInfo = {
                 // Output filter promote way
                 result = query.csPromoteWay && query.csPromoteWay.length > 0 ? result.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : result;
                 result = query.admins && query.admins.length > 0 ? result.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : result;
+
+                result.forEach(data => {
+                    if (playerData) {
+                        playerData.forEach(player => {
+                            if (player._id.toString() === data._id.toString()) {
+                                data.phoneProvince = player.phoneProvince ? player.phoneProvince : null;
+                                data.phoneCity = player.phoneCity ? player.phoneCity : null;
+                                data.province = player.province ? player.province : null;
+                                data.city = player.city ? player.city : null;
+                            }
+                        });
+                    }
+                    return data;
+                });
 
                 result = result.concat(
                     filteredArr.filter(function(e) {

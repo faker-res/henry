@@ -2965,7 +2965,7 @@ define(['js/app'], function (myApp) {
                 })
             }
             vm.removeGameGroup = function () {
-                socketService.$socket($scope.AppSocket, 'deleteGameGroup', {_id: vm.SelectedGameGroupNode.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'deleteGameGroup', {_id: vm.SelectedGameGroupNode.id, groupName: vm.SelectedGameGroupNode.text}, function (data) {
                     console.log(data.data);
                     // vm.loadGameGroupData();
                     for (var i = 0; i < vm.platformGameGroupList.length; i++) {
@@ -2989,7 +2989,8 @@ define(['js/app'], function (myApp) {
                     update: {
                         name: vm.newGameGroup.name,
                         displayName: vm.newGameGroup.displayName,
-                        code: vm.newGameGroup.code
+                        code: vm.newGameGroup.code,
+                        originalName: vm.newGameGroup.orginalName
                     }
                 }
                 socketService.$socket($scope.AppSocket, 'renamePlatformGameGroup', sendData, function (data) {
@@ -3068,7 +3069,8 @@ define(['js/app'], function (myApp) {
                     sendData.update = {
                         "$addToSet": {
                             games: {"$each": gameArr}
-                        }
+                        },
+                        gameNames: vm.selectGameGroupGamesName
                     }
                 } else if (type === 'detach') {
                     sendData.update = {
@@ -3078,7 +3080,8 @@ define(['js/app'], function (myApp) {
                                     "$in": vm.selectGameGroupGames
                                 }
                             }
-                        }
+                        },
+                        gameNames: vm.selectGameGroupGamesName
                     }
                 }
                 GeneralModal.confirm({
@@ -3133,6 +3136,7 @@ define(['js/app'], function (myApp) {
             vm.initRenameGameGroup = function () {
                 vm.newGameGroup = {};
                 vm.newGameGroup.name = vm.SelectedGameGroupNode.groupData.name;
+                vm.newGameGroup.orginalName = vm.SelectedGameGroupNode.groupData.name;
                 vm.newGameGroup.displayName = vm.SelectedGameGroupNode.groupData.displayName;
                 vm.newGameGroup.code = vm.SelectedGameGroupNode.groupData.code;
             }
@@ -3348,7 +3352,9 @@ define(['js/app'], function (myApp) {
                 var sendData = {
                     groupId: vm.SelectedGameGroupNode.id,
                     curParentGroupId: vm.SelectedGameGroupNode.parent,
-                    newParentGroupId: $scope.gameGroupMove.isRoot ? vm.newGroupParent.id : null
+                    newParentGroupId: $scope.gameGroupMove.isRoot ? vm.newGroupParent.id : null,
+                    groupName: vm.SelectedGameGroupNode.groupData.name,
+                    newParentGroupName: $scope.gameGroupMove.isRoot ? vm.newGroupParent.groupData.name : null,
                 }
                 socketService.$socket($scope.AppSocket, 'updateGameGroupParent', sendData, success);
 
@@ -13789,6 +13795,38 @@ define(['js/app'], function (myApp) {
 
             };
 
+            vm.showFinancialPointsChange = function () {
+                vm.financialPointsChange = {
+                    pointChange: 0,
+                    remark: ""
+                };
+                $("#modalFinancialPointsChange").modal('show');
+                $("#modalFinancialPointsChange").on('shown.bs.modal', function (e) {
+                    // $scope.safeApply();
+                })
+            };
+
+            vm.updatePlatformFinancialPoints = function () {
+                var sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                    data: {
+                        updateAmount: vm.financialPointsChange.pointChange,
+                        remark: vm.financialPointsChange.remark,
+                        adminName: authService.adminName
+                    }
+                }
+
+                socketService.$socket($scope.AppSocket, 'updatePlatformFinancialPoints', sendData, function (data) {
+                    let newData = data.data;
+                    console.log('financial proposal', newData);
+                    if (data.data && data.data.stepInfo) {
+                        socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                    }
+                    // $scope.safeApply();
+                });
+            };
+
             vm.isDiffConsumptionProvider = function (providerArr, showModal) {
                 let isDiff = false;
                 let providerSourceArr;
@@ -15376,6 +15414,12 @@ define(['js/app'], function (myApp) {
                     sendQuery["$or"] = sendQueryOr;
                 }
 
+                if (vm.playerFeedbackQuery.callPermission == 'true') {
+                    sendQuery['permission.phoneCallFeedback'] = {$ne: false};
+                } else if (vm.playerFeedbackQuery.callPermission == 'false') {
+                    sendQuery['permission.phoneCallFeedback'] = false;
+                }
+
                 if (vm.playerFeedbackQuery.depositCountOperator && vm.playerFeedbackQuery.depositCountFormal != null) {
                     switch (vm.playerFeedbackQuery.depositCountOperator) {
                         case ">=":
@@ -15750,6 +15794,12 @@ define(['js/app'], function (myApp) {
                     } else {
                         sendQuery["$or"] = sendQueryOr;
                     }
+                }
+
+                if (vm.playerFeedbackQuery.callPermission == 'true') {
+                    sendQuery['permission.phoneCallFeedback'] = {$ne: false};
+                } else if (vm.playerFeedbackQuery.callPermission == 'false') {
+                    sendQuery['permission.phoneCallFeedback'] = false;
                 }
 
                 if (vm.playerFeedbackQuery.depositCountOperator && vm.playerFeedbackQuery.depositCountFormal != null) {
@@ -16467,6 +16517,7 @@ define(['js/app'], function (myApp) {
                 vm.playerFeedbackQuery.playerType = "Real Player (all)";
                 vm.playerFeedbackQuery.playerLevel = "all";
                 vm.playerFeedbackQuery.lastAccess = "15-28";
+                vm.playerFeedbackQuery.callPermission = "true";
                 setTimeout(
                     () => {
                         let parentId;
@@ -21372,7 +21423,7 @@ define(['js/app'], function (myApp) {
             }
             vm.deleteReward = function (data) {
                 console.log('vm.showReward', vm.showReward);
-                socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {_ids: [vm.showReward._id]}, function (data) {
+                socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {_ids: [vm.showReward._id], name: vm.showReward.name}, function (data) {
                     //vm.allGameProvider = data.data;
                     vm.rewardTabClicked(function () {
                         vm.rewardEventClicked(0, vm.allRewardEvent[0])
@@ -26637,10 +26688,10 @@ define(['js/app'], function (myApp) {
             vm.getFinancialSettlementConfig = function () {
                 vm.financialSettlementConfig = vm.financialSettlementConfig || {};
                 vm.financialSettlementConfig.financialSettlementToggle = vm.selectedPlatform.data.financialSettlement.financialSettlementToggle;
-                vm.financialSettlementConfig.minFinancialPointNotification = vm.selectedPlatform.data.financialSettlement.minFinancialPointNotification;
-                vm.financialSettlementConfig.financialPointNotification = vm.selectedPlatform.data.financialSettlement.financialPointNotification? "1": "0";
-                vm.financialSettlementConfig.minFinancialPointDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.minFinancialPointDisableWithdrawal;
-                vm.financialSettlementConfig.financialPointDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.financialPointDisableWithdrawal? "1": "0";
+                vm.financialSettlementConfig.minFinancialPointsNotification = vm.selectedPlatform.data.financialSettlement.minFinancialPointsNotification;
+                vm.financialSettlementConfig.financialPointsNotification = vm.selectedPlatform.data.financialSettlement.financialPointsNotification? "1": "0";
+                vm.financialSettlementConfig.minFinancialPointsDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.minFinancialPointsDisableWithdrawal;
+                vm.financialSettlementConfig.financialPointsDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.financialPointsDisableWithdrawal? "1": "0";
             }
 
             vm.getPartnerBasic = function () {
@@ -27454,22 +27505,22 @@ define(['js/app'], function (myApp) {
             }
 
             function updateFinancialSettlementConfig(srcData) {
-                let financialPointNotification = false;
-                let financialPointDisableWithdrawal = false;
-                if (srcData.financialPointNotification == "1") {
-                    financialPointNotification = true;
+                let financialPointsNotification = false;
+                let financialPointsDisableWithdrawal = false;
+                if (srcData.financialPointsNotification == "1") {
+                    financialPointsNotification = true;
                 }
-                if (srcData.financialPointDisableWithdrawal == "1") {
-                    financialPointDisableWithdrawal = true;
+                if (srcData.financialPointsDisableWithdrawal == "1") {
+                    financialPointsDisableWithdrawal = true;
                 }
                 let sendData = {
                     query: {_id: vm.selectedPlatform.id},
                     updateData: {
                         "financialSettlement.financialSettlementToggle": srcData.financialSettlementToggle,
-                        "financialSettlement.minFinancialPointNotification": srcData.minFinancialPointNotification,
-                        "financialSettlement.financialPointNotification": financialPointNotification,
-                        "financialSettlement.minFinancialPointDisableWithdrawal": srcData.minFinancialPointDisableWithdrawal,
-                        "financialSettlement.financialPointDisableWithdrawal": financialPointDisableWithdrawal,
+                        "financialSettlement.minFinancialPointsNotification": srcData.minFinancialPointsNotification,
+                        "financialSettlement.financialPointsNotification": financialPointsNotification,
+                        "financialSettlement.minFinancialPointsDisableWithdrawal": srcData.minFinancialPointsDisableWithdrawal,
+                        "financialSettlement.financialPointsDisableWithdrawal": financialPointsDisableWithdrawal,
                     }
                 }
 

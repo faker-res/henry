@@ -81,7 +81,7 @@ function socketActionGameGroup(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data && data.groupId && (data.curParentGroupId != data.newParentGroupId)
                 && (data.groupId != data.newParentGroupId));
-            socketUtil.emitter(self.socket, dbPlatformGameGroup.updateGameGroupParent, [data.groupId, data.curParentGroupId, data.newParentGroupId], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbPlatformGameGroup.updateGameGroupParent, [data.groupId, data.curParentGroupId, data.newParentGroupId, data.groupName, data.newParentGroupName], actionName, isDataValid);
         },
 
         /**
@@ -91,7 +91,7 @@ function socketActionGameGroup(socketIO, socket) {
         deleteGameGroup: function deleteGameGroup(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data._id);
-            socketUtil.emitter(self.socket, dbPlatformGameGroup.removeGameGroup, [data._id], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformGameGroup.removeGameGroup, [data._id, data.groupName], actionName, isValidData);
         },
 
 
