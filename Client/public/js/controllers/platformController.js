@@ -15760,6 +15760,20 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (vm.playerFeedbackQuery.credibilityRemarksFilter && vm.playerFeedbackQuery.credibilityRemarksFilter.length > 0) {
+                    let tempArr = [];
+                    if (vm.playerFeedbackQuery.credibilityRemarksFilter.includes("")) {
+                        vm.playerFeedbackQuery.credibilityRemarksFilter.forEach(remark => {
+                            if (remark != "") {
+                                tempArr.push(remark);
+                            }
+                        });
+                        sendQuery.$and = [{credibilityRemarks: {$ne: []}}, {credibilityRemarks: {$exists: true}}, {credibilityRemarks: {$nin: tempArr}}];
+                    } else {
+                        sendQuery.credibilityRemarks = {$nin: vm.playerFeedbackQuery.credibilityRemarksFilter};
+                    }
+                }
+
                 if (vm.playerFeedbackQuery.lastAccess === "range") {
                     sendQuery.lastAccessTime = {
                         $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.lastAccessFormal)),
@@ -16539,6 +16553,7 @@ define(['js/app'], function (myApp) {
                             }
                         });
                         vm.setupRemarksMultiInputFeedback();
+                        vm.setupRemarksMultiInputFeedbackFilter();
                         vm.setupGameProviderMultiInputFeedback();
                     });
                 utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
@@ -26907,6 +26922,7 @@ define(['js/app'], function (myApp) {
                         vm.filterCredibilityRemarks.push({'_id':'', 'name':'N/A'});
                         vm.setupRemarksMultiInput();
                         vm.setupRemarksMultiInputFeedback();
+                        vm.setupRemarksMultiInputFeedbackFilter();
                         resolve();
                     }, function (err) {
                         reject(err);
@@ -27937,7 +27953,7 @@ define(['js/app'], function (myApp) {
                     title: "Delete Announcement",
                     text: `Are you sure you want to delete the announcement "${ann.title}"?`
                 }).then(function () {
-                    $scope.$socketPromise('deletePlatformAnnouncementByIds', {_ids: [ann._id]})
+                    $scope.$socketPromise('deletePlatformAnnouncementByIds', {_ids: [ann._id], title: ann.title})
                         .done(function (data) {
                             vm.configTabClicked("announcement");
                         });
@@ -29539,6 +29555,17 @@ define(['js/app'], function (myApp) {
                 // if (remarkSelect.css('display') && remarkSelect.css('display').toLowerCase() === "none") {
                 //     return;
                 // }
+                remarkSelect.multipleSelect({
+                    showCheckbox: true,
+                    allSelected: $translate("All Selected"),
+                    selectAllText: $translate("Select All"),
+                    displayValues: false,
+                    countSelected: $translate('# of % selected')
+                });
+                remarkSelect.multipleSelect("uncheckAll");
+            };
+            vm.setupRemarksMultiInputFeedbackFilter = function () {
+                let remarkSelect = $('select#selectCredibilityRemarkFeedbackFilter');
                 remarkSelect.multipleSelect({
                     showCheckbox: true,
                     allSelected: $translate("All Selected"),

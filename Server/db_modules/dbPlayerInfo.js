@@ -1215,10 +1215,10 @@ let dbPlayerInfo = {
                     pPrefix = playerdata.partnerId ? platformData.partnerCreatePlayerPrefix : platformData.prefix;
 
                     // let delimitedPrefix = platformData.prefix + PLATFORM_PREFIX_SEPARATOR;
-                    let delimitedPrefix = pPrefix + PLATFORM_PREFIX_SEPARATOR;
-                    if (!skipPrefix) {
-                        playerdata.name = delimitedPrefix.toLowerCase() + playerdata.name;
-                    }
+                    // let delimitedPrefix = pPrefix + PLATFORM_PREFIX_SEPARATOR;
+                    // if (!skipPrefix) {
+                    //     playerdata.name = delimitedPrefix.toLowerCase() + playerdata.name;
+                    // }
                     pName = playerdata.name;
 
                     if ((platformData.playerNameMaxLength > 0 && playerdata.name.length > platformData.playerNameMaxLength) || (platformData.playerNameMinLength > 0 && playerdata.name.length < platformData.playerNameMinLength)) {

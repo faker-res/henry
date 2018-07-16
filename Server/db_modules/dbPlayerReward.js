@@ -1248,7 +1248,13 @@ let dbPlayerReward = {
             {deleteFlag: {$exists: false}},
             {deleteFlag: deleteFlag}
         ]
-    }).lean(),
+    }).lean().then(promoCodeType => {
+        let promoCodeTypeList = promoCodeType;
+        // get the auto promoCode template
+        return dbConfig.collection_promoCodeTemplate.find({platformObjId: platformObjId}).lean().then(promoCodeTemplate => {
+            return promoCodeTypeList.concat(promoCodeTemplate);
+        })
+    }),
 
     getPromoCodeTypeByObjId: (promoCodeTypeObjId) => dbConfig.collection_promoCodeType.findOne({_id: promoCodeTypeObjId}).lean(),
 
@@ -2431,7 +2437,7 @@ let dbPlayerReward = {
                     prom.push(dbConfig.collection_promoCodeTemplate.findOneAndUpdate(
                         {
                             platformObjId: platformObjId,
-                            typeName: entry.typeName,
+                            name: entry.name,
                             type: entry.type,
                         },
                         entry,
@@ -2824,6 +2830,11 @@ let dbPlayerReward = {
             }).lean();
         }).then(
             proposalTypeData => {
+                // determine applyAmount
+                let applyAmt = topUpProp && topUpProp.data.amount ? topUpProp.data.amount : 0;
+
+                if (promoCodeObj.promoCodeTypeObjId.type === 1) { applyAmt = 0 }
+
                 // create reward proposal
                 let proposalData = {
                     type: proposalTypeData._id,
@@ -2845,7 +2856,7 @@ let dbPlayerReward = {
                         disableWithdraw: promoCodeObj.disableWithdraw,
                         PROMO_CODE_TYPE: promoCodeObj.promoCodeTypeObjId.name,
                         promoCodeTypeValue: promoCodeObj.promoCodeTypeObjId.type,
-                        applyAmount: topUpProp && topUpProp.data.amount ? topUpProp.data.amount : 0,
+                        applyAmount: applyAmt,
                         topUpProposal: topUpProp && topUpProp.proposalId ? topUpProp.proposalId : null,
                         useLockedCredit: false,
                         useConsumption: !promoCodeObj.isSharedWithXIMA,
