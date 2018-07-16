@@ -384,7 +384,10 @@ var simplifiedChinese = {
     "Username must be alphanumeric": "用户名只能为数字和字母",
     "Username must be at least": "用户名必须是至少",
     "Username must be less than": "用户名必须是少过",
-    "characters": "位的数字和字母"
+    "characters": "位的数字和字母",
+    "The partner commission for this period is already settled.": "此代理该周期已经结算。",
+    "Proposal No.": "提案号：",
+
     //todo::add missing messages here
 
     /*

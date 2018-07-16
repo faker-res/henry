@@ -393,7 +393,10 @@ var simplifiedChinese = {
     "characters": "位的数字和字母",
     "Cannot find commission rate, please ensure that you had configure the setting properly.": "使用佣金预测页面必须先设置佣金模式。",
     "Error finding reward event": "玩家无此权限",
-    "Partner does not have valid payment information": "请重新绑定您的银行卡。"
+    "Partner does not have valid payment information": "请重新绑定您的银行卡。",
+    "The partner commission for this period is already settled.": "此代理该周期已经结算。",
+    "Proposal No.": "提案号：",
+
     //todo::add missing messages here
 
     /*
