@@ -84,15 +84,15 @@ var dbQualityInspection = {
 
             if (query.operatorId && query.operatorId.length > 0) {
                 if(Array.isArray(query.operatorId)){
-                    operatorId = dbQualityInspection.splitOperatorId(query.operatorId);
+                    operatorId = dbQualityInspection.splitOperatorIdIntoArray(query.operatorId);
                     companyId = dbQualityInspection.splitOperatorIdByCompanyId(query.operatorId)
                 }else{
                     operatorId = query.operatorId;
                 }
 
                 if(operatorId!='all'){
-                    queryQA.live800Acc = {
-                        name: {$in: operatorId}
+                    queryQA['live800Acc.name'] = {
+                        $in: operatorId
                     }
                 }
 
@@ -132,6 +132,14 @@ var dbQualityInspection = {
         });
         resultTXT = results.join(',');
         return resultTXT;
+    },
+    splitOperatorIdIntoArray:function(operatorIdArr){
+        let results = [];
+        operatorIdArr.forEach(item=>{
+            let operator = dbQualityInspection.splitLive800Acc(item);
+            results.push(operator);
+        });
+        return results;
     },
     splitOperatorIdByCompanyId:function(operatorIdArr){
         let results = [];
