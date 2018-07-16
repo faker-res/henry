@@ -7443,6 +7443,9 @@ define(['js/app'], function (myApp) {
                     {group: "PROPOSAL_PROCESS", text: "updateProposalTypeProcessSteps", action: "updateProposalTypeProcessSteps"},
                     //{group: "Proposal", text: "updateProposalProcessStep", action: "updateProposalProcessStep"},
 
+                    {group: "MessageTemplates", text: "createMessageTemplate", action: "createMessageTemplate"},
+                    {group: "MessageTemplates", text: "updateMessageTemplate", action: "updateMessageTemplate"},
+
                     {group: "PlayerLevel", text: "createPlayerLevel", action: "createPlayerLevel"},
                     {group: "PlayerLevel", text: "updatePlayerLevel", action: "updatePlayerLevel"},
 
@@ -7454,9 +7457,6 @@ define(['js/app'], function (myApp) {
                         text: "Partner Commission",
                         action: ['createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig']
                     },
-
-                    {group: "MessageTemplates", text: "ADD", action: "createMessageTemplate"},
-                    {group: "MessageTemplates", text: "UPDATE", action: "updateMessageTemplate"},
 
                     {group: "ANNOUNCEMENTS", text: "ADD", action: "createPlatformAnnouncement"},
                     {group: "ANNOUNCEMENTS", text: "UPDATE", action: "updatePlatformAnnouncement"},
