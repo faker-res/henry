@@ -3691,7 +3691,7 @@
   "createPartnerCommissionConfig": "添加代理提成设置",
   "updatePartnerCommissionLevel": "更新代理提成等级",
   "getPartnerCommissionConfig": "获取代理提成设置",
-  "createMessageTemplate": "添加消息模板",
+  "createMessageTemplate": "创建消息模板",
   "updateMessageTemplate": "更新消息模板",
   "createPlatformAnnouncement": "添加平台公告",
   "updatePlatformAnnouncement": "更新平台公告",
