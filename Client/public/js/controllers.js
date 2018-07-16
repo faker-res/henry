@@ -423,6 +423,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             },
             platformName: v.name
         };
+        if (v.financialSettlement && !v.financialSettlement.financialSettlementToggle) {
+            let points = v.financialPoints || 0;
+            obj.text = obj.text + " (" + points + ")";
+        }
         return obj;
     };
 
