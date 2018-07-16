@@ -83,7 +83,7 @@ var dbLogger = {
                     && adminActionRecordData.data[1].length > 0 && adminActionRecordData.data[1][0].game){
                     return dbconfig.collection_game.findOne({_id: adminActionRecordData.data[1][0].game})
                         .populate({path: "provider", model: dbconfig.collection_gameProvider});
-                }else if((adminActionRecordData.action == "updateGameStatusToPlatform") && adminActionRecordData.data && adminActionRecordData.data.length > 0 &&
+                }else if(adminActionRecordData.action == "updateGameStatusToPlatform" && adminActionRecordData.data && adminActionRecordData.data.length > 0 &&
                     adminActionRecordData.data[0].game && adminActionRecordData.data[0].game.length > 0 && adminActionRecordData.data[0].game[0]){
                     return dbconfig.collection_game.findOne({_id: adminActionRecordData.data[0].game[0]})
                         .populate({path: "provider", model: dbconfig.collection_gameProvider});
@@ -213,6 +213,26 @@ var dbLogger = {
                     adminActionRecordData.error = "帐号：" + data.name + "、" + localization.localization.translate("TransferIn") + "ID：" + resultData.transferId;
                 }else if (logAction == 'resetPartnerPassword' && data && data.partnerName) {
                     adminActionRecordData.error = "帐号：" + data.partnerName;
+                }else if (logAction == 'addPlatformGameGroup' && resultData && resultData.name && resultData.code) {
+                    adminActionRecordData.error = "添加" + resultData.name + "(代码： " + resultData.code + ")";
+                }else if (logAction == 'deleteGameGroup' && adminActionRecordData.data && adminActionRecordData.data.length > 1
+                    && adminActionRecordData.data[1]){
+                    adminActionRecordData.error = "删除" + adminActionRecordData.data[1];
+                }else if (logAction == 'renamePlatformGameGroup' && adminActionRecordData.data && adminActionRecordData.data.length > 1
+                    && adminActionRecordData.data[1] && adminActionRecordData.data[1].name && adminActionRecordData.data[1].originalName){
+                    adminActionRecordData.error = "重命名" + adminActionRecordData.data[1].originalName + "为" + adminActionRecordData.data[1].name;
+                }else if (logAction == 'updateGameGroupParent' && adminActionRecordData.data && adminActionRecordData.data.length > 4
+                    && adminActionRecordData.data[3]){
+                    adminActionRecordData.error = "移动" + adminActionRecordData.data[3] + "至" + (adminActionRecordData.data[4] ? adminActionRecordData.data[4] : "Root");
+                }else if (logAction == 'updatePlatformGameGroup' && adminActionRecordData.data && adminActionRecordData.data.length > 1
+                    && adminActionRecordData.data[1].gameNames){
+                    if(adminActionRecordData.data[1].$addToSet){
+                        delete adminActionRecordData.data[1].$addToSet;
+                        adminActionRecordData.error = "添加" + adminActionRecordData.data[1].gameNames;
+                    }else if(delete adminActionRecordData.data[1].$pull){
+                        delete adminActionRecordData.data[1].$addToSet;
+                        adminActionRecordData.error = "移除" + adminActionRecordData.data[1].gameNames;
+                    }
                 }else if (logAction == 'createRewardEvent' && data && data.name && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].name){
                     adminActionRecordData.error = "创建" + localization.localization.translate(data.name) + "，" + adminActionRecordData.data[0].name;
                 }else if (logAction == 'deleteRewardEventByIds' && adminActionRecordData && adminActionRecordData.data[1]) {
