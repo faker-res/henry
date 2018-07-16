@@ -5848,7 +5848,7 @@ let dbPlayerInfo = {
                                     if(playerObj.platform.useEbetWallet && data[1].name.toUpperCase() === "EBET") {
                                         // if use eBet Wallet
                                         console.log("using eBetWallet");
-                                        return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(
+                                        return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallets(
                                             data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
                                     } else {
                                         return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
@@ -11181,7 +11181,7 @@ let dbPlayerInfo = {
                             platformId: platformId,
                             providerId: providerId
                         };
-                        return cpmsAPI.player_grabPlayerTransferRecords(sendData);
+                        return cpmsAPI.manual(sendData);
                     } else {
                         return Q.reject({name: "DataError", message: "Cannot find player"})
                     }

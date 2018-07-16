@@ -15,6 +15,7 @@ const dbRewardEvent = require('./../db_modules/dbRewardEvent');
 const dbRewardTaskGroup = require('./../db_modules/dbRewardTaskGroup');
 const dbPlayerCredibility = require('../db_modules/dbPlayerCredibility');
 const dbSmsGroup = require('../db_modules/dbSmsGroup');
+const constProposalType = require('./../const/constProposalType');
 
 const consumptionReturnEvent = require('./../scheduleTask/consumptionReturnEvent');
 
@@ -634,6 +635,20 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.replicateFrom && data.replicateTo);
             socketUtil.emitter(self.socket, dbPlatform.replicatePlatformSetting, [data.replicateFrom, data.replicateTo], actionName, isValidData);
+        },
+
+        /**
+         * Create new Proposal to update platform financial points
+         * @param {json} data - proposal data
+         */
+        updatePlatformFinancialPoints: function updatePlatformFinancialPoints(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.data && data.data.hasOwnProperty("updateAmount"));
+            let proposalTypeName = constProposalType.FINANCIAL_POINTS_ADD;
+            if (isValidData && data.data.updateAmount < 0) {
+                proposalTypeName = constProposalType.FINANCIAL_POINTS_DEDUCT;
+            }
+            socketUtil.emitter(self.socket, dbPlatform.updatePlatformFinancialPoints, [ObjectId(data.platformId), proposalTypeName, data], actionName, isValidData);
         },
     };
     socketActionPlatform.actions = this.actions;
