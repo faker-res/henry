@@ -28,6 +28,16 @@ var dbLogger = {
             3: "H5"
         };
 
+        let constPartnerCommisionTypeCN = {
+            0: "关闭",
+            1: "1天-输赢值",
+            2: "7天-输赢值",
+            3: "半月-输赢值",
+            4: "1月-输赢值",
+            5: "7天-投注额",
+            6: "代理前端自选"
+        };
+
         if(!adminActionRecordData){
             return;
         }
@@ -87,9 +97,10 @@ var dbLogger = {
                     adminActionRecordData.data[0].game && adminActionRecordData.data[0].game.length > 0 && adminActionRecordData.data[0].game[0]){
                     return dbconfig.collection_game.findOne({_id: adminActionRecordData.data[0].game[0]})
                         .populate({path: "provider", model: dbconfig.collection_gameProvider});
-                    return dbconfig.collection_partner.findOne({_id: adminActionRecordData.data[0]._id}, {partnerName: 1});
-                } else if (adminActionRecordData.action == 'createRewardEvent' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].type) {
+                }else if (adminActionRecordData.action == 'createRewardEvent' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].type) {
                     return dbconfig.collection_rewardType.findOne({_id: adminActionRecordData.data[0].type}, {name: 1});
+                }else if(adminActionRecordData.action == 'createUpdatePartnerCommissionConfigWithGameProviderGroup' && resultData && resultData.provider){
+                    return dbconfig.collection_gameProviderGroup.findOne({_id: resultData.provider});
                 }
             }
         ).then(
@@ -245,6 +256,16 @@ var dbLogger = {
                     adminActionRecordData.error = "创建（" + localization.localization.translate(adminActionRecordData.data[0].type) + '）';
                 }else if (logAction == 'updateMessageTemplate' && adminActionRecordData && adminActionRecordData.data[1] && adminActionRecordData.data[1].type ) {
                     adminActionRecordData.error = "更新（" + localization.localization.translate(adminActionRecordData.data[1].type) + '）';
+                }else if (logAction == 'createUpdatePartnerCommissionConfigWithGameProviderGroup' && data && data.name) {
+                    adminActionRecordData.error = data.name + "佣金:" + constPartnerCommisionTypeCN[resultData.commissionType];
+                }else if (logAction == 'createPlatformAnnouncement' && resultData && resultData.title) {
+                    adminActionRecordData.error = "添加" + resultData.title;
+                }else if (logAction == 'updatePlatformAnnouncement' && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]
+                    && adminActionRecordData.data[1].title) {
+                    adminActionRecordData.error = "更新" + adminActionRecordData.data[1].title;
+                }else if (logAction == 'deletePlatformAnnouncementByIds' && adminActionRecordData.data && adminActionRecordData.data.length > 1
+                    && adminActionRecordData.data[1]) {
+                    adminActionRecordData.error = "删除" + adminActionRecordData.data[1];
                 }
 
 
