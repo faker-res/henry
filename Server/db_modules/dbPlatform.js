@@ -1,5 +1,9 @@
 "use strict";
 
+var dbPlatformFunc = function () {
+};
+module.exports = new dbPlatformFunc();
+
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -3611,6 +3615,16 @@ var dbPlatform = {
         )
     },
 
+    changePlatformFinancialPoints: function (platformObjId, amount) {
+        return dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId},
+            {
+                $inc: {
+                    financialPoints: amount
+                }
+            }
+        )
+    },
+
     replicatePlatformSetting: (fromPlatformObjId, toPlatformObjId) => {
         let replicateFrom, replicateTo;
         let oldNewPlayerLevelObjId = {};
@@ -4357,5 +4371,8 @@ function calculatePartnerCommissionInfo(platformObjId, commissionType, startTime
         );
     });
 }
+
+var proto = dbPlatformFunc.prototype;
+proto = Object.assign(proto, dbPlatform);
 
 module.exports = dbPlatform;

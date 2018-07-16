@@ -36,6 +36,7 @@ const constServerCode = require("../const/constServerCode.js");
 const constPlayerTopUpType = require("../const/constPlayerTopUpType");
 const constMaxDateTime = require("../const/constMaxDateTime");
 const constPlayerCreditTransferStatus = require("../const/constPlayerCreditTransferStatus");
+const localization = require("../modules/localization");
 let rsaCrypto = require("../modules/rsaCrypto");
 
 var proposal = {
@@ -352,6 +353,11 @@ var proposal = {
                     }
 
                     // SCHEDULED AUTO APPROVAL
+                    if ((proposalTypeData.name == constProposalType.FINANCIAL_POINTS_DEDUCT || proposalTypeData.name == constProposalType.FINANCIAL_POINTS_ADD) && proposalData.data.noExecuteRequire) {
+                        bExecute = false;
+                        proposalData.status = constProposalStatus.APPROVED;
+                    }
+
                     if (proposalTypeData.name == constProposalType.PLAYER_BONUS && proposalData.data.isAutoApproval) {
                         proposalData.status = constProposalStatus.AUTOAUDIT;
                     }
@@ -384,9 +390,32 @@ var proposal = {
                                 });
                             }
                             else {
-                                var proposalProm = proposal.createProposal(proposalData);
-                                var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
-                                return Q.all([proposalProm, platProm, data[0].expirationDuration]);
+                                if (proposalTypeData.name == constProposalType.PLAYER_BONUS || proposalTypeData.name == constProposalType.PARTNER_BONUS) {
+                                    return dbconfig.collection_platform.findOne({_id: data[0].platformId}, {financialPoints: 1, financialSettlement: 1}).lean().then(
+                                        platformData => {
+                                            if (!platformData) {
+                                                deferred.reject({name: "DataError", message: "Cannot find platform"});
+                                            }
+
+                                            if (platformData.financialSettlement && !platformData.financialSettlement.financialSettlementToggle && platformData.financialSettlement.financialPointsDisableWithdrawal
+                                                && platformData.financialSettlement.hasOwnProperty("minFinancialPointsDisableWithdrawal") && proposalData.data.hasOwnProperty("amount")) {
+                                                if ((platformData.financialPoints - proposalData.data.amount) < platformData.financialSettlement.minFinancialPointsDisableWithdrawal) {
+                                                    bExecute = false;
+                                                    proposalData.status = constProposalStatus.PENDING;
+                                                    proposalData.data.remark = proposalData.data.remark? proposalData.data.remark + ", " + localization.localization.translate("Insuficient financial points"): localization.localization.translate("Insuficient financial points");
+                                                }
+                                            }
+                                            var proposalProm = proposal.createProposal(proposalData);
+                                            var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
+                                            return Q.all([proposalProm, platProm, data[0].expirationDuration]);
+                                        }
+                                    );
+                                } else {
+                                    var proposalProm = proposal.createProposal(proposalData);
+                                    var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
+                                    return Q.all([proposalProm, platProm, data[0].expirationDuration]);
+                                }
+
                             }
                         }
                     );
@@ -779,6 +808,12 @@ var proposal = {
                 path: "process",
                 model: dbconfig.collection_proposalProcess
             }
+        ).populate(
+            {
+                path: "data.platformId",
+                select: "financialPoints financialSettlement",
+                model: dbconfig.collection_platform
+            }
         ).then(
             function (data) {
                 //todo::add proposal or process status check here
@@ -787,6 +822,21 @@ var proposal = {
                 //         $addToSet: {remark: {admin: adminId, content: remark}}
                 //     }, {new: true}).exec();
                 // }
+                if (bApprove && data.type && (data.type.name ==  constProposalType.PLAYER_BONUS || data.type.name == constProposalType.PARTNER_BONUS)) {
+                    let platformData = data && data.data && data.data.platformId? data.data.platformId: null;
+                    if (platformData && platformData.financialSettlement && !platformData.financialSettlement.financialSettlementToggle && platformData.financialSettlement.financialPointsDisableWithdrawal
+                        && platformData.financialSettlement.hasOwnProperty("minFinancialPointsDisableWithdrawal") && data.data.hasOwnProperty("amount")) {
+                        if ((platformData.financialPoints - data.data.amount) < platformData.financialSettlement.minFinancialPointsDisableWithdrawal) {
+                            let remark = localization.localization.translate("Insuficient financial points");
+                            dbconfig.collection_proposal.findOneAndUpdate(
+                                {_id: data._id, createTime: data.createTime},
+                                {"data.remark": remark}
+                            ).catch(errorUtils.reportError);
+                            deferred.reject({name: "DBError", message: "Insuficient financial points"});
+                            return Promise.reject("Insuficient financial points");
+                        }
+                    }
+                }
                 if (data.status != constProposalStatus.PENDING) {
                     deferred.reject({name: "DBError", message: "Proposal is not in Pending status."});
                     return;
