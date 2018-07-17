@@ -1366,6 +1366,7 @@ let dbPlayerCreditTransfer = {
                         return Promise.all(prom);
                     }).then(data => {
                         if(data && data.length > 0) {
+                            console.log('transferin promise data',data);
                             let providerCredit = 0, playerCredit = 0, rewardCredit = 0, transferPlayerCredit = 0,
                                 transferRewardCredit = 0;
                             data.forEach(item => {
@@ -1732,6 +1733,7 @@ let dbPlayerCreditTransfer = {
                         });
                         return transferOut;
                     }).then(() => {
+                        console.log('transferout promise data',transferOutSuccessData);
                         let providerCredit = 0, playerCredit = 0, rewardCredit = 0, transferPlayerCredit = 0, transferRewardCredit = 0;
                         transferOutSuccessData.forEach(item => {
                             if(item && item.providerCredit && item.playerCredit && item.rewardCredit &&
