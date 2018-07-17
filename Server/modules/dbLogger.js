@@ -115,10 +115,13 @@ var dbLogger = {
                     adminActionRecordData.data[0].game && adminActionRecordData.data[0].game.length > 0 && adminActionRecordData.data[0].game[0]){
                     return dbconfig.collection_game.findOne({_id: adminActionRecordData.data[0].game[0]})
                         .populate({path: "provider", model: dbconfig.collection_gameProvider});
-                }else if (adminActionRecordData.action == 'createRewardEvent' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].type) {
+                }else if (adminActionRecordData.action == 'createRewardEvent' && adminActionRecordData.data && adminActionRecordData.data[0] && adminActionRecordData.data[0].type) {
                     return dbconfig.collection_rewardType.findOne({_id: adminActionRecordData.data[0].type}, {name: 1});
                 }else if(adminActionRecordData.action == 'createUpdatePartnerCommissionConfigWithGameProviderGroup' && resultData && resultData.provider){
                     return dbconfig.collection_gameProviderGroup.findOne({_id: resultData.provider});
+                }else if(adminActionRecordData.action == 'manualDailyProviderSettlement' && adminActionRecordData.data && adminActionRecordData.data.length > 2
+                    && adminActionRecordData.data[2]){
+                    return dbconfig.collection_platform.findOne({_id: adminActionRecordData.data[2]});
                 }else if (adminActionRecordData.action == 'updateBatchPlayerForbidRewardEvents'
                     && adminActionRecordData.data[2] && adminActionRecordData.data[2].addList.length) {
                     return dbconfig.collection_rewardEvent.find({_id: {$in: adminActionRecordData.data[2].addList}}, {name: 1});
@@ -293,6 +296,68 @@ var dbLogger = {
                 }else if (logAction == 'deletePlatformAnnouncementByIds' && adminActionRecordData.data && adminActionRecordData.data.length > 1
                     && adminActionRecordData.data[1]) {
                     adminActionRecordData.error = "删除" + adminActionRecordData.data[1];
+                }else if (logAction == 'addPromoteWay' && resultData && resultData.name) {
+                    adminActionRecordData.error = "创建" + resultData.name;
+                }else if (logAction == 'deletePromoteWay' && adminActionRecordData.data && adminActionRecordData.data.length > 2 && adminActionRecordData.data[2]) {
+                    adminActionRecordData.error = "删除" + adminActionRecordData.data[2];
+                }else if (logAction == 'addPlatformBankCardGroup' && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]) {
+                    adminActionRecordData.error = "添加银行卡组 - " + adminActionRecordData.data[1];
+                }else if (logAction == 'addPlatformMerchantGroup' && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]) {
+                    adminActionRecordData.error = "添加商户组 - " + adminActionRecordData.data[1];
+                }else if (logAction == 'addPlatformAlipayGroup' && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]) {
+                    adminActionRecordData.error = "添加支付宝组 - " + adminActionRecordData.data[1];
+                }else if (logAction == 'addPlatformWechatPayGroup' && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]) {
+                    adminActionRecordData.error = "添加微信组 - " + adminActionRecordData.data[1];
+                }else if (logAction == 'updatePlatformBankCardGroup') {
+                    adminActionRecordData.error = "编辑银行卡组";
+                }else if (logAction == 'renamePlatformMerchantGroup') {
+                    adminActionRecordData.error = "编辑商户组";
+                }else if (logAction == 'renamePlatformAlipayGroup') {
+                    adminActionRecordData.error = "编辑支付宝组";
+                }else if (logAction == 'renamePlatformWechatPayGroup') {
+                    adminActionRecordData.error = "编辑微信组";
+                }else if (logAction == 'deleteBankCardGroup') {
+                    adminActionRecordData.error = "删除银行卡";
+                }else if (logAction == 'deleteMerchantGroup') {
+                    adminActionRecordData.error = "删除商户组";
+                }else if (logAction == 'deleteAlipayGroup') {
+                    adminActionRecordData.error = "删除支付宝组";
+                }else if (logAction == 'deleteWechatPayGroup') {
+                    adminActionRecordData.error = "删除微信组";
+                }else if (logAction == 'setPlatformDefaultBankCardGroup' && resultData && resultData.length > 0 && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]) {
+                    let defaultBankCard = resultData.find(r => r._id == adminActionRecordData.data[1]).name
+                    adminActionRecordData.error = "设置" + defaultBankCard + "为默认银行卡组";
+                }else if (logAction == 'setPlatformDefaultMerchantGroup' && resultData && resultData.length > 0 && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]) {
+                    let defaultBankCard = resultData.find(r => r._id == adminActionRecordData.data[1]).name
+                    adminActionRecordData.error = "设置" + defaultBankCard + "为默认商户组";
+                }else if (logAction == 'setPlatformDefaultAlipayGroup' && resultData && resultData.length > 0 && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]) {
+                    let defaultBankCard = resultData.find(r => r._id == adminActionRecordData.data[1]).name
+                    adminActionRecordData.error = "设置" + defaultBankCard + "为默认支付宝组";
+                }else if (logAction == 'setPlatformDefaultWechatPayGroup' && resultData && resultData.length > 0 && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]) {
+                    let defaultBankCard = resultData.find(r => r._id == adminActionRecordData.data[1]).name
+                    adminActionRecordData.error = "设置" + defaultBankCard + "为默认微信组";
+                }else if (logAction == 'addPlayersToBankCardGroup') {
+                    adminActionRecordData.error = "添加玩家至银行卡组";
+                }else if (logAction == 'addPlayersToMerchantGroup') {
+                    adminActionRecordData.error = "添加玩家至商户组";
+                }else if (logAction == 'addPlayersToAlipayGroup') {
+                    adminActionRecordData.error = "添加玩家至支付宝组";
+                }else if (logAction == 'addPlayersToWechatPayGroup') {
+                    adminActionRecordData.error = "添加玩家至微信组";
+                }else if (logAction == 'addAllPlayersToBankCardGroup') {
+                    adminActionRecordData.error = "添加所有玩家至银行卡组";
+                }else if (logAction == 'addAllPlayersToMerchantGroup') {
+                    adminActionRecordData.error = "添加所有玩家至商户组";
+                }else if (logAction == 'addAllPlayersToAlipayGroup') {
+                    adminActionRecordData.error = "添加所有玩家至支付宝组";
+                }else if (logAction == 'addAllPlayersToWechatPayGroup') {
+                    adminActionRecordData.error = "添加所有玩家至微信组";
+                }else if (logAction == 'syncMerchantNoScript') {
+                    adminActionRecordData.error = "同步商户号";
+                }else if (logAction == 'updateGameProvider' && resultData && typeof resultData.dailySettlementHour != "undefined" && typeof resultData.dailySettlementMinute != "undefined") {
+                    adminActionRecordData.error = "编辑结算时间为" + resultData.dailySettlementHour + "小时" + resultData.dailySettlementMinute + "分钟";
+                }else if (logAction == 'manualDailyProviderSettlement' && data && data.name) {
+                    adminActionRecordData.error = "指定结算" + data.name;
                 }else if (logAction == 'pushNotification' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].tittle) {
                     adminActionRecordData.error = "添加" + adminActionRecordData.data[0].tittle;
                 }else if ((logAction == 'updateRewardPointsEvent' || logAction == 'createRewardPointsEvent')

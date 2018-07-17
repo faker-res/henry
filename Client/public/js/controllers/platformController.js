@@ -29271,9 +29271,11 @@ define(['js/app'], function (myApp) {
             vm.deletePromoteWay = function () {
                 let deletePromoteMessageId = $("#delete-promote-message");
                 vm.initClearMessage();
+                let promoteWayName = vm.allPromoteWay.find(a => a._id == vm.deleteOfficer.promoteWay) ? vm.allPromoteWay.find(a => a._id == vm.deleteOfficer.promoteWay).name : "";
                 let sendData = {
                     platformId: vm.selectedPlatform.id,
-                    promoteWayId: vm.deleteOfficer.promoteWay
+                    promoteWayId: vm.deleteOfficer.promoteWay,
+                    promoteWayName: promoteWayName
                 };
                 socketService.$socket($scope.AppSocket, 'deletePromoteWay', sendData, function () {
                         console.log("PromoteWay deleted");
