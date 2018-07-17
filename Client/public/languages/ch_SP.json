@@ -3958,6 +3958,7 @@
   "financial point change(+/-)": "点数变化（可＋－）",
   "pointsBefore": "点数变化前",
   "pointsAfter": "点数变化后",
-  "noExecuteRequire": "无需执行"
+  "noExecuteRequire": "无需执行",
+  "topUpType": "充值类型"
 
 }

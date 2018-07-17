@@ -3167,7 +3167,7 @@ let dbPlayerInfo = {
                                     updateAmount: proposalData.data.amount,
                                     remark: "",
                                     topUpProposalId: proposalData.proposalId,
-                                    topupType: topUpType,
+                                    topUpType: topUpType,
                                     noExecuteRequire: true,
                                     pointsBefore: platformData.financialPoints,
                                     pointsAfter: platformData.financialPoints + proposalData.data.amount

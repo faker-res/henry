@@ -13809,7 +13809,7 @@ define(['js/app'], function (myApp) {
                         remark: vm.financialPointsChange.remark,
                         adminName: authService.adminName
                     }
-                }
+                };
 
                 socketService.$socket($scope.AppSocket, 'updatePlatformFinancialPoints', sendData, function (data) {
                     let newData = data.data;
@@ -23776,6 +23776,12 @@ define(['js/app'], function (myApp) {
                             + "(" + grossCommission + "-" + totalFee + ")";
 
                         vm.selectedProposal.data = proposalDetail;
+                    }
+
+                    if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "FinancialPointsAdd") {
+                        if (vm.selectedProposal.data.topUpType) {
+                            vm.selectedProposal.data.topUpType = $translate($scope.topUpTypeList[vm.selectedProposal.data.topUpType])
+                        }
                     }
 
                     if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
