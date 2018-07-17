@@ -603,7 +603,7 @@ var dbPlayerFeedback = {
 
     createExportPlayerProposal: function (exportData) {
         applyExtractPlayerProposal(exportData.title, exportData.playerType, exportData.playerLevelObjId, exportData.playerLevelName, exportData.credibilityRemarkObjIdArray,
-            exportData.credibilityRemarkNameArray, exportData.lastAccessTimeFrom, exportData.lastAccessTimeTo, exportData.lastAccessTimeRangeString,
+            exportData.credibilityRemarkNameArray, exportData.credibilityRemarkFilterObjIdArray, exportData.credibilityRemarkFilterNameArray, exportData.callPermission , exportData.lastAccessTimeFrom, exportData.lastAccessTimeTo, exportData.lastAccessTimeRangeString,
             exportData.lastFeedbackTimeBefore, exportData.depositCountOperator, exportData.depositCountFormal, exportData.depositCountLater, exportData.bonusAmountOperator,
             exportData.bonusAmountFormal, exportData.bonusAmountLater, exportData.playerValueOperator, exportData.playerValueFormal, exportData.playerValueLater,
             exportData.consumptionTimesOperator, exportData.consumptionTimesFormal, exportData.consumptionTimesLater, exportData.withdrawalTimesOperator,
@@ -776,6 +776,7 @@ var dbPlayerFeedback = {
 };
 
 function applyExtractPlayerProposal (title, playerType, playerLevelObjId, playerLevelName, credibilityRemarkObjIdArray, credibilityRemarkNameArray,
+                                     credibilityRemarkFilterObjIdArray, credibilityRemarkFilterNameArray, callPermission,
                                      lastAccessTimeFrom, lastAccessTimeTo, lastAccessTimeRangeString,
                                      lastFeedbackTimeBefore, depositCountOperator, depositCountFormal, depositCountLater,
                                      bonusAmountOperator, bonusAmountFormal, bonusAmountLater,
@@ -803,6 +804,9 @@ function applyExtractPlayerProposal (title, playerType, playerLevelObjId, player
                     playerLevelName,
                     credibilityRemarks: credibilityRemarkObjIdArray,
                     credibilityRemarkNames: credibilityRemarkNameArray,
+                    credibilityRemarksFilter: credibilityRemarkFilterObjIdArray,
+                    credibilityRemarkFilterNames: credibilityRemarkFilterNameArray,
+                    callPermission,
                     lastAccessTimeFrom,
                     lastAccessTimeTo,
                     lastAccessTimeRangeString,
@@ -891,6 +895,25 @@ function searchPlayerFromExportProposal (proposal) {
         }
     }
 
+    if (proposalData.credibilityRemarksFilter && proposalData.credibilityRemarksFilter.length > 0) {
+        let tempArr = [];
+        if (proposalData.credibilityRemarksFilter.includes("")) {
+            proposalData.credibilityRemarksFilter.forEach(remark => {
+                if (remark != "") {
+                    tempArr.push(remark);
+                }
+            });
+            query.$and = [{credibilityRemarks: {$ne: []}}, {credibilityRemarks: {$exists: true}}, {credibilityRemarks: {$nin: tempArr}}];
+        } else {
+            if (query.credibilityRemarks && query.credibilityRemarks.$in) {
+                query.$and = [{credibilityRemarks: {$nin: proposalData.credibilityRemarksFilter}}];
+            }
+            else {
+                query.credibilityRemarks = {$nin: proposalData.credibilityRemarksFilter};
+            }
+        }
+    }
+
     if (proposalData.callPermission == 'true') {
         query['permission.phoneCallFeedback'] = {$ne: false};
     } else if (proposalData.callPermission == 'false') {
@@ -920,7 +943,31 @@ function searchPlayerFromExportProposal (proposal) {
     }
 
     if (proposalData.lastFeedbackTimeBefore) {
-        query.$or = [{lastFeedbackTime: null}, {lastFeedbackTime: {$lt: proposalData.lastFeedbackTimeBefore}}];
+        let lastFeedbackTimeExist = {
+            lastFeedbackTime: null
+        };
+        let lastFeedbackTime = {
+            lastFeedbackTime: {
+                $lt: proposalData.lastFeedbackTimeBefore
+            }
+        };
+
+        let orClause = [];
+
+        orClause.push(lastFeedbackTimeExist);
+        orClause.push(lastFeedbackTime);
+
+        if (query.hasOwnProperty("$or")) {
+            if (query.$and) {
+                query.$and.push({$or: query.$or});
+                query.$and.push({$or: orClause});
+            } else {
+                query.$and = [{$or: query.$or}, {$or: orClause}];
+            }
+            delete query.$or;
+        } else {
+            query["$or"] = orClause;
+        }
     }
 
     if (proposalData.depositCountOperator && proposalData.depositCountFormal != null) {

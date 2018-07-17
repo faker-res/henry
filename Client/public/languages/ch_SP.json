@@ -1566,6 +1566,7 @@
   "partnerPasswordMinLength": "（代理帐号）的密码最短长度",
   "partnerPrefix": "（代理帐号）前坠（可多位）",
   "partnerCreatePlayerPrefix": "（代理帐号）开出的下线前坠（可多位）",
+  "CREDIBILITY_FILTER": "过滤信用",
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
