@@ -214,7 +214,16 @@ var dbPlayerConsumptionWeekSummary = {
                                             $gte: startTime,
                                             $lt: endTime
                                         },
-                                        playerId: playerData._id
+                                        playerId: playerData._id,
+                                        $or: [
+                                            {isDuplicate: {$exists: false}},
+                                            {
+                                                $and: [
+                                                    {isDuplicate: {$exists: true}},
+                                                    {isDuplicate: false}
+                                                ]
+                                            }
+                                        ]
                                     }
                                 },
                                 {

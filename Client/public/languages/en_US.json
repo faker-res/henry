@@ -1188,6 +1188,7 @@
   "partnerPasswordMinLength": "Partner Password Min Length",
   "partnerPrefix": "Partner Prefix",
   "partnerCreatePlayerPrefix": "Partner Create Player Prefix",
+  "CREDIBILITY_FILTER": "Credibility Filter",
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
   "SMS_VERIFICATION": "SMS Verification",

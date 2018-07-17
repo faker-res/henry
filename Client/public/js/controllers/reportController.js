@@ -5827,7 +5827,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TYPE'), data: "action", sClass: "sumText",
                         render: function (data) {
-                            return $translate(data);
+                            return $translate(data == 'pushNotification' ? 'addPushNotification' : data);
                         }
                     },
                     {title: $translate("Operation Time"), data: "operationTime$"},
@@ -7445,6 +7445,19 @@ define(['js/app'], function (myApp) {
 
                     {group: "MessageTemplates", text: "createMessageTemplate", action: "createMessageTemplate"},
                     {group: "MessageTemplates", text: "updateMessageTemplate", action: "updateMessageTemplate"},
+
+                    {group: "PushNotification", text: "addPushNotification", action: "pushNotification"},
+
+                    {group: "rewardPoint", text: "upsertRewardPointsLvlConfig", action: "upsertRewardPointsLvlConfig"},
+                    {group: "rewardPoint", text: "updateRewardPointsEvent", action: "updateRewardPointsEvent"},
+                    {group: "rewardPoint", text: "deleteRewardPointsEventById", action: "deleteRewardPointsEventById"},
+                    {group: "rewardPoint", text: "createRewardPointsEvent", action: "createRewardPointsEvent"},
+
+                    {group: "Batch Setting", text: "updateBatchPlayer", action: ["updateBatchPlayerPermission", "updateBatchPlayerForbidRewardEvents","updateBatchPlayerForbidPaymentType","updateBatchPlayerForbidRewardPointsEvent"]},
+                    {group: "Batch Setting", text: "playerCreditClearOut", action: "playerCreditClearOut"},
+
+                    {group: "TeleMarketing", text: "createDxMission", action: "createDxMission"},
+                    {group: "TeleMarketing", text: "comparePhoneNum", action: "comparePhoneNum"},
 
                     {group: "PlayerLevel", text: "createPlayerLevel", action: "createPlayerLevel"},
                     {group: "PlayerLevel", text: "updatePlayerLevel", action: "updatePlayerLevel"},
