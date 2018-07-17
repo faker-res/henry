@@ -454,6 +454,8 @@ var dbLogger = {
                     adminActionRecordData.error = '批量设置账号' + adminActionRecordData.data[0].playerNames + '，设置内容' + topupType;
                 } else if (logAction == 'playerCreditClearOut' && adminActionRecordData && adminActionRecordData.data[0]) {
                     adminActionRecordData.error = '批量情况' + adminActionRecordData.data[0] + '会员余额';
+                } else if (logAction == 'createDxMission' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].name) {
+                    adminActionRecordData.error = '创建' + adminActionRecordData.data[0].name;
                 }
 
 
