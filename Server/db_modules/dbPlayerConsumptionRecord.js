@@ -610,12 +610,7 @@ var dbPlayerConsumptionRecord = {
             (playerUpdatedData) => {
                 playerData = playerUpdatedData;
                 // Check auto player level up
-                return dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).then(
-                    data => data,
-                    error => {
-                        errorUtils.reportError(error);
-                    }
-                );
+                return dbRewardTask.checkPlayerRewardTaskGroupForConsumption(record, platformObj);
             },
             error => {
                 return Q.reject({
@@ -623,14 +618,6 @@ var dbPlayerConsumptionRecord = {
                     message: "Error in updating player consumption sum",
                     error: error
                 });
-            }
-        ).then(
-            () => {
-                // check player's on-going reward task group
-                return dbRewardTask.checkPlayerRewardTaskGroupForConsumption(record, platformObj);
-            },
-            error => {
-                return Q.reject({name: "DBError", message: "Error in checking player level", error: error});
             }
         ).then(
             returnableAmt => {
@@ -646,10 +633,12 @@ var dbPlayerConsumptionRecord = {
             () => {
                 if (playerData) {
                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, {}).catch(errorUtils.reportError);
+
                 }
                 if (record) {
                     console.log('debug log #0FD400');
                     dbRewardPoints.updateGameRewardPointProgress(record).catch(errorUtils.reportError);
+                    dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).catch(errorUtils.reportError);
                 }
                 return record
             },
