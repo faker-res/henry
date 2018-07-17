@@ -619,14 +619,16 @@ define(['js/app'], function (myApp) {
                     }
                 }
             };
-            vm.getAllChildrenDepartmentIds = function (departmentNode) {
+            vm.getAllChildrenDepartmentIds = function (departmentNode, count) {
+                count = count || 0;
                 var userIds = [];
                 //console.log(departmentNode.text, vm.departmentNodes[departmentNode.id].departData.users);
                 userIds = userIds.concat(vm.departmentNodes[departmentNode.id].departData.users);
-                if (departmentNode.children) {
+                if (departmentNode.children && count <= 10) {
+                    count++;
                     for (var i = 0; i < departmentNode.children.length; i++) {
                         var nodeId = departmentNode.children[i];
-                        userIds = userIds.concat(vm.getAllChildrenDepartmentIds(vm.departmentNodes[nodeId]));
+                        userIds = userIds.concat(vm.getAllChildrenDepartmentIds(vm.departmentNodes[nodeId], count));
                     }
                 }
                 return userIds;

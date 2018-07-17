@@ -26,6 +26,7 @@ let rsaCrypto = require("../modules/rsaCrypto");
 let dbutility = require("./../modules/dbutility");
 let dbPlayerMail = require("../db_modules/dbPlayerMail");
 var localization = require("../modules/localization");
+const translate = localization.localization.translate;
 var serverInstance = require("../modules/serverInstance");
 var ObjectId = mongoose.Types.ObjectId;
 // db_common
@@ -190,9 +191,9 @@ let dbPartner = {
                         partnerdata.commissionType = platformData.partnerDefaultCommissionGroup;
                     }
                     // attach platform prefix to partner name if available
-                    if (platform.partnerPrefix) {
-                        partnerdata.partnerName = platform.partnerPrefix + partnerdata.partnerName;
-                    }
+                    // if (platform.partnerPrefix) {
+                    //     partnerdata.partnerName = platform.partnerPrefix + partnerdata.partnerName;
+                    // }
                     pName = partnerdata.partnerName;
 
                     if ((platformData.partnerNameMaxLength > 0 && partnerdata.partnerName.length > platformData.partnerNameMaxLength) || (platformData.partnerNameMinLength > 0 && partnerdata.partnerName.length < platformData.partnerNameMinLength)) {
@@ -6218,7 +6219,6 @@ let dbPartner = {
                 prom = generateSkipCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
             }
             else {
-                console.log('commSet step0', partnerObjId)
                 prom = dbPartner.generatePartnerCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
             }
             proms.push(prom);
@@ -6229,11 +6229,9 @@ let dbPartner = {
 
     generatePartnerCommissionLog: function (partnerObjId, commissionType, startTime, endTime) {
         let downLinesRawCommissionDetails, partnerCommissionLog;
-        console.log('commSet step1', partnerObjId)
         return dbPartner.calculatePartnerCommissionDetail(partnerObjId, commissionType, startTime, endTime)
             .then(
             commissionDetail => {
-                console.log('commSet step8', partnerObjId)
                 if (commissionDetail.disableCommissionSettlement) {
                     return undefined;
                 }
@@ -6254,7 +6252,6 @@ let dbPartner = {
             }
         ).then(
             partnerCommissionLogData => {
-                console.log('commSet step9', partnerObjId)
                 if (!partnerCommissionLogData) {
                     return undefined;
                 }
@@ -6277,7 +6274,6 @@ let dbPartner = {
             }
         ).then(
             downLinesRawCommissionDetail => {
-                console.log('commSet step10', partnerObjId)
                 if (!downLinesRawCommissionDetail) {
                     return undefined;
                 }
@@ -6408,7 +6404,6 @@ let dbPartner = {
                         message: "Error in getting partner data",
                     });
                 }
-                console.log('commSet step2', partnerObjId)
 
                 partner = data;
                 platform = data.platform;
@@ -6426,7 +6421,6 @@ let dbPartner = {
             data => {
                 downLines = data[0];
                 providerGroups = data[1];
-                console.log('commSet step3', partnerObjId)
 
                 let commissionRateTableProm = getAllCommissionRateTable(platform._id, commissionType, partner._id, providerGroups);
                 let activePlayerRequirementProm = getRelevantActivePlayerRequirement(platform._id, commissionType);
@@ -6447,7 +6441,6 @@ let dbPartner = {
                 rewardProposalTypes = data[3];
 
                 partnerCommissionRateConfig = data[4];
-                console.log('commSet step4', partnerObjId)
 
                 let downLinesRawDetailProms = [];
 
@@ -6465,7 +6458,6 @@ let dbPartner = {
             }
         ).then(
             downLinesRawData => {
-                console.log('commSet step7', partnerObjId)
                 downLinesRawCommissionDetail = downLinesRawData;
 
                 activeDownLines = getActiveDownLineCount(downLinesRawCommissionDetail);
@@ -6760,38 +6752,11 @@ let dbPartner = {
             let logObjId = commissionApplication.logId;
             let settleType = commissionApplication.settleType;
             let remark = commissionApplication.remark;
-            let log = {};
 
-            let prom = dbPartner.findPartnerCommissionLog({_id: logObjId}, true).then(
-            // let prom = dbconfig.collection_partnerCommissionLog.findOne({_id: logObjId}).lean().then(
-                logData => {
-                    if (!logData) {
-                        return Promise.reject({
-                            message: "Error in getting partner commission log."
-                        });
-                    }
-
-                    log = logData;
-
-                    let resetProm = Promise.resolve();
-                    if (settleType === constPartnerCommissionLogStatus.RESET_THEN_EXECUTED) {
-                        remark = "结算前清空馀额：" + remark
-                        resetProm = dbPartner.applyClearPartnerCredit(log.partner, log, adminInfo.name, remark);
-                    }
-                    return resetProm;
-                }
-            ).then(
-                resetProposal => {
-                    updateCommissionLogStatus(log, settleType, remark).catch(errorUtils.reportError);
-                    if (resetProposal && resetProposal.proposalId) {
-                        remark = "(" + resetProposal.proposalId + ") "+ remark;
-                    }
-                    if (settleType === constPartnerCommissionLogStatus.EXECUTED_THEN_RESET) {
-                        remark = "结算后清空馀额：" + remark;
-                    }
-                    return applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
-                }
-            ).catch(errorUtils.reportError);
+            let prom = applyCommissionToPartner(logObjId, settleType, remark, adminInfo).catch(err => {
+                console.error('settle fail', logObjId, err);
+                return errorUtils.reportError(err);
+            });
 
             proms.push(prom);
         });
@@ -8745,9 +8710,9 @@ let dbPartner = {
         return Promise.all(proms);
     },
 
-    getPreviousCommissionPeriod: (pastX, partnerName, commissionType) => {
+    getPreviousCommissionPeriod: (pastX, platformObjId, partnerName, commissionType) => {
         if (partnerName) {
-            return dbconfig.collection_partner.findOne({partnerName: partnerName}, {commissionType: 1}).lean().then(
+            return dbconfig.collection_partner.findOne({partnerName: partnerName, platform: platformObjId}, {commissionType: 1}).lean().then(
                 partner => {
                     if (!partner) {
                         return Promise.reject({message: "Partner not found."});
@@ -8763,6 +8728,40 @@ let dbPartner = {
         else {
             return Promise.reject({message: "Please insert either commission type or partner name for search."});
         }
+    },
+
+    settlePastCommission: (partnerName, platformObjId, pastX, adminInfo) => {
+        let period, partner, proposalType;
+        return dbPartner.getPreviousCommissionPeriod(pastX, platformObjId, partnerName).then(
+            periodData => {
+                period = periodData;
+                return dbconfig.collection_partner.findOne({partnerName: partnerName, platform: platformObjId}).lean();
+            }
+        ).then(
+            partnerData => {
+                partner = partnerData;
+
+                return dbconfig.collection_proposalType.findOne({name: constProposalType.SETTLE_PARTNER_COMMISSION, platformId: partner.platform}).lean();
+            }
+        ).then(
+            proposalTypeData => {
+                proposalType = proposalTypeData;
+
+                return dbconfig.collection_proposal.findOne({type: proposalType._id, "data.partnerId": partner.partnerId, "data.startTime": period.startTime, "data.endTime": period.endTime}).lean();
+            }
+        ).then(
+            existingProposal => {
+                if (existingProposal) {
+                    return Promise.reject({message: translate("The partner commission for this period is already settled.") + translate("Proposal No.") + existingProposal.proposalId});
+                }
+
+                return dbPartner.generatePartnerCommissionLog(partner._id, partner.commissionType, period.startTime, period.endTime);
+            }
+        ).then(
+            commissionLog => {
+                return applyCommissionToPartner(commissionLog._id, constPartnerCommissionLogStatus.EXECUTED, "", adminInfo);
+            }
+        );
     },
 };
 
@@ -10483,6 +10482,40 @@ function getAllPlayerCommissionRawDetailsWithSettlement (players, commissionType
     }).then(
         () => {
             return details;
+        }
+    );
+}
+
+function applyCommissionToPartner (logObjId, settleType, remark, adminInfo) {
+    let log = {};
+
+    return dbPartner.findPartnerCommissionLog({_id: logObjId}, true).then(
+        logData => {
+            if (!logData) {
+                return Promise.reject({
+                    message: "Error in getting partner commission log."
+                });
+            }
+
+            log = logData;
+
+            let resetProm = Promise.resolve();
+            if (settleType === constPartnerCommissionLogStatus.RESET_THEN_EXECUTED) {
+                remark = "结算前清空馀额：" + remark;
+                resetProm = dbPartner.applyClearPartnerCredit(log.partner, log, adminInfo.name, remark);
+            }
+            return resetProm;
+        }
+    ).then(
+        resetProposal => {
+            updateCommissionLogStatus(log, settleType, remark).catch(errorUtils.reportError);
+            if (resetProposal && resetProposal.proposalId) {
+                remark = "(" + resetProposal.proposalId + ") "+ remark;
+            }
+            if (settleType === constPartnerCommissionLogStatus.EXECUTED_THEN_RESET) {
+                remark = "结算后清空馀额：" + remark;
+            }
+            return applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
         }
     );
 }

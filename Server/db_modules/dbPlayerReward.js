@@ -1248,7 +1248,13 @@ let dbPlayerReward = {
             {deleteFlag: {$exists: false}},
             {deleteFlag: deleteFlag}
         ]
-    }).lean(),
+    }).lean().then(promoCodeType => {
+        let promoCodeTypeList = promoCodeType;
+        // get the auto promoCode template
+        return dbConfig.collection_promoCodeTemplate.find({platformObjId: platformObjId}).lean().then(promoCodeTemplate => {
+            return promoCodeTypeList.concat(promoCodeTemplate);
+        })
+    }),
 
     getPromoCodeTypeByObjId: (promoCodeTypeObjId) => dbConfig.collection_promoCodeType.findOne({_id: promoCodeTypeObjId}).lean(),
 
@@ -2431,7 +2437,7 @@ let dbPlayerReward = {
                     prom.push(dbConfig.collection_promoCodeTemplate.findOneAndUpdate(
                         {
                             platformObjId: platformObjId,
-                            typeName: entry.typeName,
+                            name: entry.name,
                             type: entry.type,
                         },
                         entry,

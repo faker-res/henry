@@ -15277,6 +15277,7 @@ define(['js/app'], function (myApp) {
                 let chosenPlatform = JSON.parse(vm.exportPlayerSetting.platform);
                 let playerName = "";
                 let credibilityRemarkName = [];
+                let credibilityRemarkFilterName = [];
                 let gameProviderName = [];
                 for (let i = 0; i < vm.allPlayerLvl.length; i++) {
                     if (vm.allPlayerLvl[i] && vm.allPlayerLvl[i].name && vm.allPlayerLvl[i]._id.toString() == vm.exportPlayerFilter.playerLevel.toString()) {
@@ -15293,6 +15294,17 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 }
+
+                if (vm.exportPlayerFilter.credibilityRemarksFilter.length) {
+                    for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                        for (let k = 0; k < vm.exportPlayerFilter.credibilityRemarksFilter.length; k++) {
+                            if (vm.credibilityRemarks[j]._id && vm.credibilityRemarks[j]._id.toString() == vm.exportPlayerFilter.credibilityRemarksFilter[k].toString()) {
+                                credibilityRemarkFilterName.push(vm.credibilityRemarks[j].name);
+                            }
+                        }
+                    }
+                }
+
                 if (vm.exportPlayerFilter.gameProviderId.length) {
                     for (let j = 0; j < vm.allGameProviders.length; j++) {
                         for (let k = 0; k < vm.exportPlayerFilter.gameProviderId.length; k++) {
@@ -15310,6 +15322,9 @@ define(['js/app'], function (myApp) {
                     playerLevelName: playerName,
                     credibilityRemarkObjIdArray: vm.exportPlayerFilter.credibilityRemarks,
                     credibilityRemarkNameArray: credibilityRemarkName,
+                    credibilityRemarkFilterObjIdArray: vm.exportPlayerFilter.credibilityRemarksFilter,
+                    credibilityRemarkFilterNameArray: credibilityRemarkFilterName,
+                    callPermission: vm.exportPlayerFilter.callPermission,
                     lastAccessTimeFrom: vm.exportQuery.lastAccessTime.$gte,
                     lastAccessTimeTo: vm.exportQuery.lastAccessTime.$lte || vm.exportQuery.lastAccessTime.$lt ,
                     lastAccessTimeRangeString: vm.exportPlayerFilter.lastAccess,
@@ -15385,6 +15400,25 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (vm.playerFeedbackQuery.credibilityRemarksFilter && vm.playerFeedbackQuery.credibilityRemarksFilter.length > 0) {
+                    let tempArr = [];
+                    if (vm.playerFeedbackQuery.credibilityRemarksFilter.includes("")) {
+                        vm.playerFeedbackQuery.credibilityRemarksFilter.forEach(remark => {
+                            if (remark != "") {
+                                tempArr.push(remark);
+                            }
+                        });
+                        sendQuery.$and = [{credibilityRemarks: {$ne: []}}, {credibilityRemarks: {$exists: true}}, {credibilityRemarks: {$nin: tempArr}}];
+                    } else {
+                        if (sendQuery.credibilityRemarks && sendQuery.credibilityRemarks.$in) {
+                            sendQuery.$and = [{credibilityRemarks: {$nin: vm.playerFeedbackQuery.credibilityRemarksFilter}}];
+                        }
+                        else {
+                            sendQuery.credibilityRemarks = {$nin: vm.playerFeedbackQuery.credibilityRemarksFilter};
+                        }
+                    }
+                }
+
                 if (vm.playerFeedbackQuery.lastAccess === "range") {
                     sendQuery.lastAccessTime = {
                         $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.lastAccessFormal)),
@@ -15409,9 +15443,21 @@ define(['js/app'], function (myApp) {
                             $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
                         }
                     };
+
                     sendQueryOr.push(lastFeedbackTimeExist);
                     sendQueryOr.push(lastFeedbackTime);
-                    sendQuery["$or"] = sendQueryOr;
+
+                    if (sendQuery.hasOwnProperty("$or")) {
+                        if (sendQuery.$and) {
+                            sendQuery.$and.push({$or: sendQuery.$or});
+                            sendQuery.$and.push({$or: sendQueryOr});
+                        } else {
+                            sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
+                        }
+                        delete sendQuery.$or;
+                    } else {
+                        sendQuery["$or"] = sendQueryOr;
+                    }
                 }
 
                 if (vm.playerFeedbackQuery.callPermission == 'true') {
@@ -15760,6 +15806,25 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (vm.playerFeedbackQuery.credibilityRemarksFilter && vm.playerFeedbackQuery.credibilityRemarksFilter.length > 0) {
+                    let tempArr = [];
+                    if (vm.playerFeedbackQuery.credibilityRemarksFilter.includes("")) {
+                        vm.playerFeedbackQuery.credibilityRemarksFilter.forEach(remark => {
+                            if (remark != "") {
+                                tempArr.push(remark);
+                            }
+                        });
+                        sendQuery.$and = [{credibilityRemarks: {$ne: []}}, {credibilityRemarks: {$exists: true}}, {credibilityRemarks: {$nin: tempArr}}];
+                    } else {
+                        if (sendQuery.credibilityRemarks && sendQuery.credibilityRemarks.$in) {
+                            sendQuery.$and = [{credibilityRemarks: {$nin: vm.playerFeedbackQuery.credibilityRemarksFilter}}];
+                        }
+                        else {
+                            sendQuery.credibilityRemarks = {$nin: vm.playerFeedbackQuery.credibilityRemarksFilter};
+                        }
+                    }
+                }
+
                 if (vm.playerFeedbackQuery.lastAccess === "range") {
                     sendQuery.lastAccessTime = {
                         $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.lastAccessFormal)),
@@ -15789,7 +15854,12 @@ define(['js/app'], function (myApp) {
                     sendQueryOr.push(lastFeedbackTime);
 
                     if (sendQuery.hasOwnProperty("$or")) {
-                        sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
+                        if (sendQuery.$and) {
+                            sendQuery.$and.push({$or: sendQuery.$or});
+                            sendQuery.$and.push({$or: sendQueryOr});
+                        } else {
+                            sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
+                        }
                         delete sendQuery.$or;
                     } else {
                         sendQuery["$or"] = sendQueryOr;
@@ -16539,6 +16609,7 @@ define(['js/app'], function (myApp) {
                             }
                         });
                         vm.setupRemarksMultiInputFeedback();
+                        vm.setupRemarksMultiInputFeedbackFilter();
                         vm.setupGameProviderMultiInputFeedback();
                     });
                 utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
@@ -22697,7 +22768,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.deleteRewardPointsEvent = (rewardPointsEvent) => {
-                $scope.$socketPromise('deleteRewardPointsEventById', {_id: rewardPointsEvent._id}).then((data) => {
+                $scope.$socketPromise('deleteRewardPointsEventById', {_id: rewardPointsEvent._id, category: rewardPointsEvent.category}).then((data) => {
                     vm.getRewardPointsEventByCategory(rewardPointsEvent.category);
                     $scope.safeApply();
                 });
@@ -26907,6 +26978,7 @@ define(['js/app'], function (myApp) {
                         vm.filterCredibilityRemarks.push({'_id':'', 'name':'N/A'});
                         vm.setupRemarksMultiInput();
                         vm.setupRemarksMultiInputFeedback();
+                        vm.setupRemarksMultiInputFeedbackFilter();
                         resolve();
                     }, function (err) {
                         reject(err);
@@ -27937,7 +28009,7 @@ define(['js/app'], function (myApp) {
                     title: "Delete Announcement",
                     text: `Are you sure you want to delete the announcement "${ann.title}"?`
                 }).then(function () {
-                    $scope.$socketPromise('deletePlatformAnnouncementByIds', {_ids: [ann._id]})
+                    $scope.$socketPromise('deletePlatformAnnouncementByIds', {_ids: [ann._id], title: ann.title})
                         .done(function (data) {
                             vm.configTabClicked("announcement");
                         });
@@ -29539,6 +29611,17 @@ define(['js/app'], function (myApp) {
                 // if (remarkSelect.css('display') && remarkSelect.css('display').toLowerCase() === "none") {
                 //     return;
                 // }
+                remarkSelect.multipleSelect({
+                    showCheckbox: true,
+                    allSelected: $translate("All Selected"),
+                    selectAllText: $translate("Select All"),
+                    displayValues: false,
+                    countSelected: $translate('# of % selected')
+                });
+                remarkSelect.multipleSelect("uncheckAll");
+            };
+            vm.setupRemarksMultiInputFeedbackFilter = function () {
+                let remarkSelect = $('select#selectCredibilityRemarkFeedbackFilter');
                 remarkSelect.multipleSelect({
                     showCheckbox: true,
                     allSelected: $translate("All Selected"),

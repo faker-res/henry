@@ -1127,44 +1127,52 @@ let dbPlayerCreditTransfer = {
         return checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, gameProviderGroup, useEbetWallet).then(
             res => {
                 console.log("checkProviderGroupCredit return res",res);
-                if (res && res[0] && res[1]) {
+                if (res && res[1]) {
                     amount = res[0];
                     updateObj = res[1];
                     rewardGroupObj = res[2];
-                    if(useEbetWallet === true && res[3]) {
+                    if (useEbetWallet === true && res[3]) {
                         eBetWalletObj = res[3];
                     }
 
-                    return counterManager.incrementAndGetCounter("transferId").then(
-                        function (id) {
-                            transferId = id;
-                            dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
-                                providerShortId, amount, updateObj.rewardAmt, adminName, null, constPlayerCreditTransferStatus.SEND);
-                            let playerTransferOutRequestData = {
-                                username: userName,
-                                platformId: platformId,
-                                providerId: providerShortId,
-                                transferId: id, //chance.integer({min: 1000000000000000000, max: 9999999999999999999}),
-                                credit: amount
-                            };
-                            if(useEbetWallet === true) {
-                                playerTransferOutRequestData.wallet = eBetWalletObj;
-                            }
-                            return pCTFP.playerTransferOut(playerTransferOutRequestData).then(
-                                res => {
-                                    console.log("ebetwallet pCTFP.playerTransferOut", res);
-                                    return res;
-                                },
-                                error => {
-                                    // let lockedAmount = rewardTask && rewardTask.currentAmount ? rewardTask.currentAmount : 0;
-                                    dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
-                                        providerShortId, amount, updateObj.rewardAmt, adminName, error, constPlayerCreditTransferStatus.FAIL);
-                                    error.hasLog = true;
-                                    return Q.reject(error);
+                    if (res[0]) {
+                        return counterManager.incrementAndGetCounter("transferId").then(
+                            function (id) {
+                                transferId = id;
+                                dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
+                                    providerShortId, amount, updateObj.rewardAmt, adminName, null, constPlayerCreditTransferStatus.SEND);
+                                let playerTransferOutRequestData = {
+                                    username: userName,
+                                    platformId: platformId,
+                                    providerId: providerShortId,
+                                    transferId: id, //chance.integer({min: 1000000000000000000, max: 9999999999999999999}),
+                                    credit: amount
+                                };
+                                if (useEbetWallet === true) {
+                                    playerTransferOutRequestData.wallet = eBetWalletObj;
                                 }
-                            );
-                        }
-                    );
+                                return pCTFP.playerTransferOut(playerTransferOutRequestData).then(
+                                    res => {
+                                        console.log("ebetwallet pCTFP.playerTransferOut success", res);
+                                        return res;
+                                    },
+                                    error => {
+                                        console.log("ebetwallet pCTFP.playerTransferOut error", error);
+                                        // let lockedAmount = rewardTask && rewardTask.currentAmount ? rewardTask.currentAmount : 0;
+                                        dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
+                                            providerShortId, amount, updateObj.rewardAmt, adminName, error, constPlayerCreditTransferStatus.FAIL);
+                                        error.hasLog = true;
+                                        return Q.reject(error);
+                                    }
+                                );
+                            }
+                        );
+                    } else if (res[0] == 0 && res[2]) {  //if the amount is 0 but there is reward task group
+                        return true;
+                    } else {
+                        // should not reach here
+                        return errorUtils.reportError(res);
+                    }
                 }
             }
         ).then(
@@ -1355,9 +1363,10 @@ let dbPlayerCreditTransfer = {
                 );
                 if(hasEbetWalletSettings) {
                     return Promise.all(checkAmountProm).then(() => {
-                        return Promise.all(prom)
+                        return Promise.all(prom);
                     }).then(data => {
                         if(data && data.length > 0) {
+                            console.log('transferin promise data',data);
                             let providerCredit = 0, playerCredit = 0, rewardCredit = 0, transferPlayerCredit = 0,
                                 transferRewardCredit = 0;
                             data.forEach(item => {
@@ -1651,9 +1660,21 @@ let dbPlayerCreditTransfer = {
     },
 
     playerCreditTransferFromEbetWallets: function (playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync) {
-        let prom = [];
+        let checkRTGProm = [];
+        let transferOut = Promise.resolve();
+        let transferOutSuccessData = [];
         let gameCredit;
         let hasEbetWalletSettings = false;
+        let waitTimePerRequest = 2000; //2seconds for one transaction
+        let delayTransferOut = ()=>{
+            return new Promise ((resolve) => {
+                setTimeout(() => {
+                        return resolve();
+                    }, waitTimePerRequest
+                );
+            });
+        };
+
         return dbPlayerCreditTransfer.getPlayerGameCredit({
             username: userName,
             platformId: platformId,
@@ -1675,19 +1696,46 @@ let dbPlayerCreditTransfer = {
                     console.log('playerCreditTransferFROMEbetWallets group', group);
                     if(group.hasOwnProperty('ebetWallet') && group.ebetWallet > 0 && gameCredit.wallet.hasOwnProperty(group.ebetWallet.toString())) {
                         hasEbetWalletSettings = true;
-                        prom.push(dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(group, playerObjId, platform, providerId,
-                            amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync));
+                        checkRTGProm.push(
+                            dbConfig.collection_rewardTaskGroup.findOne({
+                                platformId: platform,
+                                playerId: playerObjId,
+                                providerGroup: group._id,
+                                status: constRewardTaskStatus.STARTED
+                            }).lean().then(RTG => {
+                                if(RTG) {
+                                    transferOut = transferOut.then(() => {
+                                        return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(group, playerObjId, platform, providerId,
+                                            amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
+                                            transferOutSuccessData.push(ret);
+                                        }).catch(err => {
+                                            return errorUtils.reportError(err);
+                                        });
+                                    }).then(delayTransferOut);
+                                }
+                            })
+                        );
                     }
                 });
                 if(hasEbetWalletSettings) {
                     let freeCreditGroupData = {
                         ebetWallet: 0
                     };
-                    prom.push(dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
-                        amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync));
-                    return Promise.all(prom).then(data => {
+
+                    return Promise.all(checkRTGProm).then(() => {
+                        transferOut.then(() => {
+                            return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
+                                amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
+                                transferOutSuccessData.push(ret);
+                            }).catch(err => {
+                                return errorUtils.reportError(err);
+                            })
+                        });
+                        return transferOut;
+                    }).then(() => {
+                        console.log('transferout promise data',transferOutSuccessData);
                         let providerCredit = 0, playerCredit = 0, rewardCredit = 0, transferPlayerCredit = 0, transferRewardCredit = 0;
-                        data.forEach(item => {
+                        transferOutSuccessData.forEach(item => {
                             if(item && item.providerCredit && item.playerCredit && item.rewardCredit &&
                                 item.transferCredit.playerCredit && item.transferCredit.rewardCredit) {
                                 providerCredit += parseFloat(item.providerCredit);
@@ -1698,8 +1746,8 @@ let dbPlayerCreditTransfer = {
                             }
                         });
                         return {
-                            playerId: data[0].playerId,
-                            providerId: data[0].providerId,
+                            playerId: transferOutSuccessData[0].playerId,
+                            providerId: transferOutSuccessData[0].providerId,
                             providerCredit: providerCredit.toFixed(2),
                             playerCredit: playerCredit.toFixed(2),
                             rewardCredit: rewardCredit.toFixed(2),
@@ -1891,12 +1939,17 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                 console.log("gameProviderGroup2 ID",gameProviderGroup._id);
                 // Search for reward task group of this player on this provider
                 let gameCreditProm = Promise.resolve(false);
-                let rewardTaskGroupProm = dbConfig.collection_rewardTaskGroup.findOne({
-                    platformId: platform,
-                    playerId: playerObjId,
-                    providerGroup: gameProviderGroup._id,
-                    status: {$in: [constRewardTaskStatus.STARTED]}
-                }).lean();
+                let rewardTaskGroupProm;
+                if(useEbetWallet && gameProviderGroup && !gameProviderGroup._id) {
+                    rewardTaskGroupProm = Promise.resolve(null);
+                } else {
+                    rewardTaskGroupProm = dbConfig.collection_rewardTaskGroup.findOne({
+                        platformId: platform,
+                        playerId: playerObjId,
+                        providerGroup: gameProviderGroup._id,
+                        status: {$in: [constRewardTaskStatus.STARTED]}
+                    }).lean();
+                }
 
                 if (forSync) {
                     gameCreditProm = Promise.resolve({credit: amount});

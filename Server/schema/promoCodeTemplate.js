@@ -23,7 +23,7 @@ let promoCodeTemplateSchema = new Schema({
     // SMS Content
     smsContent: {type: String},
     // the name of the promoCode Type
-    typeName: {type: String},
+    name: {type: String},
     // the expired date = the moment it sends out + expiredInDay
     expiredInDay: {type: Number},
     // the title for the internal mail
