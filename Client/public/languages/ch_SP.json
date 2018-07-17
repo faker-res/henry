@@ -3955,6 +3955,9 @@
   "add/deduct financial points": "增加/扣除财务点数",
   "FinancialPointsAdd": "财务点数增加",
   "FinancialPointsDeduct": "财务点数扣除",
-  "financial point change(+/-)": "点数变化（可＋－）"
+  "financial point change(+/-)": "点数变化（可＋－）",
+  "pointsBefore": "点数变化前",
+  "pointsAfter": "点数变化后",
+  "noExecuteRequire": "无需执行"
 
 }

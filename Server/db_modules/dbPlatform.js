@@ -3597,19 +3597,25 @@ var dbPlatform = {
                     "data.playerObjId": proposalData.data.playerObjId
                 }
 
-                return dbconfig.collection_proposal.findOne(queryObj).lean().then(
-                    pendingProposal => {
-                        if (pendingProposal) {
-                            return Q.reject({
-                                name: "DBError",
-                                message: "Player or partner already has a pending proposal for this type"
-                            });
-                        }
-                    }
-                )
+                return dbconfig.collection_proposal.findOne(queryObj).lean()
             }
         ).then(
-            () => {
+            pendingProposal => {
+                if (pendingProposal) {
+                    return Q.reject({
+                        name: "DBError",
+                        message: "Player or partner already has a pending proposal for this type"
+                    });
+                }
+                return dbconfig.collection_platform.findOne({_id: platformId}).lean();
+            }
+        ).then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", errorMessage: "Cannot find platform"});
+                }
+                proposalData.data.pointsBefore = platformData.financialPoints;
+                proposalData.data.pointsAfter = platformData.financialPoints + proposalData.data.updateAmount;
                 return dbProposal.createProposalWithTypeNameWithProcessInfo(platformId, typeName, proposalData)
             }
         )

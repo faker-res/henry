@@ -3155,18 +3155,28 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data) {
-                    let financialProposal = {
-                        creator: proposalData.creator,
-                        data: {
-                            updateAmount: proposalData.data.amount,
-                            remark: "",
-                            topUpProposalId: proposalData.proposalId,
-                            topUpType: topUpType,
-                            noExecuteRequire: true
+
+                    dbPlatform.changePlatformFinancialPoints(data.platform, proposalData.data.amount).then(
+                        platformData => {
+                            if (!platformData) {
+                                return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
+                            }
+                            let financialProposal = {
+                                creator: proposalData.creator,
+                                data: {
+                                    updateAmount: proposalData.data.amount,
+                                    remark: "",
+                                    topUpProposalId: proposalData.proposalId,
+                                    topupType: topUpType,
+                                    noExecuteRequire: true,
+                                    pointsBefore: platformData.financialPoints,
+                                    pointsAfter: platformData.financialPoints + proposalData.data.amount
+                                }
+                            };
+                            dbProposal.createProposalWithTypeNameWithProcessInfo(data.platform, constProposalType.FINANCIAL_POINTS_ADD, financialProposal).catch(errorUtils.reportError);
                         }
-                    };
-                    dbPlatform.changePlatformFinancialPoints(data.platform, proposalData.data.amount).catch(errorUtils.reportError);
-                    dbProposal.createProposalWithTypeNameWithProcessInfo(data.platform, constProposalType.FINANCIAL_POINTS_ADD, financialProposal).catch(errorUtils.reportError);
+                    ).catch(errorUtils.reportError);
+
                     if (data.platform) {
                         return dbconfig.collection_platform.findOne({_id: data.platform})
                             .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean().then(
