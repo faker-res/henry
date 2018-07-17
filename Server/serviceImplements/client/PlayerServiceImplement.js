@@ -32,7 +32,7 @@ let PlayerServiceImplement = function () {
     //player create api handler
     this.create.expectsData = 'platformId: String, password: String';
     this.create.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data.name && data.platformId && data.password && (data.password.length >= constSystemParam.PASSWORD_LENGTH) && (!data.realName || data.realName.match(/\d+/g) === null));
+        var isValidData = Boolean(data.name && data.platformId && data.password /*&& (data.password.length >= constSystemParam.PASSWORD_LENGTH)*/ && (!data.realName || data.realName.match(/\d+/g) === null));
         if (data.smsCode || ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha')) {
             data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
             var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');

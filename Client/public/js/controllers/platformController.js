@@ -2965,7 +2965,7 @@ define(['js/app'], function (myApp) {
                 })
             }
             vm.removeGameGroup = function () {
-                socketService.$socket($scope.AppSocket, 'deleteGameGroup', {_id: vm.SelectedGameGroupNode.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'deleteGameGroup', {_id: vm.SelectedGameGroupNode.id, groupName: vm.SelectedGameGroupNode.text}, function (data) {
                     console.log(data.data);
                     // vm.loadGameGroupData();
                     for (var i = 0; i < vm.platformGameGroupList.length; i++) {
@@ -2989,7 +2989,8 @@ define(['js/app'], function (myApp) {
                     update: {
                         name: vm.newGameGroup.name,
                         displayName: vm.newGameGroup.displayName,
-                        code: vm.newGameGroup.code
+                        code: vm.newGameGroup.code,
+                        originalName: vm.newGameGroup.orginalName
                     }
                 }
                 socketService.$socket($scope.AppSocket, 'renamePlatformGameGroup', sendData, function (data) {
@@ -3068,7 +3069,8 @@ define(['js/app'], function (myApp) {
                     sendData.update = {
                         "$addToSet": {
                             games: {"$each": gameArr}
-                        }
+                        },
+                        gameNames: vm.selectGameGroupGamesName
                     }
                 } else if (type === 'detach') {
                     sendData.update = {
@@ -3078,7 +3080,8 @@ define(['js/app'], function (myApp) {
                                     "$in": vm.selectGameGroupGames
                                 }
                             }
-                        }
+                        },
+                        gameNames: vm.selectGameGroupGamesName
                     }
                 }
                 GeneralModal.confirm({
@@ -3133,6 +3136,7 @@ define(['js/app'], function (myApp) {
             vm.initRenameGameGroup = function () {
                 vm.newGameGroup = {};
                 vm.newGameGroup.name = vm.SelectedGameGroupNode.groupData.name;
+                vm.newGameGroup.orginalName = vm.SelectedGameGroupNode.groupData.name;
                 vm.newGameGroup.displayName = vm.SelectedGameGroupNode.groupData.displayName;
                 vm.newGameGroup.code = vm.SelectedGameGroupNode.groupData.code;
             }
@@ -3348,7 +3352,9 @@ define(['js/app'], function (myApp) {
                 var sendData = {
                     groupId: vm.SelectedGameGroupNode.id,
                     curParentGroupId: vm.SelectedGameGroupNode.parent,
-                    newParentGroupId: $scope.gameGroupMove.isRoot ? vm.newGroupParent.id : null
+                    newParentGroupId: $scope.gameGroupMove.isRoot ? vm.newGroupParent.id : null,
+                    groupName: vm.SelectedGameGroupNode.groupData.name,
+                    newParentGroupName: $scope.gameGroupMove.isRoot ? vm.newGroupParent.groupData.name : null,
                 }
                 socketService.$socket($scope.AppSocket, 'updateGameGroupParent', sendData, success);
 
@@ -15271,6 +15277,7 @@ define(['js/app'], function (myApp) {
                 let chosenPlatform = JSON.parse(vm.exportPlayerSetting.platform);
                 let playerName = "";
                 let credibilityRemarkName = [];
+                let credibilityRemarkFilterName = [];
                 let gameProviderName = [];
                 for (let i = 0; i < vm.allPlayerLvl.length; i++) {
                     if (vm.allPlayerLvl[i] && vm.allPlayerLvl[i].name && vm.allPlayerLvl[i]._id.toString() == vm.exportPlayerFilter.playerLevel.toString()) {
@@ -15287,6 +15294,17 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 }
+
+                if (vm.exportPlayerFilter.credibilityRemarksFilter.length) {
+                    for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                        for (let k = 0; k < vm.exportPlayerFilter.credibilityRemarksFilter.length; k++) {
+                            if (vm.credibilityRemarks[j]._id && vm.credibilityRemarks[j]._id.toString() == vm.exportPlayerFilter.credibilityRemarksFilter[k].toString()) {
+                                credibilityRemarkFilterName.push(vm.credibilityRemarks[j].name);
+                            }
+                        }
+                    }
+                }
+
                 if (vm.exportPlayerFilter.gameProviderId.length) {
                     for (let j = 0; j < vm.allGameProviders.length; j++) {
                         for (let k = 0; k < vm.exportPlayerFilter.gameProviderId.length; k++) {
@@ -15304,6 +15322,9 @@ define(['js/app'], function (myApp) {
                     playerLevelName: playerName,
                     credibilityRemarkObjIdArray: vm.exportPlayerFilter.credibilityRemarks,
                     credibilityRemarkNameArray: credibilityRemarkName,
+                    credibilityRemarkFilterObjIdArray: vm.exportPlayerFilter.credibilityRemarksFilter,
+                    credibilityRemarkFilterNameArray: credibilityRemarkFilterName,
+                    callPermission: vm.exportPlayerFilter.callPermission,
                     lastAccessTimeFrom: vm.exportQuery.lastAccessTime.$gte,
                     lastAccessTimeTo: vm.exportQuery.lastAccessTime.$lte || vm.exportQuery.lastAccessTime.$lt ,
                     lastAccessTimeRangeString: vm.exportPlayerFilter.lastAccess,
@@ -15379,6 +15400,25 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (vm.playerFeedbackQuery.credibilityRemarksFilter && vm.playerFeedbackQuery.credibilityRemarksFilter.length > 0) {
+                    let tempArr = [];
+                    if (vm.playerFeedbackQuery.credibilityRemarksFilter.includes("")) {
+                        vm.playerFeedbackQuery.credibilityRemarksFilter.forEach(remark => {
+                            if (remark != "") {
+                                tempArr.push(remark);
+                            }
+                        });
+                        sendQuery.$and = [{credibilityRemarks: {$ne: []}}, {credibilityRemarks: {$exists: true}}, {credibilityRemarks: {$nin: tempArr}}];
+                    } else {
+                        if (sendQuery.credibilityRemarks && sendQuery.credibilityRemarks.$in) {
+                            sendQuery.$and = [{credibilityRemarks: {$nin: vm.playerFeedbackQuery.credibilityRemarksFilter}}];
+                        }
+                        else {
+                            sendQuery.credibilityRemarks = {$nin: vm.playerFeedbackQuery.credibilityRemarksFilter};
+                        }
+                    }
+                }
+
                 if (vm.playerFeedbackQuery.lastAccess === "range") {
                     sendQuery.lastAccessTime = {
                         $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.lastAccessFormal)),
@@ -15403,9 +15443,27 @@ define(['js/app'], function (myApp) {
                             $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
                         }
                     };
+
                     sendQueryOr.push(lastFeedbackTimeExist);
                     sendQueryOr.push(lastFeedbackTime);
-                    sendQuery["$or"] = sendQueryOr;
+
+                    if (sendQuery.hasOwnProperty("$or")) {
+                        if (sendQuery.$and) {
+                            sendQuery.$and.push({$or: sendQuery.$or});
+                            sendQuery.$and.push({$or: sendQueryOr});
+                        } else {
+                            sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
+                        }
+                        delete sendQuery.$or;
+                    } else {
+                        sendQuery["$or"] = sendQueryOr;
+                    }
+                }
+
+                if (vm.playerFeedbackQuery.callPermission == 'true') {
+                    sendQuery['permission.phoneCallFeedback'] = {$ne: false};
+                } else if (vm.playerFeedbackQuery.callPermission == 'false') {
+                    sendQuery['permission.phoneCallFeedback'] = false;
                 }
 
                 if (vm.playerFeedbackQuery.depositCountOperator && vm.playerFeedbackQuery.depositCountFormal != null) {
@@ -15748,6 +15806,25 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (vm.playerFeedbackQuery.credibilityRemarksFilter && vm.playerFeedbackQuery.credibilityRemarksFilter.length > 0) {
+                    let tempArr = [];
+                    if (vm.playerFeedbackQuery.credibilityRemarksFilter.includes("")) {
+                        vm.playerFeedbackQuery.credibilityRemarksFilter.forEach(remark => {
+                            if (remark != "") {
+                                tempArr.push(remark);
+                            }
+                        });
+                        sendQuery.$and = [{credibilityRemarks: {$ne: []}}, {credibilityRemarks: {$exists: true}}, {credibilityRemarks: {$nin: tempArr}}];
+                    } else {
+                        if (sendQuery.credibilityRemarks && sendQuery.credibilityRemarks.$in) {
+                            sendQuery.$and = [{credibilityRemarks: {$nin: vm.playerFeedbackQuery.credibilityRemarksFilter}}];
+                        }
+                        else {
+                            sendQuery.credibilityRemarks = {$nin: vm.playerFeedbackQuery.credibilityRemarksFilter};
+                        }
+                    }
+                }
+
                 if (vm.playerFeedbackQuery.lastAccess === "range") {
                     sendQuery.lastAccessTime = {
                         $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.lastAccessFormal)),
@@ -15777,11 +15854,22 @@ define(['js/app'], function (myApp) {
                     sendQueryOr.push(lastFeedbackTime);
 
                     if (sendQuery.hasOwnProperty("$or")) {
-                        sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
+                        if (sendQuery.$and) {
+                            sendQuery.$and.push({$or: sendQuery.$or});
+                            sendQuery.$and.push({$or: sendQueryOr});
+                        } else {
+                            sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
+                        }
                         delete sendQuery.$or;
                     } else {
                         sendQuery["$or"] = sendQueryOr;
                     }
+                }
+
+                if (vm.playerFeedbackQuery.callPermission == 'true') {
+                    sendQuery['permission.phoneCallFeedback'] = {$ne: false};
+                } else if (vm.playerFeedbackQuery.callPermission == 'false') {
+                    sendQuery['permission.phoneCallFeedback'] = false;
                 }
 
                 if (vm.playerFeedbackQuery.depositCountOperator && vm.playerFeedbackQuery.depositCountFormal != null) {
@@ -16499,6 +16587,7 @@ define(['js/app'], function (myApp) {
                 vm.playerFeedbackQuery.playerType = "Real Player (all)";
                 vm.playerFeedbackQuery.playerLevel = "all";
                 vm.playerFeedbackQuery.lastAccess = "15-28";
+                vm.playerFeedbackQuery.callPermission = "true";
                 setTimeout(
                     () => {
                         let parentId;
@@ -16520,6 +16609,7 @@ define(['js/app'], function (myApp) {
                             }
                         });
                         vm.setupRemarksMultiInputFeedback();
+                        vm.setupRemarksMultiInputFeedbackFilter();
                         vm.setupGameProviderMultiInputFeedback();
                     });
                 utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
@@ -16536,7 +16626,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true,
                         pickTime: true,
                     });
-                    vm.playerFeedbackQuery.registerEndTime = $('#registerEndTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
+                    vm.playerFeedbackQuery.registerEndTime = $('#registerEndTimePicker').data('datetimepicker').setDate(new Date(utilService.getLocalTime(new Date()).getTime() - 30*60*1000 ));
 
                     vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {pageSize: vm.playerFeedbackQuery.limit}, $translate, function (curP, pageSize) {
                         var isChange = false;
@@ -21404,7 +21494,7 @@ define(['js/app'], function (myApp) {
             }
             vm.deleteReward = function (data) {
                 console.log('vm.showReward', vm.showReward);
-                socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {_ids: [vm.showReward._id]}, function (data) {
+                socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {_ids: [vm.showReward._id], name: vm.showReward.name}, function (data) {
                     //vm.allGameProvider = data.data;
                     vm.rewardTabClicked(function () {
                         vm.rewardEventClicked(0, vm.allRewardEvent[0])
@@ -22678,7 +22768,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.deleteRewardPointsEvent = (rewardPointsEvent) => {
-                $scope.$socketPromise('deleteRewardPointsEventById', {_id: rewardPointsEvent._id}).then((data) => {
+                $scope.$socketPromise('deleteRewardPointsEventById', {_id: rewardPointsEvent._id, category: rewardPointsEvent.category}).then((data) => {
                     vm.getRewardPointsEventByCategory(rewardPointsEvent.category);
                     $scope.safeApply();
                 });
@@ -23030,6 +23120,7 @@ define(['js/app'], function (myApp) {
 
             vm.checkPlayerName = function (el, id, index) {
                 let bgColor;
+                let blockedGroupName;
                 let cssPointer = id;
                 let rowNumber = index + 1;
                 let playerNameList = el.playerName ? el.playerName.split("\n") : el.playerName;
@@ -23044,6 +23135,7 @@ define(['js/app'], function (myApp) {
 
                             if (e.playerNames.indexOf(playerName.trim()) > -1 && e.isBlockPromoCodeUser) {
                                 isBlockPlayer = e.isBlockPromoCodeUser;
+                                blockedGroupName = e.name;
                             }
                         });
                     });
@@ -23054,6 +23146,7 @@ define(['js/app'], function (myApp) {
 
                     if (isBlockPlayer) {
                         el.isBlockPromoCodeUser = isBlockPlayer;
+                        el.blockedGroupName = blockedGroupName;
                     } else {
                         el.isBlockPromoCodeUser = false;
                     }
@@ -26613,6 +26706,9 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic = vm.platformBasic || {};
                 vm.platformBasic.playerNameMaxLength = vm.selectedPlatform.data.playerNameMaxLength;
                 vm.platformBasic.playerNameMinLength = vm.selectedPlatform.data.playerNameMinLength;
+                vm.platformBasic.playerPasswordMaxLength = vm.selectedPlatform.data.playerPasswordMaxLength;
+                vm.platformBasic.playerPasswordMinLength = vm.selectedPlatform.data.playerPasswordMinLength;
+                vm.platformBasic.prefix = vm.selectedPlatform.data.prefix;
                 vm.platformBasic.samePhoneNumberRegisterCount = vm.selectedPlatform.data.samePhoneNumberRegisterCount;
                 vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
                 vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
@@ -26679,6 +26775,10 @@ define(['js/app'], function (myApp) {
                 vm.partnerBasic = vm.partnerBasic || {};
                 vm.partnerBasic.partnerNameMaxLength = vm.selectedPlatform.data.partnerNameMaxLength;
                 vm.partnerBasic.partnerNameMinLength = vm.selectedPlatform.data.partnerNameMinLength;
+                vm.partnerBasic.partnerPasswordMaxLength = vm.selectedPlatform.data.partnerPasswordMaxLength;
+                vm.partnerBasic.partnerPasswordMinLength = vm.selectedPlatform.data.partnerPasswordMinLength;
+                vm.partnerBasic.partnerPrefix = vm.selectedPlatform.data.partnerPrefix;
+                vm.partnerBasic.partnerCreatePlayerPrefix = vm.selectedPlatform.data.partnerCreatePlayerPrefix;
                 vm.partnerBasic.partnerAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.partnerAllowSamePhoneNumberToRegister;
                 vm.partnerBasic.partnerSamePhoneNumberRegisterCount = vm.selectedPlatform.data.partnerSamePhoneNumberRegisterCount;
                 vm.partnerBasic.partnerAllowSameRealNameToRegister = vm.selectedPlatform.data.partnerAllowSameRealNameToRegister;
@@ -26884,6 +26984,7 @@ define(['js/app'], function (myApp) {
                         vm.filterCredibilityRemarks.push({'_id':'', 'name':'N/A'});
                         vm.setupRemarksMultiInput();
                         vm.setupRemarksMultiInputFeedback();
+                        vm.setupRemarksMultiInputFeedbackFilter();
                         resolve();
                     }, function (err) {
                         reject(err);
@@ -27416,6 +27517,9 @@ define(['js/app'], function (myApp) {
                         useLockedCredit: srcData.useLockedCredit,
                         playerNameMaxLength: srcData.playerNameMaxLength,
                         playerNameMinLength: srcData.playerNameMinLength,
+                        playerPasswordMaxLength: srcData.playerPasswordMaxLength,
+                        playerPasswordMinLength: srcData.playerPasswordMinLength,
+                        prefix: srcData.prefix,
                         bonusSetting: srcData.bonusSetting,
                         requireSMSVerification: srcData.requireSMSVerification,
                         requireSMSVerificationForDemoPlayer: srcData.requireSMSVerificationForDemoPlayer,
@@ -27517,6 +27621,10 @@ define(['js/app'], function (myApp) {
                     updateData: {
                         partnerNameMaxLength: srcData.partnerNameMaxLength,
                         partnerNameMinLength: srcData.partnerNameMinLength,
+                        partnerPasswordMaxLength: srcData.partnerPasswordMaxLength,
+                        partnerPasswordMinLength: srcData.partnerPasswordMinLength,
+                        partnerPrefix: srcData.partnerPrefix,
+                        partnerCreatePlayerPrefix: srcData.partnerCreatePlayerPrefix,
                         partnerAllowSamePhoneNumberToRegister: srcData.partnerAllowSamePhoneNumberToRegister,
                         partnerSamePhoneNumberRegisterCount: srcData.partnerAllowSamePhoneNumberToRegister,
                         partnerAllowSameRealNameToRegister: srcData.partnerAllowSameRealNameToRegister,
@@ -27907,7 +28015,7 @@ define(['js/app'], function (myApp) {
                     title: "Delete Announcement",
                     text: `Are you sure you want to delete the announcement "${ann.title}"?`
                 }).then(function () {
-                    $scope.$socketPromise('deletePlatformAnnouncementByIds', {_ids: [ann._id]})
+                    $scope.$socketPromise('deletePlatformAnnouncementByIds', {_ids: [ann._id], title: ann.title})
                         .done(function (data) {
                             vm.configTabClicked("announcement");
                         });
@@ -29169,9 +29277,11 @@ define(['js/app'], function (myApp) {
             vm.deletePromoteWay = function () {
                 let deletePromoteMessageId = $("#delete-promote-message");
                 vm.initClearMessage();
+                let promoteWayName = vm.allPromoteWay.find(a => a._id == vm.deleteOfficer.promoteWay) ? vm.allPromoteWay.find(a => a._id == vm.deleteOfficer.promoteWay).name : "";
                 let sendData = {
                     platformId: vm.selectedPlatform.id,
-                    promoteWayId: vm.deleteOfficer.promoteWay
+                    promoteWayId: vm.deleteOfficer.promoteWay,
+                    promoteWayName: promoteWayName
                 };
                 socketService.$socket($scope.AppSocket, 'deletePromoteWay', sendData, function () {
                         console.log("PromoteWay deleted");
@@ -29509,6 +29619,17 @@ define(['js/app'], function (myApp) {
                 // if (remarkSelect.css('display') && remarkSelect.css('display').toLowerCase() === "none") {
                 //     return;
                 // }
+                remarkSelect.multipleSelect({
+                    showCheckbox: true,
+                    allSelected: $translate("All Selected"),
+                    selectAllText: $translate("Select All"),
+                    displayValues: false,
+                    countSelected: $translate('# of % selected')
+                });
+                remarkSelect.multipleSelect("uncheckAll");
+            };
+            vm.setupRemarksMultiInputFeedbackFilter = function () {
+                let remarkSelect = $('select#selectCredibilityRemarkFeedbackFilter');
                 remarkSelect.multipleSelect({
                     showCheckbox: true,
                     allSelected: $translate("All Selected"),

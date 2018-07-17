@@ -2003,6 +2003,7 @@ define(['js/app'], function (myApp) {
             function labelFormatter(label, series) {
                 return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
             }
+
             socketService.$plotPie(placeholder, pieData, {
                 series: {
                     pie: {
@@ -2059,8 +2060,21 @@ define(['js/app'], function (myApp) {
                     '#99ee34',
                 ],
             }, '');
+            vm.bindHoverTitle(pieChartName);
         };
         // manual approval rate end =====================================================
+        vm.bindHoverTitle = function(pieChartName){
+            $(pieChartName).bind("plothover", function (event, pos, item) {
+                console.log(item);
+                if (!item || !item.seriesIndex) { return; }
+                $('.pieLabel').css('z-index',1);
+                $('.pieLabelBackground').css('z-index',1);
+                $('#pieLabel'+item.seriesIndex).css('z-index',999).prev('.pieLabelBackground').css('z-index',999);
+            });
+        };
+
+
+
 
         // font end registration attrition rate start ===================================================
         vm.drawFrontEndRegistrationAttritionRate = function () {

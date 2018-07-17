@@ -214,7 +214,16 @@ var dbPlayerConsumptionWeekSummary = {
                                             $gte: startTime,
                                             $lt: endTime
                                         },
-                                        playerId: playerData._id
+                                        playerId: playerData._id,
+                                        $or: [
+                                            {isDuplicate: {$exists: false}},
+                                            {
+                                                $and: [
+                                                    {isDuplicate: {$exists: true}},
+                                                    {isDuplicate: false}
+                                                ]
+                                            }
+                                        ]
                                     }
                                 },
                                 {
@@ -369,14 +378,16 @@ var dbPlayerConsumptionWeekSummary = {
                                         type: 'admin',
                                         id: adminId
                                     }
-                                } else {
+                                }else if(bRequest){
                                     // if userAgent is null, inputDevice should be H5 player or partner
-                                    proposalData.inputDevice = bRequest ? dbutility.getInputDevice(userAgent) : constPlayerRegistrationInterface.BACKSTAGE;
+                                    proposalData.inputDevice = dbutility.getInputDevice(userAgent);
                                     proposalData.creator = {
                                         type: 'player',
                                         name: playerData.name,
                                         id: playerData.playerId
                                     }
+                                }else{
+                                    proposalData.inputDevice = constPlayerRegistrationInterface.BACKSTAGE;
                                 }
 
                                 // Check whether ignore audit

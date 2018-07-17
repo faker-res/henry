@@ -15,6 +15,7 @@ var rsaCrypto = require('../modules/rsaCrypto');
 const constSMSPurpose = require('../const/constSMSPurpose');
 const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 var localization = require("../modules/localization");
+const constRewardPointsTaskCategory = require('../const/constRewardPointsTaskCategory');
 
 var dbLogger = {
 
@@ -26,6 +27,33 @@ var dbLogger = {
         let inputDevice = {
             1: "WEB",
             3: "H5"
+        };
+
+        let constPartnerCommisionTypeCN = {
+            0: "关闭",
+            1: "1天-输赢值",
+            2: "7天-输赢值",
+            3: "半月-输赢值",
+            4: "1月-输赢值",
+            5: "7天-投注额",
+            6: "代理前端自选"
+        };
+
+        let constMerchantTopupType = {
+            '1': 'NetPay',
+            '2': 'WechatQR',
+            '3': 'AlipayQR',
+            '4': 'WechatApp',
+            '5': 'AlipayApp',
+            '6': 'FASTPAY',
+            '7': 'QQPAYQR',
+            '8': 'UnPayQR',
+            '9': 'JdPayQR',
+            '10': 'WXWAP',
+            '11': 'ALIWAP',
+            '12': 'QQWAP',
+            '13': 'PCard',
+            '14': 'JDWAP'
         };
 
         if(!adminActionRecordData){
@@ -76,9 +104,33 @@ var dbLogger = {
                     return adminActionRecordData.data[5] ? dbconfig.collection_players.findOne({name: playerId}, {name: 1})
                         : dbconfig.collection_players.findOne({playerId: playerId}, {name: 1});
                 } else if (adminActionRecordData.action == 'resetPartnerPassword' && adminActionRecordData && adminActionRecordData.data[0]) {
-                    return dbconfig.collection_partner.findOne({_id: adminActionRecordData.data[0]}, {partnerName: 1})
+                    return dbconfig.collection_partner.findOne({_id: adminActionRecordData.data[0]}, {partnerName: 1});
                 } else if (adminActionRecordData.action == 'updatePartnerPermission' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0]._id) {
                     return dbconfig.collection_partner.findOne({_id: adminActionRecordData.data[0]._id}, {partnerName: 1})
+                }else if((adminActionRecordData.action == "attachGamesToPlatform" || adminActionRecordData.action == "detachGamesFromPlatform") && adminActionRecordData.data && adminActionRecordData.data.length > 1
+                    && adminActionRecordData.data[1].length > 0 && adminActionRecordData.data[1][0].game){
+                    return dbconfig.collection_game.findOne({_id: adminActionRecordData.data[1][0].game})
+                        .populate({path: "provider", model: dbconfig.collection_gameProvider});
+                }else if(adminActionRecordData.action == "updateGameStatusToPlatform" && adminActionRecordData.data && adminActionRecordData.data.length > 0 &&
+                    adminActionRecordData.data[0].game && adminActionRecordData.data[0].game.length > 0 && adminActionRecordData.data[0].game[0]){
+                    return dbconfig.collection_game.findOne({_id: adminActionRecordData.data[0].game[0]})
+                        .populate({path: "provider", model: dbconfig.collection_gameProvider});
+                }else if (adminActionRecordData.action == 'createRewardEvent' && adminActionRecordData.data && adminActionRecordData.data[0] && adminActionRecordData.data[0].type) {
+                    return dbconfig.collection_rewardType.findOne({_id: adminActionRecordData.data[0].type}, {name: 1});
+                }else if(adminActionRecordData.action == 'createUpdatePartnerCommissionConfigWithGameProviderGroup' && resultData && resultData.provider){
+                    return dbconfig.collection_gameProviderGroup.findOne({_id: resultData.provider});
+                }else if(adminActionRecordData.action == 'manualDailyProviderSettlement' && adminActionRecordData.data && adminActionRecordData.data.length > 2
+                    && adminActionRecordData.data[2]){
+                    return dbconfig.collection_platform.findOne({_id: adminActionRecordData.data[2]});
+                }else if (adminActionRecordData.action == 'updateBatchPlayerForbidRewardEvents'
+                    && adminActionRecordData.data[2] && adminActionRecordData.data[2].addList.length) {
+                    return dbconfig.collection_rewardEvent.find({_id: {$in: adminActionRecordData.data[2].addList}}, {name: 1});
+                }else if (adminActionRecordData.action == 'updateBatchPlayerForbidProviders'
+                    && adminActionRecordData.data[2] && adminActionRecordData.data[2].addList.length) {
+                    return dbconfig.collection_gameProvider.find({_id: {$in: adminActionRecordData.data[2].addList}}, {name: 1});
+                }else if (adminActionRecordData.action == 'updateBatchPlayerForbidRewardPointsEvent' && adminActionRecordData
+                    && adminActionRecordData.data[2] && adminActionRecordData.data[2].addList.length) {
+                    return dbconfig.collection_rewardPointsEvent.find({_id: {$in: adminActionRecordData.data[2].addList}}, {rewardTitle: 1});
                 }
             }
         ).then(
@@ -172,11 +224,14 @@ var dbLogger = {
                     }else{
                         adminActionRecordData.error = "禁用" + adminActionRecordData.data[3];
                     }
-                }else if(logAction == "attachGamesToPlatform" && resultData && resultData.success && resultData.success.length > 0 && resultData.success[0].name){
-                    adminActionRecordData.error = "添加" + resultData.success[0].name;
-                }else if(logAction == "detachGamesFromPlatform" && adminActionRecordData.data && adminActionRecordData.data.length > 1
-                    && adminActionRecordData.data[1].length > 0 &&  adminActionRecordData.data[1][0].name){
-                    adminActionRecordData.error = "移除" + adminActionRecordData.data[1][0].name;
+                }else if(logAction == "attachGamesToPlatform" && data && data.provider && data.provider.name){
+                    adminActionRecordData.error = "添加" + data.provider.name;
+                }else if(logAction == "detachGamesFromPlatform" && data && data.provider && data.provider.name){
+                    adminActionRecordData.error = "移除" + data.provider.name;
+                }else if(logAction == 'updateGameStatusToPlatform' && data && data.provider && data.provider.name
+                    && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1].status){
+                    let action = adminActionRecordData.data[1].status == 1 ? "启用" : "维护";
+                    adminActionRecordData.error = "设置" + data.provider.name + action;
                 }else if (logAction == 'requestClearProposalLimit' && adminActionRecordData.data[0] && adminActionRecordData.data[0].username){
                     adminActionRecordData.error = "帐号：" + adminActionRecordData.data[0].username;
                 }else if ((logAction == 'updatePlayerPermission' || logAction == 'updatePartnerPermission')
@@ -199,6 +254,208 @@ var dbLogger = {
                     adminActionRecordData.error = "帐号：" + data.name + "、" + localization.localization.translate("TransferIn") + "ID：" + resultData.transferId;
                 }else if (logAction == 'resetPartnerPassword' && data && data.partnerName) {
                     adminActionRecordData.error = "帐号：" + data.partnerName;
+                }else if (logAction == 'addPlatformGameGroup' && resultData && resultData.name && resultData.code) {
+                    adminActionRecordData.error = "添加" + resultData.name + "(代码： " + resultData.code + ")";
+                }else if (logAction == 'deleteGameGroup' && adminActionRecordData.data && adminActionRecordData.data.length > 1
+                    && adminActionRecordData.data[1]){
+                    adminActionRecordData.error = "删除" + adminActionRecordData.data[1];
+                }else if (logAction == 'renamePlatformGameGroup' && adminActionRecordData.data && adminActionRecordData.data.length > 1
+                    && adminActionRecordData.data[1] && adminActionRecordData.data[1].name && adminActionRecordData.data[1].originalName){
+                    adminActionRecordData.error = "重命名" + adminActionRecordData.data[1].originalName + "为" + adminActionRecordData.data[1].name;
+                }else if (logAction == 'updateGameGroupParent' && adminActionRecordData.data && adminActionRecordData.data.length > 4
+                    && adminActionRecordData.data[3]){
+                    adminActionRecordData.error = "移动" + adminActionRecordData.data[3] + "至" + (adminActionRecordData.data[4] ? adminActionRecordData.data[4] : "Root");
+                }else if (logAction == 'updatePlatformGameGroup' && adminActionRecordData.data && adminActionRecordData.data.length > 1
+                    && adminActionRecordData.data[1].gameNames){
+                    if(adminActionRecordData.data[1].$addToSet){
+                        delete adminActionRecordData.data[1].$addToSet;
+                        adminActionRecordData.error = "添加" + adminActionRecordData.data[1].gameNames;
+                    }else if(delete adminActionRecordData.data[1].$pull){
+                        delete adminActionRecordData.data[1].$addToSet;
+                        adminActionRecordData.error = "移除" + adminActionRecordData.data[1].gameNames;
+                    }
+                }else if (logAction == 'createRewardEvent' && data && data.name && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].name){
+                    adminActionRecordData.error = "创建" + localization.localization.translate(data.name) + "，" + adminActionRecordData.data[0].name;
+                }else if (logAction == 'deleteRewardEventByIds' && adminActionRecordData && adminActionRecordData.data[1]) {
+                    adminActionRecordData.error = "删除" + adminActionRecordData.data[1];
+                }else if (logAction == 'updateRewardEvent' && adminActionRecordData && adminActionRecordData.data[1] && adminActionRecordData.data[1].name) {
+                    adminActionRecordData.error = "更新" + adminActionRecordData.data[1].name;
+                }else if (logAction == 'updateProposalTypeProcessSteps' && resultData && resultData[0] && resultData[0].name){
+                    adminActionRecordData.error = "保存（" + localization.localization.translate(resultData[0].name) + "）审核流程";
+                }else if (logAction == 'createMessageTemplate' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].type) {
+                    adminActionRecordData.error = "创建（" + localization.localization.translate(adminActionRecordData.data[0].type) + '）';
+                }else if (logAction == 'updateMessageTemplate' && adminActionRecordData && adminActionRecordData.data[1] && adminActionRecordData.data[1].type ) {
+                    adminActionRecordData.error = "更新（" + localization.localization.translate(adminActionRecordData.data[1].type) + '）';
+                }else if (logAction == 'createUpdatePartnerCommissionConfigWithGameProviderGroup' && data && data.name) {
+                    adminActionRecordData.error = data.name + "佣金:" + constPartnerCommisionTypeCN[resultData.commissionType];
+                }else if (logAction == 'createPlatformAnnouncement' && resultData && resultData.title) {
+                    adminActionRecordData.error = "添加" + resultData.title;
+                }else if (logAction == 'updatePlatformAnnouncement' && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]
+                    && adminActionRecordData.data[1].title) {
+                    adminActionRecordData.error = "更新" + adminActionRecordData.data[1].title;
+                }else if (logAction == 'deletePlatformAnnouncementByIds' && adminActionRecordData.data && adminActionRecordData.data.length > 1
+                    && adminActionRecordData.data[1]) {
+                    adminActionRecordData.error = "删除" + adminActionRecordData.data[1];
+                }else if (logAction == 'addPromoteWay' && resultData && resultData.name) {
+                    adminActionRecordData.error = "创建" + resultData.name;
+                }else if (logAction == 'deletePromoteWay' && adminActionRecordData.data && adminActionRecordData.data.length > 2 && adminActionRecordData.data[2]) {
+                    adminActionRecordData.error = "删除" + adminActionRecordData.data[2];
+                }else if (logAction == 'addPlatformBankCardGroup' && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]) {
+                    adminActionRecordData.error = "添加银行卡组 - " + adminActionRecordData.data[1];
+                }else if (logAction == 'addPlatformMerchantGroup' && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]) {
+                    adminActionRecordData.error = "添加商户组 - " + adminActionRecordData.data[1];
+                }else if (logAction == 'addPlatformAlipayGroup' && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]) {
+                    adminActionRecordData.error = "添加支付宝组 - " + adminActionRecordData.data[1];
+                }else if (logAction == 'addPlatformWechatPayGroup' && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]) {
+                    adminActionRecordData.error = "添加微信组 - " + adminActionRecordData.data[1];
+                }else if (logAction == 'updatePlatformBankCardGroup') {
+                    adminActionRecordData.error = "编辑银行卡组";
+                }else if (logAction == 'renamePlatformMerchantGroup') {
+                    adminActionRecordData.error = "编辑商户组";
+                }else if (logAction == 'renamePlatformAlipayGroup') {
+                    adminActionRecordData.error = "编辑支付宝组";
+                }else if (logAction == 'renamePlatformWechatPayGroup') {
+                    adminActionRecordData.error = "编辑微信组";
+                }else if (logAction == 'deleteBankCardGroup') {
+                    adminActionRecordData.error = "删除银行卡";
+                }else if (logAction == 'deleteMerchantGroup') {
+                    adminActionRecordData.error = "删除商户组";
+                }else if (logAction == 'deleteAlipayGroup') {
+                    adminActionRecordData.error = "删除支付宝组";
+                }else if (logAction == 'deleteWechatPayGroup') {
+                    adminActionRecordData.error = "删除微信组";
+                }else if (logAction == 'setPlatformDefaultBankCardGroup' && resultData && resultData.length > 0 && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]) {
+                    let defaultBankCard = resultData.find(r => r._id == adminActionRecordData.data[1]).name
+                    adminActionRecordData.error = "设置" + defaultBankCard + "为默认银行卡组";
+                }else if (logAction == 'setPlatformDefaultMerchantGroup' && resultData && resultData.length > 0 && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]) {
+                    let defaultBankCard = resultData.find(r => r._id == adminActionRecordData.data[1]).name
+                    adminActionRecordData.error = "设置" + defaultBankCard + "为默认商户组";
+                }else if (logAction == 'setPlatformDefaultAlipayGroup' && resultData && resultData.length > 0 && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]) {
+                    let defaultBankCard = resultData.find(r => r._id == adminActionRecordData.data[1]).name
+                    adminActionRecordData.error = "设置" + defaultBankCard + "为默认支付宝组";
+                }else if (logAction == 'setPlatformDefaultWechatPayGroup' && resultData && resultData.length > 0 && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]) {
+                    let defaultBankCard = resultData.find(r => r._id == adminActionRecordData.data[1]).name
+                    adminActionRecordData.error = "设置" + defaultBankCard + "为默认微信组";
+                }else if (logAction == 'addPlayersToBankCardGroup') {
+                    adminActionRecordData.error = "添加玩家至银行卡组";
+                }else if (logAction == 'addPlayersToMerchantGroup') {
+                    adminActionRecordData.error = "添加玩家至商户组";
+                }else if (logAction == 'addPlayersToAlipayGroup') {
+                    adminActionRecordData.error = "添加玩家至支付宝组";
+                }else if (logAction == 'addPlayersToWechatPayGroup') {
+                    adminActionRecordData.error = "添加玩家至微信组";
+                }else if (logAction == 'addAllPlayersToBankCardGroup') {
+                    adminActionRecordData.error = "添加所有玩家至银行卡组";
+                }else if (logAction == 'addAllPlayersToMerchantGroup') {
+                    adminActionRecordData.error = "添加所有玩家至商户组";
+                }else if (logAction == 'addAllPlayersToAlipayGroup') {
+                    adminActionRecordData.error = "添加所有玩家至支付宝组";
+                }else if (logAction == 'addAllPlayersToWechatPayGroup') {
+                    adminActionRecordData.error = "添加所有玩家至微信组";
+                }else if (logAction == 'syncMerchantNoScript') {
+                    adminActionRecordData.error = "同步商户号";
+                }else if (logAction == 'updateGameProvider' && resultData && typeof resultData.dailySettlementHour != "undefined" && typeof resultData.dailySettlementMinute != "undefined") {
+                    adminActionRecordData.error = "编辑结算时间为" + resultData.dailySettlementHour + "小时" + resultData.dailySettlementMinute + "分钟";
+                }else if (logAction == 'manualDailyProviderSettlement' && data && data.name) {
+                    adminActionRecordData.error = "指定结算" + data.name;
+                }else if (logAction == 'pushNotification' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].tittle) {
+                    adminActionRecordData.error = "添加" + adminActionRecordData.data[0].tittle;
+                }else if ((logAction == 'updateRewardPointsEvent' || logAction == 'createRewardPointsEvent')
+                    && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].category){
+                    let action = '';
+                    let rewardPointsCategory = '';
+                    if (adminActionRecordData.data[0].category == constRewardPointsTaskCategory.LOGIN_REWARD_POINTS) {
+                        rewardPointsCategory = 'LOGIN_REWARD_POINTS';
+                    } else if (adminActionRecordData.data[0].category == constRewardPointsTaskCategory.GAME_REWARD_POINTS) {
+                        rewardPointsCategory = 'GAME_REWARD_POINTS';
+                    } else if (adminActionRecordData.data[0].category == constRewardPointsTaskCategory.TOPUP_REWARD_POINTS) {
+                        rewardPointsCategory = 'TOPUP_REWARD_POINTS';
+                    }
+
+                    if (logAction == 'updateRewardPointsEvent') {
+                        action = "编辑";
+                    } else if (logAction == 'createRewardPointsEvent') {
+                        action = "添加";
+                    }
+
+                    adminActionRecordData.error = action + localization.localization.translate(rewardPointsCategory);
+                } else if (logAction == 'deleteRewardPointsEventById' && adminActionRecordData && adminActionRecordData.data[1]){
+                    let rewardPointsCategory = '';
+                    if (adminActionRecordData.data[1] == constRewardPointsTaskCategory.LOGIN_REWARD_POINTS) {
+                        rewardPointsCategory = 'LOGIN_REWARD_POINTS';
+                    } else if (adminActionRecordData.data[1] == constRewardPointsTaskCategory.GAME_REWARD_POINTS) {
+                        rewardPointsCategory = 'GAME_REWARD_POINTS';
+                    } else if (adminActionRecordData.data[1] == constRewardPointsTaskCategory.TOPUP_REWARD_POINTS) {
+                        rewardPointsCategory = 'TOPUP_REWARD_POINTS';
+                    }
+
+                    adminActionRecordData.error = "删除" + localization.localization.translate(rewardPointsCategory);
+                } else if (logAction == 'updateBatchPlayerPermission' && adminActionRecordData && adminActionRecordData.data[0]
+                    && adminActionRecordData.data[0].playerNames && Object.keys(adminActionRecordData.data[2]).length) {
+                    let permissionChange = '';
+
+                    Object.keys(adminActionRecordData.data[2]).forEach(el => {
+                        let prevPermission = !adminActionRecordData.data[2][el];
+                        if(el == 'disableWechatPay' || el == 'forbidPlayerFromLogin' || el == 'forbidPlayerFromEnteringGame' || el == 'banReward'
+                            || el == 'forbidPartnerFromLogin' || el == 'disableCommSettlement') {
+                            permissionChange += localization.localization.translate(el) + "（" + localization.localization.translate(adminActionRecordData.data[2][el])
+                                + " -> " + localization.localization.translate(prevPermission) + "）";
+                        } else {
+                            permissionChange += localization.localization.translate(el) + "（" + localization.localization.translate(prevPermission)
+                                + " -> " + localization.localization.translate(adminActionRecordData.data[2][el]) + "）";
+                        }
+                    });
+
+                    adminActionRecordData.error = '批量设置账号' + adminActionRecordData.data[0].playerNames + '，设置内容' + permissionChange;
+                } else if ((logAction == 'updateBatchPlayerForbidRewardEvents' || logAction == 'updateBatchPlayerForbidProviders')
+                    && adminActionRecordData && adminActionRecordData.data[1] && adminActionRecordData.data[1].length
+                    && data && data.length) {
+                    let forbidRecord = '';
+                    let forbidArr = [];
+
+                    data.forEach(el => {
+                        if (el && el.name){
+                            forbidArr.push(el.name);
+                        }
+                    })
+
+                    if (forbidArr && forbidArr.length) {
+                        forbidRecord = forbidArr.join(", ");
+                    }
+
+                    adminActionRecordData.error = '批量设置账号' + adminActionRecordData.data[1] + '，设置内容' + forbidRecord;
+                } else if (logAction == 'updateBatchPlayerForbidRewardPointsEvent' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].length
+                    && data && data.length) {
+                    let forbidRecord = '';
+                    let forbidArr = [];
+
+                    data.forEach(el => {
+                        if (el && el.rewardTitle){
+                            forbidArr.push(el.rewardTitle);
+                        }
+                    })
+
+                    if (forbidArr && forbidArr.length) {
+                        forbidRecord = forbidArr.join(", ");
+                    }
+
+                    adminActionRecordData.error = '批量设置账号' + adminActionRecordData.data[0] + '，设置内容' + forbidRecord;
+                } else if (logAction == 'updateBatchPlayerForbidPaymentType' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].playerNames
+                    && adminActionRecordData.data[1] && adminActionRecordData.data[1].addList.length) {
+                    let topupTypeArr = [];
+                    let topupType = '';
+                    adminActionRecordData.data[1].addList.forEach(el => {
+                        topupTypeArr.push(constMerchantTopupType[el]);
+                    })
+                    if (topupTypeArr && topupTypeArr.length) {
+                        topupType = topupTypeArr.join(", ");
+                    }
+
+                    adminActionRecordData.error = '批量设置账号' + adminActionRecordData.data[0].playerNames + '，设置内容' + topupType;
+                } else if (logAction == 'playerCreditClearOut' && adminActionRecordData && adminActionRecordData.data[0]) {
+                    adminActionRecordData.error = '批量情况' + adminActionRecordData.data[0] + '会员余额';
+                } else if (logAction == 'createDxMission' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].name) {
+                    adminActionRecordData.error = '创建' + adminActionRecordData.data[0].name;
                 }
 
 

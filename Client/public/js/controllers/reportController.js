@@ -2553,7 +2553,7 @@ define(['js/app'], function (myApp) {
         ////////////////////PARTNER REAL TIME COMMISSION REPORT//////////////////////
         vm.getSelectedCommissionPeriod = () => {
             if (vm.selectedCommissionPeriod) {
-                let query = {pastX: vm.selectedCommissionPeriod};
+                let query = {pastX: vm.selectedCommissionPeriod, platformObjId: vm.selectedPlatform._id};
 
                 if (vm.realTimeCommissionQuery.partnerName) {
                     query.partnerName = vm.realTimeCommissionQuery.partnerName;
@@ -2619,9 +2619,34 @@ define(['js/app'], function (myApp) {
                                     vm.partnerCommVar.platformFeeTab = idxgroup;
                                 }
                             });
+
+                            if (vm.realTimeCommissionQuery.partnerName && vm.selectedCommissionPeriod && vm.realTimeCommissionData.length == 1) {
+                                vm.showRealTimeCommissionSettlementButton = true;
+                            }
                         }
                     });
                 });
+            }, function (error) {
+                loadingSpinner.hide();
+                vm.realTimeCommissionLoadingStatus = (error && error.errorMessage) || $translate("RESPONSE_TIMEOUT");
+                console.log('getCurrentPartnerCommissionDetail error', error);
+            });
+        };
+
+        vm.settlePastCommission = () => {
+            if (!vm.realTimeCommissionQuery.partnerName || !vm.selectedCommissionPeriod) {
+                return;
+            }
+
+            let query = {pastX: vm.selectedCommissionPeriod, platformObjId: vm.selectedPlatform._id, partnerName: vm.realTimeCommissionQuery.partnerName};
+            let loadingSpinner = $('#realTimeCommissionTableSpin');
+            loadingSpinner.show();
+
+            socketService.$socket($scope.AppSocket, 'settlePastCommission', query, function (data) {
+                loadingSpinner.hide();
+                console.log('settlePastCommission', data);
+
+                socketService.showConfirmMessage($translate("Apply Commission Succeed"), 10000)
             }, function (error) {
                 loadingSpinner.hide();
                 vm.realTimeCommissionLoadingStatus = (error && error.errorMessage) || $translate("RESPONSE_TIMEOUT");
@@ -3653,6 +3678,21 @@ define(['js/app'], function (myApp) {
                         item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
                     }
 
+                    if (!item.phoneProvince || item.phoneProvince === 'null' || item.phoneProvince === 'undefined') {
+                        item.phoneProvince = $translate('Unknown');
+                    }
+                    if (!item.phoneCity || item.phoneCity === 'null' || item.phoneCity === 'undefined') {
+                        item.phoneCity = $translate('Unknown');
+                    }
+                    if (!item.province || item.province === 'null' || item.province === 'undefined') {
+                        item.province = $translate('Unknown');
+                    }
+                    if (!item.city || item.city === 'null' || item.city === 'undefined') {
+                        item.city = $translate('Unknown');
+                    }
+
+                    item.phoneArea$ = item.phoneProvince + " " + item.phoneCity;
+                    item.ipArea$ = item.province + " " + item.city;
 
                     return item;
                 }), data.data.size, newSearch);
@@ -3683,6 +3723,8 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'validConsumptionAmount', 'aTargets': [15], bSortable: true},
                     {'sortCol': 'consumptionBonusAmount', 'aTargets': [16], bSortable: true},
                     {'sortCol': 'consumptionAmount', 'aTargets': [18], bSortable: true},
+                    {'sortCol': 'phoneArea', 'aTargets': [19], bSortable: true},
+                    {'sortCol': 'ipArea', 'aTargets': [20], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -3716,7 +3758,9 @@ define(['js/app'], function (myApp) {
                     {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: "sumProfit"},
                     {title: $translate('csOfficer'), data: "csOfficer"},
                     {title: $translate('csPromoteWay'), data: "csPromoteWay"},
-                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"}
+                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"},
+                    {title: $translate("PHONE_LOCATION"), data: "phoneArea$"},
+                    {title: $translate("IP_LOCATION"), data: "ipArea$"},
                 ],
                 "paging": false,
                 // "dom": '<"top">rt<"bottom"il><"clear">',
@@ -5783,7 +5827,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TYPE'), data: "action", sClass: "sumText",
                         render: function (data) {
-                            return $translate(data);
+                            return $translate(data == 'pushNotification' ? 'addPushNotification' : data);
                         }
                     },
                     {title: $translate("Operation Time"), data: "operationTime$"},
@@ -7402,12 +7446,24 @@ define(['js/app'], function (myApp) {
                     {group: "REWARD", text: "deleteRewardEventByIds", action: "deleteRewardEventByIds"},
                     {group: "REWARD", text: "updateRewardEvent", action: "updateRewardEvent"},
 
-                    {
-                        group: "Proposal",
-                        text: "updateProposalTypeProcessSteps",
-                        action: "updateProposalTypeProcessSteps"
-                    },
-                    {group: "Proposal", text: "updateProposalProcessStep", action: "updateProposalProcessStep"},
+                    {group: "PROPOSAL_PROCESS", text: "updateProposalTypeProcessSteps", action: "updateProposalTypeProcessSteps"},
+                    //{group: "Proposal", text: "updateProposalProcessStep", action: "updateProposalProcessStep"},
+
+                    {group: "MessageTemplates", text: "createMessageTemplate", action: "createMessageTemplate"},
+                    {group: "MessageTemplates", text: "updateMessageTemplate", action: "updateMessageTemplate"},
+
+                    {group: "PushNotification", text: "addPushNotification", action: "pushNotification"},
+
+                    {group: "rewardPoint", text: "upsertRewardPointsLvlConfig", action: "upsertRewardPointsLvlConfig"},
+                    {group: "rewardPoint", text: "updateRewardPointsEvent", action: "updateRewardPointsEvent"},
+                    {group: "rewardPoint", text: "deleteRewardPointsEventById", action: "deleteRewardPointsEventById"},
+                    {group: "rewardPoint", text: "createRewardPointsEvent", action: "createRewardPointsEvent"},
+
+                    {group: "Batch Setting", text: "updateBatchPlayer", action: ["updateBatchPlayerPermission", "updateBatchPlayerForbidRewardEvents","updateBatchPlayerForbidPaymentType","updateBatchPlayerForbidRewardPointsEvent"]},
+                    {group: "Batch Setting", text: "playerCreditClearOut", action: "playerCreditClearOut"},
+
+                    {group: "TeleMarketing", text: "createDxMission", action: "createDxMission"},
+                    {group: "TeleMarketing", text: "comparePhoneNum", action: "comparePhoneNum"},
 
                     {group: "PlayerLevel", text: "createPlayerLevel", action: "createPlayerLevel"},
                     {group: "PlayerLevel", text: "updatePlayerLevel", action: "updatePlayerLevel"},
@@ -7420,9 +7476,6 @@ define(['js/app'], function (myApp) {
                         text: "Partner Commission",
                         action: ['createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig']
                     },
-
-                    {group: "MessageTemplates", text: "ADD", action: "createMessageTemplate"},
-                    {group: "MessageTemplates", text: "UPDATE", action: "updateMessageTemplate"},
 
                     {group: "ANNOUNCEMENTS", text: "ADD", action: "createPlatformAnnouncement"},
                     {group: "ANNOUNCEMENTS", text: "UPDATE", action: "updatePlatformAnnouncement"},

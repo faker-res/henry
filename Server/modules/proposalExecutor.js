@@ -3772,45 +3772,61 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
         // Create different process flow for lock provider group reward
         if (platform.useProviderGroup) {
             if (proposalData.data.providerGroup && gameProviderGroup) {
-                dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).then(() =>{
-                    console.log("createRewardTaskForProposal dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).then");
-                    dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
-                }).catch(
-                    error => Q.reject({
-                        name: "DBError",
-                        message: "Error creating reward task with provider group",
-                        error: error
-                    })
-                );
-                sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
+                let deductFreeAmtProm = Promise.resolve();
                 if (proposalData.data.isDynamicRewardAmount || (proposalData.data.promoCode && proposalData.data.promoCodeTypeValue && proposalData.data.promoCodeTypeValue == 3)
                     || proposalData.data.limitedOfferObjId) {
-                    dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).then(() =>{
-                        console.log("createRewardTaskForProposal dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).then");
-                        dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
-                    }).catch(
-                        error => Q.reject({
+                    deductFreeAmtProm = dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData);
+                }
+
+                return deductFreeAmtProm.then(
+                    () => {
+                        return dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData);
+                    },
+                    error => {
+                        console.error("Error deduct target consumption from free amount provider group", error);
+                        deferred.reject({
                             name: "DBError",
                             message: "Error deduct target consumption from free amount provider group",
                             error: error
                         })
-                    );
-                }
+                    }
+                ).then(
+                    output => {
+                        if (!output) {
+                            return deferred;
+                        }
+
+                        dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
+                        sendMessageToPlayer(proposalData, rewardType, {rewardTask: taskData});
+                        return deferred.resolve(resolveValue || taskData);
+                    },
+                    error => {
+                        console.error("Error creating reward task with provider group", error);
+                        deferred.reject({
+                            name: "DBError",
+                            message: "Error creating reward task with provider group",
+                            error: error
+                        });
+                    }
+                );
             } else {
-                dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardType).then(
+                return dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardType).then(
                     data => {
                         console.log("createRewardTaskForProposal Promise.all.then.then.then.then data", data);
                         rewardTask = data;
                         dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
-                        return sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
+                        sendMessageToPlayer(proposalData, rewardType, {rewardTask: taskData});
+                        return deferred.resolve(resolveValue || taskData);
                     }
                 ).catch(
-                    error => errorUtils.reportError(error)
-                    //    Q.reject({
-                    //    name: "DBError",
-                    //    message: "Error adding consumption value into free amount provider group",
-                    //    error: error
-                    // })
+                    error => {
+                        console.error("Error adding consumption value into free amount provider group", error);
+                        return deferred.reject({
+                            name: "DBError",
+                            message: "Error adding consumption value into free amount provider group",
+                            error: error
+                        });
+                    }
                 );
             }
         } else {
@@ -3867,9 +3883,6 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                 }
             );
         }
-
-        return deferred.resolve(resolveValue);
-
     });
 }
 

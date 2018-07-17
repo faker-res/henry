@@ -1170,6 +1170,8 @@ let dbPlayerInfo = {
     createPlayerInfo: function (playerdata, skipReferrals, skipPrefix, isAutoCreate, bFromBI) {
         let playerData = null;
         let platformData = null;
+        let pPrefix = null;
+        let pName = null;
 
         playerdata.name = playerdata.name.toLowerCase();
 
@@ -1188,7 +1190,7 @@ let dbPlayerInfo = {
 
             }
 
-            if ((playerdata.password.length < 6 || playerdata.password.length > 20 || !playerdata.password.match(alphaNumRegex)) && !bFromBI) {
+            if ((/*playerdata.password.length < 6 || playerdata.password.length > 20 ||*/ !playerdata.password.match(alphaNumRegex)) && !bFromBI) {
                 return Q.reject({
                     status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DBError",
@@ -1210,10 +1212,15 @@ let dbPlayerInfo = {
                 if (platform) {
                     platformData = platform;
 
-                    let delimitedPrefix = platformData.prefix + PLATFORM_PREFIX_SEPARATOR;
-                    if (!skipPrefix) {
-                        playerdata.name = delimitedPrefix.toLowerCase() + playerdata.name;
-                    }
+                    // check if player is created by partner; if yes, use partnerCreatePlayerPrefix
+                    pPrefix = playerdata.partnerId ? platformData.partnerCreatePlayerPrefix : platformData.prefix;
+
+                    // let delimitedPrefix = platformData.prefix + PLATFORM_PREFIX_SEPARATOR;
+                    // let delimitedPrefix = pPrefix + PLATFORM_PREFIX_SEPARATOR;
+                    // if (!skipPrefix) {
+                    //     playerdata.name = delimitedPrefix.toLowerCase() + playerdata.name;
+                    // }
+                    pName = playerdata.name;
 
                     if ((platformData.playerNameMaxLength > 0 && playerdata.name.length > platformData.playerNameMaxLength) || (platformData.playerNameMinLength > 0 && playerdata.name.length < platformData.playerNameMinLength)) {
                         return {isPlayerNameValid: false};
@@ -1234,20 +1241,79 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data.isPlayerNameValid) {
-                    if (isAutoCreate || playerdata.isTestPlayer || !playerdata.userAgent) {
-                        return {isPhoneNumberValid: true};
+                    // check player name must start with prefix
+                    if ( pName.indexOf(pPrefix) === 0) {
+                        return {isPlayerPrefixValid: true};
+                    } else {
+                        return {isPlayerPrefixValid: false};
                     }
-
-                    return checkPhoneNumberWhiteList(playerdata, platformData);
                 } else {
-                    return Promise.reject({name: "DBError", message: "Length of Player Name is not valid"});
+                    return Promise.reject({name: "DBError", message: localization.localization.translate("Player name should be between ") + platformData.playerNameMinLength + " - " + platformData.playerNameMaxLength + localization.localization.translate(" characters."),});
                 }
             },
             error => {
                 if (!error.message) {
                     return Promise.reject({
                         name: "DBError",
-                        message: "Player Name length is not valid",
+                        message: "Player name should be between " + platformData.playerNameMinLength + " - " + platformData.playerNameMaxLength + " characters.",
+                        error: error
+                    });
+                }
+                return Promise.reject(error);
+            }
+        ).then(
+            data => {
+                if (data.isPlayerPrefixValid) {
+                    if ((platformData.playerPasswordMaxLength > 0 && playerdata.password.length > platformData.playerPasswordMaxLength) || (platformData.playerPasswordMinLength > 0 && playerdata.password.length < platformData.playerPasswordMinLength)) {
+                        return {isPlayerPasswordValid: false};
+                    } else {
+                        return {isPlayerPasswordValid: true};
+                    }
+                } else {
+                    // check if player is created by partner
+                    if (playerdata.partnerId) {
+                        return Promise.reject({name: "DBError", message: localization.localization.translate("Player name created by partner should use ") + pPrefix + localization.localization.translate(" as prefix.")});
+                    } else {
+                        return Promise.reject({name: "DBError", message: localization.localization.translate("Player name should use ") + pPrefix + localization.localization.translate(" as prefix.")});
+                    }
+                }
+            },
+            error => {
+                if (!error.message) {
+                    // check if player is created by partner
+                    if (playerdata.partnerId) {
+                        return Promise.reject({
+                            name: "DBError",
+                            message: "Player name created by partner should use " + pPrefix + " as prefix.",
+                            error: error
+                        });
+                    } else {
+                        return Promise.reject({
+                            name: "DBError",
+                            message: "Player name should use " + pPrefix + " as prefix.",
+                            error: error
+                        });
+                    }
+                }
+                return Promise.reject(error);
+            }
+        ).then(
+            data => {
+                if (data.isPlayerPasswordValid) {
+                    if (isAutoCreate || playerdata.isTestPlayer || !playerdata.userAgent) {
+                        return {isPhoneNumberValid: true};
+                    }
+
+                    return checkPhoneNumberWhiteList(playerdata, platformData);
+                } else {
+                    return Promise.reject({name: "DBError", message: localization.localization.translate("Player password should be between ") + platformData.playerPasswordMinLength + " - " + platformData.playerPasswordMaxLength + localization.localization.translate(" characters.")});
+                }
+            },
+            error => {
+                if (!error.message) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Player password should be between " + platformData.playerPasswordMinLength + " - " + platformData.playerPasswordMaxLength + " characters.",
                         error: error
                     });
                 }
@@ -5805,7 +5871,7 @@ let dbPlayerInfo = {
                                     if(playerObj.platform.useEbetWallet && data[1].name.toUpperCase() === "EBET") {
                                         // if use eBet Wallet
                                         console.log("using eBetWallet");
-                                        return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(
+                                        return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallets(
                                             data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
                                     } else {
                                         return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
@@ -6560,7 +6626,22 @@ let dbPlayerInfo = {
         return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).then(
             platformData => {
                 if (platformData) {
-                    inputData.name = platformData.prefix + inputData.name;
+                    // inputData.name = platformData.prefix + inputData.name;
+
+                    // check if player is created by partner; if yes, use partnerCreatePlayerPrefix
+                    let pPrefix = inputData.partnerId ? platformData.partnerCreatePlayerPrefix : platformData.prefix;
+                    let pName = inputData.name;
+
+                    // check player name must start with prefix
+                    if (pName.indexOf(pPrefix) !== 0) {
+                        // check if player is created by partner
+                        if (inputData.partnerId) {
+                            return Q.reject({name: "DataError", message: localization.localization.translate("Player name created by partner should use ") + pPrefix + localization.localization.translate(" as prefix.")});
+                        } else {
+                            return Q.reject({name: "DataError", message: localization.localization.translate("Player name should use ") + pPrefix + localization.localization.translate(" as prefix.")});
+                        }
+                    }
+
                     inputData.name = inputData.name.toLowerCase();
                     return dbPlayerInfo.isPlayerNameValidToRegister({name: inputData.name, platform: platformData._id});
                 }
@@ -14057,6 +14138,7 @@ let dbPlayerInfo = {
             registrationTime: {$gte: startDate, $lt: endDate},
             isTestPlayer: false
         };
+        let playerData = null;
 
         if (query.userType) {
             switch (query.userType) {
@@ -14091,6 +14173,7 @@ let dbPlayerInfo = {
                                 endTime: moment(query.start).add(query.days, "day"),
                                 query: query,
                                 playerObjIds: playerIdObjs.map(function (playerIdObj) {
+                                    playerData = playerIdObjs;
                                     return playerIdObj._id;
                                 }),
                                 option: {
@@ -14149,6 +14232,20 @@ let dbPlayerInfo = {
                 // Output filter promote way
                 result = query.csPromoteWay && query.csPromoteWay.length > 0 ? result.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : result;
                 result = query.admins && query.admins.length > 0 ? result.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : result;
+
+                result.forEach(data => {
+                    if (playerData) {
+                        playerData.forEach(player => {
+                            if (player._id.toString() === data._id.toString()) {
+                                data.phoneProvince = player.phoneProvince ? player.phoneProvince : null;
+                                data.phoneCity = player.phoneCity ? player.phoneCity : null;
+                                data.province = player.province ? player.province : null;
+                                data.city = player.city ? player.city : null;
+                            }
+                        });
+                    }
+                    return data;
+                });
 
                 result = result.concat(
                     filteredArr.filter(function(e) {

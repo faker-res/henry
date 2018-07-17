@@ -46,7 +46,7 @@ function socketActionCsOfficer(socketIO, socket) {
         deletePromoteWay: function deletePromoteWay(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.promoteWayId && data.platformId);
-            socketUtil.emitter(self.socket, dbCsOfficer.deletePromoteWay, [data.promoteWayId, data.platformId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbCsOfficer.deletePromoteWay, [data.promoteWayId, data.platformId, data.promoteWayName], actionName, isValidData);
         },
 
         deleteOfficer: function deleteOfficer(data) {

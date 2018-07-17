@@ -2623,6 +2623,9 @@ var dbPlatform = {
                         if (subject === 'player') {
                             returnedObj.accountMaxLength = platformData.playerNameMaxLength ? platformData.playerNameMaxLength : 0;
                             returnedObj.accountMinLength = platformData.playerNameMinLength ? platformData.playerNameMinLength : 0;
+                            returnedObj.passwordMaxLength = platformData.playerPasswordMaxLength ? platformData.playerPasswordMaxLength : 0;
+                            returnedObj.passwordMinLength = platformData.playerPasswordMinLength ? platformData.playerPasswordMinLength : 0;
+                            returnedObj.accountPrefix = platformData.prefix ? platformData.prefix : "";
                             returnedObj.minDepositAmount = platformData.minTopUpAmount ? platformData.minTopUpAmount : 0;
                             returnedObj.needSMSForTrailAccount = platformData.requireSMSVerificationForDemoPlayer ? 1 : 0;
                             returnedObj.needSMSForRegister = platformData.requireSMSVerification ? 1 : 0;
@@ -2636,6 +2639,10 @@ var dbPlatform = {
                         if (subject === 'partner') {
                             returnedObj.accountMaxLength = platformData.partnerNameMaxLength ? platformData.partnerNameMaxLength : 0;
                             returnedObj.accountMinLength = platformData.partnerNameMinLength ? platformData.partnerNameMinLength : 0;
+                            returnedObj.passwordMaxLength = platformData.partnerPasswordMaxLength ? platformData.partnerPasswordMaxLength : 0;
+                            returnedObj.passwordMinLength = platformData.partnerPasswordMinLength ? platformData.partnerPasswordMinLength : 0;
+                            returnedObj.accountPrefix = platformData.partnerPrefix ? platformData.partnerPrefix : "";
+                            returnedObj.prefixForPartnerCreatePlayer = platformData.partnerCreatePlayerPrefix ? platformData.partnerCreatePlayerPrefix : "";
                             returnedObj.needSMSForRegister = platformData.partnerRequireSMSVerification ? 1 : 0;
                             returnedObj.needSMSForModifyPassword = platformData.partnerRequireSMSVerificationForPasswordUpdate ? 1 : 0;
                             returnedObj.needSMSForModifyBankInfo = platformData.partnerRequireSMSVerificationForPaymentUpdate ? 1 : 0;
@@ -3663,6 +3670,9 @@ var dbPlatform = {
                 "useLockedCredit",
                 "playerNameMaxLength",
                 "playerNameMinLength",
+                "playerPasswordMaxLength",
+                "playerPasswordMinLength",
+                "prefix",
                 "bonusSetting",
                 "requireSMSVerification",
                 "requireSMSVerificationForDemoPlayer",
@@ -3680,6 +3690,10 @@ var dbPlatform = {
                 "useEbetWallet",
                 "partnerNameMaxLength",
                 "partnerNameMinLength",
+                "partnerPasswordMaxLength",
+                "partnerPasswordMinLength",
+                "partnerPrefix",
+                "partnerCreatePlayerPrefix",
                 "partnerAllowSamePhoneNumberToRegister",
                 "partnerAllowSameRealNameToRegister",
                 "partnerSamePhoneNumberRegisterCount",

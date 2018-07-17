@@ -16,6 +16,9 @@
             .inlineBlk(style="width:200px;")
                 label.control-label {{'CREDIBILITY' | translate}}
                 select.form-control#selectCredibilityRemarkFeedback(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.playerFeedbackQuery.credibilityRemarks')
+            .inlineBlk(style="width:200px;")
+                label.control-label {{'CREDIBILITY_FILTER' | translate}}
+                select.form-control#selectCredibilityRemarkFeedbackFilter(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.playerFeedbackQuery.credibilityRemarksFilter')
             .inlineBlk
                 //上次登入（距今）
                 label {{"LAST_ACCESS_TILL_NOW"|translate}}
@@ -137,6 +140,13 @@
             .inlineBlk.sPickDepartment
                 label {{"REGISTRATION_ADMIN"|translate}}
                 select.spicker.form-control(ng-model='vm.playerFeedbackQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.queryAdmins')
+            .inlineBlk
+                label {{"CALL_PERMISSION"|translate}}
+                div
+                    select.form-control(ng-model="vm.playerFeedbackQuery.callPermission" style="width:105px;display:inline-block")
+                        option(value='false') {{'DISABLE'|translate}}
+                        option(value='true') {{'CALLABLE'|translate}}
+                        option(value='all') {{'ALL'|translate}}
             .inlineBlk
                 button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="one";vm.submitPlayerFeedbackQuery(true);') {{"SEARCH_SINGLE" | translate}}
             .inlineBlk
