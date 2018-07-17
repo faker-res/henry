@@ -22768,7 +22768,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.deleteRewardPointsEvent = (rewardPointsEvent) => {
-                $scope.$socketPromise('deleteRewardPointsEventById', {_id: rewardPointsEvent._id}).then((data) => {
+                $scope.$socketPromise('deleteRewardPointsEventById', {_id: rewardPointsEvent._id, category: rewardPointsEvent.category}).then((data) => {
                     vm.getRewardPointsEventByCategory(rewardPointsEvent.category);
                     $scope.safeApply();
                 });
