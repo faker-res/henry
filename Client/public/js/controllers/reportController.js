@@ -7456,6 +7456,9 @@ define(['js/app'], function (myApp) {
                     {group: "Batch Setting", text: "updateBatchPlayer", action: ["updateBatchPlayerPermission", "updateBatchPlayerForbidRewardEvents","updateBatchPlayerForbidPaymentType","updateBatchPlayerForbidRewardPointsEvent"]},
                     {group: "Batch Setting", text: "playerCreditClearOut", action: "playerCreditClearOut"},
 
+                    {group: "TeleMarketing", text: "createDxMission", action: "createDxMission"},
+                    {group: "TeleMarketing", text: "comparePhoneNum", action: "comparePhoneNum"},
+
                     {group: "PlayerLevel", text: "createPlayerLevel", action: "createPlayerLevel"},
                     {group: "PlayerLevel", text: "updatePlayerLevel", action: "updatePlayerLevel"},
 
