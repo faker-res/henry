@@ -364,10 +364,6 @@ const dbRewardTask = {
                     // Successfully created reward task
                     return freeProviderGroup2;
                 }
-                else {
-                    // Failed create reward task group or increase amount
-                    return Q.reject({name: "DBError", message: "Error creating reward task"})
-                }
             }
         )
     },
