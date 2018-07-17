@@ -7453,7 +7453,7 @@ define(['js/app'], function (myApp) {
                     {group: "rewardPoint", text: "deleteRewardPointsEventById", action: "deleteRewardPointsEventById"},
                     {group: "rewardPoint", text: "createRewardPointsEvent", action: "createRewardPointsEvent"},
 
-                    {group: "Batch Setting", text: "updateBatchPlayer", action: ["updateBatchPlayerPermission", "updateBatchPlayerForbidRewardEvents","updateBatchPlayerForbidPaymentType","updateBatchPlayerForbidRewardPointsEvent"]},
+                    {group: "Batch Setting", text: "updateBatchPlayer", action: ["updateBatchPlayerPermission", "updateBatchPlayerForbidRewardEvents","updateBatchPlayerForbidPaymentType","updateBatchPlayerForbidRewardPointsEvent", "updateBatchPlayerCredibilityRemark"]},
                     {group: "Batch Setting", text: "playerCreditClearOut", action: "playerCreditClearOut"},
 
                     {group: "TeleMarketing", text: "createDxMission", action: "createDxMission"},
