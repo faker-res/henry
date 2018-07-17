@@ -1367,29 +1367,17 @@ let dbPlayerCreditTransfer = {
                     }).then(data => {
                         if(data && data.length > 0) {
                             console.log('transferin promise data',data);
-                            let providerCredit = 0, playerCredit = 0, rewardCredit = 0, transferPlayerCredit = 0,
-                                transferRewardCredit = 0;
-                            data.forEach(item => {
-                                if (item && item.providerCredit && item.playerCredit && item.rewardCredit &&
-                                    item.transferCredit.playerCredit && item.transferCredit.rewardCredit) {
-                                    providerCredit += parseFloat(item.providerCredit);
-                                    playerCredit += parseFloat(item.playerCredit);
-                                    rewardCredit += parseFloat(item.rewardCredit);
-                                    transferPlayerCredit += parseFloat(item.transferCredit.playerCredit);
-                                    transferRewardCredit += parseFloat(item.transferCredit.rewardCredit);
-                                }
-                            });
-                            return {
+                            return Promise.resolve({
                                 playerId: data[0].playerId,
                                 providerId: data[0].providerId,
-                                providerCredit: providerCredit.toFixed(2),
-                                playerCredit: playerCredit.toFixed(2),
-                                rewardCredit: rewardCredit.toFixed(2),
+                                providerCredit: data[0].providerCredit,
+                                playerCredit: data[0].playerCredit,
+                                rewardCredit: data[0].rewardCredit,
                                 transferCredit: {
-                                    playerCredit: transferPlayerCredit.toFixed(2),
-                                    rewardCredit: transferRewardCredit.toFixed(2)
+                                    playerCredit: data[0].transferCredit.playerCredit,
+                                    rewardCredit: data[0].transferCredit.rewardCredit
                                 }
-                            }
+                            });
                         }
                     })
                     .catch(err => {
