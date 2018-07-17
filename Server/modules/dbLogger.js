@@ -131,6 +131,9 @@ var dbLogger = {
                 }else if (adminActionRecordData.action == 'updateBatchPlayerForbidRewardPointsEvent' && adminActionRecordData
                     && adminActionRecordData.data[2] && adminActionRecordData.data[2].addList.length) {
                     return dbconfig.collection_rewardPointsEvent.find({_id: {$in: adminActionRecordData.data[2].addList}}, {rewardTitle: 1});
+                } else if (adminActionRecordData.action == 'updateBatchPlayerCredibilityRemark' && adminActionRecordData.data[3]
+                    && adminActionRecordData.data[3].addList && adminActionRecordData.data[3].addList.length) {
+                    return dbconfig.collection_playerCredibilityRemark.find({_id: {$in: adminActionRecordData.data[3].addList}}, {name: 1});
                 }
             }
         ).then(
@@ -456,6 +459,21 @@ var dbLogger = {
                     adminActionRecordData.error = '批量情况' + adminActionRecordData.data[0] + '会员余额';
                 } else if (logAction == 'createDxMission' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].name) {
                     adminActionRecordData.error = '创建' + adminActionRecordData.data[0].name;
+                } else if (logAction == 'updateBatchPlayerCredibilityRemark' && adminActionRecordData.data[2] && data && data.length) {
+                    let credibilityRemark = '';
+                    let credibilityRemarkArr = [];
+
+                    data.forEach(el => {
+                        if (el && el.name){
+                            credibilityRemarkArr.push(el.name);
+                        }
+                    })
+
+                    if (credibilityRemarkArr && credibilityRemarkArr.length) {
+                        credibilityRemark = credibilityRemarkArr.join(", ");
+                    }
+
+                    adminActionRecordData.error = '批量设置账号' + adminActionRecordData.data[2] + '，设置内容' + credibilityRemark;
                 }
 
 
