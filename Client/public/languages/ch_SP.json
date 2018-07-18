@@ -1814,8 +1814,10 @@
   "commissionLevelConfig": "佣金等级设置",
   "PARTNER_COMMISSION_SETTLEMENT_MODE": "代理佣金结算模式",
   "PlayerBonus": "玩家提款",
+  "PLAYER_BONUS": "玩家提款",
   "PlayerBonus:resetCredit": "玩家提款错误修正",
   "PartnerBonus": "代理提款",
+  "PARTNER_BONUS": "代理提款",
   "GAME_ID": "游戏ID",
   "PlayerLevelUp": "系统升级优惠",
   "Online": "网银转账",
@@ -3980,11 +3982,17 @@
   "Financial points disable withdrawal(all withdrawal will be disable if the point is lower than this value)": "财务点数停止付款值（低于该数则停止将提案送至财务部门）",
   "add/deduct financial points": "增加/扣除财务点数",
   "FinancialPointsAdd": "财务点数增加",
+  "FINANCIAL_POINTS_ADD_SYSTEM": "财务点数增加（系统）",
   "FinancialPointsDeduct": "财务点数扣除",
+  "FINANCIAL_POINTS_DEDUCT_SYSTEM": "财务点数扣除（系统）",
   "financial point change(+/-)": "点数变化（可＋－）",
   "pointsBefore": "点数变化前",
   "pointsAfter": "点数变化后",
   "noExecuteRequire": "无需执行",
-  "topUpType": "充值类型"
+  "topUpType": "充值类型",
+  "FINANCIAL_POINTS_REPORT": "财务点数变化记录",
+  "FINANCIAL_POINTS_TYPE": "财务点数变化类型",
+  "financialPointsType": "财务点数变化类型",
+  "withdrawalProposalId": "提款提案号"
 
 }

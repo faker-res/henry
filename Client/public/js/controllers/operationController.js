@@ -2072,9 +2072,9 @@ define(['js/app'], function (myApp) {
                     + "(" + $fixTwoDecimalStr(grossCommission) + "-" + $fixTwoDecimalStr(totalFee) + ")";
             }
 
-            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "FinancialPointsAdd") {
-               if (proposalDetail.topUpType) {
-                   proposalDetail.topUpType = $translate($scope.topUpTypeList[proposalDetail.topUpType])
+            if (vm.selectedProposal && vm.selectedProposal.type && (vm.selectedProposal.type.name === "FinancialPointsAdd" || vm.selectedProposal.type.name === "FinancialPointsDeduct")) {
+               if (proposalDetail.financialPointsType) {
+                   proposalDetail.financialPointsType = $translate($scope.financialPointsList[proposalDetail.financialPointsType])
                }
             }
 

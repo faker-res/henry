@@ -36,6 +36,7 @@ const constServerCode = require("../const/constServerCode.js");
 const constPlayerTopUpType = require("../const/constPlayerTopUpType");
 const constMaxDateTime = require("../const/constMaxDateTime");
 const constPlayerCreditTransferStatus = require("../const/constPlayerCreditTransferStatus");
+const constFinancialPointsType = require("../const/constFinancialPointsType");
 const localization = require("../modules/localization");
 let rsaCrypto = require("../modules/rsaCrypto");
 
@@ -353,7 +354,8 @@ var proposal = {
                     }
 
                     // SCHEDULED AUTO APPROVAL
-                    if ((proposalTypeData.name == constProposalType.FINANCIAL_POINTS_DEDUCT || proposalTypeData.name == constProposalType.FINANCIAL_POINTS_ADD) && proposalData.data.noExecuteRequire) {
+                    if ((proposalTypeData.name == constProposalType.FINANCIAL_POINTS_DEDUCT || proposalTypeData.name == constProposalType.FINANCIAL_POINTS_ADD) &&
+                        [constFinancialPointsType.FINANCIAL_POINTS_ADD_SYSTEM, constFinancialPointsType.FINANCIAL_POINTS_DEDUCT_SYSTEM].indexOf(proposalData.data.financialPointsType) < 0) {
                         bExecute = false;
                         proposalData.status = constProposalStatus.APPROVED;
                     }
@@ -3006,6 +3008,102 @@ var proposal = {
 
         return deferred.promise;
     },
+
+    getFinancialPointsReport: function (reqData, index, count, sortObj) {
+        sortObj = sortObj || {};
+
+        let isDeductPoints = false;
+
+        if (reqData.financialPointsType && reqData.financialPointsType.length) {
+            for (let i = 0; i < reqData.financialPointsType.length; i++) {
+                reqData.financialPointsType[i] = Number(reqData.financialPointsType[i]);
+                if (!isDeductPoints &&
+                    [constFinancialPointsType.PLAYER_BONUS, constFinancialPointsType.PARTNER_BONUS, constFinancialPointsType.FINANCIAL_POINTS_DEDUCT_SYSTEM].indexOf(reqData.financialPointsType[i]) >= 0) {
+                    isDeductPoints = true;
+                }
+            }
+        } else {
+            //return null
+            let amount = 0;
+            return {
+                size: 0,
+                data: [],
+                summary: {amount: amount.toFixed(2)},
+            }
+        }
+
+        let proposalTypeQ = {
+            platformId: reqData.platformId,
+            name: constProposalType.FINANCIAL_POINTS_ADD
+        }
+
+        let proposalProm = dbconfig.collection_proposalType.findOne(proposalTypeQ).lean();
+
+        if (isDeductPoints) {
+            proposalTypeQ.name = {$in: [constProposalType.FINANCIAL_POINTS_ADD, constProposalType.FINANCIAL_POINTS_DEDUCT]};
+            proposalProm = dbconfig.collection_proposalType.find(proposalTypeQ).lean();
+        }
+
+
+        return proposalProm.then(
+            proposalType => {
+                let proposalQuery = {
+                    "data.financialPointsType": {$in: reqData.financialPointsType},
+                    createTime: {
+                        $gte: reqData.startTime,
+                        $lt: reqData.endTime
+                    },
+                }
+
+                if (isDeductPoints) {
+                    if (!(proposalType && proposalType.length)) {
+                        return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+                    }
+                    proposalQuery.type = {$in: proposalType.map(item=> item._id)};
+                } else {
+                    if (!proposalType) {
+                        return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+                    }
+                    proposalQuery.type = proposalType._id
+                }
+
+                let proposalSize = dbconfig.collection_proposal.find(proposalQuery).count();
+                let proposalData = dbconfig.collection_proposal.find(proposalQuery).sort(sortObj).skip(index).limit(count).populate({
+                    path: "process",
+                    model: dbconfig.collection_proposalProcess
+                }).populate({path: "type", model: dbconfig.collection_proposalType});
+                let proposalSummary = dbconfig.collection_proposal.aggregate([
+                    {
+                        $match: proposalQuery
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            amount: {$sum: "$data.updateAmount"},
+                        }
+                    }
+                ]);
+                return Promise.all([proposalSize, proposalData, proposalSummary]);
+            }
+        ).then(
+            data => {
+                if (!(data && data[1] && data[2])) {
+                    return Promise.reject({name: "DataError", message: "Error in finding proposal"});
+                }
+                let totalAmount = 0;
+                if (data[2].length) {
+                    totalAmount = data[2][0].amount? data[2][0].amount: 0;
+                }
+                let res = {
+                    size: data[0] || 0,
+                    data: data[1],
+                    summary: {amount: parseFloat(totalAmount).toFixed(2)},
+                }
+                return res;
+            }
+        )
+    },
+
     /**
      * For report purpose - player reward returns by reward events such as "FirstTopUp", "PlayerConsumptionReturn"
      * @param platformId - ObjectId of the platform

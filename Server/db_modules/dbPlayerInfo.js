@@ -61,6 +61,7 @@ var messageDispatcher = require('../modules/messageDispatcher');
 var constPlayerSMSSetting = require('../const/constPlayerSMSSetting');
 var constRewardPointsLogCategory = require("../const/constRewardPointsLogCategory");
 const constSMSPurpose = require("../const/constSMSPurpose");
+const constFinancialPointsType = require("../const/constFinancialPointsType");
 
 // constants
 const constProviderStatus = require("./../const/constProviderStatus");
@@ -3233,11 +3234,11 @@ let dbPlayerInfo = {
                                     updateAmount: proposalData.data.amount,
                                     remark: "",
                                     topUpProposalId: proposalData.proposalId,
-                                    topUpType: topUpType,
-                                    noExecuteRequire: true,
+                                    financialPointsType: topUpType,
                                     pointsBefore: platformData.financialPoints,
                                     pointsAfter: platformData.financialPoints + proposalData.data.amount
-                                }
+                                },
+                                userType: constProposalUserType.PLAYERS
                             };
                             dbProposal.createProposalWithTypeNameWithProcessInfo(data.platform, constProposalType.FINANCIAL_POINTS_ADD, financialProposal).catch(errorUtils.reportError);
                         }

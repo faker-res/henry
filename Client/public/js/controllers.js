@@ -526,6 +526,17 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         '2': 'MerchantUse_Normal'
     };
 
+    $scope.financialPointsList = {
+        1: "TOPUPMANUAL",
+        2: "TOPUPONLINE",
+        3: "TOPUPALIPAY",
+        4: "TOPUPWECHAT",
+        5: "PLAYER_BONUS",
+        6: "PARTNER_BONUS",
+        7: "FINANCIAL_POINTS_ADD_SYSTEM",
+        8: "FINANCIAL_POINTS_DEDUCT_SYSTEM"
+    }
+
     // todo :: check if merchantTopupMainTypeJson actually got the index wrong
     $scope.merchantTopupMainTypeJson = {
         1: "Online",

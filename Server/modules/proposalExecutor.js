@@ -35,6 +35,7 @@ var dbProposal = require("../db_modules/dbProposal");
 var dbPlatform = require("../db_modules/dbPlatform");
 var constProposalEntryType = require("../const/constProposalEntryType");
 var constProposalUserType = require("../const/constProposalUserType");
+const constFinancialPointsType = require("../const/constFinancialPointsType");
 var SMSSender = require('./SMSSender');
 //Reward Points
 const constRewardPointsLogCategory = require("../const/constRewardPointsLogCategory");
@@ -1763,10 +1764,11 @@ var proposalExecutor = {
                                                    updateAmount: -proposalData.data.amount,
                                                    remark: "",
                                                    withdrawalProposalId: proposalData.proposalId,
-                                                   noExecuteRequire: true,
+                                                   financialPointsType: constFinancialPointsType.PLAYER_BONUS,
                                                    pointsBefore: platformData.financialPoints,
                                                    pointsAfter: platformData.financialPoints - proposalData.data.amount
-                                               }
+                                               },
+                                               userType: constProposalUserType.PLAYERS
                                            };
                                            dbProposal.createProposalWithTypeNameWithProcessInfo(platformData._id, constProposalType.FINANCIAL_POINTS_DEDUCT, financialProposal).catch(errorUtils.reportError);
                                            return bonusData;
@@ -1851,10 +1853,11 @@ var proposalExecutor = {
                                                     updateAmount: -proposalData.data.amount,
                                                     remark: "",
                                                     withdrawalProposalId: proposalData.proposalId,
-                                                    noExecuteRequire: true,
+                                                    financialPointsType: constFinancialPointsType.PARTNER_BONUS,
                                                     pointsBefore: platformData.financialPoints,
                                                     pointsAfter: platformData.financialPoints - proposalData.data.amount
-                                                }
+                                                },
+                                                userType: constProposalUserType.PARTNERS
                                             };
                                             dbProposal.createProposalWithTypeNameWithProcessInfo(platformData._id, constProposalType.FINANCIAL_POINTS_DEDUCT, financialProposal).catch(errorUtils.reportError);
                                             return bonusData;
