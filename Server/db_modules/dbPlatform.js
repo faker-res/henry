@@ -1,5 +1,9 @@
 "use strict";
 
+var dbPlatformFunc = function () {
+};
+module.exports = new dbPlatformFunc();
+
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -3602,20 +3606,36 @@ var dbPlatform = {
                     "data.playerObjId": proposalData.data.playerObjId
                 }
 
-                return dbconfig.collection_proposal.findOne(queryObj).lean().then(
-                    pendingProposal => {
-                        if (pendingProposal) {
-                            return Q.reject({
-                                name: "DBError",
-                                message: "Player or partner already has a pending proposal for this type"
-                            });
-                        }
-                    }
-                )
+                return dbconfig.collection_proposal.findOne(queryObj).lean()
             }
         ).then(
-            () => {
+            pendingProposal => {
+                if (pendingProposal) {
+                    return Q.reject({
+                        name: "DBError",
+                        message: "Player or partner already has a pending proposal for this type"
+                    });
+                }
+                return dbconfig.collection_platform.findOne({_id: platformId}).lean();
+            }
+        ).then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", errorMessage: "Cannot find platform"});
+                }
+                proposalData.data.pointsBefore = platformData.financialPoints;
+                proposalData.data.pointsAfter = platformData.financialPoints + proposalData.data.updateAmount;
                 return dbProposal.createProposalWithTypeNameWithProcessInfo(platformId, typeName, proposalData)
+            }
+        )
+    },
+
+    changePlatformFinancialPoints: function (platformObjId, amount) {
+        return dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId},
+            {
+                $inc: {
+                    financialPoints: amount
+                }
             }
         )
     },
@@ -4373,5 +4393,8 @@ function calculatePartnerCommissionInfo(platformObjId, commissionType, startTime
         );
     });
 }
+
+var proto = dbPlatformFunc.prototype;
+proto = Object.assign(proto, dbPlatform);
 
 module.exports = dbPlatform;

@@ -18296,6 +18296,12 @@ define(['js/app'], function (myApp) {
                     vm.selectedProposal.data = proposalDetail;
                 }
 
+                if (vm.selectedProposal && vm.selectedProposal.type && (vm.selectedProposal.type.name === "FinancialPointsAdd" || vm.selectedProposal.type.name === "FinancialPointsDeduct")) {
+                    if (vm.selectedProposal.data.financialPointsType) {
+                        vm.selectedProposal.data.financialPointsType = $translate($scope.financialPointsList[vm.selectedProposal.data.financialPointsType])
+                    }
+                }
+
                 if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
                     let proposalDetail = {};
                     if (!vm.selectedProposal.data) {
