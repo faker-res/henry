@@ -11,6 +11,8 @@ style.
                 table#batchPlayerDataTable(style="width:100%")
                 div(style="text-align:right")
                     button.btn.btn-primary.common-button#bulkCreditClearOutButton(ng-click="vm.initiateBulkCreditClearOutList()" ng-disabled="vm.bulkCreditClearOut.initiating") {{"Bulk Credit Clear Out" | translate}}
+                    button.btn.btn-primary.common-button#bulkClearXIMAWithdrawButton(ng-click="vm.initBulkClearXIMAWithdraw()") {{"Bulk Clear XIMA Withdraw Amount" | translate}}
+                    label.text-success(ng-if="vm.doneClearXIMAAMount") {{'SUCCESS' | translate}}
                 div(style="margin-bottom:10px;" ng-show="vm.bulkCreditClearOutTriggered")
                     span(style="margin-right:10px; font-weight:bold;") {{'Total Players' | translate}} : {{vm.bulkCreditClearOut.total}}
                     span(style="margin-right:10px; font-weight:bold;") {{'Success' | translate}} : {{vm.bulkCreditClearOut.success}}
