@@ -871,7 +871,7 @@ var dbGameProviderPlayerDaySummary = {
                         });
                         deferred.resolve({
                             data: playerSummArray.slice(index, index + count),
-                            size: playerSummArray.length,
+                            size: playerSummArray.length + index,
                             summary: {
                                 amount: sumAmount,
                                 validAmount: sumValidAmount,
