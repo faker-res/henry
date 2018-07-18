@@ -135,9 +135,6 @@
             #proposalTablePage
          div(ng-if='vm.showPageName=="FINANCIAL_POINTS_REPORT"')
             #financialPointsReportQuery.block-query.col-md-12.well
-                //- div
-                    label(style='width:150px;') {{"FINANCIAL_POINTS_TYPE"|translate}}
-                    select.form-control#selectFinancialPointsType(multiple="multiple", ng-options='k | translate for (k,i) in vm.financialPointsReportType', ng-model='bbca')
                 div
                     label(style='width:150px;') {{"FINANCIAL_POINTS_TYPE"|translate}}
                     select.form-control#selectFinancialPointsType(multiple="multiple", ng-model='bbca')
