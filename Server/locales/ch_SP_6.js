@@ -46,6 +46,10 @@ var simplifiedChinese = {
     "alipayGroup": "支付宝组",
     "wechatPayGroup": "微信支付组",
 
+    "LOGIN_REWARD_POINTS": "登入积分",
+    "TOPUP_REWARD_POINTS": "存款积分",
+    "GAME_REWARD_POINTS": "游戏积分",
+
     "true": "开",
     "false": "关",
     "applyBonus": "申请提款",

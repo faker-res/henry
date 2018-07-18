@@ -9276,6 +9276,7 @@ define(['js/app'], function (myApp) {
                     item['targetProviderGroup'] = $translate(item.targetProviderGroup);
                     item.creator.name = $translate(item.creator.name);
                     item.status = $translate(item.status == 'NoCredit' ? 'NoCreditUnlock' : item.status == 'Achieved' ? 'AchievedUnlock': item.status);
+                    item.currentAmt$ = $noRoundTwoDecimalPlaces(item.currentAmount);
                 });
 
                 $scope.$evalAsync(vm.drawRewardTaskUnlockedTable(newSearch, result, vm.playerRewardTaskLog.totalCount));
@@ -9345,7 +9346,7 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row, meta) {
                             // let spendingAmt = vm.calSpendingAmt(meta.row);
                             // let isSubmit = vm.isSubmitProposal(meta.row);
-                            let text = row.currentAmount + "/-" + row.targetAmount;
+                            let text = row.currentAmt$ + "/-" + row.targetAmount;
 
                             return "<div>" + text + "</div>";
                         }
@@ -17905,7 +17906,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.deleteRewardPointsEvent = (rewardPointsEvent) => {
-            $scope.$socketPromise('deleteRewardPointsEventById', {_id: rewardPointsEvent._id}).then((data) => {
+            $scope.$socketPromise('deleteRewardPointsEventById', {_id: rewardPointsEvent._id, category: rewardPointsEvent.category}).then((data) => {
                 vm.getRewardPointsEventByCategory(rewardPointsEvent.category);
                 $scope.safeApply();
             });

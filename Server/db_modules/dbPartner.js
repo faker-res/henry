@@ -191,9 +191,9 @@ let dbPartner = {
                         partnerdata.commissionType = platformData.partnerDefaultCommissionGroup;
                     }
                     // attach platform prefix to partner name if available
-                    if (platform.partnerPrefix) {
-                        partnerdata.partnerName = platform.partnerPrefix + partnerdata.partnerName;
-                    }
+                    // if (platform.partnerPrefix) {
+                    //     partnerdata.partnerName = platform.partnerPrefix + partnerdata.partnerName;
+                    // }
                     pName = partnerdata.partnerName;
 
                     if ((platformData.partnerNameMaxLength > 0 && partnerdata.partnerName.length > platformData.partnerNameMaxLength) || (platformData.partnerNameMinLength > 0 && partnerdata.partnerName.length < platformData.partnerNameMinLength)) {
@@ -219,7 +219,7 @@ let dbPartner = {
             function (data) {
                 if (data.isPartnerNameValid) {
                     // check partner name must start with prefix
-                    if ( pName.indexOf(pPrefix) === 0) {
+                    if (!pPrefix || pName.indexOf(pPrefix) === 0) {
                         return {isPartnerPrefixValid: true};
                     } else {
                         return {isPartnerPrefixValid: false};
