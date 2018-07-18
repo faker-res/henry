@@ -56,7 +56,7 @@ let dbRewardTaskGroup = {
         }).lean();
     },
 
-    addRemainingConsumptionToFreeAmountRewardTaskGroup: (platformId, playerId, createTime, remainCurConsumption) => {
+    addRemainingConsumptionToFreeAmountRewardTaskGroup: (platformId, playerId, createTime, remainCurConsumption, remainBonusAmt = 0) => {
         let remainingAmount = remainCurConsumption;
 
         return dbconfig.collection_rewardTaskGroup.find({
@@ -75,7 +75,7 @@ let dbRewardTaskGroup = {
                             let requiredConsumption = RTG.targetConsumption + RTG.forbidXIMAAmt - RTG.curConsumption;
                             let status, unlockTime;
 
-                            if (RTG.currentAmt < 1){
+                            if (RTG.currentAmt + remainBonusAmt < 1){
                                 status = constRewardTaskStatus.NO_CREDIT;
                                 unlockTime = createTime;
                             }
@@ -88,7 +88,7 @@ let dbRewardTaskGroup = {
 
                             let updObj = {
                                 $inc: {
-                                    //currentAmt: consumptionRecord.bonusAmount,
+                                    currentAmt: remainBonusAmt,
                                     curConsumption: requiredConsumption ? requiredConsumption : 0
                                 }
                             };
