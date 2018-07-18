@@ -207,8 +207,18 @@ var dbLogger = {
                     adminActionRecordData.error = "创建" + adminActionRecordData.data[0].name + "产品";
                 }else if(logAction == "deletePlatformById" && adminActionRecordData.data[1]){
                     adminActionRecordData.error = "删除" + adminActionRecordData.data[1] + "产品";
-                }else if(logAction == "updatePlatform" && resultData.name){
+                }else if(logAction == "updatePlatform" && resultData.name) {
                     adminActionRecordData.error = "更新" + resultData.name + "产品";
+                }else if(logAction == "startPlatformPlayerConsumptionReturnSettlement") {
+                    adminActionRecordData.error = "玩家洗码";
+                } else if(logAction == "generatePartnerCommSettPreview"){
+                    adminActionRecordData.error = "代理佣金结算";
+                } else if(logAction == "startPlatformPlayerConsumptionIncentiveSettlement"){
+                    adminActionRecordData.error = "救援金";
+                } else if(logAction == "startPlatformPlayerLevelSettlement"){
+                    adminActionRecordData.error = "玩家升降级";
+                } else if(logAction == "startPlayerConsecutiveConsumptionSettlement"){
+                    adminActionRecordData.error = "智勇冲关";
                 }else if(logAction == "createNewPlayerAdvertisementRecord" && resultData.inputDevice){
                     adminActionRecordData.error = "添加玩家广告(" + inputDevice[resultData.inputDevice] + ")";
                 }else if(logAction == "savePlayerAdvertisementRecordChanges" && resultData.inputDevice){
@@ -300,9 +310,9 @@ var dbLogger = {
                     && adminActionRecordData.data[1]) {
                     adminActionRecordData.error = "删除" + adminActionRecordData.data[1];
                 }else if (logAction == 'addPromoteWay' && resultData && resultData.name) {
-                    adminActionRecordData.error = "创建" + resultData.name;
+                    adminActionRecordData.error = "创建" + resultData.name + "主题";
                 }else if (logAction == 'deletePromoteWay' && adminActionRecordData.data && adminActionRecordData.data.length > 2 && adminActionRecordData.data[2]) {
-                    adminActionRecordData.error = "删除" + adminActionRecordData.data[2];
+                    adminActionRecordData.error = "删除" + adminActionRecordData.data[2] + "主题";
                 }else if (logAction == 'addPlatformBankCardGroup' && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]) {
                     adminActionRecordData.error = "添加银行卡组 - " + adminActionRecordData.data[1];
                 }else if (logAction == 'addPlatformMerchantGroup' && adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]) {
@@ -361,6 +371,8 @@ var dbLogger = {
                     adminActionRecordData.error = "编辑结算时间为" + resultData.dailySettlementHour + "小时" + resultData.dailySettlementMinute + "分钟";
                 }else if (logAction == 'manualDailyProviderSettlement' && data && data.name) {
                     adminActionRecordData.error = "指定结算" + data.name;
+                }else if(logAction == 'updateGame'){
+                    adminActionRecord.error = "更新游戏";
                 }else if (logAction == 'pushNotification' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].tittle) {
                     adminActionRecordData.error = "添加" + adminActionRecordData.data[0].tittle;
                 }else if ((logAction == 'updateRewardPointsEvent' || logAction == 'createRewardPointsEvent')

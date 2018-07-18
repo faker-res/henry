@@ -859,6 +859,10 @@ function searchPlayerFromExportProposal (proposal) {
 
     let proposalData = proposal.data;
 
+    if (proposalData.platformId) {
+        query.platform = proposalData.platformId;
+    }
+
     switch (proposalData.playerType) {
         case 'Test Player':
             query.isRealPlayer = false;
