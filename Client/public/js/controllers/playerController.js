@@ -15412,7 +15412,7 @@ define(['js/app'], function (myApp) {
             vm.playerWechatPayTopUp.wechatPayName = '';
             vm.playerWechatPayTopUp.wechatPayAccount = '';
             if (vm.wechatpaysAcc != '') {
-                var wechatpayAcc = JSON.parse(vm.wechatpaysAcc);
+                var wechatpayAcc = vm.wechatpaysAcc;
                 vm.playerWechatPayTopUp.wechatPayName = wechatpayAcc['name'];
                 vm.playerWechatPayTopUp.wechatPayAccount = wechatpayAcc['accountNumber'];
             }
