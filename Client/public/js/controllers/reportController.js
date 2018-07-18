@@ -7472,21 +7472,6 @@ define(['js/app'], function (myApp) {
                     {group: "Batch Setting", text: "updateBatchPlayer", action: ["updateBatchPlayerPermission", "updateBatchPlayerForbidRewardEvents","updateBatchPlayerForbidPaymentType","updateBatchPlayerForbidRewardPointsEvent", "updateBatchPlayerCredibilityRemark"]},
                     {group: "Batch Setting", text: "playerCreditClearOut", action: "playerCreditClearOut"},
 
-                    {group: "TeleMarketing", text: "createDxMission", action: "createDxMission"},
-                    {group: "TeleMarketing", text: "comparePhoneNum", action: "comparePhoneNum"},
-
-                    {group: "PlayerLevel", text: "createPlayerLevel", action: "createPlayerLevel"},
-                    {group: "PlayerLevel", text: "updatePlayerLevel", action: "updatePlayerLevel"},
-
-                    // {group: "PlayerLevel", text: "createPlayerLevel", action: "createPlayerLevel"},
-                    // {group: "PlayerLevel", text: "updatePlayerLevel", action: "updatePlayerLevel"},
-
-                    // {
-                    //     group: "Partner Commission",
-                    //     text: "Partner Commission",
-                    //     action: ['createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig']
-                    // },
-
                     {group: "Bankcard Group", text: "ADD", action: "addPlatformBankCardGroup"},
                     {group: "Bankcard Group", text: "UPDATE", action: "updatePlatformBankCardGroup"},
                     {group: "Bankcard Group", text: "DELETE", action: "deleteBankCardGroup"},
@@ -7508,6 +7493,9 @@ define(['js/app'], function (myApp) {
                     {group: "Provider", text: "EDIT_SETTLEMENT_TIME", action: "updateGameProvider"},
                     {group: "Provider", text: "Target Settlement", action: "manualDailyProviderSettlement"},
                     {group: "Provider", text: "updateGame", action: "updateGame"},
+
+                    {group: "TeleMarketing", text: "createDxMission", action: "createDxMission"},
+                    {group: "TeleMarketing", text: "comparePhoneNum", action: "comparePhoneNum"},
                 ];
                 utilService.actionAfterLoaded("#actionLogTablePage", function () {
                     vm.commonInitTime(vm.actionLogQuery, '#actionLogReportQuery');
