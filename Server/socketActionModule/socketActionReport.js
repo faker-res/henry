@@ -43,6 +43,21 @@ function socketActionReport(socketIO, socket) {
             socketUtil.emitter(self.socket, dbProposal.getProposalsByAdvancedQuery, [query, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
 
+        getFinancialPointsReport: function getFinancialPointsReport(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.index != null && data.limit != null);
+
+            var startTime = data.startTime ? new Date(data.startTime) : new Date(0);
+            var endTime = data.endTime ? new Date(data.endTime) : new Date();
+            data ["startTime"] = startTime;
+            data["endTime"] = endTime;
+            if (data.platformId) {
+                data.platformId = ObjectId(data.platformId);
+            }
+
+            socketUtil.emitter(self.socket, dbProposal.getFinancialPointsReport, [data, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
         /**
          * Create topup record report
          * @param {json} query - query data. It has to contain correct data format
