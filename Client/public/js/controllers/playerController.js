@@ -15354,7 +15354,7 @@ define(['js/app'], function (myApp) {
             vm.playerAlipayTopUp.alipayName = '';
             vm.playerAlipayTopUp.alipayAccount = '';
             if (vm.alipaysAcc != '') {
-                var alipayAcc = JSON.parse(vm.alipaysAcc);
+                var alipayAcc = vm.alipaysAcc;
                 vm.playerAlipayTopUp.alipayName = alipayAcc['name'];
                 vm.playerAlipayTopUp.alipayAccount = alipayAcc['accountNumber'];
             }
@@ -15412,7 +15412,7 @@ define(['js/app'], function (myApp) {
             vm.playerWechatPayTopUp.wechatPayName = '';
             vm.playerWechatPayTopUp.wechatPayAccount = '';
             if (vm.wechatpaysAcc != '') {
-                var wechatpayAcc = JSON.parse(vm.wechatpaysAcc);
+                var wechatpayAcc = vm.wechatpaysAcc;
                 vm.playerWechatPayTopUp.wechatPayName = wechatpayAcc['name'];
                 vm.playerWechatPayTopUp.wechatPayAccount = wechatpayAcc['accountNumber'];
             }
@@ -18294,6 +18294,12 @@ define(['js/app'], function (myApp) {
                         + "(" + grossCommission + "-" + totalFee + ")";
 
                     vm.selectedProposal.data = proposalDetail;
+                }
+
+                if (vm.selectedProposal && vm.selectedProposal.type && (vm.selectedProposal.type.name === "FinancialPointsAdd" || vm.selectedProposal.type.name === "FinancialPointsDeduct")) {
+                    if (vm.selectedProposal.data.financialPointsType) {
+                        vm.selectedProposal.data.financialPointsType = $translate($scope.financialPointsList[vm.selectedProposal.data.financialPointsType])
+                    }
                 }
 
                 if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
