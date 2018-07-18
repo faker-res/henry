@@ -7352,16 +7352,11 @@ define(['js/app'], function (myApp) {
                     {group: "PLATFORM", text: "createPlatform", action: "createPlatform"},
                     {group: "PLATFORM", text: "DELETE_PLATFORM", action: "deletePlatformById"},
                     {group: "PLATFORM", text: "updatePlatform", action: "updatePlatform"},
-                    {
-                        group: "PLATFORM",
-                        text: "Daily Settlement",
-                        action: ["startPlatformDailySettlement", "fixPlatformDailySettlement"]
-                    },
-                    {
-                        group: "PLATFORM",
-                        text: "Weekly Settlement",
-                        action: ["startPlatformWeeklySettlement", "fixPlatformWeeklySettlement"]
-                    },
+                    {group: "PLATFORM", text: "SYSTEM_SETTLEMENT", action: ["startPlatformPlayerConsumptionReturnSettlement", "generatePartnerCommSettPreview", "startPlatformPlayerConsumptionIncentiveSettlement", "startPlatformPlayerLevelSettlement", "startPlayerConsecutiveConsumptionSettlement"]},
+                    {group: "PLATFORM", text: "createNewPlayerAdvertisementRecord", action: "createNewPlayerAdvertisementRecord"},
+                    {group: "PLATFORM", text: "savePlayerAdvertisementRecordChanges", action: "savePlayerAdvertisementRecordChanges"},
+                    {group: "PLATFORM", text: "createNewPartnerAdvertisementRecord", action: "createNewPartnerAdvertisementRecord"},
+                    {group: "PLATFORM", text: "savePartnerAdvertisementRecordChanges", action: "savePartnerAdvertisementRecordChanges"},
 
                     {group: "PLAYER", text: "CREATE_PLAYER", action: "createPlayer"},
                     {group: "PLAYER", text: "createTestPlayerForPlatform", action: "createDemoPlayer"},
@@ -7407,9 +7402,6 @@ define(['js/app'], function (myApp) {
                     {group: "PLAYER", text: "requestClearProposalLimit", action: "requestClearProposalLimit"},
                     {group: "PLAYER", text: "modifyPlayerCredibilityRemark", action: "updatePlayerCredibilityRemark"},
 
-                    {group: "Feedback", text: "ADD_FEEDBACK_RESULT", action: ["createPlayerFeedbackResult", "createPartnerFeedbackResult"]},
-                    {group: "Feedback", text: "ADD_FEEDBACK_TOPIC", action: ["createPlayerFeedbackTopic", "createPartnerFeedbackTopic"]},
-
                     {group: "PARTNER", text: "createPartner", action: "createPartner"},
                     //{group: "PARTNER", text: "createPartnerWithParent", action: "createPartnerWithParent"},
                     //{group: "PARTNER", text: "deletePartnersById", action: "deletePartnersById"},
@@ -7424,16 +7416,20 @@ define(['js/app'], function (myApp) {
                     {group: "PARTNER", text: "customizePartnerCommission", action: "customizePartnerCommission"},
                     {group: "PARTNER", text: "updatePartnerPermission", action: "updatePartnerPermission"},
 
-                    {group: "Platform Game", text: "PROVIDER_NICKNAME", action: "renameProviderInPlatformById"},
-                    {group: "Platform Game", text: "ENABLE/DISABLE", action: "updateProviderFromPlatformById"},
-                    {group: "Platform Game", text: "updateGameStatusToPlatform", action: "updateGameStatusToPlatform"},
-                    {group: "Platform Game", text: "attachGameToPlatform", action: "attachGamesToPlatform"},
-                    {group: "Platform Game", text: "detachGameFromPlatform", action: "detachGamesFromPlatform"},
+                    {group: "Feedback", text: "ADD_FEEDBACK_RESULT", action: ["createPlayerFeedbackResult", "createPartnerFeedbackResult"]},
+                    {group: "Feedback", text: "ADD_FEEDBACK_TOPIC", action: ["createPlayerFeedbackTopic", "createPartnerFeedbackTopic"]},
+
+                    {group: "GAME", text: "RENAME_PROVIDER_NICKNAME", action: "renameProviderInPlatformById"},
+                    {group: "GAME", text: "ENABLE/DISABLE", action: "updateProviderFromPlatformById"},
+                    {group: "GAME", text: "UPDATE_GAME_STATUS", action: "updateGameStatusToPlatform"},
+                    {group: "GAME", text: "attachGameToPlatform", action: "attachGamesToPlatform"},
+                    {group: "GAME", text: "detachGameFromPlatform", action: "detachGamesFromPlatform"},
 
                     {group: "GameGroup", text: "Add Game Group", action: "addPlatformGameGroup"},
                     {group: "GameGroup", text: "Remove Game Group", action: "deleteGameGroup"},
                     {group: "GameGroup", text: "Rename Game Group", action: "renamePlatformGameGroup"},
                     {group: "GameGroup", text: "Move Game Group", action: "updateGameGroupParent"},
+                    {group: "GameGroup", text: "ADD/REMOVE_GAME_GROUP", action: "updatePlatformGameGroup"},
                     // {group: "GameGroup", text: "Update Game Group", action: "updatePlatformGameGroup"},
 
                     {group: "REWARD", text: "createRewardEvent", action: "createRewardEvent"},
@@ -7443,10 +7439,30 @@ define(['js/app'], function (myApp) {
                     {group: "PROPOSAL_PROCESS", text: "updateProposalTypeProcessSteps", action: "updateProposalTypeProcessSteps"},
                     //{group: "Proposal", text: "updateProposalProcessStep", action: "updateProposalProcessStep"},
 
+                    {group: "CONFIG", text: "EDIT_PLAYER_LEVEL", action: "updatePlayerLevel"},
+                    {group: "CONFIG", text: "VALID_ACTIVE", action: "updatePartnerLevelConfig"},
+                    {group: "CONFIG", text: "Partner Commission", action: "createUpdatePartnerCommissionConfigWithGameProviderGroup"},
+                    {group: "CONFIG", text: "Auto Approval Setting", action: "updateAutoApprovalConfig"},
+                    {group: "CONFIG", text: "Player Value", action: "updatePlayerLevelScores"},
+                    {group: "CONFIG", text: "Player Credibility", action: "updateCredibilityRemarksInBulk"},
+                    {group: "CONFIG", text: "Lock Lobby Group", action: "updatePlatformProviderGroup"},
+                    {group: "CONFIG", text: "setFilteredKeywords", action: "setFilteredKeywords"},
+                    {group: "CONFIG", text: "removeFilteredKeywords", action: "removeFilteredKeywords"},
+
                     {group: "MessageTemplates", text: "createMessageTemplate", action: "createMessageTemplate"},
                     {group: "MessageTemplates", text: "updateMessageTemplate", action: "updateMessageTemplate"},
 
+                    {group: "ANNOUNCEMENTS", text: "createPlatformAnnouncement", action: "createPlatformAnnouncement"},
+                    {group: "ANNOUNCEMENTS", text: "updatePlatformAnnouncement", action: "updatePlatformAnnouncement"},
+                    {group: "ANNOUNCEMENTS", text: "deletePlatformAnnouncementByIds", action: "deletePlatformAnnouncementByIds"},
+
                     {group: "PushNotification", text: "addPushNotification", action: "pushNotification"},
+
+                    {group: "RegistrationUrlConfig", text: "addPromoteWay", action: "addPromoteWay"},
+                    {group: "RegistrationUrlConfig", text: "deletePromoteWay", action: "deletePromoteWay"},
+                    {group: "RegistrationUrlConfig", text: "addUrl", action: "addUrl"},
+                    {group: "RegistrationUrlConfig", text: "updateUrl", action: "updateUrl"},
+                    {group: "RegistrationUrlConfig", text: "deleteUrl", action: "deleteUrl"},
 
                     {group: "rewardPoint", text: "upsertRewardPointsLvlConfig", action: "upsertRewardPointsLvlConfig"},
                     {group: "rewardPoint", text: "updateRewardPointsEvent", action: "updateRewardPointsEvent"},
@@ -7456,21 +7472,15 @@ define(['js/app'], function (myApp) {
                     {group: "Batch Setting", text: "updateBatchPlayer", action: ["updateBatchPlayerPermission", "updateBatchPlayerForbidRewardEvents","updateBatchPlayerForbidPaymentType","updateBatchPlayerForbidRewardPointsEvent"]},
                     {group: "Batch Setting", text: "playerCreditClearOut", action: "playerCreditClearOut"},
 
-                    {group: "PlayerLevel", text: "createPlayerLevel", action: "createPlayerLevel"},
-                    {group: "PlayerLevel", text: "updatePlayerLevel", action: "updatePlayerLevel"},
 
-                    {group: "PartnerLevel", text: "createPartnerLevel", action: "createPartnerLevel"},
-                    {group: "PartnerLevel", text: "partnerLevel/update", action: "partnerLevel/update"},
-                    {group: "VALID_ACTIVE", text: "updatePartnerLevelConfig", action: "updatePartnerLevelConfig"},
-                    {
-                        group: "Partner Commission",
-                        text: "Partner Commission",
-                        action: ['createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig']
-                    },
+                    // {group: "PlayerLevel", text: "createPlayerLevel", action: "createPlayerLevel"},
+                    // {group: "PlayerLevel", text: "updatePlayerLevel", action: "updatePlayerLevel"},
 
-                    {group: "ANNOUNCEMENTS", text: "ADD", action: "createPlatformAnnouncement"},
-                    {group: "ANNOUNCEMENTS", text: "UPDATE", action: "updatePlatformAnnouncement"},
-                    {group: "ANNOUNCEMENTS", text: "DELETE", action: "deletePlatformAnnouncementByIds"},
+                    // {
+                    //     group: "Partner Commission",
+                    //     text: "Partner Commission",
+                    //     action: ['createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig']
+                    // },
 
                     {group: "Bankcard Group", text: "ADD", action: "addPlatformBankCardGroup"},
                     {group: "Bankcard Group", text: "UPDATE", action: "updatePlatformBankCardGroup"},
@@ -7490,9 +7500,9 @@ define(['js/app'], function (myApp) {
                     {group: "AlipayGroup", text: "Default", action: "setPlatformDefaultAlipayGroup"},
                     {group: "AlipayGroup", text: "ADD_PLAYER", action: "addPlayersToAlipayGroup"},
 
-                    {group: "Provider", text: "SETTLEMENT", action: "manualDailyProviderSettlement"},
-                    {group: "Provider", text: "UPDATE", action: "updateGameProvider"},
-                    {group: "Provider", text: "GameStatus", action: "updateGame"},
+                    {group: "Provider", text: "EDIT_SETTLEMENT_TIME", action: "updateGameProvider"},
+                    {group: "Provider", text: "Target Settlement", action: "manualDailyProviderSettlement"},
+                    {group: "Provider", text: "updateGame", action: "updateGame"},
                 ];
                 utilService.actionAfterLoaded("#actionLogTablePage", function () {
                     vm.commonInitTime(vm.actionLogQuery, '#actionLogReportQuery');
