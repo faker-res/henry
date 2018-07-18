@@ -1195,7 +1195,7 @@ let PlayerServiceImplement = function () {
 
     this.callBackToUser.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data.platformId && data.phoneNumber && data.randomNumber && data.captcha);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.callBackToUser, [data.platformId, data.phoneNumber, data.randomNumber, data.captcha, data.lineId, conn.playerID], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.callBackToUser, [data.platformId, data.phoneNumber, data.randomNumber, data.captcha, data.lineId, conn.playerId], isValidData, false, false, true);
     };
 
     this.getOMCaptcha.onRequest = function (wsFunc, conn, data) {
