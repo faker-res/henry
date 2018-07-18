@@ -15354,7 +15354,7 @@ define(['js/app'], function (myApp) {
             vm.playerAlipayTopUp.alipayName = '';
             vm.playerAlipayTopUp.alipayAccount = '';
             if (vm.alipaysAcc != '') {
-                var alipayAcc = JSON.parse(vm.alipaysAcc);
+                var alipayAcc = vm.alipaysAcc;
                 vm.playerAlipayTopUp.alipayName = alipayAcc['name'];
                 vm.playerAlipayTopUp.alipayAccount = alipayAcc['accountNumber'];
             }
