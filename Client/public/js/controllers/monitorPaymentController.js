@@ -1136,10 +1136,8 @@ define(['js/app'], function (myApp) {
             let merchantGroupNames = {};
 
             merchants.forEach(item => {
-                if (item.status !== 'DISABLED') {
-                    merchantGroupList[item.merchantTypeId] = merchantGroupList[item.merchantTypeId] || {list: []};
-                    merchantGroupList[item.merchantTypeId].list.push(item.merchantNo);
-                }
+                merchantGroupList[item.merchantTypeId] = merchantGroupList[item.merchantTypeId] || {list: []};
+                merchantGroupList[item.merchantTypeId].list.push(item.merchantNo);
             });
 
             merchantTypes.forEach(mer => {
