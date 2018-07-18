@@ -31623,6 +31623,24 @@ define(['js/app'], function (myApp) {
                     });
                 });
             };
+            vm.initBulkClearXIMAWithdraw = function() {
+                let playerNames = vm.splitBatchPermit();
+                let prom = Promise.resolve();
+                playerNames.forEach((playerName, i) => {
+                    prom = prom.then(() => {
+                        let sendData = {
+                            platformObjId: vm.selectedPlatform.id,
+                            playerName: playerName
+                        };
+                        return $scope.$socketPromise("clearPlayerXIMAWithdraw", sendData);
+                    });
+                });
+                return prom.then(() => {
+                    $scope.$evalAsync(() => {
+                        vm.doneClearXIMAAMount = true;
+                    });
+                });
+            };
             vm.filterAndSortBulkCreditClearOutList = function () {
                 let playerList = vm.bulkCreditClearOut.data;
                 if(playerList && playerList.length > 0) {
