@@ -219,7 +219,7 @@ let dbPartner = {
             function (data) {
                 if (data.isPartnerNameValid) {
                     // check partner name must start with prefix
-                    if ( pName.indexOf(pPrefix) === 0) {
+                    if (!pPrefix || pName.indexOf(pPrefix) === 0) {
                         return {isPartnerPrefixValid: true};
                     } else {
                         return {isPartnerPrefixValid: false};
