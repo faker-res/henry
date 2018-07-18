@@ -27882,13 +27882,17 @@ define(['js/app'], function (myApp) {
                         isUsed = true;
                     }
                 });
-                vm.refreshDropDown();
+                vm.debounceRefreshSPicker();
                 return isUsed;
             };
 
             vm.refreshDropDown = () => {
                 $('.spicker').selectpicker('refresh');
             }
+
+            vm.debounceRefreshSPicker = $scope.debounce(() => {
+                $('.spicker').selectpicker('refresh');
+            }, 100);
 
             vm.ensurePlayerLevelOrder = function () {
                 vm.sortPlayerLevels();
