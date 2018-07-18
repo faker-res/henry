@@ -4157,7 +4157,6 @@ define(['js/app'], function (myApp) {
                 })
                 $('#financialPointsTableSpin').hide();
                 vm.financialQuery.totalCount = data.data.size;
-                $scope.safeApply();
                 vm.drawFinancialPointsReport(datatoDraw, vm.financialQuery.totalCount, data.data.summary, newSearch);
             }, function (err) {
                 $('#financialPointsTableSpin').hide();
