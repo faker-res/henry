@@ -1054,9 +1054,8 @@
                             .form-group.col-md-6
                                 .control-label
                                 label {{'Alipay' | translate}}
-                                select.form-control#alipayOption(ng-model='vm.alipaysAcc',ng-change='vm.pickAlipayAcc(vm.alipaysAcc)')
+                                select.form-control#alipayOption(ng-model='vm.alipaysAcc',ng-change='vm.pickAlipayAcc(vm.alipaysAcc)', ng-options='a as a.displayText for a in vm.allAlipaysAcc | orderBy : "accountNumber"',  data-live-search="true", bsp )
                                     option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.allAlipaysAcc | orderBy : "accountNumber"', value='{{v}}') {{v.accountNumber}} {{v.name}}({{(v.state == "DISABLED"?"Disable":v.state) | translate}})
                             .form-group.col-md-6
                                 .control-label
                                 label {{'alipayName' | translate}}
@@ -1114,9 +1113,8 @@
                             .form-group.col-md-6
                                 .control-label
                                 label {{'WechatPay' | translate}}
-                                select.form-control#wechatpayOption(ng-model='vm.wechatpaysAcc',ng-change='vm.pickWechatPayAcc(vm.wechatpaysAcc)')
+                                select.form-control#wechatpayOption(ng-model='vm.wechatpaysAcc',ng-change='vm.pickWechatPayAcc(vm.wechatpaysAcc)',  ng-options='a as a.displayText for a in vm.allWechatpaysAcc | orderBy : "nickName"',  data-live-search="true", bsp)
                                     option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.allWechatpaysAcc | orderBy : "nickName"', value='{{v}}') {{v.nickName}} {{v.accountNumber}} ({{(v.state == "DISABLED"?"Disable":v.state) | translate}})
                             .form-group.col-md-6
                                 .control-label
                                 label {{'wechatPayName' | translate}}

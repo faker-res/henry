@@ -789,7 +789,16 @@ var dbPlayerConsumptionWeekSummary = {
                         $match: {
                             platformId: platformId,
                             createTime: summaryDay,
-                            playerId: playerData._id
+                            playerId: playerData._id,
+                            $or: [
+                                {isDuplicate: {$exists: false}},
+                                {
+                                    $and: [
+                                        {isDuplicate: {$exists: true}},
+                                        {isDuplicate: false}
+                                    ]
+                                }
+                            ]
                         }
                     },
                     {

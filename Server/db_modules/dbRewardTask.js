@@ -364,10 +364,6 @@ const dbRewardTask = {
                     // Successfully created reward task
                     return freeProviderGroup2;
                 }
-                else {
-                    // Failed create reward task group or increase amount
-                    return Q.reject({name: "DBError", message: "Error creating reward task"})
-                }
             }
         )
     },
@@ -1501,13 +1497,14 @@ const dbRewardTask = {
         return findAndUpdateRTG(consumptionRecord, createTime, platformObj, constSystemParam.UPDATE_RECURSE_MAX_RETRY).then(
             res => {
                 if (res) {
-                    if (res.remainingCurConsumption) {
+                    if (res.remainingCurConsumption || res.remainBonusAmt) {
                         // RTG has fulfilled, if there's amount overflowed, add to free amount consumption
                         dbRewardTaskGroup.addRemainingConsumptionToFreeAmountRewardTaskGroup(
                             consumptionRecord.platformId,
                             consumptionRecord.playerId,
                             createTime,
-                            res.remainingCurConsumption
+                            res.remainingCurConsumption,
+                            res.remainBonusAmt
                         ).catch(errorUtils.reportError);
                         // Assume overflow amount is valid for consumption return
                         nonDirtyAmount = res.remainingCurConsumption;
@@ -2335,7 +2332,8 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
         return false;
     }
 
-    let consumptionAmt = consumptionRecord.validAmount, remainingCurConsumption = 0, XIMAAmt = 0;
+    let consumptionAmt = consumptionRecord.validAmount, bonusAmt = consumptionRecord.bonusAmount;
+    let remainBonusAmt = 0, remainingCurConsumption = 0, XIMAAmt = 0;
 
     return dbRewardTaskGroup.getPlayerRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.providerId, consumptionRecord.playerId, createTime).then(
         rewardTaskGroup => {
@@ -2362,11 +2360,23 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                     }
                 }
 
+                // Check if bonusAmount has exceed the amount availalble in this RTG
+                // Current amount in RTG should not be less than 0
+                let currentAmt = rewardTaskGroup.currentAmt;
+                let amtToDeduct = 0;
+
+                if (currentAmt > 0 && currentAmt + bonusAmt < 0) {
+                    amtToDeduct = -rewardTaskGroup.currentAmt;
+                    remainBonusAmt = bonusAmt - amtToDeduct;
+                } else {
+                    amtToDeduct = bonusAmt;
+                }
+
                 let rewardTaskUnlockedProgress;
                 let statusChange = false;
                 let updObj = {
                     $inc: {
-                        currentAmt: consumptionRecord.bonusAmount,
+                        currentAmt: amtToDeduct,
                         curConsumption: consumptionAmt
                     }
                 };
@@ -2437,9 +2447,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                             }
 
                             if (statusUpdObj.status) {
-                                console.log("debug RTG1", consumptionRecord.playerId, createTime);
                                 // update the rewardTaskGroupUnlockRecord
-
                                let updateProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                                    {_id: updatedRTG._id, status: constRewardTaskStatus.STARTED},
                                    statusUpdObj,
@@ -2491,6 +2499,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                             return {
                                 updatedData: res,
                                 remainingCurConsumption: remainingCurConsumption,
+                                remainBonusAmt: remainBonusAmt,
                                 XIMAAmt: XIMAAmt,
                                 statusChange: statusChange
                             }

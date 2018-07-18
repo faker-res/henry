@@ -17336,6 +17336,15 @@ let dbPlayerInfo = {
             errorUtils.reportError(err);
             return {};
         });
+    },
+
+    clearPlayerXIMAWithdraw: function(playerName, platformObjId) {
+        return dbconfig.collection_players.findOneAndUpdate({
+            platform: platformObjId,
+            name: playerName
+        }, {
+            $set: {ximaWithdraw: 0}
+        })
     }
 };
 

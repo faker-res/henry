@@ -3427,13 +3427,13 @@ var dbPlatform = {
         return Promise.all(prom);
 
         function checkAndInsertRecord (platformId, phoneNumber, name, createTime){
-            return dbconfig.collection_playerDataFromExternalSource.findOne({
-                    platformId: platformId,
-                    phoneNumber: phoneNumber,
-                    name: name,
-                }
-            ).then(res => {
-                if (!res) {
+            // return dbconfig.collection_playerDataFromExternalSource.findOne({
+            //         platformId: platformId,
+            //         phoneNumber: phoneNumber,
+            //         name: name,
+            //     }
+            // ).then(res => {
+            //     if (!res) {
                     let dataTobeSaved = {
                         platformId: platformId || "",
                         phoneNumber: phoneNumber || "",
@@ -3441,13 +3441,15 @@ var dbPlatform = {
                         createTime: createTime || new Date()
                     };
 
+                    console.log("YH---checking savingData", dataTobeSaved);
+
                     let playerData = new dbconfig.collection_playerDataFromExternalSource(dataTobeSaved);
                     return playerData.save().then().catch(err => errorUtils.reportError(err));
-                }
-                else {
-                    return;
-                }
-            })
+                // }
+                // else {
+                //     return;
+                // }
+            // })
         }
     },
 
