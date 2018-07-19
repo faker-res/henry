@@ -148,9 +148,9 @@
                         option(value='true') {{'CALLABLE'|translate}}
                         option(value='all') {{'ALL'|translate}}
             .inlineBlk
-                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="one";vm.submitPlayerFeedbackQuery(true);') {{"SEARCH_SINGLE" | translate}}
+                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="one";vm.submitPlayerFeedbackQuery(true, false);') {{"SEARCH_SINGLE" | translate}}
             .inlineBlk
-                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="many";vm.submitPlayerFeedbackQuery(true);') {{"SEARCH_LIST" | translate}}
+                button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="many";vm.submitPlayerFeedbackQuery(true, false);') {{"SEARCH_LIST" | translate}}
             .inlineBlk
                 button.btn.btn-warning(ng-if="checkViewPermission('Platform','Feedback','Export') && !vm.ctiData.hasOnGoingMission", ng-disabled='vm.showExportButton()', ng-click='vm.exportPlayerQuery()') {{"PLAYER_EXPORT_BATCH" | translate}}
             .inlineBlk
@@ -177,7 +177,7 @@
     .inlineBlk
         .btn.btn-primary(ng-click="vm.createCallOutMission()" ng-if="checkViewPermission('Platform','Feedback','BulkCall') && !vm.ctiData.hasOnGoingMission") {{"BULK_CALL" | translate}}
     .pull-right
-        a.fa.fa-refresh.margin-top-5(ng-click='vm.submitPlayerFeedbackQuery()')
+        a.fa.fa-refresh.margin-top-5(ng-click='vm.submitPlayerFeedbackQuery(null, true)')
             text.margin-right-5.pull-left {{"Refresh" | translate}}
 
 .row.margin-top-bottom-small(ng-show='vm.selectedPlatform')
