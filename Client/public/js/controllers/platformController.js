@@ -15777,6 +15777,9 @@ define(['js/app'], function (myApp) {
                     }
                     return vm.getCallOutMissionPlayerDetail();
                 }
+
+                $('#registerEndTimePicker').data('datetimepicker').setDate(new Date(utilService.getLocalTime(new Date()).getTime() - 30*60*1000 ));
+
                 console.log('vm.feedback', vm.playerFeedbackQuery);
                 vm.exportPlayerFilter = JSON.parse(JSON.stringify(vm.playerFeedbackQuery))
                 let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
