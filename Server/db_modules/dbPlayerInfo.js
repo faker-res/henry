@@ -15513,7 +15513,7 @@ let dbPlayerInfo = {
 
         let dxCode = "";
 
-        let platformProm = Promise.resolve({platformId: platformId});
+        let platformProm = Promise.resolve({platform: {platformId: platformId}});
         if (!platformId) {
             platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).populate({
                 path: "platform", model: dbconfig.collection_platform
