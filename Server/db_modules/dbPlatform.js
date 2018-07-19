@@ -2796,7 +2796,7 @@ var dbPlatform = {
                                 }
 
                             });
-                            pair.content = comString.join(', ');
+                            pair.content = comString.join(',');
                         }
                     }
                     else {
