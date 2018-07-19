@@ -425,7 +425,7 @@ let dbPlayerInfo = {
                     platformId = platformData.platformId;
                     platformObj = platformData;
                     platformObjId = platformData._id;
-                    platformPrefix = platformData.prefix;
+                    // platformPrefix = platformData.prefix;
 
                     //check if manual player creation from FPMS, return true (manual creation from FPMS do not have userAgent)
                     if(inputData.userAgent){
@@ -4507,8 +4507,8 @@ let dbPlayerInfo = {
                     platformObj = platformData;
                     requireLogInCaptcha = platformData.requireLogInCaptcha || false;
                     platformId = platformData._id;
-                    platformPrefix = platformData.prefix;
-                    playerData.prefixName = platformData.prefix + playerData.name;
+                    // platformPrefix = platformData.prefix;
+                    playerData.prefixName = playerData.name;
 
                     let playerQuery = {
                         $or: [
@@ -5010,7 +5010,7 @@ let dbPlayerInfo = {
                                         model: dbconfig.collection_playerLevel
                                     }).lean().then(
                                         res => {
-                                            res.name = res.name.replace(platformPrefix, "");
+                                            // res.name = res.name.replace(platformPrefix, "");
                                             retObj = res;
                                             let a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
                                             let b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
@@ -15702,8 +15702,7 @@ let dbPlayerInfo = {
             name: 1,
             _id: 0,
             forbidProviders: 1
-        })
-            .populate({
+        }).populate({
                 path: "platform",
                 model: dbconfig.collection_platform,
                 select: ['_id', 'platformId']

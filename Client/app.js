@@ -45,6 +45,7 @@ if (env === 'development') {
 
 // production only
 if (env === 'production') {
+    app.set('view cache', true);
     // TODO
 }
 

@@ -20181,525 +20181,467 @@ define(['js/app'], function (myApp) {
             };
 
             vm.platformRewardTypeChanged = function () {
-                $.each(vm.allRewardTypes, function (i, v) {
-                    if (v._id === vm.showRewardTypeId) {
-                        if (v && v.params && v.params.condition && v.params.condition.generalCond
-                            && v.params.condition.generalCond.imageUrl && v.params.condition.generalCond.imageUrl.value) {
-                            v.params.condition.generalCond.imageUrl.value = [""];
-                        }
+                $scope.$evalAsync(() => {
+                    $.each(vm.allRewardTypes, function (i, v) {
+                        if (v._id === vm.showRewardTypeId) {
+                            if (v && v.params && v.params.condition && v.params.condition.generalCond
+                                && v.params.condition.generalCond.imageUrl && v.params.condition.generalCond.imageUrl.value) {
+                                v.params.condition.generalCond.imageUrl.value = [""];
+                            }
 
-                        if (v && v.name && v.name == "PlayerConsumptionReturn") {
-                            if(vm.showReward && (!vm.showReward.param || !vm.showReward.param.imageUrl)) {
-                                if (!vm.showReward.param) {
-                                    vm.showReward.param = {};
+                            if (v && v.name && v.name == "PlayerConsumptionReturn") {
+                                if(vm.showReward && (!vm.showReward.param || !vm.showReward.param.imageUrl)) {
+                                    if (!vm.showReward.param) {
+                                        vm.showReward.param = {};
+                                    }
+                                    vm.showReward.param.imageUrl = [""];
                                 }
-                                vm.showReward.param.imageUrl = [""];
+
+                                if (vm.showReward && !vm.showReward.display) {
+                                    vm.showReward.display = [];
+                                    vm.showReward.display.push({displayId:"", displayTitle:"", displayTextContent: "", btnOrImageList: []});
+                                }
                             }
 
-                            if (vm.showReward && !vm.showReward.display) {
-                                vm.showReward.display = [];
-                                vm.showReward.display.push({displayId:"", displayTitle:"", displayTextContent: "", btnOrImageList: []});
-                            }
+                            vm.showRewardTypeData = v;
+                            console.log('vm.showRewardTypeData', vm.showRewardTypeData);
+                            return true;
+                        }
+                    });
+
+                    socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+                        $scope.$evalAsync(() => {
+                            vm.platformProvider = data.data.gameProviders;
+                            vm.disableAllRewardInput();
+                        })
+                    }, function (data) {
+                        console.log("cannot get gameProvider", data);
+                    });
+
+                    // Handling for reward group
+                    if (vm.showRewardTypeData && vm.showRewardTypeData.isGrouped) {
+                        vm.rewardMainTask = [];
+                        vm.rewardMainCondition = {};
+                        vm.rewardMainParam = {};
+                        vm.isPlayerLevelDiff = false;
+                        vm.isDynamicRewardAmt = false;
+                        vm.isMultiStepReward = false;
+                        vm.rewardMainParamEntry = [{}];
+                        vm.rewardDisabledParam = [];
+                        vm.isRandomReward = false;
+                        vm.platformRewardIsEnabled = false;
+                        vm.rewardMainParamTable = [];
+                        let params = vm.showRewardTypeData.params;
+
+                        if (vm.showReward && !vm.showReward.display) {
+                            vm.showReward.display = [];
+                            vm.showReward.display.push({displayId: "", displayTitle: "", displayTextContent: "", btnOrImageList: []});
                         }
 
+                        // Set condition value
+                        Object.keys(params.condition).forEach(el => {
+                            let mainCond = params.condition[el];
+                            let result;
 
+                            Object.keys(mainCond).forEach(el => {
+                                let cond = mainCond[el];
+                                vm.rewardMainCondition[cond.index] = {
+                                    index: cond.index,
+                                    name: el,
+                                    des: cond.des,
+                                    type: cond.type,
+                                    disabled: cond.disabled,
+                                    value: cond.value
+                                };
 
-                        vm.showRewardTypeData = v;
-                        console.log('vm.showRewardTypeData', vm.showRewardTypeData);
-                        return true;
-                    }
-                });
+                                if (cond.chainType && cond.chainOptions) {
+                                    vm.rewardMainCondition[cond.index].chainType = cond.chainType;
+                                    vm.rewardMainCondition[cond.index].chainOptions = cond.chainOptions;
+                                }
 
-                socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
-                    vm.platformProvider = data.data.gameProviders;
-                    $scope.safeApply();
-                    vm.disableAllRewardInput();
-                }, function (data) {
-                    console.log("cannot get gameProvider", data);
-                });
+                                if (cond.detail) {
+                                    vm.rewardMainCondition[cond.index].detail = cond.detail;
+                                }
 
-                // Handling for reward group
-                if (vm.showRewardTypeData && vm.showRewardTypeData.isGrouped) {
-                    vm.rewardMainTask = [];
-                    vm.rewardMainCondition = {};
-                    vm.rewardMainParam = {};
-                    vm.isPlayerLevelDiff = false;
-                    vm.isDynamicRewardAmt = false;
-                    vm.isMultiStepReward = false;
-                    vm.rewardMainParamEntry = [{}];
-                    vm.rewardDisabledParam = [];
-                    vm.isRandomReward = false;
-                    vm.platformRewardIsEnabled = false;
-                    vm.rewardMainParamTable = [];
-                    let params = vm.showRewardTypeData.params;
-
-                    if (vm.showReward && !vm.showReward.display) {
-                        vm.showReward.display = [];
-                        vm.showReward.display.push({displayId: "", displayTitle: "", displayTextContent: "", btnOrImageList: []});
-                    }
-
-                    // Set condition value
-                    Object.keys(params.condition).forEach(el => {
-                        let mainCond = params.condition[el];
-                        let result;
-
-                        Object.keys(mainCond).forEach(el => {
-                            let cond = mainCond[el];
-                            vm.rewardMainCondition[cond.index] = {
-                                index: cond.index,
-                                name: el,
-                                des: cond.des,
-                                type: cond.type,
-                                disabled: cond.disabled,
-                                value: cond.value
-                            };
-
-                            if (cond.chainType && cond.chainOptions) {
-                                vm.rewardMainCondition[cond.index].chainType = cond.chainType;
-                                vm.rewardMainCondition[cond.index].chainOptions = cond.chainOptions;
-                            }
-
-                            if (cond.detail) {
-                                vm.rewardMainCondition[cond.index].detail = cond.detail;
-                            }
-
-                            // Get options
-                            switch (cond.options) {
-                                case "providerGroup":
-                                    if (!vm.gameProviderGroup) break;
-                                    let providerGroup = {
-                                        //     "": "LOCAL_CREDIT"
-                                    };
-                                    for (let i = 0; i < vm.gameProviderGroup.length; i++) {
-                                        let group = vm.gameProviderGroup[i];
-                                        providerGroup[group._id] = group.name;
-                                    }
-                                    result = providerGroup;
-                                    break;
-                                case "bankType":
-                                    result = vm.allBankTypeList;
-                                    break;
-                                case "allRewardEvent":
-                                    if (!vm.allRewardEvent) break;
-                                    let rewardEvents = {};
-                                    for (let i = 0; i < vm.allRewardEvent.length; i++) {
-                                        let event = vm.allRewardEvent[i];
-                                        rewardEvents[event._id] = event.name;
-                                    }
-                                    // Since promo code do not have its own event, it does not have eventObjId
-                                    // Hence this object id will be use specifically for promo code throughout system as eventObjId
-                                    rewardEvents["59ca08a3ef187c1ccec863b9"] = "优惠代码";
-                                    result = rewardEvents;
-                                    break;
-                                case "gameProviders":
-                                    if (!vm.allGameProviders) break;
-                                    let gameProviders = {};
-                                    for (let i = 0; i < vm.allGameProviders.length; i++) {
-                                        let provider = vm.allGameProviders[i];
-                                        gameProviders[provider._id] = provider.name;
-                                    }
-                                    result = gameProviders;
-                                    break;
-                                default:
-                                    result = $scope[cond.options];
-                                    if (result) {
-                                        for (let key in result) {
-                                            result[key] = $translate(result[key]);
-                                            // to decode html entities, unwanted encoding by $translate
-                                            let txt = document.createElement("textarea");
-                                            txt.innerHTML = result[key];
-                                            result[key] = txt.value;
+                                // Get options
+                                switch (cond.options) {
+                                    case "providerGroup":
+                                        if (!vm.gameProviderGroup) break;
+                                        let providerGroup = {
+                                            //     "": "LOCAL_CREDIT"
+                                        };
+                                        for (let i = 0; i < vm.gameProviderGroup.length; i++) {
+                                            let group = vm.gameProviderGroup[i];
+                                            providerGroup[group._id] = group.name;
                                         }
+                                        result = providerGroup;
+                                        break;
+                                    case "bankType":
+                                        result = vm.allBankTypeList;
+                                        break;
+                                    case "allRewardEvent":
+                                        if (!vm.allRewardEvent) break;
+                                        let rewardEvents = {};
+                                        for (let i = 0; i < vm.allRewardEvent.length; i++) {
+                                            let event = vm.allRewardEvent[i];
+                                            rewardEvents[event._id] = event.name;
+                                        }
+                                        // Since promo code do not have its own event, it does not have eventObjId
+                                        // Hence this object id will be use specifically for promo code throughout system as eventObjId
+                                        rewardEvents["59ca08a3ef187c1ccec863b9"] = "优惠代码";
+                                        result = rewardEvents;
+                                        break;
+                                    case "gameProviders":
+                                        if (!vm.allGameProviders) break;
+                                        let gameProviders = {};
+                                        for (let i = 0; i < vm.allGameProviders.length; i++) {
+                                            let provider = vm.allGameProviders[i];
+                                            gameProviders[provider._id] = provider.name;
+                                        }
+                                        result = gameProviders;
+                                        break;
+                                    default:
+                                        result = $scope[cond.options];
+                                        if (result) {
+                                            for (let key in result) {
+                                                result[key] = $translate(result[key]);
+                                                // to decode html entities, unwanted encoding by $translate
+                                                let txt = document.createElement("textarea");
+                                                txt.innerHTML = result[key];
+                                                result[key] = txt.value;
+                                            }
+                                        }
+                                        break;
+                                }
+
+                                vm.rewardMainCondition[cond.index].options = result;
+
+                                // Get player level different reward flag
+                                if (el == "isPlayerLevelDiff" && vm.showReward && vm.showReward.condition && vm.showReward.condition[el] === true) {
+                                    vm.isPlayerLevelDiff = true;
+                                }
+
+                                // Get reward dynamic amount flag
+                                if (el == "isDynamicRewardAmount" && vm.showReward && vm.showReward.condition && vm.showReward.condition[el] === true) {
+                                    vm.isDynamicRewardAmt = true;
+                                }
+
+                                if (el == "topupType") {
+                                    if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("2") > -1)) {
+                                        vm.rewardDisabledParam.push("onlineTopUpType")
                                     }
-                                    break;
-                            }
-
-                            vm.rewardMainCondition[cond.index].options = result;
-
-                            // Get player level different reward flag
-                            if (el == "isPlayerLevelDiff" && vm.showReward && vm.showReward.condition && vm.showReward.condition[el] === true) {
-                                vm.isPlayerLevelDiff = true;
-                            }
-
-                            // Get reward dynamic amount flag
-                            if (el == "isDynamicRewardAmount" && vm.showReward && vm.showReward.condition && vm.showReward.condition[el] === true) {
-                                vm.isDynamicRewardAmt = true;
-                            }
-
-                            if (el == "topupType") {
-                                if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("2") > -1)) {
-                                    vm.rewardDisabledParam.push("onlineTopUpType")
-                                }
-                                if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("1") > -1)) {
-                                    vm.rewardDisabledParam.push("bankCardType")
-                                }
-                            }
-
-                            if (el == "defineLoseValue") {
-                                if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] &&
-                                        (vm.showReward.condition[el].indexOf("2") > -1 || vm.showReward.condition[el].indexOf("3") > -1))) {
-                                    vm.rewardDisabledParam.push("consumptionProvider");
+                                    if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("1") > -1)) {
+                                        vm.rewardDisabledParam.push("bankCardType")
+                                    }
                                 }
 
-                            }
+                                if (el == "defineLoseValue") {
+                                    if (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] &&
+                                            (vm.showReward.condition[el].indexOf("2") > -1 || vm.showReward.condition[el].indexOf("3") > -1))) {
+                                        vm.rewardDisabledParam.push("consumptionProvider");
+                                    }
 
-                            // Get value
-                            if (vm.showReward && vm.showReward.condition && vm.showReward.condition.hasOwnProperty(el)) {
-                                vm.rewardMainCondition[cond.index].value = vm.showReward.condition[el];
-                            }
-
-                            // Get interval value 1
-                            if (cond.type == "interval") {
-                                if (vm.rewardMainCondition[cond.index].value && vm.rewardMainCondition[cond.index].value.length == 2) {
-                                    vm.rewardMainCondition[cond.index].value1 = vm.rewardMainCondition[cond.index].value[1];
-                                    vm.rewardMainCondition[cond.index].value = vm.rewardMainCondition[cond.index].value[0];
                                 }
 
-                                if (vm.rewardMainCondition[cond.index].value && vm.rewardMainCondition[cond.index].value.length == 3) {
-                                    vm.rewardMainCondition[cond.index].value2 = vm.rewardMainCondition[cond.index].value[2];
-                                    vm.rewardMainCondition[cond.index].value1 = vm.rewardMainCondition[cond.index].value[1];
-                                    vm.rewardMainCondition[cond.index].value = vm.rewardMainCondition[cond.index].value[0];
+                                // Get value
+                                if (vm.showReward && vm.showReward.condition && vm.showReward.condition.hasOwnProperty(el)) {
+                                    vm.rewardMainCondition[cond.index].value = vm.showReward.condition[el];
                                 }
-                            }
 
-                            // Render dateTimePicker
-                            let id = "#rewardMainTaskDate-" + cond.index;
-                            utilService.actionAfterLoaded(id, function () {
-                                let dateValue = vm.rewardMainCondition[cond.index].value;
+                                // Get interval value 1
+                                if (cond.type == "interval") {
+                                    if (vm.rewardMainCondition[cond.index].value && vm.rewardMainCondition[cond.index].value.length == 2) {
+                                        vm.rewardMainCondition[cond.index].value1 = vm.rewardMainCondition[cond.index].value[1];
+                                        vm.rewardMainCondition[cond.index].value = vm.rewardMainCondition[cond.index].value[0];
+                                    }
 
-                                vm.rewardMainCondition[cond.index].value = utilService.createDatePicker(id, {
-                                    language: 'en',
-                                    format: 'yyyy/MM/dd hh:mm:ss'
+                                    if (vm.rewardMainCondition[cond.index].value && vm.rewardMainCondition[cond.index].value.length == 3) {
+                                        vm.rewardMainCondition[cond.index].value2 = vm.rewardMainCondition[cond.index].value[2];
+                                        vm.rewardMainCondition[cond.index].value1 = vm.rewardMainCondition[cond.index].value[1];
+                                        vm.rewardMainCondition[cond.index].value = vm.rewardMainCondition[cond.index].value[0];
+                                    }
+                                }
+
+                                // Render dateTimePicker
+                                let id = "#rewardMainTaskDate-" + cond.index;
+                                utilService.actionAfterLoaded(id, function () {
+                                    let dateValue = vm.rewardMainCondition[cond.index].value;
+
+                                    vm.rewardMainCondition[cond.index].value = utilService.createDatePicker(id, {
+                                        language: 'en',
+                                        format: 'yyyy/MM/dd hh:mm:ss'
+                                    });
+
+                                    if (dateValue) {
+                                        vm.rewardMainCondition[cond.index].value.data('datetimepicker').setDate(utilService.getLocalTime(new Date(dateValue)));
+                                    }
                                 });
 
-                                if (dateValue) {
-                                    vm.rewardMainCondition[cond.index].value.data('datetimepicker').setDate(utilService.getLocalTime(new Date(dateValue)));
+                            })
+                        });
+
+                        setTimeout(function () {
+                            let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
+
+                            // Set param value
+                            Object.keys(paramType).forEach(el => {
+                                // Get value
+                                if (vm.showReward && vm.showReward.param && vm.showReward.param.hasOwnProperty(el) && el != "rewardParam") {
+                                    vm.rewardMainParam[el] = paramType[el];
+                                    vm.rewardMainParam[el].value = vm.showReward.param[el];
+                                }
+
+                                // Get multi step reward flag
+                                if (el == "isMultiStepReward" && vm.showReward && vm.showReward.param && vm.showReward.param[el] === true) {
+                                    vm.isMultiStepReward = true;
                                 }
                             });
 
-                        })
-                    });
+                            vm.changeRewardParamLayout(null, true);
 
-                    $scope.safeApply();
+                            utilService.actionAfterLoaded("#rewardMainParamTable", function () {
+                                // Set param table value
+                                Object.keys(paramType.rewardParam).forEach(el => {
+                                    if (vm.isPlayerLevelDiff) {
+                                        if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
+                                            vm.showReward.param.rewardParam.forEach((el, idx) => {
+                                                vm.rewardMainParamTable[idx].value = el.value && el.value[0] !== null ? el.value : [{}];
 
-                    setTimeout(function () {
-                        let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
-
-                        // Set param value
-                        Object.keys(paramType).forEach(el => {
-                            // Get value
-                            if (vm.showReward && vm.showReward.param && vm.showReward.param.hasOwnProperty(el) && el != "rewardParam") {
-                                vm.rewardMainParam[el] = paramType[el];
-                                vm.rewardMainParam[el].value = vm.showReward.param[el];
-                            }
-
-                            // Get multi step reward flag
-                            if (el == "isMultiStepReward" && vm.showReward && vm.showReward.param && vm.showReward.param[el] === true) {
-                                vm.isMultiStepReward = true;
-                            }
-                        });
-
-                        vm.changeRewardParamLayout(null, true);
-
-                        utilService.actionAfterLoaded("#rewardMainParamTable", function () {
-                            // Set param table value
-                            Object.keys(paramType.rewardParam).forEach(el => {
-                                if (vm.isPlayerLevelDiff) {
-                                    if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam) {
-                                        vm.showReward.param.rewardParam.forEach((el, idx) => {
-                                            vm.rewardMainParamTable[idx].value = el.value && el.value[0] !== null ? el.value : [{}];
-
-                                        })
+                                            })
+                                        }
+                                    } else {
+                                        if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
+                                            vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
                                     }
+                                    if (el == "rewardPercentageAmount") {
+                                        vm.isRandomReward = true;
+                                        vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = typeof vm.rewardMainParamTable[0].value[0].rewardPercentageAmount !== "undefined" ? vm.rewardMainParamTable[0].value[0].rewardPercentageAmount : [{
+                                            percentage: "",
+                                            amount: ""
+                                        }];
+                                    }
+                                });
+
+                                if (vm.rewardMainCondition[0].name == 'name' && vm.rewardMainCondition[0].value == null) {
+                                    vm.disableAllRewardInput(false);
                                 } else {
-                                    if (vm.showReward && vm.showReward.param && vm.showReward.param.rewardParam && vm.showReward.param.rewardParam[0])
-                                        vm.rewardMainParamTable[0].value = vm.showReward.param.rewardParam[0].value[0] !== null ? vm.showReward.param.rewardParam[0].value : [{}];
-                                }
-                                if (el == "rewardPercentageAmount") {
-                                    vm.isRandomReward = true;
-                                    vm.rewardMainParamTable[0].value[0].rewardPercentageAmount = typeof vm.rewardMainParamTable[0].value[0].rewardPercentageAmount !== "undefined" ? vm.rewardMainParamTable[0].value[0].rewardPercentageAmount : [{
-                                        percentage: "",
-                                        amount: ""
-                                    }];
+                                    vm.disableAllRewardInput(true);
                                 }
                             });
+                        }, 0);
+                    }
 
-                            $scope.safeApply();
+                    const onCreationForm = vm.platformRewardPageName === 'newReward';
 
-                            if (vm.rewardMainCondition[0].name == 'name' && vm.rewardMainCondition[0].value == null) {
-                                vm.disableAllRewardInput(false);
-                            } else {
-                                vm.disableAllRewardInput(true);
-                            }
-                        });
-                    }, 0);
-                }
+                    // Initialise the models with some default values
+                    // and grab any required external data (e.g. for select box lists)
 
-                const onCreationForm = vm.platformRewardPageName === 'newReward';
+                    if (onCreationForm) {
+                        vm.rewardCondition = {};
+                        vm.rewardParams = {};
+                        vm.rewardParams.reward = vm.rewardParams.reward || [];
+                    }
 
-                // Initialise the models with some default values
-                // and grab any required external data (e.g. for select box lists)
-
-                if (onCreationForm) {
-                    vm.rewardCondition = {};
-                    vm.rewardParams = {};
-                    vm.rewardParams.reward = vm.rewardParams.reward || [];
-                }
-
-                console.log('platformID', vm.selectedPlatform.id);
-                if (vm.showRewardTypeData.name == "PlatformTransactionReward") {
-                    console.log('action', vm.showRewardTypeData.params.params.playerLevel.action);
-                    socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.playerLevel.action, {platformId: vm.selectedPlatform.id}, function (data) {
-                        vm.allPlayerLevels = data.data;
-                        //console.log('ok', vm.allPlayerLevels);
-                        $scope.safeApply();
-                    }, function (data) {
-                        console.log("created not", data);
-                    });
-                } else if (vm.showRewardTypeData.name == "GameProviderReward") {
-                    vm.rewardParams.games = vm.rewardParams.games || [];
-                    vm.allGames = [];
-
-                    socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
-                        vm.platformProvider = data.data.gameProviders;
-                        $scope.safeApply();
-                    }, function (data) {
-                        console.log("cannot get gameProvider", data);
-                    });
-
-                    //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                    if (vm.rewardParams.provider) {
-                        socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                            vm.allGames = data.data;
-                            console.log('ok', vm.allGames);
-                            $scope.safeApply();
+                    console.log('platformID', vm.selectedPlatform.id);
+                    if (vm.showRewardTypeData.name == "PlatformTransactionReward") {
+                        console.log('action', vm.showRewardTypeData.params.params.playerLevel.action);
+                        socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.playerLevel.action, {platformId: vm.selectedPlatform.id}, function (data) {
+                            $scope.$evalAsync(() => {
+                                vm.allPlayerLevels = data.data;
+                            })
                         }, function (data) {
                             console.log("created not", data);
                         });
-                    }
-                    $scope.safeApply();
+                    } else if (vm.showRewardTypeData.name == "GameProviderReward") {
+                        vm.rewardParams.games = vm.rewardParams.games || [];
+                        vm.allGames = [];
 
-                } else if (vm.showRewardTypeData.name == "PlayerConsecutiveLoginReward") {
-                    vm.rewardParams.reward = vm.rewardParams.reward || [];
-                    vm.allGames = [];
+                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                        if (vm.rewardParams.provider) {
+                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                $scope.$evalAsync(() => {
+                                    vm.allGames = data.data;
+                                    console.log('ok', vm.allGames);
+                                })
+                            }, function (data) {
+                                console.log("created not", data);
+                            });
+                        }
 
-                    socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
-                        vm.platformProvider = data.data.gameProviders;
-                        $scope.safeApply();
-                    }, function (data) {
-                        console.log("cannot get gameProvider", data);
-                    });
+                    } else if (vm.showRewardTypeData.name == "PlayerConsecutiveLoginReward") {
+                        vm.rewardParams.reward = vm.rewardParams.reward || [];
+                        vm.allGames = [];
 
-                    //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                    if (vm.rewardParams.provider) {
-                        socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                            vm.allGames = data.data;
-                            console.log('ok', vm.allGames);
-                            $scope.safeApply();
-                        }, function (data) {
-                            console.log("created not", data);
-                        });
-                    }
-                    $scope.safeApply();
+                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                        if (vm.rewardParams.provider) {
+                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                $scope.$evalAsync(() => {
+                                    vm.allGames = data.data;
+                                    console.log('ok', vm.allGames);
+                                })
+                            }, function (data) {
+                                console.log("created not", data);
+                            });
+                        }
 
-                } else if (vm.showRewardTypeData.name == "FirstTopUp") {
-                    // vm.rewardParams.games = vm.rewardParams.games || [];
-                    // vm.rewardParams = {};
-                    console.log('vm.rewardParams', vm.rewardParams);
-                    vm.rewardParams.providers = vm.rewardParams.providers || [];
+                    } else if (vm.showRewardTypeData.name == "FirstTopUp") {
+                        // vm.rewardParams.games = vm.rewardParams.games || [];
+                        // vm.rewardParams = {};
+                        console.log('vm.rewardParams', vm.rewardParams);
+                        vm.rewardParams.providers = vm.rewardParams.providers || [];
 
-                    vm.firstTopUp = {providerTick: {}};
-                    console.log('vm.rewardParams', vm.rewardParams);
-                    socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
-                        vm.platformProvider = data.data.gameProviders;
+                        vm.firstTopUp = {providerTick: {}};
+                        console.log('vm.rewardParams', vm.rewardParams);
                         vm.platformProvider.forEach(a => {
                             if (vm.rewardParams.providers) {
                                 vm.firstTopUp.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
                             }
                         })
-                        $scope.safeApply();
-                    }, function (data) {
-                        console.log("cannot get gameProvider", data);
-                    });
-                    if (vm.rewardParams.provider) {
-                        socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                            vm.allGames = data.data;
-                            console.log('ok', vm.allGames);
-                            $scope.safeApply();
-                        }, function (data) {
-                            console.log("created not", data);
-                        });
-                    }
-                } else if (vm.showRewardTypeData.name == "PlayerDoubleTopUpReward") {
-                    console.log('vm.rewardParams', vm.rewardParams);
-                    vm.rewardParams.providers = vm.rewardParams.providers || [];
-
-                    vm.firstTopUp = {providerTick: {}};
-                    socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
-                        vm.platformProvider = data.data.gameProviders;
-                        vm.platformProvider.forEach(a => {
-                            if (vm.rewardParams.providers) {
-                                vm.firstTopUp.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
-                            }
-                        })
-                        $scope.safeApply();
-                    }, function (data) {
-                        console.log("cannot get gameProvider", data);
-                    });
-                }
-                else if (vm.showRewardTypeData.name == "PlayerTopUpReturn") {
-                    console.log('vm.rewardParams', vm.rewardParams);
-                    vm.rewardParams.providers = vm.rewardParams.providers || [];
-
-                    vm.playerTopUpReturn = {providerTick: {}, providerGroupTick: {}};
-                    console.log('vm.rewardParams', vm.rewardParams);
-                    socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
-                        vm.platformProvider = data.data.gameProviders;
-                        vm.platformProvider.forEach(a => {
-                            if (vm.rewardParams.providers) {
-                                vm.playerTopUpReturn.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
-                            }
-                        });
-
-                        $scope.safeApply();
-                    }, function (data) {
-                        console.log("cannot get gameProvider", data);
-                    });
-                }
-                else if (vm.showRewardTypeData.name == "PlayerConsumptionIncentive") {
-                    vm.rewardParams.games = vm.rewardParams.games || [];
-                    console.log('vm.rewardParams', vm.rewardParams);
-                    vm.rewardParams.providers = vm.rewardParams.providers || [];
-                    vm.rewardParams.reward = vm.rewardParams.reward || [];
-
-                    vm.playerTopUpReturn = {providerTick: {}};
-                    socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
-                        vm.platformProvider = data.data.gameProviders;
-                        vm.platformProvider.forEach(a => {
-                            if (vm.rewardParams.providers) {
-                                vm.playerTopUpReturn.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
-                            }
-                        })
-                        $scope.safeApply();
-                    }, function (data) {
-                        console.log("cannot get gameProvider", data);
-                    });
-
-                    // JSON sorts the reward param properties into alphabetical order
-                    // But for the UI display, we would prefer to specify our own order
-                    let rewardType = vm.showRewardTypeData;
-                    if (rewardType.params && rewardType.params.params && rewardType.params.params.reward && rewardType.params.params.reward.data) {
-                        //console.log("Reordering:", rewardType.params.params.reward.data);
-                        let preferredOrder = {
-                            minPlayerLevel: 1,
-                            maxPlayerCredit: 1,
-                            minConsumptionAmount: 1,
-                            minTopUpRecordAmount: 1,
-                            rewardAmount: 1,
-                            rewardPercentage: 1,
-                            maxRewardAmount: 1,
-                            spendingTimes: 1
-                        };
-                        rewardType.params.params.reward.data = reorderProperties(rewardType.params.params.reward.data, preferredOrder);
-                        //console.log("Reordered: ", rewardType.params.params.reward.data);
-                    } else {
-                        console.warn("Could not reorder:", rewardType);
-                    }
-                } else if (vm.showRewardTypeData.name === "PlayerEasterEggReward") {
-                    vm.rewardParams.reward = vm.rewardParams.reward || [];
-                    vm.allGames = [];
-
-                    socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
-                        vm.platformProvider = data.data.gameProviders;
-                        $scope.safeApply();
-                    }, function (data) {
-                        console.log("cannot get gameProvider", data);
-                    });
-
-                    //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                    if (vm.rewardParams.provider) {
-                        socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                            vm.allGames = data.data;
-                            console.log('ok', vm.allGames);
-                            $scope.safeApply();
-                        }, function (data) {
-                            console.log("created not", data);
-                        });
-                    }
-                    $scope.safeApply();
-                } else if (vm.showRewardTypeData.name === "PlayerTopUpPromo") {
-                    vm.rewardParams.reward = vm.rewardParams.reward || [];
-                    vm.allGames = [];
-
-                    socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
-                        vm.platformProvider = data.data.gameProviders;
-                        $scope.safeApply();
-                    }, function (data) {
-                        console.log("cannot get gameProvider", data);
-                    });
-
-                    //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                    if (vm.rewardParams.provider) {
-                        socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                            vm.allGames = data.data;
-                            console.log('ok', vm.allGames);
-                            $scope.safeApply();
-                        }, function (data) {
-                            console.log("created not", data);
-                        });
-                    }
-                    $scope.safeApply();
-                } else if (vm.showRewardTypeData.name === "PlayerLimitedOfferReward") {
-                    vm.rewardParams.reward = vm.rewardParams.reward || [];
-                    vm.allGames = [];
-                    socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
-                        vm.platformProvider = data.data.gameProviders;
-                    }, function (data) {
-                        console.log("cannot get gameProvider", data);
-                    });
-
-                    //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                    if (vm.rewardParams.provider) {
-                        socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                            vm.allGames = data.data;
-                            console.log('ok', vm.allGames);
-
-                            $scope.safeApply();
-                        }, function (data) {
-                            console.log("created not", data);
-                        });
-                    }
-                }
-
-
-                if (onCreationForm) {
-                    if (vm.showRewardTypeData.name == "PartnerConsumptionReturn") {
-                        setInitialPartnerLevel();
-                    } else if (vm.showRewardTypeData.name == "PartnerReferralReward") {
-                        vm.rewardCondition.numOfEntries = 1;
-                        vm.rewardParams = Lodash.cloneDeep(vm.showRewardTypeData.params.params);
-                        setInitialPartnerLevel();
-                    } else if (vm.showRewardTypeData.name == "PartnerIncentiveReward") {
-                        vm.rewardCondition.rewardAmount = 200;
-                        setInitialPartnerLevel();
+                        if (vm.rewardParams.provider) {
+                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                $scope.$evalAsync(() => {
+                                    vm.allGames = data.data;
+                                    console.log('ok', vm.allGames);
+                                })
+                            }, function (data) {
+                                console.log("created not", data);
+                            });
+                        }
                     } else if (vm.showRewardTypeData.name == "PlayerDoubleTopUpReward") {
-                        vm.rewardParams.reward = [];
+                        console.log('vm.rewardParams', vm.rewardParams);
+                        vm.rewardParams.providers = vm.rewardParams.providers || [];
+
+                        vm.firstTopUp = {providerTick: {}};
+                        vm.platformProvider.forEach(a => {
+                            if (vm.rewardParams.providers) {
+                                vm.firstTopUp.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                            }
+                        })
                     }
-                }
+                    else if (vm.showRewardTypeData.name == "PlayerTopUpReturn") {
+                        console.log('vm.rewardParams', vm.rewardParams);
+                        vm.rewardParams.providers = vm.rewardParams.providers || [];
 
-                // Get all the partner levels, and set a default
-                function setInitialPartnerLevel() {
-                    vm.rewardCondition.partnerLevel = vm.allPartnerLevels[0].name;
-                    $scope.safeApply();
-                }
+                        vm.playerTopUpReturn = {providerTick: {}, providerGroupTick: {}};
+                        console.log('vm.rewardParams', vm.rewardParams);
+                        vm.platformProvider.forEach(a => {
+                            if (vm.rewardParams.providers) {
+                                vm.playerTopUpReturn.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                            }
+                        });
 
-                //
-                // console.log("vm.showRewardTypeData", vm.showRewardTypeData);
-                // console.log('vm.showRewardTypeData.name', vm.showRewardTypeData.name);
-                // console.log("vm.rewardCondition:", vm.rewardCondition);
-                // console.log("vm.rewardParams:", vm.rewardParams);
-                vm.showRewardFormValid = true;
-                vm.endLoadWeekDay();
+                    }
+                    else if (vm.showRewardTypeData.name == "PlayerConsumptionIncentive") {
+                        vm.rewardParams.games = vm.rewardParams.games || [];
+                        console.log('vm.rewardParams', vm.rewardParams);
+                        vm.rewardParams.providers = vm.rewardParams.providers || [];
+                        vm.rewardParams.reward = vm.rewardParams.reward || [];
+
+                        vm.playerTopUpReturn = {providerTick: {}};
+
+                        vm.platformProvider.forEach(a => {
+                            if (vm.rewardParams.providers) {
+                                vm.playerTopUpReturn.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                            }
+                        })
+
+                        // JSON sorts the reward param properties into alphabetical order
+                        // But for the UI display, we would prefer to specify our own order
+                        let rewardType = vm.showRewardTypeData;
+                        if (rewardType.params && rewardType.params.params && rewardType.params.params.reward && rewardType.params.params.reward.data) {
+                            //console.log("Reordering:", rewardType.params.params.reward.data);
+                            let preferredOrder = {
+                                minPlayerLevel: 1,
+                                maxPlayerCredit: 1,
+                                minConsumptionAmount: 1,
+                                minTopUpRecordAmount: 1,
+                                rewardAmount: 1,
+                                rewardPercentage: 1,
+                                maxRewardAmount: 1,
+                                spendingTimes: 1
+                            };
+                            rewardType.params.params.reward.data = reorderProperties(rewardType.params.params.reward.data, preferredOrder);
+                            //console.log("Reordered: ", rewardType.params.params.reward.data);
+                        } else {
+                            console.warn("Could not reorder:", rewardType);
+                        }
+                    } else if (vm.showRewardTypeData.name === "PlayerEasterEggReward") {
+                        vm.rewardParams.reward = vm.rewardParams.reward || [];
+                        vm.allGames = [];
+
+                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                        if (vm.rewardParams.provider) {
+                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                $scope.$evalAysnc(() => {
+                                    vm.allGames = data.data;
+                                    console.log('ok', vm.allGames);
+                                })
+                            }, function (data) {
+                                console.log("created not", data);
+                            });
+                        }
+                    } else if (vm.showRewardTypeData.name === "PlayerTopUpPromo") {
+                        vm.rewardParams.reward = vm.rewardParams.reward || [];
+                        vm.allGames = [];
+
+                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                        if (vm.rewardParams.provider) {
+                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                $scope.$evalAysnc(() => {
+                                    vm.allGames = data.data;
+                                    console.log('ok', vm.allGames);
+                                })
+                            }, function (data) {
+                                console.log("created not", data);
+                            });
+                        }
+                    } else if (vm.showRewardTypeData.name === "PlayerLimitedOfferReward") {
+                        vm.rewardParams.reward = vm.rewardParams.reward || [];
+                        vm.allGames = [];
+
+                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                        if (vm.rewardParams.provider) {
+                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                $scope.$evalAysnc(() => {
+                                    vm.allGames = data.data;
+                                    console.log('ok', vm.allGames);
+                                })
+
+                            }, function (data) {
+                                console.log("created not", data);
+                            });
+                        }
+                    }
+
+
+                    if (onCreationForm) {
+                        if (vm.showRewardTypeData.name == "PartnerConsumptionReturn") {
+                            setInitialPartnerLevel();
+                        } else if (vm.showRewardTypeData.name == "PartnerReferralReward") {
+                            vm.rewardCondition.numOfEntries = 1;
+                            vm.rewardParams = Lodash.cloneDeep(vm.showRewardTypeData.params.params);
+                            setInitialPartnerLevel();
+                        } else if (vm.showRewardTypeData.name == "PartnerIncentiveReward") {
+                            vm.rewardCondition.rewardAmount = 200;
+                            setInitialPartnerLevel();
+                        } else if (vm.showRewardTypeData.name == "PlayerDoubleTopUpReward") {
+                            vm.rewardParams.reward = [];
+                        }
+                    }
+
+                    // Get all the partner levels, and set a default
+                    function setInitialPartnerLevel() {
+                        vm.rewardCondition.partnerLevel = vm.allPartnerLevels[0].name;
+                    }
+
+                    //
+                    // console.log("vm.showRewardTypeData", vm.showRewardTypeData);
+                    // console.log('vm.showRewardTypeData.name', vm.showRewardTypeData.name);
+                    // console.log("vm.rewardCondition:", vm.rewardCondition);
+                    // console.log("vm.rewardParams:", vm.rewardParams);
+                    vm.showRewardFormValid = true;
+                    vm.endLoadWeekDay();
+                });
             };
 
             vm.changeRewardParamLayout = (model, isFirstLoad) => {
