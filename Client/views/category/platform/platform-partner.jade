@@ -694,7 +694,7 @@ p
                 tr(ng-repeat='(key,v) in vm.partnerPermissionTypes')
                     td
                         i.text-primary(ng-show='v.imgType=="i"', ng-class='v.iconClass+" fa-2x"')
-                        img(ng-show='v.imgType=="img"', src='{{v.src}}', width='{{v.width}}', height='{{v.height}}')
+                        img(async=on ng-show='v.imgType=="img"', src='{{v.src}}', width='{{v.width}}', height='{{v.height}}')
                     td {{key | translate}}
                     td.permitOn(ng-class='vm.permissionPartner.permission[key] ? "":"hide"', class='{{key}}')
                         i.fa.fa-toggle-on.text-primary.margin-right-5.togglePartner(data-which='{{key}}', data-on=true)

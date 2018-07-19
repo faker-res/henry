@@ -86,7 +86,7 @@
                             .panel-body(style='height:250px;overflow-y:auto')
                                 div.platformGame(ng-repeat='(i,v) in vm.includedGames', class='{{vm.highlightGame[v._id]}}')
                                     a(ng-click='vm.gameClicked(i,v)')
-                                        img(ng-if="vm.gameSmallShow[v._id]",src='{{vm.gameSmallShow[v._id]}}')
+                                        img(async=on ng-if="vm.gameSmallShow[v._id]",src='{{vm.gameSmallShow[v._id]}}')
                                         div(ng-if="!vm.gameSmallShow[v._id]")
                                             .fa.fa-square-o.divfa
                                         .text-center
@@ -107,7 +107,7 @@
                             .panel-body(style='height:250px;overflow-y:auto')
                                 div.platformGame(ng-repeat='(i,v) in vm.excludedGames', class='{{vm.highlightGame[v._id]}}')
                                     a(ng-click='vm.gameClicked(i,v)')
-                                        img(ng-if="v.smallIcon",src='{{v.smallIcon}}')
+                                        img(async=on ng-if="v.smallIcon",src='{{v.smallIcon}}')
                                         div(ng-if="!v.smallIcon")
                                             .fa.fa-square-o.divfa
                                         .text-center
