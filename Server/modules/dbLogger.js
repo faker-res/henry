@@ -208,10 +208,34 @@ var dbLogger = {
                 }else if(logAction == "deletePlatformById" && adminActionRecordData.data[1]){
                     adminActionRecordData.error = "删除" + adminActionRecordData.data[1] + "产品";
                 }else if(logAction == "updatePlatform" && resultData.name) {
-                    adminActionRecordData.error = "更新" + resultData.name + "产品";
+                    if(adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]
+                        && typeof adminActionRecordData.data[1].partnerNameMaxLength != "undefined"){
+                        adminActionRecordData.error = "代理基础数据";
+                    }else if(adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]
+                        && typeof adminActionRecordData.data[1].minTopUpAmount != "undefined"){
+                        adminActionRecordData.error = "平台基础数据";
+                    }else if(adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]
+                        && typeof adminActionRecordData.data[1].bonusSetting != "undefined"){
+                        adminActionRecordData.error = "提款设置";
+                    }else if(adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]
+                        && typeof adminActionRecordData.data[1].monitorMerchantCount != "undefined"){
+                        adminActionRecordData.error = "充值监控设置";
+                    }else if(adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]
+                        && typeof adminActionRecordData.data[1].maxRingTime != "undefined"){
+                        adminActionRecordData.error = "批量拨电设置";
+                    }else if(adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]
+                        && typeof adminActionRecordData.data[1].callRequestUrlConfig != "undefined"){
+                        adminActionRecordData.error = "请求回电设置";
+                    }else if(adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]
+                        && (typeof adminActionRecordData.data[1]["conversationDefinition.totalSec"] != "undefined" ||
+                        typeof adminActionRecordData.data[1].overtimeSetting != "undefined")){
+                        adminActionRecordData.error = "质检参数设置";
+                    }else{
+                        adminActionRecordData.error = "更新" + resultData.name + "产品";
+                    }
                 }else if(logAction == "startPlatformPlayerConsumptionReturnSettlement") {
                     adminActionRecordData.error = "玩家洗码";
-                } else if(logAction == "generatePartnerCommSettPreview"){
+                } else if(logAction == "bulkApplyPartnerCommission"){
                     adminActionRecordData.error = "代理佣金结算";
                 } else if(logAction == "startPlatformPlayerConsumptionIncentiveSettlement"){
                     adminActionRecordData.error = "救援金";
@@ -372,7 +396,7 @@ var dbLogger = {
                 }else if (logAction == 'manualDailyProviderSettlement' && data && data.name) {
                     adminActionRecordData.error = "指定结算" + data.name;
                 }else if(logAction == 'updateGame'){
-                    adminActionRecord.error = "更新游戏";
+                    adminActionRecordData.error = "更新游戏";
                 }else if (logAction == 'pushNotification' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0].tittle) {
                     adminActionRecordData.error = "添加" + adminActionRecordData.data[0].tittle;
                 }else if ((logAction == 'updateRewardPointsEvent' || logAction == 'createRewardPointsEvent')
