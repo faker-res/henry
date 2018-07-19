@@ -13815,7 +13815,7 @@ define(['js/app'], function (myApp) {
                         remark: vm.financialPointsChange.remark,
                         adminName: authService.adminName
                     }
-                }
+                };
 
                 socketService.$socket($scope.AppSocket, 'updatePlatformFinancialPoints', sendData, function (data) {
                     let newData = data.data;
@@ -23874,6 +23874,12 @@ define(['js/app'], function (myApp) {
                         vm.selectedProposal.data = proposalDetail;
                     }
 
+                    if (vm.selectedProposal && vm.selectedProposal.type && (vm.selectedProposal.type.name === "FinancialPointsAdd" || vm.selectedProposal.type.name === "FinancialPointsDeduct")) {
+                        if (vm.selectedProposal.data.financialPointsType) {
+                            vm.selectedProposal.data.financialPointsType = $translate($scope.financialPointsList[vm.selectedProposal.data.financialPointsType])
+                        }
+                    }
+
                     if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
                         let proposalDetail = {};
                         if (!vm.selectedProposal.data) {
@@ -26028,16 +26034,16 @@ define(['js/app'], function (myApp) {
                 }
 
                 socketService.$socket($scope.AppSocket, 'getPartnerCommissionConfig', sendData, function (data) {
-                    vm.partnerCommission.srcConfig = data.data;
-                    vm.partnerCommission.showConfig = data.data ? $.extend({}, data.data) : {};
-                    if (!Object.keys(vm.partnerCommission.showConfig).length) {
-                        vm.partnerCommission.showConfig = {};
-                        vm.partnerCommission.showConfig.commissionSetting = [];
-                        vm.commissionSettingNewRow(vm.partnerCommission.showConfig.commissionSetting);
+                    $scope.$evalAsync(() => {
+                        vm.partnerCommission.srcConfig = data.data;
+                        vm.partnerCommission.showConfig = data.data ? $.extend({}, data.data) : {};
+                        if (!Object.keys(vm.partnerCommission.showConfig).length) {
+                            vm.partnerCommission.showConfig = {};
+                            vm.partnerCommission.showConfig.commissionSetting = [];
+                            vm.commissionSettingNewRow(vm.partnerCommission.showConfig.commissionSetting);
 
-                    }
-
-                    $scope.safeApply();
+                        }
+                    });
                 });
             }
 
@@ -26577,44 +26583,45 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, 'getPartnerCommissionRateConfig', sendData, function (data) {
-                    if (data && data.data && data.data.length > 0) {
-                        data.data.forEach(config => {
-                            if (config.partner) {
-                                vm.custCommissionRateConfig.push(config);
-                            } else {
-                                // source config
-                                vm.srcCommissionRateConfig = config;
-                                vm.commissionRateConfig = JSON.parse(JSON.stringify(config));
+                    $scope.$evalAsync(() => {
+                        if (data && data.data && data.data.length > 0) {
+                            data.data.forEach(config => {
+                                if (config.partner) {
+                                    vm.custCommissionRateConfig.push(config);
+                                } else {
+                                    // source config
+                                    vm.srcCommissionRateConfig = config;
+                                    vm.commissionRateConfig = JSON.parse(JSON.stringify(config));
 
-                                vm.rateAfterRebatePromo = vm.commissionRateConfig.rateAfterRebatePromo;
-                                vm.rateAfterRebatePlatform = vm.commissionRateConfig.rateAfterRebatePlatform;
-                                if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
-                                    vm.gameProviderGroup.forEach(gameProviderGroup => {
-                                        let providerGroupRate = {gameProviderGroupId: gameProviderGroup._id, name: gameProviderGroup.name};
-                                        if (vm.commissionRateConfig && vm.commissionRateConfig.rateAfterRebateGameProviderGroup && vm.commissionRateConfig.rateAfterRebateGameProviderGroup.length > 0) {
-                                            vm.commissionRateConfig.rateAfterRebateGameProviderGroup.map(availableProviderGroupRate => {
-                                                if (gameProviderGroup._id == availableProviderGroupRate.gameProviderGroupId) {
-                                                    providerGroupRate = availableProviderGroupRate;
-                                                }
-                                            })
-                                        }
-                                        vm.rateAfterRebateGameProviderGroup.push(providerGroupRate);
-                                    })
+                                    vm.rateAfterRebatePromo = vm.commissionRateConfig.rateAfterRebatePromo;
+                                    vm.rateAfterRebatePlatform = vm.commissionRateConfig.rateAfterRebatePlatform;
+                                    if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
+                                        vm.gameProviderGroup.forEach(gameProviderGroup => {
+                                            let providerGroupRate = {gameProviderGroupId: gameProviderGroup._id, name: gameProviderGroup.name};
+                                            if (vm.commissionRateConfig && vm.commissionRateConfig.rateAfterRebateGameProviderGroup && vm.commissionRateConfig.rateAfterRebateGameProviderGroup.length > 0) {
+                                                vm.commissionRateConfig.rateAfterRebateGameProviderGroup.map(availableProviderGroupRate => {
+                                                    if (gameProviderGroup._id == availableProviderGroupRate.gameProviderGroupId) {
+                                                        providerGroupRate = availableProviderGroupRate;
+                                                    }
+                                                })
+                                            }
+                                            vm.rateAfterRebateGameProviderGroup.push(providerGroupRate);
+                                        })
+                                    }
+
+                                    vm.rateAfterRebateTotalDeposit = vm.commissionRateConfig.rateAfterRebateTotalDeposit;
+                                    vm.rateAfterRebateTotalWithdrawal = vm.commissionRateConfig.rateAfterRebateTotalWithdrawal;
+                                    vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
                                 }
-
-                                vm.rateAfterRebateTotalDeposit = vm.commissionRateConfig.rateAfterRebateTotalDeposit;
-                                vm.rateAfterRebateTotalWithdrawal = vm.commissionRateConfig.rateAfterRebateTotalWithdrawal;
-                                vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
-                            }
-                        })
-                    } else {
-                        if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
-                            vm.gameProviderGroup.forEach(gameProviderGroup => {
-                                vm.rateAfterRebateGameProviderGroup.push({gameProviderGroupId: gameProviderGroup._id, name: gameProviderGroup.name});
                             })
+                        } else {
+                            if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
+                                vm.gameProviderGroup.forEach(gameProviderGroup => {
+                                    vm.rateAfterRebateGameProviderGroup.push({gameProviderGroupId: gameProviderGroup._id, name: gameProviderGroup.name});
+                                })
+                            }
                         }
-                    }
-                    $scope.safeApply();
+                    });
                 });
             };
 
@@ -27885,13 +27892,17 @@ define(['js/app'], function (myApp) {
                         isUsed = true;
                     }
                 });
-                vm.refreshDropDown();
+                vm.debounceRefreshSPicker();
                 return isUsed;
             };
 
             vm.refreshDropDown = () => {
                 $('.spicker').selectpicker('refresh');
             }
+
+            vm.debounceRefreshSPicker = $scope.debounce(() => {
+                $('.spicker').selectpicker('refresh');
+            }, 100);
 
             vm.ensurePlayerLevelOrder = function () {
                 vm.sortPlayerLevels();
@@ -31623,6 +31634,24 @@ define(['js/app'], function (myApp) {
                 return prom.then(() => {
                     $scope.$evalAsync(() => {
                         vm.bulkCreditClearOut.initiating = false;
+                    });
+                });
+            };
+            vm.initBulkClearXIMAWithdraw = function() {
+                let playerNames = vm.splitBatchPermit();
+                let prom = Promise.resolve();
+                playerNames.forEach((playerName, i) => {
+                    prom = prom.then(() => {
+                        let sendData = {
+                            platformObjId: vm.selectedPlatform.id,
+                            playerName: playerName
+                        };
+                        return $scope.$socketPromise("clearPlayerXIMAWithdraw", sendData);
+                    });
+                });
+                return prom.then(() => {
+                    $scope.$evalAsync(() => {
+                        vm.doneClearXIMAAMount = true;
                     });
                 });
             };

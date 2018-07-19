@@ -61,6 +61,7 @@ var messageDispatcher = require('../modules/messageDispatcher');
 var constPlayerSMSSetting = require('../const/constPlayerSMSSetting');
 var constRewardPointsLogCategory = require("../const/constRewardPointsLogCategory");
 const constSMSPurpose = require("../const/constSMSPurpose");
+const constFinancialPointsType = require("../const/constFinancialPointsType");
 
 // constants
 const constProviderStatus = require("./../const/constProviderStatus");
@@ -81,6 +82,7 @@ let dbPlayerCreditTransfer = require('../db_modules/dbPlayerCreditTransfer');
 let dbPlayerFeedback = require('../db_modules/dbPlayerFeedback');
 let dbPlayerLevel = require('../db_modules/dbPlayerLevel');
 let dbPlayerReward = require('../db_modules/dbPlayerReward');
+let dbPlatform = require('../db_modules/dbPlatform');
 let dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 let dbProposal = require('./../db_modules/dbProposal');
 let dbProposalType = require('./../db_modules/dbProposalType');
@@ -3220,6 +3222,28 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data) {
+
+                    dbPlatform.changePlatformFinancialPoints(data.platform, proposalData.data.amount).then(
+                        platformData => {
+                            if (!platformData) {
+                                return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
+                            }
+                            let financialProposal = {
+                                creator: proposalData.creator,
+                                data: {
+                                    updateAmount: proposalData.data.amount,
+                                    remark: "",
+                                    topUpProposalId: proposalData.proposalId,
+                                    financialPointsType: topUpType,
+                                    pointsBefore: platformData.financialPoints,
+                                    pointsAfter: platformData.financialPoints + proposalData.data.amount
+                                },
+                                userType: constProposalUserType.PLAYERS
+                            };
+                            dbProposal.createProposalWithTypeNameWithProcessInfo(data.platform, constProposalType.FINANCIAL_POINTS_ADD, financialProposal).catch(errorUtils.reportError);
+                        }
+                    ).catch(errorUtils.reportError);
+
                     if (data.platform) {
                         return dbconfig.collection_platform.findOne({_id: data.platform})
                             .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean().then(
@@ -17312,6 +17336,15 @@ let dbPlayerInfo = {
             errorUtils.reportError(err);
             return {};
         });
+    },
+
+    clearPlayerXIMAWithdraw: function(playerName, platformObjId) {
+        return dbconfig.collection_players.findOneAndUpdate({
+            platform: platformObjId,
+            name: playerName
+        }, {
+            $set: {ximaWithdraw: 0}
+        })
     }
 };
 

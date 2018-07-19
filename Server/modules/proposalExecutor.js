@@ -31,8 +31,11 @@ var dbRewardLog = require("../db_modules/dbRewardLog.js");
 var dbPlayerReward = require("../db_modules/dbPlayerReward")
 var errorUtils = require('./errorUtils');
 var dbPartner = require("../db_modules/dbPartner");
+var dbProposal = require("../db_modules/dbProposal");
+var dbPlatform = require("../db_modules/dbPlatform");
 var constProposalEntryType = require("../const/constProposalEntryType");
 var constProposalUserType = require("../const/constProposalUserType");
+const constFinancialPointsType = require("../const/constFinancialPointsType");
 var SMSSender = require('./SMSSender');
 //Reward Points
 const constRewardPointsLogCategory = require("../const/constRewardPointsLogCategory");
@@ -1723,39 +1726,60 @@ var proposalExecutor = {
                         //         decryptedPhoneNo = "";
                         //     }
                         // }
-                        let cTime = proposalData && proposalData.createTime ? new Date(proposalData.createTime) : new Date();
-                        let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
-                        var message = {
-                            proposalId: proposalData.proposalId,
-                            platformId: player.platform.platformId,
-                            bonusId: proposalData.data.bonusId,
-                            amount: proposalData.data.amount,
-                            bankTypeId: player.bankName || "",
-                            accountName: player.bankAccountName || "",
-                            accountType: player.bankAccountType || "",
-                            accountCity: player.bankAccountCity || "",
-                            accountProvince: player.bankAccountProvince || "",
-                            accountNo: player.bankAccount || "",
-                            bankAddress: player.bankAddress || "",
-                            bankName: player.bankName || "",
-                            phone: "",
-                            email: player.email || "",
-                            loginName: player.name || "",
-                            applyTime: cTimeString
-                        };
-                        //console.log("bonus_applyBonus", message);
-                        return pmsAPI.bonus_applyBonus(message).then(
-                            bonusData => {
-                                if (bonusData) {
-                                    // sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
-                                    increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
-                                    return bonusData;
-                                }
-                                else {
-                                    return Q.reject({name: "DataError", errorMessage: "Cannot request bonus"});
-                                }
-                            }
-                        );
+                       let cTime = proposalData && proposalData.createTime ? new Date(proposalData.createTime) : new Date();
+                       let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
+                       var message = {
+                           proposalId: proposalData.proposalId,
+                           platformId: player.platform.platformId,
+                           bonusId: proposalData.data.bonusId,
+                           amount: proposalData.data.amount,
+                           bankTypeId: player.bankName || "",
+                           accountName: player.bankAccountName || "",
+                           accountType: player.bankAccountType || "",
+                           accountCity: player.bankAccountCity || "",
+                           accountProvince: player.bankAccountProvince || "",
+                           accountNo: player.bankAccount || "",
+                           bankAddress: player.bankAddress || "",
+                           bankName: player.bankName || "",
+                           phone: "",
+                           email: player.email || "",
+                           loginName: player.name || "",
+                           applyTime: cTimeString
+                       };
+                       //console.log("bonus_applyBonus", message);
+                       return pmsAPI.bonus_applyBonus(message).then(
+                           bonusData => {
+                               if (bonusData) {
+                                   // sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
+                                   increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
+                                   // return bonusData;
+                                   return dbPlatform.changePlatformFinancialPoints(player.platform._id, -proposalData.data.amount).then(
+                                       platformData => {
+                                           if (!platformData) {
+                                               return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
+                                           }
+                                           let financialProposal = {
+                                               creator: proposalData.creator,
+                                               data: {
+                                                   updateAmount: -proposalData.data.amount,
+                                                   remark: "",
+                                                   withdrawalProposalId: proposalData.proposalId,
+                                                   financialPointsType: constFinancialPointsType.PLAYER_BONUS,
+                                                   pointsBefore: platformData.financialPoints,
+                                                   pointsAfter: platformData.financialPoints - proposalData.data.amount
+                                               },
+                                               userType: constProposalUserType.PLAYERS
+                                           };
+                                           dbProposal.createProposalWithTypeNameWithProcessInfo(platformData._id, constProposalType.FINANCIAL_POINTS_DEDUCT, financialProposal).catch(errorUtils.reportError);
+                                           return bonusData;
+                                       }
+                                   );
+                               }
+                               else {
+                                   return Q.reject({name: "DataError", errorMessage: "Cannot request bonus"});
+                               }
+                           }
+                       );
                     }
                 ).then(deferred.resolve, deferred.reject);
             },
@@ -1806,7 +1830,39 @@ var proposalExecutor = {
                         return pmsAPI.bonus_applyBonus(message).then(
                             bonusData => {
                                 if (bonusData) {
+                                    let financialProposal = {
+                                        creator: proposalData.creator,
+                                        data: {
+                                            updateAmount: -proposalData.data.amount,
+                                            remark: "",
+                                            withdrawalProposalId: proposalData.proposalId,
+                                            noExecuteRequire: true
+                                        }
+                                    };
+                                    dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).catch(errorUtils.reportError);
+                                    dbProposal.createProposalWithTypeNameWithProcessInfo(partner.platform._id, constProposalType.FINANCIAL_POINTS_DEDUCT, financialProposal).catch(errorUtils.reportError);
                                     return bonusData;
+                                    return dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).then(
+                                        platformData => {
+                                            if (!platformData) {
+                                                return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
+                                            }
+                                            let financialProposal = {
+                                                creator: proposalData.creator,
+                                                data: {
+                                                    updateAmount: -proposalData.data.amount,
+                                                    remark: "",
+                                                    withdrawalProposalId: proposalData.proposalId,
+                                                    financialPointsType: constFinancialPointsType.PARTNER_BONUS,
+                                                    pointsBefore: platformData.financialPoints,
+                                                    pointsAfter: platformData.financialPoints - proposalData.data.amount
+                                                },
+                                                userType: constProposalUserType.PARTNERS
+                                            };
+                                            dbProposal.createProposalWithTypeNameWithProcessInfo(platformData._id, constProposalType.FINANCIAL_POINTS_DEDUCT, financialProposal).catch(errorUtils.reportError);
+                                            return bonusData;
+                                        }
+                                    )
                                 }
                                 else {
                                     return Q.reject({name: "DataError", errorMessage: "Cannot request bonus"});
@@ -2835,13 +2891,7 @@ var proposalExecutor = {
             executeFinancialPointsAdd: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.platformId && proposalData.data.updateAmount) {
                     proposalData.data.proposalId = proposalData.proposalId;
-                    return dbconfig.collection_platform.findOneAndUpdate({_id: proposalData.data.platformId},
-                        {
-                            $inc: {
-                                financialPoints: proposalData.data.updateAmount
-                            }
-                        }
-                    )
+                    return dbPlatform.changePlatformFinancialPoints(proposalData.data.platformId, proposalData.data.updateAmount)
                         .then(
                             data => deferred.resolve(data),
                             error => deferred.reject(error)
@@ -2854,13 +2904,7 @@ var proposalExecutor = {
             executeFinancialPointsDeduct: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.platformId && proposalData.data.updateAmount) {
                     proposalData.data.proposalId = proposalData.proposalId;
-                    return dbconfig.collection_platform.findOneAndUpdate({_id: proposalData.data.platformId},
-                        {
-                            $inc: {
-                                financialPoints: proposalData.data.updateAmount
-                            }
-                        }
-                    )
+                    return dbPlatform.changePlatformFinancialPoints(proposalData.data.platformId, proposalData.data.updateAmount)
                         .then(
                             data => deferred.resolve(data),
                             error => deferred.reject(error)

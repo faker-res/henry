@@ -32,6 +32,7 @@ var simplifiedChinese = {
     "Invalid ranking mode": "无效排行模式",
     "Cannot find this downline": "查无此下线",
     "Invalid phone number, unable to call": "此电话号码无效，无法拨打",
+    "Insuficient financial points": "财务点数不足",
 
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",

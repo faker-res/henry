@@ -81,6 +81,17 @@ define(['js/app'], function (myApp) {
             "PlayerTopUp": ['merchantNo']
         };
 
+        vm.financialPointsType = {
+            TOPUPMANUAL: 1,
+            TOPUPONLINE: 2,
+            TOPUPALIPAY: 3,
+            TOPUPWECHAT: 4,
+            PLAYER_BONUS: 5,
+            PARTNER_BONUS: 6,
+            FINANCIAL_POINTS_ADD_SYSTEM: 7,
+            FINANCIAL_POINTS_DEDUCT_SYSTEM: 8
+        }
+
         vm.playerInputDevice = {
             1: "WEB_PLAYER",
             3: "H5_PLAYER",
@@ -4096,6 +4107,189 @@ define(['js/app'], function (myApp) {
 
         // End - player partner report
 
+        //region financial points report
+        vm.searchFinancialPointsRecord = function (newSearch) {
+            vm.curPlatformId = vm.selectedPlatform._id;
+
+            let newproposalQuery = $.extend(true, {}, vm.financialQuery);
+
+            let financialPointsType = $('select#selectFinancialPointsType').multipleSelect("getSelects");
+
+            $('#financialPointsTableSpin').show();
+            newproposalQuery.limit = newproposalQuery.limit || 10;
+            var sendData = {
+                startTime: newproposalQuery.startTime.data('datetimepicker').getLocalDate(),
+                endTime: newproposalQuery.endTime.data('datetimepicker').getLocalDate(),
+                financialPointsType: financialPointsType,
+                platformId: vm.curPlatformId,
+                index: newSearch ? 0 : (newproposalQuery.index || 0),
+                limit: newproposalQuery.limit,
+                sortCol: newproposalQuery.sortCol
+            };
+
+            socketService.$socket($scope.AppSocket, 'getFinancialPointsReport', sendData, function (data) {
+                $('#financialPointsTable').show();
+                console.log('financial points data', data);
+                var datatoDraw = data.data.data.map(item => {
+                    item.involveAmount$ = 0;
+                    if (item.data.updateAmount) {
+                        item.involveAmount$ = item.data.updateAmount;
+                    } else if (item.data.amount) {
+                        item.involveAmount$ = item.data.amount;
+                    } else if (item.data.rewardAmount) {
+                        item.involveAmount$ = item.data.rewardAmount;
+                    } else if (item.data.commissionAmount) {
+                        item.involveAmount$ = item.data.commissionAmount;
+                    } else if (item.data.negativeProfitAmount) {
+                        item.involveAmount$ = item.data.negativeProfitAmount;
+                    }
+                    item.involveAmount$ = parseFloat(item.involveAmount$).toFixed(2);
+                    item.typeName = $translate(item.type.name || "Unknown");
+                    item.mainType$ = $translate(item.mainType || "Unknown");
+
+                    item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
+                    if (item.data && item.data.remark) {
+                        item.remark$ = item.data.remark;
+                    }
+                    // item.status$ = $translate(item.type.name === "BulkExportPlayerData" || item.mainType === "PlayerBonus" || item.mainType === "PartnerBonus" ? vm.getStatusStrfromRow(item) == "Approved" ? "approved" : vm.getStatusStrfromRow(item) : vm.getStatusStrfromRow(item));
+
+                    return item;
+                })
+                $('#financialPointsTableSpin').hide();
+                $scope.$evalAsync(() => {
+                    vm.financialQuery.totalCount = data.data.size;
+                });
+                vm.drawFinancialPointsReport(datatoDraw, vm.financialQuery.totalCount, data.data.summary, newSearch);
+            }, function (err) {
+                $('#financialPointsTableSpin').hide();
+
+            }, true);
+        }
+        vm.drawFinancialPointsReport = function (data, size, summary, newSearch) {
+            console.log('data', data, size);
+            var tableOptions = {
+                data: data,
+                "order": vm.financialQuery.aaSorting,
+                aoColumnDefs: [
+                    {'sortCol': 'proposalId', 'aTargets': [0]},
+                    {'sortCol': 'createTime', 'aTargets': [9]}
+                ],
+                columns: [
+                    {
+                        title: $translate('PROPOSAL ID'), data: "proposalId",
+                        render: function (data, type, row) {
+                            data = String(data);
+                            return '<a ng-click="vm.showProposalModalNew(\'' + data + '\')">' + data + '</a>';
+                        }
+                    },
+                    {
+                        title: $translate('CREATOR'),
+                        data: null,
+                        render: function (data, type, row) {
+                            if (data.hasOwnProperty('creator')) {
+                                return data.creator.name;
+                            } else {
+                                var creator = $translate('System');
+                                if (data && data.data && data.data.playerName) {
+                                    creator += "(" + data.data.playerName + ")";
+                                }
+                                return creator;
+                            }
+                        }
+                    },
+                    {
+                        title: $translate('INPUT_DEVICE'),
+                        data: "inputDevice",
+                        render: function (data, type, row) {
+                            for (let i = 0; i < Object.keys(vm.inputDevice).length; i++) {
+                                if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == data) {
+                                    return $translate(Object.keys(vm.inputDevice)[i]);
+                                }
+                            }
+                        }
+                    },
+                    {
+                        title: $translate('PROPOSAL TYPE'), data: ("mainType$"),
+                        orderable: false
+                    },
+                    {
+                        title: $translate('PROPOSAL_SUB_TYPE'), data: null,
+                        orderable: false,
+                        render: function (data, type, row) {
+                            if (data && data.data && data.data.PROMO_CODE_TYPE) {
+                                return data.data.PROMO_CODE_TYPE;
+                            } else if (data && data.data && data.data.eventName) {
+                                return data.data.eventName;
+                            } else {
+                                return data.typeName;
+                            }
+                        }
+                    },
+                    // {
+                    //     title: "<div>" + $translate('Proposal Status'), data: "status$",
+                    //     orderable: false,
+                    // },
+                    {
+                        title: "<div>" + $translate('INVOLVED_ACC'),
+                        "data": null,
+                        render: function (data, type, row) {
+                            if (data.hasOwnProperty('creator') && data.creator.type == 'player') {
+                                return data.creator.name;
+                            }
+                            if (data && data.data && data.data.playerName) {
+                                return data.data.playerName;
+                            }
+                            else if (data && data.data && data.data.partnerName) {
+                                return data.data.partnerName;
+                            }
+                            else {
+                                return "";
+                            }
+                        },
+                        orderable: false
+                    },
+                    {'title': $translate('pointsBefore'), data: 'data.pointsBefore'},
+                    {'title': $translate('pointsAfter'), data: 'data.pointsAfter', sClass: "sumText"},
+                    {
+                        title: $translate('Amount Involved'), data: "involveAmount$", defaultContent: 0,
+                        orderable: false,
+                        sClass: "sumFloat alignRight"
+                    },
+                    {
+                        title: "<div>" + $translate('START_TIME'), data: "createTime$",
+                        defaultContent: 0
+                    },
+                    {
+                        title: "<div>" + $translate('REMARKS'),
+                        data: "remark$",
+                        orderable: false,
+                    }
+                ],
+                "bSortClasses": false,
+                "paging": false,
+                // "dom": '<"top">rt<"bottom"il><"clear">',
+                "language": {
+                    "info": "Total _MAX_ records",
+                    "emptyTable": $translate("No data available in table"),
+                },
+                fnRowCallback: vm.proposalTableRow
+            }
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            $.each(tableOptions.columns, function (i, v) {
+                v.defaultContent = v.defaultContent || "";
+            });
+            var proposalTbl = utilService.createDatatableWithFooter('#financialPointsTable', tableOptions, {8: summary.amount});
+
+            vm.financialQuery.pageObj.init({maxCount: size}, newSearch);
+
+            $('#financialPointsTable').off('order.dt');
+            $('#financialPointsTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'financialQuery', vm.searchFinancialPointsRecord);
+            });
+
+        }
+        //endregion financial points report
+
 
         //Start proposal report
         vm.hideOtherConditions = function (id, thisVal, preservID) {
@@ -6280,6 +6474,12 @@ define(['js/app'], function (myApp) {
                     vm.selectedProposal.data = proposalDetail;
                 }
 
+                if (vm.selectedProposal && vm.selectedProposal.type && (vm.selectedProposal.type.name === "FinancialPointsAdd" || vm.selectedProposal.type.name === "FinancialPointsDeduct")) {
+                    if (vm.selectedProposal.data.financialPointsType) {
+                        vm.selectedProposal.data.financialPointsType = $translate($scope.financialPointsList[vm.selectedProposal.data.financialPointsType])
+                    }
+                }
+
                 if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
                     let proposalDetail = {};
                     if (!vm.selectedProposal.data) {
@@ -6770,6 +6970,37 @@ define(['js/app'], function (myApp) {
                         $("select#selectRewardType").multipleSelect("checkAll");
 
                         vm.proposalQuery.pageObj = utilService.createPageForPagingTable("#proposalTablePage", {}, $translate, vm.proposalTablePageChange);
+                    });
+                    break;
+                case "FINANCIAL_POINTS_REPORT":
+                    vm.financialQuery = {aaSorting: [[9, "desc"]], sortCol: {createTime: -1}};
+                    vm.financialQuery.totalCount = 0;
+
+                    endLoadMultipleSelect('.select');
+
+                    setTimeout(function() {
+                        vm.commonInitTime(vm.financialQuery, '#financialPointsReportQuery')
+
+                        $('select#selectFinancialPointsType').multipleSelect({
+                            allSelected: $translate("All Selected"),
+                            selectAllText: $translate("Select All"),
+                            displayValues: true,
+                            countSelected: $translate('# of % selected'),
+                        });
+                        var $multiReward = ($('select#selectFinancialPointsType').next().find('.ms-choice'))[0];
+                        $('select#selectFinancialPointsType').next().on('click', 'li input[type=checkbox]', function () {
+                            var upText = $($multiReward).text().split(',').map(item => {
+                                let key = item.trim();
+                                let textShow = isNaN(Number(key))? item: $scope.financialPointsList[key];
+                                return $translate(textShow);
+                            }).join(',');
+                            $($multiReward).find('span').text(upText)
+                        });
+                        $("select#selectFinancialPointsType").multipleSelect("checkAll");
+                        
+                        vm.financialQuery.pageObj = utilService.createPageForPagingTable("#financialPointsTablePage", {}, $translate,  function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "financialQuery", vm.searchFinancialPointsRecord)
+                        });
                     });
                     break;
                 case "DX_NEWACCOUNT_REPORT":
@@ -7352,16 +7583,11 @@ define(['js/app'], function (myApp) {
                     {group: "PLATFORM", text: "createPlatform", action: "createPlatform"},
                     {group: "PLATFORM", text: "DELETE_PLATFORM", action: "deletePlatformById"},
                     {group: "PLATFORM", text: "updatePlatform", action: "updatePlatform"},
-                    {
-                        group: "PLATFORM",
-                        text: "Daily Settlement",
-                        action: ["startPlatformDailySettlement", "fixPlatformDailySettlement"]
-                    },
-                    {
-                        group: "PLATFORM",
-                        text: "Weekly Settlement",
-                        action: ["startPlatformWeeklySettlement", "fixPlatformWeeklySettlement"]
-                    },
+                    {group: "PLATFORM", text: "SYSTEM_SETTLEMENT", action: ["startPlatformPlayerConsumptionReturnSettlement", "generatePartnerCommSettPreview", "startPlatformPlayerConsumptionIncentiveSettlement", "startPlatformPlayerLevelSettlement", "startPlayerConsecutiveConsumptionSettlement"]},
+                    {group: "PLATFORM", text: "createNewPlayerAdvertisementRecord", action: "createNewPlayerAdvertisementRecord"},
+                    {group: "PLATFORM", text: "savePlayerAdvertisementRecordChanges", action: "savePlayerAdvertisementRecordChanges"},
+                    {group: "PLATFORM", text: "createNewPartnerAdvertisementRecord", action: "createNewPartnerAdvertisementRecord"},
+                    {group: "PLATFORM", text: "savePartnerAdvertisementRecordChanges", action: "savePartnerAdvertisementRecordChanges"},
 
                     {group: "PLAYER", text: "CREATE_PLAYER", action: "createPlayer"},
                     {group: "PLAYER", text: "createTestPlayerForPlatform", action: "createDemoPlayer"},
@@ -7407,9 +7633,6 @@ define(['js/app'], function (myApp) {
                     {group: "PLAYER", text: "requestClearProposalLimit", action: "requestClearProposalLimit"},
                     {group: "PLAYER", text: "modifyPlayerCredibilityRemark", action: "updatePlayerCredibilityRemark"},
 
-                    {group: "Feedback", text: "ADD_FEEDBACK_RESULT", action: ["createPlayerFeedbackResult", "createPartnerFeedbackResult"]},
-                    {group: "Feedback", text: "ADD_FEEDBACK_TOPIC", action: ["createPlayerFeedbackTopic", "createPartnerFeedbackTopic"]},
-
                     {group: "PARTNER", text: "createPartner", action: "createPartner"},
                     //{group: "PARTNER", text: "createPartnerWithParent", action: "createPartnerWithParent"},
                     //{group: "PARTNER", text: "deletePartnersById", action: "deletePartnersById"},
@@ -7424,16 +7647,20 @@ define(['js/app'], function (myApp) {
                     {group: "PARTNER", text: "customizePartnerCommission", action: "customizePartnerCommission"},
                     {group: "PARTNER", text: "updatePartnerPermission", action: "updatePartnerPermission"},
 
-                    {group: "Platform Game", text: "PROVIDER_NICKNAME", action: "renameProviderInPlatformById"},
-                    {group: "Platform Game", text: "ENABLE/DISABLE", action: "updateProviderFromPlatformById"},
-                    {group: "Platform Game", text: "updateGameStatusToPlatform", action: "updateGameStatusToPlatform"},
-                    {group: "Platform Game", text: "attachGameToPlatform", action: "attachGamesToPlatform"},
-                    {group: "Platform Game", text: "detachGameFromPlatform", action: "detachGamesFromPlatform"},
+                    {group: "Feedback", text: "ADD_FEEDBACK_RESULT", action: ["createPlayerFeedbackResult", "createPartnerFeedbackResult"]},
+                    {group: "Feedback", text: "ADD_FEEDBACK_TOPIC", action: ["createPlayerFeedbackTopic", "createPartnerFeedbackTopic"]},
+
+                    {group: "GAME", text: "RENAME_PROVIDER_NICKNAME", action: "renameProviderInPlatformById"},
+                    {group: "GAME", text: "ENABLE/DISABLE", action: "updateProviderFromPlatformById"},
+                    {group: "GAME", text: "UPDATE_GAME_STATUS", action: "updateGameStatusToPlatform"},
+                    {group: "GAME", text: "attachGameToPlatform", action: "attachGamesToPlatform"},
+                    {group: "GAME", text: "detachGameFromPlatform", action: "detachGamesFromPlatform"},
 
                     {group: "GameGroup", text: "Add Game Group", action: "addPlatformGameGroup"},
                     {group: "GameGroup", text: "Remove Game Group", action: "deleteGameGroup"},
                     {group: "GameGroup", text: "Rename Game Group", action: "renamePlatformGameGroup"},
                     {group: "GameGroup", text: "Move Game Group", action: "updateGameGroupParent"},
+                    {group: "GameGroup", text: "ADD/REMOVE_GAME_GROUP", action: "updatePlatformGameGroup"},
                     // {group: "GameGroup", text: "Update Game Group", action: "updatePlatformGameGroup"},
 
                     {group: "REWARD", text: "createRewardEvent", action: "createRewardEvent"},
@@ -7443,10 +7670,30 @@ define(['js/app'], function (myApp) {
                     {group: "PROPOSAL_PROCESS", text: "updateProposalTypeProcessSteps", action: "updateProposalTypeProcessSteps"},
                     //{group: "Proposal", text: "updateProposalProcessStep", action: "updateProposalProcessStep"},
 
+                    {group: "CONFIG", text: "EDIT_PLAYER_LEVEL", action: "updatePlayerLevel"},
+                    {group: "CONFIG", text: "VALID_ACTIVE", action: "updatePartnerLevelConfig"},
+                    {group: "CONFIG", text: "Partner Commission", action: "createUpdatePartnerCommissionConfigWithGameProviderGroup"},
+                    {group: "CONFIG", text: "Auto Approval Setting", action: "updateAutoApprovalConfig"},
+                    {group: "CONFIG", text: "Player Value", action: "updatePlayerLevelScores"},
+                    {group: "CONFIG", text: "Player Credibility", action: "updateCredibilityRemarksInBulk"},
+                    {group: "CONFIG", text: "Lock Lobby Group", action: "updatePlatformProviderGroup"},
+                    {group: "CONFIG", text: "setFilteredKeywords", action: "setFilteredKeywords"},
+                    {group: "CONFIG", text: "removeFilteredKeywords", action: "removeFilteredKeywords"},
+
                     {group: "MessageTemplates", text: "createMessageTemplate", action: "createMessageTemplate"},
                     {group: "MessageTemplates", text: "updateMessageTemplate", action: "updateMessageTemplate"},
 
+                    {group: "ANNOUNCEMENTS", text: "createPlatformAnnouncement", action: "createPlatformAnnouncement"},
+                    {group: "ANNOUNCEMENTS", text: "updatePlatformAnnouncement", action: "updatePlatformAnnouncement"},
+                    {group: "ANNOUNCEMENTS", text: "deletePlatformAnnouncementByIds", action: "deletePlatformAnnouncementByIds"},
+
                     {group: "PushNotification", text: "addPushNotification", action: "pushNotification"},
+
+                    {group: "RegistrationUrlConfig", text: "addPromoteWay", action: "addPromoteWay"},
+                    {group: "RegistrationUrlConfig", text: "deletePromoteWay", action: "deletePromoteWay"},
+                    {group: "RegistrationUrlConfig", text: "addUrl", action: "addUrl"},
+                    {group: "RegistrationUrlConfig", text: "updateUrl", action: "updateUrl"},
+                    {group: "RegistrationUrlConfig", text: "deleteUrl", action: "deleteUrl"},
 
                     {group: "rewardPoint", text: "upsertRewardPointsLvlConfig", action: "upsertRewardPointsLvlConfig"},
                     {group: "rewardPoint", text: "updateRewardPointsEvent", action: "updateRewardPointsEvent"},
@@ -7455,25 +7702,6 @@ define(['js/app'], function (myApp) {
 
                     {group: "Batch Setting", text: "updateBatchPlayer", action: ["updateBatchPlayerPermission", "updateBatchPlayerForbidRewardEvents","updateBatchPlayerForbidPaymentType","updateBatchPlayerForbidRewardPointsEvent", "updateBatchPlayerCredibilityRemark"]},
                     {group: "Batch Setting", text: "playerCreditClearOut", action: "playerCreditClearOut"},
-
-                    {group: "TeleMarketing", text: "createDxMission", action: "createDxMission"},
-                    {group: "TeleMarketing", text: "comparePhoneNum", action: "comparePhoneNum"},
-
-                    {group: "PlayerLevel", text: "createPlayerLevel", action: "createPlayerLevel"},
-                    {group: "PlayerLevel", text: "updatePlayerLevel", action: "updatePlayerLevel"},
-
-                    {group: "PartnerLevel", text: "createPartnerLevel", action: "createPartnerLevel"},
-                    {group: "PartnerLevel", text: "partnerLevel/update", action: "partnerLevel/update"},
-                    {group: "VALID_ACTIVE", text: "updatePartnerLevelConfig", action: "updatePartnerLevelConfig"},
-                    {
-                        group: "Partner Commission",
-                        text: "Partner Commission",
-                        action: ['createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig']
-                    },
-
-                    {group: "ANNOUNCEMENTS", text: "ADD", action: "createPlatformAnnouncement"},
-                    {group: "ANNOUNCEMENTS", text: "UPDATE", action: "updatePlatformAnnouncement"},
-                    {group: "ANNOUNCEMENTS", text: "DELETE", action: "deletePlatformAnnouncementByIds"},
 
                     {group: "Bankcard Group", text: "ADD", action: "addPlatformBankCardGroup"},
                     {group: "Bankcard Group", text: "UPDATE", action: "updatePlatformBankCardGroup"},
@@ -7493,9 +7721,12 @@ define(['js/app'], function (myApp) {
                     {group: "AlipayGroup", text: "Default", action: "setPlatformDefaultAlipayGroup"},
                     {group: "AlipayGroup", text: "ADD_PLAYER", action: "addPlayersToAlipayGroup"},
 
-                    {group: "Provider", text: "SETTLEMENT", action: "manualDailyProviderSettlement"},
-                    {group: "Provider", text: "UPDATE", action: "updateGameProvider"},
-                    {group: "Provider", text: "GameStatus", action: "updateGame"},
+                    {group: "Provider", text: "EDIT_SETTLEMENT_TIME", action: "updateGameProvider"},
+                    {group: "Provider", text: "Target Settlement", action: "manualDailyProviderSettlement"},
+                    {group: "Provider", text: "updateGame", action: "updateGame"},
+
+                    {group: "TeleMarketing", text: "createDxMission", action: "createDxMission"},
+                    {group: "TeleMarketing", text: "comparePhoneNum", action: "comparePhoneNum"},
                 ];
                 utilService.actionAfterLoaded("#actionLogTablePage", function () {
                     vm.commonInitTime(vm.actionLogQuery, '#actionLogReportQuery');
