@@ -1250,15 +1250,17 @@ let dbPlayerCreditTransfer = {
                 if (res) {//create log
                     playerCredit = res.validCredit;
                     let lockedCredit = res.lockedCredit;
-                    dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, updateObj.freeAmt, constPlayerCreditChangeType.TRANSFER_OUT, playerCredit, lockedCredit, updateObj.rewardAmt, null, {
-                        providerId: providerShortId,
-                        providerName: cpName,
-                        transferId: transferId,
-                        adminName: adminName
-                    });
-                    // Logging Transfer Success
-                    dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform,
-                        platformId, constPlayerCreditChangeType.TRANSFER_OUT, transferId, providerShortId, amount, updateObj.rewardAmt, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
+                    if(amount != 0) {
+                        dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, updateObj.freeAmt, constPlayerCreditChangeType.TRANSFER_OUT, playerCredit, lockedCredit, updateObj.rewardAmt, null, {
+                            providerId: providerShortId,
+                            providerName: cpName,
+                            transferId: transferId,
+                            adminName: adminName
+                        });
+                        // Logging Transfer Success
+                        dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform,
+                            platformId, constPlayerCreditChangeType.TRANSFER_OUT, transferId, providerShortId, amount, updateObj.rewardAmt, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
+                    }
                     return dbConfig.collection_rewardTaskGroup.find({
                         platformId: ObjectId(platform),
                         playerId: ObjectId(playerObjId),
@@ -1386,7 +1388,7 @@ let dbPlayerCreditTransfer = {
                 );
                 if(hasEbetWalletSettings) {
                     return Promise.all(checkAmountProm).then(() => {
-                        return transferOut;
+                        return transferIn;
                     }).then(() => {
                         console.log('transferin promise data',transferInSuccessData);
                         return Promise.resolve({

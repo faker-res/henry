@@ -357,6 +357,9 @@ let playerBStateModel = dbLogs2.model('playerBState', playerBStateSchema, 'playe
 let partnerCommSettLogSchema = require('./../schema/logs2/partnerCommSettLog');
 let partnerCommSettLogModel = dbLogs2.model('partnerCommSettLog', partnerCommSettLogSchema, 'partnerCommSettLog');
 
+let openPromoCodeTemplateSchema = require('./../schema/logs2/openPromoCodeTemplate');
+let openPromoCodeTemplateModel = dbLogs2.model('openPromoCodeTemplate', openPromoCodeTemplateSchema, 'openPromoCodeTemplate');
+
 let dxPhoneSchema = require('./../schema/logs2/dxPhone');
 let dxPhoneModel = dbLogs2.model('dxPhone', dxPhoneSchema, 'dxPhone');
 
@@ -565,6 +568,7 @@ var dbProperties = {
     collection_apiLog: apiLogModel,
     collection_promoCode: promoCodeModel,
     collection_promoCodeActiveTime: promoCodeActiveTimeModel,
+    collection_openPromoCodeTemplate: openPromoCodeTemplateModel,
     collection_playerState: playerStateModel,
     collection_playerCredibilityUpdateLog: playerCredibilityUpdateLogModel,
     collection_playerTopUpGroupUpdateLog: playerTopUpGroupUpdateLogModel,
