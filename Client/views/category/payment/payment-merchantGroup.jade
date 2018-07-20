@@ -138,7 +138,7 @@ style.
                             td {{merchantTargetDeviceJson[v.targetDevices] | translate}}
                             td {{merchantTopupTypeJson[v.topupType] | translate}}
                             td {{vm.allMerchantTypeList[v.merchantTypeId].name | translate}}
-                                img(ng-if='v.merchantTypeId', src='{{vm.allMerchantTypeList[v.merchantTypeId].showIconURL}}')
+                                img(async=on ng-if='v.merchantTypeId', src='{{vm.allMerchantTypeList[v.merchantTypeId].showIconURL}}')
                             td {{v.merchantNo}}
                             td {{v.name}}
                             td {{v.permerchantminLimits}}
