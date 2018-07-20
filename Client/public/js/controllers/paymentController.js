@@ -10,6 +10,11 @@ define(['js/app'], function (myApp) {
         window.VM = vm;
 
         // declare constants
+        vm.paymentListState = {
+            1: "NORMAL",
+            2: "LOCK",
+            3: "DISABLED"
+        }
         vm.topUpTypeList = {
             1: 'TOPUPMANUAL',
             2: 'TOPUPONLINE',
@@ -1486,6 +1491,37 @@ define(['js/app'], function (myApp) {
             vm.filterAlipayAccount = vm.filterAlipayName;
         }
 
+        vm.checkCreateNewAlipay = function () {
+            let isDisable = true;
+            if (vm.newAlipayAcc && vm.newAlipayAcc.state && vm.newAlipayAcc.accountNumber && vm.newAlipayAcc.name) {
+                isDisable = false;
+            }
+            return isDisable;
+        }
+
+        vm.createNewAlipayAcc = function () {
+            var sendData = {
+                platformId: vm.selectedPlatform.data.platformId,
+                accountNumber: vm.newAlipayAcc.accountNumber,
+                name: vm.newAlipayAcc.name,
+                state: vm.newAlipayAcc.state,
+                singleLimit: vm.newAlipayAcc.singleLimit || 0,
+                quota: vm.newAlipayAcc.quota || 0,
+                isFPMS: true,
+            }
+            socketService.$socket($scope.AppSocket, 'createNewAlipayAcc', sendData,
+                function (data) {
+                    console.log(data.data);
+                    // vm.loadAlipayGroupData();
+                    // $scope.safeApply();
+                    socketService.showConfirmMessage($translate("Created successfully"));
+                },
+                function (err) {
+                    socketService.showErrorMessage($translate("Fail to create"), err);
+                }
+            )
+        }
+
         vm.addAlipayGroup = function (data) {
             console.log('vm.newAlipayGroup', vm.newAlipayGroup);
             //vm.selectGameGroupParent
@@ -1494,6 +1530,9 @@ define(['js/app'], function (myApp) {
                 name: vm.newAlipayGroup.name,
                 code: vm.newAlipayGroup.code,
                 displayName: vm.newAlipayGroup.displayName
+            }
+            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) {
+                sendData.isFPMS = true;
             }
             socketService.$socket($scope.AppSocket, 'addPlatformAlipayGroup', sendData, function (data) {
                 console.log(data.data);
@@ -1512,6 +1551,9 @@ define(['js/app'], function (myApp) {
                 alipayGroup: alipayGroup._id
             }
             vm.alipayStatusFilterOptions = {"NORMAL": true, "LOCK": true, "DISABLED": true, "CLOSE": true, "TOBEFOLLOWEDUP": true, "SUSPEND": true};
+            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) {
+                query.isFPMS = true;
+            }
             socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroupWithIsInGroup', query, function(data){
 
                 //provider list init
