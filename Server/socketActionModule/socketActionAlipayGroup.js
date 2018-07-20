@@ -31,7 +31,7 @@ function socketActionAlipayGroup(socketIO, socket) {
         addPlatformAlipayGroup: function addPlatformAlipayGroup(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.name && data.platform && data.code && data.displayName);
-            socketUtil.emitter(self.socket, dbPlatformAlipayGroup.addPlatformAlipayGroup, [data.platform, data.name, data.code, data.displayName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformAlipayGroup.addPlatformAlipayGroup, [data.platform, data.name, data.code, data.displayName, data.isFPMS], actionName, isValidData);
         },
 
         /**
@@ -63,7 +63,17 @@ function socketActionAlipayGroup(socketIO, socket) {
         getAllAlipaysByAlipayGroupWithIsInGroup: function getAllAlipaysByAlipayGroupWithIsInGroup(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform && data.alipayGroup);
-            socketUtil.emitter(self.socket, dbPlatformAlipayGroup.getAllAlipaysByAlipayGroupWithIsInGroup, [data.platform, data.alipayGroup], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformAlipayGroup.getAllAlipaysByGroupAndPlatformSetting, [data.platform, data.alipayGroup, data.isFPMS], actionName, isValidData);
+        },
+
+        /**
+         * create new alipay account
+         * @param {json} data - query data
+         */
+        createNewAlipayAcc: function createNewAlipayAcc(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.accountNumber && data.name && data.hasOwnProperty("singleLimit") && data.hasOwnProperty("quota") && data.isFPMS);
+            socketUtil.emitter(self.socket, dbPlatformAlipayGroup.createNewAlipayAcc, [data], actionName, isValidData);
         },
 
         /**
