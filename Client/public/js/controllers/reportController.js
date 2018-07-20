@@ -5004,59 +5004,63 @@ define(['js/app'], function (myApp) {
 
                 return Promise.all([vm.getAllPromoteWay(), vm.getPartnerLevelConfig(), vm.getAllAdmin(), vm.getPlatformPartner(), vm.getPlatformCsOfficeUrl()]).then(
                     () => {
-                        vm.newPlayerQuery.totalNewPlayerWithTopup = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes > 0).length;
-                        vm.newPlayerQuery.totalNewPlayerWithMultiTopup = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes > 1).length;
-                        vm.newPlayerQuery.newValidPlayer = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionSum >= vm.partnerLevelConfig.validPlayerConsumptionAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes && player.valueScore >= vm.partnerLevelConfig.validPlayerValue);
-                        vm.newPlayerQuery.totalNewValidPlayer = vm.newPlayerQuery.newValidPlayer.length;
-                        // ============ promote way new player ============
-                        vm.newPlayerQuery.promoteWayData = vm.allPromoteWay.map(
-                            promoteWay => {
-                                let promoteWayPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.promoteWay == promoteWay.name && !player.partner);
-                                return vm.calculateNewPlayerData(promoteWayPlayers, promoteWay.name);
-                            }
-                        );
-                        // 代理下线
-                        let partnerPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.partner);
-                        let partnerPlayersCalculatedData = vm.calculateNewPlayerData(partnerPlayers, $translate('partner'));
-                        vm.newPlayerQuery.promoteWayData.push(partnerPlayersCalculatedData);
-                        // no promote way new player
-                        let noPromoteWayPlayers = vm.newPlayerQuery.newPlayers.filter(player => !player.partner && !player.promoteWay);
-                        vm.newPlayerQuery.promoteWayData.push(vm.calculateNewPlayerData(noPromoteWayPlayers, $translate('No Promote Way')));
-                        // ============ cs analysis valid player ===========
-                        vm.newPlayerQuery.csAnalysisNewPlayerData = vm.allAdmin.map(
-                            admin => {
-                                let adminNewPlayers = vm.newPlayerQuery.newPlayers.filter(player => {
-                                    if (player.csOfficer == admin._id) {
-                                        player.csOfficerName = admin.adminName;
-                                        return true;
-                                    }
-                                    return false;
-                                });
-                                return vm.calculateNewPlayerData(adminNewPlayers, admin.adminName);
-                            }
-                        );
-                        // no admin new player
-                        let noAdminAccPlayers = vm.newPlayerQuery.newPlayers.filter(player => Boolean(!player.csOfficer));
-                        vm.newPlayerQuery.csAnalysisNewPlayerData.push(vm.calculateNewPlayerData(noAdminAccPlayers, $translate('No admin acc')));
-                        // ============ partner analysis new player ===========
-                        vm.newPlayerQuery.partnerNewPlayerData = vm.calculateNewPlayerData(partnerPlayers, $translate('total'), partnerPlayers.length);
-                        vm.newPlayerQuery.partnerAnalysisNewPlayerData = vm.platformPartner.map(
-                            partner => {
-                                let partnerNewPlayers = partnerPlayers.filter(player => player.partner && player.partner._id.toString() == partner._id.toString());
-                                return vm.calculateNewPlayerData(partnerNewPlayers, partner.partnerName, vm.newPlayerQuery.partnerNewPlayerData.validPlayer);
-                            }
-                        );
-                        // ============ domain analysis new player ===========
-                        let domainPlayers = vm.newPlayerQuery.newPlayers;
-                        vm.newPlayerQuery.domainNewPlayerData = vm.calculateNewPlayerData(domainPlayers, $translate('total'), domainPlayers.length);
-                        vm.newPlayerQuery.domainAnalysisNewPlayerData = vm.newPlayerQuery.domain.map(
-                            domain => {
-                                let domainNewPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.domain == domain._id);
-                                return vm.calculateNewPlayerData(domainNewPlayers, domain._id ==null? $translate('no domain') : domain._id, vm.newPlayerQuery.domainNewPlayerData.validPlayer);
-                            }
-                        );
-
                         $scope.$evalAsync(() => {
+                            vm.newPlayerQuery.totalNewPlayerWithTopup = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes > 0).length;
+                            vm.newPlayerQuery.totalNewPlayerWithMultiTopup = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes > 1).length;
+                            vm.newPlayerQuery.newValidPlayer = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionSum >= vm.partnerLevelConfig.validPlayerConsumptionAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes && player.valueScore >= vm.partnerLevelConfig.validPlayerValue);
+                            vm.newPlayerQuery.totalNewValidPlayer = vm.newPlayerQuery.newValidPlayer.length;
+                            // ============ promote way new player ============
+                            vm.newPlayerQuery.promoteWayData = vm.allPromoteWay.map(
+                                promoteWay => {
+                                    let promoteWayPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.promoteWay == promoteWay.name && !player.partner);
+                                    return vm.calculateNewPlayerData(promoteWayPlayers, promoteWay.name);
+                                }
+                            );
+                            // 代理下线
+                            let partnerPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.partner);
+                            let partnerPlayersCalculatedData = vm.calculateNewPlayerData(partnerPlayers, $translate('partner'));
+                            vm.newPlayerQuery.promoteWayData.push(partnerPlayersCalculatedData);
+                            // 客服后台开户
+                            let fpmsPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.promoteWay === '客服后台开户');
+                            let fpmsPlayersCalculatedData = vm.calculateNewPlayerData(fpmsPlayers, '客服后台开户');
+                            vm.newPlayerQuery.promoteWayData.push(fpmsPlayersCalculatedData);
+                            // no promote way new player
+                            let noPromoteWayPlayers = vm.newPlayerQuery.newPlayers.filter(player => !player.partner && !player.promoteWay);
+                            vm.newPlayerQuery.promoteWayData.push(vm.calculateNewPlayerData(noPromoteWayPlayers, $translate('No Promote Way')));
+                            // ============ cs analysis valid player ===========
+                            vm.newPlayerQuery.csAnalysisNewPlayerData = vm.allAdmin.map(
+                                admin => {
+                                    let adminNewPlayers = vm.newPlayerQuery.newPlayers.filter(player => {
+                                        if (player.csOfficer == admin._id) {
+                                            player.csOfficerName = admin.adminName;
+                                            return true;
+                                        }
+                                        return false;
+                                    });
+                                    return vm.calculateNewPlayerData(adminNewPlayers, admin.adminName);
+                                }
+                            );
+                            // no admin new player
+                            let noAdminAccPlayers = vm.newPlayerQuery.newPlayers.filter(player => Boolean(!player.csOfficer));
+                            vm.newPlayerQuery.csAnalysisNewPlayerData.push(vm.calculateNewPlayerData(noAdminAccPlayers, $translate('No admin acc')));
+                            // ============ partner analysis new player ===========
+                            vm.newPlayerQuery.partnerNewPlayerData = vm.calculateNewPlayerData(partnerPlayers, $translate('total'), partnerPlayers.length);
+                            vm.newPlayerQuery.partnerAnalysisNewPlayerData = vm.platformPartner.map(
+                                partner => {
+                                    let partnerNewPlayers = partnerPlayers.filter(player => player.partner && player.partner._id.toString() == partner._id.toString());
+                                    return vm.calculateNewPlayerData(partnerNewPlayers, partner.partnerName, vm.newPlayerQuery.partnerNewPlayerData.validPlayer);
+                                }
+                            );
+                            // ============ domain analysis new player ===========
+                            let domainPlayers = vm.newPlayerQuery.newPlayers;
+                            vm.newPlayerQuery.domainNewPlayerData = vm.calculateNewPlayerData(domainPlayers, $translate('total'), domainPlayers.length);
+                            vm.newPlayerQuery.domainAnalysisNewPlayerData = vm.newPlayerQuery.domain.map(
+                                domain => {
+                                    let domainNewPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.domain == domain._id);
+                                    return vm.calculateNewPlayerData(domainNewPlayers, domain._id ==null? $translate('no domain') : domain._id, vm.newPlayerQuery.domainNewPlayerData.validPlayer);
+                                }
+                            );
+
                             vm.drawValidPlayerGraphByElementId("#validPlayerPie", vm.newPlayerQuery.promoteWayData.filter(data => data.validPlayer > 0));
                             vm.drawValidPlayerGraphByElementId("#validPlayerCsAnalysisPie", vm.newPlayerQuery.csAnalysisNewPlayerData.filter(data => data.validPlayer > 0));
                             vm.drawValidPlayerGraphByElementId("#validPlayerPartnerAnalysisPie", vm.newPlayerQuery.partnerAnalysisNewPlayerData.filter(data => data.validPlayer > 0));
