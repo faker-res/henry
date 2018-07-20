@@ -15769,7 +15769,7 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 }
             };
-            vm.submitPlayerFeedbackQuery = function (isNewSearch) {
+            vm.submitPlayerFeedbackQuery = function (isNewSearch, currentTimeBoolean) {
                 if (!vm.selectedPlatform) return;
                 if (vm.ctiData.hasOnGoingMission) {
                     if (isNewSearch) {
@@ -15777,6 +15777,11 @@ define(['js/app'], function (myApp) {
                     }
                     return vm.getCallOutMissionPlayerDetail();
                 }
+
+                if (currentTimeBoolean) {
+                    $('#registerEndTimePicker').data('datetimepicker').setDate(new Date(utilService.getLocalTime(new Date()).getTime() - 30 * 60 * 1000));
+                }
+
                 console.log('vm.feedback', vm.playerFeedbackQuery);
                 vm.exportPlayerFilter = JSON.parse(JSON.stringify(vm.playerFeedbackQuery))
                 let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
@@ -21833,8 +21838,6 @@ define(['js/app'], function (myApp) {
                 vm.promoCode2HasMoreThanOne = false;
                 vm.promoCode3HasMoreThanOne = false;
                 vm.smsTitleDuplicationBoolean = false;
-                vm.promoCodeTemplateEdit = false;
-
                 vm.newPromoCode1 = [];
                 vm.newPromoCode2 = [];
                 vm.newPromoCode3 = [];
@@ -21859,9 +21862,12 @@ define(['js/app'], function (myApp) {
                 vm.deletedPromoCodeTemplateData = [];
                 vm.newPromoCode = {};
 
+                vm.openPromoCodeTemplateData = [];
+                vm.deletedOpenPromoCodeTemplateData = [];
+
                 loadPromoCodeTypes();
                 loadPromoCodeUserGroup();
-                loadPromoCodeTemplate();
+                // loadPromoCodeTemplate();
 
                 switch (choice) {
                     case 'create':
@@ -21980,6 +21986,16 @@ define(['js/app'], function (myApp) {
                             });
                             vm.getPromoCodeAnalysis2(true)
                         });
+                    case "promoCodeTemplate":
+                        vm.promoCodeTemplateEdit = false;
+                        loadPromoCodeTemplate();
+                        vm.endLoadWeekDay();
+                        break;
+                    case 'openPromoCodeTemplate':
+                        vm.openPromoCodeTemplateEdit = false;
+                        loadOpenPromoCodeTemplate();
+                        vm.endLoadWeekDay();
+                        break;
 
                 }
             };
@@ -23046,12 +23062,85 @@ define(['js/app'], function (myApp) {
 
                             vm.promoCodeTemplateSetting.forEach(p => {
                                 if (p){
+                                    if (p.isProviderGroup) {
+                                        p.allowedProviders = (p.allowedProviders && p.allowedProviders.length > 0)? p.allowedProviders[0] :  '' ;
+                                    }
                                     vm.promoCodeTemplateData.push($.extend(true, {}, p));
                                 }
                             })
                         }
                     })
                 });
+            }
+
+            function loadOpenPromoCodeTemplate() {
+                socketService.$socket($scope.AppSocket, 'getOpenPromoCodeTemplate', {
+                    platformObjId: vm.selectedPlatform.id,
+                    deleteFlag: false
+                }, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.openPromoCodeTemplateData = data.data;
+                        vm.openPromoCodeTemplate1 = [];
+                        vm.openPromoCodeTemplate2 = [];
+                        vm.openPromoCodeTemplate3 = [];
+
+                        vm.openPromoCodeTemplateData.forEach(entry => {
+                            if (entry) {
+                                if (entry.isProviderGroup) {
+                                    entry.allowedProviders = (entry.allowedProviders && entry.allowedProviders.length > 0)? entry.allowedProviders[0] :  '' ;
+                                }
+
+                                if (entry.type == 1) {
+                                    vm.openPromoCodeTemplate1.push(entry);
+                                } else if (entry.type == 2) {
+                                    vm.openPromoCodeTemplate2.push(entry);
+                                } else if (entry.type == 3) {
+                                    vm.openPromoCodeTemplate3.push(entry);
+                                }
+                            }
+                        });
+
+                        vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate1);
+                        vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate2);
+                        vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate3);
+                    
+                    })
+                });
+            }
+
+            vm.reloadOpenPromoCodeTemplateDate = function(){
+                vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate1);
+                vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate2);
+                vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate3);
+            }
+            
+            vm.loadOpenPromoCodeTemplateDate = function(template){
+                if(template && template.length > 0){
+                    template.forEach((p, index)=> {
+                        if (p && p.type) {
+                            let id = '#expDateOpenPC' + p.type + '-' + index;
+                            let date = p.expirationTime ? utilService.getLocalTime(new Date(p.expirationTime)) : utilService.setLocalDayEndTime(new Date());
+
+                            utilService.actionAfterLoaded((id), function () {
+                                    p.expirationTime$ = utilService.createDatePicker(id, {
+                                        language: 'en',
+                                        format: 'yyyy/MM/dd hh:mm:ss',
+                                        startDate: utilService.setLocalDayStartTime(new Date())
+                                    });
+                                    p.expirationTime$.data('datetimepicker').setDate(date);
+
+                                    if (!vm.openPromoCodeTemplateEdit){
+                                        $(id + ' input').attr('disabled',true);
+                                        $(id + ' span').attr('hidden',true);
+                                    }
+                                    else{
+                                        $(id + ' input').removeAttr('disabled');
+                                        $(id + ' span').removeAttr('hidden');
+                                    }
+                            });
+                        }
+                    })
+                }
             }
 
             function loadDelayDurationGroup() {
@@ -27167,6 +27256,9 @@ define(['js/app'], function (myApp) {
                     case 'promoCodeTemplate':
                         updatePromoCodeTemplate();
                         break;
+                    case 'openPromoCodeTemplate':
+                        updateOpenPromoCodeTemplate();
+                        break;
                     case 'financialSettlementConfig':
                         updateFinancialSettlementConfig(vm.financialSettlementConfig);
                         break;
@@ -27206,7 +27298,7 @@ define(['js/app'], function (myApp) {
                 return true;
             };
 
-            vm.updatePromoCodeTemplateInEdit = function (func, collection, data, type) {
+            vm.updatePromoCodeTemplateInEdit = function (func, collection, data, type, tab, index) {
                 if (func == 'add') {
 
                     if (collection && data && type) {
@@ -27214,77 +27306,159 @@ define(['js/app'], function (myApp) {
                         vm.promoCodeFieldCheckFlag = false;
                         if (returnedMsg) {
 
-                            let newObj = {};
-                            Object.keys(data).forEach(e => {
-                                newObj[e] = data[e];
-                            });
+                            data.type = type;
+                            let date;
 
-                            collection.push(newObj);
+                            if (tab == 'openPromoCode') {
+
+                                let id = '#expDateOpenPC' + type + '-' + collection.length;
+
+                                if (data.expirationTime$ && typeof data.expirationTime$ == 'string'){
+                                    date =  utilService.getLocalTime(new Date(data.expirationTime$));
+                                }
+                                else if(data.expirationTime$ && typeof data.expirationTime$ == 'object'){
+                                    date = new Date(data.expirationTime$.data('datetimepicker').getDate());
+                                }
+                                else{
+                                    date = utilService.setLocalDayEndTime(new Date());
+                                }
+
+                                utilService.actionAfterLoaded((id), function () {
+
+                                    data.expirationTime$ = utilService.createDatePicker(id, {
+                                        language: 'en',
+                                        format: 'yyyy/MM/dd hh:mm:ss',
+                                        startDate: utilService.setLocalDayStartTime(new Date())
+                                    });
+                                    data.expirationTime$.data('datetimepicker').setDate(date);
+
+                                });
+                            }
+                            collection.push(data);
+
                         }
                         else {
                             vm.promoCodeFieldCheckFlag = true;
                         }
                     }
+
                 }
                 else if (func == 'remove') {
 
-                    if (data && collection) {
+                    if (data && collection && tab == 'openPromoCode' && typeof index != 'undefined') {
+
+                        if (data.code) {
+                            vm.deletedOpenPromoCodeTemplateData.push({name: data.name, code: data.code, type:data.type, deletedStatus: true,  platformObjId: vm.selectedPlatform.id});
+                        }
+
+                        collection.splice(index, 1);
+
+                        if(collection && collection.length > 0){
+                            collection.forEach((p, index)=> {
+                                if (p) {
+                                    let id = '#expDateOpenPC' + p.type + '-' + index;
+                                    let date;
+
+                                    if (p.expirationTime && typeof p.expirationTime == 'string'){
+                                        date =  utilService.getLocalTime(new Date(p.expirationTime));
+                                    }
+                                    else if(p.expirationTime && typeof p.expirationTime == 'object'){
+                                        date =  utilService.getLocalTime(new Date(p.expirationTime.data('datetimepicker').getDate()));
+                                    }
+                                    else{
+                                        date = utilService.setLocalDayEndTime(new Date());
+                                    }
+
+                                    utilService.actionAfterLoaded((id), function () {
+
+                                        p.expirationTime$ = utilService.createDatePicker(id, {
+                                            language: 'en',
+                                            format: 'yyyy/MM/dd hh:mm:ss',
+                                            startDate: utilService.setLocalDayStartTime(new Date())
+                                        });
+                                        p.expirationTime$.data('datetimepicker').setDate(date);
+                                    });
+
+                                }
+                            })
+                        }
+
+                    }
+                    else if (data && collection && tab == 'promoCodeTemplate') {
                         let index = null;
-                        if (data._id){
+                        if (data._id) {
                             index = collection.findIndex(p => p._id == data._id);
                         }
-                        else{
+                        else {
                             index = collection.findIndex(p => p.typeName == data.typeName);
                         }
 
-                        if (typeof index == 'number'){
-                            if (collection[index]._id){
-                                collection[index].status = 'removed';
+                        if (typeof index == 'number' && index != -1) {
+                            if (collection[index]._id) {
+                                collection[index].deletedStatus = true;
                                 vm.deletedPromoCodeTemplateData.push(collection[index]);
                             }
                             collection.splice(index, 1);
                         }
 
                     }
-
                 }
             };
 
-            vm.initNewPromoCodeTemplate = function(type) {
+            vm.initNewPromoCodeTemplate = function(type, tag) {
+                
+                if (!vm.promoCodeFieldCheckFlag) {
 
-                if (!type){
-                    vm.newPromoCodeTemplate1 = {
-                        disableWithdraw: false,
-                        isSharedWithXIMA: true
-                    };
-                    vm.newPromoCodeTemplate2 = {
-                        disableWithdraw: false,
-                        isSharedWithXIMA: true
-                    };
-                    vm.newPromoCodeTemplate3 = {
-                        disableWithdraw: false,
-                        isSharedWithXIMA: true
-                    };
-                }
-                else {
-                    if (!vm.promoCodeFieldCheckFlag) {
-                        if (type == 1) {
-                            vm.newPromoCodeTemplate1 = {
-                                disableWithdraw: false,
-                                isSharedWithXIMA: true
-                            };
+                    let id;
+                    let date = utilService.setLocalDayEndTime(new Date());
+
+                    if (type == 1) {
+                        vm.newPromoCodeTemplate1 = {
+                            disableWithdraw: false,
+                            isSharedWithXIMA: true,
+                            isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
+                        };
+
+                        if (tag == 'openPromoCode') {
+
+                            id = "#expDateNewOpenPC1";
+                            utilService.actionAfterLoaded((id), function () {
+                                vm.newPromoCodeTemplate1.expirationTime$ = utilService.createDatePicker(id);
+                                vm.newPromoCodeTemplate1.expirationTime$.data('datetimepicker').setDate(date);
+                            });
                         }
-                        else if (type == 2) {
-                            vm.newPromoCodeTemplate2 = {
-                                disableWithdraw: false,
-                                isSharedWithXIMA: true
-                            };
+
+                    }
+                    else if (type == 2) {
+                        vm.newPromoCodeTemplate2 = {
+                            disableWithdraw: false,
+                            isSharedWithXIMA: true,
+                            isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
+                        };
+
+                        if (tag == 'openPromoCode') {
+
+                            id = "#expDateNewOpenPC2";
+                            utilService.actionAfterLoaded((id), function () {
+                                vm.newPromoCodeTemplate2.expirationTime$ = utilService.createDatePicker(id);
+                                vm.newPromoCodeTemplate2.expirationTime$.data('datetimepicker').setDate(date);
+                            });
                         }
-                        else if (type == 3) {
-                            vm.newPromoCodeTemplate3 = {
-                                disableWithdraw: false,
-                                isSharedWithXIMA: true
-                            };
+                    }
+                    else if (type == 3) {
+                        vm.newPromoCodeTemplate3 = {
+                            disableWithdraw: false,
+                            isSharedWithXIMA: true,
+                            isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
+                        };
+
+                        if (tag == 'openPromoCode') {
+
+                            id = "#expDateNewOpenPC3";
+                            utilService.actionAfterLoaded((id), function () {
+                                vm.newPromoCodeTemplate3.expirationTime$ = utilService.createDatePicker(id);
+                                vm.newPromoCodeTemplate3.expirationTime$.data('datetimepicker').setDate(date);
+                            });
                         }
                     }
                 }
@@ -27292,16 +27466,35 @@ define(['js/app'], function (myApp) {
 
             function updatePromoCodeTemplate (){
 
+                if (vm.promoCodeTemplateData && vm.promoCodeTemplateData.length > 0 ){
+                    vm.promoCodeTemplateData.forEach(p => {
+                        if (p && p.hasOwnProperty('allowedProviders')) {
+                            let usingGroup = p.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
+
+                            if (p.isProviderGroup ) {
+                                p.allowedProviders = p.allowedProviders == '' ? [] : p.allowedProviders;
+                            }
+                            else {
+                                p.allowedProviders = p.allowedProviders && p.allowedProviders.length == usingGroup.length ? [] : p.allowedProviders;
+                                if (p.allowedProviders.length > 0){
+                                    let removedIndex = p.allowedProviders.indexOf("");
+                                    if (removedIndex != -1){
+                                        p.allowedProviders.splice(removedIndex, 1);
+                                    }
+                                }
+                            }
+                        }
+                    })
+                }
+
                 if (vm.deletedPromoCodeTemplateData && vm.deletedPromoCodeTemplateData.length > 0){
                     vm.promoCodeTemplateData = vm.promoCodeTemplateData.concat(vm.deletedPromoCodeTemplateData);
                 }
-                if (vm.promoCodeTemplateData){
-                    vm.promoCodeTemplateSetting = vm.promoCodeTemplateData;
-                }
+
 
                 let sendData = {
                     platformObjId: vm.selectedPlatform.id,
-                    promoCodeTemplate: vm.promoCodeTemplateSetting,
+                    promoCodeTemplate: vm.promoCodeTemplateData
                 };
 
                 socketService.$socket($scope.AppSocket, 'updatePromoCodeTemplate', sendData, function (data) {
@@ -27309,6 +27502,164 @@ define(['js/app'], function (myApp) {
                     vm.deletedPromoCodeTemplateData = [];
                 });
             }
+
+            function updateOpenPromoCodeTemplate (){
+
+                vm.openPromoCodeTemplateSetting = [];
+                vm.openPromoCodeTemplateSetting =vm.openPromoCodeTemplateSetting.concat(vm.openPromoCodeTemplate1, vm.openPromoCodeTemplate2, vm.openPromoCodeTemplate3);
+
+                if(vm.openPromoCodeTemplateSetting.length > 0){
+                    vm.openPromoCodeTemplateSetting.forEach(p => {
+
+                        if (p) {
+                            let usingGroup = p.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
+
+                            if (p.hasOwnProperty('allowedProviders')) {
+                                let usingGroup = p.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
+
+                                if (p.isProviderGroup ) {
+                                    p.allowedProviders = p.allowedProviders == '' ? [] : p.allowedProviders;
+                                }
+                                else {
+                                    p.allowedProviders = p.allowedProviders && p.allowedProviders.length == usingGroup.length ? [] : p.allowedProviders;
+                                    if (p.allowedProviders.length > 0){
+                                        let removedIndex = p.allowedProviders.indexOf("");
+                                        if (removedIndex != -1){
+                                            p.allowedProviders.splice(removedIndex, 1);
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (p.expirationTime && p.expirationTime$) {
+                                if (new Date(p.expirationTime).toISOString() == p.expirationTime$.data('datetimepicker').getLocalDate().toISOString()) {
+                                    delete p.expirationTime;
+                                    if (p.createTime) {
+                                        delete p.createTime;
+                                    }
+                                }
+                                else {
+                                    p.expirationTime = vm.dateReformat(p.expirationTime$.data('datetimepicker').getLocalDate());
+                                    p.createTime = new Date();
+                                }
+
+                                delete p.expirationTime$
+
+                            }
+                        }
+                    })
+                }
+
+                vm.openPromoCodeTemplateSetting = vm.openPromoCodeTemplateSetting.concat(vm.deletedOpenPromoCodeTemplateData);
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    openPromoCodeTemplate: vm.openPromoCodeTemplateSetting,
+                };
+
+                socketService.$socket($scope.AppSocket, 'updateOpenPromoCodeTemplate', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
+                    vm.deletedOpenPromoCodeTemplateData = [];
+                });
+            }
+
+            vm.generateOpenPromoCode = function (col, index, data, type, template) {
+
+                let sendData = Object.assign({},data);
+                let returnedMsg = vm.checkPromoCodeField(data, type);
+                vm.promoCodeFieldCheckFlag = false;
+                if (returnedMsg) {
+
+                    if (!sendData.hasOwnProperty("isProviderGroup")){
+                        sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
+                    }
+
+                    sendData.expirationTime = vm.dateReformat(sendData.expirationTime$.data('datetimepicker').getLocalDate());
+
+                    sendData.platformObjId = vm.selectedPlatform.id;
+
+                    if (sendData.hasOwnProperty('allowedProviders')) {
+                        let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
+
+                        if (sendData.isProviderGroup ) {
+                            sendData.allowedProviders = sendData.allowedProviders == '' ? [] : sendData.allowedProviders;
+                        }
+                        else {
+                            sendData.allowedProviders = sendData.allowedProviders && sendData.allowedProviders.length == usingGroup.length ? [] : sendData.allowedProviders;
+                            if (sendData.allowedProviders.length > 0){
+                                let removedIndex = sendData.allowedProviders.indexOf("");
+                                if (removedIndex != -1){
+                                    sendData.allowedProviders.splice(removedIndex, 1);
+                                }
+                            }
+                        }
+                    }
+
+                    if (sendData.expirationTime$){
+                        delete sendData.expirationTime$;
+                    }
+
+                    sendData.type = type;
+                    console.log('sendData', sendData);
+                    return $scope.$socketPromise('generateOpenPromoCode', {
+                        platformObjId: vm.selectedPlatform.id,
+                        newPromoCodeEntry: sendData,
+                        adminName: authService.adminName,
+                        adminId: authService.adminId
+                    }).then(ret => {
+                        $scope.$evalAsync(()=> {
+
+                            if (col && typeof index == 'number') {
+
+                                col[index].code = ret.data.code;
+                                col[index].expirationTime = ret.data.expirationTime;
+                                col[index].createTime = ret.data.createTime;
+
+                            }
+                            else {
+                                data.code = ret.data.code;
+                                data.expirationTime = ret.data.expirationTime;
+                                data.createTime = ret.data.createTime;
+                                if (template){
+                                    vm.updatePromoCodeTemplateInEdit("add", template, data, type, "openPromoCode");
+                                    vm.initNewPromoCodeTemplate(type, 'openPromoCode')
+                                }
+                            }
+
+                        })
+                    }).catch(err=>{
+                        $scope.$evalAsync(()=>{
+                            if (col && typeof index == 'number') {
+                                col[index].error = true;
+                            }
+                            else{
+                               data.error =true;
+                            }
+                        })
+                    });
+                }
+                else {
+                    vm.promoCodeFieldCheckFlag = true;
+                }
+            };
+
+            vm.generateAllOpenPromoCode = function (col, type, skipCheck) {
+                let p = Promise.resolve();
+
+                col.forEach((elem, index, arr) => {
+                    if (!elem.code) {
+                        p = p.then(function () {
+                            if (skipCheck && !elem.error) {
+                                elem.skipCheck = true;
+                            }
+                            return vm.generateOpenPromoCode(col, index, elem, type);
+                        });
+                    }
+                });
+
+                return p.then( () => {
+                    loadOpenPromoCodeTemplate();
+                });
+            };
 
             function updatePlayerLevels(arr, index, deltaValue, callback) {
                 if (index >= arr.length) {
