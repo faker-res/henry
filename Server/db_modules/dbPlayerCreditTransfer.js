@@ -1386,7 +1386,7 @@ let dbPlayerCreditTransfer = {
                 );
                 if(hasEbetWalletSettings) {
                     return Promise.all(checkAmountProm).then(() => {
-                        return transferOut;
+                        return transferIn;
                     }).then(() => {
                         console.log('transferin promise data',transferInSuccessData);
                         return Promise.resolve({
