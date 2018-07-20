@@ -531,7 +531,7 @@
                                             i.fa.fa-trash
                                             text {{'DELETE' | translate}}
                                 // after edit enabled
-                                tr(ng-repeat='config in vm.userGroupConfig', ng-if='vm.promoCodeUserGroupEdit')
+                                tr(ng-repeat='config in vm.userGroupConfig track by $index', ng-if='vm.promoCodeUserGroupEdit')
                                     td {{ $index + 1 }}
                                     td(style="background-color:{{config.color}}", ng-click="vm.selectedPromoCodeUserGroup=config;")
                                         input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="config.name")
@@ -650,7 +650,7 @@
                                     th(width="20%") {{'INLINE_EDIT' | translate}}
                             tbody
                                 // before edit enabled
-                                tr(ng-repeat='blockConfig in vm.userGroupBlockConfig', ng-if='!vm.blockPromoCodeUserGroupEdit')
+                                tr(ng-repeat='blockConfig in vm.userGroupBlockConfig track by $index', ng-if='!vm.blockPromoCodeUserGroupEdit')
                                     td {{ $index + 1 }}
                                     td(style="background-color:{{blockConfig.color}}", ng-click="vm.selectedBlockPromoCodeUserGroup=blockConfig;") {{blockConfig.name}}
                                     td(style="background-color:{{blockConfig.color}}") {{blockConfig.color}}
