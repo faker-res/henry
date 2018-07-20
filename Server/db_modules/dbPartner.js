@@ -1374,7 +1374,7 @@ let dbPartner = {
             platformData => {
                 if (platformData) {
                     platformObjId = platformData._id;
-                    partnerData.prefixName = platformData.partnerPrefix + partnerData.name;
+                    partnerData.prefixName = /*platformData.partnerPrefix +*/ partnerData.name;
                     requireLogInCaptcha = platformData.partnerRequireLogInCaptcha || false;
 
                     return dbconfig.collection_partner.findOne({
