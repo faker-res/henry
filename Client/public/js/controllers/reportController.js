@@ -5016,11 +5016,11 @@ define(['js/app'], function (myApp) {
                             }
                         );
                         // 代理下线
-                        let partnerPlayers = vm.newPlayerQuery.newPlayers.filter(player => !player.partner);
+                        let partnerPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.partner);
                         let partnerPlayersCalculatedData = vm.calculateNewPlayerData(partnerPlayers, $translate('partner'));
                         vm.newPlayerQuery.promoteWayData.push(partnerPlayersCalculatedData);
                         // no promote way new player
-                        let noPromoteWayPlayers = vm.newPlayerQuery.newPlayers.filter(player => !player.partner && player.promoteWay == null);
+                        let noPromoteWayPlayers = vm.newPlayerQuery.newPlayers.filter(player => !player.partner && !player.promoteWay);
                         vm.newPlayerQuery.promoteWayData.push(vm.calculateNewPlayerData(noPromoteWayPlayers, $translate('No Promote Way')));
                         // ============ cs analysis valid player ===========
                         vm.newPlayerQuery.csAnalysisNewPlayerData = vm.allAdmin.map(
@@ -5042,7 +5042,7 @@ define(['js/app'], function (myApp) {
                         vm.newPlayerQuery.partnerNewPlayerData = vm.calculateNewPlayerData(partnerPlayers, $translate('total'), partnerPlayers.length);
                         vm.newPlayerQuery.partnerAnalysisNewPlayerData = vm.platformPartner.map(
                             partner => {
-                                let partnerNewPlayers = partnerPlayers.filter(player => player.partner._id.toString() == partner._id.toString());
+                                let partnerNewPlayers = partnerPlayers.filter(player => player.partner && player.partner._id.toString() == partner._id.toString());
                                 return vm.calculateNewPlayerData(partnerNewPlayers, partner.partnerName, vm.newPlayerQuery.partnerNewPlayerData.validPlayer);
                             }
                         );
