@@ -3581,7 +3581,7 @@ define(['js/app'], function (myApp) {
             let admins = [];
 
             if (vm.dxNewPlayerQuery.departments) {
-                if (vm.dxNewPlayerQuery.roles) {
+                if (vm.dxNewPlayerQuery.roles && vm.dxNewPlayerQuery.roles.length > 0) {
                     vm.queryRoles.map(e => {
                         if (e._id != "" && (vm.dxNewPlayerQuery.roles.indexOf(e._id) >= 0)) {
                             e.users.map(f => admins.push(f.adminName))
