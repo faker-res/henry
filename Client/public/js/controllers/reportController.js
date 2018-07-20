@@ -5020,7 +5020,7 @@ define(['js/app'], function (myApp) {
                         let partnerPlayersCalculatedData = vm.calculateNewPlayerData(partnerPlayers, $translate('partner'));
                         vm.newPlayerQuery.promoteWayData.push(partnerPlayersCalculatedData);
                         // no promote way new player
-                        let noPromoteWayPlayers = vm.newPlayerQuery.newPlayers.filter(player => !player.partner && player.promoteWay == null);
+                        let noPromoteWayPlayers = vm.newPlayerQuery.newPlayers.filter(player => !player.partner && !player.promoteWay);
                         vm.newPlayerQuery.promoteWayData.push(vm.calculateNewPlayerData(noPromoteWayPlayers, $translate('No Promote Way')));
                         // ============ cs analysis valid player ===========
                         vm.newPlayerQuery.csAnalysisNewPlayerData = vm.allAdmin.map(
