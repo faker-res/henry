@@ -452,7 +452,8 @@ var roleChecker = {
                 activatePromoCode: ['updatePromoCodesActive'],
                 applyPromoCode: [],
                 promoCodeAnalysis: ['getPromoCodeTypeByObjId'],
-                promoCodeTemplate: ['updatePromoCodeTemplate']
+                promoCodeTemplate: ['updatePromoCodeTemplate'],
+                openPromoCodeTemplate: ['updateOpenPromoCodeTemplate'],
             },
             "RegistrationUrlConfig": {
                 Read: ['getAllOfficer', 'getAllPromoteWay', 'getAllUrl', 'getAdminNameByDepartment'],

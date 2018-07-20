@@ -60,10 +60,22 @@ function socketActionPromoCode(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodeTemplate, [data.platformObjId], actionName, isValidData);
         },
 
+        getOpenPromoCodeTemplate: function getOpenPromoCodeTemplate(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlayerReward.getOpenPromoCodeTemplate, [data.platformObjId], actionName, isValidData);
+        },
+        
         updatePromoCodeTemplate: function updatePromoCodeTemplate(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.promoCodeTemplate );
             socketUtil.emitter(self.socket, dbPlayerReward.updatePromoCodeTemplate, [ObjectId(data.platformObjId), data.promoCodeTemplate], actionName, isValidData);
+        },
+
+        updateOpenPromoCodeTemplate: function updateOpenPromoCodeTemplate(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.openPromoCodeTemplate);
+            socketUtil.emitter(self.socket, dbPlayerReward.updateOpenPromoCodeTemplate, [ObjectId(data.platformObjId), data.openPromoCodeTemplate], actionName, isValidData);
         },
 
         updatePromoCodeIsDeletedFlag: function updatePromoCodeIsDeletedFlag(data) {
@@ -82,6 +94,12 @@ function socketActionPromoCode(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.newPromoCodeEntry && data.newPromoCodeEntry.promoCodeType);
             socketUtil.emitter(self.socket, dbPlayerReward.generatePromoCode, [ObjectId(data.platformObjId), data.newPromoCodeEntry, data.adminId, data.adminName], actionName, isValidData);
+        },
+
+        generateOpenPromoCode: function generateOpenPromoCode(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.newPromoCodeEntry);
+            socketUtil.emitter(self.socket, dbPlayerReward.generateOpenPromoCode, [ObjectId(data.platformObjId), data.newPromoCodeEntry, data.adminId, data.adminName], actionName, isValidData);
         },
 
         savePromoCodeUserGroup: function savePromoCodeUserGroup(data) {

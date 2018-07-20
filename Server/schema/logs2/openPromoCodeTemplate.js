@@ -1,9 +1,13 @@
 let mongoose = require('mongoose');
 let Schema = mongoose.Schema;
 
-let promoCodeTemplateSchema = new Schema({
+let openPromoCodeTemplateSchema = new Schema({
     // platform id
     platformObjId: {type: Schema.ObjectId, ref: 'platform', required: true},
+    //name of the openPromoCode
+    name: {type: String, index: true},
+    // type of the openPromoCode
+    type: {type: Number, index: true},
     // promo code reward amount
     amount: {type: Number, required: true},
     // promo code minimum top up amount
@@ -18,21 +22,9 @@ let promoCodeTemplateSchema = new Schema({
     allowedProviders: [{type: Schema.ObjectId}],
     // Is platform using provider group
     isProviderGroup: {type: Boolean},
-    // Banner Text
-    bannerText: {type: String},
+    // Promo Code
+    code: {type: Number, required: true},
     // SMS Content
-    smsContent: {type: String},
-    // the name of the promoCode Type
-    name: {type: String},
-    // the expired date = the moment it sends out + expiredInDay
-    expiredInDay: {type: Number},
-    // the title for the internal mail
-    interMailTitle: {type: String},
-    // the type of promoCode
-    type: {type: Number},
-    // Reward amount shared with XIMA
-    isSharedWithXIMA: {type: Boolean, default: true},
-    // created time
     createTime: {type: Date, default: Date.now, index: true},
     // Promo Code Accept Time
     acceptedTime: {type: Date},
@@ -40,17 +32,25 @@ let promoCodeTemplateSchema = new Schema({
     expirationTime: {type: Date},
     // Promo Code Status
     status: {type: Number, index: true},
+    // Promo Code Active Flag
+    isActive: {type: Boolean, default: false, index: true},
+    // Reward amount shared with XIMA
+    isSharedWithXIMA: {type: Boolean, default: true},
     // set to true if the inherited promoCodeType is deleted
     isDeleted: {type: Boolean, default: false},
     //admin id, that create this promo code
     adminId: {type: Schema.ObjectId},
     //admin name, that create this promo code
     adminName: {type: String},
-    // Promo Code Active Flag
-    isActive: {type: Boolean, default: false, index: true},
+    // remark
+    remark: {type: String},
+    // the appply limit per player
+    applyLimitPerPlayer: {type: Number},
+    // the total available quantity for application
+    totalApplyLimit: {type: Number}
 
 });
 
-promoCodeTemplateSchema.index({platformObjId: 1});
+openPromoCodeTemplateSchema.index({platformObjId: 1, createTime: 1});
 
-module.exports = promoCodeTemplateSchema;
+module.exports = openPromoCodeTemplateSchema;
