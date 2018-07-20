@@ -5016,7 +5016,7 @@ define(['js/app'], function (myApp) {
                             }
                         );
                         // 代理下线
-                        let partnerPlayers = vm.newPlayerQuery.newPlayers.filter(player => !player.partner);
+                        let partnerPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.partner);
                         let partnerPlayersCalculatedData = vm.calculateNewPlayerData(partnerPlayers, $translate('partner'));
                         vm.newPlayerQuery.promoteWayData.push(partnerPlayersCalculatedData);
                         // no promote way new player
