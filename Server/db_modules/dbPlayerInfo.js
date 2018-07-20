@@ -1243,7 +1243,7 @@ let dbPlayerInfo = {
             data => {
                 if (data.isPlayerNameValid) {
                     // check player name must start with prefix
-                    if ( pName.indexOf(pPrefix) === 0) {
+                    if (!pPrefix || pName.indexOf(pPrefix) === 0) {
                         return {isPlayerPrefixValid: true};
                     } else {
                         return {isPlayerPrefixValid: false};
@@ -1478,7 +1478,7 @@ let dbPlayerInfo = {
                     let proms = [];
                     let playerUpdateData = {
                         // playerLevel: data[0]._id,
-                        playerId: (data[1].prefix + playerData.playerId)
+                        playerId: (/*data[1].prefix +*/ playerData.playerId)
                     };
                     if (!bFromBI) {
                         playerUpdateData.playerLevel = data[0]._id;
@@ -5372,7 +5372,7 @@ let dbPlayerInfo = {
 
                             if (playerData.platform.useProviderGroup) {
                                 // Platform supporting provider group
-                                if(playerData.platform.useEbetWallet && providerData.name.toUpperCase() === "EBET") {
+                                if(playerData.platform.useEbetWallet && (providerData.name.toUpperCase() === "EBET" || providerData.name.toUpperCase() === "EBETSLOTS")) {
                                     // if use eBet Wallet
                                     return dbPlayerCreditTransfer.playerCreditTransferToEbetWallets(
                                         playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
@@ -5869,7 +5869,7 @@ let dbPlayerInfo = {
 
                                 if (playerObj.platform.useProviderGroup) {
                                     // Platform supporting provider group
-                                    if(playerObj.platform.useEbetWallet && data[1].name.toUpperCase() === "EBET") {
+                                    if(playerObj.platform.useEbetWallet && (data[1].name.toUpperCase() === "EBET" || data[1].name.toUpperCase() === "EBETSLOTS")) {
                                         // if use eBet Wallet
                                         console.log("using eBetWallet");
                                         return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallets(
@@ -15513,7 +15513,7 @@ let dbPlayerInfo = {
 
         let dxCode = "";
 
-        let platformProm = Promise.resolve({platformId: platformId});
+        let platformProm = Promise.resolve({platform: {platformId: platformId}});
         if (!platformId) {
             platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).populate({
                 path: "platform", model: dbconfig.collection_platform

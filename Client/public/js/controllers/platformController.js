@@ -25162,19 +25162,21 @@ define(['js/app'], function (myApp) {
 
             vm.getPromoCodeUserGroup = function () {
                 socketService.$socket($scope.AppSocket, 'getPromoCodeUserGroup', {platformObjId: vm.selectedPlatform.id}, function (data) {
-                    console.log('getPromoCodeUserGroup', data);
+                    $scope.$evalAsync(() => {
+                        console.log('getPromoCodeUserGroup', data);
 
-                    vm.userGroupConfig = data.data;
-                    $scope.safeApply();
+                        vm.userGroupConfig = data.data;
+                    });
                 });
             };
 
             vm.getBlockPromoCodeUserGroup = function () {
                 socketService.$socket($scope.AppSocket, 'getBlockPromoCodeUserGroup', {platformObjId: vm.selectedPlatform.id}, function (data) {
-                    console.log('getBlockPromoCodeUserGroup', data);
+                    $scope.$evalAsync(() => {
+                        console.log('getBlockPromoCodeUserGroup', data);
 
-                    vm.userGroupBlockConfig = data.data;
-                    $scope.safeApply();
+                        vm.userGroupBlockConfig = data.data;
+                    });
                 });
             };
 

@@ -10,14 +10,18 @@ var dbPlatformAlipayGroup = {
      * @param {String}  platform - platform ObjId
      * @param {String}  name, code, displayName
      */
-    addPlatformAlipayGroup: function (platform, name, code, displayName) {
-        var aliGroup = new dbconfig.collection_platformAlipayGroup({
+    addPlatformAlipayGroup: function (platform, name, code, displayName, isFPMS) {
+        let newGroup = {
             groupId: name,
             name: name,
             code: code,
             displayName: displayName,
             platform: platform,
-        });
+        }
+        if (isFPMS) {
+            newGroup.isFPMS = true;
+        }
+        var aliGroup = new dbconfig.collection_platformAlipayGroup(newGroup);
         return aliGroup.save();
     },
 
@@ -35,13 +39,26 @@ var dbPlatformAlipayGroup = {
      * @param {String}  platformId - ObjId of the platform
      */
     getPlatformAlipayGroup: function (platformId) {
-        return dbconfig.collection_platformAlipayGroup.aggregate(
-            {
-                $match: {
-                    platform: platformId
+        return dbconfig.collection_platform.findOne({_id:platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
+                let matchQuery = {
+                    platform: platformId
+                };
+                if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                    matchQuery.isFPMS = true;
+                } else {
+                    matchQuery.$or = [{isFPMS: false}, {isFPMS: {$exists: false}}]
+                }
+                return dbconfig.collection_platformAlipayGroup.aggregate(
+                    {
+                        $match: matchQuery
+                    }
+                ).exec();
             }
-        ).exec();
+        )
     },
 
     /**
@@ -98,6 +115,23 @@ var dbPlatformAlipayGroup = {
             }
         )
     },
+
+    createNewAlipayAcc: function (updateData) {
+        return dbconfig.collection_platformAlipayList.findOne(
+            {
+                platformId: updateData.platformId,
+                accountNumber: updateData.accountNumber
+            }
+        ).lean().then(
+            alipayData => {
+                if (alipayData) {
+                    return Promise.reject({name: "DataError", message: "Account number exists"});
+                }
+                return dbconfig.collection_platformAlipayList(updateData).save()
+            }
+        );
+    },
+
     getAllAlipaysByAlipayGroup: function(platformId){
         return pmsAPI.alipay_getAlipayList(
             {
@@ -105,6 +139,56 @@ var dbPlatformAlipayGroup = {
                 queryId: serverInstance.getQueryId()
             }
         );
+    },
+
+    getAllAlipaysByGroupAndPlatformSetting: function (platformId, alipayGroupId, isFPMS) {
+        if (isFPMS) {
+            return dbPlatformAlipayGroup.getAllAlipaysByGroupByFPMS(platformId, alipayGroupId);
+        } else {
+            return dbPlatformAlipayGroup.getAllAlipaysByAlipayGroupWithIsInGroup(platformId, alipayGroupId);
+        }
+    },
+
+    // get alu pay by group (not using financial points)
+    getAllAlipaysByGroupByFPMS: function (platformId, alipayGroupId) {
+        let platformObjId;
+        let alipayGroup;
+        return dbconfig.collection_platform.findOne({platformId:platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+                platformObjId = platformData._id;
+                return dbconfig.collection_platformAlipayGroup.findOne({_id: alipayGroupId}).lean()
+            }
+        ).then(
+            alipayGroupData => {
+                if (!alipayGroupData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find alipay group"});
+                }
+                alipayGroup = alipayGroupData;
+                return dbconfig.collection_platformAlipayList.find(
+                    {
+                        platformId: platformId,
+                        isFPMS: true,
+                    }
+                ).lean()
+            }
+        ).then(
+            alipayList => {
+                let alipaysGroup = alipayGroup.alipays;
+                return alipayList.map(a=> {
+                    if (alipaysGroup.indexOf(a.accountNumber) != -1) {
+                        //in group
+                        a.isInGroup = true;
+                    } else {
+                        //not in group
+                        a.isInGroup = false;
+                    }
+                    return a;
+                })
+            }
+        )
     },
 
     getAllAlipaysByAlipayGroupWithIsInGroup: function(platformId, alipayGroupId){
@@ -129,7 +213,12 @@ var dbPlatformAlipayGroup = {
                     let alipays = data.data;
                     let updateAlipayProm = [];
                     alipayList = alipays;
-                    return dbconfig.collection_platformAlipayList.find({platformId: platformId}).lean().then(oldAlipays => {
+                    return dbconfig.collection_platformAlipayList.find(
+                        {
+                            platformId: platformId,
+                            $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]
+                        }
+                    ).lean().then(oldAlipays => {
                         alipays.forEach(alipay => {
                             if(oldAlipays && oldAlipays.length > 0) {
                                 let match = false;
@@ -149,7 +238,8 @@ var dbPlatformAlipayGroup = {
                                     dbconfig.collection_platformAlipayList.findOneAndUpdate(
                                         {
                                             accountNumber: alipay.accountNumber,
-                                            platformId: platformId
+                                            platformId: platformId,
+                                            $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]
                                         },
                                         {
                                             accountNumber: alipay.accountNumber,
@@ -186,7 +276,7 @@ var dbPlatformAlipayGroup = {
             () => {
                 if(newAlipays && newAlipays.length > 0) {
                     return dbconfig.collection_platformAlipayGroup.update(
-                        {platform: platformObjId, bDefault: true},
+                        {platform: platformObjId, bDefault: true, $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]},
                         {$addToSet: {
                             alipays: {$each: newAlipays}
                         }}
@@ -198,7 +288,7 @@ var dbPlatformAlipayGroup = {
                 if (alipayList && alipayList.length > 0) {
                     let alipays = alipayList.map(alipay => alipay.accountNumber);
                     return dbconfig.collection_platformAlipayGroup.update(
-                        {platform: platformObjId},
+                        {platform: platformObjId, $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]},
                         {$pull: {alipays: {$nin: alipays}}},
                         {multi: true}
                     );
