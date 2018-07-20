@@ -473,6 +473,7 @@ const dbPlayerMail = {
                         let indexNo = platformData.blackListingPhoneNumbers.findIndex(p => p == telNum);
 
                         if(indexNo != -1){
+                            isSpam = true;
                             return Q.reject({name: "DataError", message: localization.localization.translate("This phone number is already used. Please insert other phone number.")});
                         }
                     }
@@ -539,6 +540,7 @@ const dbPlayerMail = {
                     }
 
                     if (!phoneValidation || !phoneValidation.isPhoneNumberValid) {
+                        isSpam = true;
                         return Promise.reject({
                             status: constServerCode.PHONENUMBER_ALREADY_EXIST,
                             message: "This phone number is already used. Please insert other phone number."
