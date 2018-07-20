@@ -2468,7 +2468,10 @@ let dbPlayerReward = {
                 if (entry.deletedStatus) {
 
                     prom.push(dbConfig.collection_openPromoCodeTemplate.remove({
-                        _id: entry._id,
+                        name: entry.name,
+                        code: entry.code,
+                        type: entry.type,
+                        platformObjId: entry.platformObjId
                     }))
                 }
                 else {
@@ -2607,7 +2610,7 @@ let dbPlayerReward = {
                 // }
                 // messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName, adminObjId);
                 // dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
-                return newPromoCode.code;
+                return newPromoCode;
             }
 
         }).catch(

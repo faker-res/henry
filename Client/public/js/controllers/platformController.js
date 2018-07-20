@@ -23158,46 +23158,44 @@ define(['js/app'], function (myApp) {
                             }
                         });
 
-                        vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate1, 1);
-                        vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate2, 2);
-                        vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate3, 3);
+                        vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate1);
+                        vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate2);
+                        vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate3);
                     
                     })
                 });
             }
 
             vm.reloadOpenPromoCodeTemplateDate = function(){
-                vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate1, 1);
-                vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate2, 2);
-                vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate3, 3);
+                vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate1);
+                vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate2);
+                vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate3);
             }
             
-            vm.loadOpenPromoCodeTemplateDate = function(template, type){
+            vm.loadOpenPromoCodeTemplateDate = function(template){
                 if(template && template.length > 0){
                     template.forEach((p, index)=> {
                         if (p && p.type) {
                             let id = '#expDateOpenPC' + p.type + '-' + index;
                             let date = p.expirationTime ? utilService.getLocalTime(new Date(p.expirationTime)) : utilService.setLocalDayEndTime(new Date());
 
-                            setTimeout(() => {
+                            utilService.actionAfterLoaded((id), function () {
+                                    p.expirationTime$ = utilService.createDatePicker(id, {
+                                        language: 'en',
+                                        format: 'yyyy/MM/dd hh:mm:ss',
+                                        startDate: utilService.setLocalDayStartTime(new Date())
+                                    });
+                                    p.expirationTime$.data('datetimepicker').setDate(date);
 
-                                p.expirationTime$ = utilService.createDatePicker(id, {
-                                    language: 'en',
-                                    format: 'yyyy/MM/dd hh:mm:ss',
-                                    startDate: utilService.setLocalDayStartTime(new Date())
-                                });
-                                p.expirationTime$.data('datetimepicker').setDate(date);
-
-                                if (!vm.openPromoCodeTemplateEdit){
-                                    $(id + ' input').attr('disabled',true);
-                                    $(id + ' span').attr('hidden',true);
-                                }
-                                else{
-                                    $(id + ' input').removeAttr('disabled');
-                                    $(id + ' span').removeAttr('hidden');
-                                }
-
-                            }, 0);
+                                    if (!vm.openPromoCodeTemplateEdit){
+                                        $(id + ' input').attr('disabled',true);
+                                        $(id + ' span').attr('hidden',true);
+                                    }
+                                    else{
+                                        $(id + ' input').removeAttr('disabled');
+                                        $(id + ' span').removeAttr('hidden');
+                                    }
+                            });
                         }
                     })
                 }
@@ -27365,21 +27363,32 @@ define(['js/app'], function (myApp) {
                         if (returnedMsg) {
 
                             data.type = type;
+                            let date;
 
-                            if (tab == 'openPromoCodeTemplate') {
+                            if (tab == 'openPromoCode') {
+
                                 let id = '#expDateOpenPC' + type + '-' + collection.length;
-                                let date = (data && data.expirationTime) ? new Date(data.expirationTime.data('datetimepicker').getDate()) : utilService.setLocalDayEndTime(new Date());
 
-                                setTimeout(() => {
+                                if (data.expirationTime$ && typeof data.expirationTime$ == 'string'){
+                                    date =  utilService.getLocalTime(new Date(data.expirationTime$));
+                                }
+                                else if(data.expirationTime$ && typeof data.expirationTime$ == 'object'){
+                                    date = new Date(data.expirationTime$.data('datetimepicker').getDate());
+                                }
+                                else{
+                                    date = utilService.setLocalDayEndTime(new Date());
+                                }
 
-                                    data.expirationTime = utilService.createDatePicker(id, {
+                                utilService.actionAfterLoaded((id), function () {
+
+                                    data.expirationTime$ = utilService.createDatePicker(id, {
                                         language: 'en',
                                         format: 'yyyy/MM/dd hh:mm:ss',
                                         startDate: utilService.setLocalDayStartTime(new Date())
                                     });
-                                    data.expirationTime.data('datetimepicker').setDate(date);
+                                    data.expirationTime$.data('datetimepicker').setDate(date);
 
-                                }, 0);
+                                });
                             }
                             collection.push(data);
 
@@ -27392,10 +27401,10 @@ define(['js/app'], function (myApp) {
                 }
                 else if (func == 'remove') {
 
-                    if (data && collection && tab == 'openPromoCodeTemplate' && typeof index != 'undefined') {
+                    if (data && collection && tab == 'openPromoCode' && typeof index != 'undefined') {
 
-                        if (data._id) {
-                            vm.deletedOpenPromoCodeTemplateData.push({_id: data._id, deletedStatus: true});
+                        if (data.code) {
+                            vm.deletedOpenPromoCodeTemplateData.push({name: data.name, code: data.code, type:data.type, deletedStatus: true,  platformObjId: vm.selectedPlatform.id});
                         }
 
                         collection.splice(index, 1);
@@ -27404,9 +27413,19 @@ define(['js/app'], function (myApp) {
                             collection.forEach((p, index)=> {
                                 if (p) {
                                     let id = '#expDateOpenPC' + p.type + '-' + index;
-                                    let date = p.expirationTime ? utilService.getLocalTime(new Date(p.expirationTime)) : utilService.setLocalDayEndTime(new Date());
+                                    let date;
 
-                                    setTimeout(() => {
+                                    if (p.expirationTime && typeof p.expirationTime == 'string'){
+                                        date =  utilService.getLocalTime(new Date(p.expirationTime));
+                                    }
+                                    else if(p.expirationTime && typeof p.expirationTime == 'object'){
+                                        date =  utilService.getLocalTime(new Date(p.expirationTime.data('datetimepicker').getDate()));
+                                    }
+                                    else{
+                                        date = utilService.setLocalDayEndTime(new Date());
+                                    }
+
+                                    utilService.actionAfterLoaded((id), function () {
 
                                         p.expirationTime$ = utilService.createDatePicker(id, {
                                             language: 'en',
@@ -27414,8 +27433,8 @@ define(['js/app'], function (myApp) {
                                             startDate: utilService.setLocalDayStartTime(new Date())
                                         });
                                         p.expirationTime$.data('datetimepicker').setDate(date);
+                                    });
 
-                                    }, 0);
                                 }
                             })
                         }
@@ -27442,10 +27461,12 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.initNewPromoCodeTemplate = function(type, index) {
-
-
+            vm.initNewPromoCodeTemplate = function(type, tag) {
+                
                 if (!vm.promoCodeFieldCheckFlag) {
+
+                    let id;
+                    let date = utilService.setLocalDayEndTime(new Date());
 
                     if (type == 1) {
                         vm.newPromoCodeTemplate1 = {
@@ -27454,19 +27475,13 @@ define(['js/app'], function (myApp) {
                             isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
                         };
 
-                        if (typeof index != 'undefined') {
+                        if (tag == 'openPromoCode') {
 
-                            setTimeout(() => {
-                                let date = utilService.setLocalDayEndTime(new Date());
-                                let id = '#expDateOpenPC' + type + '-' + index;
-
-                                vm.newPromoCodeTemplate1.expirationTime = utilService.createDatePicker(id, {
-                                    language: 'en',
-                                    format: 'yyyy/MM/dd hh:mm:ss',
-                                    startDate: utilService.setLocalDayStartTime(new Date())
-                                });
-                                vm.newPromoCodeTemplate1.expirationTime.data('datetimepicker').setDate(date);
-                            }, 0)
+                            id = "#expDateNewOpenPC1";
+                            utilService.actionAfterLoaded((id), function () {
+                                vm.newPromoCodeTemplate1.expirationTime$ = utilService.createDatePicker(id);
+                                vm.newPromoCodeTemplate1.expirationTime$.data('datetimepicker').setDate(date);
+                            });
                         }
 
                     }
@@ -27477,18 +27492,13 @@ define(['js/app'], function (myApp) {
                             isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
                         };
 
-                        if (typeof index != 'undefined') {
-                            setTimeout(() => {
-                                let date = utilService.setLocalDayEndTime(new Date());
-                                let id = '#expDateOpenPC' + type + '-' + index;
+                        if (tag == 'openPromoCode') {
 
-                                vm.newPromoCodeTemplate2.expirationTime = utilService.createDatePicker(id, {
-                                    language: 'en',
-                                    format: 'yyyy/MM/dd hh:mm:ss',
-                                    startDate: utilService.setLocalDayStartTime(new Date())
-                                });
-                                vm.newPromoCodeTemplate2.expirationTime.data('datetimepicker').setDate(date);
-                            }, 0);
+                            id = "#expDateNewOpenPC2";
+                            utilService.actionAfterLoaded((id), function () {
+                                vm.newPromoCodeTemplate2.expirationTime$ = utilService.createDatePicker(id);
+                                vm.newPromoCodeTemplate2.expirationTime$.data('datetimepicker').setDate(date);
+                            });
                         }
                     }
                     else if (type == 3) {
@@ -27498,18 +27508,13 @@ define(['js/app'], function (myApp) {
                             isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup)
                         };
 
-                        if (typeof index != 'undefined') {
-                            setTimeout(() => {
-                                let date = utilService.setLocalDayEndTime(new Date());
-                                let id = '#expDateOpenPC' + type + '-' + index;
+                        if (tag == 'openPromoCode') {
 
-                                vm.newPromoCodeTemplate3.expirationTime = utilService.createDatePicker(id, {
-                                    language: 'en',
-                                    format: 'yyyy/MM/dd hh:mm:ss',
-                                    startDate: utilService.setLocalDayStartTime(new Date())
-                                });
-                                vm.newPromoCodeTemplate3.expirationTime.data('datetimepicker').setDate(date);
-                            }, 0);
+                            id = "#expDateNewOpenPC3";
+                            utilService.actionAfterLoaded((id), function () {
+                                vm.newPromoCodeTemplate3.expirationTime$ = utilService.createDatePicker(id);
+                                vm.newPromoCodeTemplate3.expirationTime$.data('datetimepicker').setDate(date);
+                            });
                         }
                     }
                 }
@@ -27565,15 +27570,19 @@ define(['js/app'], function (myApp) {
                         if (p) {
                             let usingGroup = p.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
 
-                            if (p.isProviderGroup && p.hasOwnProperty('allowedProviders')) {
-                                p.allowedProviders = p.allowedProviders == '' ? [] : p.allowedProviders;
-                            }
-                            else {
-                                p.allowedProviders = p.allowedProviders && p.allowedProviders.length == usingGroup.length ? [] : p.allowedProviders;
-                                if (p.allowedProviders.length > 0){
-                                    let removedIndex = p.allowedProviders.indexOf("");
-                                    if (removedIndex != -1){
-                                        p.allowedProviders.splice(removedIndex, 1);
+                            if (p.hasOwnProperty('allowedProviders')) {
+                                let usingGroup = p.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
+
+                                if (p.isProviderGroup ) {
+                                    p.allowedProviders = p.allowedProviders == '' ? [] : p.allowedProviders;
+                                }
+                                else {
+                                    p.allowedProviders = p.allowedProviders && p.allowedProviders.length == usingGroup.length ? [] : p.allowedProviders;
+                                    if (p.allowedProviders.length > 0){
+                                        let removedIndex = p.allowedProviders.indexOf("");
+                                        if (removedIndex != -1){
+                                            p.allowedProviders.splice(removedIndex, 1);
+                                        }
                                     }
                                 }
                             }
@@ -27582,11 +27591,12 @@ define(['js/app'], function (myApp) {
                                 if (new Date(p.expirationTime).toISOString() == p.expirationTime$.data('datetimepicker').getLocalDate().toISOString()) {
                                     delete p.expirationTime;
                                     if (p.createTime) {
-                                        delete p.createdTime;
+                                        delete p.createTime;
                                     }
                                 }
                                 else {
                                     p.expirationTime = vm.dateReformat(p.expirationTime$.data('datetimepicker').getLocalDate());
+                                    p.createTime = new Date();
                                 }
 
                                 delete p.expirationTime$
@@ -27619,25 +27629,29 @@ define(['js/app'], function (myApp) {
                         sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
                     }
 
-                    let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
-
-
-                    sendData.expirationTime = vm.dateReformat(sendData.expirationTime.data('datetimepicker').getLocalDate());
+                    sendData.expirationTime = vm.dateReformat(sendData.expirationTime$.data('datetimepicker').getLocalDate());
 
                     sendData.platformObjId = vm.selectedPlatform.id;
-                    if (sendData.allowedProviders) {
-                        if (sendData.isProviderGroup) {
+
+                    if (sendData.hasOwnProperty('allowedProviders')) {
+                        let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
+
+                        if (sendData.isProviderGroup ) {
                             sendData.allowedProviders = sendData.allowedProviders == '' ? [] : sendData.allowedProviders;
                         }
                         else {
                             sendData.allowedProviders = sendData.allowedProviders && sendData.allowedProviders.length == usingGroup.length ? [] : sendData.allowedProviders;
-                            if (sendData.allowedProviders.length > 0) {
+                            if (sendData.allowedProviders.length > 0){
                                 let removedIndex = sendData.allowedProviders.indexOf("");
-                                if (removedIndex != -1) {
+                                if (removedIndex != -1){
                                     sendData.allowedProviders.splice(removedIndex, 1);
                                 }
                             }
                         }
+                    }
+
+                    if (sendData.expirationTime$){
+                        delete sendData.expirationTime$;
                     }
 
                     sendData.type = type;
@@ -27650,23 +27664,22 @@ define(['js/app'], function (myApp) {
                     }).then(ret => {
                         $scope.$evalAsync(()=> {
 
+                            if (col && typeof index == 'number') {
 
+                                col[index].code = ret.data.code;
+                                col[index].expirationTime = ret.data.expirationTime;
+                                col[index].createTime = ret.data.createTime;
 
-
-                            if (type && template) {
-                                loadOpenPromoCodeTemplate();
-                                vm.initNewPromoCodeTemplate(type, template.length);
                             }
-
-                            // if (col && typeof index == 'number') {
-                            //     col[index].code = ret.data;
-                            //
-                            // }
-                            // else {
-                            //     data.code = ret.data;
-                            //     vm.updatePromoCodeTemplateInEdit("add", template, data, type);
-                            //     vm.initNewPromoCodeTemplate(type, template.length)
-                            // }
+                            else {
+                                data.code = ret.data.code;
+                                data.expirationTime = ret.data.expirationTime;
+                                data.createTime = ret.data.createTime;
+                                if (template){
+                                    vm.updatePromoCodeTemplateInEdit("add", template, data, type, "openPromoCode");
+                                    vm.initNewPromoCodeTemplate(type, 'openPromoCode')
+                                }
+                            }
 
                         })
                     }).catch(err=>{
