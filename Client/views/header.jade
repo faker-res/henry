@@ -125,6 +125,7 @@ div.nav-statistic
     span {{ 'Number of Consumer (Day)' | translate}}:{{ profitDetailConsumptionPlayer }} &emsp;
     span {{ 'Withdrawal Amount (Day)' | translate }}: -{{ profitDetailBonusAmount }} &emsp;
     span {{ 'Revenue (Day)' | translate }}: {{ profitDetailIncome }} &emsp;
+    span(ng-if='selectedPlatform.data.financialSettlement && !selectedPlatform.data.financialSettlement.financialSettlementToggle') {{ 'financialPoints' | translate }}: {{ financialPoints | noRoundTwoDecimalPlaces}} &emsp;
 
 ez-modal(modal-id="modalDisplayAdminMails", modal-title="{{'MAIL' | translate}}")
     ez-modal-body
@@ -156,6 +157,21 @@ ez-modal(modal-id="modalDisplayAdminMails", modal-title="{{'MAIL' | translate}}"
                             i.fa.fa-2x.fa-trash
     ez-modal-footer
         ez-normal-button {{"CLOSE" | translate}}
+
+#modalFinancialPointsNotification.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"FINANCIAL_POINTS_NOTIFICATION" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            text {{"Financial points lower than" | translate}} {{selectedPlatform.data.financialSettlement.minFinancialPointsNotification}}
+                            
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="updateFinancialNotificationShowed()") {{"CONFIRM" | translate}}
 
 #modalDisplayActionLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style="width:80%")

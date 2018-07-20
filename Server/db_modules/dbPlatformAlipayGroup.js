@@ -262,7 +262,7 @@ var dbPlatformAlipayGroup = {
         ).then(
             () => {
                 let alipayAccountNumbers = alipayList.map(alipay => alipay.accountNumber);
-                return dbconfig.collection_platformAlipayList.find({platformId: platformId, accountNumber: {$nin: alipayAccountNumbers}}).lean().then(
+                return dbconfig.collection_platformAlipayList.find({platformId: platformId, accountNumber: {$nin: alipayAccountNumbers},  $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]}).lean().then(
                     deletedAlipays => {
                         if(deletedAlipays && deletedAlipays.length > 0) {
                             let deletedAccountNumbers = [];
