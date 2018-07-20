@@ -16,6 +16,8 @@
             span {{"PROMO_CODE_ANALYSIS" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "promoCodeTemplate"}', ng-click='vm.promoCodeTabClicked("promoCodeTemplate")')
             span {{"PROMO_CODE_TEMPLATE" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "openPromoCodeTemplate"}', ng-click='vm.promoCodeTabClicked("openPromoCodeTemplate")')
+            span {{"OPEN_PROMO_CODE_TEMPLATE" | translate}}
     .col-md-12
         .panel.panel-primary
             .panel-heading.panel-heading-sm
@@ -75,7 +77,7 @@
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
-                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last") {{prov.name}}
+                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}', ng-init="$last") {{prov.name}}
                                     select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
@@ -850,7 +852,7 @@
                        tbody
                            tr(ng-repeat= 'promoCode in vm.promoCodeTemplateData | filter: {type: 1} track by $index')
                                td(ng-if="vm.promoCodeTemplateEdit")
-                                   i.fa.fa-minus(ng-click='vm.updatePromoCodeTemplateInEdit("remove", vm.promoCodeTemplateData, {_id: promoCode._id || null, name: promoCode.name || null})')
+                                   i.fa.fa-minus(ng-click='vm.updatePromoCodeTemplateInEdit("remove", vm.promoCodeTemplateData, {_id: promoCode._id || null, name: promoCode.name || null},1, "promoCodeTemplate")')
                                td
                                    div {{promoCode.name}}
 
@@ -876,9 +878,9 @@
                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="!vm.promoCodeTemplateEdit")
                                    text {{'No' | translate}}
                                td
-                                   select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
+                                   select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false' ng-disabled="!vm.promoCodeTemplateEdit")
                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
-                                       option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last") {{prov.name}}
+                                       option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
                                    select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='!vm.promoCodeTemplateEdit')
                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                        option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
@@ -893,7 +895,7 @@
                                td(colspan=12) {{'ADD' | translate}}
                            tr(ng-if='vm.promoCodeTemplateEdit')
                                td
-                                   i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.promoCodeTemplateData, {name: vm.newPromoCodeTemplate1.name, amount: vm.newPromoCodeTemplate1.amount, minTopUpAmount: vm.newPromoCodeTemplate1.minTopUpAmount, requiredConsumption: vm.newPromoCodeTemplate1.requiredConsumption, isSharedWithXIMA: vm.newPromoCodeTemplate1.isSharedWithXIMA, expiredInDay: vm.newPromoCodeTemplate1.expiredInDay, disableWithdraw: vm.newPromoCodeTemplate1.disableWithdraw, allowedProviders: vm.newPromoCodeTemplate1.allowedProviders, bannerText: vm.newPromoCodeTemplate1.bannerText, interMailTitle: vm.newPromoCodeTemplate1.interMailTitle, smsContent: vm.newPromoCodeTemplate1.smsContent, type: 1}, 1); vm.initNewPromoCodeTemplate(1); ')
+                                   i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.promoCodeTemplateData, vm.newPromoCodeTemplate1, 1); vm.initNewPromoCodeTemplate(1); ')
 
                                td
                                    input.form-control(type='text', ng-model='vm.newPromoCodeTemplate1.name')
@@ -920,7 +922,7 @@
                                td
                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='vm.newPromoCodeTemplate1.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
-                                       option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last") {{prov.name}}
+                                       option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay() ") {{prov.name}}
                                    select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="vm.newPromoCodeTemplate1.allowedProviders")
                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                        option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
@@ -948,7 +950,7 @@
                         tbody
                             tr(ng-repeat= 'promoCode in vm.promoCodeTemplateData | filter: {type: 2} track by $index')
                                 td(ng-if="vm.promoCodeTemplateEdit")
-                                    i.fa.fa-minus(ng-click='vm.updatePromoCodeTemplateInEdit("remove", vm.promoCodeTemplateData, {_id: promoCode._id || null, name: promoCode.name || null})')
+                                    i.fa.fa-minus(ng-click='vm.updatePromoCodeTemplateInEdit("remove", vm.promoCodeTemplateData, {_id: promoCode._id || null, name: promoCode.name || null},2, "promoCodeTemplate")')
                                 td
                                     div {{promoCode.name}}
                                 td
@@ -970,9 +972,9 @@
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="!vm.promoCodeTemplateEdit")
                                     text {{'No' | translate}}
                                 td
-                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
+                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false' ng-disabled="!vm.promoCodeTemplateEdit")
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
-                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last") {{prov.name}}
+                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
                                     select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='!vm.promoCodeTemplateEdit')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
@@ -987,7 +989,7 @@
                                 td(colspan=12) {{'ADD' | translate}}
                             tr(ng-if='vm.promoCodeTemplateEdit')
                                 td
-                                    i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.promoCodeTemplateData, {name: vm.newPromoCodeTemplate2.name, amount: vm.newPromoCodeTemplate2.amount, requiredConsumption: vm.newPromoCodeTemplate2.requiredConsumption, isSharedWithXIMA: vm.newPromoCodeTemplate2.isSharedWithXIMA, expiredInDay: vm.newPromoCodeTemplate2.expiredInDay, disableWithdraw: vm.newPromoCodeTemplate2.disableWithdraw, allowedProviders: vm.newPromoCodeTemplate2.allowedProviders, bannerText: vm.newPromoCodeTemplate2.bannerText, interMailTitle: vm.newPromoCodeTemplate2.interMailTitle, smsContent: vm.newPromoCodeTemplate2.smsContent, type: 2}, 2); vm.initNewPromoCodeTemplate(2); ')
+                                    i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.promoCodeTemplateData, vm.newPromoCodeTemplate2, 2); vm.initNewPromoCodeTemplate(2); ')
 
                                 td
                                     input.form-control(type='text', ng-model='vm.newPromoCodeTemplate2.name')
@@ -1012,7 +1014,7 @@
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='vm.newPromoCodeTemplate2.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
-                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last") {{prov.name}}
+                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
                                     select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="vm.newPromoCodeTemplate2.allowedProviders")
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
@@ -1042,7 +1044,7 @@
                         tbody
                             tr(ng-repeat= 'promoCode in vm.promoCodeTemplateData | filter: {type: 3} track by $index')
                                 td(ng-if="vm.promoCodeTemplateEdit")
-                                    i.fa.fa-minus(ng-click='vm.updatePromoCodeTemplateInEdit("remove", vm.promoCodeTemplateData, {_id: promoCode._id || null, name: promoCode.name || null})')
+                                    i.fa.fa-minus(ng-click='vm.updatePromoCodeTemplateInEdit("remove", vm.promoCodeTemplateData, {_id: promoCode._id || null, name: promoCode.name || null},3,"promoCodeTemplate")')
                                 td
                                     div {{promoCode.name}}
                                 td
@@ -1068,9 +1070,9 @@
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="!vm.promoCodeTemplateEdit")
                                     text {{'No' | translate}}
                                 td
-                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
+                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false' ng-disabled="!vm.promoCodeTemplateEdit")
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
-                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last") {{prov.name}}
+                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
                                     select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='!vm.promoCodeTemplateEdit')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
@@ -1085,7 +1087,7 @@
                                 td(colspan=12) {{'ADD' | translate}}
                             tr(ng-if='vm.promoCodeTemplateEdit')
                                 td
-                                    i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.promoCodeTemplateData, {name: vm.newPromoCodeTemplate3.name, amount: vm.newPromoCodeTemplate3.amount, minTopUpAmount: vm.newPromoCodeTemplate3.minTopUpAmount, maxRewardAmount: vm.newPromoCodeTemplate3.maxRewardAmount, requiredConsumption: vm.newPromoCodeTemplate3.requiredConsumption, isSharedWithXIMA: vm.newPromoCodeTemplate3.isSharedWithXIMA, expiredInDay: vm.newPromoCodeTemplate3.expiredInDay, disableWithdraw: vm.newPromoCodeTemplate3.disableWithdraw, allowedProviders: vm.newPromoCodeTemplate3.allowedProviders, bannerText: vm.newPromoCodeTemplate3.bannerText, interMailTitle: vm.newPromoCodeTemplate3.interMailTitle, smsContent: vm.newPromoCodeTemplate3.smsContent, type: 3}, 3); vm.initNewPromoCodeTemplate(3); ')
+                                    i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.promoCodeTemplateData, vm.newPromoCodeTemplate3, 3); vm.initNewPromoCodeTemplate(3); ')
 
                                 td
                                     input.form-control(type='text', ng-model='vm.newPromoCodeTemplate3.name')
@@ -1114,7 +1116,7 @@
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='vm.newPromoCodeTemplate3.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
-                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last") {{prov.name}}
+                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
                                     select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="vm.newPromoCodeTemplate3.allowedProviders")
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
@@ -1126,7 +1128,7 @@
                                     input.form-control(type='text', ng-model='vm.newPromoCodeTemplate3.smsContent')
                    br
                    .pull-right
-                       button.btn.btn-primary.common-button(ng-if="!vm.promoCodeTemplateEdit && checkViewPermission('Platform', 'promoCode', 'promoCodeTemplate')", ng-click='vm.promoCodeTemplateEdit=!vm.promoCodeTemplateEdit; vm.initNewPromoCodeTemplate()')
+                       button.btn.btn-primary.common-button(ng-if="!vm.promoCodeTemplateEdit && checkViewPermission('Platform', 'promoCode', 'promoCodeTemplate')", ng-click='vm.promoCodeTemplateEdit=!vm.promoCodeTemplateEdit; vm.initNewPromoCodeTemplate(1); vm.initNewPromoCodeTemplate(2); vm.initNewPromoCodeTemplate(3)')
                            text {{'EDIT' | translate}}
                            img.img-edit
                        button.btn.btn-danger.common-button(ng-if='vm.promoCodeTemplateEdit', ng-click='vm.promoCodeTemplateEdit=false; vm.promoCodeTabClicked("promoCodeTemplate")') {{"CANCEL" | translate}}
@@ -1141,6 +1143,356 @@
                                td(style="text-align:center;") {{ i | translate }}
                                td(style="text-align:center;") ({{ v }})
 
+                 //Tab - Open Promo Code Template
+                div(ng-if='vm.selectedPromoCodeTab == "openPromoCodeTemplate" && checkViewPermission("Platform", "promoCode", "openPromoCodeTemplate")')
+                    table.simple-table(style="margin-top:20px; display:block; white-space:pre-wrap; word-wrap:break-word;")
+                        thead
+                            tr
+                                th(style="width:2%", ng-if='vm.openPromoCodeTemplateEdit') {{"ACTION_BUTTON" | translate}}
+                                th(style="width:10%") {{"PROMO_CODE_TYPE_1" | translate}}
+                                th(style="width:6%") {{"PROMO_REWARD_AMOUNT_1" | translate}}
+                                th(style="width:6%") {{"PROMO_minTopUpAmount" | translate}}
+                                th(style="width:6%") {{"PROMO_CONSUMPTION_1" | translate}}
+                                th(style="width:6%") {{"SHARE_WITH_XIMA" | translate}}
+                                th(style="width:10%%") {{"PROMO_DUE_DATE" | translate}}
+                                th(style="width:6%") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                                th(style="width:10%") {{"ALLOWED_PROVIDER" | translate}}
+                                th(style="width:8%") {{"PROMO_CODE" | translate}}
+                                th {{"REMARKS" | translate}}
+                                th(style="width:6%") {{"RECEIVED_UPPER_LIMIT_FOR_INDIVIDUAL" | translate}}
+                                th(style="width:6%") {{"TOTAL_SENDING_LIMIT" | translate}}
+                        tbody
+                            tr(ng-repeat= 'promoCode in vm.openPromoCodeTemplate1 track by $index')
+                                td(ng-if="vm.openPromoCodeTemplateEdit")
+                                    i.fa.fa-minus(ng-click=' vm.updatePromoCodeTemplateInEdit("remove", vm.openPromoCodeTemplate1, promoCode, 1, "openPromoCode", $index)')
+                                td
+                                    div {{promoCode.name}}
+                                td
+                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model="promoCode.minTopUpAmount", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "true", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                    text {{'Yes' | translate}}
+                                    br
+                                    input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "false", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                    text {{'No' | translate}}
+                                td
+                                    div(id="expDateOpenPC1-{{$index}}", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "true", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                    text {{'Yes' | translate}}
+                                    br
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                    text {{'No' | translate}}
+                                td
+                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false' ng-disabled='!vm.openPromoCodeTemplateEdit')
+                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
+                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
+                                    select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='!vm.openPromoCodeTemplateEdit')
+                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
+                                        option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
+                                td
+                                    text(ng-if="promoCode.code") {{promoCode.code}}
+                                    button.btn.btn-primary(ng-if="!promoCode.code", ng-click= 'vm.generateOpenPromoCode(vm.openPromoCodeTemplate1, $index, promoCode, 1);')
+                                        text {{'GENERATE' | translate}}
+                                td
+                                    input.form-control(type='string', ng-model="promoCode.remark", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model="promoCode.applyLimitPerPlayer", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model='promoCode.totalApplyLimit', ng-disabled="!vm.openPromoCodeTemplateEdit")
+                            tr(ng-if='vm.openPromoCodeTemplateEdit')
+                                td(colspan=13) {{'ADD' | translate}}
+                            tr(ng-if='vm.openPromoCodeTemplateEdit')
+                                td
+                                    i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.openPromoCodeTemplate1, vm.newPromoCodeTemplate1, 1, "openPromoCode"); vm.initNewPromoCodeTemplate(1, "openPromoCode"); ')
+
+                                td
+                                    input.form-control(type='text', ng-model='vm.newPromoCodeTemplate1.name')
+                                td
+                                    input.form-control(type='number', ng-model='vm.newPromoCodeTemplate1.amount')
+                                td
+                                    input.form-control(type='number', ng-model="vm.newPromoCodeTemplate1.minTopUpAmount")
+                                td
+                                    input.form-control(type='number', ng-model='vm.newPromoCodeTemplate1.requiredConsumption')
+                                td
+                                    input(type="radio", ng-model="vm.newPromoCodeTemplate1.isSharedWithXIMA", ng-value = "true")
+                                    text {{'Yes' | translate}}
+                                    br
+                                    input(type="radio", ng-model="vm.newPromoCodeTemplate1.isSharedWithXIMA", ng-value = "false")
+                                    text {{'No' | translate}}
+                                td
+                                    div(id="expDateNewOpenPC1", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                    //div(id="expDateNewOpenPC1-{{vm.openPromoCodeTemplate1.length}}", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input(type="radio", ng-model="vm.newPromoCodeTemplate1.disableWithdraw", ng-value = "true")
+                                    text {{'Yes' | translate}}
+                                    br
+                                    input(type="radio", ng-model="vm.newPromoCodeTemplate1.disableWithdraw", ng-value = "false")
+                                    text {{'No' | translate}}
+                                td
+                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='vm.newPromoCodeTemplate1.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
+                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
+                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
+                                    select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="vm.newPromoCodeTemplate1.allowedProviders")
+                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
+                                        option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
+                                td
+                                    button.btn.btn-primary(ng-if="!promoCode.code", ng-click='vm.generateOpenPromoCode(null, null, vm.newPromoCodeTemplate1, 1, vm.openPromoCodeTemplate1);')
+                                        text {{'GENERATE' | translate}}
+
+                                td
+                                    input.form-control(type='text', ng-model="vm.newPromoCodeTemplate1.remark", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model="vm.newPromoCodeTemplate1.applyLimitPerPlayer", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model='vm.newPromoCodeTemplate1.totalApplyLimit', ng-disabled="!vm.openPromoCodeTemplateEdit")
+
+                    br
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-click = "vm.generateAllOpenPromoCode(vm.openPromoCodeTemplate1, 1)", ng-if = "vm.openPromoCodeTemplateEdit && vm.openPromoCodeTemplate1.length  > 0")
+                            text {{'GENERATE_ALL' | translate}}
+                            img.img-create
+                    table.simple-table(style="margin-top:80px; display:block; white-space:pre-wrap; word-wrap:break-word;")
+                        thead
+                            tr
+                                th(style="width:2%", ng-if='vm.openPromoCodeTemplateEdit') {{"ACTION_BUTTON" | translate}}
+                                th(style="width:10%") {{"PROMO_CODE_TYPE_2" | translate}}
+                                th(style="width:6%") {{"PROMO_REWARD_AMOUNT_2" | translate}}
+                                th(style="width:6%") {{"PROMO_CONSUMPTION_2" | translate}}
+                                th(style="width:6%") {{"SHARE_WITH_XIMA" | translate}}
+                                th(style="width:10%%") {{"PROMO_DUE_DATE" | translate}}
+                                th(style="width:6%") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                                th(style="width:10%") {{"ALLOWED_PROVIDER" | translate}}
+                                th(style="width:8%") {{"PROMO_CODE" | translate}}
+                                th {{"REMARKS" | translate}}
+                                th(style="width:6%") {{"RECEIVED_UPPER_LIMIT_FOR_INDIVIDUAL" | translate}}
+                                th(style="width:6%") {{"TOTAL_SENDING_LIMIT" | translate}}
+                        tbody
+                            tr(ng-repeat= 'promoCode in vm.openPromoCodeTemplate2 track by $index')
+                                td(ng-if="vm.openPromoCodeTemplateEdit")
+                                    i.fa.fa-minus(ng-click=' vm.updatePromoCodeTemplateInEdit("remove", vm.openPromoCodeTemplate2, promoCode, 1, "openPromoCode", $index)')
+                                td
+                                    div {{promoCode.name}}
+                                td
+                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "true", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                    text {{'Yes' | translate}}
+                                    br
+                                    input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "false", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                    text {{'No' | translate}}
+                                td
+                                    div(id="expDateOpenPC2-{{$index}}", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "true", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                    text {{'Yes' | translate}}
+                                    br
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                    text {{'No' | translate}}
+                                td
+                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false' ng-disabled='!vm.openPromoCodeTemplateEdit')
+                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
+                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
+                                    select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='!vm.openPromoCodeTemplateEdit')
+                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
+                                        option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
+                                td
+                                    text(ng-if="promoCode.code") {{promoCode.code}}
+                                    button.btn.btn-primary(ng-if="!promoCode.code", ng-click= 'vm.generateOpenPromoCode(vm.openPromoCodeTemplate2, $index, promoCode, 2);')
+                                        text {{'GENERATE' | translate}}
+                                td
+                                    input.form-control(type='string', ng-model="promoCode.remark", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model="promoCode.applyLimitPerPlayer", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model='promoCode.totalApplyLimit', ng-disabled="!vm.openPromoCodeTemplateEdit")
+                            tr(ng-if='vm.openPromoCodeTemplateEdit')
+                                td(colspan=13) {{'ADD' | translate}}
+                            tr(ng-if='vm.openPromoCodeTemplateEdit')
+                                td
+                                    i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.openPromoCodeTemplate2, vm.newPromoCodeTemplate2, 2,"openPromoCode"); vm.initNewPromoCodeTemplate(2, "openPromoCode"); ')
+
+                                td
+                                    input.form-control(type='text', ng-model='vm.newPromoCodeTemplate2.name')
+                                td
+                                    input.form-control(type='number', ng-model='vm.newPromoCodeTemplate2.amount')
+                                td
+                                    input.form-control(type='number', ng-model='vm.newPromoCodeTemplate2.requiredConsumption')
+                                td
+                                    input(type="radio", ng-model="vm.newPromoCodeTemplate2.isSharedWithXIMA", ng-value = "true")
+                                    text {{'Yes' | translate}}
+                                    br
+                                    input(type="radio", ng-model="vm.newPromoCodeTemplate2.isSharedWithXIMA", ng-value = "false")
+                                    text {{'No' | translate}}
+                                td
+                                    div(id="expDateNewOpenPC2", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input(type="radio", ng-model="vm.newPromoCodeTemplate2.disableWithdraw", ng-value = "true")
+                                    text {{'Yes' | translate}}
+                                    br
+                                    input(type="radio", ng-model="vm.newPromoCodeTemplate2.disableWithdraw", ng-value = "false")
+                                    text {{'No' | translate}}
+                                td
+                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='vm.newPromoCodeTemplate2.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
+                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
+                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
+                                    select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="vm.newPromoCodeTemplate2.allowedProviders")
+                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
+                                        option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
+                                td
+                                    button.btn.btn-primary(ng-if="!promoCode.code", ng-click='vm.generateOpenPromoCode(null, null, vm.newPromoCodeTemplate2, 2, vm.openPromoCodeTemplate2);')
+                                        text {{'GENERATE' | translate}}
+
+                                td
+                                    input.form-control(type='text', ng-model="vm.newPromoCodeTemplate2.remark", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model="vm.newPromoCodeTemplate2.applyLimitPerPlayer", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model='vm.newPromoCodeTemplate2.totalApplyLimit', ng-disabled="!vm.openPromoCodeTemplateEdit")
+                    br
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-click = "vm.generateAllOpenPromoCode(vm.openPromoCodeTemplate2, 2)", ng-if = "vm.openPromoCodeTemplateEdit && vm.openPromoCodeTemplate2.length  > 0")
+                            text {{'GENERATE_ALL' | translate}}
+                            img.img-create
+                    table.simple-table(style="margin-top:80px; display:block; white-space:pre-wrap; word-wrap:break-word;")
+                        thead
+                            tr
+                                th(style="width:2%", ng-if='vm.openPromoCodeTemplateEdit') {{"ACTION_BUTTON" | translate}}
+                                th(style="width:10%") {{"PROMO_CODE_TYPE_3" | translate}}
+                                th(style="width:6%") {{"PROMO_REWARD_%" | translate}}
+                                th(style="width:6%") {{"PROMO_minTopUpAmount" | translate}}
+                                th(style="width:6%") {{"PROMO_maxTopUpAmount" | translate}}
+                                th(style="width:6%") {{"PROMO_CONSUMPTION_3" | translate}}
+                                th(style="width:4%") {{"SHARE_WITH_XIMA" | translate}}
+                                th(style="width:10%%") {{"PROMO_DUE_DATE" | translate}}
+                                th(style="width:4%") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
+                                th(style="width:10%") {{"ALLOWED_PROVIDER" | translate}}
+                                th(style="width:8%") {{"PROMO_CODE" | translate}}
+                                th {{"REMARKS" | translate}}
+                                th(style="width:6%") {{"RECEIVED_UPPER_LIMIT_FOR_INDIVIDUAL" | translate}}
+                                th(style="width:6%") {{"TOTAL_SENDING_LIMIT" | translate}}
+                        tbody
+                            tr(ng-repeat= 'promoCode in vm.openPromoCodeTemplate3 track by $index')
+                                td(ng-if="vm.openPromoCodeTemplateEdit")
+                                    i.fa.fa-minus(ng-click=' vm.updatePromoCodeTemplateInEdit("remove", vm.openPromoCodeTemplate3, promoCode, 3, "openPromoCode", $index)')
+                                td
+                                    div {{promoCode.name}}
+                                td
+                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model="promoCode.minTopUpAmount", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model="promoCode.maxRewardAmount", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "true", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                    text {{'Yes' | translate}}
+                                    br
+                                    input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "false", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                    text {{'No' | translate}}
+                                td
+                                    div(id="expDateOpenPC3-{{$index}}", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "true", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                    text {{'Yes' | translate}}
+                                    br
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                    text {{'No' | translate}}
+                                td
+                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false' ng-disabled='!vm.openPromoCodeTemplateEdit')
+                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
+                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
+                                    select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='!vm.openPromoCodeTemplateEdit')
+                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
+                                        option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
+                                td
+                                    text(ng-if="promoCode.code") {{promoCode.code}}
+                                    button.btn.btn-primary(ng-if="!promoCode.code", ng-click= 'vm.generateOpenPromoCode(vm.openPromoCodeTemplate3, $index, promoCode, 3);')
+                                        text {{'GENERATE' | translate}}
+                                td
+                                    input.form-control(type='string', ng-model="promoCode.remark", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model="promoCode.applyLimitPerPlayer", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model='promoCode.totalApplyLimit', ng-disabled="!vm.openPromoCodeTemplateEdit")
+                            tr(ng-if='vm.openPromoCodeTemplateEdit')
+                                td(colspan=14) {{'ADD' | translate}}
+                            tr(ng-if='vm.openPromoCodeTemplateEdit')
+                                td
+                                    i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.openPromoCodeTemplate3, vm.newPromoCodeTemplate3, 3, "openPromoCode"); vm.initNewPromoCodeTemplate(3, "openPromoCode"); ')
+
+                                td
+                                    input.form-control(type='text', ng-model='vm.newPromoCodeTemplate3.name')
+                                td
+                                    input.form-control(type='number', ng-model='vm.newPromoCodeTemplate3.amount')
+                                td
+                                    input.form-control(type='number', ng-model="vm.newPromoCodeTemplate3.minTopUpAmount")
+                                td
+                                    input.form-control(type='number', ng-model="vm.newPromoCodeTemplate3.maxRewardAmount", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model='vm.newPromoCodeTemplate3.requiredConsumption')
+                                td
+                                    input(type="radio", ng-model="vm.newPromoCodeTemplate3.isSharedWithXIMA", ng-value = "true")
+                                    text {{'Yes' | translate}}
+                                    br
+                                    input(type="radio", ng-model="vm.newPromoCodeTemplate3.isSharedWithXIMA", ng-value = "false")
+                                    text {{'No' | translate}}
+                                td
+                                    div(id="expDateNewOpenPC3", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input(type="radio", ng-model="vm.newPromoCodeTemplate3.disableWithdraw", ng-value = "true")
+                                    text {{'Yes' | translate}}
+                                    br
+                                    input(type="radio", ng-model="vm.newPromoCodeTemplate3.disableWithdraw", ng-value = "false")
+                                    text {{'No' | translate}}
+                                td
+                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='vm.newPromoCodeTemplate3.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
+                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
+                                        option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
+                                    select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="vm.newPromoCodeTemplate3.allowedProviders")
+                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
+                                        option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
+                                td
+                                    button.btn.btn-primary(ng-if="!promoCode.code", ng-click='vm.generateOpenPromoCode(null, null, vm.newPromoCodeTemplate3, 3, vm.openPromoCodeTemplate3);')
+                                        text {{'GENERATE' | translate}}
+
+                                td
+                                    input.form-control(type='text', ng-model="vm.newPromoCodeTemplate3.remark", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model="vm.newPromoCodeTemplate3.applyLimitPerPlayer", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model='vm.newPromoCodeTemplate3.totalApplyLimit', ng-disabled="!vm.openPromoCodeTemplateEdit")
+
+                    br
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-click = "vm.generateAllOpenPromoCode(vm.openPromoCodeTemplate3, 3)", ng-if = "vm.openPromoCodeTemplateEdit && vm.openPromoCodeTemplate1.length  > 0")
+                            text {{'GENERATE_ALL' | translate}}
+                            img.img-create
+                    br
+                    br
+                    br
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-if="!vm.openPromoCodeTemplateEdit && checkViewPermission('Platform', 'promoCode', 'openPromoCodeTemplate')", ng-click='vm.openPromoCodeTemplateEdit=!vm.openPromoCodeTemplateEdit; vm.initNewPromoCodeTemplate(1, "openPromoCode"); vm.initNewPromoCodeTemplate(2, "openPromoCode"); vm.initNewPromoCodeTemplate(3, "openPromoCode");vm.reloadOpenPromoCodeTemplateDate();')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if='vm.openPromoCodeTemplateEdit', ng-click='vm.openPromoCodeTemplateEdit=false; vm.promoCodeTabClicked("openPromoCodeTemplate")') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.openPromoCodeTemplateEdit', ng-disabled='vm.smsTitleDuplicationBoolean', ng-click='vm.openPromoCodeTemplateEdit=!vm.openPromoCodeTemplateEdit;vm.configSubmitUpdate("openPromoCodeTemplate")') {{"CONFIRM" | translate}}
+                    br
+                    table.playerLvlTable(style="width:22%")
+                        thead
+                            tr
+                                th(colspan=2) {{"PROMO_CODE_LEGEND" | translate}} {{": "}} {{ "Please include '( )' when slot into sms content" | translate}}
+                        tbody
+                            tr(ng-repeat="(i, v) in constPromoCodeLegend")
+                                td(style="text-align:center;") {{ i | translate }}
+                                td(style="text-align:center;") ({{ v }})
 
 
 

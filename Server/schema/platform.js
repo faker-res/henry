@@ -435,6 +435,8 @@ var platformSchema = new Schema({
         minFinancialPointsNotification: {type: Number, default: 0},
         // financial settlement minimum point notification switch
         financialPointsNotification: {type: Boolean, default: false},
+        // financial settlement notification showed
+        financialPointsNotificationShowed: {type: Boolean, default: false},
         // financial settlement minimum point to disable withdrawal
         minFinancialPointsDisableWithdrawal: {type: Number, default: 0},
         // financial settlement minimum point to disable withdrawal switch

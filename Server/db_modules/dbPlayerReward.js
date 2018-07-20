@@ -2410,6 +2410,9 @@ let dbPlayerReward = {
         platformObjId: ObjectId(platformObjId)
     }).lean(),
 
+    getOpenPromoCodeTemplate: (platformObjId) => dbConfig.collection_openPromoCodeTemplate.find({
+        platformObjId: ObjectId(platformObjId)
+    }).lean(),
 
     updatePromoCodeTemplate: (platformObjId, promoCodeTemplate) => {
         let prom = [];
@@ -2422,7 +2425,7 @@ let dbPlayerReward = {
                     delete entry.__v;
                 }
 
-                if (entry._id && entry.status && entry.status == 'removed') {
+                if (entry._id && entry.deletedStatus) {
 
                     prom.push(dbConfig.collection_promoCodeTemplate.remove({
                         _id: ObjectId(entry._id)
@@ -2435,6 +2438,53 @@ let dbPlayerReward = {
                     }
 
                     prom.push(dbConfig.collection_promoCodeTemplate.findOneAndUpdate(
+                        {
+                            platformObjId: platformObjId,
+                            name: entry.name,
+                            type: entry.type,
+                        },
+                        entry,
+                        {upsert: true, setDefaultsOnInsert: true}
+                    ));
+                }
+            }
+
+        });
+
+        return Promise.all(prom);
+    },
+
+    updateOpenPromoCodeTemplate: (platformObjId, promoCodeTemplate) => {
+        let prom = [];
+
+        promoCodeTemplate.forEach(entry => {
+
+            if (entry) {
+
+                if (entry.hasOwnProperty("__v")) {
+                    delete entry.__v;
+                }
+
+                if (entry.deletedStatus) {
+
+                    prom.push(dbConfig.collection_openPromoCodeTemplate.remove({
+                        name: entry.name,
+                        code: entry.code,
+                        type: entry.type,
+                        platformObjId: entry.platformObjId
+                    }))
+                }
+                else {
+
+                    if (entry._id) {
+                        delete entry._id;
+                    }
+
+                    if (entry.code) {
+                        delete entry.code;
+                    }
+
+                    prom.push(dbConfig.collection_openPromoCodeTemplate.findOneAndUpdate(
                         {
                             platformObjId: platformObjId,
                             name: entry.name,
@@ -2529,6 +2579,43 @@ let dbPlayerReward = {
         ).catch(
             err => {
                 dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
+                throw err;
+            }
+        )
+    },
+
+    generateOpenPromoCode: (platformObjId, newPromoCodeEntry, adminObjId, adminName) => {
+
+        newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(100, 999);
+        newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
+        newPromoCodeEntry.adminId = adminObjId;
+        newPromoCodeEntry.adminName = adminName;
+
+        return dbConfig.collection_promoCodeActiveTime.findOne({
+            platform: platformObjId,
+            startTime: {$lt: new Date()},
+            endTime: {$gt: new Date()}
+        }).lean().then(activeTimeRes => {
+
+            if (activeTimeRes) {
+                newPromoCodeEntry.isActive = true;
+            }
+
+            return new dbConfig.collection_openPromoCodeTemplate(newPromoCodeEntry).save();
+
+        }).then (newPromoCode => {
+            if (newPromoCode) {
+                // if (newPromoCodeEntry.allowedSendSms && player.smsSetting && player.smsSetting.PromoCodeSend) {
+                //     SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
+                // }
+                // messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName, adminObjId);
+                // dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
+                return newPromoCode;
+            }
+
+        }).catch(
+            err => {
+                // dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
                 throw err;
             }
         )
