@@ -1714,7 +1714,7 @@ let dbPlayerCreditTransfer = {
                                 providerGroup: group._id,
                                 status: constRewardTaskStatus.STARTED
                             }).lean().then(RTG => {
-                                if(RTG) {
+                                if(RTG || gameCredit.wallet[group.ebetWallet] > 0) {
                                     transferOut = transferOut.then(() => {
                                         return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(group, playerObjId, platform, providerId,
                                             amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
