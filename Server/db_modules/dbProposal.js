@@ -354,12 +354,6 @@ var proposal = {
                     }
 
                     // SCHEDULED AUTO APPROVAL
-                    if ((proposalTypeData.name == constProposalType.FINANCIAL_POINTS_DEDUCT || proposalTypeData.name == constProposalType.FINANCIAL_POINTS_ADD) &&
-                        [constFinancialPointsType.FINANCIAL_POINTS_ADD_SYSTEM, constFinancialPointsType.FINANCIAL_POINTS_DEDUCT_SYSTEM].indexOf(proposalData.data.financialPointsType) < 0) {
-                        bExecute = false;
-                        proposalData.status = constProposalStatus.APPROVED;
-                    }
-
                     if (proposalTypeData.name == constProposalType.PLAYER_BONUS && proposalData.data.isAutoApproval) {
                         proposalData.status = constProposalStatus.AUTOAUDIT;
                     }
@@ -4440,6 +4434,10 @@ var proposal = {
             return [data[0], data[1], data[2], data[3], data[4], data[5]];
 
         });
+    },
+
+    updateProposalData: (query, updateData) => {
+        return dbconfig.collection_proposal.update(query,updateData).lean();
     },
 
     getSpecificProposalTypeByName: (platform, proposalType) => {
