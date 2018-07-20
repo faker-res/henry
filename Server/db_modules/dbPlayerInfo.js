@@ -1243,7 +1243,7 @@ let dbPlayerInfo = {
             data => {
                 if (data.isPlayerNameValid) {
                     // check player name must start with prefix
-                    if ( pName.indexOf(pPrefix) === 0) {
+                    if (!pPrefix || pName.indexOf(pPrefix) === 0) {
                         return {isPlayerPrefixValid: true};
                     } else {
                         return {isPlayerPrefixValid: false};
@@ -1478,7 +1478,7 @@ let dbPlayerInfo = {
                     let proms = [];
                     let playerUpdateData = {
                         // playerLevel: data[0]._id,
-                        playerId: (data[1].prefix + playerData.playerId)
+                        playerId: (/*data[1].prefix +*/ playerData.playerId)
                     };
                     if (!bFromBI) {
                         playerUpdateData.playerLevel = data[0]._id;
