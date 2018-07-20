@@ -9072,7 +9072,7 @@ function getPlayerCommissionWithdrawDetail (playerObjId, startTime, endTime) {
     );
 }
 
-function getAllPlayersCommissionTopUpDetail (partnerId, platformId, startTime, endTime, topUpTypes) {
+function getAllPlayersCommissionTopUpDetail (partnerId, platformId, startTime, endTime) {
     let platform = {};
     let downLines = [];
     return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
@@ -9126,8 +9126,7 @@ function getAllPlayersCommissionTopUpDetail (partnerId, platformId, startTime, e
                 },
                 {
                     "$group": {
-                        "_id": {type: "$type", playerId: "$data.playerObjId"},
-                        "typeId": {"$first": "$type"},
+                        "_id": {playerId: "$data.playerObjId"},
                         "topUpTimes": {"$sum": 1},
                         "topUpAmount": {"$sum": "$data.amount"}
                     }
