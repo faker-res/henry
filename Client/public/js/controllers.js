@@ -423,10 +423,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             },
             platformName: v.name
         };
-        if (v.financialSettlement && !v.financialSettlement.financialSettlementToggle) {
-            let points = v.financialPoints || 0;
-            obj.text = obj.text + " (" + points + ")";
-        }
+
         return obj;
     };
 
@@ -1695,13 +1692,23 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     $scope.PROPOSAL_SEARCH_MAX_TIME_FRAME = 604800000 // 7 days ( 7 * (1000*3600*24))
 
+    function updateFinancialNotificationShowed() {
+        let sendData = {
+            query: {_id: $scope.selectedPlatform.id},
+            updateData: {
+                "financialSettlement.financialPointsNotificationShowed": true
+            }
+        }
+        socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function success(data) {});
+    }
+
     var callBackTimeOut;
     var profileDetailTimeOut;
     function loadProfitDetail() {
         clearTimeout(callBackTimeOut);
         clearTimeout(profileDetailTimeOut);
         console.log("Update the ProfitDisplayingTable")
-        let queryDone = [false, false, false, false];
+        let queryDone = [false, false, false, false, false];
         let sendData = {
             platformId: $scope.selectedPlatform.id,
             startDate: utilService.getTodayStartTime(),
@@ -1779,11 +1786,24 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             })
         });
 
+        socketService.$socket($scope.AppSocket, 'getOnePlatformSetting', {_id: $scope.selectedPlatform.id}, function success(data) {
+            $scope.$evalAsync(() => {
+                $scope.financialPoints = data.data.financialPoints || 0;
+                if (data.data.hasOwnProperty("financialPoints") && data.data.financialSettlement && data.data.financialSettlement.hasOwnProperty("minFinancialPointsNotification")
+                    && data.data.financialSettlement.financialPointsNotification && !data.data.financialSettlement.financialPointsNotificationShowed && data.data.financialPoints < data.data.financialSettlement.minFinancialPointsNotification) {
+                    $("#modalFinancialPointsNotification").modal('show');
+                    updateFinancialNotificationShowed();
+                }
+
+                queryDone[4] = true;
+            })
+        });
+
         callback();
 
         function callback() {
 
-            if (queryDone[0] && queryDone[1] && queryDone[2] && queryDone[3] ){
+            if (queryDone[0] && queryDone[1] && queryDone[2] && queryDone[3] && queryDone[4]){
                 profileDetailTimeOut = setTimeout(loadProfitDetail, 60000);
                 return profileDetailTimeOut; // update every minute
             }

@@ -27603,6 +27603,11 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (vm.selectedPlatform.data.financialSettlement && (vm.selectedPlatform.data.financialSettlement.minFinancialPointsNotification != srcData.minFinancialPointsNotification)
+                    || (financialPointsNotification == true && vm.selectedPlatform.data.financialSettlement.financialPointsNotification != financialPointsNotification)) {
+                    sendData.updateData["financialSettlement.financialPointsNotificationShowed"] = false; //reset financial points notification
+                }
+
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                     loadPlatformData({loadAll: false});
                 });

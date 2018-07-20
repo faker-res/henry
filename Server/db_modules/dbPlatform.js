@@ -408,6 +408,10 @@ var dbPlatform = {
         return dbconfig.collection_platform.find(query);
     },
 
+    getOnePlatformSetting: function (query) {
+        return dbconfig.collection_platform.findOne(query).lean()
+    },
+
     /**
      * Delete platform by object _id of the platform schema
      * @param {array}  platformObjIds - The object _ids of the platform
