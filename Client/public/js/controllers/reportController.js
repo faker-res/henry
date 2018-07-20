@@ -5042,7 +5042,7 @@ define(['js/app'], function (myApp) {
                         vm.newPlayerQuery.partnerNewPlayerData = vm.calculateNewPlayerData(partnerPlayers, $translate('total'), partnerPlayers.length);
                         vm.newPlayerQuery.partnerAnalysisNewPlayerData = vm.platformPartner.map(
                             partner => {
-                                let partnerNewPlayers = partnerPlayers.filter(player => player.partner._id.toString() == partner._id.toString());
+                                let partnerNewPlayers = partnerPlayers.filter(player => player.partner && player.partner._id.toString() == partner._id.toString());
                                 return vm.calculateNewPlayerData(partnerNewPlayers, partner.partnerName, vm.newPlayerQuery.partnerNewPlayerData.validPlayer);
                             }
                         );
