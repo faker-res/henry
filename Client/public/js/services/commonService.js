@@ -132,6 +132,10 @@ define([], () => {
             return $scope.$socketPromise('getAllPlayerFeedbackTopics').then(data => data.data)
         };
 
+        self.getAllPlayerLevels = function ($scope, platformObjId) {
+            return $scope.$socketPromise('getPlayerLevelByPlatformId', {platformId: platformObjId}).then(data => data.data)
+        };
+
         self.getAllPartnerFeedbackResults = function ($scope) {
             return $scope.$socketPromise('getAllPartnerFeedbackResults').then(data => data.data)
         };
