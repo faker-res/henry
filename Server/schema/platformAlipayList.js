@@ -8,7 +8,9 @@ var platformAlipayListSchema = new Schema({
     quota: {type: Number},
     state: {type: String},
     singleLimit : {type: Number},
-    bankTypeId: {type: String}
+    bankTypeId: {type: String},
+    isFPMS: {type: Boolean, default: false, index: true},
+    quotaUsed : {type: Number, default: 0},
 });
 
 module.exports = platformAlipayListSchema;

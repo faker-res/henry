@@ -55,7 +55,8 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                 suffix: '.json'
             });
             $translateProvider.useSanitizeValueStrategy('escape');
-            //$translateProvider.preferredLanguage('en_US');
+            // $translateProvider.preferredLanguage('ch_SP');
+            $translateProvider.useLoaderCache(true);
 
             myApp.register =
                 {
