@@ -4158,8 +4158,8 @@ define(['js/app'], function (myApp) {
                 $('#financialPointsTableSpin').hide();
                 $scope.$evalAsync(() => {
                     vm.financialQuery.totalCount = data.data.size;
+                    vm.drawFinancialPointsReport(datatoDraw, vm.financialQuery.totalCount, data.data.summary, newSearch);
                 });
-                vm.drawFinancialPointsReport(datatoDraw, vm.financialQuery.totalCount, data.data.summary, newSearch);
             }, function (err) {
                 $('#financialPointsTableSpin').hide();
 
