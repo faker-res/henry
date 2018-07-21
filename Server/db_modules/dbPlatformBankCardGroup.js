@@ -131,14 +131,18 @@ var dbPlatformBankCardGroup = {
                 }
             );
     },
-    getAllBankCard: function(platformId){
+    getAllBankCard: function(platformId, isFPMS){
         var allBankCards = [];
-        return pmsAPI.bankcard_getBankcardList(
-            {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
-            }
-        );
+        if (isFPMS) {
+            return dbconfig.collection_platformBankCardList.find({platformId: platformId, isFPMS: isFPMS}).lean();
+        } else {
+            return pmsAPI.bankcard_getBankcardList(
+                {
+                    platformId: platformId,
+                    queryId: serverInstance.getQueryId()
+                }
+            );
+        }
     },
 
     /**
@@ -301,7 +305,7 @@ var dbPlatformBankCardGroup = {
                     let cards = data.data;
                     let updateCardProm = [];
                     cardList = cards;
-                    return dbconfig.collection_platformBankCardList.find({platformId: platformId}).lean().then(oldCards => {
+                    return dbconfig.collection_platformBankCardList.find({platformId: platformId, $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]}).lean().then(oldCards => {
                         cards.forEach(card => {
                             if(oldCards && oldCards.length > 0) {
                                 let match = false;
@@ -320,7 +324,8 @@ var dbPlatformBankCardGroup = {
                                     dbconfig.collection_platformBankCardList.findOneAndUpdate(
                                         {
                                             accountNumber: card.accountNumber,
-                                            platformId: platformId
+                                            platformId: platformId,
+                                            $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]
                                         },
                                         {
                                             accountNumber: card.accountNumber,
@@ -346,7 +351,7 @@ var dbPlatformBankCardGroup = {
         ).then(
             () => {
                 let cardNumbers = cardList.map(card => card.accountNumber);
-                return dbconfig.collection_platformBankCardList.find({platformId: platformId, accountNumber: {$nin: cardNumbers}}).lean().then(
+                return dbconfig.collection_platformBankCardList.find({platformId: platformId, accountNumber: {$nin: cardNumbers}, $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]}).lean().then(
                     deletedCards => {
                         if(deletedCards && deletedCards.length > 0) {
                             let deletedCardNumbers = [];
@@ -379,6 +384,20 @@ var dbPlatformBankCardGroup = {
         );
     },
 
+    createNewBankCardAcc: function (updateData) {
+        return dbconfig.collection_platformBankCardList.findOne({
+            platformId: updateData.platformId,
+            accountNumber: updateData.accountNumber
+        }).lean().then(
+            data => {
+                if (data) {
+                    return Promise.reject({name: "DataError", message: "Account number exists"});
+                }
+
+                return dbconfig.collection_platformBankCardList(updateData).save();
+            }
+        )
+    }
 
 };
 

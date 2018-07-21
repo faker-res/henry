@@ -52,7 +52,7 @@ function socketActionBankCardGroup(socketIO, socket) {
         getAllBankCard: function getAllBankCard(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform);
-            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.getAllBankCard, [data.platform], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.getAllBankCard, [data.platform, data.isFPMS], actionName, isValidData);
         },
         /**
          * Get all the games by platform and the BankCardGroup
@@ -185,6 +185,13 @@ function socketActionBankCardGroup(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbPlatformBankCardGroup.syncBankCardGroupData, [data.platformObjId], actionName, true);
+        },
+
+        createNewBankCardAcc: function createNewAlipayAcc(data) {
+            let actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.accountNumber && data.name && data.bankTypeId);
+
+            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.createNewBankCardAcc, [data], actionName, isValidData);
         }
 
     };
