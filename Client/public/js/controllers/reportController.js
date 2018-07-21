@@ -6997,6 +6997,19 @@ define(['js/app'], function (myApp) {
 
                     endLoadMultipleSelect('.select');
 
+                    socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
+                        $scope.$evalAsync(() => {
+                            if (data && data.data && data.data.data) {
+                                vm.allBankTypeList = {};
+                                data.data.data.forEach(item => {
+                                    if (item && item.bankTypeId) {
+                                        vm.allBankTypeList[item.id] = item.name;
+                                    }
+                                })
+                            }
+                        })
+                    });
+
                     setTimeout(function() {
                         vm.commonInitTime(vm.financialQuery, '#financialPointsReportQuery')
 

@@ -3098,7 +3098,9 @@ var proposal = {
                     {
                         $group: {
                             _id: null,
-                            amount: {$sum: "$data.updateAmount"},
+                            amount: {$sum: "$data.amount"},
+                            updateAmount: {$sum: "$data.updateAmount"},
+                            TopupAmount: {$sum: "$data.TopupAmount"},
                         }
                     }
                 ]);
@@ -3111,7 +3113,10 @@ var proposal = {
                 }
                 let totalAmount = 0;
                 if (data[2].length) {
-                    totalAmount = data[2][0].amount? data[2][0].amount: 0;
+                    // different proposal different amount field name
+                    if (data[2][0].hasOwnProperty("amount") && data[2][0].hasOwnProperty("updateAmount") && data[2][0].hasOwnProperty("TopupAmount")) {
+                        totalAmount = data[2][0].amount + data[2][0].updateAmount + data[2][0].TopupAmount
+                    }
                 }
                 let res = {
                     size: data[0] || 0,
