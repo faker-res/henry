@@ -60,7 +60,17 @@ function socketActionWechatPayGroup(socketIO, socket) {
         getAllWechatpaysByWechatpayGroupWithIsInGroup: function getAllWechatpaysByWechatpayGroupWithIsInGroup(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform && data.wechatGroup);
-            socketUtil.emitter(self.socket, dbPlatformWechatPayGroup.getAllWechatpaysByWechatpayGroupWithIsInGroup, [data.platform, data.wechatGroup], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformWechatPayGroup.getAllWechatpaysByGroupAndPlatformSetting, [data.platform, data.wechatGroup], actionName, isValidData);
+        },
+
+        /**
+         * create new alipay account
+         * @param {json} data - query data
+         */
+        createNewWechatpayAcc: function createNewWechatpayAcc(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.accountNumber && data.name && data.nickName && data.hasOwnProperty("singleLimit") && data.hasOwnProperty("quota") && data.isFPMS);
+            socketUtil.emitter(self.socket, dbPlatformWechatPayGroup.createNewWechatpayAcc, [data], actionName, isValidData);
         },
 
         /**

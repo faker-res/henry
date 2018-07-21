@@ -1531,9 +1531,7 @@ define(['js/app'], function (myApp) {
                 code: vm.newAlipayGroup.code,
                 displayName: vm.newAlipayGroup.displayName
             }
-            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) {
-                sendData.isFPMS = true;
-            }
+
             socketService.$socket($scope.AppSocket, 'addPlatformAlipayGroup', sendData, function (data) {
                 console.log(data.data);
                 vm.loadAlipayGroupData();
@@ -1551,9 +1549,6 @@ define(['js/app'], function (myApp) {
                 alipayGroup: alipayGroup._id
             }
             vm.alipayStatusFilterOptions = {"NORMAL": true, "LOCK": true, "DISABLED": true, "CLOSE": true, "TOBEFOLLOWEDUP": true, "SUSPEND": true};
-            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) {
-                query.isFPMS = true;
-            }
             socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroupWithIsInGroup', query, function(data){
 
                 //provider list init
@@ -2055,6 +2050,40 @@ define(['js/app'], function (myApp) {
                     console.log('Add WechatPay Group error', error);
                 })
         };
+
+        vm.checkCreateNewWechatpay = function () {
+            let isDisable = true;
+            if (vm.newWechatpayAcc && vm.newWechatpayAcc.state && vm.newWechatpayAcc.accountNumber && vm.newWechatpayAcc.name && vm.newWechatpayAcc.nickName) {
+                isDisable = false;
+            }
+            return isDisable;
+        }
+
+        vm.createNewWechatpayAcc = function () {
+            var sendData = {
+                platformId: vm.selectedPlatform.data.platformId,
+                accountNumber: vm.newWechatpayAcc.accountNumber,
+                name: vm.newWechatpayAcc.name,
+                state: vm.newWechatpayAcc.state,
+                singleLimit: vm.newWechatpayAcc.singleLimit || 0,
+                quota: vm.newWechatpayAcc.quota || 0,
+                isFPMS: true,
+            }
+            if (vm.newWechatpayAcc.nickName) {
+                sendData.nickName = vm.newWechatpayAcc.nickName
+            }
+            socketService.$socket($scope.AppSocket, 'createNewWechatpayAcc', sendData,
+                function (data) {
+                    console.log(data.data);
+                    // vm.loadWechatPayGroupData()
+                    // $scope.safeApply();
+                    socketService.showConfirmMessage($translate("Created successfully"));
+                },
+                function (err) {
+                    socketService.showErrorMessage($translate("Fail to create"), err);
+                }
+            )
+        }
 
         vm.wechatPayGroupClicked = function (i, wechatPayGroup) {
             vm.SelectedWechatPayGroupNode = wechatPayGroup;
