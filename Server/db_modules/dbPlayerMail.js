@@ -435,6 +435,7 @@ const dbPlayerMail = {
                         }
                     }
 
+                    /*
                     if (purpose && purpose == constSMSPurpose.REGISTRATION) {
                         let letterNumber = /^[0-9a-zA-Z]+$/;
                         // let prefixLength = platform.prefix ?　platform.prefix.length : 0;
@@ -466,6 +467,38 @@ const dbPlayerMail = {
                                     message: localization.localization.translate("Username must be less than") + " " + platform.playerNameMaxLength + " " + localization.localization.translate("characters")
                                 });
                             }
+                        }
+                    }
+                    */
+
+                    let pName = playerName; //could be player or partner
+                    let letterNumber = /^[0-9a-zA-Z]+$/;
+
+                    if(!pName.match(letterNumber)) {
+                        return Q.reject({
+                            status: constServerCode.DATA_INVALID,
+                            name: "DBError",
+                            message: "Username must be alphanumeric"
+                        });
+                    }
+
+                    if (purpose && purpose === constSMSPurpose.REGISTRATION) {
+                        if ((platformData.playerNameMaxLength > 0 && pName.length > platformData.playerNameMaxLength) || (platformData.playerNameMinLength > 0 && pName.length < platformData.playerNameMinLength)) {
+                            return Q.reject({
+                                status: constServerCode.DATA_INVALID,
+                                name: "DBError",
+                                message: localization.localization.translate("Player name should be between ") + platformData.playerNameMinLength + " - " + platformData.playerNameMaxLength + localization.localization.translate(" characters."),
+                            });
+                        }
+                    }
+
+                    if (purpose && purpose === constSMSPurpose.PARTNER_REGISTRATION) {
+                        if ((platformData.partnerNameMaxLength > 0 && pName.length > platformData.partnerNameMaxLength) || (platformData.partnerNameMinLength > 0 && pName.length < platformData.partnerNameMinLength)) {
+                            return Q.reject({
+                                status: constServerCode.DATA_INVALID,
+                                name: "DBError",
+                                message: localization.localization.translate("Partner name should be between ") + platformData.partnerNameMinLength + " - " + platformData.partnerNameMaxLength + localization.localization.translate(" characters."),
+                            });
                         }
                     }
 
