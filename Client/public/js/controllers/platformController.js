@@ -13208,177 +13208,6 @@ define(['js/app'], function (myApp) {
                     // $scope.$evalAsync(vm.drawRewardTaskTable(newSearch, tblData, size, summary, topUpAmountSum));
                 });
             }
-            vm.drawRewardTaskGroupTable = function (newSearch, tdata, size, summary, topUpAmountSum) {
-                let tblData = null;
-
-                if (vm.selectedPlatform.data.useProviderGroup) {
-                    tblData = tdata && tdata.data ? tdata.data.displayRewardTaskGroup.map(item => {
-                        item.createTime$ = vm.dateReformat(item.createTime);
-                        item.currentAmount$ = item.currentAmt - item.initAmt;
-                        item.bonusAmount$ = -item.initAmt;
-                        return item;
-                    }) : [];
-                    tblData = tblData.filter(item => {
-                        return item.status == 'Started'
-                    });
-                    vm.rewardTaskGroupDetails = tblData;
-                }
-
-                let tableOptions = $.extend({}, vm.generalDataTableOptions, {
-                    data: tblData,
-                    aoColumnDefs: [
-
-                        {targets: '_all', defaultContent: ' ', bSortable: false}
-                    ],
-                    columns: [
-                        {
-                            title: $translate('Reward Task Group(Progress)'),
-                            data: "providerGroup.name",
-                            advSearch: true,
-                            sClass: "",
-                            render: function (data, type, row) {
-                                data = data || '';
-                                let providerGroupId = row.providerGroup ? row.providerGroup._id : null;
-                                let link = $('<div>', {});
-
-                                if (data) {
-                                    link.append($('<a>', {
-                                        'ng-click': 'vm.getRewardTaskGroupProposal("' + providerGroupId + '");',
-                                    }).text(data ? data : 0));
-                                }
-                                else {
-
-                                    link.append($('<a>', {
-                                        'ng-click': 'vm.getRewardTaskGroupProposal();'
-                                    }).text(data ? data : $translate('Valid Progress')));
-                                    // link.append($('<div>', {}).text(data ? data : $translate('Valid Progress')));
-                                }
-                                return link.prop('outerHTML')
-                            }
-                        },
-                        {
-                            title: $translate('Unlock Progress(Consumption)'),
-                            advSearch: true,
-                            sClass: "",
-                            render: function (data, type, row) {
-                                let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
-                                let forbidXIMAAmt = Number(row.forbidXIMAAmt ? row.forbidXIMAAmt : 0);
-                                let targetConsumption = Number(row.targetConsumption);
-                                var text = row.curConsumption + '/' + (targetConsumption + forbidXIMAAmt);
-                                var result = '<div id="' + "pgConsumpt" + providerGroupId + '">' + text + '</div>';
-                                return result;
-                            }
-                        },
-                        {
-                            title: $translate('Unlock Progress(WinLose)'),
-                            advSearch: true,
-                            sClass: "",
-                            render: function (data, type, row) {
-                                let providerGroupId;
-
-                                if (row.providerGroup) {
-                                    providerGroupId = row.providerGroup._id;
-                                }
-
-                                let text = row.currentAmount$ + '/' + row.bonusAmount$;
-                                vm.rtgBonusAmt[providerGroupId] = row.currentAmount$;
-                                vm.rewardTaskGroupCurrentAmt = row.currentAmount$;
-                                var result = '<div id="' + "pgReward" + providerGroupId + '">' + text + '</div>';
-                                return result;
-                            }
-                        },
-                    ],
-                    "paging": false,
-                    "scrollX": true,
-                    "autoWidth": true,
-                    "sScrollY": 350,
-                    "scrollCollapse": true,
-                    "destroy": true,
-                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                        $compile(nRow)($scope);
-                    }
-
-                });
-
-                let aTable = $("#rewardTaskGroupLogTbl").DataTable(tableOptions);
-                aTable.columns.adjust().draw();
-                vm.rewardTaskLog.pageObj.init({maxCount: size}, newSearch);
-                $('#rewardTaskGroupLogTbl').off('order.dt');
-                $('#rewardTaskGroupLogTbl').on('order.dt', function (event, a, b) {
-                    vm.commonSortChangeHandler(a, 'rewardTaskLog', vm.getRewardTaskLogData);
-                });
-                $("#rewardTaskGroupLogTbl").resize();
-            };
-
-            vm.setUnlockTaskGroup = function (index) {
-                vm.dynRewardTaskGroupIndex = [];
-                $('.unlockTaskGroupProposal:checked').each(function () {
-                    let result = $(this).val().split(',');
-                    vm.dynRewardTaskGroupIndex.push(result);
-                })
-            }
-
-
-            vm.unlockTaskGroup = () => {
-                let incRewardAmt = 0;
-                let incConsumptAmt = 0;
-                let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : {};
-                let index = [];
-                vm.dynRewardTaskGroupIndex.forEach(item => {
-                    incRewardAmt += Number(item[0]);
-                    incConsumptAmt += Number(item[1]);
-                    index.push(Number(item[2]));
-                });
-
-                let sendQuery = {
-                    'rewardTaskGroupId': rewardTaskGroup._id,
-                    'incRewardAmount': incRewardAmt,
-                    'incConsumptionAmount': incConsumptAmt
-                };
-
-                socketService.$socket($scope.AppSocket, 'unlockRewardTaskInRewardTaskGroup', sendQuery, function (data) {
-                    vm.getRewardTaskLogData(true);
-                    $('#rewardTaskGroupProposalTbl').DataTable().clear().draw();
-                    $('#rewardTaskLogTbl').DataTable().clear().draw();
-                    //  save the rewardTask Progress that is  manual unlocked
-                    index.forEach(indexNO => {
-                        let sendData = {
-                            platformId: vm.selectedPlatform.id,
-                            playerId: vm.isOneSelectedPlayer()._id,
-                            unlockTime: new Date().toISOString(),
-                            creator: {
-                                type: "admin",
-                                name: authService.adminName,
-                                id: authService.adminId
-                            },
-                            rewardTask: {
-                                type: vm.rewardTaskGroupProposalList[indexNO].type.name,
-                                id: vm.rewardTaskGroupProposalList[indexNO].type._id,
-                            },
-                            currentConsumption: vm.rewardTaskGroupProposalList[indexNO].curConsumption$,
-                            maxConsumption: vm.rewardTaskGroupProposalList[indexNO].maxConsumption$,
-                            currentAmount: -vm.rewardTaskGroupProposalList[indexNO].archivedAmt$,
-                            targetAmount: vm.rewardTaskGroupProposalList[indexNO].availableAmt$,
-                            topupAmount: vm.rewardTaskGroupProposalList[indexNO].topUpAmount,
-                            proposalId: vm.rewardTaskGroupProposalList[indexNO]._id,
-                            proposalNumber: vm.rewardTaskGroupProposalList[indexNO].proposalId,
-                            topupProposalNumber: vm.rewardTaskGroupProposalList[indexNO].topUpProposal,
-                            bonusAmount: vm.rewardTaskGroupProposalList[indexNO].bonusAmount,
-                            targetProviderGroup: vm.rewardTaskGroupProposalList[indexNO].data.provider$,
-                            status: "ManualUnlock",
-                            useConsumption: vm.rewardTaskGroupProposalList[indexNO].useConsumption,
-                            inProvider: vm.rewardTaskGroupProposalList[indexNO].inProvider,
-
-                        };
-
-                        socketService.$socket($scope.AppSocket, 'createRewardTaskGroupUnlockedRecord', sendData, function (data) {
-                            console.log('createRewardTaskGroupUnlockedRecord', sendData);
-                            $scope.safeApply();
-                        })
-
-                    })
-                })
-            }
 
             vm.getIncReward = function (currentAmt, rewardAmt, firstIdx, lastIdx) {
 
@@ -23902,12 +23731,6 @@ define(['js/app'], function (myApp) {
                         vm.selectedProposal.data = proposalDetail;
                     }
 
-                    if (vm.selectedProposal && vm.selectedProposal.type && (vm.selectedProposal.type.name === "FinancialPointsAdd" || vm.selectedProposal.type.name === "FinancialPointsDeduct")) {
-                        if (vm.selectedProposal.data.financialPointsType) {
-                            vm.selectedProposal.data.financialPointsType = $translate($scope.financialPointsList[vm.selectedProposal.data.financialPointsType])
-                        }
-                    }
-
                     if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
                         let proposalDetail = {};
                         if (!vm.selectedProposal.data) {
@@ -23941,6 +23764,12 @@ define(['js/app'], function (myApp) {
                         proposalDetail["SINGLE_LIMIT"] = " ";
                         proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
                         proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                        if (vm.selectedProposal.data.hasOwnProperty("pointsBefore")) {
+                            proposalDetail["pointsBefore"] = vm.selectedProposal.data.pointsBefore;
+                        }
+                        if (vm.selectedProposal.data.hasOwnProperty("pointsAfter")) {
+                            proposalDetail["pointsAfter"] = vm.selectedProposal.data.pointsAfter;
+                        }
                         vm.selectedProposal.data = proposalDetail;
                     }
 
@@ -23967,6 +23796,12 @@ define(['js/app'], function (myApp) {
                         proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                         proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.permerchantLimits || "0";
                         proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.transactionForPlayerOneDay || "0");
+                        if (vm.selectedProposal.data.hasOwnProperty("pointsBefore")) {
+                            proposalDetail["pointsBefore"] = vm.selectedProposal.data.pointsBefore;
+                        }
+                        if (vm.selectedProposal.data.hasOwnProperty("pointsAfter")) {
+                            proposalDetail["pointsAfter"] = vm.selectedProposal.data.pointsAfter;
+                        }
                         vm.selectedProposal.data = proposalDetail;
                     }
 
@@ -23998,6 +23833,12 @@ define(['js/app'], function (myApp) {
                         proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
                         proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.weChatQRCode || " ";
                         proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                        if (vm.selectedProposal.data.hasOwnProperty("pointsBefore")) {
+                            proposalDetail["pointsBefore"] = vm.selectedProposal.data.pointsBefore;
+                        }
+                        if (vm.selectedProposal.data.hasOwnProperty("pointsAfter")) {
+                            proposalDetail["pointsAfter"] = vm.selectedProposal.data.pointsAfter;
+                        }
                         vm.selectedProposal.data = proposalDetail;
                     }
 
@@ -24030,6 +23871,12 @@ define(['js/app'], function (myApp) {
                         proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.alipayQRCode || " ";
                         proposalDetail["ALIPAY_QR_ADDRESS"] = vm.selectedProposal.data.qrcodeAddress || " ";
                         proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                        if (vm.selectedProposal.data.hasOwnProperty("pointsBefore")) {
+                            proposalDetail["pointsBefore"] = vm.selectedProposal.data.pointsBefore;
+                        }
+                        if (vm.selectedProposal.data.hasOwnProperty("pointsAfter")) {
+                            proposalDetail["pointsAfter"] = vm.selectedProposal.data.pointsAfter;
+                        }
                         vm.selectedProposal.data = proposalDetail;
                     }
 
@@ -27898,8 +27745,50 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (vm.selectedPlatform.data.financialSettlement && (vm.selectedPlatform.data.financialSettlement.minFinancialPointsNotification != srcData.minFinancialPointsNotification)
+                    || (financialPointsNotification == true && vm.selectedPlatform.data.financialSettlement.financialPointsNotification != financialPointsNotification)) {
+                    sendData.updateData["financialSettlement.financialPointsNotificationShowed"] = false; //reset financial points notification
+                }
+
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                     loadPlatformData({loadAll: false});
+                    if (vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle != srcData.financialSettlementToggle
+                        && srcData.financialSettlementToggle == true) {
+                        let sendDataBankCard = {
+                            query: {
+                                platform: vm.selectedPlatform.id
+                            },
+                            update: {
+                                banks: []
+                            }
+                        }
+                        let sendDataWechat = {
+                            query: {
+                                platform: vm.selectedPlatform.id
+                            },
+                            update: {
+                                wechats: []
+                            }
+                        }
+                        let sendDataAli = {
+                            query: {
+                                platform: vm.selectedPlatform.id
+                            },
+                            update: {
+                                alipays: []
+                            }
+                        }
+
+                        socketService.$socket($scope.AppSocket, 'updatePlatformAllBankCardGroup', sendDataBankCard, function (data) {
+                            console.log("update bank card group complete")
+                        });
+                        socketService.$socket($scope.AppSocket, 'updatePlatformAllWechatPayGroup', sendDataWechat, function (data) {
+                            console.log("update wechatPay group complete")
+                        });
+                        socketService.$socket($scope.AppSocket, 'updatePlatformAllAlipayGroup', sendDataAli, function (data) {
+                            console.log("update aliPay  group complete")
+                        });
+                    };
                 });
             }
 

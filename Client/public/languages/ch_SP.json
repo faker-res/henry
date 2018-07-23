@@ -1090,6 +1090,8 @@
   "BANK_BRANCH": "银行支行",
   "bankBranch": "银行支行",
   "BANK_NAME": "银行名称",
+  "BANK_CARD_NAME": "银行卡姓名",
+  "BANK_CARD_ACCOUNT_NUMBER": "银行卡帐号",
   "7 Days": "7日内",
   "REWARD_CLIENT_APPLY": "客户端是否显示按钮",
   "NO_REPORT_TYPE_MESSAGE": "请选择报表类型",
@@ -1940,6 +1942,7 @@
   "Provider Visible": "提供商中可见",
   "loading games": "游戏加载中",
   "Loading": "加载中",
+  "Add Bank Card": "添加银行卡",
   "Add Bank Card Group": "添加银行卡组",
   "Bank Card Group Name": "银行卡组名称",
   "Bank Card Group Display Name": "银行卡组显示名",
@@ -3985,6 +3988,8 @@
   "financialSettlementConfig": "财务（结算）系统设置",
   "Use FPMS system to handle all transactions": "使用本系统（FPMS）直接进行财务操作（银行卡、个人支付宝、个人微信、提款将可自行在本系统操作）",
   "Financial points notification (notification pop up once when value is lower than this config)": "财务点数提醒值（低于该数则登入弹出警示窗一次）",
+  "FINANCIAL_POINTS_NOTIFICATION": "财务点数提醒值",
+  "Financial points lower than": "财务点数低于",
   "Financial points disable withdrawal(all withdrawal will be disable if the point is lower than this value)": "财务点数停止付款值（低于该数则停止将提案送至财务部门）",
   "add/deduct financial points": "增加/扣除财务点数",
   "FinancialPointsAdd": "财务点数增加",
@@ -3999,6 +4004,7 @@
   "FINANCIAL_POINTS_REPORT": "财务点数变化记录",
   "FINANCIAL_POINTS_TYPE": "财务点数变化类型",
   "financialPointsType": "财务点数变化类型",
+  "financialPoints": "财务点数",
   "withdrawalProposalId": "提款提案号",
   "createNewPlayerAdvertisementRecord": "创建玩家广告",
   "savePlayerAdvertisementRecordChanges": "编辑玩家广告",
@@ -4028,8 +4034,10 @@
   "startPlatformPlayerLevelSettlement": "玩家升降级",
   "startPlayerConsecutiveConsumptionSettlement": "智勇冲关",
   "CreateAlipay": "创建个人支付宝",
+  "CreateWechatPay": "创建个人微信",
   "Created successfully": "创建成功",
-  "Fail to create": "创建失败"
+  "Fail to create": "创建失败",
+  "CreateBankCard": "创建银行卡"
 
 
 }

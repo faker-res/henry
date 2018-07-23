@@ -84,6 +84,18 @@ function socketActionBankCardGroup(socketIO, socket) {
             var isValidData = Boolean(data && data.query && data.update);
             socketUtil.emitter(self.socket, dbPlatformBankCardGroup.updatePlatformBankCardGroup, [data.query, data.update], actionName, isValidData);
         },
+
+        /**
+         * Update this BankCardGroup to remove all bank cards from all bank card group
+         * @param {json} data - query data
+         * @param {json} update - update data
+         */
+        updatePlatformAllBankCardGroup: function updatePlatformAllBankCardGroup(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.update);
+            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.updatePlatformAllBankCardGroup, [data.query, data.update], actionName, isValidData);
+        },
+
         /**
          * Delete game group by id / Delete the BankCardGroup and all its all sub-groups (all children)
          * @param {json} data - It has to contain ObjId of the group
@@ -185,6 +197,13 @@ function socketActionBankCardGroup(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbPlatformBankCardGroup.syncBankCardGroupData, [data.platformObjId], actionName, true);
+        },
+
+        createNewBankCardAcc: function createNewAlipayAcc(data) {
+            let actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.accountNumber && data.name && data.bankTypeId);
+
+            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.createNewBankCardAcc, [data], actionName, isValidData);
         }
 
     };

@@ -60,7 +60,17 @@ function socketActionWechatPayGroup(socketIO, socket) {
         getAllWechatpaysByWechatpayGroupWithIsInGroup: function getAllWechatpaysByWechatpayGroupWithIsInGroup(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform && data.wechatGroup);
-            socketUtil.emitter(self.socket, dbPlatformWechatPayGroup.getAllWechatpaysByWechatpayGroupWithIsInGroup, [data.platform, data.wechatGroup], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformWechatPayGroup.getAllWechatpaysByGroupAndPlatformSetting, [data.platform, data.wechatGroup], actionName, isValidData);
+        },
+
+        /**
+         * create new alipay account
+         * @param {json} data - query data
+         */
+        createNewWechatpayAcc: function createNewWechatpayAcc(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.accountNumber && data.name && data.nickName && data.hasOwnProperty("singleLimit") && data.hasOwnProperty("quota") && data.isFPMS);
+            socketUtil.emitter(self.socket, dbPlatformWechatPayGroup.createNewWechatpayAcc, [data], actionName, isValidData);
         },
 
         /**
@@ -92,6 +102,17 @@ function socketActionWechatPayGroup(socketIO, socket) {
             let isValidData = Boolean(data && data.query && data.update);
             socketUtil.emitter(self.socket, dbPlatformWechatPayGroup.updatePlatformWechatPayGroup, [data.query, data.update], actionName, isValidData);
         },
+
+        /**
+         * Update this WechatPayGroup - to remove all wechat list in group
+         * @param {json} data - query data
+         */
+        updatePlatformAllWechatPayGroup: function updatePlatformAllWechatPayGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.update);
+            socketUtil.emitter(self.socket, dbPlatformWechatPayGroup.updatePlatformAllWechatPayGroup, [data.query, data.update], actionName, isValidData);
+        },
+
         /**
          * Delete game group by id / Delete the WechatPayGroup and all its all sub-groups (all children)
          * @param {json} data - It has to contain ObjId of the group

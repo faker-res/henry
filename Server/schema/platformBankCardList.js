@@ -11,7 +11,9 @@ var platformBankCardListSchema = new Schema({
     provinceName: {type: String},
     cityName: {type: String},
     openingPoint: {type: String},
-    level: {type: String}
+    level: {type: String},
+    isFPMS: {type: Boolean, default: false, index: true},
+    quotaUsed : {type: Number, default: 0},
 });
 
 module.exports = platformBankCardListSchema;
