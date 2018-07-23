@@ -8,6 +8,9 @@ const request = require('request');
 const rsaCrypto = require('./../modules/rsaCrypto');
 const errorUtils = require("./../modules/errorUtils");
 
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
+
 let dbCallOutMission = {
     createCallOutMission: (platformObjId, adminObjId, searchFilter, searchQuery, sortCol) => {
         let platform, admin, calleeList, callOutMission;
