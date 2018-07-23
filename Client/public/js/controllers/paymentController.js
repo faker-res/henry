@@ -9,6 +9,9 @@ define(['js/app'], function (myApp) {
         var vm = this;
         window.VM = vm;
 
+        vm.provinceList = [];
+        vm.cityList = [];
+
         // declare constants
         vm.paymentListState = {
             1: "NORMAL",
@@ -143,6 +146,7 @@ define(['js/app'], function (myApp) {
             vm.getAllPlayerLevels();
             vm.loadQuickPayGroupData();
             vm.getAllBankCard();
+            vm.getProvince();
             vm.bankCardFilterOptions = {};
             vm.merchantFilterOptions = {};
             $scope.safeApply();
@@ -574,6 +578,24 @@ define(['js/app'], function (myApp) {
         }
 
         vm.createNewBankCardAcc = function () {
+            if (vm.newBankCardAcc && vm.newBankCardAcc.provinceId && vm.provinceList.length) {
+                vm.provinceList.filter(x => {
+                    if(x.id == vm.newBankCardAcc.provinceId) {
+                        vm.newBankCardAcc.provinceName = x.name;
+                    }
+                });
+                delete vm.newBankCardAcc.provinceId;
+            }
+
+            if (vm.newBankCardAcc && vm.newBankCardAcc.cityId && vm.cityList.length) {
+                vm.cityList.filter(x => {
+                    if(x.id == vm.newBankCardAcc.cityId) {
+                        vm.newBankCardAcc.cityName = x.name;
+                    }
+                });
+                delete vm.newBankCardAcc.cityId;
+            }
+
             var sendData = {
                 platformId: vm.selectedPlatform.data.platformId,
                 accountNumber: vm.newBankCardAcc.accountNumber,
@@ -586,15 +608,56 @@ define(['js/app'], function (myApp) {
                 quota: vm.newBankCardAcc.quota || 0,
                 isFPMS: true
             }
-            socketService.$socket($scope.AppSocket, 'createNewBankCardAcc', sendData,
-                function (data) {
+            socketService.$socket($scope.AppSocket, 'createNewBankCardAcc', sendData, function (data) {
                     console.log(data.data);
                     socketService.showConfirmMessage($translate("Created successfully"));
-                },
+                    vm.getAllBankCard().then(() => {
+                        vm.bankCardGroupClicked(null, vm.SelectedBankCardGroupNode);
+                    });
+               },
                 function (err) {
-                    socketService.showErrorMessage($translate("Fail to create"), err);
+                   socketService.showErrorMessage($translate("Fail to create"), err);
                 }
             )
+        }
+
+        vm.getProvince = function () {
+            socketService.$socket($scope.AppSocket, 'getProvinceList', {}, function (data) {
+                if (data) {
+                    $scope.$evalAsync(() => {
+                        vm.provinceList.length = 0;
+
+                        for (let i = 0, len = data.data.provinces.length; i < len; i++) {
+                            let province = data.data.provinces[i];
+                            province.id = province.id.toString();
+                            vm.provinceList.push(province);
+                        }
+
+                        vm.changeProvince(false);
+                    })
+                    resolve(vm.provinceList);
+                }
+            }, null, true);
+        }
+
+        vm.changeProvince = function (reset) {
+            socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: vm.newBankCardAcc.provinceId}, function (data) {
+                if (data) {
+                    if (data.data.cities) {
+                        vm.cityList.length = 0;
+                        for (let i = 0, len = data.data.cities.length; i < len; i++) {
+                            let city = data.data.cities[i];
+                            city.id = city.id.toString();
+                            vm.cityList.push(city);
+                        }
+                    }
+                    if (reset) {
+                        $scope.$evalAsync(() => {
+                            vm.newBankCardAcc.cityId = vm.cityList[0].id;
+                        });
+                    }
+                }
+            }, null, true);
         }
 
         vm.addBankCardGroup = function (data) {
