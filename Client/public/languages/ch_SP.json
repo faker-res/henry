@@ -1090,6 +1090,8 @@
   "BANK_BRANCH": "银行支行",
   "bankBranch": "银行支行",
   "BANK_NAME": "银行名称",
+  "BANK_CARD_NAME": "银行卡姓名",
+  "BANK_CARD_ACCOUNT_NUMBER": "银行卡帐号",
   "7 Days": "7日内",
   "REWARD_CLIENT_APPLY": "客户端是否显示按钮",
   "NO_REPORT_TYPE_MESSAGE": "请选择报表类型",
@@ -1940,6 +1942,7 @@
   "Provider Visible": "提供商中可见",
   "loading games": "游戏加载中",
   "Loading": "加载中",
+  "Add Bank Card": "添加银行卡",
   "Add Bank Card Group": "添加银行卡组",
   "Bank Card Group Name": "银行卡组名称",
   "Bank Card Group Display Name": "银行卡组显示名",
@@ -4032,7 +4035,8 @@
   "startPlayerConsecutiveConsumptionSettlement": "智勇冲关",
   "CreateAlipay": "创建个人支付宝",
   "Created successfully": "创建成功",
-  "Fail to create": "创建失败"
+  "Fail to create": "创建失败",
+  "CreateBankCard": "创建银行卡"
 
 
 }
