@@ -1465,7 +1465,7 @@ let dbPlayerInfo = {
                                     $regex: playerData.domain,
                                     $options: "xi"
                                 },
-                                platform: platformObjId
+                                platform: playerdata.platform
                             }).lean().then(data => {
                                 if (data) {
                                     playerData.csOfficer = data.admin;
