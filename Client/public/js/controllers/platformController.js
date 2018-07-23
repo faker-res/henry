@@ -23902,12 +23902,6 @@ define(['js/app'], function (myApp) {
                         vm.selectedProposal.data = proposalDetail;
                     }
 
-                    if (vm.selectedProposal && vm.selectedProposal.type && (vm.selectedProposal.type.name === "FinancialPointsAdd" || vm.selectedProposal.type.name === "FinancialPointsDeduct")) {
-                        if (vm.selectedProposal.data.financialPointsType) {
-                            vm.selectedProposal.data.financialPointsType = $translate($scope.financialPointsList[vm.selectedProposal.data.financialPointsType])
-                        }
-                    }
-
                     if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
                         let proposalDetail = {};
                         if (!vm.selectedProposal.data) {
@@ -23941,6 +23935,12 @@ define(['js/app'], function (myApp) {
                         proposalDetail["SINGLE_LIMIT"] = " ";
                         proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
                         proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                        if (vm.selectedProposal.data.hasOwnProperty("pointsBefore")) {
+                            proposalDetail["pointsBefore"] = vm.selectedProposal.data.pointsBefore;
+                        }
+                        if (vm.selectedProposal.data.hasOwnProperty("pointsAfter")) {
+                            proposalDetail["pointsAfter"] = vm.selectedProposal.data.pointsAfter;
+                        }
                         vm.selectedProposal.data = proposalDetail;
                     }
 
@@ -23967,6 +23967,12 @@ define(['js/app'], function (myApp) {
                         proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                         proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.permerchantLimits || "0";
                         proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.transactionForPlayerOneDay || "0");
+                        if (vm.selectedProposal.data.hasOwnProperty("pointsBefore")) {
+                            proposalDetail["pointsBefore"] = vm.selectedProposal.data.pointsBefore;
+                        }
+                        if (vm.selectedProposal.data.hasOwnProperty("pointsAfter")) {
+                            proposalDetail["pointsAfter"] = vm.selectedProposal.data.pointsAfter;
+                        }
                         vm.selectedProposal.data = proposalDetail;
                     }
 
@@ -23998,6 +24004,12 @@ define(['js/app'], function (myApp) {
                         proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
                         proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.weChatQRCode || " ";
                         proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                        if (vm.selectedProposal.data.hasOwnProperty("pointsBefore")) {
+                            proposalDetail["pointsBefore"] = vm.selectedProposal.data.pointsBefore;
+                        }
+                        if (vm.selectedProposal.data.hasOwnProperty("pointsAfter")) {
+                            proposalDetail["pointsAfter"] = vm.selectedProposal.data.pointsAfter;
+                        }
                         vm.selectedProposal.data = proposalDetail;
                     }
 
@@ -24030,6 +24042,12 @@ define(['js/app'], function (myApp) {
                         proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.alipayQRCode || " ";
                         proposalDetail["ALIPAY_QR_ADDRESS"] = vm.selectedProposal.data.qrcodeAddress || " ";
                         proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                        if (vm.selectedProposal.data.hasOwnProperty("pointsBefore")) {
+                            proposalDetail["pointsBefore"] = vm.selectedProposal.data.pointsBefore;
+                        }
+                        if (vm.selectedProposal.data.hasOwnProperty("pointsAfter")) {
+                            proposalDetail["pointsAfter"] = vm.selectedProposal.data.pointsAfter;
+                        }
                         vm.selectedProposal.data = proposalDetail;
                     }
 
@@ -27905,6 +27923,43 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                     loadPlatformData({loadAll: false});
+                    if (vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle != srcData.financialSettlementToggle
+                        && srcData.financialSettlementToggle == true) {
+                        let sendDataBankCard = {
+                            query: {
+                                platform: vm.selectedPlatform.id
+                            },
+                            update: {
+                                banks: []
+                            }
+                        }
+                        let sendDataWechat = {
+                            query: {
+                                platform: vm.selectedPlatform.id
+                            },
+                            update: {
+                                wechats: []
+                            }
+                        }
+                        let sendDataAli = {
+                            query: {
+                                platform: vm.selectedPlatform.id
+                            },
+                            update: {
+                                alipays: []
+                            }
+                        }
+
+                        socketService.$socket($scope.AppSocket, 'updatePlatformAllBankCardGroup', sendDataBankCard, function (data) {
+                            console.log("update bank card group complete")
+                        });
+                        socketService.$socket($scope.AppSocket, 'updatePlatformAllWechatPayGroup', sendDataWechat, function (data) {
+                            console.log("update wechatPay group complete")
+                        });
+                        socketService.$socket($scope.AppSocket, 'updatePlatformAllAlipayGroup', sendDataAli, function (data) {
+                            console.log("update aliPay  group complete")
+                        });
+                    };
                 });
             }
 

@@ -354,12 +354,6 @@ var proposal = {
                     }
 
                     // SCHEDULED AUTO APPROVAL
-                    if ((proposalTypeData.name == constProposalType.FINANCIAL_POINTS_DEDUCT || proposalTypeData.name == constProposalType.FINANCIAL_POINTS_ADD) &&
-                        [constFinancialPointsType.FINANCIAL_POINTS_ADD_SYSTEM, constFinancialPointsType.FINANCIAL_POINTS_DEDUCT_SYSTEM].indexOf(proposalData.data.financialPointsType) < 0) {
-                        bExecute = false;
-                        proposalData.status = constProposalStatus.APPROVED;
-                    }
-
                     if (proposalTypeData.name == constProposalType.PLAYER_BONUS && proposalData.data.isAutoApproval) {
                         proposalData.status = constProposalStatus.AUTOAUDIT;
                     }
@@ -3012,15 +3006,39 @@ var proposal = {
     getFinancialPointsReport: function (reqData, index, count, sortObj) {
         sortObj = sortObj || {};
 
-        let isDeductPoints = false;
+        let proposalTypeArr = [];
 
         if (reqData.financialPointsType && reqData.financialPointsType.length) {
             for (let i = 0; i < reqData.financialPointsType.length; i++) {
                 reqData.financialPointsType[i] = Number(reqData.financialPointsType[i]);
-                if (!isDeductPoints &&
-                    [constFinancialPointsType.PLAYER_BONUS, constFinancialPointsType.PARTNER_BONUS, constFinancialPointsType.FINANCIAL_POINTS_DEDUCT_SYSTEM].indexOf(reqData.financialPointsType[i]) >= 0) {
-                    isDeductPoints = true;
+
+                switch (reqData.financialPointsType[i]) {
+                    case constFinancialPointsType.TOPUPMANUAL:
+                        proposalTypeArr.push(constProposalType.PLAYER_MANUAL_TOP_UP);
+                        break;
+                    case constFinancialPointsType.TOPUPONLINE:
+                        proposalTypeArr.push(constProposalType.PLAYER_TOP_UP);
+                        break;
+                    case constFinancialPointsType.TOPUPALIPAY:
+                        proposalTypeArr.push(constProposalType.PLAYER_ALIPAY_TOP_UP);
+                        break;
+                    case constFinancialPointsType.TOPUPWECHAT:
+                        proposalTypeArr.push(constProposalType.PLAYER_WECHAT_TOP_UP);
+                        break;
+                    case constFinancialPointsType.PLAYER_BONUS:
+                        proposalTypeArr.push(constProposalType.PLAYER_BONUS);
+                        break;
+                    case constFinancialPointsType.PARTNER_BONUS:
+                        proposalTypeArr.push(constProposalType.PARTNER_BONUS);
+                        break;
+                    case constFinancialPointsType.FINANCIAL_POINTS_ADD_SYSTEM:
+                        proposalTypeArr.push(constProposalType.FINANCIAL_POINTS_ADD);
+                        break;
+                    case constFinancialPointsType.FINANCIAL_POINTS_DEDUCT_SYSTEM:
+                        proposalTypeArr.push(constProposalType.FINANCIAL_POINTS_DEDUCT);
+                        break;
                 }
+
             }
         } else {
             //return null
@@ -3033,29 +3051,30 @@ var proposal = {
         }
 
         let proposalTypeQ = {
-            platformId: reqData.platformId,
-            name: constProposalType.FINANCIAL_POINTS_ADD
+            platformId: reqData.platformId
         }
+        let proposalProm;
 
-        let proposalProm = dbconfig.collection_proposalType.findOne(proposalTypeQ).lean();
-
-        if (isDeductPoints) {
-            proposalTypeQ.name = {$in: [constProposalType.FINANCIAL_POINTS_ADD, constProposalType.FINANCIAL_POINTS_DEDUCT]};
+        if (proposalTypeArr.length > 1) {
+            proposalTypeQ.name = {$in: proposalTypeArr};
             proposalProm = dbconfig.collection_proposalType.find(proposalTypeQ).lean();
+        } else {
+            proposalTypeQ.name = proposalTypeArr[0];
+            proposalProm = dbconfig.collection_proposalType.findOne(proposalTypeQ).lean();
         }
 
 
         return proposalProm.then(
             proposalType => {
                 let proposalQuery = {
-                    "data.financialPointsType": {$in: reqData.financialPointsType},
+                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
                     createTime: {
                         $gte: reqData.startTime,
                         $lt: reqData.endTime
                     },
                 }
 
-                if (isDeductPoints) {
+                if (proposalTypeArr.length > 1) {
                     if (!(proposalType && proposalType.length)) {
                         return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
                     }
@@ -3079,7 +3098,9 @@ var proposal = {
                     {
                         $group: {
                             _id: null,
-                            amount: {$sum: "$data.updateAmount"},
+                            amount: {$sum: "$data.amount"},
+                            updateAmount: {$sum: "$data.updateAmount"},
+                            TopupAmount: {$sum: "$data.TopupAmount"},
                         }
                     }
                 ]);
@@ -3092,7 +3113,10 @@ var proposal = {
                 }
                 let totalAmount = 0;
                 if (data[2].length) {
-                    totalAmount = data[2][0].amount? data[2][0].amount: 0;
+                    // different proposal different amount field name
+                    if (data[2][0].hasOwnProperty("amount") && data[2][0].hasOwnProperty("updateAmount") && data[2][0].hasOwnProperty("TopupAmount")) {
+                        totalAmount = data[2][0].amount + data[2][0].updateAmount + data[2][0].TopupAmount
+                    }
                 }
                 let res = {
                     size: data[0] || 0,
@@ -4440,6 +4464,10 @@ var proposal = {
             return [data[0], data[1], data[2], data[3], data[4], data[5]];
 
         });
+    },
+
+    updateProposalData: (query, updateData) => {
+        return dbconfig.collection_proposal.update(query,updateData).lean();
     },
 
     getSpecificProposalTypeByName: (platform, proposalType) => {
