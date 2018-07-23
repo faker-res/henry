@@ -3228,19 +3228,12 @@ let dbPlayerInfo = {
                             if (!platformData) {
                                 return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
                             }
-                            let financialProposal = {
-                                creator: proposalData.creator,
-                                data: {
-                                    updateAmount: proposalData.data.amount,
-                                    remark: "",
-                                    topUpProposalId: proposalData.proposalId,
-                                    financialPointsType: topUpType,
-                                    pointsBefore: platformData.financialPoints,
-                                    pointsAfter: platformData.financialPoints + proposalData.data.amount
-                                },
-                                userType: constProposalUserType.PLAYERS
+
+                            let dataToUpdate = {
+                                "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                                "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints + proposalData.data.amount)
                             };
-                            dbProposal.createProposalWithTypeNameWithProcessInfo(data.platform, constProposalType.FINANCIAL_POINTS_ADD, financialProposal).catch(errorUtils.reportError);
+                            dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
                         }
                     ).catch(errorUtils.reportError);
 

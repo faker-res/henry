@@ -15,8 +15,7 @@ var platformAlipayGroupSchema = new Schema({
     //group alipays
     alipays: [{type: String}],
     //if it is default group
-    bDefault: {type: Boolean, default: false},
-    isFPMS: {type: Boolean, default: false, index: true}
+    bDefault: {type: Boolean, default: false}
 });
 
 //group is unique by platform and code
