@@ -8396,7 +8396,11 @@ let dbPlayerInfo = {
             isRealPlayer: true //only count real player
         };
 
-        let f = dbconfig.collection_players.find(query, 'domain csOfficer promoteWay valueScore consumptionTimes consumptionSum topUpSum topUpTimes partner lastPlayedProvider')
+        let fields = 'name realName registrationTime phoneProvince phoneCity province city lastAccessTime loginTimes'
+            + ' accAdmin promoteWay sourceUrl registrationInterface userAgent domain csOfficer promoteWay valueScore'
+            + ' consumptionTimes consumptionSum topUpSum topUpTimes partner lastPlayedProvider';
+
+        let f = dbconfig.collection_players.find(query, fields)
             .populate({path: "partner", model: dbconfig.collection_partner})
             .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean();
         let g = dbconfig.collection_players.aggregate(
