@@ -1788,11 +1788,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             $scope.$evalAsync(() => {
                 $scope.financialPoints = data.data.financialPoints || 0;
                 if (data.data.hasOwnProperty("financialPoints") && data.data.financialSettlement && !data.data.financialSettlement.financialSettlementToggle && data.data.financialSettlement.hasOwnProperty("minFinancialPointsNotification")
-                    && data.data.financialSettlement.financialPointsNotification && data.data.financialPoints < data.data.financialSettlement.minFinancialPointsNotification && !$scope.isFinancialNotificationShowed) {
+                    && data.data.financialSettlement.financialPointsNotification && data.data.financialPoints < data.data.financialSettlement.minFinancialPointsNotification) {
                     socketService.$socket($scope.AppSocket, 'getAdminInfo', {
                         _id: authService.adminId
                     },  data => {
-                        $scope.isFinancialNotificationShowed = true;
                         if (data.data && data.data.financialPointsNotificationShowed && data.data.financialPointsNotificationShowed.indexOf($scope.selectedPlatform.data.platformId) < 0) {
                             $("#modalFinancialPointsNotification").modal('show');
                             updateFinancialNotificationShowed();
