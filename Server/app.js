@@ -147,6 +147,7 @@ var dbPlatform = require("./db_modules/dbPlatform");
 clientApiInstances.createSMSAPI().then(
     res => {
         dbPlatform.syncSMSPlatform();
+        serverInstance.getSMSAPIClient().smsHeartBeat();
     }
 );
 

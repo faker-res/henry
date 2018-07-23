@@ -21,6 +21,7 @@
         this._requestId = 0;
 
         this._heartBeatInterval = null;
+        this._smsHeartBeatInterval = null;
     };
 
     var proto = WebSocketClient.prototype;
@@ -50,6 +51,28 @@
         );
     },
 
+    proto.smsHeartBeat = function () {
+        if (this._smsHeartBeatInterval) {
+            clearInterval(this._smsHeartBeatInterval);
+        }
+        var self = this;
+        // console.log('sms Heart Beating start! ');
+        this._smsHeartBeatInterval = setInterval(
+            function () {
+                if (self.isOpen()) {
+                    var beat = {
+                        service: "heartBeat",
+                        functionName: "heartBeat",
+                        data: {currentTime: new Date().getTime()}
+                    };
+                    //console.log(beat);
+                    self._connection.send(JSON.stringify(beat));
+                }
+            }, 10 * 1000
+        );
+    },
+
+
     proto.connect = function () {
         var conn = new WebSocket(this.url);
         this._connection = conn;
@@ -72,6 +95,9 @@
             if (self._heartBeatInterval) {
                 clearInterval(self._heartBeatInterval);
             }
+            if (self._smsHeartBeatInterval) {
+                clearInterval(self._smsHeartBeatInterval);
+            }
             //self._connection = null;
             //self.reconnect.bind(self)();
         };
@@ -82,6 +108,9 @@
             // self.reconnect.bind(self)();
             if (self._heartBeatInterval) {
                 clearInterval(self._heartBeatInterval);
+            }
+            if (self._smsHeartBeatInterval) {
+                clearInterval(self._smsHeartBeatInterval);
             }
         };
     };
@@ -128,7 +157,7 @@
         //todo::temp function, add json parse check later
         //var messageData = message.data.replace(/'/g, '"');
         var messageData = message.data;
-        //console.log("client _messageHandler:", messageData);
+        // console.log("client _messageHandler:", messageData);
         if (IsJsonString(messageData)) {
             var data = JSON.parse(messageData);
             this._dispatch(data);
