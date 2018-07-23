@@ -14263,19 +14263,6 @@ let dbPlayerInfo = {
                 result = query.csPromoteWay && query.csPromoteWay.length > 0 ? result.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : result;
                 result = query.admins && query.admins.length > 0 ? result.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : result;
 
-                result.forEach(data => {
-                    if (playerData) {
-                        playerData.forEach(player => {
-                            if (player._id.toString() === data._id.toString()) {
-                                data.phoneProvince = player.phoneProvince ? player.phoneProvince : null;
-                                data.phoneCity = player.phoneCity ? player.phoneCity : null;
-                                data.province = player.province ? player.province : null;
-                                data.city = player.city ? player.city : null;
-                            }
-                        });
-                    }
-                    return data;
-                });
 
                 result = result.concat(
                     filteredArr.filter(function(e) {
@@ -14652,7 +14639,7 @@ let dbPlayerInfo = {
 
             let playerProm = dbconfig.collection_players.findOne(
                 playerQuery, {
-                    playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1, accAdmin: 1, promoteWay: 1
+                    playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1, accAdmin: 1, promoteWay: 1, phoneProvince: 1, phoneCity: 1, province: 1, city: 1
                 }
             ).lean();
 
@@ -14896,6 +14883,11 @@ let dbPlayerInfo = {
                     if (playerDetail && playerDetail.promoteWay) {
                         result.csPromoteWay = playerDetail.promoteWay;
                     }
+
+                    result.phoneProvince = playerDetail.phoneProvince ? playerDetail.phoneProvince : null;
+                    result.phoneCity = playerDetail.phoneCity ? playerDetail.phoneCity : null;
+                    result.province = playerDetail.province ? playerDetail.province : null;
+                    result.city = playerDetail.city ? playerDetail.city : null;
 
                     return result;
                 }
