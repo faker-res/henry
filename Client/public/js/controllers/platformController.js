@@ -27747,7 +27747,13 @@ define(['js/app'], function (myApp) {
 
                 if (vm.selectedPlatform.data.financialSettlement && (vm.selectedPlatform.data.financialSettlement.minFinancialPointsNotification != srcData.minFinancialPointsNotification)
                     || (financialPointsNotification == true && vm.selectedPlatform.data.financialSettlement.financialPointsNotification != financialPointsNotification)) {
-                    sendData.updateData["financialSettlement.financialPointsNotificationShowed"] = false; //reset financial points notification
+                    let sendDataAdmin = {
+                        query: {_id: authService.adminId},
+                        updateData: {$pull: {financialPointsNotificationShowed: vm.selectedPlatform.data.platformId}}
+                    }
+                    socketService.$socket($scope.AppSocket, 'updateAllAdminInfo', sendDataAdmin, function (data) {
+                        console.log("update all admin notification showed complete")
+                    });
                 }
 
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
