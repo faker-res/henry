@@ -137,10 +137,7 @@ let dbPromoCode = {
                     else{
                         return Promise.reject({name: "DataError", errorMessage: "Proposal Type is not found"});
                     }
-
                 });
-
-
             }
         }).then(proposalData => {
             if (proposalData && proposalData.length == 2) {
