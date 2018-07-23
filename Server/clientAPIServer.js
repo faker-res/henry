@@ -20,7 +20,7 @@ var DxMissionServiceImplement = require("./serviceImplements/client/DXServiceImp
 var dbPlatform = require("./db_modules/dbPlatform");
 
 var services = require("./modules/services");
-// const serverInstance = require("./modules/serverInstance");
+const serverInstance = require("./modules/serverInstance");
 var clientApiInstances = require("./modules/clientApiInstances");
 
 var WebSocketMessageClient = require("./server_common/WebSocketMessageClient");
@@ -71,6 +71,7 @@ var dbPlatform = require("./db_modules/dbPlatform");
 clientApiInstances.createSMSAPI().then(
     res => {
         dbPlatform.syncSMSPlatform();
+        serverInstance.getSMSAPIClient().smsHeartBeat();
     }
 );
 module.exports = server;
