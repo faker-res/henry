@@ -199,7 +199,7 @@ function socketActionBankCardGroup(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatformBankCardGroup.syncBankCardGroupData, [data.platformObjId], actionName, true);
         },
 
-        createNewBankCardAcc: function createNewAlipayAcc(data) {
+        createNewBankCardAcc: function createNewBankCardAcc(data) {
             let actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId && data.accountNumber && data.name && data.bankTypeId);
 
