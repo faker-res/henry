@@ -3770,7 +3770,9 @@ define(['js/app'], function (myApp) {
                 });
 
                 vm.loadingTeleMarketingOverviewTable = false;
-                $scope.$evalAsync(vm.drawTelePlayerTable(newSearch, vm.teleMarketingPlayerInfo.data, vm.teleMarketingPlayerInfo.count));
+                $scope.$evalAsync(() => {
+                    vm.drawTelePlayerTable(newSearch, vm.teleMarketingPlayerInfo.data, vm.teleMarketingPlayerInfo.count);
+                });
             })
         };
 
