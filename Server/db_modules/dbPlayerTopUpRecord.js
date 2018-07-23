@@ -1099,7 +1099,14 @@ var dbPlayerTopUpRecord = {
                     let proms = [firstTopUpProm, limitedOfferProm];
 
                     if (inputData.bonusCode) {
-                        let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, inputData.bonusCode, inputData.amount);
+                        let bonusCodeCheckProm;
+                        let isOpenPromoCode = inputData.bonusCode.toString().trim().length == 3 ? true : false;
+                        if (isOpenPromoCode){
+                            bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, inputData.bonusCode, inputData.amount);
+                        }
+                        else {
+                            bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, inputData.bonusCode, inputData.amount);
+                        }
                         proms.push(bonusCodeCheckProm)
                     }
 
@@ -1976,7 +1983,14 @@ var dbPlayerTopUpRecord = {
                         let proms = [firstTopUpProm, limitedOfferProm];
 
                         if (bonusCode) {
-                            let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, bonusCode, amount);
+                            let bonusCodeCheckProm;
+                            let isOpenPromoCode = bonusCode.toString().trim().length == 3 ? true : false;
+                            if (isOpenPromoCode){
+                                bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, bonusCode, amount);
+                            }
+                            else {
+                                bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, bonusCode, amount);
+                            }
                             proms.push(bonusCodeCheckProm)
                         }
 
@@ -2440,7 +2454,14 @@ var dbPlayerTopUpRecord = {
                         let proms = [checkLimitedOfferProm];
 
                         if (bonusCode) {
-                            let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, bonusCode, amount);
+                            let bonusCodeCheckProm;
+                            let isOpenPromoCode = bonusCode.toString().trim().length == 3 ? true : false;
+                            if (isOpenPromoCode){
+                                bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, bonusCode, amount);
+                            }
+                            else {
+                                bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, bonusCode, amount);
+                            }
                             proms.push(bonusCodeCheckProm)
                         }
 
