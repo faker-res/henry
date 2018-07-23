@@ -131,18 +131,33 @@ var dbPlatformBankCardGroup = {
                 }
             );
     },
-    getAllBankCard: function(platformId, isFPMS){
-        var allBankCards = [];
-        if (isFPMS) {
-            return dbconfig.collection_platformBankCardList.find({platformId: platformId, isFPMS: isFPMS}).lean();
-        } else {
-            return pmsAPI.bankcard_getBankcardList(
-                {
-                    platformId: platformId,
-                    queryId: serverInstance.getQueryId()
+    getAllBankCard: function(platformId){
+        return dbconfig.collection_platform.findOne({platformId:platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
-            );
-        }
+                if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                    return dbconfig.collection_platformBankCardList.find(
+                        {
+                            platformId: platformId,
+                            isFPMS: true,
+                        }
+                    ).lean().then(
+                        bankCardListData => {
+                            return {data: bankCardListData} // to match existing code format
+                        }
+                    )
+                } else {
+                    return pmsAPI.bankcard_getBankcardList(
+                        {
+                            platformId: platformId,
+                            queryId: serverInstance.getQueryId()
+                        }
+                    );
+                }
+            }
+        );
     },
 
     /**

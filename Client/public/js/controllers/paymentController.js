@@ -234,19 +234,9 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getAllBankCard = function () {
-            let query = {
-                platform: vm.selectedPlatform.data.platformId
-            };
-            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) {
-                query.isFPMS = true;
-            }
-            return $scope.$socketPromise('getAllBankCard', query).then(data => {
+            return $scope.$socketPromise('getAllBankCard', {platform: vm.selectedPlatform.data.platformId}).then(data => {
                 console.log('getAllBankCard', data);
-                if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) {
-                    vm.allBankCards = data.data;
-                } else {
-                    vm.allBankCards = data.data.data;
-                }
+                vm.allBankCards = data.data.data;
 
                 $scope.safeApply();
             });
@@ -599,6 +589,9 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'createNewBankCardAcc', sendData,
                 function (data) {
                     console.log(data.data);
+                    //hrerewalao
+                    vm.loadBankCardGroup();
+                    $scope.safeApply();
                     socketService.showConfirmMessage($translate("Created successfully"));
                 },
                 function (err) {

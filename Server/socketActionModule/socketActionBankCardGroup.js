@@ -52,7 +52,7 @@ function socketActionBankCardGroup(socketIO, socket) {
         getAllBankCard: function getAllBankCard(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform);
-            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.getAllBankCard, [data.platform, data.isFPMS], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.getAllBankCard, [data.platform], actionName, isValidData);
         },
         /**
          * Get all the games by platform and the BankCardGroup
