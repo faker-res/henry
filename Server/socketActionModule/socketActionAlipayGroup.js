@@ -31,7 +31,7 @@ function socketActionAlipayGroup(socketIO, socket) {
         addPlatformAlipayGroup: function addPlatformAlipayGroup(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.name && data.platform && data.code && data.displayName);
-            socketUtil.emitter(self.socket, dbPlatformAlipayGroup.addPlatformAlipayGroup, [data.platform, data.name, data.code, data.displayName, data.isFPMS], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformAlipayGroup.addPlatformAlipayGroup, [data.platform, data.name, data.code, data.displayName], actionName, isValidData);
         },
 
         /**
@@ -63,7 +63,7 @@ function socketActionAlipayGroup(socketIO, socket) {
         getAllAlipaysByAlipayGroupWithIsInGroup: function getAllAlipaysByAlipayGroupWithIsInGroup(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform && data.alipayGroup);
-            socketUtil.emitter(self.socket, dbPlatformAlipayGroup.getAllAlipaysByGroupAndPlatformSetting, [data.platform, data.alipayGroup, data.isFPMS], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformAlipayGroup.getAllAlipaysByGroupAndPlatformSetting, [data.platform, data.alipayGroup], actionName, isValidData);
         },
 
         /**
@@ -106,6 +106,18 @@ function socketActionAlipayGroup(socketIO, socket) {
             var isValidData = Boolean(data && data.query && data.update);
             socketUtil.emitter(self.socket, dbPlatformAlipayGroup.updatePlatformAlipayGroup, [data.query, data.update], actionName, isValidData);
         },
+
+        /**
+         * Update this AlipayGroup - to remove all alipay list from all group
+         * @param {json} data - query data
+         * @param {json} update - update data
+         */
+        updatePlatformAllAlipayGroup: function updatePlatformAllAlipayGroup(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.update);
+            socketUtil.emitter(self.socket, dbPlatformAlipayGroup.updatePlatformAllAlipayGroup, [data.query, data.update], actionName, isValidData);
+        },
+
         /**
          * Delete game group by id / Delete the AlipayGroup and all its all sub-groups (all children)
          * @param {json} data - It has to contain ObjId of the group

@@ -9,7 +9,9 @@ var platformWechatPayListSchema = new Schema({
     state: {type:String},
     singleLimit: {type:Number},
     quota: {type:Number},
-    nickName: {type:String}
+    nickName: {type:String},
+    isFPMS: {type: Boolean, default: false, index: true},
+    quotaUsed : {type: Number, default: 0},
 });
 
 module.exports = platformWechatPayListSchema;

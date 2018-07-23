@@ -36,6 +36,18 @@ let dbPlatformWechatPayGroup = {
     },
 
     /**
+     * Update the wechat pay group (multiple)
+     * @param query - queryData
+     * @param updateData -  updateData
+     */
+    updatePlatformAllWechatPayGroup: function (query, updateData) {
+        return dbconfig.collection_platformWechatPayGroup.update(query, updateData, {
+            multi: true,
+            new: true
+        });
+    },
+
+    /**
      * Get all the wechat pay groups by platformObjId
      * @param {String}  platformId - ObjId of the platform
      */
@@ -112,20 +124,115 @@ let dbPlatformWechatPayGroup = {
             }
         )
     },
-    getAllWechatpaysByWechatpayGroup: function(platformId){
-        return pmsAPI.weChat_getWechatList(
+
+    createNewWechatpayAcc: function (updateData) {
+        return dbconfig.collection_platformWechatPayList.findOne(
             {
-                platformId: platformId,
-                queryId: serverInstance.getQueryId()
+                platformId: updateData.platformId,
+                accountNumber: updateData.accountNumber
+            }
+        ).lean().then(
+            wechatpayData => {
+                if (wechatpayData) {
+                    return Promise.reject({name: "DataError", message: "Account number exists"});
+                }
+                return dbconfig.collection_platformWechatPayList(updateData).save()
             }
         );
     },
 
-    getAllWechatpaysByWechatpayGroupWithIsInGroup: function(platformId, wechatPayGroupId){
+    getAllWechatpaysByWechatpayGroup: function(platformId){
+        return dbconfig.collection_platform.findOne({platformId:platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+
+                if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                    return dbconfig.collection_platformWechatPayList.find(
+                        {
+                            platformId: platformId,
+                            isFPMS: true,
+                        }
+                    ).lean().then(
+                        wechatpatListData => {
+                            return {data: wechatpatListData}; // to match existing code format
+                        }
+                    )
+                } else {
+                    return pmsAPI.weChat_getWechatList(
+                        {
+                            platformId: platformId,
+                            queryId: serverInstance.getQueryId()
+                        }
+                    )
+                }
+            }
+        )
+    },
+
+    getAllWechatpaysByGroupAndPlatformSetting: function (platformId, wechatPayGroupId) {
+        return dbconfig.collection_platform.findOne({platformId:platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+                if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                    return dbPlatformWechatPayGroup.getAllWechatpaysByGroupByFPMS(platformData, platformId, wechatPayGroupId);
+                } else {
+                    return dbPlatformWechatPayGroup.getAllWechatpaysByWechatpayGroupWithIsInGroup(platformData, platformId, wechatPayGroupId);
+                }
+            }
+        )
+    },
+
+    // get alu pay by group (not using financial points)
+    getAllWechatpaysByGroupByFPMS: function (platformDataObj, platformId, wechatPayGroupId) {
+        let platformObjId;
+        let wechatpayGroup;
+        return Promise.resolve(platformDataObj).then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+                platformObjId = platformData._id;
+                return dbconfig.collection_platformWechatPayGroup.findOne({_id: wechatPayGroupId}).lean()
+            }
+        ).then(
+            wechatpayGroupData => {
+                if (!wechatpayGroupData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find alipay group"});
+                }
+                wechatpayGroup = wechatpayGroupData;
+                return dbconfig.collection_platformWechatPayList.find(
+                    {
+                        platformId: platformId,
+                        isFPMS: true,
+                    }
+                ).lean()
+            }
+        ).then(
+            wechatList => {
+                let wechatsGroup = wechatpayGroup.wechats;
+                return wechatList.map(a=> {
+                    if (wechatsGroup.indexOf(a.accountNumber) != -1) {
+                        //in group
+                        a.isInGroup = true;
+                    } else {
+                        //not in group
+                        a.isInGroup = false;
+                    }
+                    return a;
+                })
+            }
+        )
+    },
+
+    getAllWechatpaysByWechatpayGroupWithIsInGroup: function(platformDataObj, platformId, wechatPayGroupId){
         let platformObjId = null;
         let wechatList = [];
         let newWechats = [];
-        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+        return Promise.resolve(platformDataObj).then(
             platform => {
                 if (platform) {
                     platformObjId = platform._id;
@@ -143,7 +250,12 @@ let dbPlatformWechatPayGroup = {
                     let wechats = data.data;
                     let updateWechatProm = [];
                     wechatList = wechats;
-                    return dbconfig.collection_platformWechatPayList.find({platformId: platformId}).lean().then(oldWechats => {
+                    return dbconfig.collection_platformWechatPayList.find(
+                        {
+                            platformId: platformId,
+                            $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]
+                        }
+                    ).lean().then(oldWechats => {
                         wechats.forEach(wechat => {
                             if(oldWechats && oldWechats.length > 0) {
                                 let match = false;
@@ -163,7 +275,8 @@ let dbPlatformWechatPayGroup = {
                                     dbconfig.collection_platformWechatPayList.findOneAndUpdate(
                                         {
                                             accountNumber: wechat.accountNumber,
-                                            platformId: platformId
+                                            platformId: platformId,
+                                            $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]
                                         },
                                         {
                                             accountNumber: wechat.accountNumber,
@@ -187,7 +300,7 @@ let dbPlatformWechatPayGroup = {
         ).then(
             () => {
                 let wechatAccountNumbers = wechatList.map(wechat => wechat.accountNumber);
-                return dbconfig.collection_platformWechatPayList.find({platformId: platformId, accountNumber: {$nin: wechatAccountNumbers}}).lean().then(
+                return dbconfig.collection_platformWechatPayList.find({platformId: platformId, accountNumber: {$nin: wechatAccountNumbers}, $or: [{isFPMS: false}, {isFPMS: {$exists: false}}]}).lean().then(
                     deletedWechats => {
                         if(deletedWechats && deletedWechats.length > 0) {
                             let deletedAccountNumbers = [];
