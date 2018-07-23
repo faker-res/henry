@@ -32,6 +32,15 @@ var dbPlatformBankCardGroup = {
     },
 
     /**
+     * Update the  bank card group (multiple)
+     * @param {Json}  query - queryData
+     * @param {Json}  updateData -  updateData
+     */
+    updatePlatformAllBankCardGroup: function (query, updateData) {
+        return dbconfig.collection_platformBankCardGroup.update(query, updateData, {multi: true, new: true});
+    },
+
+    /**
      * Get all the bank card groups  by platformObjId
      * @param {String}  platformId - ObjId of the platform
      */

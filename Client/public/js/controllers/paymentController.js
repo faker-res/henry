@@ -589,9 +589,6 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'createNewBankCardAcc', sendData,
                 function (data) {
                     console.log(data.data);
-                    //hrerewalao
-                    vm.loadBankCardGroup();
-                    $scope.safeApply();
                     socketService.showConfirmMessage($translate("Created successfully"));
                 },
                 function (err) {

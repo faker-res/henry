@@ -27923,6 +27923,43 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                     loadPlatformData({loadAll: false});
+                    if (vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle != srcData.financialSettlementToggle
+                        && srcData.financialSettlementToggle == true) {
+                        let sendDataBankCard = {
+                            query: {
+                                platform: vm.selectedPlatform.id
+                            },
+                            update: {
+                                banks: []
+                            }
+                        }
+                        let sendDataWechat = {
+                            query: {
+                                platform: vm.selectedPlatform.id
+                            },
+                            update: {
+                                wechats: []
+                            }
+                        }
+                        let sendDataAli = {
+                            query: {
+                                platform: vm.selectedPlatform.id
+                            },
+                            update: {
+                                alipays: []
+                            }
+                        }
+
+                        socketService.$socket($scope.AppSocket, 'updatePlatformAllBankCardGroup', sendDataBankCard, function (data) {
+                            console.log("update bank card group complete")
+                        });
+                        socketService.$socket($scope.AppSocket, 'updatePlatformAllWechatPayGroup', sendDataWechat, function (data) {
+                            console.log("update wechatPay group complete")
+                        });
+                        socketService.$socket($scope.AppSocket, 'updatePlatformAllAlipayGroup', sendDataAli, function (data) {
+                            console.log("update aliPay  group complete")
+                        });
+                    };
                 });
             }
 

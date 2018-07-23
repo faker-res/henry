@@ -33,6 +33,15 @@ var dbPlatformAlipayGroup = {
     },
 
     /**
+     * Update the  bank card group (multiple
+     * @param {Json}  query - queryData
+     * @param {Json}  updateData -  updateData
+     */
+    updatePlatformAllAlipayGroup: function (query, updateData) {
+        return dbconfig.collection_platformAlipayGroup.update(query, updateData, {multi: true, new: true});
+    },
+
+    /**
      * Get all the bank card groups  by platformObjId
      * @param {String}  platformId - ObjId of the platform
      */

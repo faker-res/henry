@@ -36,6 +36,18 @@ let dbPlatformWechatPayGroup = {
     },
 
     /**
+     * Update the wechat pay group (multiple)
+     * @param query - queryData
+     * @param updateData -  updateData
+     */
+    updatePlatformAllWechatPayGroup: function (query, updateData) {
+        return dbconfig.collection_platformWechatPayGroup.update(query, updateData, {
+            multi: true,
+            new: true
+        });
+    },
+
+    /**
      * Get all the wechat pay groups by platformObjId
      * @param {String}  platformId - ObjId of the platform
      */
