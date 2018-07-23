@@ -117,6 +117,14 @@ var dbAdminInfo = {
     },
 
     /**
+     * Update all admin users
+     * @param {String} query - Query string
+     */
+    updateAllAdminInfo: function (query, data) {
+        return dbconfig.collection_admin.update(query, data, {multi: true, new: true}).exec();
+    },
+
+    /**
      * Get all live800 account
      * @param live800Acc
      */

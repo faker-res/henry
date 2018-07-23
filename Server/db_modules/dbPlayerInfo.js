@@ -1441,6 +1441,42 @@ let dbPlayerInfo = {
                         );
                         promArr.push(testPlayerHandlingProm);
                     }
+
+                    if (playerData.domain) {
+                        delete playerData.referral;
+                        let filteredDomain = dbUtility.getDomainName(playerData.domain);
+                        while (filteredDomain.indexOf("/") !== -1) {
+                            filteredDomain = filteredDomain.replace("/", "");
+                        }
+
+                        if (filteredDomain.indexOf("?") !== -1) {
+                            filteredDomain = filteredDomain.split("?")[0];
+                        }
+
+                        if (filteredDomain.indexOf("#") !== -1) {
+                            filteredDomain = filteredDomain.split("#")[0];
+                        }
+
+                        playerData.domain = filteredDomain;
+
+                        if (playerData) {
+                            let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
+                                domain: {
+                                    $regex: playerData.domain,
+                                    $options: "xi"
+                                },
+                                platform: platformObjId
+                            }).lean().then(data => {
+                                if (data) {
+                                    playerData.csOfficer = data.admin;
+                                    playerData.promoteWay = data.way
+                                }
+                            });
+
+                            promArr.push(promoteWayProm);
+                        }
+                    }
+
                     return Promise.all(promArr);
                 }
                 else {
@@ -3228,19 +3264,12 @@ let dbPlayerInfo = {
                             if (!platformData) {
                                 return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
                             }
-                            let financialProposal = {
-                                creator: proposalData.creator,
-                                data: {
-                                    updateAmount: proposalData.data.amount,
-                                    remark: "",
-                                    topUpProposalId: proposalData.proposalId,
-                                    financialPointsType: topUpType,
-                                    pointsBefore: platformData.financialPoints,
-                                    pointsAfter: platformData.financialPoints + proposalData.data.amount
-                                },
-                                userType: constProposalUserType.PLAYERS
+
+                            let dataToUpdate = {
+                                "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                                "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints + proposalData.data.amount)
                             };
-                            dbProposal.createProposalWithTypeNameWithProcessInfo(data.platform, constProposalType.FINANCIAL_POINTS_ADD, financialProposal).catch(errorUtils.reportError);
+                            dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
                         }
                     ).catch(errorUtils.reportError);
 
@@ -8371,7 +8400,11 @@ let dbPlayerInfo = {
             isRealPlayer: true //only count real player
         };
 
-        let f = dbconfig.collection_players.find(query, 'domain csOfficer promoteWay valueScore consumptionTimes consumptionSum topUpSum topUpTimes partner lastPlayedProvider')
+        let fields = 'name realName registrationTime phoneProvince phoneCity province city lastAccessTime loginTimes'
+            + ' accAdmin promoteWay sourceUrl registrationInterface userAgent domain csOfficer promoteWay valueScore'
+            + ' consumptionTimes consumptionSum topUpSum topUpTimes partner lastPlayedProvider';
+
+        let f = dbconfig.collection_players.find(query, fields)
             .populate({path: "partner", model: dbconfig.collection_partner})
             .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean();
         let g = dbconfig.collection_players.aggregate(
@@ -14238,19 +14271,6 @@ let dbPlayerInfo = {
                 result = query.csPromoteWay && query.csPromoteWay.length > 0 ? result.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : result;
                 result = query.admins && query.admins.length > 0 ? result.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : result;
 
-                result.forEach(data => {
-                    if (playerData) {
-                        playerData.forEach(player => {
-                            if (player._id.toString() === data._id.toString()) {
-                                data.phoneProvince = player.phoneProvince ? player.phoneProvince : null;
-                                data.phoneCity = player.phoneCity ? player.phoneCity : null;
-                                data.province = player.province ? player.province : null;
-                                data.city = player.city ? player.city : null;
-                            }
-                        });
-                    }
-                    return data;
-                });
 
                 result = result.concat(
                     filteredArr.filter(function(e) {
@@ -14627,7 +14647,7 @@ let dbPlayerInfo = {
 
             let playerProm = dbconfig.collection_players.findOne(
                 playerQuery, {
-                    playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1, accAdmin: 1, promoteWay: 1
+                    playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1, accAdmin: 1, promoteWay: 1, phoneProvince: 1, phoneCity: 1, province: 1, city: 1
                 }
             ).lean();
 
@@ -14871,6 +14891,11 @@ let dbPlayerInfo = {
                     if (playerDetail && playerDetail.promoteWay) {
                         result.csPromoteWay = playerDetail.promoteWay;
                     }
+
+                    result.phoneProvince = playerDetail.phoneProvince ? playerDetail.phoneProvince : null;
+                    result.phoneCity = playerDetail.phoneCity ? playerDetail.phoneCity : null;
+                    result.province = playerDetail.province ? playerDetail.province : null;
+                    result.city = playerDetail.city ? playerDetail.city : null;
 
                     return result;
                 }

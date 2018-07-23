@@ -1758,19 +1758,11 @@ var proposalExecutor = {
                                            if (!platformData) {
                                                return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
                                            }
-                                           let financialProposal = {
-                                               creator: proposalData.creator,
-                                               data: {
-                                                   updateAmount: -proposalData.data.amount,
-                                                   remark: "",
-                                                   withdrawalProposalId: proposalData.proposalId,
-                                                   financialPointsType: constFinancialPointsType.PLAYER_BONUS,
-                                                   pointsBefore: platformData.financialPoints,
-                                                   pointsAfter: platformData.financialPoints - proposalData.data.amount
-                                               },
-                                               userType: constProposalUserType.PLAYERS
+                                           let dataToUpdate = {
+                                               "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                                               "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
                                            };
-                                           dbProposal.createProposalWithTypeNameWithProcessInfo(platformData._id, constProposalType.FINANCIAL_POINTS_DEDUCT, financialProposal).catch(errorUtils.reportError);
+                                           dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
                                            return bonusData;
                                        }
                                    );
@@ -1847,19 +1839,12 @@ var proposalExecutor = {
                                             if (!platformData) {
                                                 return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
                                             }
-                                            let financialProposal = {
-                                                creator: proposalData.creator,
-                                                data: {
-                                                    updateAmount: -proposalData.data.amount,
-                                                    remark: "",
-                                                    withdrawalProposalId: proposalData.proposalId,
-                                                    financialPointsType: constFinancialPointsType.PARTNER_BONUS,
-                                                    pointsBefore: platformData.financialPoints,
-                                                    pointsAfter: platformData.financialPoints - proposalData.data.amount
-                                                },
-                                                userType: constProposalUserType.PARTNERS
+
+                                            let dataToUpdate = {
+                                                "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                                                "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
                                             };
-                                            dbProposal.createProposalWithTypeNameWithProcessInfo(platformData._id, constProposalType.FINANCIAL_POINTS_DEDUCT, financialProposal).catch(errorUtils.reportError);
+                                            dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
                                             return bonusData;
                                         }
                                     )

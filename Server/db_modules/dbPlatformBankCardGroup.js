@@ -32,6 +32,15 @@ var dbPlatformBankCardGroup = {
     },
 
     /**
+     * Update the  bank card group (multiple)
+     * @param {Json}  query - queryData
+     * @param {Json}  updateData -  updateData
+     */
+    updatePlatformAllBankCardGroup: function (query, updateData) {
+        return dbconfig.collection_platformBankCardGroup.update(query, updateData, {multi: true, new: true});
+    },
+
+    /**
      * Get all the bank card groups  by platformObjId
      * @param {String}  platformId - ObjId of the platform
      */
@@ -131,18 +140,33 @@ var dbPlatformBankCardGroup = {
                 }
             );
     },
-    getAllBankCard: function(platformId, isFPMS){
-        var allBankCards = [];
-        if (isFPMS) {
-            return dbconfig.collection_platformBankCardList.find({platformId: platformId, isFPMS: isFPMS}).lean();
-        } else {
-            return pmsAPI.bankcard_getBankcardList(
-                {
-                    platformId: platformId,
-                    queryId: serverInstance.getQueryId()
+    getAllBankCard: function(platformId){
+        return dbconfig.collection_platform.findOne({platformId:platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
-            );
-        }
+                if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                    return dbconfig.collection_platformBankCardList.find(
+                        {
+                            platformId: platformId,
+                            isFPMS: true,
+                        }
+                    ).lean().then(
+                        bankCardListData => {
+                            return {data: bankCardListData} // to match existing code format
+                        }
+                    )
+                } else {
+                    return pmsAPI.bankcard_getBankcardList(
+                        {
+                            platformId: platformId,
+                            queryId: serverInstance.getQueryId()
+                        }
+                    );
+                }
+            }
+        );
     },
 
     /**

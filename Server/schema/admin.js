@@ -37,7 +37,8 @@ var adminInfoSchema = new Schema({
     live800Acc: [{type: String, default: 0}],
     // caller queue ID
     callerQueue: {type: String},
-
+    // financial settlement notification showed base on each platform
+    financialPointsNotificationShowed: [{type: String}],
 
 });
 

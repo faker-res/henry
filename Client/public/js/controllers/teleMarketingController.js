@@ -1307,7 +1307,7 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        vm.telorMessageToPlayerBtn = function (type, playerObjId, data) {
+        vm.telorMessageToPlayerBtn = function (type, data) {
             // var rowData = JSON.parse(data);
             console.log(type, data);
             vm.getSMSTemplate();
@@ -3770,7 +3770,9 @@ define(['js/app'], function (myApp) {
                 });
 
                 vm.loadingTeleMarketingOverviewTable = false;
-                $scope.$evalAsync(vm.drawTelePlayerTable(newSearch, vm.teleMarketingPlayerInfo.data, vm.teleMarketingPlayerInfo.count));
+                $scope.$evalAsync(() => {
+                    vm.drawTelePlayerTable(newSearch, vm.teleMarketingPlayerInfo.data, vm.teleMarketingPlayerInfo.count);
+                });
             })
         };
 
@@ -3928,7 +3930,7 @@ define(['js/app'], function (myApp) {
                             link.append($('<a>', {
                                 'style': (row.alerted ? "color:red;" : ""),
                                 'class': 'fa fa-volume-control-phone margin-right-5' + (row.playerData.permission.phoneCallFeedback === false ? " text-danger" : ""),
-                                'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
+                                'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel",' + JSON.stringify(row) + ');',
                                 'data-row': JSON.stringify(row),
                                 'data-toggle': 'tooltip',
                                 'title': $translate("PHONE"),

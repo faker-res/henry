@@ -3630,8 +3630,8 @@ var dbPlatform = {
                 if (!platformData) {
                     return Promise.reject({name: "DataError", errorMessage: "Cannot find platform"});
                 }
-                proposalData.data.pointsBefore = platformData.financialPoints;
-                proposalData.data.pointsAfter = platformData.financialPoints + proposalData.data.updateAmount;
+                proposalData.data.pointsBefore = dbUtility.noRoundTwoDecimalPlaces(platformData.financialPoints);
+                proposalData.data.pointsAfter = dbUtility.noRoundTwoDecimalPlaces(platformData.financialPoints + proposalData.data.updateAmount);
                 return dbProposal.createProposalWithTypeNameWithProcessInfo(platformId, typeName, proposalData)
             }
         )

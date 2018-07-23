@@ -2409,7 +2409,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                     {_id: updatedRTG._id},
                                     {
                                         $inc: {
-                                            currentAmt: -consumptionRecord.bonusAmount,
+                                            currentAmt: -amtToDeduct,
                                             curConsumption: -consumptionAmt
                                         }
                                     }
@@ -2478,7 +2478,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                             {_id: updatedRTG._id},
                                             {
                                                 $inc: {
-                                                    currentAmt: -consumptionRecord.bonusAmount,
+                                                    currentAmt: -amtToDeduct,
                                                     curConsumption: -consumptionAmt
                                                 }
                                             }

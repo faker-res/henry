@@ -52,7 +52,7 @@ function socketActionBankCardGroup(socketIO, socket) {
         getAllBankCard: function getAllBankCard(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform);
-            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.getAllBankCard, [data.platform, data.isFPMS], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.getAllBankCard, [data.platform], actionName, isValidData);
         },
         /**
          * Get all the games by platform and the BankCardGroup
@@ -84,6 +84,18 @@ function socketActionBankCardGroup(socketIO, socket) {
             var isValidData = Boolean(data && data.query && data.update);
             socketUtil.emitter(self.socket, dbPlatformBankCardGroup.updatePlatformBankCardGroup, [data.query, data.update], actionName, isValidData);
         },
+
+        /**
+         * Update this BankCardGroup to remove all bank cards from all bank card group
+         * @param {json} data - query data
+         * @param {json} update - update data
+         */
+        updatePlatformAllBankCardGroup: function updatePlatformAllBankCardGroup(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.update);
+            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.updatePlatformAllBankCardGroup, [data.query, data.update], actionName, isValidData);
+        },
+
         /**
          * Delete game group by id / Delete the BankCardGroup and all its all sub-groups (all children)
          * @param {json} data - It has to contain ObjId of the group
@@ -187,7 +199,7 @@ function socketActionBankCardGroup(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatformBankCardGroup.syncBankCardGroupData, [data.platformObjId], actionName, true);
         },
 
-        createNewBankCardAcc: function createNewAlipayAcc(data) {
+        createNewBankCardAcc: function createNewBankCardAcc(data) {
             let actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId && data.accountNumber && data.name && data.bankTypeId);
 
