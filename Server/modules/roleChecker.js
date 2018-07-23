@@ -452,7 +452,8 @@ var roleChecker = {
                 activatePromoCode: ['updatePromoCodesActive'],
                 applyPromoCode: [],
                 promoCodeAnalysis: ['getPromoCodeTypeByObjId'],
-                promoCodeTemplate: ['updatePromoCodeTemplate']
+                promoCodeTemplate: ['updatePromoCodeTemplate'],
+                openPromoCodeTemplate: ['updateOpenPromoCodeTemplate'],
             },
             "RegistrationUrlConfig": {
                 Read: ['getAllOfficer', 'getAllPromoteWay', 'getAllUrl', 'getAdminNameByDepartment'],
@@ -492,7 +493,8 @@ var roleChecker = {
                 Update: ['updatePlatformBankCardGroup', 'setPlatformDefaultBankCardGroup', 'syncBankCardGroupData'],
                 Delete: ['deleteBankCardGroup'],
                 AddPlayer: ['addPlayersToBankCardGroup'],
-                AddAllPlayer: ['addAllPlayersToBankCardGroup']
+                AddAllPlayer: ['addAllPlayersToBankCardGroup'],
+                CreateBankCard: ['createNewBankCardAcc']
             },
             "MerchantGroup": {
                 Read: ['getPlatformMerchantGroup', 'getMerchantTypeList', 'getIncludedMerchantByMerchantGroup', 'getExcludedMerchantByMerchantGroup'],

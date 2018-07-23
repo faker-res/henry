@@ -425,7 +425,7 @@ let dbPlayerInfo = {
                     platformId = platformData.platformId;
                     platformObj = platformData;
                     platformObjId = platformData._id;
-                    platformPrefix = platformData.prefix;
+                    // platformPrefix = platformData.prefix;
 
                     //check if manual player creation from FPMS, return true (manual creation from FPMS do not have userAgent)
                     if(inputData.userAgent){
@@ -1243,7 +1243,7 @@ let dbPlayerInfo = {
             data => {
                 if (data.isPlayerNameValid) {
                     // check player name must start with prefix
-                    if ( pName.indexOf(pPrefix) === 0) {
+                    if (!pPrefix || pName.indexOf(pPrefix) === 0) {
                         return {isPlayerPrefixValid: true};
                     } else {
                         return {isPlayerPrefixValid: false};
@@ -1478,7 +1478,7 @@ let dbPlayerInfo = {
                     let proms = [];
                     let playerUpdateData = {
                         // playerLevel: data[0]._id,
-                        playerId: (data[1].prefix + playerData.playerId)
+                        playerId: (/*data[1].prefix +*/ playerData.playerId)
                     };
                     if (!bFromBI) {
                         playerUpdateData.playerLevel = data[0]._id;
@@ -4500,8 +4500,8 @@ let dbPlayerInfo = {
                     platformObj = platformData;
                     requireLogInCaptcha = platformData.requireLogInCaptcha || false;
                     platformId = platformData._id;
-                    platformPrefix = platformData.prefix;
-                    playerData.prefixName = platformData.prefix + playerData.name;
+                    // platformPrefix = platformData.prefix;
+                    playerData.prefixName = playerData.name;
 
                     let playerQuery = {
                         $or: [
@@ -5003,7 +5003,7 @@ let dbPlayerInfo = {
                                         model: dbconfig.collection_playerLevel
                                     }).lean().then(
                                         res => {
-                                            res.name = res.name.replace(platformPrefix, "");
+                                            // res.name = res.name.replace(platformPrefix, "");
                                             retObj = res;
                                             let a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
                                             let b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
@@ -5365,7 +5365,7 @@ let dbPlayerInfo = {
 
                             if (playerData.platform.useProviderGroup) {
                                 // Platform supporting provider group
-                                if(playerData.platform.useEbetWallet && providerData.name.toUpperCase() === "EBET") {
+                                if(playerData.platform.useEbetWallet && (providerData.name.toUpperCase() === "EBET" || providerData.name.toUpperCase() === "EBETSLOTS")) {
                                     // if use eBet Wallet
                                     return dbPlayerCreditTransfer.playerCreditTransferToEbetWallets(
                                         playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
@@ -5862,7 +5862,7 @@ let dbPlayerInfo = {
 
                                 if (playerObj.platform.useProviderGroup) {
                                     // Platform supporting provider group
-                                    if(playerObj.platform.useEbetWallet && data[1].name.toUpperCase() === "EBET") {
+                                    if(playerObj.platform.useEbetWallet && (data[1].name.toUpperCase() === "EBET" || data[1].name.toUpperCase() === "EBETSLOTS")) {
                                         // if use eBet Wallet
                                         console.log("using eBetWallet");
                                         return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallets(
@@ -8360,7 +8360,7 @@ let dbPlayerInfo = {
             isRealPlayer: true //only count real player
         };
 
-        let f = dbconfig.collection_players.find(query)
+        let f = dbconfig.collection_players.find(query, 'domain csOfficer promoteWay valueScore consumptionTimes consumptionSum topUpSum topUpTimes partner lastPlayedProvider')
             .populate({path: "partner", model: dbconfig.collection_partner})
             .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean();
         let g = dbconfig.collection_players.aggregate(
@@ -15506,7 +15506,7 @@ let dbPlayerInfo = {
 
         let dxCode = "";
 
-        let platformProm = Promise.resolve({platformId: platformId});
+        let platformProm = Promise.resolve({platform: {platformId: platformId}});
         if (!platformId) {
             platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).populate({
                 path: "platform", model: dbconfig.collection_platform
@@ -15695,8 +15695,7 @@ let dbPlayerInfo = {
             name: 1,
             _id: 0,
             forbidProviders: 1
-        })
-            .populate({
+        }).populate({
                 path: "platform",
                 model: dbconfig.collection_platform,
                 select: ['_id', 'platformId']

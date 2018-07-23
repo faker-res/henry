@@ -513,10 +513,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         return $scope.debounce(func, 300, false);
     };
 
-    AppService.getData().then(function (data) {
-        $scope.inbox = data.inbox;
-        $scope.processes = data.processes;
-    });
+    // AppService.getData().then(function (data) {
+    //     $scope.inbox = data.inbox;
+    //     $scope.processes = data.processes;
+    // });
 
     $scope.merchantUseTypeJson = {
         '1': 'MerchantUse_CreateAccount',

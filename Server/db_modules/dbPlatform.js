@@ -3603,6 +3603,9 @@ var dbPlatform = {
 
         return ptProm.then(
             (proposalType) => {
+                if (!proposalType) {
+                    return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+                }
                 //check if there is pending proposal for this type
                 let queryObj = {
                     type: proposalType._id,

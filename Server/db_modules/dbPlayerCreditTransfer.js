@@ -1250,15 +1250,17 @@ let dbPlayerCreditTransfer = {
                 if (res) {//create log
                     playerCredit = res.validCredit;
                     let lockedCredit = res.lockedCredit;
-                    dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, updateObj.freeAmt, constPlayerCreditChangeType.TRANSFER_OUT, playerCredit, lockedCredit, updateObj.rewardAmt, null, {
-                        providerId: providerShortId,
-                        providerName: cpName,
-                        transferId: transferId,
-                        adminName: adminName
-                    });
-                    // Logging Transfer Success
-                    dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform,
-                        platformId, constPlayerCreditChangeType.TRANSFER_OUT, transferId, providerShortId, amount, updateObj.rewardAmt, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
+                    if(amount != 0) {
+                        dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, updateObj.freeAmt, constPlayerCreditChangeType.TRANSFER_OUT, playerCredit, lockedCredit, updateObj.rewardAmt, null, {
+                            providerId: providerShortId,
+                            providerName: cpName,
+                            transferId: transferId,
+                            adminName: adminName
+                        });
+                        // Logging Transfer Success
+                        dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform,
+                            platformId, constPlayerCreditChangeType.TRANSFER_OUT, transferId, providerShortId, amount, updateObj.rewardAmt, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
+                    }
                     return dbConfig.collection_rewardTaskGroup.find({
                         platformId: ObjectId(platform),
                         playerId: ObjectId(playerObjId),
@@ -1326,8 +1328,19 @@ let dbPlayerCreditTransfer = {
 
     playerCreditTransferToEbetWallets: function (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) {
         let checkAmountProm = [];
-        let prom = [];
+        let transferIn = Promise.resolve();
+        let transferInSuccessData = [];
         let hasEbetWalletSettings = false;
+        let waitTimePerRequest = 2000; //2seconds for one transaction
+        let delayTransferIn = ()=>{
+            return new Promise ((resolve) => {
+                setTimeout(() => {
+                        return resolve();
+                    }, waitTimePerRequest
+                );
+            });
+        };
+
         return dbConfig.collection_gameProviderGroup.find({
             platform: platform
         }).populate(
@@ -1346,8 +1359,14 @@ let dbPlayerCreditTransfer = {
                                 status: {$in: [constRewardTaskStatus.STARTED]}
                             }).lean().then(rtg => {
                                 if(rtg && rtg.rewardAmt > 0) {
-                                    prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(group, playerObjId, platform,
-                                        providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync));
+                                    transferIn = transferIn.then(() => {
+                                        return dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(group, playerObjId, platform,
+                                            providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync).then(ret => {
+                                            transferInSuccessData.push(ret);
+                                        }).catch(err => {
+                                            return errorUtils.reportError(err);
+                                        });
+                                    }).then(delayTransferIn);
                                 }
                             })
                         );
@@ -1356,29 +1375,33 @@ let dbPlayerCreditTransfer = {
                 checkAmountProm.push(
                     dbConfig.collection_players.findOne({_id: playerObjId}).lean().then(player => {
                         if(player && Math.floor(parseFloat(player.validCredit)) > 0) {
-                            prom.push(dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(null, playerObjId, platform,
-                                providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync))
+                            transferIn = transferIn.then(() => {
+                                return dbPlayerCreditTransfer.playerCreditTransferToEbetWallet(null, playerObjId, platform,
+                                    providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync).then(ret => {
+                                    transferInSuccessData.push(ret);
+                                }).catch(err => {
+                                    return errorUtils.reportError(err);
+                                });
+                            });
                         }
                     })
                 );
                 if(hasEbetWalletSettings) {
                     return Promise.all(checkAmountProm).then(() => {
-                        return Promise.all(prom);
-                    }).then(data => {
-                        if(data && data.length > 0) {
-                            console.log('transferin promise data',data);
-                            return Promise.resolve({
-                                playerId: data[0].playerId,
-                                providerId: data[0].providerId,
-                                providerCredit: data[0].providerCredit,
-                                playerCredit: data[0].playerCredit,
-                                rewardCredit: data[0].rewardCredit,
-                                transferCredit: {
-                                    playerCredit: data[0].transferCredit.playerCredit,
-                                    rewardCredit: data[0].transferCredit.rewardCredit
-                                }
-                            });
-                        }
+                        return transferIn;
+                    }).then(() => {
+                        console.log('transferin promise data',transferInSuccessData);
+                        return Promise.resolve({
+                            playerId: transferInSuccessData[0].playerId,
+                            providerId: transferInSuccessData[0].providerId,
+                            providerCredit: transferInSuccessData[0].providerCredit,
+                            playerCredit: transferInSuccessData[0].playerCredit,
+                            rewardCredit: transferInSuccessData[0].rewardCredit,
+                            transferCredit: {
+                                playerCredit: transferInSuccessData[0].transferCredit.playerCredit,
+                                rewardCredit: transferInSuccessData[0].transferCredit.rewardCredit
+                            }
+                        });
                     })
                     .catch(err => {
                         errorUtils.reportError(err);
@@ -1691,7 +1714,7 @@ let dbPlayerCreditTransfer = {
                                 providerGroup: group._id,
                                 status: constRewardTaskStatus.STARTED
                             }).lean().then(RTG => {
-                                if(RTG) {
+                                if(RTG || gameCredit.wallet[group.ebetWallet] > 0) {
                                     transferOut = transferOut.then(() => {
                                         return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(group, playerObjId, platform, providerId,
                                             amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {

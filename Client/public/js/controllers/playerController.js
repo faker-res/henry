@@ -800,7 +800,7 @@ define(['js/app'], function (myApp) {
              vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
              vm.playerFeedbackTopic, vm.partnerFeedbackTopic, vm.allPlayerFeedbackResults,vm.allPartnerFeedbackResults,
              [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes, [vm.allGameProviders, vm.gameProvidersList],
-                vm.credibilityRemarks, vm.platformRewardtype
+                vm.credibilityRemarks, vm.platformRewardtype, vm.allPlayerLvl
             ] = await Promise.all([
                 commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -819,7 +819,8 @@ define(['js/app'], function (myApp) {
                 commonService.getAllRewardTypes($scope).catch(err => Promise.resolve([])),
                 commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])),
                 commonService.getCredibilityRemarks($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])),
-                commonService.getPlatformRewardProposal($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
+                commonService.getPlatformRewardProposal($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                commonService.getAllPlayerLevels($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
             ]);
 
             // 1st dependencies variable
@@ -828,6 +829,9 @@ define(['js/app'], function (myApp) {
             ]);
 
             vm.bankCards = preValue1[0];
+
+            // Initiate player table
+            vm.getPlatformPlayersData(true, true);
 
             // check settlement buttons
             let nowDate = new Date().toLocaleDateString();
@@ -885,7 +889,6 @@ define(['js/app'], function (myApp) {
                         vm.playersQueryCreated = false;
                         vm.loadAlldepartment();
                         vm.rewardTabClicked();
-                        vm.getPlatformPlayersData(true, true);
                         vm.getPlatformGameData();
                         vm.loadProposalTypeData();
                         vm.loadBankCardGroupData();

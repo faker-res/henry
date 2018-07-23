@@ -437,7 +437,7 @@ const dbPlayerMail = {
 
                     if (purpose && purpose == constSMSPurpose.REGISTRATION) {
                         let letterNumber = /^[0-9a-zA-Z]+$/;
-                        let prefixLength = platform.prefix ?　platform.prefix.length : 0;
+                        // let prefixLength = platform.prefix ?　platform.prefix.length : 0;
 
                         if(!playerName.match(letterNumber)){
                             return Q.reject({
@@ -448,7 +448,7 @@ const dbPlayerMail = {
                         }
 
                         if(platform.playerNameMinLength > 0){
-                            if(playerName && playerName.length + prefixLength < platform.playerNameMinLength){
+                            if(playerName && playerName.length < platform.playerNameMinLength){
                                 return Q.reject({
                                     status: constServerCode.DATA_INVALID,
                                     name: "DBError",
@@ -459,7 +459,7 @@ const dbPlayerMail = {
                         }
 
                         if(platform.playerNameMaxLength > 0){
-                            if(playerName && playerName.length + prefixLength > platform.playerNameMaxLength){
+                            if(playerName && playerName.length > platform.playerNameMaxLength){
                                 return Q.reject({
                                     status: constServerCode.DATA_INVALID,
                                     name: "DBError",
@@ -473,6 +473,7 @@ const dbPlayerMail = {
                         let indexNo = platformData.blackListingPhoneNumbers.findIndex(p => p == telNum);
 
                         if(indexNo != -1){
+                            isSpam = true;
                             return Q.reject({name: "DataError", message: localization.localization.translate("This phone number is already used. Please insert other phone number.")});
                         }
                     }
@@ -539,6 +540,7 @@ const dbPlayerMail = {
                     }
 
                     if (!phoneValidation || !phoneValidation.isPhoneNumberValid) {
+                        isSpam = true;
                         return Promise.reject({
                             status: constServerCode.PHONENUMBER_ALREADY_EXIST,
                             message: "This phone number is already used. Please insert other phone number."

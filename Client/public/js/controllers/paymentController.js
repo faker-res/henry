@@ -234,9 +234,19 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getAllBankCard = function () {
-            return $scope.$socketPromise('getAllBankCard', {platform: vm.selectedPlatform.data.platformId}).then(data => {
+            let query = {
+                platform: vm.selectedPlatform.data.platformId
+            };
+            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) {
+                query.isFPMS = true;
+            }
+            return $scope.$socketPromise('getAllBankCard', query).then(data => {
                 console.log('getAllBankCard', data);
-                vm.allBankCards = data.data.data;
+                if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) {
+                    vm.allBankCards = data.data;
+                } else {
+                    vm.allBankCards = data.data.data;
+                }
 
                 $scope.safeApply();
             });
@@ -288,12 +298,19 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
                 if (data && data.data && data.data.data) {
                     vm.allBankTypeList = {};
+                    vm.cloneAllBankTypeList = [];
                     console.log('banktype', data.data.data);
                     data.data.data.forEach(item => {
                         if (item && item.bankTypeId) {
-                        vm.allBankTypeList[item.id] = item.name + ' (' + item.bankTypeId + ')';
-                    }
-                })
+                            vm.allBankTypeList[item.id] = item.name + ' (' + item.bankTypeId + ')';
+                        }
+                    })
+
+                    data.data.data.forEach(item => {
+                        if (item && item.bankTypeId) {
+                            vm.cloneAllBankTypeList.push({"bankTypeId": item.bankTypeId, "name": item.name + ' (' + item.bankTypeId + ')'});
+                        }
+                    })
                 }
                 $scope.safeApply();
             });
@@ -558,6 +575,37 @@ define(['js/app'], function (myApp) {
             })
         };
 
+        vm.validateCreateNewBankCard = function () {
+            let isDisable = true;
+            if (vm.newBankCardAcc && vm.newBankCardAcc.status && vm.newBankCardAcc.bankTypeId && vm.newBankCardAcc.accountNumber && vm.newBankCardAcc.name) {
+                isDisable = false;
+            }
+            return isDisable;
+        }
+
+        vm.createNewBankCardAcc = function () {
+            var sendData = {
+                platformId: vm.selectedPlatform.data.platformId,
+                accountNumber: vm.newBankCardAcc.accountNumber,
+                bankTypeId: vm.newBankCardAcc.bankTypeId,
+                name: vm.newBankCardAcc.name,
+                status: vm.newBankCardAcc.status,
+                provinceName: vm.newBankCardAcc.provinceName,
+                cityName: vm.newBankCardAcc.cityName,
+                openingPoint: vm.newBankCardAcc.openingPoint,
+                quota: vm.newBankCardAcc.quota || 0,
+                isFPMS: true
+            }
+            socketService.$socket($scope.AppSocket, 'createNewBankCardAcc', sendData,
+                function (data) {
+                    console.log(data.data);
+                    socketService.showConfirmMessage($translate("Created successfully"));
+                },
+                function (err) {
+                    socketService.showErrorMessage($translate("Fail to create"), err);
+                }
+            )
+        }
 
         vm.addBankCardGroup = function (data) {
             console.log('vm.newBankCardGroup', vm.newBankCardGroup);

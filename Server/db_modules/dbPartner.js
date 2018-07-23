@@ -1374,7 +1374,7 @@ let dbPartner = {
             platformData => {
                 if (platformData) {
                     platformObjId = platformData._id;
-                    partnerData.prefixName = platformData.partnerPrefix + partnerData.name;
+                    partnerData.prefixName = /*platformData.partnerPrefix +*/ partnerData.name;
                     requireLogInCaptcha = platformData.partnerRequireLogInCaptcha || false;
 
                     return dbconfig.collection_partner.findOne({
@@ -9072,7 +9072,7 @@ function getPlayerCommissionWithdrawDetail (playerObjId, startTime, endTime) {
     );
 }
 
-function getAllPlayersCommissionTopUpDetail (partnerId, platformId, startTime, endTime, topUpTypes) {
+function getAllPlayersCommissionTopUpDetail (partnerId, platformId, startTime, endTime) {
     let platform = {};
     let downLines = [];
     return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
@@ -9126,8 +9126,7 @@ function getAllPlayersCommissionTopUpDetail (partnerId, platformId, startTime, e
                 },
                 {
                     "$group": {
-                        "_id": {type: "$type", playerId: "$data.playerObjId"},
-                        "typeId": {"$first": "$type"},
+                        "_id": {playerId: "$data.playerObjId"},
                         "topUpTimes": {"$sum": 1},
                         "topUpAmount": {"$sum": "$data.amount"}
                     }
@@ -9180,6 +9179,15 @@ function getAllPlayersCommissionConsumptionDetail (partnerId, platformId, startT
                             $gte: new Date(startTime),
                             $lt: new Date(endTime)
                         },
+                        $or: [
+                            {isDuplicate: {$exists: false}},
+                            {
+                                $and: [
+                                    {isDuplicate: {$exists: true}},
+                                    {isDuplicate: false}
+                                ]
+                            }
+                        ]
                     }
                 },
                 {
@@ -10190,8 +10198,11 @@ function getCrewsInfo (players, startTime, endTime, activePlayerRequirement, pro
 
         allPlayerDetailsProm = Promise.all([consumptionDetailProm,topUpDetailProm]).then(
             data => {
+                console.log("LH CHECK CREWACTIVEINFO PartnerId", partnerId);
                 let consumptionDetails = data[0];
                 let topUpDetails = data[1];
+                console.log("LH CHECK CREWACTIVEINFO ConsumptionDetails", consumptionDetails);
+                console.log("LH CHECK CREWACTIVEINFO TopUpDetails", topUpDetails);
                 let newConsumptionDetails = [];
                 let newTopUpDetails = [];
                 newTopUpDetails = topUpDetails;
@@ -10224,13 +10235,17 @@ function getCrewsInfo (players, startTime, endTime, activePlayerRequirement, pro
                     );
                 }
 
+                console.log("LH CHECK CREWACTIVEINFO newConsumptionDetails", newConsumptionDetails);
+                console.log("LH CHECK CREWACTIVEINFO newTopUpDetails", newTopUpDetails);
                 let consumpTopUpObj = newConsumptionDetails.concat(newTopUpDetails);
                 let totalActive = 0;
-
+                console.log("LH CHECK CREWACTIVEINFO consumpTopUpObj", consumpTopUpObj);
                 if(consumpTopUpObj && consumpTopUpObj.length > 0){
                     if (activePlayerRequirement) {
                         consumpTopUpObj.forEach(result => {
                             if(result) {
+                                console.log("LH CHECK CREWACTIVEINFO activePlayerRequirement", activePlayerRequirement);
+                                console.log("LH CHECK CREWACTIVEINFO consumpTopUpObj loop", result);
                                 totalActive += isPlayerActive(activePlayerRequirement, result.consumptionTimes, result.validAmount, result.topUpTimes, result.topUpAmount) ? 1 : 0;
                             }
                         })

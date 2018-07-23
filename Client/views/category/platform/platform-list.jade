@@ -530,9 +530,9 @@
                 h4.modal-title(ng-show="true") {{"ADV SETTING" | translate}}
             .modal-body(style='overflow:auto;')
                 div(style='position: relative; display: inline-block;')
-                    img(src="{{vm.selectedAdvList.backgroundBannerImage.url}}", style='height: auto; width: auto;')
+                    img(async=on src="{{vm.selectedAdvList.backgroundBannerImage.url}}", style='height: auto; width: auto;')
                     div(ng-repeat= "button in vm.selectedAdvList.imageButton")
-                        img(src='{{button.url}}', id='{{button.buttonName}}')
+                        img(async=on src='{{button.url}}', id='{{button.buttonName}}')
             .modal-footer
                 table.common-table.playerLvlTable
                     tbody(ng-repeat='button in vm.selectedAdvList.imageButton')

@@ -103,7 +103,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             label(style="color:red") ({{vm.diffPhoneTotalTXT}})
                             p {{vm.diffPhoneTXT}}
                         .pull-right
-                            button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalSelectDxMissionTXT' ng-click="vm.importPhoneResult = '';")
+                            button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalSelectDxMissionTXT' ng-click="vm.importPhoneResult = ''; vm.getAllDxMission();")
                                 i.fa.fa-upload
                                 text {{"IMPORT_TXT" | translate}}
                             button.btn.btn-primary.common-button(ng-click="vm.exportTXTFile(vm.diffPhoneTXT);")
@@ -145,7 +145,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             label(style="color:red") ({{vm.diffPhoneTotal}})
                             p#copyHere {{vm.diffPhoneList}}
                         .pull-right
-                            button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalSelectDxMissionTextarea' ng-click="vm.importPhoneResult = '';")
+                            button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalSelectDxMissionTextarea' ng-click="vm.importPhoneResult = ''; vm.getAllDxMission();")
                                 i.fa.fa-upload
                                 text {{"IMPORT_PHONE_TEXTAREA" | translate}}
                             button.btn.btn-primary.common-button(ng-click="vm.copyToClipboard('copyHere'); vm.copyHere=true;")
@@ -195,7 +195,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             | &nbsp;
                             label(style="color:red") {{vm.diffPhoneTotalXLS}}
                         .pull-right
-                            button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalSelectDxMissionXLS' ng-click="vm.importPhoneResult = '';")
+                            button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalSelectDxMissionXLS' ng-click="vm.importPhoneResult = ''; vm.getAllDxMission();")
                                 i.fa.fa-upload
                                 text {{"FILTER_THEN_IMPORT_XLS" | translate}}
                             button.btn.btn-danger.common-button(type='button', ng-click='vm.resetUIGrid()')
