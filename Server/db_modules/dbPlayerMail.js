@@ -473,29 +473,56 @@ const dbPlayerMail = {
 
                     let pName = playerName; //could be player or partner
                     let letterNumber = /^[0-9a-zA-Z]+$/;
+                    let pPrefix = isPartner ? platformData.partnerPrefix : (inputData.partnerId ? platformData.partnerCreatePlayerPrefix : platformData.prefix);
+
+                    // check pName must start with prefix
+                    if (pName.indexOf(pPrefix) !== 0) {
+                        if (isPartner) {
+                            return Q.reject({
+                                status: constServerCode.PARTNER_NAME_INVALID,
+                                name: "DataError",
+                                message: localization.localization.translate("Partner name should use ") + pPrefix + localization.localization.translate(" as prefix.")
+                            });
+                        } else {
+                            // check if player is created by partner
+                            if (inputData.partnerId) {
+                                return Promise.reject({
+                                    status: constServerCode.PLAYER_NAME_INVALID,
+                                    name: "DBError",
+                                    message: localization.localization.translate("Player name created by partner should use ") + pPrefix + localization.localization.translate(" as prefix.")
+                                });
+                            } else {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_NAME_INVALID,
+                                    name: "DBError",
+                                    message: localization.localization.translate("Player name should use ") + pPrefix + localization.localization.translate(" as prefix.")
+                                });
+                            }
+                        }
+                    }
 
                     if(!pName.match(letterNumber)) {
                         return Q.reject({
                             status: constServerCode.DATA_INVALID,
                             name: "DBError",
-                            message: "Username must be alphanumeric"
+                            message: localization.localization.translate("Username must be alphanumeric")
                         });
                     }
 
                     if (purpose && purpose === constSMSPurpose.REGISTRATION) {
                         if ((platformData.playerNameMaxLength > 0 && pName.length > platformData.playerNameMaxLength) || (platformData.playerNameMinLength > 0 && pName.length < platformData.playerNameMinLength)) {
                             return Q.reject({
-                                status: constServerCode.DATA_INVALID,
+                                status: constServerCode.PLAYER_NAME_INVALID,
                                 name: "DBError",
                                 message: localization.localization.translate("Player name should be between ") + platformData.playerNameMinLength + " - " + platformData.playerNameMaxLength + localization.localization.translate(" characters."),
                             });
                         }
                     }
 
-                    if (purpose && purpose === constSMSPurpose.PARTNER_REGISTRATION) {
+                    if (purpose && purpose === constSMSPurpose.PARTNER_REGISTRATION && isPartner) {
                         if ((platformData.partnerNameMaxLength > 0 && pName.length > platformData.partnerNameMaxLength) || (platformData.partnerNameMinLength > 0 && pName.length < platformData.partnerNameMinLength)) {
                             return Q.reject({
-                                status: constServerCode.DATA_INVALID,
+                                status: constServerCode.PARTNER_NAME_INVALID,
                                 name: "DBError",
                                 message: localization.localization.translate("Partner name should be between ") + platformData.partnerNameMinLength + " - " + platformData.partnerNameMaxLength + localization.localization.translate(" characters."),
                             });
