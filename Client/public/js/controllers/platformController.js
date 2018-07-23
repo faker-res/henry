@@ -2402,7 +2402,7 @@ define(['js/app'], function (myApp) {
                 vm.externalUserRecordQuery = {};
                 vm.externalUserRecordQuery.index = 0;
                 vm.externalUserRecordQuery.limit = 10;
-                
+
                 vm.initQueryTimeFilter('userInfoRecordQueryDiv', function () {
                 });
                 utilService.actionAfterLoaded('#userInfoTable', function () {
@@ -2471,7 +2471,7 @@ define(['js/app'], function (myApp) {
                     ],
                     bSortClasses: false,
                     paging: false,
-                    
+
                 });
                 vm.externalUserRecordQuery.tableObj = $('#userInfoTable').DataTable(option);
                 $('#userInfoTable').off('order.dt');
@@ -2799,10 +2799,12 @@ define(['js/app'], function (myApp) {
                         console.log('retData', data);
                         if (data.success) {
                             vm.sendMultiMessage.numReceived++;
+                            $('#messageSentFailed').text(vm.sendMultiMessage.numFailed);
                             $('#messageSentReceived').text(vm.sendMultiMessage.numReceived);
                         } else {
                             vm.sendMultiMessage.numFailed++;
                             $('#messageSentFailed').text(vm.sendMultiMessage.numFailed);
+                            $('#messageSentReceived').text(vm.sendMultiMessage.numReceived);
                         }
                         if (vm.sendMultiMessage.numFailed + vm.sendMultiMessage.numReceived === vm.sendMultiMessage.numRecipient) {
                             vm.sendMultiMessage.sendCompleted = true;
@@ -27747,7 +27749,13 @@ define(['js/app'], function (myApp) {
 
                 if (vm.selectedPlatform.data.financialSettlement && (vm.selectedPlatform.data.financialSettlement.minFinancialPointsNotification != srcData.minFinancialPointsNotification)
                     || (financialPointsNotification == true && vm.selectedPlatform.data.financialSettlement.financialPointsNotification != financialPointsNotification)) {
-                    sendData.updateData["financialSettlement.financialPointsNotificationShowed"] = false; //reset financial points notification
+                    let sendDataAdmin = {
+                        query: {_id: authService.adminId},
+                        updateData: {$pull: {financialPointsNotificationShowed: vm.selectedPlatform.data.platformId}}
+                    }
+                    socketService.$socket($scope.AppSocket, 'updateAllAdminInfo', sendDataAdmin, function (data) {
+                        console.log("update all admin notification showed complete")
+                    });
                 }
 
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {

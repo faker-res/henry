@@ -1441,6 +1441,42 @@ let dbPlayerInfo = {
                         );
                         promArr.push(testPlayerHandlingProm);
                     }
+
+                    if (playerData.domain) {
+                        delete playerData.referral;
+                        let filteredDomain = dbUtility.getDomainName(playerData.domain);
+                        while (filteredDomain.indexOf("/") !== -1) {
+                            filteredDomain = filteredDomain.replace("/", "");
+                        }
+
+                        if (filteredDomain.indexOf("?") !== -1) {
+                            filteredDomain = filteredDomain.split("?")[0];
+                        }
+
+                        if (filteredDomain.indexOf("#") !== -1) {
+                            filteredDomain = filteredDomain.split("#")[0];
+                        }
+
+                        playerData.domain = filteredDomain;
+
+                        if (playerData) {
+                            let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
+                                domain: {
+                                    $regex: playerData.domain,
+                                    $options: "xi"
+                                },
+                                platform: platformObjId
+                            }).lean().then(data => {
+                                if (data) {
+                                    playerData.csOfficer = data.admin;
+                                    playerData.promoteWay = data.way
+                                }
+                            });
+
+                            promArr.push(promoteWayProm);
+                        }
+                    }
+
                     return Promise.all(promArr);
                 }
                 else {
