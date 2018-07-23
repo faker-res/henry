@@ -1734,7 +1734,7 @@ let dbPlayerCreditTransfer = {
                     };
 
                     return Promise.all(checkRTGProm).then(() => {
-                        transferOut.then(() => {
+                        transferOut = transferOut.then(() => {
                             return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
                                 amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
                                 transferOutSuccessData.push(ret);

@@ -19,6 +19,9 @@ style.
                         text {{bankCardGroup.name}}
                         i.fa.fa-star.pull-right.margin-right-5(ng-show='bankCardGroup.bDefault')
                 .btn-group.text-center(style="border-radius:9px",role="group")
+                    button.btn.btn-primary.common-button(ng-if="vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && checkViewPermission('Payment', 'BankCardGroup', 'CreateBankCard')", data-toggle="modal", ng-click='vm.newBankCardAcc={};', data-target='#modalAddNewBankCard')
+                        text {{"CreateBankCard" | translate}}
+                        img.img-create
                     button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'Create')", data-toggle="modal", ng-click='vm.newBankCardGroup={};vm.newBankCardGroup.parent=vm.SelectedBankCardGroupNode.id', data-target='#modalAddBankCardGroup')
                         text {{"ADD" | translate}}
                         img.img-create
@@ -246,6 +249,47 @@ style.
                         button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'Update')", ng-click='vm.banktoBankCardGroup("attach")')
                             i.fa.fa-plus-square
                             text {{"INCLUDE" | translate}}
+
+#modalAddNewBankCard.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Add Bank Card" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .form-group.col-md-6
+                            .control-label {{"STATUS" | translate}}
+                                select.form-control(ng-model='vm.newBankCardAcc.status')
+                                    option(ng-repeat='(i,v) in vm.paymentListState', value='{{v}}') {{v | translate}}
+                        .form-group.col-md-6
+                            .control-label {{"BANK_NAME" | translate}}
+                                select.form-control(ng-model='vm.newBankCardAcc.bankTypeId')
+                                    option(ng-repeat='(i,v) in vm.cloneAllBankTypeList', value='{{v.bankTypeId}}') {{v.name}}
+                        .form-group.col-md-6
+                            .control-label {{"BANK_CARD_NAME" | translate}}
+                            input.form-control(type='text', ng-model='vm.newBankCardAcc.name')
+                        .form-group.col-md-6
+                            .control-label {{"BANK_CARD_ACCOUNT_NUMBER" | translate}}
+                            input.form-control(type='text', ng-model='vm.newBankCardAcc.accountNumber')
+                        .form-group.col-md-6
+                            .control-label {{"BANK_ACCOUNT_PROVINCE" | translate}}
+                            select.form-control(ng-model='vm.newBankCardAcc.provinceId', ng-change='vm.changeProvince(vm.newBankCardAcc.provinceId)')
+                                option(ng-repeat='(i,v) in vm.provinceList', value='{{v.id}}') {{v.name}}
+                        .form-group.col-md-6
+                            .control-label {{"BANK_ACCOUNT_CITY" | translate}}
+                            select.form-control(ng-model='vm.newBankCardAcc.cityId')
+                                option(ng-repeat='(i,v) in vm.cityList', value='{{v.id}}') {{v.name}}
+                        .form-group.col-md-6
+                            .control-label {{"BANK_ACCOUNT_BRANCH" | translate}}
+                            input.form-control(type='text', ng-model='vm.newBankCardAcc.openingPoint')
+                        .form-group.col-md-6
+                            .control-label {{"DAY_LIMIT" | translate}}
+                            input.form-control(type='Number', ng-model='vm.newBankCardAcc.quota')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.createNewBankCardAcc()", ng-disabled="vm.validateCreateNewBankCard()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalAddBankCardGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog

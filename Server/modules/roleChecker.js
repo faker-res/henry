@@ -407,7 +407,7 @@ var roleChecker = {
                 'createUpdatePartnerCommissionRateConfig','createUpdatePartnerCommissionConfigWithGameProviderGroup','getPartnerCommissionConfigWithGameProviderGroup'],
                 platformBasic: [],
                 phoneFilterConfig: [],
-                financialSettlementConfig: ['updatePlatform', 'updatePlatformFinancialPoints'],
+                financialSettlementConfig: ['updateAllAdminInfo', 'updatePlatform', 'updatePlatformFinancialPoints', 'updatePlatformAllBankCardGroup', 'updatePlatformAllWechatPayGroup', 'updatePlatformAllAlipayGroup'],
                 bonusBasic:['bonusBasic'],
                 autoApproval: ['updateAutoApprovalConfig'],
                 Monitor: [],
@@ -493,7 +493,8 @@ var roleChecker = {
                 Update: ['updatePlatformBankCardGroup', 'setPlatformDefaultBankCardGroup', 'syncBankCardGroupData'],
                 Delete: ['deleteBankCardGroup'],
                 AddPlayer: ['addPlayersToBankCardGroup'],
-                AddAllPlayer: ['addAllPlayersToBankCardGroup']
+                AddAllPlayer: ['addAllPlayersToBankCardGroup'],
+                CreateBankCard: ['createNewBankCardAcc']
             },
             "MerchantGroup": {
                 Read: ['getPlatformMerchantGroup', 'getMerchantTypeList', 'getIncludedMerchantByMerchantGroup', 'getExcludedMerchantByMerchantGroup'],
@@ -518,7 +519,8 @@ var roleChecker = {
                 Update: ['renamePlatformWechatPayGroup', 'setPlatformDefaultWechatPayGroup', 'addPlayersToWechatPayGroup'],
                 Delete: ["deleteWechatPayGroup"],
                 AddPlayer: ['addPlayersToWechatPayGroup'],
-                AddAllPlayer: ['addAllPlayersToWechatPayGroup']
+                AddAllPlayer: ['addAllPlayersToWechatPayGroup'],
+                CreateWechatPay: ['createNewWechatpayAcc']
             },
             "QuickPayGroup": {
                 Read: ['getPlatformQuickPayGroup'],

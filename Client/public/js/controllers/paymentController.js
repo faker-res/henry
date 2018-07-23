@@ -9,6 +9,9 @@ define(['js/app'], function (myApp) {
         var vm = this;
         window.VM = vm;
 
+        vm.provinceList = [];
+        vm.cityList = [];
+
         // declare constants
         vm.paymentListState = {
             1: "NORMAL",
@@ -143,6 +146,7 @@ define(['js/app'], function (myApp) {
             vm.getAllPlayerLevels();
             vm.loadQuickPayGroupData();
             vm.getAllBankCard();
+            vm.getProvince();
             vm.bankCardFilterOptions = {};
             vm.merchantFilterOptions = {};
             $scope.safeApply();
@@ -288,12 +292,19 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
                 if (data && data.data && data.data.data) {
                     vm.allBankTypeList = {};
+                    vm.cloneAllBankTypeList = [];
                     console.log('banktype', data.data.data);
                     data.data.data.forEach(item => {
                         if (item && item.bankTypeId) {
-                        vm.allBankTypeList[item.id] = item.name + ' (' + item.bankTypeId + ')';
-                    }
-                })
+                            vm.allBankTypeList[item.id] = item.name + ' (' + item.bankTypeId + ')';
+                        }
+                    })
+
+                    data.data.data.forEach(item => {
+                        if (item && item.bankTypeId) {
+                            vm.cloneAllBankTypeList.push({"bankTypeId": item.bankTypeId, "name": item.name + ' (' + item.bankTypeId + ')'});
+                        }
+                    })
                 }
                 $scope.safeApply();
             });
@@ -558,6 +569,96 @@ define(['js/app'], function (myApp) {
             })
         };
 
+        vm.validateCreateNewBankCard = function () {
+            let isDisable = true;
+            if (vm.newBankCardAcc && vm.newBankCardAcc.status && vm.newBankCardAcc.bankTypeId && vm.newBankCardAcc.accountNumber && vm.newBankCardAcc.name) {
+                isDisable = false;
+            }
+            return isDisable;
+        }
+
+        vm.createNewBankCardAcc = function () {
+            if (vm.newBankCardAcc && vm.newBankCardAcc.provinceId && vm.provinceList.length) {
+                vm.provinceList.filter(x => {
+                    if(x.id == vm.newBankCardAcc.provinceId) {
+                        vm.newBankCardAcc.provinceName = x.name;
+                    }
+                });
+                delete vm.newBankCardAcc.provinceId;
+            }
+
+            if (vm.newBankCardAcc && vm.newBankCardAcc.cityId && vm.cityList.length) {
+                vm.cityList.filter(x => {
+                    if(x.id == vm.newBankCardAcc.cityId) {
+                        vm.newBankCardAcc.cityName = x.name;
+                    }
+                });
+                delete vm.newBankCardAcc.cityId;
+            }
+
+            var sendData = {
+                platformId: vm.selectedPlatform.data.platformId,
+                accountNumber: vm.newBankCardAcc.accountNumber,
+                bankTypeId: vm.newBankCardAcc.bankTypeId,
+                name: vm.newBankCardAcc.name,
+                status: vm.newBankCardAcc.status,
+                provinceName: vm.newBankCardAcc.provinceName,
+                cityName: vm.newBankCardAcc.cityName,
+                openingPoint: vm.newBankCardAcc.openingPoint,
+                quota: vm.newBankCardAcc.quota || 0,
+                isFPMS: true
+            }
+            socketService.$socket($scope.AppSocket, 'createNewBankCardAcc', sendData, function (data) {
+                    console.log(data.data);
+                    socketService.showConfirmMessage($translate("Created successfully"));
+                    vm.getAllBankCard().then(() => {
+                        vm.bankCardGroupClicked(null, vm.SelectedBankCardGroupNode);
+                    });
+               },
+                function (err) {
+                   socketService.showErrorMessage($translate("Fail to create"), err);
+                }
+            )
+        }
+
+        vm.getProvince = function () {
+            socketService.$socket($scope.AppSocket, 'getProvinceList', {}, function (data) {
+                if (data) {
+                    $scope.$evalAsync(() => {
+                        vm.provinceList.length = 0;
+
+                        for (let i = 0, len = data.data.provinces.length; i < len; i++) {
+                            let province = data.data.provinces[i];
+                            province.id = province.id.toString();
+                            vm.provinceList.push(province);
+                        }
+
+                        vm.changeProvince(false);
+                    })
+                    resolve(vm.provinceList);
+                }
+            }, null, true);
+        }
+
+        vm.changeProvince = function (reset) {
+            socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: vm.newBankCardAcc.provinceId}, function (data) {
+                if (data) {
+                    if (data.data.cities) {
+                        vm.cityList.length = 0;
+                        for (let i = 0, len = data.data.cities.length; i < len; i++) {
+                            let city = data.data.cities[i];
+                            city.id = city.id.toString();
+                            vm.cityList.push(city);
+                        }
+                    }
+                    if (reset) {
+                        $scope.$evalAsync(() => {
+                            vm.newBankCardAcc.cityId = vm.cityList[0].id;
+                        });
+                    }
+                }
+            }, null, true);
+        }
 
         vm.addBankCardGroup = function (data) {
             console.log('vm.newBankCardGroup', vm.newBankCardGroup);
@@ -1531,9 +1632,7 @@ define(['js/app'], function (myApp) {
                 code: vm.newAlipayGroup.code,
                 displayName: vm.newAlipayGroup.displayName
             }
-            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) {
-                sendData.isFPMS = true;
-            }
+
             socketService.$socket($scope.AppSocket, 'addPlatformAlipayGroup', sendData, function (data) {
                 console.log(data.data);
                 vm.loadAlipayGroupData();
@@ -1551,9 +1650,6 @@ define(['js/app'], function (myApp) {
                 alipayGroup: alipayGroup._id
             }
             vm.alipayStatusFilterOptions = {"NORMAL": true, "LOCK": true, "DISABLED": true, "CLOSE": true, "TOBEFOLLOWEDUP": true, "SUSPEND": true};
-            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) {
-                query.isFPMS = true;
-            }
             socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroupWithIsInGroup', query, function(data){
 
                 //provider list init
@@ -2055,6 +2151,40 @@ define(['js/app'], function (myApp) {
                     console.log('Add WechatPay Group error', error);
                 })
         };
+
+        vm.checkCreateNewWechatpay = function () {
+            let isDisable = true;
+            if (vm.newWechatpayAcc && vm.newWechatpayAcc.state && vm.newWechatpayAcc.accountNumber && vm.newWechatpayAcc.name && vm.newWechatpayAcc.nickName) {
+                isDisable = false;
+            }
+            return isDisable;
+        }
+
+        vm.createNewWechatpayAcc = function () {
+            var sendData = {
+                platformId: vm.selectedPlatform.data.platformId,
+                accountNumber: vm.newWechatpayAcc.accountNumber,
+                name: vm.newWechatpayAcc.name,
+                state: vm.newWechatpayAcc.state,
+                singleLimit: vm.newWechatpayAcc.singleLimit || 0,
+                quota: vm.newWechatpayAcc.quota || 0,
+                isFPMS: true,
+            }
+            if (vm.newWechatpayAcc.nickName) {
+                sendData.nickName = vm.newWechatpayAcc.nickName
+            }
+            socketService.$socket($scope.AppSocket, 'createNewWechatpayAcc', sendData,
+                function (data) {
+                    console.log(data.data);
+                    // vm.loadWechatPayGroupData()
+                    // $scope.safeApply();
+                    socketService.showConfirmMessage($translate("Created successfully"));
+                },
+                function (err) {
+                    socketService.showErrorMessage($translate("Fail to create"), err);
+                }
+            )
+        }
 
         vm.wechatPayGroupClicked = function (i, wechatPayGroup) {
             vm.SelectedWechatPayGroupNode = wechatPayGroup;
