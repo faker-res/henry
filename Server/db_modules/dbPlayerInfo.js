@@ -6633,6 +6633,10 @@ let dbPlayerInfo = {
                     let pPrefix = inputData.partnerId ? platformData.partnerCreatePlayerPrefix : platformData.prefix;
                     let pName = inputData.name;
 
+                    if ((platformData.playerNameMaxLength > 0 && pName.length > platformData.playerNameMaxLength) || (platformData.playerNameMinLength > 0 && pName.length < platformData.playerNameMinLength)) {
+                        return Q.reject({name: "DBError", message: localization.localization.translate("Player name should be between ") + platformData.playerNameMinLength + " - " + platformData.playerNameMaxLength + localization.localization.translate(" characters."),});
+                    }
+
                     // check player name must start with prefix
                     if (pName.indexOf(pPrefix) !== 0) {
                         // check if player is created by partner
