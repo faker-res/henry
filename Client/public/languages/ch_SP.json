@@ -4039,7 +4039,9 @@
   "CreateWechatPay": "创建个人微信",
   "Created successfully": "创建成功",
   "Fail to create": "创建失败",
-  "CreateBankCard": "创建银行卡"
-
+  "CreateBankCard": "创建银行卡",
+  "EditBankCard": "编辑银行卡",
+  "Edited successfully": "编辑成功",
+  "Fail to edit": "编辑失败"
 
 }
