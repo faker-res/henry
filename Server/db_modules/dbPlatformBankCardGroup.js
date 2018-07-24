@@ -421,8 +421,11 @@ var dbPlatformBankCardGroup = {
                 return dbconfig.collection_platformBankCardList(updateData).save();
             }
         )
-    }
+    },
 
+    updateBankCardAcc: function (query, updateData) {
+        return dbconfig.collection_platformBankCardList.findOneAndUpdate(query, updateData).lean();
+    },
 };
 
 module.exports = dbPlatformBankCardGroup;

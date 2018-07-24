@@ -640,24 +640,158 @@ define(['js/app'], function (myApp) {
             }, null, true);
         }
 
-        vm.changeProvince = function (reset) {
-            socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: vm.newBankCardAcc.provinceId}, function (data) {
-                if (data) {
-                    if (data.data.cities) {
-                        vm.cityList.length = 0;
-                        for (let i = 0, len = data.data.cities.length; i < len; i++) {
-                            let city = data.data.cities[i];
-                            city.id = city.id.toString();
-                            vm.cityList.push(city);
+        vm.changeProvince = function (reset, isEdit) {
+            let modal = reset ? reset : vm.selectedBankCard;
+            if (modal && modal.provinceId) {
+                socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: modal.provinceId}, function (data) {
+                    if (data) {
+                        $scope.$evalAsync(() => {
+                            if (data.data.cities) {
+                                vm.cityList.length = 0;
+                                for (let i = 0, len = data.data.cities.length; i < len; i++) {
+                                    let city = data.data.cities[i];
+                                    city.id = city.id.toString();
+                                    vm.cityList.push(city);
+                                }
+                            }
+
+                            if (isEdit) {
+                                if (vm.selectedBankCard && vm.selectedBankCard.cityName) {
+                                    vm.getCityByName(vm.selectedBankCard.cityName);
+                                }
+                            }
+                        });
+
+                        if (reset) {
+                            $scope.$evalAsync(() => {
+                                modal.cityId = vm.cityList[0].id;
+                            });
                         }
                     }
-                    if (reset) {
-                        $scope.$evalAsync(() => {
-                            vm.newBankCardAcc.cityId = vm.cityList[0].id;
-                        });
-                    }
+                }, null, true);
+            }
+        }
+
+        vm.disableEditBankCard = function () {
+            let isDisable = true;
+            vm.selectedBankCardArr = [];
+            if (vm.allBankCards && vm.allBankCards.length) {
+                vm.allBankCards.filter(x => { if (x && x.selected) { vm.selectedBankCardArr.push(x); }});
+            }
+            if (vm.selectedBankCardArr && vm.selectedBankCardArr.length == 1) {
+                isDisable = false;
+            }
+            return isDisable;
+        }
+
+        vm.renderEditBankCardInfo = function () {
+            vm.selectedBankCard = {};
+            vm.selectedBankCard = vm.selectedBankCardArr[0] ? JSON.parse(JSON.stringify(vm.selectedBankCardArr[0])) : {};
+
+            if (vm.selectedBankCard && vm.selectedBankCard.provinceName) {
+                vm.getProvinceByName(vm.selectedBankCard.provinceName);
+            }
+        }
+
+        vm.getProvinceByName = function (provinceName) {
+            vm.currentProvince = {};
+            if (vm.provinceList && vm.provinceList.length) {
+                vm.provinceList.filter(x => { if(x.name == provinceName) { vm.currentProvince = x; }});
+            }
+            if (vm.currentProvince && vm.currentProvince.id) {
+                vm.selectedBankCard.provinceId = vm.currentProvince.id;
+                vm.changeProvince(false, true);
+            }
+        }
+
+        vm.getCityByName = function (cityName) {
+            vm.currentCity = {};
+            if (vm.cityList && vm.cityList.length) {
+                vm.cityList.filter(x => { if (x.name == cityName) { vm.currentCity = x; }});
+            }
+            if (vm.currentCity && vm.currentCity.id) {
+                vm.selectedBankCard.cityId = vm.currentCity.id;
+            }
+            vm.cloneSelectedBankCardBeforeEdit = vm.selectedBankCard ? JSON.parse(JSON.stringify(vm.selectedBankCard)) : {};
+        }
+
+        vm.validateEditBankCard = function () {
+            let isDisable = true;
+            if (vm.selectedBankCard && vm.cloneSelectedBankCardBeforeEdit && !vm.checkIsEqual(vm.selectedBankCard, vm.cloneSelectedBankCardBeforeEdit)) {
+                isDisable = false;
+            }
+            return isDisable;
+        }
+
+        vm.checkIsEqual = function (x, y) {
+            var xProps = Object.keys(x);
+            var yProps = Object.keys(y);
+            // objects are not equal if number of properties is different
+            if (xProps.length != yProps.length) {
+                return false;
+            }
+            for (var i = 0; i < xProps.length; i++) {
+                var propName = xProps[i];
+
+                // objects are not equal if values of same property are not equal
+                if (x[propName] !== y[propName]) {
+                    return false;
                 }
-            }, null, true);
+            }
+            // objects are considered equal
+            return true;
+        }
+
+        vm.editBankCardAcc = function () {
+            if (vm.selectedBankCard && vm.selectedBankCard.provinceId && vm.provinceList.length) {
+                vm.provinceList.filter(x => {
+                    if(x.id == vm.selectedBankCard.provinceId) {
+                        vm.selectedBankCard.provinceName = x.name;
+                    }
+                });
+                delete vm.selectedBankCard.provinceId;
+            }
+
+            if (vm.selectedBankCard && vm.selectedBankCard.cityId && vm.cityList.length) {
+                vm.cityList.filter(x => {
+                    if(x.id == vm.selectedBankCard.cityId) {
+                        vm.selectedBankCard.cityName = x.name;
+                    }
+                });
+                delete vm.selectedBankCard.cityId;
+            }
+
+            let curBankCard = {
+                accountNumber: vm.selectedBankCard.accountNumber,
+                bankTypeId: vm.selectedBankCard.bankTypeId,
+                name: vm.selectedBankCard.name,
+                status: vm.selectedBankCard.status,
+                provinceName: vm.selectedBankCard.provinceName,
+                cityName: vm.selectedBankCard.cityName,
+                openingPoint: vm.selectedBankCard.openingPoint,
+                quota: vm.selectedBankCard.quota || 0
+            }
+
+            var sendData = {
+                query: {_id: vm.selectedBankCard._id, platformId: vm.selectedBankCard.platformId},
+                updateData: curBankCard
+            };
+
+            console.log('editBankCard sendData', sendData);
+
+            socketService.$socket($scope.AppSocket, 'updateBankCardAcc', sendData, function (data) {
+                console.log(data.data);
+                socketService.showConfirmMessage($translate("Edited successfully"));
+                vm.getAllBankCard().then(() => {
+                    vm.bankCardGroupClicked(null, vm.SelectedBankCardGroupNode);
+                });
+            }, function (err) {
+                socketService.showErrorMessage($translate("Fail to edit"), err);
+            });
+        }
+
+        vm.cancelEditBankCardAcc = function () {
+            vm.selectedBankCard = JSON.parse(JSON.stringify(vm.cloneSelectedBankCardBeforeEdit))
         }
 
         vm.addBankCardGroup = function (data) {
