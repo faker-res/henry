@@ -4044,6 +4044,8 @@
   "CreateBankCard": "创建银行卡",
   "EditBankCard": "编辑银行卡",
   "Edited successfully": "编辑成功",
-  "Fail to edit": "编辑失败"
+  "Fail to edit": "编辑失败",
+  "EditAlipay": "编辑个人支付宝",
+  "EditWechatPay": "编辑个人微信"
 
 }
