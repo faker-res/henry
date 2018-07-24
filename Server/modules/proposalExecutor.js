@@ -1151,7 +1151,14 @@ var proposalExecutor = {
                         let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData);
                         let applyPromoCode = null;
                         if (proposalData.data.bonusCode) {
-                            applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                            let isOpenPromoCode = proposalData.data.bonusCode.toString().length == 3? true : false;
+                            if (isOpenPromoCode){
+                                applyPromoCode = dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                            }
+                            else{
+                                applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                            }
+
                         }
                         let applyTopUpReturn = null;
                         if (proposalData.data.topUpReturnCode) {
@@ -1199,7 +1206,13 @@ var proposalExecutor = {
                         let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'aliPay');
                         let applyPromoCode = null;
                         if (proposalData.data.bonusCode) {
-                            applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                            let isOpenPromoCode = proposalData.data.bonusCode.toString().length == 3? true : false;
+                            if (isOpenPromoCode){
+                                applyPromoCode = dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                            }
+                            else {
+                                applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                            }
                         }
                         let applyTopUpReturn = null;
                         if (proposalData.data.topUpReturnCode) {
@@ -1274,7 +1287,13 @@ var proposalExecutor = {
                         let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'weChat');
                         let applyPromoCode = null;
                         if (proposalData.data.bonusCode) {
-                            applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                            let isOpenPromoCode = proposalData.data.bonusCode.toString().length == 3? true : false;
+                            if (isOpenPromoCode){
+                                applyPromoCode = dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                            }
+                            else {
+                                applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                            }
                         }
                         let applyTopUpReturn = null;
                         if (proposalData.data.topUpReturnCode) {
@@ -1330,7 +1349,13 @@ var proposalExecutor = {
                                 proposalData.data.playerLevel, proposalData.data.bankCardType).catch(errorUtils.reportError);
                             let applyPromoCode = null;
                             if (proposalData.data.bonusCode) {
-                                applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                                let isOpenPromoCode = proposalData.data.bonusCode.toString().length == 3? true : false;
+                                if (isOpenPromoCode){
+                                    applyPromoCode = dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                                }
+                                else {
+                                    applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                                }
                             }
                             let applyTopUpReturn = null;
                             if (proposalData.data.topUpReturnCode) {
@@ -1738,7 +1763,7 @@ var proposalExecutor = {
                            accountType: player.bankAccountType || "",
                            accountCity: player.bankAccountCity || "",
                            accountProvince: player.bankAccountProvince || "",
-                           accountNo: player.bankAccount || "",
+                           accountNo: player.bankAccount ? player.bankAccount.replace(/\s/g, '') : "",
                            bankAddress: player.bankAddress || "",
                            bankName: player.bankName || "",
                            phone: "",
@@ -1812,7 +1837,7 @@ var proposalExecutor = {
                             accountType: partner.bankAccountType || "",
                             accountCity: partner.bankAccountCity || "",
                             accountProvince: partner.bankAccountProvince || "",
-                            accountNo: partner.bankAccount || "",
+                            accountNo: partner.bankAccount ? partner.bankAccount.replace(/\s/g, '') : "",
                             bankAddress: partner.bankAddress || "",
                             bankName: partner.bankName || "",
                             phone: decryptedPhoneNo || "",

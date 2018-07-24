@@ -275,10 +275,12 @@ style.
                             input.form-control(type='text', ng-model='vm.newBankCardAcc.accountNumber')
                         .form-group.col-md-6
                             .control-label {{"BANK_ACCOUNT_PROVINCE" | translate}}
-                            input.form-control(type='text', ng-model='vm.newBankCardAcc.provinceName')
+                            select.form-control(ng-model='vm.newBankCardAcc.provinceId', ng-change='vm.changeProvince(vm.newBankCardAcc.provinceId)')
+                                option(ng-repeat='(i,v) in vm.provinceList', value='{{v.id}}') {{v.name}}
                         .form-group.col-md-6
                             .control-label {{"BANK_ACCOUNT_CITY" | translate}}
-                            input.form-control(type='text', ng-model='vm.newBankCardAcc.cityName')
+                            select.form-control(ng-model='vm.newBankCardAcc.cityId')
+                                option(ng-repeat='(i,v) in vm.cityList', value='{{v.id}}') {{v.name}}
                         .form-group.col-md-6
                             .control-label {{"BANK_ACCOUNT_BRANCH" | translate}}
                             input.form-control(type='text', ng-model='vm.newBankCardAcc.openingPoint')

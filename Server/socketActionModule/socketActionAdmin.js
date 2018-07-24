@@ -136,6 +136,16 @@ function socketActionAdmin(socketIO, socket) {
         },
 
         /**
+         * Update all admin users info
+         * @param {json} data - It has to contain query or updateData
+         */
+        updateAllAdminInfo: function updateAllAdminInfo(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbAdminInfo.updateAllAdminInfo, [data.query, data.updateData], actionName, isValidData);
+        },
+
+        /**
          * Get all live800 account
          */
         checkLive800AccValidity: function checkLive800AccValidity(data){

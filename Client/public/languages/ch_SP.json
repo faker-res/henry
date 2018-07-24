@@ -3303,6 +3303,8 @@
   "LINK IMAGE URL": "按钮图来源",
   "LINK IMAGE HYPERLINK": "按钮图超链接",
   "Top up does not meet Promo Code minimum required amount": "您的存款金额低于该优惠代码限制，请调整存款金额。",
+  "Exceed the total application limit": "优惠已全数发送完毕， 谢谢。",
+  "Exceed the total application limit of the player": "已达个人领取数量上限。",
   "Please insert either commission type or partner name for search": "请选择 佣金模式 或 代理账号",
   "PREVIEW AND SETTING": "预览及设置",
   "ADD NEW BUTTON": "新增按钮",
