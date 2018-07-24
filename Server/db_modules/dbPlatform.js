@@ -1669,6 +1669,9 @@ var dbPlatform = {
             var b = dbconfig.collection_smsLog.find(query).count();
             return Q.all([a, b]).then(
                 result => {
+                    if(result[0].length > 0){
+                        result[0] = excludeTelNum(result[0]);
+                    }
                     return {data: result[0], size: result[1]};
                 }
             )
@@ -4401,6 +4404,19 @@ function calculatePartnerCommissionInfo(platformObjId, commissionType, startTime
     });
 }
 
+function excludeTelNum(data){
+    // mask tel number
+    data = data.map(item=>{
+        if(item.tel){
+            item.tel = dbUtility.encodePhoneNum(item.tel);
+        }
+        if(item.error && item.error.tel){
+            item.error.tel = dbUtility.encodePhoneNum(item.error.tel);
+        }
+        return item;
+    })
+    return data;
+}
 var proto = dbPlatformFunc.prototype;
 proto = Object.assign(proto, dbPlatform);
 
