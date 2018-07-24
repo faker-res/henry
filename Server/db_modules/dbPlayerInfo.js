@@ -15492,39 +15492,70 @@ let dbPlayerInfo = {
         if (phoneArr.length > 0) {
             let promArr = [];
 
-            return dbconfig.collection_dxMission.findOne({_id: dxMission}).lean().then(
-                dxMissionRes => {
-                    for (let x = 0; x < phoneArr.length; x++) {
-                        // if it is not a valid phone number, do not import
-                        if (!phoneArr[x] || phoneArr[x].length < 11 || !(/^\d+$/.test(phoneArr[x]))) {
-                            continue;
-                        }
+            return dbPlayerInfo.filterDxPhoneExist(dxMission, phoneArr).then(
+                newDxPhone => {
+                    phoneArr = newDxPhone;
 
-                        promArr.push(
-                            dbPlayerInfo.generateDXCode(dxMission).then(
-                                randomCode => {
-                                    let importData = {
-                                        platform: platform,
-                                        phoneNumber: phoneArr[x],
-                                        dxMission: dxMission,
-                                        code: randomCode,
-                                        url: dxMissionRes.domain + "/" + randomCode
-                                    };
-
-                                    let importPhone = new dbconfig.collection_dxPhone(importData);
-                                    importPhone.save();
+                    return dbconfig.collection_dxMission.findOne({_id: dxMission}).lean().then(
+                        dxMissionRes => {
+                            for (let x = 0; x < phoneArr.length; x++) {
+                                // if it is not a valid phone number, do not import
+                                if (!phoneArr[x] || phoneArr[x].length < 11 || !(/^\d+$/.test(phoneArr[x]))) {
+                                    continue;
                                 }
-                            )
-                        )
-                    }
 
-                    return Promise.all(promArr).then(() => true);
+                                promArr.push(
+                                    dbPlayerInfo.generateDXCode(dxMission).then(
+                                        randomCode => {
+                                            let importData = {
+                                                platform: platform,
+                                                phoneNumber: phoneArr[x],
+                                                dxMission: dxMission,
+                                                code: randomCode,
+                                                url: dxMissionRes.domain + "/" + randomCode
+                                            };
+
+                                            let importPhone = new dbconfig.collection_dxPhone(importData);
+                                            importPhone.save();
+                                        }
+                                    )
+                                )
+                            }
+
+                            return Promise.all(promArr).then(() => true);
+                        }
+                    )
                 }
-            )
+            );
         }
         return false;
-
     },
+
+    filterDxPhoneExist: function (dxMission, phoneArr) {
+        let phoneList = [];
+        let phoneProm = [];
+
+        for (let x = 0; x < phoneArr.length; x++) {
+            phoneProm.push(
+                dbconfig.collection_dxPhone.findOne({dxMission: dxMission, phoneNumber: phoneArr[x]}).lean().then(
+                    isPhoneExist => {
+                        if (!isPhoneExist) {
+                            phoneList.push(phoneArr[x]);
+                        }
+                        return phoneArr[x];
+                    }
+                )
+            );
+        }
+
+        return Promise.all(phoneProm).then(
+            () => {
+                // only return phone number that does not exist in dxPhone DB
+                return phoneList;
+            }
+        );
+    },
+
     generateDXCode: function (dxMission, platformId, tries) {
         tries = (Number(tries) || 0) + 1;
         if (tries > 5) {
