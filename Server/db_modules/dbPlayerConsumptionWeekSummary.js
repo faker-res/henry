@@ -19,6 +19,7 @@ var constSystemParam = require('../const/constSystemParam');
 var constShardKeys = require('../const/constShardKeys');
 var util = require('util');
 var constServerCode = require('../const/constServerCode');
+const errorUtils = require("../modules/errorUtils.js");
 
 const constProposalType = require("../const/constProposalType");
 const constProposalStatus = require("../const/constProposalStatus");
@@ -28,6 +29,7 @@ const constSettlementPeriod = require('../const/constSettlementPeriod');
 const constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
 
 const dbOps = require("../db_common/dbOperations");
+const dbPlayerUtil = require('../db_common/dbPlayerUtility');
 const dbPropUtil = require("../db_common/dbProposalUtility");
 
 var dbPlayerConsumptionWeekSummary = {
@@ -515,6 +517,8 @@ var dbPlayerConsumptionWeekSummary = {
             function (data) {
                 if (data && data.platform && data.playerLevel) {
                     playerData = data;
+                    platformData = data.platform;
+
                     if (playerData.permission && playerData.permission.banReward || !playerData.playerLevel.canApplyConsumptionReturn) {
                         return Promise.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
@@ -523,16 +527,28 @@ var dbPlayerConsumptionWeekSummary = {
                         });
                     }
 
-                    platformData = data.platform;
-                    if( eventCode ){
-                        return dbRewardEvent.getPlatformRewardEventWithCode(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN, eventCode);
-                    }
-                    else{
-                        return dbRewardEvent.getPlatformRewardEventsWithTypeName(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN);
-                    }
+                    return dbPlayerUtil.setPlayerBState(playerData._id, "applyRewardEvent", true)
                 }
                 else {
                     return Promise.reject({name: "DataError", message: "Incorrect player data"});
+                }
+            }
+        ).then(
+            playerState => {
+                if (playerState) {
+                    if( eventCode ){
+                        return dbRewardEvent.getPlatformRewardEventWithCode(playerData.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN, eventCode);
+                    }
+                    else{
+                        return dbRewardEvent.getPlatformRewardEventsWithTypeName(playerData.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN);
+                    }
+                }
+                else {
+                    return Promise.reject({
+                        name: "DBError",
+                        status: constServerCode.CONCURRENT_DETECTED,
+                        message: "Apply Reward Fail, please try again later"
+                    })
                 }
             },
             function (error) {
@@ -606,6 +622,10 @@ var dbPlayerConsumptionWeekSummary = {
                                         _id: playerData._id,
                                         platform: playerData.platform._id
                                     }, {isConsumptionReturn: false}).then();
+
+                                    // Set BState to false
+                                    dbPlayerUtil.setPlayerBState(playerData._id, "applyRewardEvent", false).catch(errorUtils.reportError);
+
                                     return data;
                                 }
                             );
@@ -617,6 +637,10 @@ var dbPlayerConsumptionWeekSummary = {
                                 _id: playerData._id,
                                 platform: playerData.platform._id
                             }, {isConsumptionReturn: false}).then();
+
+                            // Set BState to false
+                            dbPlayerUtil.setPlayerBState(playerData._id, "applyRewardEvent", false).catch(errorUtils.reportError);
+
                             return Promise.reject(error);
                         }
                     );
@@ -628,14 +652,17 @@ var dbPlayerConsumptionWeekSummary = {
                         message: "Incorrect reward event data"
                     });
                 }
-            },
-            function (error) {
-                return Promise.reject({
-                    status: constServerCode.REWARD_EVENT_INVALID,
-                    name: "DBError",
-                    message: "Error finding reward event",
-                    error: error
-                });
+            }
+        ).catch(
+            err => {
+                if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                    // Ignore concurrent request for now
+                } else {
+                    // Set BState back to false
+                    dbPlayerUtil.setPlayerBState(playerData._id, "applyRewardEvent", false).catch(errorUtils.reportError);
+                }
+
+                throw err;
             }
         )
     },
