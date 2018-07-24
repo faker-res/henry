@@ -505,7 +505,7 @@ var dbPlayerConsumptionWeekSummary = {
      * Start calculate consumption return for player
      * @param {ObjectId} playerId
      */
-    startCalculatePlayerConsumptionReturn: function (playerId, bRequest, bAdmin, eventCode,userAgent, adminName, isForceApply) {
+    startCalculatePlayerConsumptionReturn: function (playerId, bRequest, bAdmin, eventCode,userAgent, adminName, isForceApply, isClearConcurrent = false) {
         let platformData = null;
         let playerData = null;
         let eventData = null;
@@ -535,7 +535,7 @@ var dbPlayerConsumptionWeekSummary = {
             }
         ).then(
             playerState => {
-                if (playerState) {
+                if (playerState || isClearConcurrent) {
                     if( eventCode ){
                         return dbRewardEvent.getPlatformRewardEventWithCode(playerData.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN, eventCode);
                     }
