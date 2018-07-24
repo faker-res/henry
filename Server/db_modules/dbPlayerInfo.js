@@ -1173,6 +1173,7 @@ let dbPlayerInfo = {
         let platformData = null;
         let pPrefix = null;
         let pName = null;
+        let csOfficer, promoteWay;
 
         playerdata.name = playerdata.name.toLowerCase();
 
@@ -1468,8 +1469,8 @@ let dbPlayerInfo = {
                                 platform: playerdata.platform
                             }).lean().then(data => {
                                 if (data) {
-                                    playerData.csOfficer = data.admin;
-                                    playerData.promoteWay = data.way
+                                    csOfficer = data.admin;
+                                    promoteWay = data.way;
                                 }
                             });
 
@@ -1538,6 +1539,12 @@ let dbPlayerInfo = {
                     if (data[6]) {
                         playerUpdateData.quickPayGroup = data[6]._id;
                     }
+
+                    if (csOfficer && promoteWay) {
+                        playerUpdateData.csOfficer = csOfficer;
+                        playerUpdateData.promoteWay = promoteWay;
+                    }
+
                     proms.push(
                         dbconfig.collection_players.findOneAndUpdate(
                             {_id: playerData._id, platform: playerData.platform},
@@ -6661,6 +6668,10 @@ let dbPlayerInfo = {
                     // check if player is created by partner; if yes, use partnerCreatePlayerPrefix
                     let pPrefix = inputData.partnerId ? platformData.partnerCreatePlayerPrefix : platformData.prefix;
                     let pName = inputData.name;
+
+                    if ((platformData.playerNameMaxLength > 0 && pName.length > platformData.playerNameMaxLength) || (platformData.playerNameMinLength > 0 && pName.length < platformData.playerNameMinLength)) {
+                        return Q.reject({name: "DBError", message: localization.localization.translate("Player name should be between ") + platformData.playerNameMinLength + " - " + platformData.playerNameMaxLength + localization.localization.translate(" characters."),});
+                    }
 
                     // check player name must start with prefix
                     if (pName.indexOf(pPrefix) !== 0) {
