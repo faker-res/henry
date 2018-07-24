@@ -2,6 +2,9 @@ let dbconfig = require('./../modules/dbproperties');
 let errorUtils = require('../modules/errorUtils');
 const constPromoCodeStatus = require('../const/constPromoCodeStatus');
 const constServerCode = require('../const/constServerCode');
+const constProposalType = require("./../const/constProposalType");
+const constProposalStatus = require("./../const/constProposalStatus");
+const ObjectId = mongoose.Types.ObjectId;
 
 let dbPromoCode = {
     isPromoCodeValid: function (playerId, promoCode, amount) {
@@ -56,6 +59,119 @@ let dbPromoCode = {
             });
         });
     },
+
+    isOpenPromoCodeValid: function (playerId, promoCode, amount) {
+        let promoCodeObj;
+        let platformObjId;
+        return dbconfig.collection_players.findOne({playerId: playerId}, {platform: 1}).lean().then(playerData => {
+            if (playerData) {
+
+                platformObjId = playerData.platform;
+
+                let openPromoCodeQuery = {
+                    platformObjId: platformObjId,
+                    code: promoCode,
+                    expirationTime: {$gt: new Date()},
+                    // isActive: {$ne: true},
+                    status: constPromoCodeStatus.AVAILABLE
+                };
+
+                return dbconfig.collection_openPromoCodeTemplate.find(openPromoCodeQuery).lean();
+            }
+        }).then(promoCodeData => {
+            if (!promoCodeData || !promoCodeData.length) {
+                return Promise.reject({
+                    status: constServerCode.DOCUMENT_NOT_FOUND,
+                    name: "DataError",
+                    errorMessage: "No available promo code at the moment"
+                });
+            }
+
+            promoCodeObj = promoCodeData[0];
+
+            if (promoCodeObj.code.toString() == promoCode) {
+                if (amount && typeof amount === "number") {
+                    if (amount >= promoCodeObj.minTopUpAmount || !promoCodeObj.minTopUpAmount) {
+                        return true;
+                    } else {
+                        return Promise.reject({
+                            status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                            name: "DataError",
+                            errorMessage: "Top up does not meet Promo Code minimum required amount"
+                        });
+                    }
+                }
+                return true;
+            }
+
+            return Promise.reject({
+                status: constServerCode.NO_PROMO_CODE_MATCH,
+                name: "DataError",
+                errorMessage: "Wrong promo code has entered"
+            });
+        }).then( returnedData => {
+            if (returnedData && platformObjId && promoCodeObj){
+
+                return dbconfig.collection_proposalType.findOne({
+                    platformId: platformObjId,
+                    name: constProposalType.PLAYER_PROMO_CODE_REWARD
+                }).lean().then (proposalType => {
+                    if(proposalType) {
+
+                        let proposalProm = dbconfig.collection_proposal.find({
+                            type: ObjectId(proposalType._id),
+                            'data.promoCode': parseInt(promoCode),
+                            status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                        }).lean().count();
+
+                        let playerProposalProm = dbconfig.collection_proposal.find({
+                            type: ObjectId(proposalType._id),
+                            'data.promoCode': parseInt(promoCode),
+                            'data.playerId': playerId,
+                            status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                        }).lean().count();
+
+                        return Promise.all([proposalProm, playerProposalProm]);
+
+                    }
+                    else{
+                        return Promise.reject({name: "DataError", errorMessage: "Proposal Type is not found"});
+                    }
+                });
+            }
+        }).then(proposalData => {
+            if (proposalData && proposalData.length == 2) {
+
+                let totalAppliedNumber = proposalData[0];
+                let playerAppliedNumber = proposalData[1];
+                let totalLimit = promoCodeObj.totalApplyLimit || 0;
+                let playerLimit = promoCodeObj.applyLimitPerPlayer || 0;
+
+                if (totalAppliedNumber >= totalLimit){
+                    return Promise.reject({
+                        status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                        name: "ConditionError",
+                        message: "Exceed the total application limit"
+                    })
+                }
+
+                if (playerAppliedNumber >= playerLimit){
+                    return Promise.reject({
+                        status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                        name: "ConditionError",
+                        message: "Exceed the total application limit of the player"
+                    })
+                }
+
+                return true;
+
+            }
+            else{
+                return Promise.reject({name: "DataError", errorMessage: "Proposal data is not found"});
+            }
+        })
+    },
+
 
     disablePromoCode: function (playerId, promoCode) {
         return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(

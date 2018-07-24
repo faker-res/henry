@@ -22943,8 +22943,10 @@ define(['js/app'], function (myApp) {
                         vm.openPromoCodeTemplate2 = [];
                         vm.openPromoCodeTemplate3 = [];
 
+                        let usingProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
+
                         vm.openPromoCodeTemplateData.forEach(entry => {
-                            if (entry) {
+                            if (entry && usingProviderGroup == entry.isProviderGroup) {
                                 if (entry.isProviderGroup) {
                                     entry.allowedProviders = (entry.allowedProviders && entry.allowedProviders.length > 0)? entry.allowedProviders[0] :  '' ;
                                 }
@@ -27300,7 +27302,11 @@ define(['js/app'], function (myApp) {
 
                             id = "#expDateNewOpenPC1";
                             utilService.actionAfterLoaded((id), function () {
-                                vm.newPromoCodeTemplate1.expirationTime$ = utilService.createDatePicker(id);
+                                vm.newPromoCodeTemplate1.expirationTime$ = utilService.createDatePicker(id, {
+                                    language: 'en',
+                                    format: 'yyyy/MM/dd hh:mm:ss',
+                                    startDate: utilService.setLocalDayStartTime(new Date())
+                                });
                                 vm.newPromoCodeTemplate1.expirationTime$.data('datetimepicker').setDate(date);
                             });
                         }
@@ -27317,7 +27323,11 @@ define(['js/app'], function (myApp) {
 
                             id = "#expDateNewOpenPC2";
                             utilService.actionAfterLoaded((id), function () {
-                                vm.newPromoCodeTemplate2.expirationTime$ = utilService.createDatePicker(id);
+                                vm.newPromoCodeTemplate2.expirationTime$ = utilService.createDatePicker(id, {
+                                    language: 'en',
+                                    format: 'yyyy/MM/dd hh:mm:ss',
+                                    startDate: utilService.setLocalDayStartTime(new Date())
+                                });
                                 vm.newPromoCodeTemplate2.expirationTime$.data('datetimepicker').setDate(date);
                             });
                         }
@@ -27333,7 +27343,11 @@ define(['js/app'], function (myApp) {
 
                             id = "#expDateNewOpenPC3";
                             utilService.actionAfterLoaded((id), function () {
-                                vm.newPromoCodeTemplate3.expirationTime$ = utilService.createDatePicker(id);
+                                vm.newPromoCodeTemplate3.expirationTime$ = utilService.createDatePicker(id, {
+                                    language: 'en',
+                                    format: 'yyyy/MM/dd hh:mm:ss',
+                                    startDate: utilService.setLocalDayStartTime(new Date())
+                                });
                                 vm.newPromoCodeTemplate3.expirationTime$.data('datetimepicker').setDate(date);
                             });
                         }
