@@ -21786,9 +21786,9 @@ define(['js/app'], function (myApp) {
 
         vm.setupRemarksMultiInput = function () {
             let remarkSelect = $('select#selectCredibilityRemark');
-            if (remarkSelect.css('display') && remarkSelect.css('display').toLowerCase() === "none") {
-                return;
-            }
+            // if (remarkSelect.css('display') && remarkSelect.css('display').toLowerCase() === "none") {
+            //     return;
+            // }
             remarkSelect.multipleSelect({
                 showCheckbox: true,
                 allSelected: $translate("All Selected"),

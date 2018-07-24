@@ -12234,7 +12234,7 @@ define(['js/app'], function (myApp) {
                         vm.bulkPlayersToAddFeedback.push(callee.player._id)
                     }
                 });
-                $('#modalBulkAddPlayerFeedback').modal().show()
+                $('#modalBulkAddPlayerFeedback').modal().show();
             };
 
             vm.bulkAddPlayerFeedback = () => {
@@ -12261,6 +12261,34 @@ define(['js/app'], function (myApp) {
                     });
                 });
 
+            };
+
+            vm.initBulkSMSToFailPlayers = () => {
+                vm.bulkPlayersToSendSMS = [];
+                vm.smsPlayer = {};
+                vm.ctiData.callee.map(callee => {
+                    if (callee.status == 2) {
+                        vm.bulkPlayersToSendSMS.push(callee.player.playerId)
+                    }
+                });
+                $('#modalBulkSendSMSToFailCallPlayer').modal().show();
+            };
+
+            vm.bulkSMSToFailPlayers = () => {
+                let smsObj = {
+                    playerIds: vm.bulkPlayersToSendSMS,
+                    platformId: vm.selectedPlatform.data.platformId,
+                    channel: vm.smsPlayer.channel,
+                    message: vm.smsPlayer.message
+                };
+
+                console.log('bulk sms send', smsObj);
+                socketService.$socket($scope.AppSocket, 'bulkSendSMSToPlayer', smsObj, function (data) {
+                    console.log('sms sent', data);
+                    $scope.$evalAsync(() => {
+                        vm.smsPlayer = {};
+                    });
+                });
             };
 
             vm.updatePartnerFeedback = function () {
