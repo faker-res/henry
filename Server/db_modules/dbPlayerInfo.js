@@ -2488,7 +2488,7 @@ let dbPlayerInfo = {
                             else
                                 updateData.realName = updateData.bankAccountName;
                         }
-                        if (!updateData.bankAccountName && !playerData.realName) {
+                        if (!updateData.bankAccountName && !playerData.bankAccountName && !playerData.realName) {
                             return Q.reject({
                                 name: "DataError",
                                 code: constServerCode.INVALID_DATA,
