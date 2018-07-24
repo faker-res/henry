@@ -462,6 +462,10 @@ let dbPartner = {
                     let pName = inputData.name;
                     let pPrefix = platformData.partnerPrefix;
 
+                    if ((platformData.partnerNameMaxLength > 0 && pName.length > platformData.partnerNameMaxLength) || (platformData.partnerNameMinLength > 0 && pName.length < platformData.partnerNameMinLength)) {
+                        return Q.reject({name: "DBError", message: localization.localization.translate("Partner name should be between ") + platformData.partnerNameMinLength + " - " + platformData.partnerNameMaxLength + localization.localization.translate(" characters."),});
+                    }
+
                     // check partner name must start with prefix
                     if (pName.indexOf(pPrefix) !== 0) {
                         return Q.reject({name: "DataError", message: localization.localization.translate("Partner name should use ") + platformData.partnerPrefix + localization.localization.translate(" as prefix.")});
@@ -1867,7 +1871,7 @@ let dbPartner = {
                                 updateData.realName = updateData.bankAccountName;
                         }
 
-                        if (!updateData.bankAccountName && !partnerData.realName) {
+                        if (!updateData.bankAccountName && !partnerData.bankAccountName && !partnerData.realName) {
                             return Q.reject({
                                 name: "DataError",
                                 code: constServerCode.INVALID_DATA,

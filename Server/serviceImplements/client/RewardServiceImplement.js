@@ -154,7 +154,16 @@ let RewardServiceImplement = function () {
     this.applyPromoCode.expectsData = 'promoCode: Number|String';
     this.applyPromoCode.onRequest = function(wsFunc, conn, data){
         let isValidData = Boolean(data && conn.playerId && data.promoCode);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyPromoCode, [conn.playerId, data.promoCode], isValidData, false, false, true);
+        if (isValidData) {
+            let isOpenPromoCode = data.promoCode.toString().length == 3 ? true : false;
+            if (isOpenPromoCode) {
+                WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyOpenPromoCode, [conn.playerId, data.promoCode], isValidData, false, false, true);
+            }
+            else {
+                WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyPromoCode, [conn.playerId, data.promoCode], isValidData, false, false, true);
+            }
+        }
+
     };
 
     this.markPromoCodeAsViewed.expectsData = 'promoCode: Number|String';

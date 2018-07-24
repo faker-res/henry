@@ -199,13 +199,18 @@ function socketActionBankCardGroup(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatformBankCardGroup.syncBankCardGroupData, [data.platformObjId], actionName, true);
         },
 
-        createNewBankCardAcc: function createNewAlipayAcc(data) {
+        createNewBankCardAcc: function createNewBankCardAcc(data) {
             let actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId && data.accountNumber && data.name && data.bankTypeId);
 
             socketUtil.emitter(self.socket, dbPlatformBankCardGroup.createNewBankCardAcc, [data], actionName, isValidData);
-        }
+        },
 
+        updateBankCardAcc: function updateBankCardAcc(data) {
+            let actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.updateBankCardAcc, [data.query, data.updateData], actionName, isValidData);
+        }
     };
     socketActionBankCardGroup.actions = this.actions;
 };

@@ -1251,8 +1251,12 @@ let dbPlayerReward = {
     }).lean().then(promoCodeType => {
         let promoCodeTypeList = promoCodeType;
         // get the auto promoCode template
-        return dbConfig.collection_promoCodeTemplate.find({platformObjId: platformObjId}).lean().then(promoCodeTemplate => {
-            return promoCodeTypeList.concat(promoCodeTemplate);
+        let promoCodeTemplate = dbConfig.collection_promoCodeTemplate.find({platformObjId: platformObjId}).lean();
+        let openPromoCodeTemplate = dbConfig.collection_openPromoCodeTemplate.find({platformObjId: platformObjId}).lean();
+
+        return Promise.all([promoCodeTemplate, openPromoCodeTemplate]).then(result => {
+
+            return promoCodeTypeList.concat(result[0], result[1]);
         })
     }),
 
@@ -2956,10 +2960,12 @@ let dbPlayerReward = {
                     userType: constProposalUserType.PLAYERS
                 };
 
-                if (promoCodeObj.isProviderGroup) {
-                    proposalData.data.providerGroup = promoCodeObj.allowedProviders;
-                } else {
-                    proposalData.data.providers = promoCodeObj.allowedProviders;
+                if (promoCodeObj.allowedProviders) {
+                    if (promoCodeObj.isProviderGroup) {
+                        proposalData.data.providerGroup = promoCodeObj.allowedProviders;
+                    } else {
+                        proposalData.data.providers = promoCodeObj.allowedProviders;
+                    }
                 }
 
                 return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
@@ -2985,6 +2991,281 @@ let dbPlayerReward = {
         ).then(() => {
             promoCodeObj.promoCodeTypeObjId = promoCodeObj.promoCodeTypeObjId._id;
             return promoCodeObj;
+        })
+    },
+
+    applyOpenPromoCode: (playerId, promoCode, adminInfo) => {
+        let promoCodeObj, playerObj, topUpProp;
+        let isType2Promo = false;
+        let platformObjId = '';
+        return expirePromoCode(true).then(res => {
+            return dbConfig.collection_players.findOne({
+                playerId: playerId
+            })
+        }).then(
+            playerData => {
+                playerObj = playerData;
+                platformObjId = playerObj.platform;
+
+                return dbPlayerUtil.setPlayerState(playerObj._id, "ApplyPromoCode");
+            }
+        ).then(
+            playerState => {
+                if (playerState) {
+                    return dbConfig.collection_openPromoCodeTemplate.find({
+                        platformObjId: playerObj.platform,
+                        code: promoCode,
+                        status: constPromoCodeStatus.AVAILABLE
+                    }).lean();
+                } else {
+                    return Promise.reject({name: "DataError", errorMessage: "Concurrent issue detected"});
+                }
+            }
+        ).then(
+            promoCodeObjs => {
+                if (promoCodeObjs && promoCodeObjs.length != 0) {
+                    // if there is valid openPromoCode, check proposal
+                    promoCodeObj = promoCodeObjs[0];
+                    
+                    return dbConfig.collection_proposalType.findOne({
+                        platformId: platformObjId,
+                        name: constProposalType.PLAYER_PROMO_CODE_REWARD
+                    }).lean().then (proposalType => {
+                        if(proposalType) {
+                            
+                            let proposalProm = dbConfig.collection_proposal.find({
+                                type: ObjectId(proposalType._id),
+                                'data.promoCode': parseInt(promoCode),
+                                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                            }).lean().count();
+
+                            let playerProposalProm = dbConfig.collection_proposal.find({
+                                type: ObjectId(proposalType._id),
+                                'data.promoCode': parseInt(promoCode),
+                                'data.playerId': playerId,
+                                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                            }).lean().count();
+
+                            return Promise.all([proposalProm, playerProposalProm]);
+
+                        }
+                        else{
+                            return Promise.reject({name: "DataError", errorMessage: "Proposal Type is not found"});
+                        }
+
+                    });
+
+                } else {
+                    return Q.reject({
+                        status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                        name: "ConditionError",
+                        message: "No available promo code at the moment"
+                    })
+                }
+            }
+        ).then(
+            proposalData => {
+               
+                if (proposalData && proposalData.length == 2) {
+
+                    let totalAppliedNumber = proposalData[0];
+                    let playerAppliedNumber = proposalData[1];
+                    let totalLimit = promoCodeObj.totalApplyLimit || 0;
+                    let playerLimit = promoCodeObj.applyLimitPerPlayer || 0;
+
+                    if (totalAppliedNumber >= totalLimit){
+                        return Q.reject({
+                            status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                            name: "ConditionError",
+                            message: "Exceed the total application limit"
+                        })
+                    }
+
+                    if (playerAppliedNumber >= playerLimit){
+                        return Q.reject({
+                            status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                            name: "ConditionError",
+                            message: "Exceed the total application limit of the player"
+                        })
+                    }
+
+                    if (!promoCodeObj.minTopUpAmount) {
+                            isType2Promo = true;
+                            return true;
+                    } else {
+                        let searchQuery = {
+                            'data.platformId': platformObjId,
+                            'data.playerObjId': playerObj._id,
+                            settleTime: {$gte: promoCodeObj.createTime, $lt: new Date()},
+                            status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+                            mainType: "TopUp"
+                        };
+                        // Search Top Up Proposal After Received Promo Code
+                        return dbConfig.collection_proposal.find(searchQuery).sort({createTime: -1}).limit(1).lean();
+                    }
+
+                }
+                else{
+                    return Promise.reject({name: "DataError", errorMessage: "Proposal data is not found"});
+                }
+            }
+        ).then(
+            topUpProposal => {
+                
+                if (isType2Promo || (topUpProposal && topUpProposal.length > 0)) {
+                    if (isType2Promo) {
+                        return true;
+                    }
+
+                    topUpProp = topUpProposal[0];
+
+                    if (topUpProp.data.promoCode) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_NOT_MINTOPUP,
+                            name: "ConditionError",
+                            message: "Topup has been used for other reward"
+                        })
+                    }
+
+                    // Check latest top up has sufficient amount to apply
+                    if ([1, 3].indexOf(promoCodeObj.type) > -1 && topUpProp.data.amount < promoCodeObj.minTopUpAmount) {
+                        return Promise.reject({
+                            status: constServerCode.PLAYER_NOT_MINTOPUP,
+                            name: "ConditionError",
+                            // message: "Topup amount '$" + promoCodeObj.minTopUpAmount + "' is needed for this reward"
+                            message: "你需要有新存款（" + promoCodeObj.minTopUpAmount + "元）才能领取此优惠，千万别错过了！"
+                        })
+                    }
+
+                    // Process amount and requiredConsumption for type 3 promo code
+                    if (promoCodeObj.type == 3) {
+                        promoCodeObj.amount = topUpProp.data.amount * promoCodeObj.amount * 0.01;
+                        if (promoCodeObj.amount > promoCodeObj.maxRewardAmount) {
+                            promoCodeObj.amount = promoCodeObj.maxRewardAmount;
+                        }
+                        promoCodeObj.requiredConsumption = (topUpProp.data.amount + promoCodeObj.amount) * promoCodeObj.requiredConsumption;
+                    }
+
+                    let consumptionRecordProm = dbConfig.collection_playerConsumptionRecord.findOne({
+                        playerId: { $in: [ObjectId(playerObj._id), String(playerObj._id)] },
+                        platformId: { $in: [ObjectId(platformObjId), String(platformObjId)] },
+                        createTime: { $gte: topUpProp.settleTime, $lt: new Date() }
+                    }).lean();
+
+                    let topUpRecordProm = dbConfig.collection_playerTopUpRecord.findOne({proposalId: topUpProp.proposalId}).lean();
+
+                    return Promise.all([consumptionRecordProm, topUpRecordProm]);
+                } else {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_NOT_MINTOPUP,
+                        name: "ConditionError",
+                        // message: "Topup amount '$" + promoCodeObj.minTopUpAmount + "' is needed for this reward"
+                        message: "你需要有新存款（" + promoCodeObj.minTopUpAmount + "元）才能领取此优惠，千万别错过了！"
+                    })
+                }
+            }
+        ).then(
+            data => {
+                if (data && data[1]) {
+                    let topUpRecord = data[1];
+                    if (topUpRecord.bDirty || (topUpRecord.usedEvent && topUpRecord.usedEvent.length > 0)) {
+                        return Promise.reject({
+                            status: constServerCode.PLAYER_NOT_MINTOPUP,
+                            name: "ConditionError",
+                            message: "Topup has been used for other reward"
+                        });
+                    }
+                }
+
+                // if player apply for topup return , then he cannot apply promo code
+                if (topUpProp && topUpProp.data && topUpProp.data.topUpReturnCode) {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DataError",
+                        message: localization.localization.translate("Cannot apply 2 reward in 1 top up")
+                    });
+                }
+
+
+                let consumptionRec = data[0];
+
+                if (!consumptionRec || isType2Promo) {
+                    // Try deduct player credit first if it is type-C promo code
+                    if (promoCodeObj.isProviderGroup && promoCodeObj.allowedProviders.length > 0 && promoCodeObj.type == 3 && topUpProp && topUpProp.data && topUpProp.data.amount) {
+                        return dbPlayerUtil.tryToDeductCreditFromPlayer(playerObj._id, platformObjId, topUpProp.data.amount, promoCodeObj.name + ":Deduction", topUpProp.data)
+                    } else {
+                        return Promise.resolve();
+                    }
+                } else {
+                    return Promise.reject({
+                        status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                        name: "ConditionError",
+                        message: "There is consumption after topup"
+                    })
+                }
+            }
+        ).then(() => {
+            return dbConfig.collection_proposalType.findOne({
+                platformId: platformObjId,
+                name: constProposalType.PLAYER_PROMO_CODE_REWARD
+            }).lean();
+        }).then(
+            proposalTypeData => {
+                // determine applyAmount
+                let applyAmt = topUpProp && topUpProp.data.amount ? topUpProp.data.amount : 0;
+
+                if (promoCodeObj.type === 1) { applyAmt = 0 }
+
+                // create reward proposal
+                let proposalData = {
+                    type: proposalTypeData._id,
+                    creator: adminInfo ? adminInfo :
+                        {
+                            type: 'player',
+                            name: playerObj.name,
+                            id: playerObj._id
+                        },
+                    data: {
+                        playerObjId: playerObj._id,
+                        playerId: playerObj.playerId,
+                        playerName: playerObj.name,
+                        realName: playerObj.realName,
+                        platformObjId: playerObj.platform._id,
+                        rewardAmount: promoCodeObj.amount,
+                        spendingAmount: promoCodeObj.requiredConsumption,
+                        promoCode: promoCodeObj.code,
+                        disableWithdraw: promoCodeObj.disableWithdraw,
+                        PROMO_CODE_TYPE: promoCodeObj.name,
+                        promoCodeTypeValue: promoCodeObj.type,
+                        applyAmount: applyAmt,
+                        topUpProposal: topUpProp && topUpProp.proposalId ? topUpProp.proposalId : null,
+                        useLockedCredit: false,
+                        useConsumption: !promoCodeObj.isSharedWithXIMA,
+                        promoCodeName: promoCodeObj.name,
+                        eventName: "开放式优惠代码",
+                        eventCode: "KFSYHDM",
+                        remark: promoCodeObj.remark
+                    },
+                    entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                    userType: constProposalUserType.PLAYERS
+                };
+
+                if (promoCodeObj.isProviderGroup) {
+                    proposalData.data.providerGroup = promoCodeObj.allowedProviders || [];
+                } else {
+                    proposalData.data.providers = promoCodeObj.allowedProviders || [];
+                }
+
+                return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
+            }
+        ).then(
+            newProp => {
+                if (topUpProp) {
+                    // Since promo code do not have its own event, it does not have eventObjId
+                    // Hence this object id will be use specifically for promo code throughout system as eventObjId
+                    addUsedRewardToTopUpRecord(topUpProp.proposalId, "59ca08a3ef187c1ccec863b9").catch(errorUtils.reportError);
+                }
+
         })
     },
 
@@ -5745,15 +6026,29 @@ function getIntervalPeriodFromEvent(event, applyTargetTime) {
 /**
  * Expire promo code in all platforms pass expirationTime
  */
-function expirePromoCode() {
-    return dbConfig.collection_promoCode.update({
-        status: constPromoCodeStatus.AVAILABLE,
-        expirationTime: {$lte: new Date()}
-    }, {
-        status: constPromoCodeStatus.EXPIRED
-    }, {
-        multi: true
-    });
+function expirePromoCode(isOpenPromoCode) {
+
+    if (isOpenPromoCode){
+        return dbConfig.collection_openPromoCodeTemplate.update({
+            status: constPromoCodeStatus.AVAILABLE,
+            expirationTime: {$lte: new Date()}
+        }, {
+            status: constPromoCodeStatus.EXPIRED
+        }, {
+            multi: true
+        });
+    }
+    else{
+        return dbConfig.collection_promoCode.update({
+            status: constPromoCodeStatus.AVAILABLE,
+            expirationTime: {$lte: new Date()}
+        }, {
+            status: constPromoCodeStatus.EXPIRED
+        }, {
+            multi: true
+        });
+    }
+
 }
 
 function promoCondition(promo) {

@@ -239,7 +239,9 @@ style.
                     button.btn.btn-primary.common-button.pull-right(ng-click="vm.addBankCardToGroup()")
                         i.fa.fa-plus-square
                         text {{"INCLUDE" | translate}}
-
+                    button.btn.btn-primary.common-button.pull-right(ng-if="vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && checkViewPermission('Payment', 'BankCardGroup', 'EditBankCard')  && vm.allBankCards.length > 0" ng-click="vm.renderEditBankCardInfo()" ng-disabled="vm.disableEditBankCard()", data-toggle="modal", data-target='#modalEditBankCard')
+                        img.img-edit
+                        text {{"EditBankCard" | translate}}
                 //div(ng-if='vm.curBank')
                     div(ng-if='vm.showBankCate=="include"')
                         button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'Update')", ng-click='vm.banktoBankCardGroup("detach")')
@@ -275,10 +277,12 @@ style.
                             input.form-control(type='text', ng-model='vm.newBankCardAcc.accountNumber')
                         .form-group.col-md-6
                             .control-label {{"BANK_ACCOUNT_PROVINCE" | translate}}
-                            input.form-control(type='text', ng-model='vm.newBankCardAcc.provinceName')
+                            select.form-control(ng-model='vm.newBankCardAcc.provinceId', ng-change='vm.changeProvince(vm.newBankCardAcc)')
+                                option(ng-repeat='(i,v) in vm.provinceList', value='{{v.id}}') {{v.name}}
                         .form-group.col-md-6
                             .control-label {{"BANK_ACCOUNT_CITY" | translate}}
-                            input.form-control(type='text', ng-model='vm.newBankCardAcc.cityName')
+                            select.form-control(ng-model='vm.newBankCardAcc.cityId')
+                                option(ng-repeat='(i,v) in vm.cityList', value='{{v.id}}') {{v.name}}
                         .form-group.col-md-6
                             .control-label {{"BANK_ACCOUNT_BRANCH" | translate}}
                             input.form-control(type='text', ng-model='vm.newBankCardAcc.openingPoint')
@@ -288,6 +292,47 @@ style.
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.createNewBankCardAcc()", ng-disabled="vm.validateCreateNewBankCard()") {{"CONFIRM" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalEditBankCard.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"EditBankCard" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .form-group.col-md-6
+                            .control-label {{"STATUS" | translate}}
+                                select.form-control(ng-model='vm.selectedBankCard.status')
+                                    option(ng-repeat='(i,v) in vm.paymentListState', value='{{v}}') {{v === "DISABLED" ? "DISABLE" : v | translate}}
+                        .form-group.col-md-6
+                            .control-label {{"BANK_NAME" | translate}}
+                                select.form-control(ng-model='vm.selectedBankCard.bankTypeId')
+                                    option(ng-repeat='(i,v) in vm.cloneAllBankTypeList', value='{{v.bankTypeId}}') {{v.name}}
+                        .form-group.col-md-6
+                            .control-label {{"BANK_CARD_NAME" | translate}}
+                            input.form-control(type='text', ng-model='vm.selectedBankCard.name')
+                        .form-group.col-md-6
+                            .control-label {{"BANK_CARD_ACCOUNT_NUMBER" | translate}}
+                            input.form-control(type='text', ng-model='vm.selectedBankCard.accountNumber')
+                        .form-group.col-md-6
+                            .control-label {{"BANK_ACCOUNT_PROVINCE" | translate}}
+                            select.form-control(ng-model='vm.selectedBankCard.provinceId', ng-change='vm.changeProvince(vm.selectedBankCard)')
+                                option(ng-repeat='(i,v) in vm.provinceList', value='{{v.id}}') {{v.name}}
+                        .form-group.col-md-6
+                            .control-label {{"BANK_ACCOUNT_CITY" | translate}}
+                            select.form-control(ng-model='vm.selectedBankCard.cityId')
+                                option(ng-repeat='(i,v) in vm.cityList', value='{{v.id}}') {{v.name}}
+                        .form-group.col-md-6
+                            .control-label {{"BANK_ACCOUNT_BRANCH" | translate}}
+                            input.form-control(type='text', ng-model='vm.selectedBankCard.openingPoint')
+                        .form-group.col-md-6
+                            .control-label {{"DAY_LIMIT" | translate}}
+                            input.form-control(type='Number', ng-model='vm.selectedBankCard.quota')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.editBankCardAcc()", ng-disabled="vm.validateEditBankCard()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal', ng-click="vm.cancelEditBankCardAcc()") {{"CANCEL" | translate}}
 
 #modalAddBankCardGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
