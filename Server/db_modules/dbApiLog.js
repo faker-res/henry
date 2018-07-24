@@ -88,44 +88,28 @@ let dbApiLog = {
         }
 
         if(ipAddress && ipAddress != "undefined"){
-            geoIpProm = dbUtility.getGeoIp(ipAddress).then(
-                ipData=>{
-                    let ipArea = {};
-                    if(ipData){
-                        ipArea = ipData;
-                    }else{
-                        ipArea.province = '';
-                        ipArea.city = '';
-                    }
+            var ipData = dbUtility.getIpLocationByIPIPDotNet(ipAddress);
 
-                    return ipArea;
-                })
-        }
-        
-        return Promise.all([geoIpProm]).then(
-            result => {
-                if(result && result[0]){
-                    logData.ipArea = result[0];
-                }else{
-                    logData.ipArea = {province: '', city: ''};
-                }
-
-                if (playerObjId) {
-                    let apiLog = new dbConfig.collection_apiLog(logData);
-                    apiLog.save().then().catch(errorUtils.reportError);
-                    if (actionName === "login" || actionName === "player - create" || actionName === "submitDXCode") {
-                        let actionLog = new dbConfig.collection_actionLog(logData);
-                        actionLog.save().then().catch(errorUtils.reportError);
-                    }
-                }
-                else {
-                    console.error('There are item that should be logged but playerObjId not found.');
-                    console.error('actionName', actionName);
-                    console.error('actionResult',JSON.stringify(actionResult, null, 2));
-                }
+            if(ipData){
+                logData.ipArea = ipData;
+            }else{
+                logData.ipArea = {'province':'', 'city':''};
             }
-        );
+        }
 
+        if (playerObjId) {
+            let apiLog = new dbConfig.collection_apiLog(logData);
+            apiLog.save().then().catch(errorUtils.reportError);
+            if (actionName === "login" || actionName === "player - create" || actionName === "submitDXCode") {
+                let actionLog = new dbConfig.collection_actionLog(logData);
+                actionLog.save().then().catch(errorUtils.reportError);
+            }
+        }
+        else {
+            console.error('There are item that should be logged but playerObjId not found.');
+            console.error('actionName', actionName);
+            console.error('actionResult',JSON.stringify(actionResult, null, 2));
+        }
     },
 
     createProviderLoginActionLog: function (platform, playerObjId, providerId, ipAddress, domain, userAgent, inputDevice) {
@@ -144,39 +128,24 @@ let dbApiLog = {
         };
 
         if(ipAddress && ipAddress != "undefined"){
-            geoIpProm = dbUtility.getGeoIp(ipAddress).then(
-                ipData=>{
-                    let ipArea = {};
-                    if(ipData){
-                        ipArea = ipData;
-                    }else{
-                        ipArea.province = '';
-                        ipArea.city = '';
-                    }
+            var ipData = dbUtility.getIpLocationByIPIPDotNet(ipAddress);
 
-                    return ipArea;
-                })
+            if(ipData){
+                logData.ipArea = ipData;
+            }else{
+                logData.ipArea = {'province':'', 'city':''};
+            }
         }
 
-        return Promise.all([geoIpProm]).then(
-            result => {
-                if(result && result[0]){
-                    logData.ipArea = result[0];
-                }else{
-                    logData.ipArea = {province: '', city: ''};
-                }
-
-                if (playerObjId) {
-                    let actionLog = new dbConfig.collection_actionLog(logData);
-                    actionLog.save().then().catch(errorUtils.reportError);
-                }
-                else {
-                    console.error('There are item that should be logged but playerObjId not found.');
-                    console.error('actionName', actionName);
-                    console.error('actionResult',JSON.stringify(actionResult, null, 2));
-                }
-            }
-        )
+        if (playerObjId) {
+            let actionLog = new dbConfig.collection_actionLog(logData);
+            actionLog.save().then().catch(errorUtils.reportError);
+        }
+        else {
+            console.error('There are item that should be logged but playerObjId not found.');
+            console.error('actionName', actionName);
+            console.error('actionResult',JSON.stringify(actionResult, null, 2));
+        }
     },
 
     getPlayerApiLog: function (playerObjId, startDate, endDate, ipAddress, action, index, limit, sortCol) {
