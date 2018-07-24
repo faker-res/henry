@@ -149,6 +149,13 @@ function socketActionWechatPayGroup(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatformWechatPayGroup.addAllPlayersToWechatPayGroup, [data.weChatGroupObjId, data.platformObjId], actionName, isValidData);
         },
 
+
+        updateWechatPayAcc: function updateWechatPayAcc(data) {
+        let actionName = arguments.callee.name;
+        var isValidData = Boolean(data && data.query && data.updateData);
+        socketUtil.emitter(self.socket, dbPlatformWechatPayGroup.updateWechatPayAcc, [data.query, data.updateData], actionName, isValidData);
+    }
+
     };
     socketActionWechatPayGroup.actions = this.actions;
 }
