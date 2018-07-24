@@ -220,9 +220,6 @@ const dbRewardTask = {
                         proposalId: proposalData.proposalId,
                         lastProposalId: proposalData._id,
                         $inc: {
-                            //rewardAmt: rewardData.initAmount,
-                            // initAmt: rewardData.initAmount,
-                            // currentAmt: rewardData.initAmount,
                             initAmt: proposalData.data.rewardAmount,
                             currentAmt: proposalData.data.rewardAmount,
                             forbidWithdrawIfBalanceAfterUnlock:
@@ -239,6 +236,9 @@ const dbRewardTask = {
                     } else {
                         consumptionAmt = rewardData.requiredUnlockAmount - rewardData.applyAmount;
                     }
+
+                    // Make sure required consumption is not negative
+                    if (consumptionAmt < 0) { consumptionAmt = 0; }
 
                     if (rewardData.useConsumption) {
                         if(rewardType == constRewardType.PLAYER_TOP_UP_RETURN_GROUP && proposalData.data.isDynamicRewardAmount) {
