@@ -1617,6 +1617,25 @@ var dbPlatform = {
         );
     },
 
+    bulkSendSMS: (adminObjId, adminName, data, playerIds) => {
+        let proms = [];
+        if (playerIds && playerIds.length) {
+            playerIds.map(playerId => {
+                let clonedData = Object.assign({}, data);
+                clonedData.playerId = playerId;
+                let prom = dbPlatform.sendSMS(adminObjId, adminName, clonedData).catch(error => {
+                    console.error("Sms failed for playerId:", playerId, "- error:", error);
+                    errorUtils.reportError(error);
+                    return {playerId, error}
+                });
+
+                proms.push(prom);
+            });
+        }
+
+        return Promise.resolve(proms);
+    },
+
     sendNewPlayerSMS: function (adminObjId, adminName, data) {
 
         var sendObj = {

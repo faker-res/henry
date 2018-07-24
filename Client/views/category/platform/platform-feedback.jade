@@ -160,6 +160,8 @@
             .inlineBlk
                 button.btn.btn-warning(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton",ng-click='vm.initBulkAddPlayerFeedback()') {{"Failed Call Player Feedback" | translate}}
             .inlineBlk
+                button.btn.btn-warning(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton",ng-click='vm.initBulkSMSToFailPlayers()') {{"Failed Call Player SMS" | translate}}
+            .inlineBlk
                 button.btn.btn-success(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton",ng-click='vm.endCallOutMission()') {{"Finish Mission" | translate}}
             span#platformFeedbackSpin.collapse
                 i.fa.fa-spinner.fa-spin
