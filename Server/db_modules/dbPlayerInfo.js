@@ -1540,8 +1540,12 @@ let dbPlayerInfo = {
                         playerUpdateData.quickPayGroup = data[6]._id;
                     }
 
-                    if (csOfficer && promoteWay) {
-                        playerUpdateData.csOfficer = csOfficer;
+                    if (csOfficer && promoteWay){
+                        // do not replace the csOfficer if it is initialized from backStage
+                        if (!playerData.csOfficer){
+                            playerUpdateData.csOfficer = csOfficer;
+                        }
+
                         playerUpdateData.promoteWay = promoteWay;
                     }
 
@@ -12530,6 +12534,7 @@ let dbPlayerInfo = {
 
                     return playerState.then(
                         playerState => {
+                            console.log('data-ricco123', data);
                             if (playerState || data.isClearConcurrent) {
                                 //check if player's reward task is no credit now
                                 return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
