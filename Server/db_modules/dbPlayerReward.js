@@ -2960,10 +2960,12 @@ let dbPlayerReward = {
                     userType: constProposalUserType.PLAYERS
                 };
 
-                if (promoCodeObj.isProviderGroup) {
-                    proposalData.data.providerGroup = promoCodeObj.allowedProviders;
-                } else {
-                    proposalData.data.providers = promoCodeObj.allowedProviders;
+                if (promoCodeObj.allowedProviders) {
+                    if (promoCodeObj.isProviderGroup) {
+                        proposalData.data.providerGroup = promoCodeObj.allowedProviders;
+                    } else {
+                        proposalData.data.providers = promoCodeObj.allowedProviders;
+                    }
                 }
 
                 return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
