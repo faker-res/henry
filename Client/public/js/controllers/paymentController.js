@@ -579,7 +579,7 @@ define(['js/app'], function (myApp) {
 
         vm.createNewBankCardAcc = function () {
             if (vm.newBankCardAcc && vm.newBankCardAcc.provinceId && vm.provinceList.length) {
-                vm.provinceList.filter(x => {
+                vm.provinceList.forEach(x => {
                     if(x.id == vm.newBankCardAcc.provinceId) {
                         vm.newBankCardAcc.provinceName = x.name;
                     }
@@ -588,7 +588,7 @@ define(['js/app'], function (myApp) {
             }
 
             if (vm.newBankCardAcc && vm.newBankCardAcc.cityId && vm.cityList.length) {
-                vm.cityList.filter(x => {
+                vm.cityList.forEach(x => {
                     if(x.id == vm.newBankCardAcc.cityId) {
                         vm.newBankCardAcc.cityName = x.name;
                     }
@@ -696,7 +696,7 @@ define(['js/app'], function (myApp) {
         vm.getProvinceByName = function (provinceName) {
             vm.currentProvince = {};
             if (vm.provinceList && vm.provinceList.length) {
-                vm.provinceList.filter(x => { if(x.name == provinceName) { vm.currentProvince = x; }});
+                vm.provinceList.forEach(x => { if(x.name == provinceName) { vm.currentProvince = x; }});
             }
             if (vm.currentProvince && vm.currentProvince.id) {
                 vm.selectedBankCard.provinceId = vm.currentProvince.id;
@@ -707,7 +707,7 @@ define(['js/app'], function (myApp) {
         vm.getCityByName = function (cityName) {
             vm.currentCity = {};
             if (vm.cityList && vm.cityList.length) {
-                vm.cityList.filter(x => { if (x.name == cityName) { vm.currentCity = x; }});
+                vm.cityList.forEach(x => { if (x.name == cityName) { vm.currentCity = x; }});
             }
             if (vm.currentCity && vm.currentCity.id) {
                 vm.selectedBankCard.cityId = vm.currentCity.id;
@@ -744,7 +744,7 @@ define(['js/app'], function (myApp) {
 
         vm.editBankCardAcc = function () {
             if (vm.selectedBankCard && vm.selectedBankCard.provinceId && vm.provinceList.length) {
-                vm.provinceList.filter(x => {
+                vm.provinceList.forEach(x => {
                     if(x.id == vm.selectedBankCard.provinceId) {
                         vm.selectedBankCard.provinceName = x.name;
                     }
@@ -753,7 +753,7 @@ define(['js/app'], function (myApp) {
             }
 
             if (vm.selectedBankCard && vm.selectedBankCard.cityId && vm.cityList.length) {
-                vm.cityList.filter(x => {
+                vm.cityList.forEach(x => {
                     if(x.id == vm.selectedBankCard.cityId) {
                         vm.selectedBankCard.cityName = x.name;
                     }
