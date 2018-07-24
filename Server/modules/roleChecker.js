@@ -309,7 +309,7 @@ var roleChecker = {
                 ModifyFeedbackTopic: ['createPlayerFeedbackTopic', 'deletePlayerFeedbackTopic']
             },
             "AutoFeedback": {
-                read: [],
+                Read: [],
                 create: [],
                 overview: []
             },
