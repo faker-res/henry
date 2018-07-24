@@ -32,21 +32,21 @@ function callCPMSAPI(service, functionName, data) {
     clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
         wsClient => {
             bOpen = true;
-            var reqTime = new Date().getTime();
-            var resFunction = function (res) {
-                var resTime = new Date().getTime();
-                dbLogger.createAPIResponseTimeLog(service, functionName, data, res, (resTime - reqTime));
-            };
+            // var reqTime = new Date().getTime();
+            // var resFunction = function (res) {
+            //     // var resTime = new Date().getTime();
+            //     // dbLogger.createAPIResponseTimeLog(service, functionName, data, res, (resTime - reqTime));
+            // };
             return wsClient.callAPIOnce(service, functionName, data).then(
                 res => {
-                    resFunction(res);
+                    // resFunction(res);
                     if (wsClient && typeof wsClient.disconnect == "function") {
                         wsClient.disconnect();
                     }
                     return res;
                 },
                 error => {
-                    resFunction(error);
+                    // resFunction(error);
                     if (wsClient && typeof wsClient.disconnect == "function") {
                         wsClient.disconnect();
                     }
