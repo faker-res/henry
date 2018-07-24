@@ -1675,27 +1675,22 @@ var proposalExecutor = {
              * execution function for player consumption return
              */
             executePlayerConsumptionReturn: function (proposalData) {
-                //create reward task for related player
-                //verify data
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount >= 0 && proposalData.data.platformId) {
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
                         type: constRewardType.PLAYER_CONSUMPTION_RETURN,
                         rewardType: constRewardType.PLAYER_CONSUMPTION_RETURN,
                         platformId: proposalData.data.platformId,
-                        requiredUnlockAmount: proposalData.data.spendingAmount? proposalData.data.spendingAmount: 0,
+                        requiredUnlockAmount: proposalData.data.spendingAmount ? proposalData.data.spendingAmount: 0,
                         currentAmount: proposalData.data.rewardAmount,
                         initAmount: proposalData.data.rewardAmount,
-                        // useConsumption: Boolean(proposalData.data.useConsumption),
-                        // eventId: proposalData.data.eventId,
                         applyAmount: 0,
-                        // providerGroup: proposalData.data.providerGroup
                     };
                     proposalData.data.proposalId = proposalData.proposalId;
                     return dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).lean().then(
                         platformData => {
                             let promiseUse;
-                            if (platformData && platformData.useProviderGroup && proposalData.data.spendingAmount) {
+                            if (platformData && platformData.useProviderGroup) {
                                 promiseUse = dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, constRewardType.PLAYER_CONSUMPTION_RETURN);
                             } else {
                                 promiseUse = changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.rewardAmount, constRewardType.PLAYER_CONSUMPTION_RETURN, proposalData.data);
