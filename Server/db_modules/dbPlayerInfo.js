@@ -12537,6 +12537,7 @@ let dbPlayerInfo = {
 
                     return playerState.then(
                         playerState => {
+                            console.log('data-ricco123', data);
                             if (playerState || data.isClearConcurrent) {
                                 //check if player's reward task is no credit now
                                 return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
