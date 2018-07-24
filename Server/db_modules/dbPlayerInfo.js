@@ -1540,8 +1540,12 @@ let dbPlayerInfo = {
                         playerUpdateData.quickPayGroup = data[6]._id;
                     }
 
-                    if (csOfficer && promoteWay) {
-                        playerUpdateData.csOfficer = csOfficer;
+                    if (csOfficer && promoteWay)
+                        // do not replace the csOfficer if it is initialized from backStage
+                        if (!playerData.csOfficer){
+                            playerUpdateData.csOfficer = csOfficer;
+                        }
+
                         playerUpdateData.promoteWay = promoteWay;
                     }
 
