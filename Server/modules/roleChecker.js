@@ -513,7 +513,8 @@ var roleChecker = {
                 Delete: ["deleteAlipayGroup"],
                 AddPlayer: ['addPlayersToAlipayGroup'],
                 AddAllPlayer: ['addAllPlayersToAlipayGroup'],
-                CreateAlipay: ['createNewAlipayAcc']
+                CreateAlipay: ['createNewAlipayAcc'],
+                EditAlipay: ['editAlipayAcc']
             },
             "WechatPayGroup": {
                 Read: ['getPlatformWechatPayGroup'],

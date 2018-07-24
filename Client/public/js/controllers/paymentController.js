@@ -635,7 +635,6 @@ define(['js/app'], function (myApp) {
 
                         vm.changeProvince(false);
                     })
-                    resolve(vm.provinceList);
                 }
             }, null, true);
         }
@@ -1785,11 +1784,11 @@ define(['js/app'], function (myApp) {
             }
             vm.alipayStatusFilterOptions = {"NORMAL": true, "LOCK": true, "DISABLED": true, "CLOSE": true, "TOBEFOLLOWEDUP": true, "SUSPEND": true};
             socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroupWithIsInGroup', query, function(data){
-
-                //provider list init
-                vm.allAlipayList = data.data;
-                console.log('vm.allAlipayList', vm.allAlipayList);
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    //provider list init
+                    vm.allAlipayList = data.data;
+                    console.log('vm.allAlipayList', vm.allAlipayList);
+                });
             });
 
             // socketService.$socket($scope.AppSocket, 'getIncludedAlipayByAlipayGroup', query, function(data){
@@ -2032,6 +2031,64 @@ define(['js/app'], function (myApp) {
                     }
                     $scope.safeApply();
                 }
+            });
+        }
+
+        vm.disableEditAlipay = function () {
+            let isDisable = true;
+            vm.selectedAlipayArr = [];
+
+            if (vm.allAlipayList && vm.allAlipayList.length > 0) {
+                vm.allAlipayList.forEach(x => {
+                    if (x && x.isCheck) {
+                        vm.selectedAlipayArr.push(x);
+                    }
+                });
+            }
+
+            if (vm.selectedAlipayArr && vm.selectedAlipayArr.length == 1) {
+                isDisable = false;
+            }
+
+            return isDisable;
+        }
+
+        vm.showEditAlipayInfo = function () {
+            vm.selectedAlipay = {};
+            vm.selectedAlipay = vm.selectedAlipayArr[0] ? JSON.parse(JSON.stringify(vm.selectedAlipayArr[0])) : {};
+            vm.cloneSelectedAlipayBeforeEdit = vm.selectedAlipay ? JSON.parse(JSON.stringify(vm.selectedAlipay)) : {};
+        }
+
+        vm.validateEditAlipay = function () {
+            let isDisable = true;
+            if (vm.selectedAlipay && vm.cloneSelectedAlipayBeforeEdit && !vm.checkIsEqual(vm.selectedAlipay, vm.cloneSelectedAlipayBeforeEdit)) {
+                isDisable = false;
+            }
+            return isDisable;
+        }
+
+        vm.editAlipayAcc = function () {
+            let curAlipay = {
+                accountNumber: vm.selectedAlipay.accountNumber,
+                name: vm.selectedAlipay.name,
+                state: vm.selectedAlipay.state,
+                quota: vm.selectedAlipay.quota,
+                singleLimit: vm.selectedAlipay.singleLimit
+            }
+
+            var sendData = {
+                query: {_id: vm.selectedAlipay._id, platformId: vm.selectedAlipay.platformId},
+                updateData: curAlipay
+            };
+
+            console.log('editAlipay sendData', sendData);
+
+            socketService.$socket($scope.AppSocket, 'updateAlipayAcc', sendData, function (data) {
+                console.log(data.data);
+                socketService.showConfirmMessage($translate("Edited successfully"));
+                vm.alipayGroupClicked(null, vm.SelectedAlipayGroupNode);
+            }, function (err) {
+                socketService.showErrorMessage($translate("Fail to edit"), err);
             });
         }
 
