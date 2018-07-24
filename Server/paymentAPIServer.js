@@ -40,14 +40,11 @@ var messageClient = new WebSocketMessageClient(url, server);
 
 server.setMessageClient(messageClient);
 
-// clientApiInstances.createPaymentAPI().then(
-//     res => {
-//         dbPlatform.syncPMSPlatform();
-//         if( serverInstance.getPaymentAPIClient() ){
-//             serverInstance.getPaymentAPIClient().startHeartBeat();
-//         }
-//     }
-// );
+clientApiInstances.createPaymentAPI().then(
+    res => {
+        dbPlatform.syncPMSPlatform();
+    }
+);
 
 var dbPlatform = require("./db_modules/dbPlatform");
 clientApiInstances.createSMSAPI().then(
