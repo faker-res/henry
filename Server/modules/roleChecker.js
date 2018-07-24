@@ -496,7 +496,7 @@ var roleChecker = {
                 AddPlayer: ['addPlayersToBankCardGroup'],
                 AddAllPlayer: ['addAllPlayersToBankCardGroup'],
                 CreateBankCard: ['createNewBankCardAcc'],
-                EditBankCard: ['editBankCardAcc']
+                EditBankCard: ['updateBankCardAcc']
             },
             "MerchantGroup": {
                 Read: ['getPlatformMerchantGroup', 'getMerchantTypeList', 'getIncludedMerchantByMerchantGroup', 'getExcludedMerchantByMerchantGroup'],
@@ -514,7 +514,7 @@ var roleChecker = {
                 AddPlayer: ['addPlayersToAlipayGroup'],
                 AddAllPlayer: ['addAllPlayersToAlipayGroup'],
                 CreateAlipay: ['createNewAlipayAcc'],
-                EditAlipay: ['editAlipayAcc']
+                EditAlipay: ['updateAlipayAcc']
             },
             "WechatPayGroup": {
                 Read: ['getPlatformWechatPayGroup'],
