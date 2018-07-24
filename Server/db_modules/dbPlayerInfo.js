@@ -1173,6 +1173,7 @@ let dbPlayerInfo = {
         let platformData = null;
         let pPrefix = null;
         let pName = null;
+        let csOfficer, promoteWay;
 
         playerdata.name = playerdata.name.toLowerCase();
 
@@ -1465,11 +1466,11 @@ let dbPlayerInfo = {
                                     $regex: playerData.domain,
                                     $options: "xi"
                                 },
-                                platform: platformObjId
+                                platform: playerdata.platform
                             }).lean().then(data => {
                                 if (data) {
-                                    playerData.csOfficer = data.admin;
-                                    playerData.promoteWay = data.way
+                                    csOfficer = data.admin;
+                                    promoteWay = data.way;
                                 }
                             });
 
@@ -1538,6 +1539,12 @@ let dbPlayerInfo = {
                     if (data[6]) {
                         playerUpdateData.quickPayGroup = data[6]._id;
                     }
+
+                    if (csOfficer && promoteWay) {
+                        playerUpdateData.csOfficer = csOfficer;
+                        playerUpdateData.promoteWay = promoteWay;
+                    }
+
                     proms.push(
                         dbconfig.collection_players.findOneAndUpdate(
                             {_id: playerData._id, platform: playerData.platform},
