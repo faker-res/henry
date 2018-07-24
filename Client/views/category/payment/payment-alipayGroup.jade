@@ -82,6 +82,9 @@
                 .div.pull-right
                     button.btn.btn-info.common-button.pull-right(ng-click="vm.selectAlipay(true)") {{"Select All" | translate}}
                     button.btn.btn-info.common-button.pull-right(ng-click="vm.selectAlipay(false)") {{"Clear All" | translate}}
+                    button.btn.btn-primary.common-button(ng-if="vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && vm.allAlipayList.length > 0 && checkViewPermission('Payment', 'AlipayGroup', 'EditAlipay')" ng-click="vm.showEditAlipayInfo()" ng-disabled="vm.disableEditAlipay()", data-toggle="modal", data-target='#modalEditAlipay')
+                        img.img-edit
+                        text {{"EditAlipay" | translate}}
                     button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update')" ng-click='vm.alipaytoAlipayGroup("attach")')
                         i.fa.fa-plus-square
                         text {{"INCLUDE" | translate}}
@@ -116,6 +119,35 @@
                             input.form-control(type='text', ng-model='vm.newAlipayAcc.quota')
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.createNewAlipayAcc()", ng-disabled="vm.checkCreateNewAlipay()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalEditAlipay.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"EditAlipay" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .form-group.col-md-6
+                            .control-label {{"STATE" | translate}}
+                                select.form-control(ng-model='vm.selectedAlipay.state')
+                                    option(ng-repeat='(i,v) in vm.paymentListState', value='{{v}}') {{v === 'DISABLED' ? 'DISABLE' : v | translate}}
+                        .form-group.col-md-6
+                            .control-label {{"alipayAccount" | translate}}
+                            input.form-control(type='text', ng-model='vm.selectedAlipay.accountNumber')
+                        .form-group.col-md-6
+                            .control-label {{"alipayName" | translate}}
+                            input.form-control(type='text', ng-model='vm.selectedAlipay.name')
+                        .form-group.col-md-6
+                            .control-label {{"SINGLE_LIMIT" | translate}}
+                            input.form-control(type='Number', ng-model='vm.selectedAlipay.singleLimit', style='text-align:left!important')
+                        .form-group.col-md-6
+                            .control-label {{"DAY_LIMIT" | translate}}
+                            input.form-control(type='Number', ng-model='vm.selectedAlipay.quota', style='text-align:left!important')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.editAlipayAcc()", ng-disabled="vm.validateEditAlipay()") {{"CONFIRM" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalAddAlipayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
