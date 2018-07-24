@@ -441,15 +441,15 @@ let dbDXMission = {
         let totalPlayerBonusAmount = 0;
         let totalPlayerTopUpAmount = 0;
         let alerted = false;
-        importedListProm = dbconfig.collection_dxPhone.find({dxMission: dxMissionId}).count();
-        sentMessageListProm = dbconfig.collection_smsLog.distinct("tel", {"data.dxMission": ObjectId(dxMissionId)});
-        registeredPlayerListProm = dbconfig.collection_players.find({dxMission: dxMissionId}).then(
+        importedListProm = dbconfig.collection_dxPhone.find({dxMission: dxMissionId}).lean().count();
+        sentMessageListProm = dbconfig.collection_smsLog.distinct("tel", {"data.dxMission": ObjectId(dxMissionId)}).lean();
+        registeredPlayerListProm = dbconfig.collection_players.find({dxMission: dxMissionId}).lean().then(
             playerData => {
                 if(playerData){
                     totalRegisteredPlayer = playerData.length ? playerData.length : 0;
                     playerData.forEach(playerId => {
                        if(playerId){
-                           checkFeedBackProm.push(dbconfig.collection_playerFeedback.find({playerId: playerId._id}).then(
+                           checkFeedBackProm.push(dbconfig.collection_playerFeedback.find({playerId: playerId._id}).lean().then(
                                feedBackData => {
                                    if(!alerted){
                                        if (!feedBackData || feedBackData.length <= 0) {
@@ -464,7 +464,7 @@ let dbDXMission = {
                                }
                            ));
 
-                           topUpPlayerProm.push(dbconfig.collection_playerTopUpRecord.find({playerId: playerId._id}).then(
+                           topUpPlayerProm.push(dbconfig.collection_playerTopUpRecord.find({playerId: playerId._id}).lean().then(
                                topUpRecord => {
                                    if(topUpRecord && topUpRecord.length > 0){
                                        noOfPlayerTopUp += 1;
@@ -509,7 +509,7 @@ let dbDXMission = {
             partnerLevelConfig => {
                 partnerLevel = partnerLevelConfig ? partnerLevelConfig : {};
                 let resultProm = [];
-                return dbconfig.collection_players.find({dxMission: dxMissionId},{_id: 1}).then(
+                return dbconfig.collection_players.find({dxMission: dxMissionId},{_id: 1}).lean().then(
                     playerData => {
                         if(playerData){
                             playerData.forEach(player => {
@@ -524,7 +524,7 @@ let dbDXMission = {
 
 
                                 if(player){
-                                    topUpProm = dbconfig.collection_playerTopUpRecord.find({playerId: player._id}).then(
+                                    topUpProm = dbconfig.collection_playerTopUpRecord.find({playerId: player._id}).lean().then(
                                         topUpRecord => {
                                             if(topUpRecord && topUpRecord.length > 0){
                                                 totalTopUpTime = topUpRecord.length;
@@ -551,7 +551,7 @@ let dbDXMission = {
                                         }
                                     );
 
-                                    consumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: player._id}).then(
+                                    consumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: player._id}).lean().then(
                                         consumptionRecord => {
                                             if(consumptionRecord && consumptionRecord.length > 0){
                                                 totalConsumptionTime = consumptionRecord.length;
@@ -580,7 +580,7 @@ let dbDXMission = {
                                     bonusProm = dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: constProposalType.PLAYER_BONUS}).then(
                                         proposalType => {
                                             if(proposalType){
-                                                return dbconfig.collection_proposal.find({type: proposalType._id, 'data.playerObjId': player._id, status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}}).then(
+                                                return dbconfig.collection_proposal.find({type: proposalType._id, 'data.playerObjId': player._id, status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}}).lean().then(
                                                     proposalData => {
                                                         if(proposalData && proposalData.length > 0){
                                                             if(proposalData.length > 1){
@@ -1298,7 +1298,7 @@ let dbDXMission = {
                         }
                     )
 
-                    topUpPlayerProm = dbconfig.collection_playerTopUpRecord.find({playerId: playerData._id}).then(
+                    topUpPlayerProm = dbconfig.collection_playerTopUpRecord.find({playerId: playerData._id}).lean().then(
                         topUpRecord => {
                             if(topUpRecord && topUpRecord.length > 0){
                                 if(topUpRecord.length > 1){
@@ -1317,7 +1317,7 @@ let dbDXMission = {
                         }
                     );
 
-                    playerConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerData._id}).then(
+                    playerConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerData._id}).lean().then(
                         consumptionRecord => {
                             if(consumptionRecord && consumptionRecord.length > 0){
                                 totalConsumptionTime = consumptionRecord.length;
@@ -1339,7 +1339,7 @@ let dbDXMission = {
                     bonusProm = dbconfig.collection_proposalType.findOne({platformId: platform, name: constProposalType.PLAYER_BONUS}).then(
                         proposalType => {
                             if(proposalType){
-                                return dbconfig.collection_proposal.find({type: proposalType._id, 'data.playerObjId': playerData._id, status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}}).then(
+                                return dbconfig.collection_proposal.find({type: proposalType._id, 'data.playerObjId': playerData._id, status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}}).lean().then(
                                     proposalData => {
                                         if(proposalData && proposalData.length > 0){
                                             if(proposalData.length > 1){
@@ -1397,7 +1397,7 @@ let dbDXMission = {
                     findQuery.createTime = {$gte: new Date(lastSendingStartTime), $lt: new Date(lastSendingEndTime)};
                 }
 
-                smsLogProm.push(dbconfig.collection_smsLog.find(findQuery).sort({createTime:-1}).then(
+                smsLogProm.push(dbconfig.collection_smsLog.find(findQuery).lean().sort({createTime:-1}).then(
                     smsLogData => {
                         // filter the users according to the lastTime
                         if (lastSendingStartTime && lastSendingEndTime){

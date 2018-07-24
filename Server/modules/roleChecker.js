@@ -495,7 +495,8 @@ var roleChecker = {
                 Delete: ['deleteBankCardGroup'],
                 AddPlayer: ['addPlayersToBankCardGroup'],
                 AddAllPlayer: ['addAllPlayersToBankCardGroup'],
-                CreateBankCard: ['createNewBankCardAcc']
+                CreateBankCard: ['createNewBankCardAcc'],
+                EditBankCard: ['editBankCardAcc']
             },
             "MerchantGroup": {
                 Read: ['getPlatformMerchantGroup', 'getMerchantTypeList', 'getIncludedMerchantByMerchantGroup', 'getExcludedMerchantByMerchantGroup'],

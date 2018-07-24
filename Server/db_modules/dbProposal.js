@@ -2784,7 +2784,7 @@ var proposal = {
                     var a = dbconfig.collection_proposal.find({
                         type: {$in: proposalTypeIdList},
                         $and: [queryData]
-                    }).count();
+                    }).read("secondaryPreferred").count();
                     var b = dbconfig.collection_proposal.find({
                         type: {$in: proposalTypeIdList},
                         $and: [queryData]
@@ -2819,7 +2819,7 @@ var proposal = {
                                 totalCommissionAmount: {$sum: "$data.commissionAmount"}
                             }
                         }
-                    ]);
+                    ]).read("secondaryPreferred");
                     return Q.all([a, b, c]);
                 },
                 function (error) {
