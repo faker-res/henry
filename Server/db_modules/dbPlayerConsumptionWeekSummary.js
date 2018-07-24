@@ -550,9 +550,6 @@ var dbPlayerConsumptionWeekSummary = {
                         message: "Apply Reward Fail, please try again later"
                     })
                 }
-            },
-            function (error) {
-                return Promise.reject({name: "DBError", message: "Error finding player", error: error});
             }
         ).then(
             function (eventsData) {
