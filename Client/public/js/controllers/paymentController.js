@@ -2639,6 +2639,65 @@ define(['js/app'], function (myApp) {
                 }
             });
         }
+
+        vm.disableEditWechatPay = function () {
+            let isDisable = true;
+            vm.selectedWechatPayArr = [];
+
+            if (vm.allWechatList && vm.allWechatList.length > 0) {
+                vm.allWechatList.forEach(x => {
+                    if (x && x.isCheck) {
+                        vm.selectedWechatPayArr.push(x);
+                    }
+                });
+            }
+
+            if (vm.selectedWechatPayArr && vm.selectedWechatPayArr.length == 1) {
+                isDisable = false;
+            }
+
+            return isDisable;
+        }
+
+        vm.showEditWechatPayInfo = function () {
+            vm.selectedWechatPay = {};
+            vm.selectedWechatPay = vm.selectedWechatPayArr[0] ? JSON.parse(JSON.stringify(vm.selectedWechatPayArr[0])) : {};
+            vm.cloneSelectedWechatPayBeforeEdit = vm.selectedWechatPay ? JSON.parse(JSON.stringify(vm.selectedWechatPay)) : {};
+        }
+
+        vm.validateEditWechatPay = function () {
+            let isDisable = true;
+            if (vm.selectedWechatPay && vm.cloneSelectedWechatPayBeforeEdit && !vm.checkIsEqual(vm.selectedWechatPay, vm.cloneSelectedWechatPayBeforeEdit)) {
+                isDisable = false;
+            }
+            return isDisable;
+        }
+
+        vm.editWechatPayAcc = function () {
+            let curWechatPay = {
+                state: vm.selectedWechatPay.state,
+                accountNumber: vm.selectedWechatPay.accountNumber,
+                name: vm.selectedWechatPay.name,
+                nickName: vm.selectedWechatPay.nickName,
+                singleLimit: vm.selectedWechatPay.singleLimit,
+                quota: vm.selectedWechatPay.quota
+            }
+
+            var sendData = {
+                query: {_id: vm.selectedWechatPay._id, platformId: vm.selectedWechatPay.platformId},
+                updateData: curWechatPay
+            };
+
+            console.log('editWechatPay sendData', sendData);
+
+            socketService.$socket($scope.AppSocket, 'updateWechatPayAcc', sendData, function (data) {
+                console.log(data.data);
+                socketService.showConfirmMessage($translate("Edited successfully"));
+                vm.wechatPayGroupClicked(null, vm.SelectedWechatPayGroupNode);
+            }, function (err) {
+                socketService.showErrorMessage($translate("Fail to edit"), err);
+            });
+        }
         /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
 
         ///////////////////////////////// common functions

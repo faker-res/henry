@@ -12525,16 +12525,19 @@ let dbPlayerInfo = {
                     }
 
                     let playerState;
-                    if(isBulkApply) {
-                        // bypass player state for bulk apply
-                        playerState = Promise.resolve(true);
-                    } else {
-                        playerState = dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true);
-                    }
+
+                    // TODO:: Temporary disable state checking when apply reward
+                    // if(isBulkApply) {
+                    //     // bypass player state for bulk apply
+                    //     playerState = Promise.resolve(true);
+                    // } else {
+                    //     playerState = dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true);
+                    // }
+
+                    playerState = Promise.resolve(true);
 
                     return playerState.then(
                         playerState => {
-                            console.log('data-ricco123', data);
                             if (playerState || data.isClearConcurrent) {
                                 //check if player's reward task is no credit now
                                 return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
@@ -12682,7 +12685,7 @@ let dbPlayerInfo = {
                                     break;
                                 //request consumption rebate
                                 case constRewardType.PLAYER_CONSUMPTION_RETURN:
-                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true, adminId, code, userAgent, adminName, data.isForceApply);
+                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true, adminId, code, userAgent, adminName, data.isForceApply, data.isClearConcurrent);
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN:
                                     if (data.topUpRecordId == null) {

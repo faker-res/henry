@@ -2410,12 +2410,15 @@ let dbPlayerReward = {
         return Promise.all(upsertProm);
     },
 
-    getPromoCodeTemplate: (platformObjId) => dbConfig.collection_promoCodeTemplate.find({
-        platformObjId: ObjectId(platformObjId)
+    getPromoCodeTemplate: (platformObjId, isProviderGroup) => dbConfig.collection_promoCodeTemplate.find({
+        platformObjId: ObjectId(platformObjId),
+        isProviderGroup: Boolean(isProviderGroup)
     }).lean(),
 
-    getOpenPromoCodeTemplate: (platformObjId) => dbConfig.collection_openPromoCodeTemplate.find({
-        platformObjId: ObjectId(platformObjId)
+    getOpenPromoCodeTemplate: (platformObjId, isProviderGroup, deleteFlag) => dbConfig.collection_openPromoCodeTemplate.find({
+        platformObjId: ObjectId(platformObjId),
+        isProviderGroup: Boolean(isProviderGroup),
+        isDeleted: Boolean(deleteFlag)
     }).lean(),
 
     updatePromoCodeTemplate: (platformObjId, promoCodeTemplate) => {
