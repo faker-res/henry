@@ -2750,7 +2750,7 @@ let dbPlayerReward = {
     getAllPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean(),
     getDelayDurationGroup: (platformObjId, duration) => dbConfig.collection_platform.find({_id: platformObjId}).lean(),
 
-    applyPromoCode: (playerId, promoCode, adminInfo) => {
+    applyPromoCode: (playerId, promoCode, adminInfo, userAgent) => {
         let promoCodeObj, playerObj, topUpProp;
         let isType2Promo = false;
         let platformObjId = '';
@@ -2959,6 +2959,7 @@ let dbPlayerReward = {
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
                 };
+                proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
 
                 if (promoCodeObj.allowedProviders) {
                     if (promoCodeObj.isProviderGroup) {
@@ -2994,7 +2995,7 @@ let dbPlayerReward = {
         })
     },
 
-    applyOpenPromoCode: (playerId, promoCode, adminInfo) => {
+    applyOpenPromoCode: (playerId, promoCode, adminInfo, userAgent) => {
         let promoCodeObj, playerObj, topUpProp;
         let isType2Promo = false;
         let platformObjId = '';
@@ -3250,6 +3251,7 @@ let dbPlayerReward = {
                     userType: constProposalUserType.PLAYERS
                 };
 
+                proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
                 if (promoCodeObj.isProviderGroup) {
                     proposalData.data.providerGroup = promoCodeObj.allowedProviders || [];
                 } else {
