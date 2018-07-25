@@ -56,14 +56,14 @@ function socketActionPromoCode(socketIO, socket) {
 
         getPromoCodeTemplate: function getPromoCodeTemplate(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId);
-            socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodeTemplate, [data.platformObjId], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.hasOwnProperty("isProviderGroup"));
+            socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodeTemplate, [data.platformObjId, data.isProviderGroup], actionName, isValidData);
         },
 
         getOpenPromoCodeTemplate: function getOpenPromoCodeTemplate(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId);
-            socketUtil.emitter(self.socket, dbPlayerReward.getOpenPromoCodeTemplate, [data.platformObjId], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.hasOwnProperty("isProviderGroup") && data.hasOwnProperty("deleteFlag"));
+            socketUtil.emitter(self.socket, dbPlayerReward.getOpenPromoCodeTemplate, [data.platformObjId, data.isProviderGroup, data.deleteFlag], actionName, isValidData);
         },
         
         updatePromoCodeTemplate: function updatePromoCodeTemplate(data) {

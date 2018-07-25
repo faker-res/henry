@@ -22912,7 +22912,8 @@ define(['js/app'], function (myApp) {
 
             function loadPromoCodeTemplate() {
                 socketService.$socket($scope.AppSocket, 'getPromoCodeTemplate', {
-                    platformObjId: vm.selectedPlatform.id
+                    platformObjId: vm.selectedPlatform.id,
+                    isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup),
                 }, function (data) {
                     $scope.$evalAsync(() => {
                         vm.promoCodeTemplateSetting = (data && data.data) ? data.data : [];
@@ -22935,6 +22936,7 @@ define(['js/app'], function (myApp) {
             function loadOpenPromoCodeTemplate() {
                 socketService.$socket($scope.AppSocket, 'getOpenPromoCodeTemplate', {
                     platformObjId: vm.selectedPlatform.id,
+                    isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup),
                     deleteFlag: false
                 }, function (data) {
                     $scope.$evalAsync(() => {
@@ -22943,10 +22945,8 @@ define(['js/app'], function (myApp) {
                         vm.openPromoCodeTemplate2 = [];
                         vm.openPromoCodeTemplate3 = [];
 
-                        let usingProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
-
                         vm.openPromoCodeTemplateData.forEach(entry => {
-                            if (entry && usingProviderGroup == entry.isProviderGroup) {
+                            if (entry) {
                                 if (entry.isProviderGroup) {
                                     entry.allowedProviders = (entry.allowedProviders && entry.allowedProviders.length > 0)? entry.allowedProviders[0] :  '' ;
                                 }

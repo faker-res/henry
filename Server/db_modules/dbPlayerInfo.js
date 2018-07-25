@@ -5098,16 +5098,13 @@ let dbPlayerInfo = {
     },
 
     updateGeoipws: function (playerObjId, platformObjId, ip) {
-        dbUtility.getGeoIp(ip).then(
-            data => {
-                if (data) {
-                    return dbconfig.collection_players.findOneAndUpdate(
-                        {_id: playerObjId, platform: platformObjId},
-                        data
-                    ).then();
-                }
-            }
-        ).catch(errorUtils.reportError);
+        var ipData = dbUtility.getIpLocationByIPIPDotNet(ip);
+        if(ipData){
+            return dbconfig.collection_players.findOneAndUpdate(
+                {_id: playerObjId, platform: platformObjId},
+                ipData
+            ).then();
+        }
     },
 
     /*
@@ -12528,12 +12525,16 @@ let dbPlayerInfo = {
                     }
 
                     let playerState;
-                    if(isBulkApply) {
-                        // bypass player state for bulk apply
-                        playerState = Promise.resolve(true);
-                    } else {
-                        playerState = dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true);
-                    }
+
+                    // TODO:: Temporary disable state checking when apply reward
+                    // if(isBulkApply) {
+                    //     // bypass player state for bulk apply
+                    //     playerState = Promise.resolve(true);
+                    // } else {
+                    //     playerState = dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true);
+                    // }
+
+                    playerState = Promise.resolve(true);
 
                     return playerState.then(
                         playerState => {
