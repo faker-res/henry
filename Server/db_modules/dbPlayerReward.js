@@ -2754,7 +2754,6 @@ let dbPlayerReward = {
         let promoCodeObj, playerObj, topUpProp;
         let isType2Promo = false;
         let platformObjId = '';
-
         return expirePromoCode().then(res => {
             return dbConfig.collection_players.findOne({
                 playerId: playerId
@@ -2763,8 +2762,7 @@ let dbPlayerReward = {
             playerData => {
                 playerObj = playerData;
                 platformObjId = playerObj.platform;
-
-                return dbPlayerUtil.setPlayerState(playerObj._id, "ApplyPromoCode");
+                return dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", true);
             }
         ).then(
             playerState => {
@@ -2989,6 +2987,7 @@ let dbPlayerReward = {
                 })
             }
         ).then(() => {
+            dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false);
             promoCodeObj.promoCodeTypeObjId = promoCodeObj.promoCodeTypeObjId._id;
             return promoCodeObj;
         })
@@ -3026,13 +3025,13 @@ let dbPlayerReward = {
                 if (promoCodeObjs && promoCodeObjs.length != 0) {
                     // if there is valid openPromoCode, check proposal
                     promoCodeObj = promoCodeObjs[0];
-                    
+
                     return dbConfig.collection_proposalType.findOne({
                         platformId: platformObjId,
                         name: constProposalType.PLAYER_PROMO_CODE_REWARD
                     }).lean().then (proposalType => {
                         if(proposalType) {
-                            
+
                             let proposalProm = dbConfig.collection_proposal.find({
                                 type: ObjectId(proposalType._id),
                                 'data.promoCode': parseInt(promoCode),
@@ -3065,7 +3064,7 @@ let dbPlayerReward = {
             }
         ).then(
             proposalData => {
-               
+
                 if (proposalData && proposalData.length == 2) {
 
                     let totalAppliedNumber = proposalData[0];
@@ -3111,7 +3110,7 @@ let dbPlayerReward = {
             }
         ).then(
             topUpProposal => {
-                
+
                 if (isType2Promo || (topUpProposal && topUpProposal.length > 0)) {
                     if (isType2Promo) {
                         return true;
