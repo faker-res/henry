@@ -12529,15 +12529,12 @@ let dbPlayerInfo = {
 
                     let playerState;
 
-                    // TODO:: Temporary disable state checking when apply reward
-                    // if(isBulkApply) {
-                    //     // bypass player state for bulk apply
-                    //     playerState = Promise.resolve(true);
-                    // } else {
-                    //     playerState = dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true);
-                    // }
-
-                    playerState = Promise.resolve(true);
+                    if (isBulkApply) {
+                        // bypass player state for bulk apply
+                        playerState = Promise.resolve(true);
+                    } else {
+                        playerState = dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true);
+                    }
 
                     return playerState.then(
                         playerState => {
@@ -12688,7 +12685,7 @@ let dbPlayerInfo = {
                                     break;
                                 //request consumption rebate
                                 case constRewardType.PLAYER_CONSUMPTION_RETURN:
-                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true, adminId, code, userAgent, adminName, data.isForceApply, data.isClearConcurrent);
+                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true, adminId, code, userAgent, adminName, data.isForceApply);
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN:
                                     if (data.topUpRecordId == null) {
@@ -17430,7 +17427,8 @@ let dbPlayerInfo = {
                 transferToProvider: false,
                 playerLevelMigration: false,
                 convertRewardPointsToCredit: false,
-                generatePromoCode: false
+                generatePromoCode: false,
+                applyXIMAFrontEnd: false
             }
         })
     }
