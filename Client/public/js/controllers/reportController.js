@@ -106,22 +106,23 @@ define(['js/app'], function (myApp) {
 
         //get all platform data from server
         vm.setPlatform = function (platObj) {
-            vm.operSelPlatform = false;
-            vm.selectedPlatform = JSON.parse(platObj);
-            vm.curPlatformId = vm.selectedPlatform._id;
-            vm.allProviders = {};
-            vm.getPlatformProvider(vm.selectedPlatform._id);
-            vm.getProposalTypeByPlatformId(vm.selectedPlatform._id);
-            vm.getPlayerLevelByPlatformId(vm.selectedPlatform._id);
-            vm.getCredibilityRemarksByPlatformId(vm.selectedPlatform._id);
-            vm.getRewardList();
-            vm.getPromotionTypeList();
-            vm.getPlatformProviderGroup();
-            vm.getAllGameTypes();
-            $cookies.put("platform", vm.selectedPlatform.name);
-            console.log('vm.selectedPlatform', vm.selectedPlatform);
-            vm.loadPage(vm.showPageName);
-            $scope.safeApply();
+            $scope.$evalAsync(() => {
+                vm.operSelPlatform = false;
+                vm.selectedPlatform = JSON.parse(platObj);
+                vm.curPlatformId = vm.selectedPlatform._id;
+                vm.allProviders = {};
+                vm.getPlatformProvider(vm.selectedPlatform._id);
+                vm.getProposalTypeByPlatformId(vm.selectedPlatform._id);
+                vm.getPlayerLevelByPlatformId(vm.selectedPlatform._id);
+                vm.getCredibilityRemarksByPlatformId(vm.selectedPlatform._id);
+                vm.getRewardList();
+                vm.getPromotionTypeList();
+                vm.getPlatformProviderGroup();
+                vm.getAllGameTypes();
+                $cookies.put("platform", vm.selectedPlatform.name);
+                console.log('vm.selectedPlatform', vm.selectedPlatform);
+                vm.loadPage(vm.showPageName);
+            });
         };
 
         vm.setPlatformById = function (id) {
@@ -720,8 +721,9 @@ define(['js/app'], function (myApp) {
 
         vm.getPlatformProviderGroup = () => {
             $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform._id}).then(function (data) {
-                vm.gameProviderGroup = data.data;
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    vm.gameProviderGroup = data.data;
+                });
             });
         };
 
@@ -1034,9 +1036,10 @@ define(['js/app'], function (myApp) {
         vm.getPlatformProvider = function (id) {
             if (!id) return;
             socketService.$socket($scope.AppSocket, 'getPlatform', {_id: id}, function (data) {
-                vm.allProviders = data.data.gameProviders;
-                console.log('vm.allProviders', vm.allProviders);
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    vm.allProviders = data.data.gameProviders;
+                    console.log('vm.allProviders', vm.allProviders);
+                });
             }, function (data) {
                 console.log("create not", data);
             });
@@ -1163,15 +1166,15 @@ define(['js/app'], function (myApp) {
         vm.getPlayerLevelByPlatformId = function (id) {
             socketService.$socket($scope.AppSocket, 'getPlayerLevelByPlatformId', {platformId: id}, function (data) {
                 vm.playerLvlData = {};
-                console.log(data)
-                if (data.data) {
-                    $.each(data.data, function (i, v) {
-                        vm.playerLvlData[v._id] = v;
-                    })
-                }
-                console.log("vm.playerLvlData", vm.playerLvlData);
-
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    console.log(data)
+                    if (data.data) {
+                        $.each(data.data, function (i, v) {
+                            vm.playerLvlData[v._id] = v;
+                        })
+                    }
+                    console.log("vm.playerLvlData", vm.playerLvlData);
+                });
             }, function (data) {
                 console.log("cannot get player level", data);
             });
@@ -1180,12 +1183,13 @@ define(['js/app'], function (myApp) {
         vm.getCredibilityRemarksByPlatformId = function (id) {
             return new Promise(function (resolve) {
                 socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: id}, function (data) {
-                    vm.credibilityRemarks = data.data;
-                    vm.filterCredibilityRemarks = data.data ? JSON.parse(JSON.stringify(data.data)) : [];
-                    vm.filterCredibilityRemarks.push({'_id':'', 'name':$translate('N/A')});
-                    console.log("vm.credibilityRemarks", vm.credibilityRemarks);
-                    resolve(vm.credibilityRemarks);
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {
+                        vm.credibilityRemarks = data.data;
+                        vm.filterCredibilityRemarks = data.data ? JSON.parse(JSON.stringify(data.data)) : [];
+                        vm.filterCredibilityRemarks.push({'_id':'', 'name':$translate('N/A')});
+                        console.log("vm.credibilityRemarks", vm.credibilityRemarks);
+                        resolve(vm.credibilityRemarks);
+                    });
                 }, function (data) {
                     console.log("cannot get credibility remarks", data);
                     vm.credibilityRemarks = {};
@@ -1353,9 +1357,10 @@ define(['js/app'], function (myApp) {
         vm.getRewardList = function (callback) {
             vm.rewardList = [];
             socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform._id}, function (data) {
-                vm.rewardList = data.data;
-                console.log('vm.rewardList', vm.rewardList);
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    vm.rewardList = data.data;
+                    console.log('vm.rewardList', vm.rewardList);
+                });
                 if (callback) {
                     callback();
                 }
@@ -1364,9 +1369,10 @@ define(['js/app'], function (myApp) {
 
         vm.getPromotionTypeList = function (callback) {
             socketService.$socket($scope.AppSocket, 'getPromoCodeTypes', {platformObjId: vm.selectedPlatform._id, deleteFlag: false}, function (data) {
-                console.log('getPromoCodeTypes', data);
-                vm.promoTypeList = data.data;
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    console.log('getPromoCodeTypes', data);
+                    vm.promoTypeList = data.data;
+                });
                 if (callback) {
                     callback();
                 }
@@ -6712,9 +6718,10 @@ define(['js/app'], function (myApp) {
                 vm.setPanel(true)
             }
             socketService.$socket($scope.AppSocket, 'getAllGameTypes', {}, function (data) {
-                vm.gameAllTypes = data.data;
+                $scope.$evalAsync(() => {
+                    vm.gameAllTypes = data.data;
+                });
                 //console.log("getAllGameTypfes",vm.gameAllTypes);
-                $scope.safeApply();
             }, function (data) {
                 console.log("create not", data);
             });
@@ -6723,26 +6730,27 @@ define(['js/app'], function (myApp) {
                 return;
             }
             socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
-                vm.platformList = data.data;
-                //console.log("platformList", vm.platformList);
-                if (vm.platformList.length == 0)return;
-                var storedPlatform = $cookies.get("platform");
-                var tPlat = {};
-                if (storedPlatform) {
-                    vm.platformList.forEach(
-                        platform => {
-                            if (platform.name == storedPlatform) {
-                                tPlat = platform;
+                $scope.$evalAsync(() => {
+                    vm.platformList = data.data;
+                    //console.log("platformList", vm.platformList);
+                    if (vm.platformList.length == 0)return;
+                    var storedPlatform = $cookies.get("platform");
+                    var tPlat = {};
+                    if (storedPlatform) {
+                        vm.platformList.forEach(
+                            platform => {
+                                if (platform.name == storedPlatform) {
+                                    tPlat = platform;
+                                }
                             }
-                        }
-                    );
-                } else {
-                    tPlat = vm.platformList[0];
-                }
-                vm.selectedPlatform = tPlat;
-                vm.selectedPlatformID = tPlat._id;
-                vm.setPlatform(JSON.stringify(tPlat));
-                $scope.safeApply();
+                        );
+                    } else {
+                        tPlat = vm.platformList[0];
+                    }
+                    vm.selectedPlatform = tPlat;
+                    vm.selectedPlatformID = tPlat._id;
+                    vm.setPlatform(JSON.stringify(tPlat));
+                });
             });
             // socketService.$socket($scope.AppSocket, 'getAllProposalStatus', {}, function (data) {
             //     delete data.data.APPROVED;
