@@ -1333,7 +1333,7 @@ var dbPlayerTopUpRecord = {
                     queryObj["createTime"]["$lt"] = end;
                     queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
                     let quotaUsedProm;
-                    if (isFPMS && topupResult.result.quotaUsed) {
+                    if (isFPMS && topupResult.result.hasOwnProperty("quotaUsed")) {
                         quotaUsedProm = Promise.resolve([{totalAmount:  topupResult.result.quotaUsed}]);
                     } else {
                         quotaUsedProm = dbconfig.collection_proposal.aggregate(
@@ -2400,7 +2400,7 @@ var dbPlayerTopUpRecord = {
                     queryObj["createTime"]["$lt"] = end;
                     queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
                     let quotaUsedProm;
-                    if (isFPMS && pmsData.result.quotaUsed) {
+                    if (isFPMS && pmsData.result.hasOwnProperty("quotaUsed")) {
                         quotaUsedProm = Promise.resolve([{totalAmount:  pmsData.result.quotaUsed}]);
                     } else {
                         quotaUsedProm = dbconfig.collection_proposal.aggregate(
@@ -2924,7 +2924,7 @@ var dbPlayerTopUpRecord = {
                     queryObj["createTime"]["$lt"] = end;
                     queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
                     let quotaUsedProm;
-                    if (isFPMS && pmsData.result.quotaUsed) {
+                    if (isFPMS && pmsData.result.hasOwnProperty("quotaUsed")) {
                         quotaUsedProm = Promise.resolve([{totalAmount:  pmsData.result.quotaUsed}]);
                     } else {
                         quotaUsedProm = dbconfig.collection_proposal.aggregate(
