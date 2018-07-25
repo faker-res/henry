@@ -306,7 +306,8 @@ var roleChecker = {
                 rewardTaskLog: ['getPlayerRewardTask'],
                 UpdatePlayerCredibility: ['updatePlayerCredibilityRemark'],
                 ModifyFeedbackResult: ['createPlayerFeedbackResult', 'deletePlayerFeedbackResult'],
-                ModifyFeedbackTopic: ['createPlayerFeedbackTopic', 'deletePlayerFeedbackTopic']
+                ModifyFeedbackTopic: ['createPlayerFeedbackTopic', 'deletePlayerFeedbackTopic'],
+                ClearPlayerState: ['resetPlayerState']
             },
             "AutoFeedback": {
                 Read: [],
