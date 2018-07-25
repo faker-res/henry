@@ -493,16 +493,13 @@ let dbPartner = {
     },
 
     updateGeoipws: function (partnerObjId, platformObjId, ip) {
-        dbUtil.getGeoIp(ip).then(
-            data => {
-                if (data) {
-                    return dbconfig.collection_partner.findOneAndUpdate(
-                        {_id: partnerObjId, platform: platformObjId},
-                        data
-                    ).then();
-                }
-            }
-        ).catch(errorUtils.reportError);
+        var ipData = dbUtil.getIpLocationByIPIPDotNet(inputData.lastLoginIp);
+        if(ipData){
+            return dbconfig.collection_partner.findOneAndUpdate(
+                {_id: partnerObjId, platform: platformObjId},
+                ipData
+            ).then();
+        }
     },
 
     createPartnerDomain: function (partnerData) {

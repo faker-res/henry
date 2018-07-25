@@ -10,7 +10,12 @@ var apiLogSchema = new Schema({
     // Date of action
     operationTime: {type: Date, default: Date.now},
     // IP address used when taking the action
-    ipAddress: String
+    ipAddress: String,
+    // IP area when taking the action
+    ipArea: {
+        province: String,
+        city: String
+    }
 });
 
 module.exports = apiLogSchema;

@@ -5098,16 +5098,13 @@ let dbPlayerInfo = {
     },
 
     updateGeoipws: function (playerObjId, platformObjId, ip) {
-        dbUtility.getGeoIp(ip).then(
-            data => {
-                if (data) {
-                    return dbconfig.collection_players.findOneAndUpdate(
-                        {_id: playerObjId, platform: platformObjId},
-                        data
-                    ).then();
-                }
-            }
-        ).catch(errorUtils.reportError);
+        var ipData = dbUtility.getIpLocationByIPIPDotNet(ip);
+        if(ipData){
+            return dbconfig.collection_players.findOneAndUpdate(
+                {_id: playerObjId, platform: platformObjId},
+                ipData
+            ).then();
+        }
     },
 
     /*
