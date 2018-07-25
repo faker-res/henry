@@ -4138,7 +4138,7 @@ function updateManualTopUpProposalBankLimit (proposalQuery, bankCardNo, isFPMS, 
             bankCardList => {
                 return {data: bankCardList}
             }
-        );;
+        );
     } else {
         prom = pmsAPI.bankcard_getBankcard({accountNumber: bankCardNo});
     }
@@ -4158,7 +4158,7 @@ function updateAliPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, plat
             alipayList => {
                 return {data: alipayList}
             }
-        );;
+        );
     } else {
         prom = pmsAPI.alipay_getAlipay({accountNumber: accNo});
     }

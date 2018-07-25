@@ -365,6 +365,36 @@ var dailyPlatformSettlement = {
         );
 
         return deferred.promise;
+    },
+
+    startDailyRefreshPaymentQuota: function (platformData) {
+        let todayTime = dbUtil.getTodaySGTime();
+        let todayStartTime = todayTime.startTime.getTime();
+        if (platformData.platformId && (!platformData.lastPaymentQuotaRefreshTime || new Date(platformData.lastPaymentQuotaRefreshTime).getTime() < todayStartTime)) {
+            let query = {
+                platformId: platformData.platformId,
+                isFPMS: true
+            }
+            let updateData = {
+                quotaUsed: 0
+            }
+
+            let bankCardProm = dbconfig.collection_platformBankCardList.update(query,updateData, {multi: true}).lean();
+            let alipayProm = dbconfig.collection_platformAlipayList.update(query,updateData, {multi: true}).lean();
+            let wechatpayProm = dbconfig.collection_platformWechatPayList.update(query,updateData, {multi: true}).lean();
+            return Promise.all([bankCardProm, alipayProm, wechatpayProm]).then(
+                () => {
+                   return dbconfig.collection_platform.update({_id: platformData._id},{lastPaymentQuotaRefreshTime: new Date()}).lean().then(
+                       () => {
+                           return Promise.resolve(true)
+                       }
+                   )
+                }
+            )
+        } else {
+            return Promise.resolve(false)
+        }
+
     }
 
 };
