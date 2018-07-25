@@ -420,7 +420,11 @@ let dbPlatformWechatPayGroup = {
             {$pull: {wechats: {$in: [accountNumber]}}},
             {multi: true}
         );
-    }
+    },
+
+    updateWechatPayAcc: function (query, updateData) {
+    return dbconfig.collection_platformWechatPayList.findOneAndUpdate(query, updateData).lean();
+}
 
 };
 
