@@ -17416,6 +17416,20 @@ let dbPlayerInfo = {
         }, {
             $set: {ximaWithdraw: 0}
         })
+    },
+
+    clearPlayerState: function (playerObjId) {
+        return dbconfig.collection_playerBState.findOneAndUpdate({
+            player: playerObjId
+        }, {
+            $set: {
+                applyRewardEvent: false,
+                transferToProvider: false,
+                playerLevelMigration: false,
+                convertRewardPointsToCredit: false,
+                generatePromoCode: false
+            }
+        })
     }
 };
 
