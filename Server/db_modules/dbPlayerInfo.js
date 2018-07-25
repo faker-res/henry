@@ -12525,12 +12525,16 @@ let dbPlayerInfo = {
                     }
 
                     let playerState;
-                    if(isBulkApply) {
-                        // bypass player state for bulk apply
-                        playerState = Promise.resolve(true);
-                    } else {
-                        playerState = dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true);
-                    }
+
+                    // TODO:: Temporary disable state checking when apply reward
+                    // if(isBulkApply) {
+                    //     // bypass player state for bulk apply
+                    //     playerState = Promise.resolve(true);
+                    // } else {
+                    //     playerState = dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true);
+                    // }
+
+                    playerState = Promise.resolve(true);
 
                     return playerState.then(
                         playerState => {
