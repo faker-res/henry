@@ -45,7 +45,7 @@ let RewardServiceImplement = function () {
         data = data || {};
         var isValidData = Boolean(data && conn.playerId);
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn, [conn.playerId, true, false, data.eventCode, userAgent], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn, [conn.playerId, true, false, data.eventCode, userAgent, null, false, true], isValidData);
     };
 
     this.getConsumeRebateAmount.expectsData = '';
