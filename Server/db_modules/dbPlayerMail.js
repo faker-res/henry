@@ -385,7 +385,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice, playerName, inputData, isPartner, partnerObjId) {
+    sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice, playerName, inputData = {}, isPartner, partnerObjId) {
         let lastMin = moment().subtract(1, 'minutes');
         let channel = null;
         let platformObjId = null;
@@ -408,17 +408,6 @@ const dbPlayerMail = {
         }
         let isSpam = false;
 
-
-
-        // if(inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined"){
-        //     dbUtility.getGeoIp(inputData.lastLoginIp).then(
-        //         ipData=>{
-        //             if(inputData) {
-        //                 inputData.ipArea = ipData;
-        //             }
-        //         })
-        // }
-
         return getPlatform.then(
             function (platformData) {
                 if (platformData) {
@@ -435,6 +424,7 @@ const dbPlayerMail = {
                         }
                     }
 
+                    /*
                     if (purpose && purpose == constSMSPurpose.REGISTRATION) {
                         let letterNumber = /^[0-9a-zA-Z]+$/;
                         // let prefixLength = platform.prefix ?　platform.prefix.length : 0;
@@ -466,6 +456,65 @@ const dbPlayerMail = {
                                     message: localization.localization.translate("Username must be less than") + " " + platform.playerNameMaxLength + " " + localization.localization.translate("characters")
                                 });
                             }
+                        }
+                    }
+                    */
+
+                    let pName = playerName; //could be player or partner
+                    let letterNumber = /^[0-9a-zA-Z]+$/;
+                    let pPrefix = isPartner ? platformData.partnerPrefix : (inputData.partnerId ? platformData.partnerCreatePlayerPrefix : platformData.prefix);
+
+                    // check pName must start with prefix
+                    if (pName.indexOf(pPrefix) !== 0) {
+                        if (isPartner) {
+                            return Q.reject({
+                                status: constServerCode.PARTNER_NAME_INVALID,
+                                name: "DataError",
+                                message: localization.localization.translate("Partner name should use ") + pPrefix + localization.localization.translate(" as prefix.")
+                            });
+                        } else {
+                            // check if player is created by partner
+                            if (inputData.partnerId) {
+                                return Promise.reject({
+                                    status: constServerCode.PLAYER_NAME_INVALID,
+                                    name: "DBError",
+                                    message: localization.localization.translate("Player name created by partner should use ") + pPrefix + localization.localization.translate(" as prefix.")
+                                });
+                            } else {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_NAME_INVALID,
+                                    name: "DBError",
+                                    message: localization.localization.translate("Player name should use ") + pPrefix + localization.localization.translate(" as prefix.")
+                                });
+                            }
+                        }
+                    }
+
+                    if(!pName.match(letterNumber)) {
+                        return Q.reject({
+                            status: constServerCode.DATA_INVALID,
+                            name: "DBError",
+                            message: localization.localization.translate("Username must be alphanumeric")
+                        });
+                    }
+
+                    if (purpose && purpose === constSMSPurpose.REGISTRATION) {
+                        if ((platformData.playerNameMaxLength > 0 && pName.length > platformData.playerNameMaxLength) || (platformData.playerNameMinLength > 0 && pName.length < platformData.playerNameMinLength)) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_NAME_INVALID,
+                                name: "DBError",
+                                message: localization.localization.translate("Player name should be between ") + platformData.playerNameMinLength + " - " + platformData.playerNameMaxLength + localization.localization.translate(" characters."),
+                            });
+                        }
+                    }
+
+                    if (purpose && purpose === constSMSPurpose.PARTNER_REGISTRATION && isPartner) {
+                        if ((platformData.partnerNameMaxLength > 0 && pName.length > platformData.partnerNameMaxLength) || (platformData.partnerNameMinLength > 0 && pName.length < platformData.partnerNameMinLength)) {
+                            return Q.reject({
+                                status: constServerCode.PARTNER_NAME_INVALID,
+                                name: "DBError",
+                                message: localization.localization.translate("Partner name should be between ") + platformData.partnerNameMinLength + " - " + platformData.partnerNameMaxLength + localization.localization.translate(" characters."),
+                            });
                         }
                     }
 
@@ -593,15 +642,13 @@ const dbPlayerMail = {
         ).then(
             smsData => {
                 if (inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined") {
-                    return dbUtility.getGeoIp(inputData.lastLoginIp).then(
-                        ipData => {
-                            if (ipData) {
-                                inputData.ipArea = ipData;
-                            }
-                            return smsData;
-                        },
-                        error =>  smsData
-                    );
+                    var ipData = dbUtility.getIpLocationByIPIPDotNet(inputData.lastLoginIp);
+
+                    if(ipData){
+                        inputData.ipArea = ipData;
+                    }else{
+                        inputData.ipArea = {'province':'', 'city':''};
+                    }
                 }
                 return smsData;
             },
@@ -675,68 +722,66 @@ const dbPlayerMail = {
             error => {
                 if (isFailedSms && purpose && purpose == constSMSPurpose.REGISTRATION && !isSpam) {
                     if (inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined") {
-                        return dbUtility.getGeoIp(inputData.lastLoginIp).then(
-                            ipData => {
-                                if (ipData) {
-                                    inputData.ipArea = ipData;
-                                }
+                        var ipData = dbUtility.getIpLocationByIPIPDotNet(inputData.lastLoginIp);
 
-                                if (inputData) {
-                                    if (inputData.playerId) {
-                                        delete inputData.playerId;
-                                    }
-                                    //inputData = inputData || {};
-                                    inputData.smsCode = code;
+                        if(ipData){
+                            inputData.ipArea = ipData;
+                        }else{
+                            inputData.ipArea = {'province':'', 'city':''};
+                        }
 
-                                    if (inputData.phoneNumber) {
-                                        var queryRes = queryPhoneLocation(inputData.phoneNumber);
-                                        if (queryRes) {
-                                            inputData.phoneProvince = queryRes.province;
-                                            inputData.phoneCity = queryRes.city;
-                                            inputData.phoneType = queryRes.type;
-                                        }
-
-                                        if (inputData.password) {
-                                            delete inputData.password;
-                                        }
-
-                                        if (inputData.confirmPass) {
-                                            delete inputData.confirmPass;
-                                        }
-
-                                        let proposalData = {
-                                            creator: inputData.adminInfo || {
-                                                type: 'player',
-                                                name: inputData.name,
-                                                id: inputData.playerId ? inputData.playerId : ""
-                                            }
-                                        };
-
-                                        let newProposal = {
-                                            creator: proposalData.creator,
-                                            data: inputData,
-                                            entryType: inputData.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
-                                            userType: inputData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                                            inputDevice: inputDevice ? inputDevice : 0,
-                                            status: constProposalStatus.PENDING
-                                        };
-
-                                        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, newProposal, constProposalStatus.PENDING);
-                                    }
-
-                                    let newIntentData = {
-                                        data: inputData,
-                                        status: constRegistrationIntentRecordStatus.VERIFICATION_CODE,
-                                        name: inputData.name
-                                    };
-                                    let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
-                                    newRecord.save().then(data => {
-                                        return true;
-                                    });
-                                }
-                                return Promise.reject(error);
+                        if (inputData) {
+                            if (inputData.playerId) {
+                                delete inputData.playerId;
                             }
-                        );
+                            inputData.smsCode = code;
+
+                            if (inputData.phoneNumber) {
+                                var queryRes = queryPhoneLocation(inputData.phoneNumber);
+                                if (queryRes) {
+                                    inputData.phoneProvince = queryRes.province;
+                                    inputData.phoneCity = queryRes.city;
+                                    inputData.phoneType = queryRes.type;
+                                }
+
+                                if (inputData.password) {
+                                    delete inputData.password;
+                                }
+
+                                if (inputData.confirmPass) {
+                                    delete inputData.confirmPass;
+                                }
+
+                                let proposalData = {
+                                    creator: inputData.adminInfo || {
+                                        type: 'player',
+                                        name: inputData.name,
+                                        id: inputData.playerId ? inputData.playerId : ""
+                                    }
+                                };
+
+                                let newProposal = {
+                                    creator: proposalData.creator,
+                                    data: inputData,
+                                    entryType: inputData.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                                    userType: inputData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                                    inputDevice: inputDevice ? inputDevice : 0,
+                                    status: constProposalStatus.PENDING
+                                };
+
+                                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, newProposal, constProposalStatus.PENDING);
+                            }
+
+                            let newIntentData = {
+                                data: inputData,
+                                status: constRegistrationIntentRecordStatus.VERIFICATION_CODE,
+                                name: inputData.name
+                            };
+                            let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
+                            newRecord.save().then(data => {
+                                return true;
+                            });
+                        }
                     }
 
                 }

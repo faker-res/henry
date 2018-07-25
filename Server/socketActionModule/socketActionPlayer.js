@@ -868,6 +868,17 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.sendSMS, [adminObjId, adminName, data], actionName, isValidData);
         },
 
+        bulkSendSMSToPlayer: function bulkSendSMSToPlayer(data) {
+            let actionName = arguments.callee.name;
+            let adminObjId = getAdminId();
+            let adminName = getAdminName();
+            let isValidData = Boolean(data && data.channel != null && data.platformId != null  && data.message && adminObjId && adminName && data.playerIds);
+            if (data) {
+                data.delay = data.delay || 0;
+            }
+            socketUtil.emitter(self.socket, dbPlatform.bulkSendSMS, [adminObjId, adminName, data, data.playerIds], actionName, isValidData);
+        },
+
         sentSMSToNewPlayer: function sentSMSToNewPlayer(data) {
             var actionName = arguments.callee.name;
             var adminObjId = getAdminId();
@@ -1278,6 +1289,12 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data.playerName && data.platformObjId);
             socketUtil.emitter(self.socket, dbPlayerInfo.clearPlayerXIMAWithdraw, [data.playerName, data.platformObjId, getAdminName(), getAdminId()], actionName, isValidData);
+        },
+
+        clearPlayerState: function clearPlayerState(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerObjId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.clearPlayerState, [data.playerObjId], actionName, isValidData);
         }
     };
     socketActionPlayer.actions = this.actions;

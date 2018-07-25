@@ -158,6 +158,12 @@ function socketActionAlipayGroup(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatformAlipayGroup.addAllPlayersToAlipayGroup, [data.bankAlipayGroupObjId, data.platformObjId], actionName, isValidData);
         },
 
+        updateAlipayAcc: function updateAlipayAcc(data) {
+            let actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPlatformAlipayGroup.updateAlipayAcc, [data.query, data.updateData], actionName, isValidData);
+        }
+
     };
     socketActionAlipayGroup.actions = this.actions;
 };

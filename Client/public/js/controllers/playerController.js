@@ -14443,7 +14443,28 @@ define(['js/app'], function (myApp) {
                 resMsg: '',
                 showSubmit: true
             };
+        };
+
+        vm.prepareClearPlayerState = function (isConfirm = false) {
+            if (!isConfirm) {
+                vm.modalYesNo = {};
+                vm.modalYesNo.modalTitle = $translate("Reset player state");
+                vm.modalYesNo.modalText = $translate("Are you sure");
+                vm.modalYesNo.actionYes = () => vm.prepareClearPlayerState(true);
+                $('#modalYesNo').modal();
+            }
+            else {
+                $scope.$socketPromise("clearPlayerState", {playerObjId: vm.selectedSinglePlayer._id}).then(
+                    () => {
+                        socketService.showConfirmMessage($translate("Success"), 1000);
+                    },
+                    error => {
+                        socketService.showErrorMessage($translate(error.error.error));
+                    }
+                )
+            }
         }
+
         vm.requestClearProposalLimit = function () {
             vm.clearPlayerProposalLimit.resMsg = '';
             vm.clearPlayerProposalLimit.showSubmit = false;
@@ -21786,9 +21807,9 @@ define(['js/app'], function (myApp) {
 
         vm.setupRemarksMultiInput = function () {
             let remarkSelect = $('select#selectCredibilityRemark');
-            if (remarkSelect.css('display') && remarkSelect.css('display').toLowerCase() === "none") {
-                return;
-            }
+            // if (remarkSelect.css('display') && remarkSelect.css('display').toLowerCase() === "none") {
+            //     return;
+            // }
             remarkSelect.multipleSelect({
                 showCheckbox: true,
                 allSelected: $translate("All Selected"),

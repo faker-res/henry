@@ -401,6 +401,10 @@ var dbPlatformAlipayGroup = {
             {$pull: {alipays: {$in: [accountNumber]}}},
             {multi: true}
         );
+    },
+
+    updateAlipayAcc: function (query, updateData) {
+        return dbconfig.collection_platformAlipayList.findOneAndUpdate(query, updateData).lean();
     }
 
 };

@@ -306,9 +306,11 @@ var roleChecker = {
                 rewardTaskLog: ['getPlayerRewardTask'],
                 UpdatePlayerCredibility: ['updatePlayerCredibilityRemark'],
                 ModifyFeedbackResult: ['createPlayerFeedbackResult', 'deletePlayerFeedbackResult'],
-                ModifyFeedbackTopic: ['createPlayerFeedbackTopic', 'deletePlayerFeedbackTopic']
+                ModifyFeedbackTopic: ['createPlayerFeedbackTopic', 'deletePlayerFeedbackTopic'],
+                ClearPlayerState: ['resetPlayerState']
             },
             "AutoFeedback": {
+                Read: [],
                 create: [],
                 overview: []
             },
@@ -494,7 +496,8 @@ var roleChecker = {
                 Delete: ['deleteBankCardGroup'],
                 AddPlayer: ['addPlayersToBankCardGroup'],
                 AddAllPlayer: ['addAllPlayersToBankCardGroup'],
-                CreateBankCard: ['createNewBankCardAcc']
+                CreateBankCard: ['createNewBankCardAcc'],
+                EditBankCard: ['updateBankCardAcc']
             },
             "MerchantGroup": {
                 Read: ['getPlatformMerchantGroup', 'getMerchantTypeList', 'getIncludedMerchantByMerchantGroup', 'getExcludedMerchantByMerchantGroup'],
@@ -511,7 +514,8 @@ var roleChecker = {
                 Delete: ["deleteAlipayGroup"],
                 AddPlayer: ['addPlayersToAlipayGroup'],
                 AddAllPlayer: ['addAllPlayersToAlipayGroup'],
-                CreateAlipay: ['createNewAlipayAcc']
+                CreateAlipay: ['createNewAlipayAcc'],
+                EditAlipay: ['updateAlipayAcc']
             },
             "WechatPayGroup": {
                 Read: ['getPlatformWechatPayGroup'],
@@ -520,7 +524,8 @@ var roleChecker = {
                 Delete: ["deleteWechatPayGroup"],
                 AddPlayer: ['addPlayersToWechatPayGroup'],
                 AddAllPlayer: ['addAllPlayersToWechatPayGroup'],
-                CreateWechatPay: ['createNewWechatpayAcc']
+                CreateWechatPay: ['createNewWechatpayAcc'],
+                EditWechatPay: ['updateWechatPayAcc']
             },
             "QuickPayGroup": {
                 Read: ['getPlatformQuickPayGroup'],

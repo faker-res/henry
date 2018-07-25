@@ -1617,6 +1617,25 @@ var dbPlatform = {
         );
     },
 
+    bulkSendSMS: (adminObjId, adminName, data, playerIds) => {
+        let proms = [];
+        if (playerIds && playerIds.length) {
+            playerIds.map(playerId => {
+                let clonedData = Object.assign({}, data);
+                clonedData.playerId = playerId;
+                let prom = dbPlatform.sendSMS(adminObjId, adminName, clonedData).catch(error => {
+                    console.error("Sms failed for playerId:", playerId, "- error:", error);
+                    errorUtils.reportError(error);
+                    return {playerId, error}
+                });
+
+                proms.push(prom);
+            });
+        }
+
+        return Promise.resolve(proms);
+    },
+
     sendNewPlayerSMS: function (adminObjId, adminName, data) {
 
         var sendObj = {
@@ -1669,6 +1688,9 @@ var dbPlatform = {
             var b = dbconfig.collection_smsLog.find(query).count();
             return Q.all([a, b]).then(
                 result => {
+                    if(result[0].length > 0){
+                        result[0] = excludeTelNum(result[0]);
+                    }
                     return {data: result[0], size: result[1]};
                 }
             )
@@ -4401,6 +4423,19 @@ function calculatePartnerCommissionInfo(platformObjId, commissionType, startTime
     });
 }
 
+function excludeTelNum(data){
+    // mask tel number
+    data = data.map(item=>{
+        if(item.tel){
+            item.tel = dbUtility.encodePhoneNum(item.tel);
+        }
+        if(item.error && item.error.tel){
+            item.error.tel = dbUtility.encodePhoneNum(item.error.tel);
+        }
+        return item;
+    })
+    return data;
+}
 var proto = dbPlatformFunc.prototype;
 proto = Object.assign(proto, dbPlatform);
 

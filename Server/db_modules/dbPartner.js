@@ -462,6 +462,10 @@ let dbPartner = {
                     let pName = inputData.name;
                     let pPrefix = platformData.partnerPrefix;
 
+                    if ((platformData.partnerNameMaxLength > 0 && pName.length > platformData.partnerNameMaxLength) || (platformData.partnerNameMinLength > 0 && pName.length < platformData.partnerNameMinLength)) {
+                        return Q.reject({name: "DBError", message: localization.localization.translate("Partner name should be between ") + platformData.partnerNameMinLength + " - " + platformData.partnerNameMaxLength + localization.localization.translate(" characters."),});
+                    }
+
                     // check partner name must start with prefix
                     if (pName.indexOf(pPrefix) !== 0) {
                         return Q.reject({name: "DataError", message: localization.localization.translate("Partner name should use ") + platformData.partnerPrefix + localization.localization.translate(" as prefix.")});
@@ -489,16 +493,13 @@ let dbPartner = {
     },
 
     updateGeoipws: function (partnerObjId, platformObjId, ip) {
-        dbUtil.getGeoIp(ip).then(
-            data => {
-                if (data) {
-                    return dbconfig.collection_partner.findOneAndUpdate(
-                        {_id: partnerObjId, platform: platformObjId},
-                        data
-                    ).then();
-                }
-            }
-        ).catch(errorUtils.reportError);
+        var ipData = dbUtil.getIpLocationByIPIPDotNet(inputData.lastLoginIp);
+        if(ipData){
+            return dbconfig.collection_partner.findOneAndUpdate(
+                {_id: partnerObjId, platform: platformObjId},
+                ipData
+            ).then();
+        }
     },
 
     createPartnerDomain: function (partnerData) {
@@ -1867,7 +1868,7 @@ let dbPartner = {
                                 updateData.realName = updateData.bankAccountName;
                         }
 
-                        if (!updateData.bankAccountName && !partnerData.realName) {
+                        if (!updateData.bankAccountName && !partnerData.bankAccountName && !partnerData.realName) {
                             return Q.reject({
                                 name: "DataError",
                                 code: constServerCode.INVALID_DATA,

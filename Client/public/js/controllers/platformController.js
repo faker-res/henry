@@ -2402,7 +2402,7 @@ define(['js/app'], function (myApp) {
                 vm.externalUserRecordQuery = {};
                 vm.externalUserRecordQuery.index = 0;
                 vm.externalUserRecordQuery.limit = 10;
-                
+
                 vm.initQueryTimeFilter('userInfoRecordQueryDiv', function () {
                 });
                 utilService.actionAfterLoaded('#userInfoTable', function () {
@@ -2471,7 +2471,7 @@ define(['js/app'], function (myApp) {
                     ],
                     bSortClasses: false,
                     paging: false,
-                    
+
                 });
                 vm.externalUserRecordQuery.tableObj = $('#userInfoTable').DataTable(option);
                 $('#userInfoTable').off('order.dt');
@@ -2799,10 +2799,12 @@ define(['js/app'], function (myApp) {
                         console.log('retData', data);
                         if (data.success) {
                             vm.sendMultiMessage.numReceived++;
+                            $('#messageSentFailed').text(vm.sendMultiMessage.numFailed);
                             $('#messageSentReceived').text(vm.sendMultiMessage.numReceived);
                         } else {
                             vm.sendMultiMessage.numFailed++;
                             $('#messageSentFailed').text(vm.sendMultiMessage.numFailed);
+                            $('#messageSentReceived').text(vm.sendMultiMessage.numReceived);
                         }
                         if (vm.sendMultiMessage.numFailed + vm.sendMultiMessage.numReceived === vm.sendMultiMessage.numRecipient) {
                             vm.sendMultiMessage.sendCompleted = true;
@@ -12232,7 +12234,7 @@ define(['js/app'], function (myApp) {
                         vm.bulkPlayersToAddFeedback.push(callee.player._id)
                     }
                 });
-                $('#modalBulkAddPlayerFeedback').modal().show()
+                $('#modalBulkAddPlayerFeedback').modal().show();
             };
 
             vm.bulkAddPlayerFeedback = () => {
@@ -12259,6 +12261,34 @@ define(['js/app'], function (myApp) {
                     });
                 });
 
+            };
+
+            vm.initBulkSMSToFailPlayers = () => {
+                vm.bulkPlayersToSendSMS = [];
+                vm.smsPlayer = {};
+                vm.ctiData.callee.map(callee => {
+                    if (callee.status == 2) {
+                        vm.bulkPlayersToSendSMS.push(callee.player.playerId)
+                    }
+                });
+                $('#modalBulkSendSMSToFailCallPlayer').modal().show();
+            };
+
+            vm.bulkSMSToFailPlayers = () => {
+                let smsObj = {
+                    playerIds: vm.bulkPlayersToSendSMS,
+                    platformId: vm.selectedPlatform.data.platformId,
+                    channel: vm.smsPlayer.channel,
+                    message: vm.smsPlayer.message
+                };
+
+                console.log('bulk sms send', smsObj);
+                socketService.$socket($scope.AppSocket, 'bulkSendSMSToPlayer', smsObj, function (data) {
+                    console.log('sms sent', data);
+                    $scope.$evalAsync(() => {
+                        vm.smsPlayer = {};
+                    });
+                });
             };
 
             vm.updatePartnerFeedback = function () {
@@ -22882,7 +22912,8 @@ define(['js/app'], function (myApp) {
 
             function loadPromoCodeTemplate() {
                 socketService.$socket($scope.AppSocket, 'getPromoCodeTemplate', {
-                    platformObjId: vm.selectedPlatform.id
+                    platformObjId: vm.selectedPlatform.id,
+                    isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup),
                 }, function (data) {
                     $scope.$evalAsync(() => {
                         vm.promoCodeTemplateSetting = (data && data.data) ? data.data : [];
@@ -22905,6 +22936,7 @@ define(['js/app'], function (myApp) {
             function loadOpenPromoCodeTemplate() {
                 socketService.$socket($scope.AppSocket, 'getOpenPromoCodeTemplate', {
                     platformObjId: vm.selectedPlatform.id,
+                    isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup),
                     deleteFlag: false
                 }, function (data) {
                     $scope.$evalAsync(() => {
@@ -27270,7 +27302,11 @@ define(['js/app'], function (myApp) {
 
                             id = "#expDateNewOpenPC1";
                             utilService.actionAfterLoaded((id), function () {
-                                vm.newPromoCodeTemplate1.expirationTime$ = utilService.createDatePicker(id);
+                                vm.newPromoCodeTemplate1.expirationTime$ = utilService.createDatePicker(id, {
+                                    language: 'en',
+                                    format: 'yyyy/MM/dd hh:mm:ss',
+                                    startDate: utilService.setLocalDayStartTime(new Date())
+                                });
                                 vm.newPromoCodeTemplate1.expirationTime$.data('datetimepicker').setDate(date);
                             });
                         }
@@ -27287,7 +27323,11 @@ define(['js/app'], function (myApp) {
 
                             id = "#expDateNewOpenPC2";
                             utilService.actionAfterLoaded((id), function () {
-                                vm.newPromoCodeTemplate2.expirationTime$ = utilService.createDatePicker(id);
+                                vm.newPromoCodeTemplate2.expirationTime$ = utilService.createDatePicker(id, {
+                                    language: 'en',
+                                    format: 'yyyy/MM/dd hh:mm:ss',
+                                    startDate: utilService.setLocalDayStartTime(new Date())
+                                });
                                 vm.newPromoCodeTemplate2.expirationTime$.data('datetimepicker').setDate(date);
                             });
                         }
@@ -27303,7 +27343,11 @@ define(['js/app'], function (myApp) {
 
                             id = "#expDateNewOpenPC3";
                             utilService.actionAfterLoaded((id), function () {
-                                vm.newPromoCodeTemplate3.expirationTime$ = utilService.createDatePicker(id);
+                                vm.newPromoCodeTemplate3.expirationTime$ = utilService.createDatePicker(id, {
+                                    language: 'en',
+                                    format: 'yyyy/MM/dd hh:mm:ss',
+                                    startDate: utilService.setLocalDayStartTime(new Date())
+                                });
                                 vm.newPromoCodeTemplate3.expirationTime$.data('datetimepicker').setDate(date);
                             });
                         }

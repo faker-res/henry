@@ -9,6 +9,9 @@ define(['js/app'], function (myApp) {
         var vm = this;
         window.VM = vm;
 
+        vm.provinceList = [];
+        vm.cityList = [];
+
         // declare constants
         vm.paymentListState = {
             1: "NORMAL",
@@ -136,16 +139,18 @@ define(['js/app'], function (myApp) {
             }
 
             // Initial Loading
-            vm.loadBankCardGroupData();
-            vm.loadMerchantGroupData();
-            vm.loadAlipayGroupData();
-            vm.loadWechatPayGroupData();
-            vm.getAllPlayerLevels();
-            vm.loadQuickPayGroupData();
-            vm.getAllBankCard();
-            vm.bankCardFilterOptions = {};
-            vm.merchantFilterOptions = {};
-            $scope.safeApply();
+            $scope.$evalAsync(() => {
+                vm.loadBankCardGroupData();
+                vm.loadMerchantGroupData();
+                vm.loadAlipayGroupData();
+                vm.loadWechatPayGroupData();
+                vm.getAllPlayerLevels();
+                vm.loadQuickPayGroupData();
+                vm.getAllBankCard();
+                vm.getProvince();
+                vm.bankCardFilterOptions = {};
+                vm.merchantFilterOptions = {};
+            });
         };
 
         //create platform node for platform list
@@ -252,14 +257,15 @@ define(['js/app'], function (myApp) {
 
         vm.loadBankCardGroup = () => {
             return $scope.$socketPromise('getPlatformBankCardGroupLite', {platform: vm.selectedPlatform.id}).then(data => {
-                console.log('bankgroup', data);
-                //provider list init
-                vm.platformBankCardGroupList = data.data;
-                vm.platformBankCardGroupListCheck = {};
-                $.each(vm.platformBankCardGroupList, function (i, v) {
-                    vm.platformBankCardGroupListCheck[v._id] = true;
+                $scope.$evalAsync(() => {
+                    console.log('bankgroup', data);
+                    //provider list init
+                    vm.platformBankCardGroupList = data.data;
+                    vm.platformBankCardGroupListCheck = {};
+                    $.each(vm.platformBankCardGroupList, function (i, v) {
+                        vm.platformBankCardGroupListCheck[v._id] = true;
+                    });
                 });
-                $scope.safeApply();
             })
         };
 
@@ -275,34 +281,36 @@ define(['js/app'], function (myApp) {
             vm.SelectedBankCardGroupNode = null;
             console.log("getBanks", vm.selectedPlatform.id);
             socketService.$socket($scope.AppSocket, 'getPlatformBankCardGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                console.log('bankgroup', data);
-                //provider list init
-                vm.platformBankCardGroupList = data.data;
-                vm.platformBankCardGroupListCheck = {};
-                $.each(vm.platformBankCardGroupList, function (i, v) {
-                    vm.platformBankCardGroupListCheck[v._id] = true;
-                })
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    console.log('bankgroup', data);
+                    //provider list init
+                    vm.platformBankCardGroupList = data.data;
+                    vm.platformBankCardGroupListCheck = {};
+                    $.each(vm.platformBankCardGroupList, function (i, v) {
+                        vm.platformBankCardGroupListCheck[v._id] = true;
+                    })
+                });
             })
 
             socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
-                if (data && data.data && data.data.data) {
-                    vm.allBankTypeList = {};
-                    vm.cloneAllBankTypeList = [];
-                    console.log('banktype', data.data.data);
-                    data.data.data.forEach(item => {
-                        if (item && item.bankTypeId) {
-                            vm.allBankTypeList[item.id] = item.name + ' (' + item.bankTypeId + ')';
-                        }
-                    })
+                $scope.$evalAsync(() => {
+                    if (data && data.data && data.data.data) {
+                        vm.allBankTypeList = {};
+                        vm.cloneAllBankTypeList = [];
+                        console.log('banktype', data.data.data);
+                        data.data.data.forEach(item => {
+                            if (item && item.bankTypeId) {
+                                vm.allBankTypeList[item.id] = item.name + ' (' + item.bankTypeId + ')';
+                            }
+                        })
 
-                    data.data.data.forEach(item => {
-                        if (item && item.bankTypeId) {
-                            vm.cloneAllBankTypeList.push({"bankTypeId": item.bankTypeId, "name": item.name + ' (' + item.bankTypeId + ')'});
-                        }
-                    })
-                }
-                $scope.safeApply();
+                        data.data.data.forEach(item => {
+                            if (item && item.bankTypeId) {
+                                vm.cloneAllBankTypeList.push({"bankTypeId": item.bankTypeId, "name": item.name + ' (' + item.bankTypeId + ')'});
+                            }
+                        })
+                    }
+                });
             });
         }
 
@@ -574,6 +582,24 @@ define(['js/app'], function (myApp) {
         }
 
         vm.createNewBankCardAcc = function () {
+            if (vm.newBankCardAcc && vm.newBankCardAcc.provinceId && vm.provinceList.length) {
+                vm.provinceList.forEach(x => {
+                    if(x.id == vm.newBankCardAcc.provinceId) {
+                        vm.newBankCardAcc.provinceName = x.name;
+                    }
+                });
+                delete vm.newBankCardAcc.provinceId;
+            }
+
+            if (vm.newBankCardAcc && vm.newBankCardAcc.cityId && vm.cityList.length) {
+                vm.cityList.forEach(x => {
+                    if(x.id == vm.newBankCardAcc.cityId) {
+                        vm.newBankCardAcc.cityName = x.name;
+                    }
+                });
+                delete vm.newBankCardAcc.cityId;
+            }
+
             var sendData = {
                 platformId: vm.selectedPlatform.data.platformId,
                 accountNumber: vm.newBankCardAcc.accountNumber,
@@ -586,15 +612,189 @@ define(['js/app'], function (myApp) {
                 quota: vm.newBankCardAcc.quota || 0,
                 isFPMS: true
             }
-            socketService.$socket($scope.AppSocket, 'createNewBankCardAcc', sendData,
-                function (data) {
+            socketService.$socket($scope.AppSocket, 'createNewBankCardAcc', sendData, function (data) {
                     console.log(data.data);
                     socketService.showConfirmMessage($translate("Created successfully"));
-                },
+                    vm.getAllBankCard().then(() => {
+                        vm.bankCardGroupClicked(null, vm.SelectedBankCardGroupNode);
+                    });
+               },
                 function (err) {
-                    socketService.showErrorMessage($translate("Fail to create"), err);
+                   socketService.showErrorMessage($translate("Fail to create"), err);
                 }
             )
+        }
+
+        vm.getProvince = function () {
+            socketService.$socket($scope.AppSocket, 'getProvinceList', {}, function (data) {
+                if (data) {
+                    $scope.$evalAsync(() => {
+                        vm.provinceList.length = 0;
+
+                        for (let i = 0, len = data.data.provinces.length; i < len; i++) {
+                            let province = data.data.provinces[i];
+                            province.id = province.id.toString();
+                            vm.provinceList.push(province);
+                        }
+
+                        vm.changeProvince(false);
+                    })
+                }
+            }, null, true);
+        }
+
+        vm.changeProvince = function (reset, isEdit) {
+            let modal = reset ? reset : vm.selectedBankCard;
+            if (modal && modal.provinceId) {
+                socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: modal.provinceId}, function (data) {
+                    if (data) {
+                        $scope.$evalAsync(() => {
+                            if (data.data.cities) {
+                                vm.cityList.length = 0;
+                                for (let i = 0, len = data.data.cities.length; i < len; i++) {
+                                    let city = data.data.cities[i];
+                                    city.id = city.id.toString();
+                                    vm.cityList.push(city);
+                                }
+                            }
+
+                            if (isEdit) {
+                                if (vm.selectedBankCard && vm.selectedBankCard.cityName) {
+                                    vm.getCityByName(vm.selectedBankCard.cityName);
+                                }
+                            }
+                        });
+
+                        if (reset) {
+                            $scope.$evalAsync(() => {
+                                modal.cityId = vm.cityList[0].id;
+                            });
+                        }
+                    }
+                }, null, true);
+            }
+        }
+
+        vm.disableEditBankCard = function () {
+            let isDisable = true;
+            vm.selectedBankCardArr = [];
+            if (vm.allBankCards && vm.allBankCards.length) {
+                vm.allBankCards.filter(x => { if (x && x.selected) { vm.selectedBankCardArr.push(x); }});
+            }
+            if (vm.selectedBankCardArr && vm.selectedBankCardArr.length == 1) {
+                isDisable = false;
+            }
+            return isDisable;
+        }
+
+        vm.renderEditBankCardInfo = function () {
+            vm.selectedBankCard = {};
+            vm.selectedBankCard = vm.selectedBankCardArr[0] ? JSON.parse(JSON.stringify(vm.selectedBankCardArr[0])) : {};
+
+            if (vm.selectedBankCard && vm.selectedBankCard.provinceName) {
+                vm.getProvinceByName(vm.selectedBankCard.provinceName);
+            }
+        }
+
+        vm.getProvinceByName = function (provinceName) {
+            vm.currentProvince = {};
+            if (vm.provinceList && vm.provinceList.length) {
+                vm.provinceList.forEach(x => { if(x.name == provinceName) { vm.currentProvince = x; }});
+            }
+            if (vm.currentProvince && vm.currentProvince.id) {
+                vm.selectedBankCard.provinceId = vm.currentProvince.id;
+                vm.changeProvince(false, true);
+            }
+        }
+
+        vm.getCityByName = function (cityName) {
+            vm.currentCity = {};
+            if (vm.cityList && vm.cityList.length) {
+                vm.cityList.forEach(x => { if (x.name == cityName) { vm.currentCity = x; }});
+            }
+            if (vm.currentCity && vm.currentCity.id) {
+                vm.selectedBankCard.cityId = vm.currentCity.id;
+            }
+            vm.cloneSelectedBankCardBeforeEdit = vm.selectedBankCard ? JSON.parse(JSON.stringify(vm.selectedBankCard)) : {};
+        }
+
+        vm.validateEditBankCard = function () {
+            let isDisable = true;
+            if (vm.selectedBankCard && vm.cloneSelectedBankCardBeforeEdit && !vm.checkIsEqual(vm.selectedBankCard, vm.cloneSelectedBankCardBeforeEdit)) {
+                isDisable = false;
+            }
+            return isDisable;
+        }
+
+        vm.checkIsEqual = function (x, y) {
+            var xProps = Object.keys(x);
+            var yProps = Object.keys(y);
+            // objects are not equal if number of properties is different
+            if (xProps.length != yProps.length) {
+                return false;
+            }
+            for (var i = 0; i < xProps.length; i++) {
+                var propName = xProps[i];
+
+                // objects are not equal if values of same property are not equal
+                if (x[propName] !== y[propName]) {
+                    return false;
+                }
+            }
+            // objects are considered equal
+            return true;
+        }
+
+        vm.editBankCardAcc = function () {
+            if (vm.selectedBankCard && vm.selectedBankCard.provinceId && vm.provinceList.length) {
+                vm.provinceList.forEach(x => {
+                    if(x.id == vm.selectedBankCard.provinceId) {
+                        vm.selectedBankCard.provinceName = x.name;
+                    }
+                });
+                delete vm.selectedBankCard.provinceId;
+            }
+
+            if (vm.selectedBankCard && vm.selectedBankCard.cityId && vm.cityList.length) {
+                vm.cityList.forEach(x => {
+                    if(x.id == vm.selectedBankCard.cityId) {
+                        vm.selectedBankCard.cityName = x.name;
+                    }
+                });
+                delete vm.selectedBankCard.cityId;
+            }
+
+            let curBankCard = {
+                accountNumber: vm.selectedBankCard.accountNumber,
+                bankTypeId: vm.selectedBankCard.bankTypeId,
+                name: vm.selectedBankCard.name,
+                status: vm.selectedBankCard.status,
+                provinceName: vm.selectedBankCard.provinceName,
+                cityName: vm.selectedBankCard.cityName,
+                openingPoint: vm.selectedBankCard.openingPoint,
+                quota: vm.selectedBankCard.quota || 0
+            }
+
+            var sendData = {
+                query: {_id: vm.selectedBankCard._id, platformId: vm.selectedBankCard.platformId},
+                updateData: curBankCard
+            };
+
+            console.log('editBankCard sendData', sendData);
+
+            socketService.$socket($scope.AppSocket, 'updateBankCardAcc', sendData, function (data) {
+                console.log(data.data);
+                socketService.showConfirmMessage($translate("Edited successfully"));
+                vm.getAllBankCard().then(() => {
+                    vm.bankCardGroupClicked(null, vm.SelectedBankCardGroupNode);
+                });
+            }, function (err) {
+                socketService.showErrorMessage($translate("Fail to edit"), err);
+            });
+        }
+
+        vm.cancelEditBankCardAcc = function () {
+            vm.selectedBankCard = JSON.parse(JSON.stringify(vm.cloneSelectedBankCardBeforeEdit))
         }
 
         vm.addBankCardGroup = function (data) {
@@ -1113,14 +1313,15 @@ define(['js/app'], function (myApp) {
 
         vm.merchantGroupTabClicked = function () {
             socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
-                if (data && data.data && data.data.merchantTypes && data.data.merchantTypes.length > 0) {
-                    vm.allMerchantTypeList = {};
-                    data.data.merchantTypes.forEach(item => {
-                        vm.allMerchantTypeList[item.merchantTypeId] = item;
-                    });
-                    console.log('merchanttype', vm.allMerchantTypeList);
-                }
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    if (data && data.data && data.data.merchantTypes && data.data.merchantTypes.length > 0) {
+                        vm.allMerchantTypeList = {};
+                        data.data.merchantTypes.forEach(item => {
+                            vm.allMerchantTypeList[item.merchantTypeId] = item;
+                        });
+                        console.log('merchanttype', vm.allMerchantTypeList);
+                    }
+                });
             })
         };
 
@@ -1500,14 +1701,15 @@ define(['js/app'], function (myApp) {
             }
             console.log("getAlipays", vm.selectedPlatform.id);
             socketService.$socket($scope.AppSocket, 'getPlatformAlipayGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                console.log('Alipaygroup', data);
-                //provider list init
-                vm.platformAlipayGroupList = data.data;
-                vm.platformAlipayGroupListCheck = {};
-                $.each(vm.platformAlipayGroupList, function (i, v) {
-                    vm.platformAlipayGroupListCheck[v._id] = true;
-                })
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    console.log('Alipaygroup', data);
+                    //provider list init
+                    vm.platformAlipayGroupList = data.data;
+                    vm.platformAlipayGroupListCheck = {};
+                    $.each(vm.platformAlipayGroupList, function (i, v) {
+                        vm.platformAlipayGroupListCheck[v._id] = true;
+                    })
+                });
             })
 
             // socketService.$socket($scope.AppSocket, 'getExcludedAlipayByAlipayGroup', {platform: vm.selectedPlatform.data.platformId}, function(data){
@@ -1588,11 +1790,11 @@ define(['js/app'], function (myApp) {
             }
             vm.alipayStatusFilterOptions = {"NORMAL": true, "LOCK": true, "DISABLED": true, "CLOSE": true, "TOBEFOLLOWEDUP": true, "SUSPEND": true};
             socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroupWithIsInGroup', query, function(data){
-
-                //provider list init
-                vm.allAlipayList = data.data;
-                console.log('vm.allAlipayList', vm.allAlipayList);
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    //provider list init
+                    vm.allAlipayList = data.data;
+                    console.log('vm.allAlipayList', vm.allAlipayList);
+                });
             });
 
             // socketService.$socket($scope.AppSocket, 'getIncludedAlipayByAlipayGroup', query, function(data){
@@ -1838,6 +2040,64 @@ define(['js/app'], function (myApp) {
             });
         }
 
+        vm.disableEditAlipay = function () {
+            let isDisable = true;
+            vm.selectedAlipayArr = [];
+
+            if (vm.allAlipayList && vm.allAlipayList.length > 0) {
+                vm.allAlipayList.forEach(x => {
+                    if (x && x.isCheck) {
+                        vm.selectedAlipayArr.push(x);
+                    }
+                });
+            }
+
+            if (vm.selectedAlipayArr && vm.selectedAlipayArr.length == 1) {
+                isDisable = false;
+            }
+
+            return isDisable;
+        }
+
+        vm.showEditAlipayInfo = function () {
+            vm.selectedAlipay = {};
+            vm.selectedAlipay = vm.selectedAlipayArr[0] ? JSON.parse(JSON.stringify(vm.selectedAlipayArr[0])) : {};
+            vm.cloneSelectedAlipayBeforeEdit = vm.selectedAlipay ? JSON.parse(JSON.stringify(vm.selectedAlipay)) : {};
+        }
+
+        vm.validateEditAlipay = function () {
+            let isDisable = true;
+            if (vm.selectedAlipay && vm.cloneSelectedAlipayBeforeEdit && !vm.checkIsEqual(vm.selectedAlipay, vm.cloneSelectedAlipayBeforeEdit)) {
+                isDisable = false;
+            }
+            return isDisable;
+        }
+
+        vm.editAlipayAcc = function () {
+            let curAlipay = {
+                accountNumber: vm.selectedAlipay.accountNumber,
+                name: vm.selectedAlipay.name,
+                state: vm.selectedAlipay.state,
+                quota: vm.selectedAlipay.quota,
+                singleLimit: vm.selectedAlipay.singleLimit
+            }
+
+            var sendData = {
+                query: {_id: vm.selectedAlipay._id, platformId: vm.selectedAlipay.platformId},
+                updateData: curAlipay
+            };
+
+            console.log('editAlipay sendData', sendData);
+
+            socketService.$socket($scope.AppSocket, 'updateAlipayAcc', sendData, function (data) {
+                console.log(data.data);
+                socketService.showConfirmMessage($translate("Edited successfully"));
+                vm.alipayGroupClicked(null, vm.SelectedAlipayGroupNode);
+            }, function (err) {
+                socketService.showErrorMessage($translate("Fail to edit"), err);
+            });
+        }
+
         /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
 
         /////////////////////////////////////// QuickPay Group start  /////////////////////////////////////////////////
@@ -1855,14 +2115,15 @@ define(['js/app'], function (myApp) {
             }
             console.log("getQuickPays", vm.selectedPlatform.id);
             socketService.$socket($scope.AppSocket, 'getPlatformQuickPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                console.log('QuickPaygroup', data);
-                //provider list init
-                vm.platformQuickPayGroupList = data.data;
-                vm.platformQuickPayGroupListCheck = {};
-                $.each(vm.platformQuickPayGroupList, function (i, v) {
-                    vm.platformQuickPayGroupListCheck[v._id] = true;
-                })
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    console.log('QuickPaygroup', data);
+                    //provider list init
+                    vm.platformQuickPayGroupList = data.data;
+                    vm.platformQuickPayGroupListCheck = {};
+                    $.each(vm.platformQuickPayGroupList, function (i, v) {
+                        vm.platformQuickPayGroupListCheck[v._id] = true;
+                    })
+                });
             })
         }
 
@@ -2052,13 +2313,14 @@ define(['js/app'], function (myApp) {
                 return
             }
             socketService.$socket($scope.AppSocket, 'getPlatformWechatPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                //provider list init
-                vm.platformWechatPayGroupList = data.data;
-                vm.platformWechatPayGroupListCheck = {};
-                $.each(vm.platformWechatPayGroupList, function (i, v) {
-                    vm.platformWechatPayGroupListCheck[v._id] = true;
+                $scope.$evalAsync(() => {
+                    //provider list init
+                    vm.platformWechatPayGroupList = data.data;
+                    vm.platformWechatPayGroupListCheck = {};
+                    $.each(vm.platformWechatPayGroupList, function (i, v) {
+                        vm.platformWechatPayGroupListCheck[v._id] = true;
+                    });
                 });
-                $scope.safeApply();
             })
         };
 
@@ -2383,6 +2645,65 @@ define(['js/app'], function (myApp) {
                     }
                     $scope.safeApply();
                 }
+            });
+        }
+
+        vm.disableEditWechatPay = function () {
+            let isDisable = true;
+            vm.selectedWechatPayArr = [];
+
+            if (vm.allWechatList && vm.allWechatList.length > 0) {
+                vm.allWechatList.forEach(x => {
+                    if (x && x.isCheck) {
+                        vm.selectedWechatPayArr.push(x);
+                    }
+                });
+            }
+
+            if (vm.selectedWechatPayArr && vm.selectedWechatPayArr.length == 1) {
+                isDisable = false;
+            }
+
+            return isDisable;
+        }
+
+        vm.showEditWechatPayInfo = function () {
+            vm.selectedWechatPay = {};
+            vm.selectedWechatPay = vm.selectedWechatPayArr[0] ? JSON.parse(JSON.stringify(vm.selectedWechatPayArr[0])) : {};
+            vm.cloneSelectedWechatPayBeforeEdit = vm.selectedWechatPay ? JSON.parse(JSON.stringify(vm.selectedWechatPay)) : {};
+        }
+
+        vm.validateEditWechatPay = function () {
+            let isDisable = true;
+            if (vm.selectedWechatPay && vm.cloneSelectedWechatPayBeforeEdit && !vm.checkIsEqual(vm.selectedWechatPay, vm.cloneSelectedWechatPayBeforeEdit)) {
+                isDisable = false;
+            }
+            return isDisable;
+        }
+
+        vm.editWechatPayAcc = function () {
+            let curWechatPay = {
+                state: vm.selectedWechatPay.state,
+                accountNumber: vm.selectedWechatPay.accountNumber,
+                name: vm.selectedWechatPay.name,
+                nickName: vm.selectedWechatPay.nickName,
+                singleLimit: vm.selectedWechatPay.singleLimit,
+                quota: vm.selectedWechatPay.quota
+            }
+
+            var sendData = {
+                query: {_id: vm.selectedWechatPay._id, platformId: vm.selectedWechatPay.platformId},
+                updateData: curWechatPay
+            };
+
+            console.log('editWechatPay sendData', sendData);
+
+            socketService.$socket($scope.AppSocket, 'updateWechatPayAcc', sendData, function (data) {
+                console.log(data.data);
+                socketService.showConfirmMessage($translate("Edited successfully"));
+                vm.wechatPayGroupClicked(null, vm.SelectedWechatPayGroupNode);
+            }, function (err) {
+                socketService.showErrorMessage($translate("Fail to edit"), err);
             });
         }
         /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////

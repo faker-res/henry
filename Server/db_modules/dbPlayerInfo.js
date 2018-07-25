@@ -1173,6 +1173,7 @@ let dbPlayerInfo = {
         let platformData = null;
         let pPrefix = null;
         let pName = null;
+        let csOfficer, promoteWay;
 
         playerdata.name = playerdata.name.toLowerCase();
 
@@ -1441,6 +1442,42 @@ let dbPlayerInfo = {
                         );
                         promArr.push(testPlayerHandlingProm);
                     }
+
+                    if (playerData.domain) {
+                        delete playerData.referral;
+                        let filteredDomain = dbUtility.getDomainName(playerData.domain);
+                        while (filteredDomain.indexOf("/") !== -1) {
+                            filteredDomain = filteredDomain.replace("/", "");
+                        }
+
+                        if (filteredDomain.indexOf("?") !== -1) {
+                            filteredDomain = filteredDomain.split("?")[0];
+                        }
+
+                        if (filteredDomain.indexOf("#") !== -1) {
+                            filteredDomain = filteredDomain.split("#")[0];
+                        }
+
+                        playerData.domain = filteredDomain;
+
+                        if (playerData) {
+                            let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
+                                domain: {
+                                    $regex: playerData.domain,
+                                    $options: "xi"
+                                },
+                                platform: playerdata.platform
+                            }).lean().then(data => {
+                                if (data) {
+                                    csOfficer = data.admin;
+                                    promoteWay = data.way;
+                                }
+                            });
+
+                            promArr.push(promoteWayProm);
+                        }
+                    }
+
                     return Promise.all(promArr);
                 }
                 else {
@@ -1502,6 +1539,16 @@ let dbPlayerInfo = {
                     if (data[6]) {
                         playerUpdateData.quickPayGroup = data[6]._id;
                     }
+
+                    if (csOfficer && promoteWay){
+                        // do not replace the csOfficer if it is initialized from backStage
+                        if (!playerData.csOfficer){
+                            playerUpdateData.csOfficer = csOfficer;
+                        }
+
+                        playerUpdateData.promoteWay = promoteWay;
+                    }
+
                     proms.push(
                         dbconfig.collection_players.findOneAndUpdate(
                             {_id: playerData._id, platform: playerData.platform},
@@ -2445,7 +2492,7 @@ let dbPlayerInfo = {
                             else
                                 updateData.realName = updateData.bankAccountName;
                         }
-                        if (!updateData.bankAccountName && !playerData.realName) {
+                        if (!updateData.bankAccountName && !playerData.bankAccountName && !playerData.realName) {
                             return Q.reject({
                                 name: "DataError",
                                 code: constServerCode.INVALID_DATA,
@@ -5051,16 +5098,13 @@ let dbPlayerInfo = {
     },
 
     updateGeoipws: function (playerObjId, platformObjId, ip) {
-        dbUtility.getGeoIp(ip).then(
-            data => {
-                if (data) {
-                    return dbconfig.collection_players.findOneAndUpdate(
-                        {_id: playerObjId, platform: platformObjId},
-                        data
-                    ).then();
-                }
-            }
-        ).catch(errorUtils.reportError);
+        var ipData = dbUtility.getIpLocationByIPIPDotNet(ip);
+        if(ipData){
+            return dbconfig.collection_players.findOneAndUpdate(
+                {_id: playerObjId, platform: platformObjId},
+                ipData
+            ).then();
+        }
     },
 
     /*
@@ -6625,6 +6669,10 @@ let dbPlayerInfo = {
                     // check if player is created by partner; if yes, use partnerCreatePlayerPrefix
                     let pPrefix = inputData.partnerId ? platformData.partnerCreatePlayerPrefix : platformData.prefix;
                     let pName = inputData.name;
+
+                    if ((platformData.playerNameMaxLength > 0 && pName.length > platformData.playerNameMaxLength) || (platformData.playerNameMinLength > 0 && pName.length < platformData.playerNameMinLength)) {
+                        return Q.reject({name: "DBError", message: localization.localization.translate("Player name should be between ") + platformData.playerNameMinLength + " - " + platformData.playerNameMaxLength + localization.localization.translate(" characters."),});
+                    }
 
                     // check player name must start with prefix
                     if (pName.indexOf(pPrefix) !== 0) {
@@ -8360,7 +8408,11 @@ let dbPlayerInfo = {
             isRealPlayer: true //only count real player
         };
 
-        let f = dbconfig.collection_players.find(query, 'domain csOfficer promoteWay valueScore consumptionTimes consumptionSum topUpSum topUpTimes partner lastPlayedProvider')
+        let fields = 'name realName registrationTime phoneProvince phoneCity province city lastAccessTime loginTimes'
+            + ' accAdmin promoteWay sourceUrl registrationInterface userAgent domain csOfficer promoteWay valueScore'
+            + ' consumptionTimes consumptionSum topUpSum topUpTimes partner lastPlayedProvider';
+
+        let f = dbconfig.collection_players.find(query, fields)
             .populate({path: "partner", model: dbconfig.collection_partner})
             .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean();
         let g = dbconfig.collection_players.aggregate(
@@ -12473,12 +12525,16 @@ let dbPlayerInfo = {
                     }
 
                     let playerState;
-                    if(isBulkApply) {
-                        // bypass player state for bulk apply
-                        playerState = Promise.resolve(true);
-                    } else {
-                        playerState = dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true);
-                    }
+
+                    // TODO:: Temporary disable state checking when apply reward
+                    // if(isBulkApply) {
+                    //     // bypass player state for bulk apply
+                    //     playerState = Promise.resolve(true);
+                    // } else {
+                    //     playerState = dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true);
+                    // }
+
+                    playerState = Promise.resolve(true);
 
                     return playerState.then(
                         playerState => {
@@ -12629,7 +12685,7 @@ let dbPlayerInfo = {
                                     break;
                                 //request consumption rebate
                                 case constRewardType.PLAYER_CONSUMPTION_RETURN:
-                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true, adminId, code, userAgent, adminName, data.isForceApply);
+                                    return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true, adminId, code, userAgent, adminName, data.isForceApply, data.isClearConcurrent);
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN:
                                     if (data.topUpRecordId == null) {
@@ -14227,19 +14283,6 @@ let dbPlayerInfo = {
                 result = query.csPromoteWay && query.csPromoteWay.length > 0 ? result.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : result;
                 result = query.admins && query.admins.length > 0 ? result.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : result;
 
-                result.forEach(data => {
-                    if (playerData) {
-                        playerData.forEach(player => {
-                            if (player._id.toString() === data._id.toString()) {
-                                data.phoneProvince = player.phoneProvince ? player.phoneProvince : null;
-                                data.phoneCity = player.phoneCity ? player.phoneCity : null;
-                                data.province = player.province ? player.province : null;
-                                data.city = player.city ? player.city : null;
-                            }
-                        });
-                    }
-                    return data;
-                });
 
                 result = result.concat(
                     filteredArr.filter(function(e) {
@@ -14616,7 +14659,7 @@ let dbPlayerInfo = {
 
             let playerProm = dbconfig.collection_players.findOne(
                 playerQuery, {
-                    playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1, accAdmin: 1, promoteWay: 1
+                    playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1, accAdmin: 1, promoteWay: 1, phoneProvince: 1, phoneCity: 1, province: 1, city: 1
                 }
             ).lean();
 
@@ -14860,6 +14903,11 @@ let dbPlayerInfo = {
                     if (playerDetail && playerDetail.promoteWay) {
                         result.csPromoteWay = playerDetail.promoteWay;
                     }
+
+                    result.phoneProvince = playerDetail.phoneProvince ? playerDetail.phoneProvince : null;
+                    result.phoneCity = playerDetail.phoneCity ? playerDetail.phoneCity : null;
+                    result.province = playerDetail.province ? playerDetail.province : null;
+                    result.city = playerDetail.city ? playerDetail.city : null;
 
                     return result;
                 }
@@ -15449,39 +15497,70 @@ let dbPlayerInfo = {
         if (phoneArr.length > 0) {
             let promArr = [];
 
-            return dbconfig.collection_dxMission.findOne({_id: dxMission}).lean().then(
-                dxMissionRes => {
-                    for (let x = 0; x < phoneArr.length; x++) {
-                        // if it is not a valid phone number, do not import
-                        if (!phoneArr[x] || phoneArr[x].length < 11 || !(/^\d+$/.test(phoneArr[x]))) {
-                            continue;
-                        }
+            return dbPlayerInfo.filterDxPhoneExist(dxMission, phoneArr).then(
+                newDxPhone => {
+                    phoneArr = newDxPhone;
 
-                        promArr.push(
-                            dbPlayerInfo.generateDXCode(dxMission).then(
-                                randomCode => {
-                                    let importData = {
-                                        platform: platform,
-                                        phoneNumber: phoneArr[x],
-                                        dxMission: dxMission,
-                                        code: randomCode,
-                                        url: dxMissionRes.domain + "/" + randomCode
-                                    };
-
-                                    let importPhone = new dbconfig.collection_dxPhone(importData);
-                                    importPhone.save();
+                    return dbconfig.collection_dxMission.findOne({_id: dxMission}).lean().then(
+                        dxMissionRes => {
+                            for (let x = 0; x < phoneArr.length; x++) {
+                                // if it is not a valid phone number, do not import
+                                if (!phoneArr[x] || phoneArr[x].length < 11 || !(/^\d+$/.test(phoneArr[x]))) {
+                                    continue;
                                 }
-                            )
-                        )
-                    }
 
-                    return Promise.all(promArr).then(() => true);
+                                promArr.push(
+                                    dbPlayerInfo.generateDXCode(dxMission).then(
+                                        randomCode => {
+                                            let importData = {
+                                                platform: platform,
+                                                phoneNumber: phoneArr[x],
+                                                dxMission: dxMission,
+                                                code: randomCode,
+                                                url: dxMissionRes.domain + "/" + randomCode
+                                            };
+
+                                            let importPhone = new dbconfig.collection_dxPhone(importData);
+                                            importPhone.save();
+                                        }
+                                    )
+                                )
+                            }
+
+                            return Promise.all(promArr).then(() => true);
+                        }
+                    )
                 }
-            )
+            );
         }
         return false;
-
     },
+
+    filterDxPhoneExist: function (dxMission, phoneArr) {
+        let phoneList = [];
+        let phoneProm = [];
+
+        for (let x = 0; x < phoneArr.length; x++) {
+            phoneProm.push(
+                dbconfig.collection_dxPhone.findOne({dxMission: dxMission, phoneNumber: phoneArr[x]}).lean().then(
+                    isPhoneExist => {
+                        if (!isPhoneExist) {
+                            phoneList.push(phoneArr[x]);
+                        }
+                        return phoneArr[x];
+                    }
+                )
+            );
+        }
+
+        return Promise.all(phoneProm).then(
+            () => {
+                // only return phone number that does not exist in dxPhone DB
+                return phoneList;
+            }
+        );
+    },
+
     generateDXCode: function (dxMission, platformId, tries) {
         tries = (Number(tries) || 0) + 1;
         if (tries > 5) {
@@ -17336,6 +17415,20 @@ let dbPlayerInfo = {
             name: playerName
         }, {
             $set: {ximaWithdraw: 0}
+        })
+    },
+
+    clearPlayerState: function (playerObjId) {
+        return dbconfig.collection_playerBState.findOneAndUpdate({
+            player: playerObjId
+        }, {
+            $set: {
+                applyRewardEvent: false,
+                transferToProvider: false,
+                playerLevelMigration: false,
+                convertRewardPointsToCredit: false,
+                generatePromoCode: false
+            }
         })
     }
 };
