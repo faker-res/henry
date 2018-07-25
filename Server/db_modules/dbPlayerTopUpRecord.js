@@ -39,6 +39,7 @@ const rewardUtility = require("../modules/rewardUtility");
 const constPlayerCreditChangeType = require('../const/constPlayerCreditChangeType');
 const errorUtils = require("../modules/errorUtils.js");
 const localization = require("../modules/localization");
+const proposalExecutor = require('./../modules/proposalExecutor');
 
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 
@@ -1045,6 +1046,7 @@ var dbPlayerTopUpRecord = {
         var request = null;
         let userAgentStr = userAgent;
         let rewardEvent;
+        let isFPMS = false; // true - use FPMS to manage payment
 
         if (inputData.bonusCode && topUpReturnCode) {
             return Q.reject({
@@ -1073,6 +1075,9 @@ var dbPlayerTopUpRecord = {
             playerData => {
                 player = playerData;
                 if (player && player._id) {
+                    if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
+                        isFPMS = true;
+                    }
                     if (!topUpReturnCode) {
                         return Promise.resolve();
                     }
@@ -1287,7 +1292,11 @@ var dbPlayerTopUpRecord = {
                         requestData.groupBankcardList = inputData.groupBankcardList;
                     }
                     // console.log("requestData", requestData);
-                    return pmsAPI.payment_requestManualBankCard(requestData);
+                    if (isFPMS) {
+                        return dbPlayerTopUpRecord.manualTopUpValidate(requestData, fromFPMS);
+                    } else {
+                        return pmsAPI.payment_requestManualBankCard(requestData);
+                    }
                 }
                 else {
                     return Q.reject({
@@ -1316,14 +1325,20 @@ var dbPlayerTopUpRecord = {
                     queryObj["createTime"]["$gte"] = start;
                     queryObj["createTime"]["$lt"] = end;
                     queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
-                    return dbconfig.collection_proposal.aggregate(
-                        {$match: queryObj},
-                        {
-                            $group: {
-                                _id: null,
-                                totalAmount: {$sum: "$data.amount"},
-                            }
-                        })
+                    let quotaUsedProm;
+                    if (isFPMS && topupResult.result.quotaUsed) {
+                        quotaUsedProm = Promise.resolve([{totalAmount:  topupResult.result.quotaUsed}]);
+                    } else {
+                        quotaUsedProm = dbconfig.collection_proposal.aggregate(
+                            {$match: queryObj},
+                            {
+                                $group: {
+                                    _id: null,
+                                    totalAmount: {$sum: "$data.amount"},
+                                }
+                            })
+                    }
+                    return quotaUsedProm;
                 }
                 else {
                     return Q.reject({
@@ -1363,9 +1378,13 @@ var dbPlayerTopUpRecord = {
                         updateData.data.cardQuota = resultData[0].totalAmount || 0;
                     }
 
+                    if (isFPMS && proposal.noSteps) {
+                        updateData.status = constProposalStatus.APPROVED;
+                    }
+
                     let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
 
-                    updateManualTopUpProposalBankLimit(proposalQuery, request.result.bankCardNo).catch(errorUtils.reportError);
+                    updateManualTopUpProposalBankLimit(proposalQuery, request.result.bankCardNo, isFPMS, player.platform.platformId).catch(errorUtils.reportError);
 
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         proposalQuery,
@@ -1376,6 +1395,32 @@ var dbPlayerTopUpRecord = {
             }
         ).then(
             data => {
+                if (isFPMS) {
+                    if (data.noSteps) {
+                        dbconfig.collection_proposalType.findOne({
+                            platformId: player.platform._id,
+                            name: constProposalType.PLAYER_MANUAL_TOP_UP
+                        }).then(
+                            proposalTypeData => {
+                                if (!proposalTypeData) {
+                                    return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+                                }
+                                proposalExecutor.approveOrRejectProposal(proposalTypeData.executionType, proposalTypeData.rejectionType, true, data)
+                            }
+                        ).catch(errorUtils.reportError);
+                    }
+                    //update bank daily quota
+                    dbconfig.collection_platformBankCardList.findOneAndUpdate(
+                        {
+                            accountNumber: request.result.bankCardNo,
+                            platformId: player.platform.platformId
+                        },
+                        {
+                            $inc: {quotaUsed: inputData.amount}
+                        }
+                    ).catch(errorUtils.reportError);
+                }
+
                 return {
                     proposalId: data.proposalId,
                     requestId: request.result.requestId,
@@ -1386,6 +1431,190 @@ var dbPlayerTopUpRecord = {
                 };
             }
         );
+    },
+
+    wechatpayTopUpValidate: (requestData, wechatpayAccount) => {
+        let queryData = {
+            platformId: requestData.platformId,
+            state: "NORMAL",
+            isFPMS: true,
+            accountNumber: {$in: requestData.groupWechatList},
+            $or: [{singleLimit: {$gte: requestData.amount}}, {singleLimit: {$exists: false}}, {singleLimit: 0}]
+        }
+
+        if (wechatpayAccount) {
+            queryData.state = {$in: ["NORMAL", "LOCK"]};
+        }
+
+        return dbconfig.collection_platformWechatPayList.find(queryData).lean().then(
+            wechatpayListData => {
+                if (!(wechatpayListData && wechatpayListData.length)) {
+                    return Promise.reject({name: "DBError", message: 'Currently no available wechatpay'});
+                }
+                let selectedWechatpay;
+
+                let filteredWechatpay = wechatpayListData.filter(item => {
+                    if (!item.quota || !item.quotaUsed) {
+                        return true;
+                    }
+                    return item.quotaUsed < item.quota
+                });
+
+                if (filteredWechatpay.length) {
+                    wechatpayListData = wechatpayListData.sort(function (a, b) {
+                        return a.quotaUsed - b.quotaUsed;
+                    });
+                    selectedWechatpay = wechatpayListData[0];
+                }
+
+
+                if (!selectedWechatpay) {
+                    return Promise.reject({name: "DBError", message: 'Currently no available wechatpay'});
+                }
+
+                let validTime = new Date();
+                validTime = validTime.setMinutes(validTime.getMinutes() + 30);
+
+                return {
+                    result: {
+                        validTime: validTime,
+                        requestId: "",
+                        name: selectedWechatpay.name,
+                        nickname: selectedWechatpay.nickName,
+                        weChatAccount: selectedWechatpay.accountNumber,
+                        weChatQRCode: "",
+                        quotaUsed: selectedWechatpay.quotaUsed
+                    }
+                }
+            }
+        )
+    },
+
+    alipayTopUpValidate: (requestData, alipayAccount) => {
+
+        let queryData = {
+            platformId: requestData.platformId,
+            state: "NORMAL",
+            isFPMS: true,
+            accountNumber: {$in: requestData.groupAlipayList},
+            $or: [{singleLimit: {$gte: requestData.amount}}, {singleLimit: {$exists: false}}, {singleLimit: 0}]
+        }
+
+        if (alipayAccount) {
+            queryData.state = {$in: ["NORMAL", "LOCK"]};
+        }
+
+        return dbconfig.collection_platformAlipayList.find(queryData).lean().then(
+            alipayListData => {
+                if (!(alipayListData && alipayListData.length)) {
+                    return Promise.reject({name: "DBError", message: 'Currently no available alipay'});
+                }
+                let selectedAlipay;
+
+                let filteredAlipay = alipayListData.filter(item => {
+                    if (!item.quota || !item.quotaUsed) {
+                        return true;
+                    }
+                    return item.quotaUsed < item.quota
+                });
+
+                if (filteredAlipay.length) {
+                    alipayListData = alipayListData.sort(function (a, b) {
+                        return a.quotaUsed - b.quotaUsed;
+                    });
+                    selectedAlipay = alipayListData[0];
+                }
+
+
+                if (!selectedAlipay) {
+                    return Promise.reject({name: "DBError", message: 'Currently no available alipay'});
+                }
+
+                let validTime = new Date();
+                validTime = validTime.setMinutes(validTime.getMinutes() + 30);
+
+                return {
+                    result: {
+                        validTime: validTime,
+                        requestId: "",
+                        alipayName: selectedAlipay.name,
+                        alipayAccount: selectedAlipay.accountNumber,
+                        alipayQRCode: "",
+                        qrcodeAddress: "",
+                        quotaUsed: selectedAlipay.quotaUsed
+                    }
+                }
+            }
+        )
+    },
+
+    manualTopUpValidate: (requestData, fromFPMS) => {
+        let queryData = {
+            platformId: requestData.platformId,
+            status: "NORMAL",
+            isFPMS: true,
+            accountNumber: {$in: requestData.groupBankcardList}
+        }
+        if (fromFPMS) {
+            queryData.status = {$in: ["NORMAL", "LOCK"]};
+        }
+        if (requestData.bankCardNo) {
+            queryData.accountNumber = {$regex: requestData.bankCardNo + "$"};
+        }
+
+        return dbconfig.collection_platformBankCardList.find(queryData).lean().then(
+            bankCardListData => {
+                if (!(bankCardListData && bankCardListData.length)) {
+                    return Promise.reject({name: "DBError", message: 'Currently no available bank card'});
+                }
+                let selectedBankCard;
+                let isInGroup = false;
+
+                if (!fromFPMS && requestData.bankCardNo) {
+                    for (let i = 0; i < bankCardListData.length; i++) {
+                        if (requestData.groupBankcardList.indexOf(bankCardListData[i].accountNumber) > -1) {
+                            isInGroup = true;
+                            break;
+                        }
+                    }
+                } else {
+                    isInGroup = true;
+                }
+
+                if (isInGroup) {
+                    let filteredBank = bankCardListData.filter(item => {
+                        if (!item.quota || !item.quotaUsed) {
+                            return true;
+                        }
+                        return item.quotaUsed < item.quota
+                    });
+                    if (filteredBank.length) {
+                        bankCardListData = bankCardListData.sort(function (a, b) {
+                            return a.quotaUsed - b.quotaUsed;
+                        });
+                        selectedBankCard = bankCardListData[0];
+                    }
+                }
+
+                if (!selectedBankCard) {
+                    return Promise.reject({name: "DBError", message: 'Currently no available bank card'});
+                }
+
+                let validTime = new Date();
+                validTime = validTime.setMinutes(validTime.getMinutes() + 30);
+
+                return {
+                    result: {
+                        validTime: validTime,
+                        requestId: "",
+                        cardOwner: selectedBankCard.name,
+                        bankCardNo: selectedBankCard.accountNumber,
+                        bankTypeId: selectedBankCard.bankTypeId,
+                        quotaUsed: selectedBankCard.quotaUsed
+                    }
+                }
+            }
+        )
     },
 
     getCashRechargeStatus: playerId => {
@@ -1617,14 +1846,19 @@ var dbPlayerTopUpRecord = {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData) {
-                    if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.requestId) {
+                    if (proposalData.data && proposalData.data.playerId == playerId) {
                         proposal = proposalData;
 
-                        return pmsAPI.payment_modifyManualTopupRequest({
-                            requestId: proposalData.data.requestId,
-                            operationType: constManualTopupOperationType.DELAY,
-                            data: {delayTime: delayTime}
-                        });
+                        if (proposalData.data.requestId) {
+                            return pmsAPI.payment_modifyManualTopupRequest({
+                                requestId: proposalData.data.requestId,
+                                operationType: constManualTopupOperationType.DELAY,
+                                data: {delayTime: delayTime}
+                            });
+                        } else {
+                            //no requestId means it is handle by FPMS (using FPMS payment method)
+                            return true;
+                        }
                     }
                     else {
                         return Q.reject({name: "DBError", message: 'Invalid proposal'});
@@ -1936,6 +2170,7 @@ var dbPlayerTopUpRecord = {
         let request = null;
         let pmsData = null;
         let rewardEvent;
+        let isFPMS = false; // true - use FPMS to manage payment
 
         if (bonusCode && topUpReturnCode) {
             return Q.reject({
@@ -1952,6 +2187,9 @@ var dbPlayerTopUpRecord = {
                 playerData => {
                     player = playerData;
                     if (player && player._id) {
+                        if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
+                            isFPMS = true;
+                        }
                         if (!topUpReturnCode) {
                             return Promise.resolve();
                         }
@@ -2117,7 +2355,11 @@ var dbPlayerTopUpRecord = {
                             requestData.groupAlipayList = [];
                         }
                         // console.log("requestData", requestData);
-                        return pmsAPI.payment_requestAlipayAccount(requestData);
+                        if (isFPMS) {
+                            return dbPlayerTopUpRecord.alipayTopUpValidate(requestData, alipayAccount);
+                        } else {
+                            return pmsAPI.payment_requestAlipayAccount(requestData);
+                        }
                     }
                     else {
                         return Q.reject({name: "DataError", errorMessage: "Cannot create alipay top up proposal"});
@@ -2143,14 +2385,20 @@ var dbPlayerTopUpRecord = {
                     queryObj["createTime"]["$gte"] = start;
                     queryObj["createTime"]["$lt"] = end;
                     queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
-                    return dbconfig.collection_proposal.aggregate(
-                        {$match: queryObj},
-                        {
-                            $group: {
-                                _id: null,
-                                totalAmount: {$sum: "$data.amount"},
-                            }
-                        })
+                    let quotaUsedProm;
+                    if (isFPMS && pmsData.result.quotaUsed) {
+                        quotaUsedProm = Promise.resolve([{totalAmount:  pmsData.result.quotaUsed}]);
+                    } else {
+                        quotaUsedProm = dbconfig.collection_proposal.aggregate(
+                            {$match: queryObj},
+                            {
+                                $group: {
+                                    _id: null,
+                                    totalAmount: {$sum: "$data.amount"},
+                                }
+                            })
+                    }
+                    return quotaUsedProm;
                 },
                 err => {
                     updateProposalRemark(proposal, err.errorMessage).catch(errorUtils.reportError);
@@ -2180,10 +2428,13 @@ var dbPlayerTopUpRecord = {
                         if (res[0]) {
                             updateData.data.cardQuota = res[0].totalAmount;
                         }
+                        if (isFPMS && proposal.noSteps) {
+                            updateData.status = constProposalStatus.APPROVED;
+                        }
 
                         let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
 
-                        updateAliPayTopUpProposalDailyLimit(proposalQuery, request.result.alipayAccount).catch(errorUtils.reportError);
+                        updateAliPayTopUpProposalDailyLimit(proposalQuery, request.result.alipayAccount, isFPMS, player.platform.platformId).catch(errorUtils.reportError);
 
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposal._id, createTime: proposal.createTime},
@@ -2197,6 +2448,31 @@ var dbPlayerTopUpRecord = {
                 }
             ).then(
                 data => {
+                    if (isFPMS) {
+                        if (data.noSteps) {
+                            dbconfig.collection_proposalType.findOne({
+                                platformId: player.platform._id,
+                                name: constProposalType.PLAYER_ALIPAY_TOP_UP
+                            }).then(
+                                proposalTypeData => {
+                                    if (!proposalTypeData) {
+                                        return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+                                    }
+                                    proposalExecutor.approveOrRejectProposal(proposalTypeData.executionType, proposalTypeData.rejectionType, true, data)
+                                }
+                            ).catch(errorUtils.reportError);
+                        }
+                        //update alipay daily quota
+                        dbconfig.collection_platformAlipayList.findOneAndUpdate(
+                            {
+                                accountNumber: request.result.alipayAccount,
+                                platformId: player.platform.platformId
+                            },
+                            {
+                                $inc: {quotaUsed: amount}
+                            }
+                        ).catch(errorUtils.reportError);
+                    }
                     return {
                         proposalId: data.proposalId,
                         requestId: request.result.requestId,
@@ -2393,6 +2669,7 @@ var dbPlayerTopUpRecord = {
         let request = null;
         let pmsData = null;
         let rewardEvent;
+        let isFPMS = false; // true - use FPMS to manage payment
 
         if (bonusCode && topUpReturnCode) {
             return Q.reject({
@@ -2410,6 +2687,9 @@ var dbPlayerTopUpRecord = {
                 playerData => {
                     player = playerData;
                     if (player && player._id) {
+                        if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
+                            isFPMS = true;
+                        }
                         if (!topUpReturnCode) {
                             return Promise.resolve();
                         }
@@ -2579,11 +2859,15 @@ var dbPlayerTopUpRecord = {
                             requestData.groupWechatList = [];
                         }
                         //console.log("requestData", requestData);
-                        if (useQR) {
-                            return pmsAPI.payment_requestWeChatQRAccount(requestData);
-                        }
-                        else {
-                            return pmsAPI.payment_requestWeChatAccount(requestData);
+                        if (isFPMS) {
+                            return dbPlayerTopUpRecord.wechatpayTopUpValidate(requestData, wechatAccount);
+                        } else {
+                            if (useQR) {
+                                return pmsAPI.payment_requestWeChatQRAccount(requestData);
+                            }
+                            else {
+                                return pmsAPI.payment_requestWeChatAccount(requestData);
+                            }
                         }
                     }
                     else {
@@ -2618,14 +2902,20 @@ var dbPlayerTopUpRecord = {
                     queryObj["createTime"]["$gte"] = start;
                     queryObj["createTime"]["$lt"] = end;
                     queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
-                    return dbconfig.collection_proposal.aggregate(
-                        {$match: queryObj},
-                        {
-                            $group: {
-                                _id: null,
-                                totalAmount: {$sum: "$data.amount"},
-                            }
-                        })
+                    let quotaUsedProm;
+                    if (isFPMS && pmsData.result.quotaUsed) {
+                        quotaUsedProm = Promise.resolve([{totalAmount:  pmsData.result.quotaUsed}]);
+                    } else {
+                        quotaUsedProm = dbconfig.collection_proposal.aggregate(
+                            {$match: queryObj},
+                            {
+                                $group: {
+                                    _id: null,
+                                    totalAmount: {$sum: "$data.amount"},
+                                }
+                            })
+                    }
+                    return quotaUsedProm;
                 },
                 err => {
                     updateProposalRemark(proposal, err.errorMessage).catch(errorUtils.reportError);
@@ -2653,10 +2943,13 @@ var dbPlayerTopUpRecord = {
                         if (res[0]) {
                             updateData.data.cardQuota = res[0].totalAmount || 0;
                         }
+                        if (isFPMS && proposal.noSteps) {
+                            updateData.status = constProposalStatus.APPROVED;
+                        }
 
                         let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
 
-                        updateWeChatPayTopUpProposalDailyLimit(proposalQuery, request.result.weChatAccount).catch(errorUtils.reportError);
+                        updateWeChatPayTopUpProposalDailyLimit(proposalQuery, request.result.weChatAccount, isFPMS, player.platform.platformId).catch(errorUtils.reportError);
 
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposal._id, createTime: proposal.createTime},
@@ -2670,6 +2963,31 @@ var dbPlayerTopUpRecord = {
                 }
             ).then(
                 data => {
+                    if (isFPMS) {
+                        if (data.noSteps) {
+                            dbconfig.collection_proposalType.findOne({
+                                platformId: player.platform._id,
+                                name: constProposalType.PLAYER_WECHAT_TOP_UP
+                            }).then(
+                                proposalTypeData => {
+                                    if (!proposalTypeData) {
+                                        return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+                                    }
+                                    proposalExecutor.approveOrRejectProposal(proposalTypeData.executionType, proposalTypeData.rejectionType, true, data)
+                                }
+                            ).catch(errorUtils.reportError);
+                        }
+                        //update wechatpay daily quota
+                        dbconfig.collection_platformWechatPayList.findOneAndUpdate(
+                            {
+                                accountNumber: request.result.weChatAccount,
+                                platformId: player.platform.platformId
+                            },
+                            {
+                                $inc: {quotaUsed: amount}
+                            }
+                        ).catch(errorUtils.reportError);
+                    }
                     return {
                         proposalId: data.proposalId,
                         requestId: request.result.requestId,
@@ -3813,8 +4131,18 @@ proto = Object.assign(proto, dbPlayerTopUpRecord);
 // This make WebStorm navigation work
 module.exports = dbPlayerTopUpRecord;
 
-function updateManualTopUpProposalBankLimit (proposalQuery, bankCardNo) {
-    return pmsAPI.bankcard_getBankcard({accountNumber: bankCardNo}).then(
+function updateManualTopUpProposalBankLimit (proposalQuery, bankCardNo, isFPMS, platformId) {
+    let prom;
+    if (isFPMS && platformId) {
+        prom = dbconfig.collection_platformBankCardList.findOne({accountNumber: bankCardNo, platformId: platformId}).lean().then(
+            bankCardList => {
+                return {data: bankCardList}
+            }
+        );;
+    } else {
+        prom = pmsAPI.bankcard_getBankcard({accountNumber: bankCardNo});
+    }
+    return prom.then(
         bankCard => {
             if (bankCard && bankCard.data && bankCard.data.quota) {
                 return dbconfig.collection_proposal.update(proposalQuery, {"data.dailyCardQuotaCap": bankCard.data.quota});
@@ -3823,8 +4151,18 @@ function updateManualTopUpProposalBankLimit (proposalQuery, bankCardNo) {
     );
 }
 
-function updateAliPayTopUpProposalDailyLimit (proposalQuery, accNo) {
-    return pmsAPI.alipay_getAlipay({accountNumber: accNo}).then(
+function updateAliPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, platformId) {
+    let prom;
+    if (isFPMS && platformId) {
+        prom = dbconfig.collection_platformAlipayList.findOne({accountNumber: accNo, platformId: platformId}).lean().then(
+            alipayList => {
+                return {data: alipayList}
+            }
+        );;
+    } else {
+        prom = pmsAPI.alipay_getAlipay({accountNumber: accNo});
+    }
+    return prom.then(
         aliPay => {
             if (aliPay && aliPay.data && (aliPay.data.quota || aliPay.data.singleLimit)) {
                 return dbconfig.collection_proposal.update(proposalQuery, {
@@ -3836,8 +4174,18 @@ function updateAliPayTopUpProposalDailyLimit (proposalQuery, accNo) {
     );
 }
 
-function updateWeChatPayTopUpProposalDailyLimit (proposalQuery, accNo) {
-    return pmsAPI.weChat_getWechat({accountNumber: accNo}).then(
+function updateWeChatPayTopUpProposalDailyLimit (proposalQuery, accNo, isFPMS, platformId) {
+    let prom;
+    if (isFPMS && platformId) {
+        prom = dbconfig.collection_platformWechatPayList.findOne({accountNumber: accNo, platformId: platformId}).lean().then(
+            wechatList => {
+                return {data: wechatList}
+            }
+        );
+    } else {
+        prom = pmsAPI.weChat_getWechat({accountNumber: accNo});
+    }
+    return prom.then(
         wechatPay => {
             if (wechatPay && wechatPay.data && (wechatPay.data.quota || wechatPay.data.singleLimit )) {
                 return dbconfig.collection_proposal.update(proposalQuery, {

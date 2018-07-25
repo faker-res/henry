@@ -33,6 +33,9 @@ var simplifiedChinese = {
     "Cannot find this downline": "查无此下线",
     "Invalid phone number, unable to call": "此电话号码无效，无法拨打",
     "Insuficient financial points": "财务点数不足",
+    "Currently no available bank card": "目前无可用银行卡",
+    "Currently no available alipay": "目前无可用支付宝",
+    "Currently no available wechatpay": "目前无可用微信支付",
 
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",

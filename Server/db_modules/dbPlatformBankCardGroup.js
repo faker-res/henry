@@ -45,14 +45,25 @@ var dbPlatformBankCardGroup = {
      * @param {String}  platformId - ObjId of the platform
      */
     getPlatformBankCardGroup: function (platformId) {
-        return dbPlatformBankCardGroup.syncBankCardGroupData(platformId).then(
-            data => dbconfig.collection_platformBankCardGroup.aggregate(
-                {
-                    $match: {
-                        platform: platformId
-                    }
+        return dbconfig.collection_platform.findOne({_id:platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
-            )
+                if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                    // do not sync when using FPMS payment method
+                    return  dbconfig.collection_platformBankCardGroup.find({platform: platformId}).lean();
+                }
+                return dbPlatformBankCardGroup.syncBankCardGroupData(platformData).then(
+                    data => dbconfig.collection_platformBankCardGroup.aggregate(
+                        {
+                            $match: {
+                                platform: platformId
+                            }
+                        }
+                    )
+                )
+            }
         )
     },
 
@@ -307,14 +318,16 @@ var dbPlatformBankCardGroup = {
         );
     },
 
-    syncBankCardGroupData: function (platformObjId) {
+    syncBankCardGroupData: function (platformDataObj) {
         let platformId = null;
+        let platformObjId;
         let cardList = [];
         let newCards = [];
-        return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
+        return Promise.resolve(platformDataObj).then(
             platform => {
                 if (platform) {
                     platformId = platform.platformId;
+                    platformObjId = platform._id;
                     return pmsAPI.bankcard_getBankcardList(
                         {
                             platformId: platform.platformId,
