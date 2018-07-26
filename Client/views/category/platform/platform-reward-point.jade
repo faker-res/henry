@@ -427,7 +427,8 @@ style.
                                 i#loadRewardPointsLogIcon.fa.fa-refresh.fa-spin.collapse.margin-left-5.text-danger.fa-2x
                     .row.margin-top-bottom-small
                         .col-md-12
-                            label.margin-left-5 {{"total" | translate}} {{vm.allRewardPointsLog.size}} {{"records" | translate}}
+                            label.margin-left-5 {{"total" | translate}} {{vm.allRewardPointsLog.size}} {{"records" | translate}} &nbsp; &nbsp;
+                            label.margin-left-5 {{"TOTAL_PLAYER_COUNT" | translate}} {{vm.allRewardPointsLog.playerCount}} {{"records" | translate}}
                             table#allRewardPointsTable.display.common-table(style='min-width:100%;width:100%')
                             #allRewardPointsTablePage
 
