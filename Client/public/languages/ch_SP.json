@@ -4048,6 +4048,8 @@
   "Edited successfully": "编辑成功",
   "Fail to edit": "编辑失败",
   "EditAlipay": "编辑个人支付宝",
-  "EditWechatPay": "编辑个人微信"
+  "EditWechatPay": "编辑个人微信",
+  "DELETE_DX_MISSION": "删除电销任务",
+  "All records in this mission will be delete, except registered user's data, continue?": "删除后除了已开户的玩家，其馀导入电话记录、数据将一并删除，是否确认？"
 
 }
