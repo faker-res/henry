@@ -288,7 +288,7 @@ style.
                             input.form-control(type='text', ng-model='vm.newBankCardAcc.openingPoint')
                         .form-group.col-md-6
                             .control-label {{"DAY_LIMIT" | translate}}
-                            input.form-control(type='Number', ng-model='vm.newBankCardAcc.quota')
+                            input.form-control(type='Number', ng-model='vm.newBankCardAcc.quota', style='text-align:left!important')
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.createNewBankCardAcc()", ng-disabled="vm.validateCreateNewBankCard()") {{"CONFIRM" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
@@ -329,7 +329,7 @@ style.
                             input.form-control(type='text', ng-model='vm.selectedBankCard.openingPoint')
                         .form-group.col-md-6
                             .control-label {{"DAY_LIMIT" | translate}}
-                            input.form-control(type='Number', ng-model='vm.selectedBankCard.quota')
+                            input.form-control(type='Number', ng-model='vm.selectedBankCard.quota', style='text-align:left!important')
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.editBankCardAcc()", ng-disabled="vm.validateEditBankCard()") {{"CONFIRM" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal', ng-click="vm.cancelEditBankCardAcc()") {{"CANCEL" | translate}}

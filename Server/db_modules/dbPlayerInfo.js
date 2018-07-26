@@ -1168,7 +1168,7 @@ let dbPlayerInfo = {
         })
     },
 
-    createPlayerInfo: function (playerdata, skipReferrals, skipPrefix, isAutoCreate, bFromBI) {
+    createPlayerInfo: function (playerdata, skipReferrals, skipPrefix, isAutoCreate, bFromBI, isDxMission) {
         let playerData = null;
         let platformData = null;
         let pPrefix = null;
@@ -1247,6 +1247,9 @@ let dbPlayerInfo = {
                     if (!pPrefix || pName.indexOf(pPrefix) === 0) {
                         return {isPlayerPrefixValid: true};
                     } else {
+                        if (isDxMission) {
+                            return {isPlayerPrefixValid: true};
+                        }
                         return {isPlayerPrefixValid: false};
                     }
                 } else {
@@ -1540,8 +1543,12 @@ let dbPlayerInfo = {
                         playerUpdateData.quickPayGroup = data[6]._id;
                     }
 
-                    if (csOfficer && promoteWay) {
-                        playerUpdateData.csOfficer = csOfficer;
+                    if (csOfficer && promoteWay){
+                        // do not replace the csOfficer if it is initialized from backStage
+                        if (!playerData.csOfficer){
+                            playerUpdateData.csOfficer = csOfficer;
+                        }
+
                         playerUpdateData.promoteWay = promoteWay;
                     }
 
@@ -5094,16 +5101,13 @@ let dbPlayerInfo = {
     },
 
     updateGeoipws: function (playerObjId, platformObjId, ip) {
-        dbUtility.getGeoIp(ip).then(
-            data => {
-                if (data) {
-                    return dbconfig.collection_players.findOneAndUpdate(
-                        {_id: playerObjId, platform: platformObjId},
-                        data
-                    ).then();
-                }
-            }
-        ).catch(errorUtils.reportError);
+        var ipData = dbUtility.getIpLocationByIPIPDotNet(ip);
+        if(ipData){
+            return dbconfig.collection_players.findOneAndUpdate(
+                {_id: playerObjId, platform: platformObjId},
+                ipData
+            ).then();
+        }
     },
 
     /*
@@ -12524,7 +12528,8 @@ let dbPlayerInfo = {
                     }
 
                     let playerState;
-                    if(isBulkApply) {
+
+                    if (isBulkApply) {
                         // bypass player state for bulk apply
                         playerState = Promise.resolve(true);
                     } else {
@@ -17410,6 +17415,21 @@ let dbPlayerInfo = {
             name: playerName
         }, {
             $set: {ximaWithdraw: 0}
+        })
+    },
+
+    clearPlayerState: function (playerObjId) {
+        return dbconfig.collection_playerBState.findOneAndUpdate({
+            player: playerObjId
+        }, {
+            $set: {
+                applyRewardEvent: false,
+                transferToProvider: false,
+                playerLevelMigration: false,
+                convertRewardPointsToCredit: false,
+                generatePromoCode: false,
+                applyXIMAFrontEnd: false
+            }
         })
     }
 };

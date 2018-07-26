@@ -48,6 +48,8 @@ let promoCodeTemplateSchema = new Schema({
     adminName: {type: String},
     // Promo Code Active Flag
     isActive: {type: Boolean, default: false, index: true},
+    // remark
+    remark: {type: String}
 
 });
 

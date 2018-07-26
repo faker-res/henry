@@ -15,7 +15,9 @@ let playerBStateSchema = new Schema({
     // Player convert reward point
     convertRewardPointsToCredit: {type: Boolean, default: false},
     // Generate promo code
-    generatePromoCode: {type: Boolean, default: false}
+    generatePromoCode: {type: Boolean, default: false},
+    // Front end apply XIMA
+    applyXIMAFrontEnd: {type: Boolean, default: false}
 });
 
 module.exports = playerBStateSchema;

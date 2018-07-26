@@ -124,21 +124,16 @@ var dbPlayerRegistrationIntentRecord = {
                     "data.smsCode": data.smsCode
                 }
             }
-
             if(data.lastLoginIp && data.lastLoginIp != "undefined"){
-                return dbUtil.getGeoIp(data.lastLoginIp).then(
-                    ipData=>{
-                        if(data){
-                            data.ipArea = ipData;
-                        }else{
-                            data.ipArea = {'province':'', 'city':''};
-                        }
+                var ipData = dbUtil.getIpLocationByIPIPDotNet(data.lastLoginIp);
 
-                        return data;
-                    }
-                ).then(data => {
-                    return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData)
-                })
+                if(ipData){
+                    data.ipArea = ipData;
+                }else{
+                    data.ipArea = {'province':'', 'city':''};
+                }
+
+                return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData);
             }else{
                 return dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordBySMSCode(query,newIntentData)
             }

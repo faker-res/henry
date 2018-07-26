@@ -505,7 +505,7 @@ var dbPlayerConsumptionWeekSummary = {
      * Start calculate consumption return for player
      * @param {ObjectId} playerId
      */
-    startCalculatePlayerConsumptionReturn: function (playerId, bRequest, bAdmin, eventCode,userAgent, adminName, isForceApply) {
+    startCalculatePlayerConsumptionReturn: function (playerId, bRequest, bAdmin, eventCode, userAgent, adminName, isForceApply, isFrontEnd) {
         let platformData = null;
         let playerData = null;
         let eventData = null;
@@ -527,7 +527,13 @@ var dbPlayerConsumptionWeekSummary = {
                         });
                     }
 
-                    return dbPlayerUtil.setPlayerBState(playerData._id, "applyRewardEvent", true)
+                    let stateProm = Promise.resolve(true);
+
+                    if (isFrontEnd) {
+                        stateProm = dbPlayerUtil.setPlayerBState(playerData._id, "applyXIMAFrontEnd", true);
+                    }
+
+                    return stateProm;
                 }
                 else {
                     return Promise.reject({name: "DataError", message: "Incorrect player data"});
@@ -624,7 +630,7 @@ var dbPlayerConsumptionWeekSummary = {
                                     }, {isConsumptionReturn: false}).then();
 
                                     // Set BState to false
-                                    dbPlayerUtil.setPlayerBState(playerData._id, "applyRewardEvent", false).catch(errorUtils.reportError);
+                                    dbPlayerUtil.setPlayerBState(playerData._id, "applyXIMAFrontEnd", false).catch(errorUtils.reportError);
 
                                     return data;
                                 }
@@ -639,7 +645,7 @@ var dbPlayerConsumptionWeekSummary = {
                             }, {isConsumptionReturn: false}).then();
 
                             // Set BState to false
-                            dbPlayerUtil.setPlayerBState(playerData._id, "applyRewardEvent", false).catch(errorUtils.reportError);
+                            dbPlayerUtil.setPlayerBState(playerData._id, "applyXIMAFrontEnd", false).catch(errorUtils.reportError);
 
                             return Promise.reject(error);
                         }
@@ -659,7 +665,7 @@ var dbPlayerConsumptionWeekSummary = {
                     // Ignore concurrent request for now
                 } else {
                     // Set BState back to false
-                    dbPlayerUtil.setPlayerBState(playerData._id, "applyRewardEvent", false).catch(errorUtils.reportError);
+                    dbPlayerUtil.setPlayerBState(playerData._id, "applyXIMAFrontEnd", false).catch(errorUtils.reportError);
                 }
 
                 throw err;
