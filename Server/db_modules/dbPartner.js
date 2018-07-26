@@ -493,7 +493,7 @@ let dbPartner = {
     },
 
     updateGeoipws: function (partnerObjId, platformObjId, ip) {
-        var ipData = dbUtil.getIpLocationByIPIPDotNet(inputData.lastLoginIp);
+        var ipData = dbUtil.getIpLocationByIPIPDotNet(ip);
         if(ipData){
             return dbconfig.collection_partner.findOneAndUpdate(
                 {_id: partnerObjId, platform: platformObjId},
