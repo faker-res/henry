@@ -1589,7 +1589,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                 playerData.domain = domain;
             }
 
-            return dbPlayerInfo.createPlayerInfo(playerData);
+            return dbPlayerInfo.createPlayerInfo(playerData,null, null, null, null, true);
         }
     ).then(
         function (playerData) {
