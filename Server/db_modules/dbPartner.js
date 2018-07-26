@@ -10199,11 +10199,8 @@ function getCrewsInfo (players, startTime, endTime, activePlayerRequirement, pro
 
         allPlayerDetailsProm = Promise.all([consumptionDetailProm,topUpDetailProm]).then(
             data => {
-                console.log("LH CHECK CREWACTIVEINFO PartnerId", partnerId);
                 let consumptionDetails = data[0];
                 let topUpDetails = data[1];
-                console.log("LH CHECK CREWACTIVEINFO ConsumptionDetails", consumptionDetails);
-                console.log("LH CHECK CREWACTIVEINFO TopUpDetails", topUpDetails);
                 let newConsumptionDetails = [];
                 let newTopUpDetails = [];
                 newTopUpDetails = topUpDetails;
@@ -10236,17 +10233,12 @@ function getCrewsInfo (players, startTime, endTime, activePlayerRequirement, pro
                     );
                 }
 
-                console.log("LH CHECK CREWACTIVEINFO newConsumptionDetails", newConsumptionDetails);
-                console.log("LH CHECK CREWACTIVEINFO newTopUpDetails", newTopUpDetails);
                 let consumpTopUpObj = newConsumptionDetails.concat(newTopUpDetails);
                 let totalActive = 0;
-                console.log("LH CHECK CREWACTIVEINFO consumpTopUpObj", consumpTopUpObj);
                 if(consumpTopUpObj && consumpTopUpObj.length > 0){
                     if (activePlayerRequirement) {
                         consumpTopUpObj.forEach(result => {
                             if(result) {
-                                console.log("LH CHECK CREWACTIVEINFO activePlayerRequirement", activePlayerRequirement);
-                                console.log("LH CHECK CREWACTIVEINFO consumpTopUpObj loop", result);
                                 totalActive += isPlayerActive(activePlayerRequirement, result.consumptionTimes, result.validAmount, result.topUpTimes, result.topUpAmount) ? 1 : 0;
                             }
                         })
