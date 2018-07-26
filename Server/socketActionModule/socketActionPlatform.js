@@ -257,6 +257,12 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.updateAutoApprovalConfig, [data.query, data.updateData], actionName, isValidData);
         },
 
+        checkHasSettledXIMA: function checkHasSettledXIMA (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, consumptionReturnEvent.checkHasSettledXIMA, [ObjectId(data.platformId), data.selectedEvent], actionName, isValidData);
+        },
+
          /**
          * Start Player Consumption Return Settlement
          * @param {Object} data - It has to contain platformId
