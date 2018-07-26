@@ -6359,9 +6359,10 @@ define(['js/app'], function (myApp) {
 
             vm.initFeedbackModal = function (rowData) {
                 if (rowData && rowData.partnerId) {
-                    $('#addPartnerFeedbackTab').addClass('active');
-                    $('#partnerFeedbackHistoryTab').removeClass('active');
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {
+                        $('#addPartnerFeedbackTab').addClass('active');
+                        $('#partnerFeedbackHistoryTab').removeClass('active');
+                    });
                     vm.feedbackModalTabPartner = "addPartnerFeedbackPanel";
                 }
             };
