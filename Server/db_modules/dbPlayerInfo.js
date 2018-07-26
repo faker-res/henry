@@ -1168,7 +1168,7 @@ let dbPlayerInfo = {
         })
     },
 
-    createPlayerInfo: function (playerdata, skipReferrals, skipPrefix, isAutoCreate, bFromBI) {
+    createPlayerInfo: function (playerdata, skipReferrals, skipPrefix, isAutoCreate, bFromBI, isDxMission) {
         let playerData = null;
         let platformData = null;
         let pPrefix = null;
@@ -1247,6 +1247,9 @@ let dbPlayerInfo = {
                     if (!pPrefix || pName.indexOf(pPrefix) === 0) {
                         return {isPlayerPrefixValid: true};
                     } else {
+                        if (isDxMission) {
+                            return {isPlayerPrefixValid: true};
+                        }
                         return {isPlayerPrefixValid: false};
                     }
                 } else {
