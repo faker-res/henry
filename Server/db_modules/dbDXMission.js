@@ -1626,6 +1626,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
         }
     ).catch(
         err => {
+            errorUtils.reportError(err);
             return {redirect: dxMission.loginUrl};
         }
     );
