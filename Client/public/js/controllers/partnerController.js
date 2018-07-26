@@ -2268,26 +2268,90 @@ define(['js/app'], function (myApp) {
                 vm.partnerAdvertisementWebDevice = true;
             };
 
-            vm.updatePlayerFeedbackData = function (modalId, tableId, opt) {
-                opt = opt || {'dom': 't'};
-                vm.playerFeedbackRecord.searching = true;
-                socketService.$socket($scope.AppSocket, 'getPlayerFeedbackReport', {
-                    query: {
-                        startTime: vm.playerFeedbackRecord.startTime.data('datetimepicker').getLocalDate(),
-                        endTime: vm.playerFeedbackRecord.endTime.data('datetimepicker').getLocalDate(),
-                        playerId: vm.selectedSinglePlayer._id
-                    }
-                }, function (data) {
-                    console.log('getPlayerFeedback', data);
-                    vm.playerFeedbackRecord.searching = false;
-                    vm.playerFeedbackData = data.data;
+            vm.prepareShowFeedbackRecord = function (rowData) {
+                if (rowData && rowData.partnerId) {
+                    vm.partnerFeedbackRecord = vm.partnerFeedbackRecord || {totalCount: 0};
+                    utilService.actionAfterLoaded('#modalAddPartnerFeedback .searchDiv .startTime', function () {
+                        vm.partnerFeedbackRecord.startTime = utilService.createDatePicker('#modalAddPartnerFeedback .searchDiv .startTime');
+                        vm.partnerFeedbackRecord.endTime = utilService.createDatePicker('#modalAddPartnerFeedback .searchDiv .endTime');
+                        vm.partnerFeedbackRecord.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 365)));
+                        vm.partnerFeedbackRecord.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
 
-                    vm.playerFeedbackData.data.forEach(item => {
-                        item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                        utilService.actionAfterLoaded('#partnerFeedbackRecord', function () {
+                            vm.partnerFeedbackRecord.pageObj = utilService.createPageForPagingTable("#partnerFeedbackRecordTablePage", {}, $translate, function (curP, pageSize) {
+                                vm.commonPageChangeHandler(curP, pageSize, "partnerFeedbackRecord", vm.getFeedbackRecord)
+                            });
+                            vm.getFeedbackRecord(true);
+                        });
                     });
+                }
+            };
 
+            vm.getFeedbackRecord = function (newSearch) {
+                vm.partnerFeedbackRecord.searching = true;
+                let queryData = {
+                    query: {
+                        startTime: vm.partnerFeedbackRecord.startTime.data('datetimepicker').getLocalDate(),
+                        endTime: vm.partnerFeedbackRecord.endTime.data('datetimepicker').getLocalDate(),
+                        partnerId: vm.selectedSinglePartner._id
+                    },
+                    limit: newSearch ? 10 : (vm.partnerFeedbackRecord.limit || 10),
+                    index: newSearch ? 0 : (vm.partnerFeedbackRecord.index || 0),
+                    sortCol: vm.partnerFeedbackRecord.sortCol || null
+                };
+
+                console.log("queryData", queryData);
+                vm.prepareFeedbackRecord(queryData, newSearch);
+            }
+
+            vm.prepareFeedbackRecord = function (queryData, newSearch) {
+                vm.partnerFeedbackData = [];
+                socketService.$socket($scope.AppSocket, 'getPartnerFeedbackReport', queryData, function (data) {
+                    console.log('getPartnerFeedback', data);
+
+                    vm.partnerFeedbackData = data.data.data;
+                    vm.partnerFeedbackRecord.totalCount = data.data.size;
+                    vm.partnerFeedbackRecord.searching = false;
+
+                    var tableData = vm.partnerFeedbackData.map(
+                        record => {
+                            record.createTime = (record && record.createTime) ? vm.dateReformat(record.createTime) : "";
+                            record.result =
+                                (record && record.resultName) ? record.resultName : $translate(record.result);
+                            record.content = (record && record.content) ? record.content : "";
+                            record.adminName = (record && record.adminId && record.adminId.adminName) ? record.adminId.adminName : "";
+                            record.topic = (record && record.topic) ? record.topic : "";
+                            return record
+                        }
+                    );
+                    var option = $.extend({}, vm.generalDataTableOptions, {
+                        data: tableData,
+                        aoColumnDefs: [
+                            {targets: '_all', defaultContent: ' ', bSortable: false}
+                        ],
+                        columns: [
+                            {title: $translate('TIME'), data: "createTime"},
+                            {title: $translate('RESULT'), data: "result"},
+                            {title: $translate('CONTENT'), data: "content"},
+                            {title: $translate('adminName'), data: "adminName"},
+                            {title: $translate('FEEDBACK_TOPIC'), data: "topic"}
+                        ],
+                        bSortClasses: false,
+                        destroy: true,
+                        paging: false,
+                        autoWidth: true,
+                        fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                            $compile(nRow)($scope);
+                        }
+                    });
+                    var a = utilService.createDatatableWithFooter('#partnerFeedbackRecordTable', option, {});
+                    vm.partnerFeedbackRecord.pageObj.init({maxCount: vm.partnerFeedbackRecord.totalCount}, newSearch);
+                    $("#partnerFeedbackRecordTable").off('order.dt');
+                    $("#partnerFeedbackRecordTable").on('order.dt', function (event, a, b) {
+                        vm.commonSortChangeHandler(a, 'partnerFeedbackRecord', vm.getFeedbackRecord);
+                    });
+                    $('#partnerFeedbackRecordTable').resize();
                     $scope.safeApply();
-                    vm.updateDataTableinModal(modalId, tableId, opt)
                 });
             };
 
@@ -6291,6 +6355,15 @@ define(['js/app'], function (myApp) {
                     console.log("create not", data);
                     vm.getPlatformPartnersData();
                 });
+            };
+
+            vm.initFeedbackModal = function (rowData) {
+                if (rowData && rowData.partnerId) {
+                    $('#addPartnerFeedbackTab').addClass('active');
+                    $('#partnerFeedbackHistoryTab').removeClass('active');
+                    $scope.safeApply();
+                    vm.feedbackModalTabPartner = "addPartnerFeedbackPanel";
+                }
             };
 
             // Add / Delete Feedback Topic & Feedback Result
