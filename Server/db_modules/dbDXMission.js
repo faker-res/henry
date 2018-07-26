@@ -41,6 +41,19 @@ let dbDXMission = {
         return dbconfig.collection_dxMission.find({platform: platform});
     },
 
+    deleteDxMissionDxPhone: function (dxMissionObjId) {
+        return dbconfig.collection_dxMission.remove({_id: dxMissionObjId}).then(
+            () => {
+                return dbconfig.collection_dxPhone.remove(
+                    {
+                        dxMission: dxMissionObjId,
+                        bUsed: false
+                    }
+                )
+            }
+        )
+    },
+
     createDxMission: function(data){
         data.platform = ObjectId(data.platform);
         let dxMission = new dbconfig.collection_dxMission(data);

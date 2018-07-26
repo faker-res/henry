@@ -65,6 +65,15 @@ function socketActionDXMission(socketIO, socket) {
         },
 
         /**
+         * Delete DX Mission and corresponding dx phone which have not use
+         */
+        deleteDxMissionDxPhone: function deleteDxMissionDxPhone(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data._id);
+            socketUtil.emitter(self.socket, dbDXMission.deleteDxMissionDxPhone, [data._id], actionName, isValidData);
+        },
+
+        /**
          * Update DX Mission
          * @param {json} data - Player data. It has to contain correct data format
          */
