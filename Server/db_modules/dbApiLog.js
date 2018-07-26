@@ -102,13 +102,14 @@ let dbApiLog = {
             apiLog.save().then().catch(errorUtils.reportError);
             if (actionName === "login" || actionName === "player - create" || actionName === "submitDXCode") {
                 let actionLog = new dbConfig.collection_actionLog(logData);
-                actionLog.save().then().catch(errorUtils.reportError);
+                return actionLog.save().then().catch(errorUtils.reportError);
             }
         }
         else {
             console.error('There are item that should be logged but playerObjId not found.');
             console.error('actionName', actionName);
             console.error('actionResult',JSON.stringify(actionResult, null, 2));
+            return Promise.reject({message: "There are item that should be logged but playerObjId not found."});
         }
     },
 

@@ -931,24 +931,14 @@
                             label {{"End date"|translate}}
                             .endTime
                         .inlineBlk
-                            button.common-button.btn.btn-primary(ng-click='vm.updatePlayerFeedbackData("#modalAddPlayerFeedback","#playerFeedbackRecordTable")') {{'FILTER' | translate}}
+                            button.common-button.btn.btn-primary(ng-click='vm.getFeedbackRecord()') {{'FILTER' | translate}}
                             i.fa.fa-spinner.fa-spin(ng-if='vm.playerFeedbackRecord.searching')
-                    //text(ng-if='vm.playerFeedbackData.length==0') {{'NO_RECORD' | translate}}
-                    table#playerFeedbackRecordTable.simple-table.collapse
-                        thead
-                            tr
-                                th(style='min-width:90px;') {{'TIME' | translate}}
-                                th {{'RESULT' | translate}}
-                                th {{'CONTENT' | translate}}
-                                th {{'adminName' | translate}}
-                                th {{"FEEDBACK_TOPIC" | translate}}
-                        tbody(ng-if='vm.playerFeedbackData.data.length>0')
-                            tr(ng-repeat='(i,v) in vm.playerFeedbackData.data')
-                                td(style='min-width:150px;') {{vm.dateReformat(v.createTime)}}
-                                td {{v.result$}}
-                                td(style='white-space: normal;word-wrap: break-word;max-width: 300px;') {{v.content}}
-                                td {{v.adminId.adminName}}
-                                td {{v.topic}}
+                    #playerFeedbackRecord
+                        label {{"Total" | translate}} {{vm.playerFeedbackRecord.totalCount}} {{"records" | translate}}
+                            .inlineBlk.margin-left-5(ng-if='vm.playerFeedbackRecord.searching')
+                                i.fa.fa-spin.fa-spinner
+                    table#playerFeedbackRecordTable.common-table.wordWrap.tbodyNoWrap.display(style='width:100%')
+                    #playerFeedbackRecordTablePage
 
             .modal-footer(ng-if="vm.feedbackModalTab === 'addFeedbackPanel'")
                 button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='form_feedback.$invalid', ng-click="vm.updatePlayerFeedback();") {{"ADD" | translate}}

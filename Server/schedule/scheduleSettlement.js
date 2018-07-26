@@ -57,6 +57,7 @@ var minuteJob = new CronJob('0 * * * * *', function () {
                 return promiseUtils.each(platforms, function (platformData) {
                     var task1 = null;
                     var task2 = null;
+                    var task3 = null;
 
                     //start daily settlement for platform
                     if (platformData.dailySettlementHour != null && platformData.dailySettlementMinute != null) {
@@ -91,7 +92,23 @@ var minuteJob = new CronJob('0 * * * * *', function () {
                         );
                     }
 
-                    return promiseUtils.each([task1, task2], task => task && task() );
+                    // refresh bankCard, wechat, alipay daily quota if using FPMS payment type
+                    if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                        task3 = () => dailyPlatformSettlement.startDailyRefreshPaymentQuota(platformData).then(
+                            data => {
+                                if (data) {
+                                    console.log(new Date().toString() + "Daily Refresh Payment Quota Done", platformData._id, data)
+                                }
+                            }
+                        ).catch(
+                            function (error) {
+                                console.log("Daily Refresh Payment Quota error doing", platformData._id);
+                                errorUtils.reportError(error);
+                            }
+                        );
+                    }
+
+                    return promiseUtils.each([task1, task2, task3], task => task && task() );
                 });
             }
         },

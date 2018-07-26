@@ -41,6 +41,8 @@ var platformSchema = new Schema({
     lastDailySettlementTime: {type: Date},
     //last weekly settlement time
     lastWeeklySettlementTime: {type: Date},
+    //last daily payment quota refresh time (bankcard, wechat, alipay)
+    lastPaymentQuotaRefreshTime: {type: Date},
     //CUSTOMER SERVICE INFO
     // for player
     csEmailImageUrlList: [{
