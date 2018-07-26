@@ -803,23 +803,14 @@ p
                             label {{"End date" | translate}}
                             .endTime
                         .inlineBlk
-                            button.common-button.btn.btn-primary(ng-click='vm.updatePartnerFeedbackData("#modalAddPartnerFeedback","#partnerFeedbackRecordTable")') {{'FILTER' | translate}}
+                            button.common-button.btn.btn-primary(ng-click='vm.getFeedbackRecord()') {{'FILTER' | translate}}
                             i.fa.fa-spinner.fa-spin(ng-if='vm.partnerFeedbackRecord.searching')
-                    table#partnerFeedbackRecordTable.simple-table.collapse
-                        thead
-                            tr
-                                th(style='min-width:90px;') {{'TIME' | translate}}
-                                th {{'RESULT' | translate}}
-                                th {{'CONTENT' | translate}}
-                                th {{'adminName' | translate}}
-                                th {{"FEEDBACK_TOPIC" | translate}}
-                        tbody(ng-if='vm.partnerFeedbackData.data.length>0')
-                            tr(ng-repeat='(i,v) in vm.partnerFeedbackData.data')
-                                td(style='min-width:150px;') {{vm.dateReformat(v.createTime)}}
-                                td {{v.result$}}
-                                td(style='white-space: normal;word-wrap: break-word;max-width: 300px;') {{v.content}}
-                                td {{v.adminId.adminName}}
-                                td {{v.topic}}
+                    #partnerFeedbackRecord
+                        label {{"Total" | translate}} {{vm.partnerFeedbackRecord.totalCount}} {{"records" | translate}}
+                            .inlineBlk.margin-left-5(ng-if='vm.partnerFeedbackRecord.searching')
+                                i.fa.fa-spin.fa-spinner
+                    table#partnerFeedbackRecordTable.common-table.wordWrap.tbodyNoWrap.display(style='width:100%')
+                    #partnerFeedbackRecordTablePage
 
             .modal-footer(ng-if="vm.feedbackModalTabPartner === 'addPartnerFeedbackPanel'")
                 button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal', ng-disabled='form_feedback.$invalid', ng-click="vm.updatePartnerFeedback();") {{"ADD" | translate}}

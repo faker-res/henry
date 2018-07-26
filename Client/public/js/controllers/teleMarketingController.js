@@ -559,6 +559,15 @@ define(['js/app'], function (myApp) {
                             return link.prop('outerHTML');
                         }
                     },
+                    {
+                        title: $translate('ACTION_BUTTON'),
+                        render: function (data, type, row) {
+                            var link = $('<a>', {
+                                'ng-click': "vm.showDeleteDXModal(" + JSON.stringify(row) + ")",
+                            }).text($translate("DELETE"));
+                            return link.prop('outerHTML');
+                        }
+                    }
                 ],
                 "paging": false,
                 // "scrollX": true,
@@ -614,6 +623,21 @@ define(['js/app'], function (myApp) {
                 }, 100)
             }
         };
+
+        vm.showDeleteDXModal = function (data) {
+            if (data._id) {
+                vm.dxMissionToDeleteObjId = data._id
+                $("#modalDeleteDXMission").modal('show');
+            }
+        }
+
+        vm.deleteDXMission = function () {
+            socketService.$socket($scope.AppSocket, 'deleteDxMissionDxPhone', {
+                _id: vm.dxMissionToDeleteObjId
+            },data => {
+                vm.showTeleMarketingOverview();
+            });
+        }
 
         vm.dateReformat = function (data) {
             if (!data) return '';
