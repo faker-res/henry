@@ -2791,6 +2791,8 @@ let dbPlayerReward = {
                     });
 
                     if (!promoCodeObj) {
+
+                        dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                         return Q.reject({
                             status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                             name: "ConditionError",
@@ -2814,6 +2816,8 @@ let dbPlayerReward = {
                         return dbConfig.collection_proposal.find(searchQuery).sort({createTime: -1}).limit(1).lean();
                     }
                 } else {
+
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                     return Q.reject({
                         status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                         name: "ConditionError",
@@ -2831,6 +2835,8 @@ let dbPlayerReward = {
                     topUpProp = topUpProposal[0];
 
                     if (topUpProp.data.promoCode) {
+
+                        dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                         return Q.reject({
                             status: constServerCode.PLAYER_NOT_MINTOPUP,
                             name: "ConditionError",
@@ -2840,6 +2846,8 @@ let dbPlayerReward = {
 
                     // Check latest top up has sufficient amount to apply
                     if ([1, 3].indexOf(promoCodeObj.promoCodeTypeObjId.type) > -1 && topUpProp.data.amount < promoCodeObj.minTopUpAmount) {
+
+                        dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                         return Promise.reject({
                             status: constServerCode.PLAYER_NOT_MINTOPUP,
                             name: "ConditionError",
@@ -2867,6 +2875,8 @@ let dbPlayerReward = {
 
                     return Promise.all([consumptionRecordProm, topUpRecordProm]);
                 } else {
+
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_MINTOPUP,
                         name: "ConditionError",
@@ -2880,6 +2890,8 @@ let dbPlayerReward = {
                 if (data && data[1]) {
                     let topUpRecord = data[1];
                     if (topUpRecord.bDirty || (topUpRecord.usedEvent && topUpRecord.usedEvent.length > 0)) {
+
+                        dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                         return Promise.reject({
                             status: constServerCode.PLAYER_NOT_MINTOPUP,
                             name: "ConditionError",
@@ -2890,6 +2902,8 @@ let dbPlayerReward = {
 
                 // if player apply for topup return , then he cannot apply promo code
                 if (topUpProp && topUpProp.data && topUpProp.data.topUpReturnCode) {
+
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                     return Q.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
@@ -2908,6 +2922,8 @@ let dbPlayerReward = {
                         return Promise.resolve();
                     }
                 } else {
+
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                     return Promise.reject({
                         status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                         name: "ConditionError",
@@ -2991,7 +3007,7 @@ let dbPlayerReward = {
                 })
             }
         ).then(() => {
-            dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false);
+            dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
             promoCodeObj.promoCodeTypeObjId = promoCodeObj.promoCodeTypeObjId._id;
             return promoCodeObj;
         })
@@ -3052,12 +3068,15 @@ let dbPlayerReward = {
 
                         }
                         else{
+                            dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                             return Promise.reject({name: "DataError", errorMessage: "Proposal Type is not found"});
                         }
 
                     });
 
                 } else {
+
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                     return Q.reject({
                         status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                         name: "ConditionError",
@@ -3076,6 +3095,8 @@ let dbPlayerReward = {
                     let playerLimit = promoCodeObj.applyLimitPerPlayer || 0;
 
                     if (totalAppliedNumber >= totalLimit){
+
+                        dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                         return Q.reject({
                             status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                             name: "ConditionError",
@@ -3084,6 +3105,8 @@ let dbPlayerReward = {
                     }
 
                     if (playerAppliedNumber >= playerLimit){
+
+                        dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                         return Q.reject({
                             status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                             name: "ConditionError",
@@ -3108,6 +3131,7 @@ let dbPlayerReward = {
 
                 }
                 else{
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                     return Promise.reject({name: "DataError", errorMessage: "Proposal data is not found"});
                 }
             }
@@ -3122,6 +3146,8 @@ let dbPlayerReward = {
                     topUpProp = topUpProposal[0];
 
                     if (topUpProp.data.promoCode) {
+
+                        dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                         return Q.reject({
                             status: constServerCode.PLAYER_NOT_MINTOPUP,
                             name: "ConditionError",
@@ -3131,6 +3157,8 @@ let dbPlayerReward = {
 
                     // Check latest top up has sufficient amount to apply
                     if ([1, 3].indexOf(promoCodeObj.type) > -1 && topUpProp.data.amount < promoCodeObj.minTopUpAmount) {
+
+                        dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                         return Promise.reject({
                             status: constServerCode.PLAYER_NOT_MINTOPUP,
                             name: "ConditionError",
@@ -3158,6 +3186,8 @@ let dbPlayerReward = {
 
                     return Promise.all([consumptionRecordProm, topUpRecordProm]);
                 } else {
+
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_MINTOPUP,
                         name: "ConditionError",
@@ -3171,6 +3201,8 @@ let dbPlayerReward = {
                 if (data && data[1]) {
                     let topUpRecord = data[1];
                     if (topUpRecord.bDirty || (topUpRecord.usedEvent && topUpRecord.usedEvent.length > 0)) {
+
+                        dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                         return Promise.reject({
                             status: constServerCode.PLAYER_NOT_MINTOPUP,
                             name: "ConditionError",
@@ -3181,6 +3213,8 @@ let dbPlayerReward = {
 
                 // if player apply for topup return , then he cannot apply promo code
                 if (topUpProp && topUpProp.data && topUpProp.data.topUpReturnCode) {
+
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                     return Q.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
@@ -3199,6 +3233,8 @@ let dbPlayerReward = {
                         return Promise.resolve();
                     }
                 } else {
+
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                     return Promise.reject({
                         status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                         name: "ConditionError",
@@ -3268,7 +3304,7 @@ let dbPlayerReward = {
                     // Hence this object id will be use specifically for promo code throughout system as eventObjId
                     addUsedRewardToTopUpRecord(topUpProp.proposalId, "59ca08a3ef187c1ccec863b9").catch(errorUtils.reportError);
                 }
-                dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false);
+                dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
 
         })
     },
