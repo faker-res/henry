@@ -14102,7 +14102,7 @@ let dbPlayerInfo = {
                     matchObj.partner = {$exists: false};
                     break;
                 case "2":
-                    matchObj.partner = {$exists: true};
+                    matchObj.partner = {$ne: null};
                     break;
                 case "3":
                     matchObj.isTestPlayer = true;
