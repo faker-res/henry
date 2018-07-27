@@ -17,7 +17,9 @@ let playerBStateSchema = new Schema({
     // Generate promo code
     generatePromoCode: {type: Boolean, default: false},
     // Front end apply XIMA
-    applyXIMAFrontEnd: {type: Boolean, default: false}
+    applyXIMAFrontEnd: {type: Boolean, default: false},
+    // Apply promo code
+    ApplyPromoCode: {type: Boolean, default: false},
 });
 
 module.exports = playerBStateSchema;
