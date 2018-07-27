@@ -3095,7 +3095,7 @@ let dbPartner = {
                     );
                 }
                 else {
-                    matchObj.partner = {$exists: true};
+                    matchObj.partner = {$ne: null};
                     return dbconfig.collection_players.aggregate(
                         {
                             $match: matchObj
