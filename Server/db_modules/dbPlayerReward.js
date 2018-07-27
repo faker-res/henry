@@ -3495,7 +3495,7 @@ let dbPlayerReward = {
                             acceptedCount: {$sum: "$acceptedCount"},
                             acceptedAmount: {$sum: "$acceptedAmount"},
                             sendCount: {$sum: 1},
-                            totalPlayer:{ $addToSet: "$playerObjId" }
+                            totalPlayer: {$addToSet: {$cond: [{$eq: ['$acceptedCount', 1]}, "$playerObjId", "$null"]}}
                         }
                     },
                     {$sort: querySort},
@@ -3521,7 +3521,7 @@ let dbPlayerReward = {
                             acceptedCount: {$sum: "$acceptedCount"},
                             acceptedAmount: {$sum: "$acceptedAmount"},
                             sendCount: {$sum: 1},
-                            totalPlayer:{ $addToSet: "$playerObjId" }
+                            totalPlayer: {$addToSet: {$cond: [{$eq: ['$acceptedCount', 1]}, "$playerObjId", "$null"]}}
                         }
                     },
                     {
