@@ -405,6 +405,7 @@
   "PLAYER_TOPUP": "在线充值",
   "Topup Record": "充值记录",
   "TopupRecord": "充值记录",
+  "TOTAL_PLAYER_COUNT": "总人数",
   "PLAYER_EXPENSES": "投注额趋势",
   "PLAYER_DAILY_EXPENSES": "日投注记录",
   "ADD_FEEDBACK": "回访添加",
@@ -1147,6 +1148,8 @@
   "MESSAGE_TEMPLATES": "消息模板",
   "NO_MESSAGE_TEMPLATE_MESSAGE": "请首先选择消息模板",
   "PARTNERPLAYERBOUNS_REPORT": "代理下玩家充值提款报表",
+  "Already settled XIMA": "洗码已经结算完成",
+  "Are you sure to settle again?": "是否尝试再次洗码?",
   "lastBonusTime": "最近提款时间",
   "BonusTime": "提款次数",
   "WITHDRAWAL_TIMES": "提款次数",
@@ -4048,6 +4051,8 @@
   "Edited successfully": "编辑成功",
   "Fail to edit": "编辑失败",
   "EditAlipay": "编辑个人支付宝",
-  "EditWechatPay": "编辑个人微信"
+  "EditWechatPay": "编辑个人微信",
+  "DELETE_DX_MISSION": "删除电销任务",
+  "All records in this mission will be delete, except registered user's data, continue?": "删除后除了已开户的玩家，其馀导入电话记录、数据将一并删除，是否确认？"
 
 }

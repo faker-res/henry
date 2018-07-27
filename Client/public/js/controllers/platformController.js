@@ -1976,6 +1976,25 @@ define(['js/app'], function (myApp) {
                 );
             };
 
+            function settleXIMA (socketParam) {
+                console.log("sendData startPlatformPlayerConsumptionReturnSettlement", socketParam);
+                socketService.$socket($scope.AppSocket, 'startPlatformPlayerConsumptionReturnSettlement',
+                    socketParam,
+                    function (data) {
+                        console.log('playerConsumptionReturn', data);
+                        $scope.$evalAsync(() => {
+                            vm.playerConsumptionReturnSettlement.status = 'completed';
+                            vm.playerConsumptionReturnSettlement.result = $translate('Success');
+                        })
+                    }, function (err) {
+                        console.log('err', err);
+                        $scope.$evalAsync(() => {
+                            vm.playerConsumptionReturnSettlement.status = 'completed';
+                            vm.playerConsumptionReturnSettlement.result = err.error ? (err.error.message ? err.error.message : err.error) : '';
+                        })
+                    });
+            }
+
             vm.performPlayerConsumptionReturnSettlement = function () {
                 let eventArr = [];
                 let socketParam = {platformId: vm.selectedPlatform.id};
@@ -1997,20 +2016,25 @@ define(['js/app'], function (myApp) {
                     socketParam.selectedEvent = eventArr;
                 }
 
-                console.log("sendData startPlatformPlayerConsumptionReturnSettlement", socketParam);
-                socketService.$socket($scope.AppSocket, 'startPlatformPlayerConsumptionReturnSettlement',
-                    socketParam,
-                    function (data) {
-                        console.log('playerConsumptionReturn', data);
-                        vm.playerConsumptionReturnSettlement.status = 'completed';
-                        vm.playerConsumptionReturnSettlement.result = $translate('Success');
-                        $scope.safeApply();
-                    }, function (err) {
-                        console.log('err', err);
-                        vm.playerConsumptionReturnSettlement.status = 'completed';
-                        vm.playerConsumptionReturnSettlement.result = err.error ? (err.error.message ? err.error.message : err.error) : '';
-                        $scope.safeApply();
-                    });
+                // Check settlement status
+                $scope.$socketPromise('checkHasSettledXIMA', socketParam).then(
+                    (data = {}) => {
+                        let isSettled = data.data;
+
+                        if (isSettled) {
+                            $scope.$evalAsync(() => {
+                                vm.modalYesNo = {};
+                                vm.modalYesNo.modalTitle = $translate("Already settled XIMA");
+                                vm.modalYesNo.modalText = $translate("Are you sure to settle again?");
+                                vm.modalYesNo.actionYes = () => settleXIMA(socketParam);
+                                vm.modalYesNo.actionNo = () => { vm.playerConsumptionReturnSettlement.status = "ready" };
+                                $('#modalYesNo').modal();
+                            })
+                        } else {
+                            settleXIMA(socketParam);
+                        }
+                    }
+                )
             };
 
             vm.startPlayerLevelSettlement = function ($event) {
