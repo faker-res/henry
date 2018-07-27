@@ -6,15 +6,15 @@ let clickCountSchema = new Schema({
     // platform of demo player
     platform: {type: Schema.ObjectId, required: true, index: true},
     // daily start time
-    startTime: {type: Date},
+    startTime: {type: Date, index: true},
     // daily end time
-    endTime: {type: Date},
+    endTime: {type: Date, index: true},
     // user interface
     device: {type: String},
     // page name during click
-    pageName: {type: String},
+    pageName: {type: String, index: true},
     // button name where user click on
-    buttonName: {type: String},
+    buttonName: {type: String, index: true},
     // count of clicks
     count: {type: Number, default: 0},
     // array of ip address
@@ -30,7 +30,9 @@ let clickCountSchema = new Schema({
     // count of click using Web
     registerClickWebCount: {type: Number, default: 0},
     // count of click using H5
-    registerClickH5Count: {type: Number, default: 0}
+    registerClickH5Count: {type: Number, default: 0},
+    //domain
+    domain: {type: String, index: true}
 
 });
 

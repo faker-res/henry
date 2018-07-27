@@ -87,7 +87,8 @@ var PlatformServiceImplement = function () {
     this.clickCount.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.platformId && data.device && data.pageName && data.buttonName);
         let ipAddress = dbUtility.getIpAddress(conn);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.createClickCountLog, [data.platformId, data.device, data.pageName, data.buttonName, data.registerClickApp, data.registerClickWeb, data.registerClickH5, ipAddress], isValidData, null, null, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.createClickCountLog, [data.platformId, data.device, data.pageName, data.buttonName, data.registerClickApp,
+            data.registerClickWeb, data.registerClickH5, ipAddress, data.domain], isValidData, null, null, true);
     };
 
     this.getPlatformSmsGroups.onRequest = function (wsFunc, conn, data) {
