@@ -16,17 +16,10 @@ var dbRewardPointsLog = {
 
         let rewardPointsLogCount = dbConfig.collection_rewardPointsLog.find(data.query).count();
 
-        return Q.all([rewardPointsLog, rewardPointsLogCount]).then(result => {
-            let playerCount = [];
-            if (result[0] && result[0].length) {
-                let resData = result[0]
-                for (let i = 0; i < resData.length; i++) {
-                    if (resData[i].playerName && playerCount.indexOf(resData[i].playerName) < 0) {
-                        playerCount.push(resData[i].playerName);
-                    }
-                }
-            }
-            return {data: result[0], size: result[1], playerCount: playerCount.length};
+        let rewardPointsPlayerCount = dbConfig.collection_rewardPointsLog.distinct("playerName", data.query);
+
+        return Q.all([rewardPointsLog, rewardPointsLogCount, rewardPointsPlayerCount]).then(result => {
+            return {data: result[0], size: result[1], playerCount: result[2].length || 0};
         })
     },
 
