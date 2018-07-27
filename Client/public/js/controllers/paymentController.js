@@ -745,6 +745,19 @@ define(['js/app'], function (myApp) {
             return true;
         }
 
+        vm.deleteBankCardAcc = function () {
+            if (vm.selectedBankCard && vm.selectedBankCard._id) {
+                socketService.$socket($scope.AppSocket, 'deleteBankCardAcc', {_id: vm.selectedBankCard._id}, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log(data.data);
+                        vm.getAllBankCard().then(() => {
+                            vm.bankCardGroupClicked(null, vm.SelectedBankCardGroupNode);
+                        });
+                    });
+                })
+            }
+        }
+
         vm.editBankCardAcc = function () {
             if (vm.selectedBankCard && vm.selectedBankCard.provinceId && vm.provinceList.length) {
                 vm.provinceList.forEach(x => {
@@ -2073,6 +2086,17 @@ define(['js/app'], function (myApp) {
             return isDisable;
         }
 
+        vm.deleteAlipayAcc = function () {
+            if (vm.selectedAlipay && vm.selectedAlipay._id) {
+                socketService.$socket($scope.AppSocket, 'deleteAlipayAcc', {_id: vm.selectedAlipay._id}, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log(data.data);
+                        vm.alipayGroupClicked(null, vm.SelectedAlipayGroupNode);
+                    });
+                })
+            }
+        }
+
         vm.editAlipayAcc = function () {
             let curAlipay = {
                 accountNumber: vm.selectedAlipay.accountNumber,
@@ -2679,6 +2703,17 @@ define(['js/app'], function (myApp) {
                 isDisable = false;
             }
             return isDisable;
+        }
+
+        vm.deleteWechatPayAcc = function () {
+            if (vm.selectedWechatPay && vm.selectedWechatPay._id) {
+                socketService.$socket($scope.AppSocket, 'deleteWechatPayAcc', {_id: vm.selectedWechatPay._id}, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log(data.data);
+                        vm.wechatPayGroupClicked(null, vm.SelectedWechatPayGroupNode);
+                    });
+                })
+            }
         }
 
         vm.editWechatPayAcc = function () {

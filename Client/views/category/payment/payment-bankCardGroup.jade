@@ -333,6 +333,7 @@ style.
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.editBankCardAcc()", ng-disabled="vm.validateEditBankCard()") {{"CONFIRM" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal', ng-click="vm.cancelEditBankCardAcc()") {{"CANCEL" | translate}}
+                button.btn.btn-danger.common-button(data-dismiss='modal', ng-click="vm.deleteBankCardAcc()") {{"DELETE" | translate}}
 
 #modalAddBankCardGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
