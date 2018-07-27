@@ -3481,6 +3481,7 @@ let dbPlayerReward = {
                 },
                     {
                         $project: {
+                            playerObjId: 1,
                             promoCodeTypeObjId: 1,
                             acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
                             acceptedAmount: 1,
@@ -3493,7 +3494,8 @@ let dbPlayerReward = {
                             amount: {$sum: "$amount"},
                             acceptedCount: {$sum: "$acceptedCount"},
                             acceptedAmount: {$sum: "$acceptedAmount"},
-                            sendCount: {$sum: 1}
+                            sendCount: {$sum: 1},
+                            totalPlayer: {$addToSet: {$cond: [{$eq: ['$acceptedCount', 1]}, "$playerObjId", "$null"]}}
                         }
                     },
                     {$sort: querySort},
@@ -3505,6 +3507,7 @@ let dbPlayerReward = {
                 },
                     {
                         $project: {
+                            playerObjId: 1,
                             promoCodeTypeObjId: 1,
                             acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
                             acceptedAmount: 1,
@@ -3513,13 +3516,25 @@ let dbPlayerReward = {
                     },
                     {
                         $group: {
+                            _id: "$promoCodeTypeObjId",
+                            amount: {$sum: "$amount"},
+                            acceptedCount: {$sum: "$acceptedCount"},
+                            acceptedAmount: {$sum: "$acceptedAmount"},
+                            sendCount: {$sum: 1},
+                            totalPlayer: {$addToSet: {$cond: [{$eq: ['$acceptedCount', 1]}, "$playerObjId", "$null"]}}
+                        }
+                    },
+                    {
+                        $group: {
                             _id: null,
                             amount: {$sum: "$amount"},
                             acceptedCount: {$sum: "$acceptedCount"},
                             acceptedAmount: {$sum: "$acceptedAmount"},
-                            sendCount: {$sum: 1}
+                            sendCount: {$sum: "$sendCount"},
+                            totalPlayer:{ $sum:{ $size: "$totalPlayer"} }
                         }
-                    }];
+                    }
+                    ];
                 distinctField = "promoCodeTypeObjId"
             }
 

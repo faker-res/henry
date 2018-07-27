@@ -1008,9 +1008,6 @@ define(['js/app'], function (myApp) {
                     playerType: 'Real Player (all)'
                 };
 
-                if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read'))
-                    vm.getAdminNameByDepartment(vm.selectedPlatform.data.department);
-
                 //load partner
                 utilService.actionAfterLoaded("#partnerTablePage", function () {
                     vm.advancedPartnerQueryObj.pageObj = utilService.createPageForPagingTable("#partnerTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
@@ -2214,7 +2211,7 @@ define(['js/app'], function (myApp) {
 
             //update selected platform data
             vm.updatePlatformAction = function () {
-                if (vm.showPlatform.department.hasOwnProperty('_id')) {
+                if (vm.showPlatform.department && vm.showPlatform.department.hasOwnProperty('_id')) {
                     vm.showPlatform.department = vm.showPlatform.department._id;
                 }
 
@@ -24409,8 +24406,9 @@ define(['js/app'], function (myApp) {
                         utilService.createDatatableWithFooter(tblId, tblOptions, {
                             1: summary.sendCount,
                             2: summary.acceptedCount,
-                            3: summaryRate,
-                            4: summary.acceptedAmount
+                            3: summary.totalPlayer,
+                            4: summaryRate,
+                            5: summary.acceptedAmount
                         });
                     }
                 } else {
@@ -24610,6 +24608,7 @@ define(['js/app'], function (myApp) {
                         p = p.then(function () {
                             return $scope.$socketPromise('getPromoCodeTypeByObjId', elem._id).then(res => {
                                 elem.promoCodeType = res.data;
+                                elem.totalPlayer$ = elem.totalPlayer.length || 0;
                             })
                         });
                     });
@@ -24636,6 +24635,11 @@ define(['js/app'], function (myApp) {
                                 {
                                     title: $translate('acceptedCount'),
                                     data: "acceptedCount",
+                                    sClass: 'sumInt'
+                                },
+                                {
+                                    title: $translate('TOTAL_PLAYER_RECEIVE'),
+                                    data: "totalPlayer$",
                                     sClass: 'sumInt'
                                 },
                                 {
@@ -28429,6 +28433,22 @@ define(['js/app'], function (myApp) {
                                 callback(data.data);
                             }
                         });
+
+                        if (vm.currentPlatformDepartment && vm.currentPlatformDepartment.length) {
+                            vm.currentPlatformDepartment.map(department => {
+                                if (department.departmentName == vm.selectedPlatform.data.name) {
+                                    vm.platformDepartmentObjId = department._id;
+                                }
+                            });
+
+                            if (!vm.platformDepartmentObjId) {
+                                vm.platformDepartmentObjId = vm.currentPlatformDepartment[0]._id;
+                            }
+
+                            if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read')) {
+                                vm.getAdminNameByDepartment(vm.platformDepartmentObjId);
+                            }
+                        }
                     }
                 );
             };
@@ -32432,9 +32452,9 @@ define(['js/app'], function (myApp) {
                 vm.feedbackAdminQuery = vm.feedbackAdminQuery || {};
                 vm.feedbackAdminQuery.total = 0;
                 vm.feedbackAdminQuery.cs = '';
-                let departmentID = vm.selectedPlatform.data.department;
+                let departmentID = vm.platformDepartmentObjId;
                 if (departmentID) {
-                    socketService.$socket($scope.AppSocket, 'getDepartmentTreeByIdWithUser', {departmentId: vm.selectedPlatform.data.department}, function (data) {
+                    socketService.$socket($scope.AppSocket, 'getDepartmentTreeByIdWithUser', {departmentId: vm.platformDepartmentObjId}, function (data) {
                         var result = [];
                         data.data.forEach(function (userData) {
                             userData.users.forEach(function (user) {
