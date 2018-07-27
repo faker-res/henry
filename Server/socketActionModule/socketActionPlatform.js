@@ -587,7 +587,7 @@ function socketActionPlatform(socketIO, socket) {
         getClickCountAnalysis: function getClickCountAnalysis(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.period && data.startDate && data.endDate && data.platformId && data.device && data.pageName);
-            socketUtil.emitter(self.socket, dbPlatform.getClickCountAnalysis, [ObjectId(data.platformId), new Date(data.startDate), new Date(data.endDate), data.period, data.device, data.pageName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.getClickCountAnalysis, [ObjectId(data.platformId), new Date(data.startDate), new Date(data.endDate), data.period, data.device, data.pageName, data.domain], actionName, isValidData);
         },
 
         getClickCountDevice: function getClickCountDevice(data) {
@@ -602,10 +602,16 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getClickCountPageName, [ObjectId(data.platformId), data.device], actionName, isValidData);
         },
 
+        getClickCountDomain: function getClickCountDomain(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.device && data.pageName);
+            socketUtil.emitter(self.socket, dbPlatform.getClickCountDomain, [ObjectId(data.platformId), data.device, data.pageName], actionName, isValidData);
+        },
+
         getClickCountButtonName: function getClickCountButtonName(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.device && data.pageName);
-            socketUtil.emitter(self.socket, dbPlatform.getClickCountButtonName, [ObjectId(data.platformId), data.device, data.pageName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.getClickCountButtonName, [ObjectId(data.platformId), data.device, data.pageName, data.domain], actionName, isValidData);
         },
 
         getPlatformPartnerSettLog: function getPlatformPartnerSettLog(data) {
