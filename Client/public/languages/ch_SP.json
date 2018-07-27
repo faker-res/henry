@@ -3854,6 +3854,7 @@
   "BULK_CALL": "批量拨出",
   "CALL_PERMISSION": "电话回访权限",
   "CALLABLE": "可播电",
+  "partnerApiLog": "代理登入记录",
 
   "Please Enter Task Name": "请输入该任务 名称",
   "Please Enter Task Description": "请输入该任务 备注",
