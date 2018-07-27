@@ -3005,8 +3005,7 @@ let dbPlayerReward = {
             playerData => {
                 playerObj = playerData;
                 platformObjId = playerObj.platform;
-
-                return dbPlayerUtil.setPlayerState(playerObj._id, "ApplyPromoCode");
+                return dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", true);
             }
         ).then(
             playerState => {
@@ -3264,6 +3263,7 @@ let dbPlayerReward = {
                     // Hence this object id will be use specifically for promo code throughout system as eventObjId
                     addUsedRewardToTopUpRecord(topUpProp.proposalId, "59ca08a3ef187c1ccec863b9").catch(errorUtils.reportError);
                 }
+                dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false);
 
         })
     },
