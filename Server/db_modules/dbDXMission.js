@@ -448,7 +448,6 @@ let dbDXMission = {
         let totalPlayerBonusAmount = 0;
         let totalPlayerTopUpAmount = 0;
         let playerIdList = [];
-        let alertList = [];
         let playerDetails = [];
         importedListProm = dbconfig.collection_dxPhone.find({dxMission: dxMissionId}).lean().count();
         sentMessageListProm = dbconfig.collection_smsLog.distinct("tel", {"data.dxMission": ObjectId(dxMissionId)}).lean();
@@ -533,23 +532,6 @@ let dbDXMission = {
                         }
                     }
                 )
-        }).then(data => {
-            alertList = data;
-
-            return dbconfig.collection_playerTopUpRecord.aggregate(
-                {
-                    $match: {
-                        playerId: {$in: playerIdList}
-                    }
-                },
-                {
-                    $group: {
-                        _id: null,
-                        amount: {$sum: "$consumptionSum"},
-                        validAmount: {$sum: "$validConsumptionSum"}
-                    }
-                }
-            )
         });
 
         return Promise.all([importedListProm, sentMessageListProm, registeredPlayerListProm]).then(
@@ -557,6 +539,7 @@ let dbDXMission = {
                 if(result){
                     let importedListCount = result[0] ? result[0] : 0;
                     let sentMessageListCount = result[1] ? result[1].length : 0;
+                    let alertList = result[2] ? result[2] : 0;
                     return {
                         dxMissionId: dxMissionId,
                         importedListCount: importedListCount,
