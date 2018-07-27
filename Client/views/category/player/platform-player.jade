@@ -128,6 +128,9 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlayerApiLog')",ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalPlayerApiLog', ng-click='vm.selectedSinglePlayer = null; vm.initPlayerApiLog()')
             text {{"Player API Log" | translate}}
             img.img-edit
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ClearPlayerState')" ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalClearPlayerState', ng-click='vm.prepareClearPlayerState()')
+            text {{"ClearPlayerState" | translate}}
+            img.img-edit
 
 // Sub-views
 #modalCreatePlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
@@ -1943,3 +1946,4 @@ include modalGameCreditLog
 include platform-player-popup
 include player-feedback-popup
 include ../common-widget/telephone-popover
+include ../common-widget/modalYesNo

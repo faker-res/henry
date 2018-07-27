@@ -3,9 +3,15 @@
  */
 
 var Q = require("q");
+const constProposalStatus = require('../const/constProposalStatus');
 var constRewardType = require('../const/constRewardType');
+const constSettlementPeriod = require('../const/constSettlementPeriod');
+
 var dbRewardEvent = require('../db_modules/dbRewardEvent');
 var dbPlayerConsumptionWeekSummary = require('../db_modules/dbPlayerConsumptionWeekSummary');
+
+const dbConfig = require('./../modules/dbproperties');
+const dbUtil = require('./../modules/dbutility');
 
 let consumptionReturnEvent = {
 
@@ -47,8 +53,38 @@ let consumptionReturnEvent = {
                 error => Promise.reject({name: "DBError", message: "Error checking weekly player consumption return for platform.", error: error})
             );
         }
-    }
+    },
 
+    checkHasSettledXIMA: function (platformObjId, selectedEvent) {
+        if (selectedEvent && selectedEvent.length > 0) {
+            let promArr = [];
+            let isSettled = false;
+
+            selectedEvent.map(eventData => {
+                if (eventData && eventData.settlementPeriod) {
+                    let thisPeriod = eventData.settlementPeriod === constSettlementPeriod.DAILY
+                        ? dbUtil.getTodayConsumptionReturnSGTime()
+                        : dbUtil.getCurrentWeekConsumptionReturnSGTime();
+
+                    promArr.push(
+                        dbConfig.collection_proposal.findOne({
+                            'data.platformId': platformObjId,
+                            'data.eventCode': eventData.code,
+                            createTime: {$gte: thisPeriod.startTime, $lt: thisPeriod.endTime},
+                            status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            'data.bConsumptionReturnRequest': {$exists: false}
+                        }).lean().then(
+                            prop => {
+                                if (prop) { console.log('prop', prop); isSettled = true }
+                            }
+                        )
+                    )
+                }
+            });
+
+            return Promise.all(promArr).then(() => isSettled);
+        }
+    }
 };
 
 module.exports = consumptionReturnEvent;

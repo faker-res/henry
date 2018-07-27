@@ -9453,30 +9453,88 @@ define(['js/app'], function (myApp) {
 
         vm.prepareShowFeedbackRecord = function (rowData) {
             if (rowData && rowData.playerId) {
-                vm.playerFeedbackData = [];
-                vm.processDataTableinModal('#modalAddPlayerFeedback', '#playerFeedbackRecordTable', {'dom': 't'});
-                vm.playerFeedbackRecord = vm.playerFeedbackRecord || {};
+                vm.playerFeedbackRecord = vm.playerFeedbackRecord || {totalCount: 0};
                 utilService.actionAfterLoaded('#modalAddPlayerFeedback .searchDiv .startTime', function () {
                     vm.playerFeedbackRecord.startTime = utilService.createDatePicker('#modalAddPlayerFeedback .searchDiv .startTime');
                     vm.playerFeedbackRecord.endTime = utilService.createDatePicker('#modalAddPlayerFeedback .searchDiv .endTime');
-                    vm.playerFeedbackRecord.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                    vm.playerFeedbackRecord.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 365)));
                     vm.playerFeedbackRecord.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                    vm.updatePlayerFeedbackData('#modalAddPlayerFeedback', '#playerFeedbackRecordTable', {'dom': 't'});
-                });
-            }
 
-            if (rowData && rowData.partnerId) {
-                vm.partnerFeedbackData = [];
-                vm.processDataTableinModal('#modalAddPartnerFeedback', '#partnerFeedbackRecordTable', {'dom': 't'});
-                vm.partnerFeedbackRecord = vm.partnerFeedbackRecord || {};
-                utilService.actionAfterLoaded('#modalAddPartnerFeedback .searchDiv .startTime', function () {
-                    vm.partnerFeedbackRecord.startTime = utilService.createDatePicker('#modalAddPartnerFeedback .searchDiv .startTime');
-                    vm.partnerFeedbackRecord.endTime = utilService.createDatePicker('#modalAddPartnerFeedback .searchDiv .endTime');
-                    vm.partnerFeedbackRecord.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
-                    vm.partnerFeedbackRecord.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                    vm.updatePartnerFeedbackData('#modalAddPartnerFeedback', '#partnerFeedbackRecordTable', {'dom': 't'});
+                    utilService.actionAfterLoaded('#playerFeedbackRecord', function () {
+                        vm.playerFeedbackRecord.pageObj = utilService.createPageForPagingTable("#playerFeedbackRecordTablePage", {}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "playerFeedbackRecord", vm.getFeedbackRecord)
+                        });
+                        vm.getFeedbackRecord(true);
+                    });
                 });
             }
+        };
+
+        vm.getFeedbackRecord = function (newSearch) {
+            vm.playerFeedbackRecord.searching = true;
+            let queryData = {
+                query: {
+                    startTime: vm.playerFeedbackRecord.startTime.data('datetimepicker').getLocalDate(),
+                    endTime: vm.playerFeedbackRecord.endTime.data('datetimepicker').getLocalDate(),
+                    playerId: vm.selectedSinglePlayer._id
+                },
+                limit: newSearch ? 10 : (vm.playerFeedbackRecord.limit || 10),
+                index: newSearch ? 0 : (vm.playerFeedbackRecord.index || 0),
+                sortCol: vm.playerFeedbackRecord.sortCol || null
+            };
+
+            console.log("queryData", queryData);
+            vm.prepareFeedbackRecord(queryData, newSearch);
+        }
+
+        vm.prepareFeedbackRecord = function (queryData, newSearch) {
+            vm.playerFeedbackData = [];
+            socketService.$socket($scope.AppSocket, 'getPlayerFeedbackReport', queryData, function (data) {
+                console.log('getPlayerFeedback', data);
+
+                vm.playerFeedbackData = data.data.data;
+                vm.playerFeedbackRecord.totalCount = data.data.size;
+                vm.playerFeedbackRecord.searching = false;
+
+                var tableData = vm.playerFeedbackData.map(
+                    record => {
+                        record.createTime = (record && record.createTime) ? vm.dateReformat(record.createTime) : "";
+                        record.result = (record && record.resultName) ? record.resultName : $translate(record.result);
+                        record.content = (record && record.content) ? record.content : "";
+                        record.adminName = (record && record.adminId && record.adminId.adminName) ? record.adminId.adminName : "";
+                        record.topic = (record && record.topic) ? record.topic : "";
+                        return record
+                    }
+                );
+                var option = $.extend({}, vm.generalDataTableOptions, {
+                    data: tableData,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {title: $translate('TIME'), data: "createTime"},
+                        {title: $translate('RESULT'), data: "result"},
+                        {title: $translate('CONTENT'), data: "content"},
+                        {title: $translate('adminName'), data: "adminName"},
+                        {title: $translate('FEEDBACK_TOPIC'), data: "topic"}
+                    ],
+                    bSortClasses: false,
+                    destroy: true,
+                    paging: false,
+                    autoWidth: true,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    }
+                });
+                var a = utilService.createDatatableWithFooter('#playerFeedbackRecordTable', option, {});
+                vm.playerFeedbackRecord.pageObj.init({maxCount: vm.playerFeedbackRecord.totalCount}, newSearch);
+                $("#playerFeedbackRecordTable").off('order.dt');
+                $("#playerFeedbackRecordTable").on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'playerFeedbackRecord', vm.getFeedbackRecord);
+                });
+                $('#playerFeedbackRecordTable').resize();
+                $scope.safeApply();
+            });
         };
 
         vm.initPlayerModal = function () {
@@ -14443,7 +14501,28 @@ define(['js/app'], function (myApp) {
                 resMsg: '',
                 showSubmit: true
             };
+        };
+
+        vm.prepareClearPlayerState = function (isConfirm = false) {
+            if (!isConfirm) {
+                vm.modalYesNo = {};
+                vm.modalYesNo.modalTitle = $translate("Reset player state");
+                vm.modalYesNo.modalText = $translate("Are you sure");
+                vm.modalYesNo.actionYes = () => vm.prepareClearPlayerState(true);
+                $('#modalYesNo').modal();
+            }
+            else {
+                $scope.$socketPromise("clearPlayerState", {playerObjId: vm.selectedSinglePlayer._id}).then(
+                    () => {
+                        socketService.showConfirmMessage($translate("Success"), 1000);
+                    },
+                    error => {
+                        socketService.showErrorMessage($translate(error.error.error));
+                    }
+                )
+            }
         }
+
         vm.requestClearProposalLimit = function () {
             vm.clearPlayerProposalLimit.resMsg = '';
             vm.clearPlayerProposalLimit.showSubmit = false;

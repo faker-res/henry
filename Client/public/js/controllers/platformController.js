@@ -1976,6 +1976,25 @@ define(['js/app'], function (myApp) {
                 );
             };
 
+            function settleXIMA (socketParam) {
+                console.log("sendData startPlatformPlayerConsumptionReturnSettlement", socketParam);
+                socketService.$socket($scope.AppSocket, 'startPlatformPlayerConsumptionReturnSettlement',
+                    socketParam,
+                    function (data) {
+                        console.log('playerConsumptionReturn', data);
+                        $scope.$evalAsync(() => {
+                            vm.playerConsumptionReturnSettlement.status = 'completed';
+                            vm.playerConsumptionReturnSettlement.result = $translate('Success');
+                        })
+                    }, function (err) {
+                        console.log('err', err);
+                        $scope.$evalAsync(() => {
+                            vm.playerConsumptionReturnSettlement.status = 'completed';
+                            vm.playerConsumptionReturnSettlement.result = err.error ? (err.error.message ? err.error.message : err.error) : '';
+                        })
+                    });
+            }
+
             vm.performPlayerConsumptionReturnSettlement = function () {
                 let eventArr = [];
                 let socketParam = {platformId: vm.selectedPlatform.id};
@@ -1997,20 +2016,25 @@ define(['js/app'], function (myApp) {
                     socketParam.selectedEvent = eventArr;
                 }
 
-                console.log("sendData startPlatformPlayerConsumptionReturnSettlement", socketParam);
-                socketService.$socket($scope.AppSocket, 'startPlatformPlayerConsumptionReturnSettlement',
-                    socketParam,
-                    function (data) {
-                        console.log('playerConsumptionReturn', data);
-                        vm.playerConsumptionReturnSettlement.status = 'completed';
-                        vm.playerConsumptionReturnSettlement.result = $translate('Success');
-                        $scope.safeApply();
-                    }, function (err) {
-                        console.log('err', err);
-                        vm.playerConsumptionReturnSettlement.status = 'completed';
-                        vm.playerConsumptionReturnSettlement.result = err.error ? (err.error.message ? err.error.message : err.error) : '';
-                        $scope.safeApply();
-                    });
+                // Check settlement status
+                $scope.$socketPromise('checkHasSettledXIMA', socketParam).then(
+                    (data = {}) => {
+                        let isSettled = data.data;
+
+                        if (isSettled) {
+                            $scope.$evalAsync(() => {
+                                vm.modalYesNo = {};
+                                vm.modalYesNo.modalTitle = $translate("Already settled XIMA");
+                                vm.modalYesNo.modalText = $translate("Are you sure to settle again?");
+                                vm.modalYesNo.actionYes = () => settleXIMA(socketParam);
+                                vm.modalYesNo.actionNo = () => { vm.playerConsumptionReturnSettlement.status = "ready" };
+                                $('#modalYesNo').modal();
+                            })
+                        } else {
+                            settleXIMA(socketParam);
+                        }
+                    }
+                )
             };
 
             vm.startPlayerLevelSettlement = function ($event) {
@@ -22912,7 +22936,8 @@ define(['js/app'], function (myApp) {
 
             function loadPromoCodeTemplate() {
                 socketService.$socket($scope.AppSocket, 'getPromoCodeTemplate', {
-                    platformObjId: vm.selectedPlatform.id
+                    platformObjId: vm.selectedPlatform.id,
+                    isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup),
                 }, function (data) {
                     $scope.$evalAsync(() => {
                         vm.promoCodeTemplateSetting = (data && data.data) ? data.data : [];
@@ -22935,6 +22960,7 @@ define(['js/app'], function (myApp) {
             function loadOpenPromoCodeTemplate() {
                 socketService.$socket($scope.AppSocket, 'getOpenPromoCodeTemplate', {
                     platformObjId: vm.selectedPlatform.id,
+                    isProviderGroup: Boolean(vm.selectedPlatform.data.useProviderGroup),
                     deleteFlag: false
                 }, function (data) {
                     $scope.$evalAsync(() => {
@@ -22943,10 +22969,8 @@ define(['js/app'], function (myApp) {
                         vm.openPromoCodeTemplate2 = [];
                         vm.openPromoCodeTemplate3 = [];
 
-                        let usingProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
-
                         vm.openPromoCodeTemplateData.forEach(entry => {
-                            if (entry && usingProviderGroup == entry.isProviderGroup) {
+                            if (entry) {
                                 if (entry.isProviderGroup) {
                                     entry.allowedProviders = (entry.allowedProviders && entry.allowedProviders.length > 0)? entry.allowedProviders[0] :  '' ;
                                 }
@@ -24385,8 +24409,9 @@ define(['js/app'], function (myApp) {
                         utilService.createDatatableWithFooter(tblId, tblOptions, {
                             1: summary.sendCount,
                             2: summary.acceptedCount,
-                            3: summaryRate,
-                            4: summary.acceptedAmount
+                            3: summary.totalPlayer,
+                            4: summaryRate,
+                            5: summary.acceptedAmount
                         });
                     }
                 } else {
@@ -24586,6 +24611,7 @@ define(['js/app'], function (myApp) {
                         p = p.then(function () {
                             return $scope.$socketPromise('getPromoCodeTypeByObjId', elem._id).then(res => {
                                 elem.promoCodeType = res.data;
+                                elem.totalPlayer$ = elem.totalPlayer.length || 0;
                             })
                         });
                     });
@@ -24612,6 +24638,11 @@ define(['js/app'], function (myApp) {
                                 {
                                     title: $translate('acceptedCount'),
                                     data: "acceptedCount",
+                                    sClass: 'sumInt'
+                                },
+                                {
+                                    title: $translate('TOTAL_PLAYER_RECEIVE'),
+                                    data: "totalPlayer$",
                                     sClass: 'sumInt'
                                 },
                                 {

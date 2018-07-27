@@ -1455,7 +1455,7 @@ var proposal = {
                                 totalCommissionAmount: {$sum: "$data.commissionAmount"}
                             }
                         }
-                    );
+                    ).read("secondaryPreferred");
                     return Q.all([a, b, c]);
                 }
                 else {

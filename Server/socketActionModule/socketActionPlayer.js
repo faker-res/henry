@@ -1289,6 +1289,12 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data.playerName && data.platformObjId);
             socketUtil.emitter(self.socket, dbPlayerInfo.clearPlayerXIMAWithdraw, [data.playerName, data.platformObjId, getAdminName(), getAdminId()], actionName, isValidData);
+        },
+
+        clearPlayerState: function clearPlayerState(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerObjId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.clearPlayerState, [data.playerObjId], actionName, isValidData);
         }
     };
     socketActionPlayer.actions = this.actions;

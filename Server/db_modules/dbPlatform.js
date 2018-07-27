@@ -1688,6 +1688,9 @@ var dbPlatform = {
             var b = dbconfig.collection_smsLog.find(query).count();
             return Q.all([a, b]).then(
                 result => {
+                    if(result[0].length > 0){
+                        result[0] = excludeTelNum(result[0]);
+                    }
                     return {data: result[0], size: result[1]};
                 }
             )
@@ -2924,7 +2927,7 @@ var dbPlatform = {
             }, {new: true});
     },
 
-    createClickCountLog: (platformId, device, pageName, buttonName, registerClickApp = false, registerClickWeb = false, registerClickH5 = false, ipAddress) => {
+    createClickCountLog: (platformId, device, pageName, buttonName, registerClickApp = false, registerClickWeb = false, registerClickH5 = false, ipAddress, domain) => {
         let todayTime = dbUtility.getTodaySGTime();
         registerClickApp = registerClickApp === 'true' ? true : registerClickApp;
         registerClickWeb = registerClickWeb === 'true' ? true : registerClickWeb;
@@ -2938,7 +2941,8 @@ var dbPlatform = {
                     endTime: todayTime.endTime,
                     device: device,
                     pageName: pageName,
-                    buttonName: buttonName
+                    buttonName: buttonName,
+                    domain: domain
                 };
 
                 let countObj = {};
@@ -4420,6 +4424,19 @@ function calculatePartnerCommissionInfo(platformObjId, commissionType, startTime
     });
 }
 
+function excludeTelNum(data){
+    // mask tel number
+    data = data.map(item=>{
+        if(item.tel){
+            item.tel = dbUtility.encodePhoneNum(item.tel);
+        }
+        if(item.error && item.error.tel){
+            item.error.tel = dbUtility.encodePhoneNum(item.error.tel);
+        }
+        return item;
+    })
+    return data;
+}
 var proto = dbPlatformFunc.prototype;
 proto = Object.assign(proto, dbPlatform);
 

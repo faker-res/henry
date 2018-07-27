@@ -45,7 +45,7 @@ let RewardServiceImplement = function () {
         data = data || {};
         var isValidData = Boolean(data && conn.playerId);
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn, [conn.playerId, true, false, data.eventCode, userAgent], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn, [conn.playerId, true, false, data.eventCode, userAgent, null, false, true], isValidData);
     };
 
     this.getConsumeRebateAmount.expectsData = '';
@@ -153,14 +153,15 @@ let RewardServiceImplement = function () {
     };
     this.applyPromoCode.expectsData = 'promoCode: Number|String';
     this.applyPromoCode.onRequest = function(wsFunc, conn, data){
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
         let isValidData = Boolean(data && conn.playerId && data.promoCode);
         if (isValidData) {
             let isOpenPromoCode = data.promoCode.toString().length == 3 ? true : false;
             if (isOpenPromoCode) {
-                WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyOpenPromoCode, [conn.playerId, data.promoCode], isValidData, false, false, true);
+                WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyOpenPromoCode, [conn.playerId, data.promoCode, null, userAgent], isValidData, false, false, true);
             }
             else {
-                WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyPromoCode, [conn.playerId, data.promoCode], isValidData, false, false, true);
+                WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyPromoCode, [conn.playerId, data.promoCode, null, userAgent], isValidData, false, false, true);
             }
         }
 

@@ -306,7 +306,8 @@ var roleChecker = {
                 rewardTaskLog: ['getPlayerRewardTask'],
                 UpdatePlayerCredibility: ['updatePlayerCredibilityRemark'],
                 ModifyFeedbackResult: ['createPlayerFeedbackResult', 'deletePlayerFeedbackResult'],
-                ModifyFeedbackTopic: ['createPlayerFeedbackTopic', 'deletePlayerFeedbackTopic']
+                ModifyFeedbackTopic: ['createPlayerFeedbackTopic', 'deletePlayerFeedbackTopic'],
+                ClearPlayerState: ['resetPlayerState']
             },
             "AutoFeedback": {
                 Read: [],
@@ -523,7 +524,8 @@ var roleChecker = {
                 Delete: ["deleteWechatPayGroup"],
                 AddPlayer: ['addPlayersToWechatPayGroup'],
                 AddAllPlayer: ['addAllPlayersToWechatPayGroup'],
-                CreateWechatPay: ['createNewWechatpayAcc']
+                CreateWechatPay: ['createNewWechatpayAcc'],
+                EditWechatPay: ['updateWechatPayAcc']
             },
             "QuickPayGroup": {
                 Read: ['getPlatformQuickPayGroup'],

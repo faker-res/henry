@@ -41,6 +41,19 @@ let dbDXMission = {
         return dbconfig.collection_dxMission.find({platform: platform});
     },
 
+    deleteDxMissionDxPhone: function (dxMissionObjId) {
+        return dbconfig.collection_dxMission.remove({_id: dxMissionObjId}).then(
+            () => {
+                return dbconfig.collection_dxPhone.remove(
+                    {
+                        dxMission: dxMissionObjId,
+                        bUsed: false
+                    }
+                )
+            }
+        )
+    },
+
     createDxMission: function(data){
         data.platform = ObjectId(data.platform);
         let dxMission = new dbconfig.collection_dxMission(data);
@@ -423,7 +436,6 @@ let dbDXMission = {
         let importedListProm = [];
         let sentMessageListProm = [];
         let registeredPlayerListProm = [];
-        let topUpPlayerProm = [];
         let topUpPlayerArr = [];
         let multiTopUpPlayerArr = [];
         let validPlayerArr = [];
@@ -431,243 +443,117 @@ let dbDXMission = {
         let consumptionPlayerArr = [];
         let partnerLevel = {};
         let checkFeedBackProm = [];
-        let totalRegisteredPlayer = 0;
-        let noOfPlayerTopUp = 0;
-        let noOfPlayerMultiTopUp = 0;
-        let totalTopUpAmount = 0;
-        let totalTopUpCount = 0;
         let totalValidConsumptionCount = 0;
         let totalValidConsumptionAmount = 0;
         let totalPlayerBonusAmount = 0;
         let totalPlayerTopUpAmount = 0;
-        let alerted = false;
+        let playerIdList = [];
+        let playerDetails = [];
         importedListProm = dbconfig.collection_dxPhone.find({dxMission: dxMissionId}).lean().count();
         sentMessageListProm = dbconfig.collection_smsLog.distinct("tel", {"data.dxMission": ObjectId(dxMissionId)}).lean();
-        registeredPlayerListProm = dbconfig.collection_players.find({dxMission: dxMissionId}).lean().then(
-            playerData => {
-                if(playerData){
-                    totalRegisteredPlayer = playerData.length ? playerData.length : 0;
-                    playerData.forEach(playerId => {
-                       if(playerId){
-                           checkFeedBackProm.push(dbconfig.collection_playerFeedback.find({playerId: playerId._id}).lean().then(
-                               feedBackData => {
-                                   if(!alerted){
-                                       if (!feedBackData || feedBackData.length <= 0) {
-                                           let registeredTime = new Date(playerId.registrationTime)
-                                           let alertPeriod = new Date(dbUtility.getNdaylaterFromSpecificStartTime(alertDay,registeredTime)).getTime();
-
-                                           if (alertPeriod >= new Date().getTime()){
-                                               alerted = true;
-                                           }
-                                       }
-                                   }
-                               }
-                           ));
-
-                           topUpPlayerProm.push(dbconfig.collection_playerTopUpRecord.find({playerId: playerId._id}).lean().then(
-                               topUpRecord => {
-                                   if(topUpRecord && topUpRecord.length > 0){
-                                       noOfPlayerTopUp += 1;
-                                       totalTopUpCount = topUpRecord.length;
-                                       totalTopUpAmount = topUpRecord.reduce(function(previousValue, currentValue) {
-                                           return previousValue.amount + currentValue.amount;
-                                       });
-
-                                       //check if playerId is in the array, if not, insert it to the array for second table filtering purpose
-                                       var indexNo = topUpPlayerArr.findIndex(t => t == playerId._id);
-                                       if(indexNo == -1){
-                                           topUpPlayerArr.push(playerId._id);
-                                       }
-
-                                       if(topUpRecord.length > 1){
-                                           noOfPlayerMultiTopUp += 1;
-
-                                           //check if playerId is in the array, if not, insert it to the array for second table filtering purpose
-                                           var indexNo = multiTopUpPlayerArr.findIndex(m => m == playerId._id);
-                                           if(indexNo == -1){
-                                               multiTopUpPlayerArr.push(playerId._id);
-                                           }
-                                       }
-
-                                       return;
-                                   }
-                               }
-                           ));
-                       }
-                    });
-
-                    return Promise.all(checkFeedBackProm).then(
-                        returnData => {
-                            return Promise.all(topUpPlayerProm)
-                        }
-                    )
-                }
-            }
-        );
-
-        let totalValidPlayerProm = dbconfig.collection_partnerLevelConfig.findOne({platform: platformObjId}).then(
+        registeredPlayerListProm = dbconfig.collection_partnerLevelConfig.findOne({platform: platformObjId}).then(
             partnerLevelConfig => {
                 partnerLevel = partnerLevelConfig ? partnerLevelConfig : {};
-                let resultProm = [];
-                return dbconfig.collection_players.find({dxMission: dxMissionId},{_id: 1}).lean().then(
+
+                return;
+            }
+        ).then(() => {
+                return dbconfig.collection_players.find({dxMission: dxMissionId}).lean().then(
                     playerData => {
-                        if(playerData){
-                            playerData.forEach(player => {
-                                let totalTopUpAmount = 0;
-                                let totalConsumptionAmount = 0;
-                                let totalTopUpTime = 0;
-                                let totalConsumptionTime = 0;
-                                let topUpProm = [];
-                                let consumptionProm = [];
-                                let bonusProm = [];
-                                let playerBonusAmount = 0;
+                        if(playerData && playerData.length > 0){
+                            playerDetails = playerData;
+                            playerData.forEach(data => {
+                                if(data){
+                                    playerIdList.push(data._id);
 
+                                    if(data.topUpTimes > 0){
+                                        topUpPlayerArr.push(data._id);
 
-                                if(player){
-                                    topUpProm = dbconfig.collection_playerTopUpRecord.find({playerId: player._id}).lean().then(
-                                        topUpRecord => {
-                                            if(topUpRecord && topUpRecord.length > 0){
-                                                totalTopUpTime = topUpRecord.length;
-                                                if(topUpRecord.length > 1){
-                                                    totalTopUpAmount = topUpRecord.reduce(function(previousValue, currentValue) {
-                                                        let previousAmount = typeof previousValue.amount != "undefined" ? previousValue.amount
-                                                            : previousValue;
-
-                                                        return previousAmount + currentValue.amount;
-
-                                                    });
-                                                }else{
-                                                    totalTopUpAmount = topUpRecord[0].amount;
-                                                }
-
-                                                //check if playerId is in the array, if not, insert it to the array for second table filtering purpose
-                                                var indexNo = depositPlayerArr.findIndex(d => d == player._id);
-                                                if(indexNo == -1){
-                                                    depositPlayerArr.push(player._id);
-                                                }
-
-                                                return;
-                                            }
+                                        //check if playerId is in the array, if not, insert it to the array for second table filtering purpose
+                                        var indexNo = depositPlayerArr.findIndex(v => v == data._id);
+                                        if(indexNo == -1){
+                                            depositPlayerArr.push(data._id);
                                         }
-                                    );
+                                    }
 
-                                    consumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: player._id}).lean().then(
-                                        consumptionRecord => {
-                                            if(consumptionRecord && consumptionRecord.length > 0){
-                                                totalConsumptionTime = consumptionRecord.length;
-                                                if(consumptionRecord.length > 1){
-                                                    totalConsumptionAmount = consumptionRecord.reduce(function(previousValue, currentValue) {
-                                                        let previousValidAmount = typeof previousValue.validAmount != "undefined" ? previousValue.validAmount
-                                                            : previousValue;
+                                    if(data.topUpTimes > 1){
+                                        multiTopUpPlayerArr.push(data._id);
+                                    }
 
-                                                        return previousValidAmount + currentValue.validAmount;
-                                                    });
-                                                }else{
-                                                    totalConsumptionAmount = consumptionRecord[0].validAmount;
-                                                }
+                                    if(typeof data.topUpSum != "undefined"){
+                                        totalPlayerTopUpAmount += data.topUpSum;
+                                    }
 
-                                                //check if playerId is in the array, if not, insert it to the array for second table filtering purpose
-                                                var indexNo = consumptionPlayerArr.findIndex(c => c == player._id);
-                                                if(indexNo == -1){
-                                                    consumptionPlayerArr.push(player._id);
-                                                }
+                                    if(typeof data.withdrawSum != "undefined" && data.withdrawSum > 0){
+                                        totalPlayerBonusAmount += data.withdrawSum;
 
-                                                return;
-                                            }
+                                        //check if playerId is in the array, if not, insert it to the array for second table filtering purpose
+                                        var indexNo = depositPlayerArr.findIndex(v => v == data._id);
+                                        if(indexNo == -1){
+                                            depositPlayerArr.push(data._id);
                                         }
-                                    );
+                                    }
 
-                                    bonusProm = dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: constProposalType.PLAYER_BONUS}).then(
-                                        proposalType => {
-                                            if(proposalType){
-                                                return dbconfig.collection_proposal.find({type: proposalType._id, 'data.playerObjId': player._id, status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}}).lean().then(
-                                                    proposalData => {
-                                                        if(proposalData && proposalData.length > 0){
-                                                            if(proposalData.length > 1){
-                                                                playerBonusAmount = proposalData.reduce(function(previousValue, currentValue) {
-                                                                    if(previousValue.data){
-                                                                        return previousValue.data.amount + currentValue.data.amount;
-                                                                    }else{
-                                                                        return previousValue + currentValue.data.amount;
-                                                                    }
+                                    if(typeof data.consumptionSum != "undefined" && data.consumptionSum > 0){
+                                        totalValidConsumptionAmount += data.consumptionSum;
+                                        consumptionPlayerArr.push(data._id);
+                                    }
 
-                                                                });
-                                                            }else{
-                                                                playerBonusAmount = proposalData[0].data.amount;
-                                                            }
+                                    if(partnerLevel && data.topUpTimes >= partnerLevel.validPlayerTopUpTimes
+                                        && data.topUpSum >= partnerLevel.validPlayerTopUpAmount
+                                        && data.consumptionTimes >= partnerLevel.validPlayerConsumptionTimes
+                                        && data.consumptionSum >= partnerLevel.validPlayerConsumptionAmount
+                                        && data.valueScore >= partnerLevel.validPlayerValue)
+                                    {
+                                        totalValidConsumptionCount += 1;
+                                        validPlayerArr.push(data._id);
+                                    }
 
-                                                            //check if playerId is in the array, if not, insert it to the array for second table filtering purpose
-                                                            var indexNo = depositPlayerArr.findIndex(d => d == player._id);
-                                                            if(indexNo == -1){
-                                                                depositPlayerArr.push(player._id);
-                                                            }
-                                                        }
-                                                    }
-                                                )
+                                    checkFeedBackProm.push(dbconfig.collection_playerFeedback.find({playerId: data._id}).lean().then(
+                                        feedBackData => {
+                                            if (!feedBackData || feedBackData.length <= 0) {
+                                                let registeredTime = new Date(data.registrationTime);
+                                                let alertPeriod = new Date(dbUtility.getNdaylaterFromSpecificStartTime(alertDay,registeredTime)).getTime();
+
+                                                if(alertPeriod >= new Date().getTime()){
+                                                    return true;
+                                                }
+
+                                                return false;
                                             }
-                                        }
-                                    );
 
-                                    resultProm.push(Promise.all([topUpProm, consumptionProm, bonusProm]).then(
-                                        result => {
-                                            if(partnerLevel){
-
-                                                totalValidConsumptionAmount += totalConsumptionAmount;
-                                                totalPlayerTopUpAmount += totalTopUpAmount;
-                                                totalPlayerBonusAmount += playerBonusAmount;
-
-                                                if(totalTopUpTime < partnerLevel.validPlayerTopUpTimes){
-                                                    return;
-                                                }
-                                                if(totalTopUpAmount < partnerLevel.validPlayerTopUpAmount) {
-                                                    return;
-                                                }
-                                                if(totalConsumptionTime < partnerLevel.validPlayerConsumptionTimes){
-                                                    return;
-                                                }
-                                                if(totalConsumptionAmount < partnerLevel.validPlayerConsumptionAmount){
-                                                    return;
-                                                }
-
-                                                totalValidConsumptionCount += 1;
-
-                                                //check if playerId is in the array, if not, insert it to the array for second table filtering purpose
-                                                var indexNo = validPlayerArr.findIndex(v => v == player._id);
-                                                if(indexNo == -1){
-                                                    validPlayerArr.push(player._id);
-                                                }
-                                            }
+                                            return false;
                                         }
                                     ));
                                 }
-                            })
+                            });
 
-                            return Promise.all(resultProm);
+                            return Promise.all(checkFeedBackProm);
                         }
                     }
-                );
-            }
-        )
+                )
+        });
 
-        return Promise.all([importedListProm, sentMessageListProm, registeredPlayerListProm, totalValidPlayerProm]).then(
+        return Promise.all([importedListProm, sentMessageListProm, registeredPlayerListProm]).then(
             result => {
                 if(result){
                     let importedListCount = result[0] ? result[0] : 0;
                     let sentMessageListCount = result[1] ? result[1].length : 0;
+                    let alertList = result[2] ? result[2] : 0;
                     return {
                         dxMissionId: dxMissionId,
                         importedListCount: importedListCount,
                         sentMessageListCount: sentMessageListCount,
-                        registeredPlayerCount: totalRegisteredPlayer,
-                        topUpPlayerCount: noOfPlayerTopUp,
-                        multiTopUpPlayerCount: noOfPlayerMultiTopUp,
+                        registeredPlayerCount: playerIdList ? playerIdList.length : 0,
+                        topUpPlayerCount: playerDetails ? playerDetails.filter(p => p.topUpTimes > 0).length : 0,
+                        multiTopUpPlayerCount: playerDetails ? playerDetails.filter(p => p.topUpTimes > 1).length : 0,
                         totalValidConsumptionAmount: totalValidConsumptionAmount,
                         totalValidConsumptionCount : totalValidConsumptionCount,
-                        totalPlayerDepositAmount: totalPlayerTopUpAmount - totalPlayerBonusAmount,
                         validPlayerArr: validPlayerArr,
-                        depositPlayerArr: depositPlayerArr,
+                        totalPlayerDepositAmount: totalPlayerTopUpAmount - totalPlayerBonusAmount,
                         consumptionPlayerArr: consumptionPlayerArr,
-                        alerted: alerted,
+                        depositPlayerArr: depositPlayerArr,
+                        alerted: alertList && alertList.filter(a => a == true).length > 0 ? true : false,
                         topUpPlayerArr: topUpPlayerArr,
                         multiTopUpPlayerArr: multiTopUpPlayerArr
                     }
@@ -1589,7 +1475,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                 playerData.domain = domain;
             }
 
-            return dbPlayerInfo.createPlayerInfo(playerData);
+            return dbPlayerInfo.createPlayerInfo(playerData,null, null, null, null, true);
         }
     ).then(
         function (playerData) {
@@ -1626,6 +1512,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
         }
     ).catch(
         err => {
+            errorUtils.reportError(err);
             return {redirect: dxMission.loginUrl};
         }
     );

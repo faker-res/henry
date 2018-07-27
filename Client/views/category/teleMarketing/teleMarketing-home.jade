@@ -22,6 +22,21 @@
                         #Filter.tab-pane.fade
                             include ./teleMarketing-phone-num-filter
 
+#modalDeleteDXMission.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"DELETE_DX_MISSION" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            text {{"All records in this mission will be delete, except registered user's data, continue?" | translate}}
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.deleteDXMission()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
 
 #modalDXMission.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog

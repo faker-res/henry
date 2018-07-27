@@ -3233,14 +3233,33 @@ var proposalExecutor = {
                 //         }
                 //     );
                 // }
-                pmsAPI.payment_modifyManualTopupRequest({
-                    requestId: proposalData.data.requestId,
-                    operationType: constManualTopupOperationType.CANCEL,
-                    data: null
-                }).then(
-                    deferred.resolve, deferred.reject
-                );
-                //deferred.resolve("Proposal is rejected")
+                if (proposalData && proposalData.data && proposalData.data.requestId) {
+                    pmsAPI.payment_modifyManualTopupRequest({
+                        requestId: proposalData.data.requestId,
+                        operationType: constManualTopupOperationType.CANCEL,
+                        data: null
+                    }).then(
+                        deferred.resolve, deferred.reject
+                    );
+                    //deferred.resolve("Proposal is rejected")
+                } else {
+                    //deduct alipay daily quota
+                    if (proposalData.data && proposalData.data.alipayAccount && proposalData.data.platform && proposalData.data.amount) {
+                        dbconfig.collection_platformAlipayList.findOneAndUpdate(
+                            {
+                                accountNumber: proposalData.data.alipayAccount,
+                                platformId: proposalData.data.platform
+                            },
+                            {
+                                $inc: {quotaUsed: -proposalData.data.amount}
+                            }
+                        ).then(
+                            deferred.resolve, deferred.reject
+                        );
+                    } else {
+                        deferred.reject("Proposal is rejected");
+                    }
+                }
             },
 
             /**
@@ -3284,13 +3303,32 @@ var proposalExecutor = {
                 //         }
                 //     );
                 // }
-                pmsAPI.payment_modifyManualTopupRequest({
-                    requestId: proposalData.data.requestId,
-                    operationType: constManualTopupOperationType.CANCEL,
-                    data: null
-                }).then(
-                    deferred.resolve, deferred.reject
-                );
+                if (proposalData && proposalData.data && proposalData.data.requestId) {
+                    pmsAPI.payment_modifyManualTopupRequest({
+                        requestId: proposalData.data.requestId,
+                        operationType: constManualTopupOperationType.CANCEL,
+                        data: null
+                    }).then(
+                        deferred.resolve, deferred.reject
+                    );
+                } else {
+                    //deduct wechatpay daily quota
+                    if (proposalData.data && proposalData.data.weChatAccount && proposalData.data.platform && proposalData.data.amount) {
+                        dbconfig.collection_platformWechatPayList.findOneAndUpdate(
+                            {
+                                accountNumber: proposalData.data.weChatAccount,
+                                platformId: proposalData.data.platform
+                            },
+                            {
+                                $inc: {quotaUsed: -proposalData.data.amount}
+                            }
+                        ).then(
+                            deferred.resolve, deferred.reject
+                        );
+                    } else {
+                        deferred.reject("Proposal is rejected");
+                    }
+                }
                 //deferred.resolve("Proposal is rejected")
             },
 
@@ -3315,26 +3353,45 @@ var proposalExecutor = {
              * reject function for player manual top up
              */
             rejectManualPlayerTopUp: function (proposalData, deferred) {
-                var wsMessageClient = serverInstance.getWebSocketMessageClient();
-                if (wsMessageClient) {
-                    wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "manualTopupStatusNotify",
-                        {
-                            proposalId: proposalData.proposalId,
-                            amount: proposalData.data.amount,
-                            handleTime: new Date(),
-                            status: proposalData.status,
-                            playerId: proposalData.data.playerId
-                        }
+                if (proposalData && proposalData.data && proposalData.data.requestId) {
+                    var wsMessageClient = serverInstance.getWebSocketMessageClient();
+                    if (wsMessageClient) {
+                        wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "manualTopupStatusNotify",
+                            {
+                                proposalId: proposalData.proposalId,
+                                amount: proposalData.data.amount,
+                                handleTime: new Date(),
+                                status: proposalData.status,
+                                playerId: proposalData.data.playerId
+                            }
+                        );
+                    }
+                    pmsAPI.payment_modifyManualTopupRequest({
+                        requestId: proposalData.data.requestId,
+                        operationType: constManualTopupOperationType.CANCEL,
+                        data: null
+                    }).then(
+                        deferred.resolve, deferred.reject
                     );
+                    //deferred.resolve("Proposal is rejected");
+                } else {
+                    //deduct bank daily quota
+                    if (proposalData.data && proposalData.data.bankCardNo && proposalData.data.platform && proposalData.data.amount) {
+                        dbconfig.collection_platformBankCardList.findOneAndUpdate(
+                            {
+                                accountNumber: proposalData.data.bankCardNo,
+                                platformId: proposalData.data.platform
+                            },
+                            {
+                                $inc: {quotaUsed: -proposalData.data.amount}
+                            }
+                        ).then(
+                            deferred.resolve, deferred.reject
+                        );
+                    } else {
+                        deferred.reject("Proposal is rejected");
+                    }
                 }
-                pmsAPI.payment_modifyManualTopupRequest({
-                    requestId: proposalData.data.requestId,
-                    operationType: constManualTopupOperationType.CANCEL,
-                    data: null
-                }).then(
-                    deferred.resolve, deferred.reject
-                );
-                //deferred.resolve("Proposal is rejected");
             },
 
             /**

@@ -139,17 +139,18 @@ define(['js/app'], function (myApp) {
             }
 
             // Initial Loading
-            vm.loadBankCardGroupData();
-            vm.loadMerchantGroupData();
-            vm.loadAlipayGroupData();
-            vm.loadWechatPayGroupData();
-            vm.getAllPlayerLevels();
-            vm.loadQuickPayGroupData();
-            vm.getAllBankCard();
-            vm.getProvince();
-            vm.bankCardFilterOptions = {};
-            vm.merchantFilterOptions = {};
-            $scope.safeApply();
+            $scope.$evalAsync(() => {
+                vm.loadBankCardGroupData();
+                vm.loadMerchantGroupData();
+                vm.loadAlipayGroupData();
+                vm.loadWechatPayGroupData();
+                vm.getAllPlayerLevels();
+                vm.loadQuickPayGroupData();
+                vm.getAllBankCard();
+                vm.getProvince();
+                vm.bankCardFilterOptions = {};
+                vm.merchantFilterOptions = {};
+            });
         };
 
         //create platform node for platform list
@@ -256,14 +257,15 @@ define(['js/app'], function (myApp) {
 
         vm.loadBankCardGroup = () => {
             return $scope.$socketPromise('getPlatformBankCardGroupLite', {platform: vm.selectedPlatform.id}).then(data => {
-                console.log('bankgroup', data);
-                //provider list init
-                vm.platformBankCardGroupList = data.data;
-                vm.platformBankCardGroupListCheck = {};
-                $.each(vm.platformBankCardGroupList, function (i, v) {
-                    vm.platformBankCardGroupListCheck[v._id] = true;
+                $scope.$evalAsync(() => {
+                    console.log('bankgroup', data);
+                    //provider list init
+                    vm.platformBankCardGroupList = data.data;
+                    vm.platformBankCardGroupListCheck = {};
+                    $.each(vm.platformBankCardGroupList, function (i, v) {
+                        vm.platformBankCardGroupListCheck[v._id] = true;
+                    });
                 });
-                $scope.safeApply();
             })
         };
 
@@ -279,34 +281,36 @@ define(['js/app'], function (myApp) {
             vm.SelectedBankCardGroupNode = null;
             console.log("getBanks", vm.selectedPlatform.id);
             socketService.$socket($scope.AppSocket, 'getPlatformBankCardGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                console.log('bankgroup', data);
-                //provider list init
-                vm.platformBankCardGroupList = data.data;
-                vm.platformBankCardGroupListCheck = {};
-                $.each(vm.platformBankCardGroupList, function (i, v) {
-                    vm.platformBankCardGroupListCheck[v._id] = true;
-                })
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    console.log('bankgroup', data);
+                    //provider list init
+                    vm.platformBankCardGroupList = data.data;
+                    vm.platformBankCardGroupListCheck = {};
+                    $.each(vm.platformBankCardGroupList, function (i, v) {
+                        vm.platformBankCardGroupListCheck[v._id] = true;
+                    })
+                });
             })
 
             socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
-                if (data && data.data && data.data.data) {
-                    vm.allBankTypeList = {};
-                    vm.cloneAllBankTypeList = [];
-                    console.log('banktype', data.data.data);
-                    data.data.data.forEach(item => {
-                        if (item && item.bankTypeId) {
-                            vm.allBankTypeList[item.id] = item.name + ' (' + item.bankTypeId + ')';
-                        }
-                    })
+                $scope.$evalAsync(() => {
+                    if (data && data.data && data.data.data) {
+                        vm.allBankTypeList = {};
+                        vm.cloneAllBankTypeList = [];
+                        console.log('banktype', data.data.data);
+                        data.data.data.forEach(item => {
+                            if (item && item.bankTypeId) {
+                                vm.allBankTypeList[item.id] = item.name + ' (' + item.bankTypeId + ')';
+                            }
+                        })
 
-                    data.data.data.forEach(item => {
-                        if (item && item.bankTypeId) {
-                            vm.cloneAllBankTypeList.push({"bankTypeId": item.bankTypeId, "name": item.name + ' (' + item.bankTypeId + ')'});
-                        }
-                    })
-                }
-                $scope.safeApply();
+                        data.data.data.forEach(item => {
+                            if (item && item.bankTypeId) {
+                                vm.cloneAllBankTypeList.push({"bankTypeId": item.bankTypeId, "name": item.name + ' (' + item.bankTypeId + ')'});
+                            }
+                        })
+                    }
+                });
             });
         }
 
@@ -1309,14 +1313,15 @@ define(['js/app'], function (myApp) {
 
         vm.merchantGroupTabClicked = function () {
             socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
-                if (data && data.data && data.data.merchantTypes && data.data.merchantTypes.length > 0) {
-                    vm.allMerchantTypeList = {};
-                    data.data.merchantTypes.forEach(item => {
-                        vm.allMerchantTypeList[item.merchantTypeId] = item;
-                    });
-                    console.log('merchanttype', vm.allMerchantTypeList);
-                }
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    if (data && data.data && data.data.merchantTypes && data.data.merchantTypes.length > 0) {
+                        vm.allMerchantTypeList = {};
+                        data.data.merchantTypes.forEach(item => {
+                            vm.allMerchantTypeList[item.merchantTypeId] = item;
+                        });
+                        console.log('merchanttype', vm.allMerchantTypeList);
+                    }
+                });
             })
         };
 
@@ -1696,14 +1701,15 @@ define(['js/app'], function (myApp) {
             }
             console.log("getAlipays", vm.selectedPlatform.id);
             socketService.$socket($scope.AppSocket, 'getPlatformAlipayGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                console.log('Alipaygroup', data);
-                //provider list init
-                vm.platformAlipayGroupList = data.data;
-                vm.platformAlipayGroupListCheck = {};
-                $.each(vm.platformAlipayGroupList, function (i, v) {
-                    vm.platformAlipayGroupListCheck[v._id] = true;
-                })
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    console.log('Alipaygroup', data);
+                    //provider list init
+                    vm.platformAlipayGroupList = data.data;
+                    vm.platformAlipayGroupListCheck = {};
+                    $.each(vm.platformAlipayGroupList, function (i, v) {
+                        vm.platformAlipayGroupListCheck[v._id] = true;
+                    })
+                });
             })
 
             // socketService.$socket($scope.AppSocket, 'getExcludedAlipayByAlipayGroup', {platform: vm.selectedPlatform.data.platformId}, function(data){
@@ -2109,14 +2115,15 @@ define(['js/app'], function (myApp) {
             }
             console.log("getQuickPays", vm.selectedPlatform.id);
             socketService.$socket($scope.AppSocket, 'getPlatformQuickPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                console.log('QuickPaygroup', data);
-                //provider list init
-                vm.platformQuickPayGroupList = data.data;
-                vm.platformQuickPayGroupListCheck = {};
-                $.each(vm.platformQuickPayGroupList, function (i, v) {
-                    vm.platformQuickPayGroupListCheck[v._id] = true;
-                })
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    console.log('QuickPaygroup', data);
+                    //provider list init
+                    vm.platformQuickPayGroupList = data.data;
+                    vm.platformQuickPayGroupListCheck = {};
+                    $.each(vm.platformQuickPayGroupList, function (i, v) {
+                        vm.platformQuickPayGroupListCheck[v._id] = true;
+                    })
+                });
             })
         }
 
@@ -2306,13 +2313,14 @@ define(['js/app'], function (myApp) {
                 return
             }
             socketService.$socket($scope.AppSocket, 'getPlatformWechatPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                //provider list init
-                vm.platformWechatPayGroupList = data.data;
-                vm.platformWechatPayGroupListCheck = {};
-                $.each(vm.platformWechatPayGroupList, function (i, v) {
-                    vm.platformWechatPayGroupListCheck[v._id] = true;
+                $scope.$evalAsync(() => {
+                    //provider list init
+                    vm.platformWechatPayGroupList = data.data;
+                    vm.platformWechatPayGroupListCheck = {};
+                    $.each(vm.platformWechatPayGroupList, function (i, v) {
+                        vm.platformWechatPayGroupListCheck[v._id] = true;
+                    });
                 });
-                $scope.safeApply();
             })
         };
 
@@ -2637,6 +2645,65 @@ define(['js/app'], function (myApp) {
                     }
                     $scope.safeApply();
                 }
+            });
+        }
+
+        vm.disableEditWechatPay = function () {
+            let isDisable = true;
+            vm.selectedWechatPayArr = [];
+
+            if (vm.allWechatList && vm.allWechatList.length > 0) {
+                vm.allWechatList.forEach(x => {
+                    if (x && x.isCheck) {
+                        vm.selectedWechatPayArr.push(x);
+                    }
+                });
+            }
+
+            if (vm.selectedWechatPayArr && vm.selectedWechatPayArr.length == 1) {
+                isDisable = false;
+            }
+
+            return isDisable;
+        }
+
+        vm.showEditWechatPayInfo = function () {
+            vm.selectedWechatPay = {};
+            vm.selectedWechatPay = vm.selectedWechatPayArr[0] ? JSON.parse(JSON.stringify(vm.selectedWechatPayArr[0])) : {};
+            vm.cloneSelectedWechatPayBeforeEdit = vm.selectedWechatPay ? JSON.parse(JSON.stringify(vm.selectedWechatPay)) : {};
+        }
+
+        vm.validateEditWechatPay = function () {
+            let isDisable = true;
+            if (vm.selectedWechatPay && vm.cloneSelectedWechatPayBeforeEdit && !vm.checkIsEqual(vm.selectedWechatPay, vm.cloneSelectedWechatPayBeforeEdit)) {
+                isDisable = false;
+            }
+            return isDisable;
+        }
+
+        vm.editWechatPayAcc = function () {
+            let curWechatPay = {
+                state: vm.selectedWechatPay.state,
+                accountNumber: vm.selectedWechatPay.accountNumber,
+                name: vm.selectedWechatPay.name,
+                nickName: vm.selectedWechatPay.nickName,
+                singleLimit: vm.selectedWechatPay.singleLimit,
+                quota: vm.selectedWechatPay.quota
+            }
+
+            var sendData = {
+                query: {_id: vm.selectedWechatPay._id, platformId: vm.selectedWechatPay.platformId},
+                updateData: curWechatPay
+            };
+
+            console.log('editWechatPay sendData', sendData);
+
+            socketService.$socket($scope.AppSocket, 'updateWechatPayAcc', sendData, function (data) {
+                console.log(data.data);
+                socketService.showConfirmMessage($translate("Edited successfully"));
+                vm.wechatPayGroupClicked(null, vm.SelectedWechatPayGroupNode);
+            }, function (err) {
+                socketService.showErrorMessage($translate("Fail to edit"), err);
             });
         }
         /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
