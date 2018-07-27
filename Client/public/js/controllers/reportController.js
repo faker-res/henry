@@ -4058,7 +4058,7 @@ define(['js/app'], function (myApp) {
                 }
                 console.log("summary.totalPlayers", summary.totalPlayers);
                 console.log("summary.totalTopUpTimes", summary.totalTopUpTimes);
-                vm.drawPlayerPartnerReport(resultData, summary.totalPlayers, summary);
+                vm.drawPlayerPartnerReport(resultData, data.data.size, summary);
                 $scope.safeApply();
             }, function (err) {
                 $('#playerPartnerTableSpin').hide();
