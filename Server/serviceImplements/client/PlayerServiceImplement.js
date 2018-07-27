@@ -432,7 +432,7 @@ let PlayerServiceImplement = function () {
                 }
 
                 // Trace user online time
-                dbPlayerOnlineTime.loginTimeLog(playerData._id, token).catch(errorUtils.reportError);
+                dbPlayerOnlineTime.loginTimeLog(playerData._id, playerData.platform._id, token).catch(errorUtils.reportError);
 
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,

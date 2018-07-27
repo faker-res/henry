@@ -1,10 +1,11 @@
 let dbConfig = require('./../modules/dbproperties');
 
 let dbPlayerOnlineTime = {
-    loginTimeLog: function (playerObjId, token) {
+    loginTimeLog: function (playerObjId, platformObjId, token) {
         return dbConfig.collection_playerOnlineTime.findOneAndUpdate({
             player: playerObjId
         }, {
+            platform: platformObjId,
             lastLoginTime: new Date(),
             lastLoginToken: token,
             lastAuthenticateTime: null
