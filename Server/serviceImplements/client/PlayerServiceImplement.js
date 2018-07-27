@@ -19,6 +19,7 @@ const constProposalUserType = require('./../../const/constProposalUserType');
 const constProposalStatus = require('./../../const/constProposalStatus');
 const constMessageType = require('./../../const/constMessageType');
 const dbLogger = require('./../../modules/dbLogger');
+const dbPlayerOnlineTime = require('../../db_modules/dbPlayerOnlineTime');
 const dbPlayerPartner = require('../../db_modules/dbPlayerPartner');
 const dbPlayerRegistrationIntentRecord = require('../../db_modules/dbPlayerRegistrationIntentRecord');
 const dbPlatform = require('./../../db_modules/dbPlatform');
@@ -429,6 +430,9 @@ let PlayerServiceImplement = function () {
                 if (playerData.bankAccount) {
                     playerData.bankAccount = dbUtility.encodeBankAcc(playerData.bankAccount);
                 }
+
+                // Trace user online time
+                dbPlayerOnlineTime.loginTimeLog(playerData._id, token).catch(errorUtils.reportError);
 
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,

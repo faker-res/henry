@@ -356,6 +356,8 @@ let playerBStateSchema = require('./../schema/logs2/playerBState');
 let playerBStateModel = dbLogs2.model('playerBState', playerBStateSchema, 'playerBState');
 let partnerCommSettLogSchema = require('./../schema/logs2/partnerCommSettLog');
 let partnerCommSettLogModel = dbLogs2.model('partnerCommSettLog', partnerCommSettLogSchema, 'partnerCommSettLog');
+let playerOnlineTimeSchema = require('./../schema/logs2/playerOnlineTime');
+let playerOnlineTimeModel = dbLogs2.model('playerOnlineTime', playerOnlineTimeSchema, 'playerOnlineTime');
 
 let openPromoCodeTemplateSchema = require('./../schema/logs2/openPromoCodeTemplate');
 let openPromoCodeTemplateModel = dbLogs2.model('openPromoCodeTemplate', openPromoCodeTemplateSchema, 'openPromoCodeTemplate');
@@ -576,6 +578,7 @@ var dbProperties = {
     collection_playerForbidRewardLog: playerForbidRewardLogModel,
     collection_playerForbidGameLog: playerForbidGameLogModel,
     collection_playerForbidTopUpLog: playerForbidTopUpLogModel,
+    collection_playerOnlineTime: playerOnlineTimeModel,
     collection_rewardPointsLog: rewardPointsLogModel,
     collection_rewardTaskGroup: rewardTaskGroupModel,
     collection_createDemoPlayerLog: createDemoPlayerLogModel,
