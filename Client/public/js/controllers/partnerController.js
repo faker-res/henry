@@ -673,9 +673,6 @@ define(['js/app'], function (myApp) {
                     playerType: 'Real Player (all)'
                 };
 
-                if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read'))
-                    vm.getAdminNameByDepartment(vm.selectedPlatform.data.department);
-
                 //load partner
                 utilService.actionAfterLoaded("#partnerTablePage", function () {
                     vm.advancedPartnerQueryObj.pageObj = utilService.createPageForPagingTable("#partnerTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
@@ -11949,12 +11946,6 @@ define(['js/app'], function (myApp) {
                 return userIds;
             };
 
-            vm.getAdminNameByDepartment = function (departmentId) {
-                socketService.$socket($scope.AppSocket, 'getAdminNameByDepartment', {departmentId}, function (data) {
-                    vm.adminList = data.data;
-                });
-            };
-
             vm.getPlatformAnnouncements = function () {
                 if (!vm.selectedPlatform) return;
                 $scope.$socketPromise('getPlatformAnnouncementsByPlatformId', {platformId: vm.selectedPlatform.data.platformId}).then(function (data) {
@@ -13242,61 +13233,6 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     });
             }
-
-            vm.getAllUrl = function () {
-                vm.allUrl = [];
-                let query = {
-                    platformId: vm.selectedPlatform.id
-                };
-                socketService.$socket($scope.AppSocket, 'getAllUrl', query, function (data) {
-                        vm.allUrl = data.data;
-                        vm.allUrl = vm.allUrl.map(url => {
-                            for (let i = 0, len = vm.adminList.length; i < len; i++) {
-                                let admin = vm.adminList[i];
-                                if (url.admin.toString() === admin._id.toString()) {
-                                    url.adminName$ = admin.adminName;
-                                    break;
-                                }
-                            }
-                            return url;
-                        });
-                        console.log("vm.allUrl", vm.allUrl);
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        console.log(err);
-                    });
-            };
-
-            vm.searchCsUrl = function () {
-                vm.allUrl = [];
-                let query = {
-                    platformId: vm.selectedPlatform.id,
-                    admin: vm.csUrlSearchQuery.admin || "",
-                    domain: vm.csUrlSearchQuery.url || "",
-                    way: vm.csUrlSearchQuery.promoteWay || ""
-                };
-
-
-                socketService.$socket($scope.AppSocket, 'searchUrl', query, function (data) {
-                        vm.allUrl = data.data;
-                        vm.allUrl = vm.allUrl.map(url => {
-                            for (let i = 0, len = vm.adminList.length; i < len; i++) {
-                                let admin = vm.adminList[i];
-                                if (url.admin.toString() === admin._id.toString()) {
-                                    url.adminName$ = admin.adminName;
-                                    break;
-                                }
-                            }
-                            return url;
-                        });
-                        console.log("vm.allUrl", vm.allUrl);
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        console.log(err);
-                    });
-            };
 
             vm.getPlayerCredibilityComment = function (playerObjId) {
                 playerObjId = playerObjId || vm.selectedSinglePlayer._id;

@@ -465,7 +465,7 @@ const dbPlayerMail = {
                     let pPrefix = isPartner ? platformData.partnerPrefix : (inputData.partnerId ? platformData.partnerCreatePlayerPrefix : platformData.prefix);
 
                     // check pName must start with prefix
-                    if (pName.indexOf(pPrefix) !== 0) {
+                    if (pName && pName.indexOf(pPrefix) !== 0) {
                         if (isPartner) {
                             return Q.reject({
                                 status: constServerCode.PARTNER_NAME_INVALID,
@@ -490,7 +490,7 @@ const dbPlayerMail = {
                         }
                     }
 
-                    if(!pName.match(letterNumber)) {
+                    if(pName && !pName.match(letterNumber)) {
                         return Q.reject({
                             status: constServerCode.DATA_INVALID,
                             name: "DBError",

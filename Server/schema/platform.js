@@ -21,7 +21,7 @@ var platformSchema = new Schema({
     description: String,
     //platform url
     url: String,
-    //main department for platform
+    //main department for platform [DEPRECATED, DO NOT USE!!]
     department: {type: Schema.ObjectId, ref: 'department', default: null},
     //game providers
     gameProviders: [{type: Schema.ObjectId, ref: 'gameProvider'}],
