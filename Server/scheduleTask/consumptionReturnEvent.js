@@ -62,7 +62,7 @@ let consumptionReturnEvent = {
 
             selectedEvent.map(eventData => {
                 if (eventData && eventData.settlementPeriod) {
-                    let thisPeriod = eventData.settlementPeriod === constSettlementPeriod.DAILY
+                    let thisPeriod = eventData.settlementPeriod == constSettlementPeriod.DAILY
                         ? dbUtil.getTodayConsumptionReturnSGTime()
                         : dbUtil.getCurrentWeekConsumptionReturnSGTime();
 
