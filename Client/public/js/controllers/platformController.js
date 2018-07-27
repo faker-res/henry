@@ -24409,8 +24409,9 @@ define(['js/app'], function (myApp) {
                         utilService.createDatatableWithFooter(tblId, tblOptions, {
                             1: summary.sendCount,
                             2: summary.acceptedCount,
-                            3: summaryRate,
-                            4: summary.acceptedAmount
+                            3: summary.totalPlayer,
+                            4: summaryRate,
+                            5: summary.acceptedAmount
                         });
                     }
                 } else {
@@ -24610,6 +24611,7 @@ define(['js/app'], function (myApp) {
                         p = p.then(function () {
                             return $scope.$socketPromise('getPromoCodeTypeByObjId', elem._id).then(res => {
                                 elem.promoCodeType = res.data;
+                                elem.totalPlayer$ = elem.totalPlayer.length || 0;
                             })
                         });
                     });
@@ -24636,6 +24638,11 @@ define(['js/app'], function (myApp) {
                                 {
                                     title: $translate('acceptedCount'),
                                     data: "acceptedCount",
+                                    sClass: 'sumInt'
+                                },
+                                {
+                                    title: $translate('TOTAL_PLAYER_RECEIVE'),
+                                    data: "totalPlayer$",
                                     sClass: 'sumInt'
                                 },
                                 {
