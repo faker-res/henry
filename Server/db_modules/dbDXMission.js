@@ -1267,57 +1267,59 @@ let dbDXMission = {
     },
 
     retrieveSMSLogInfo: function (dxPhoneData, dxMissionObjId, lastSendingStartTime, lastSendingEndTime) {
-        let smsLogProm = [];
+        let regexPhoneNoList = [];
+        let smsLogReturnedObj = [];
         if (dxPhoneData && dxPhoneData.length > 0) {
 
             dxPhoneData.forEach (data => {
-
-                let newRegexPhoneNumber = new RegExp(data.phoneNumber.trim());
-                let findQuery = {
-                    tel: {$regex: newRegexPhoneNumber},
-                    "data.dxMission": dxMissionObjId,
-                    status: "success"
-                };
-
-                if (lastSendingStartTime && lastSendingEndTime){
-                    findQuery.createTime = {$gte: new Date(lastSendingStartTime), $lt: new Date(lastSendingEndTime)};
-                }
-
-                smsLogProm.push(dbconfig.collection_smsLog.find(findQuery).lean().sort({createTime:-1}).then(
-                    smsLogData => {
-                        // filter the users according to the lastTime
-                        if (lastSendingStartTime && lastSendingEndTime){
-                            if (smsLogData && smsLogData.length > 0) {
-
-                                return {
-                                    phoneNumber: smsLogData[0].tel.trim(),
-                                    lastTime: smsLogData[0].createTime,
-                                    count: smsLogData.length
-                                }
-                            }
-                        }
-                        else{
-                            // to consider users that have not received msg yet
-                            if (smsLogData && smsLogData.length > 0) {
-                                return {
-                                    phoneNumber: smsLogData[0].tel.trim(),
-                                    lastTime: smsLogData[0].createTime,
-                                    count: smsLogData.length
-                                }
-                            }
-                            else{
-                                return {
-                                    phoneNumber: data.phoneNumber.trim(),
-                                    count: 0
-                                }
-                            }
-                        }
-
-                    }
-                ))
+                regexPhoneNoList.push(new RegExp(data.phoneNumber.trim()));
             });
 
-            return Q.all(smsLogProm);
+            let findQuery = {
+                tel: {$in: regexPhoneNoList},
+                "data.dxMission": dxMissionObjId,
+                status: "success"
+            };
+
+            if (lastSendingStartTime && lastSendingEndTime){
+                findQuery.createTime = {$gte: new Date(lastSendingStartTime), $lt: new Date(lastSendingEndTime)};
+            }
+            return dbconfig.collection_smsLog.aggregate(
+                {
+                    $match: findQuery
+                },
+                {
+                    $group: {
+                        _id:{phoneNumber: "$tel"},
+                        lastTime: {$last: "$createTime"},
+                        count: {$sum: 1},
+                    }
+                }
+            ).then(
+                smsLog => {
+                    dxPhoneData.forEach(data => {
+                        let returnedData = {};
+                        let indexNo = smsLog.findIndex(s => s._id.phoneNumber == data.phoneNumber.trim());
+
+                        if (indexNo > -1) {
+                            returnedData = {
+                                phoneNumber: smsLog[indexNo]._id.phoneNumber,
+                                lastTime: smsLog[indexNo].lastTime,
+                                count: smsLog[indexNo].count
+                            }
+                        }else{
+                            returnedData = {
+                                phoneNumber: data.phoneNumber.trim(),
+                                count: 0
+                            }
+                        }
+
+                        smsLogReturnedObj.push(returnedData);
+                    });
+
+                    return smsLogReturnedObj;
+                }
+            )
         }
     },
 

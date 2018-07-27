@@ -405,6 +405,10 @@ var dbPlatformAlipayGroup = {
 
     updateAlipayAcc: function (query, updateData) {
         return dbconfig.collection_platformAlipayList.findOneAndUpdate(query, updateData).lean();
+    },
+
+    deleteAlipayAcc: function (AlipayObjId) {
+        return dbconfig.collection_platformAlipayList.remove({_id: AlipayObjId}).exec();
     }
 
 };

@@ -162,6 +162,12 @@ function socketActionAlipayGroup(socketIO, socket) {
             let actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.updateData);
             socketUtil.emitter(self.socket, dbPlatformAlipayGroup.updateAlipayAcc, [data.query, data.updateData], actionName, isValidData);
+        },
+
+        deleteAlipayAcc: function deleteAlipayAcc(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data._id);
+            socketUtil.emitter(self.socket, dbPlatformAlipayGroup.deleteAlipayAcc, [data._id], actionName, isValidData);
         }
 
     };

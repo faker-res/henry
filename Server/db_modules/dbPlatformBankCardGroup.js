@@ -438,7 +438,12 @@ var dbPlatformBankCardGroup = {
 
     updateBankCardAcc: function (query, updateData) {
         return dbconfig.collection_platformBankCardList.findOneAndUpdate(query, updateData).lean();
+    },
+
+    deleteBankCardAcc: function (bankCardObjId) {
+        return dbconfig.collection_platformBankCardList.remove({_id: bankCardObjId}).exec();
     }
+
 };
 
 module.exports = dbPlatformBankCardGroup;

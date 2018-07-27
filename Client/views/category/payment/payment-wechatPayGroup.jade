@@ -282,6 +282,7 @@
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.editWechatPayAcc()", ng-disabled="vm.validateEditWechatPay()") {{"CONFIRM" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+                button.btn.btn-danger.common-button(data-dismiss='modal', ng-click="vm.deleteWechatPayAcc()") {{"DELETE" | translate}}
 
 // Modal - add wechat pay group
 #modalAddWechatPayGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')

@@ -28427,12 +28427,7 @@ define(['js/app'], function (myApp) {
                 // getting admin's department might not get the required department by platform for some features
                 socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform.id},
                     data => {
-                        $scope.$evalAsync(() => {
-                            vm.currentPlatformDepartment = data.data;
-                            if (typeof(callback) == 'function') {
-                                callback(data.data);
-                            }
-                        });
+                        vm.currentPlatformDepartment = data.data;
 
                         if (vm.currentPlatformDepartment && vm.currentPlatformDepartment.length) {
                             vm.currentPlatformDepartment.map(department => {
@@ -28449,6 +28444,12 @@ define(['js/app'], function (myApp) {
                                 vm.getAdminNameByDepartment(vm.platformDepartmentObjId);
                             }
                         }
+
+                        $scope.$evalAsync(() => {
+                            if (typeof(callback) == 'function') {
+                                callback(data.data);
+                            }
+                        });
                     }
                 );
             };

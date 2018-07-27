@@ -5015,9 +5015,13 @@ define(['js/app'], function (myApp) {
                             vm.newPlayerQuery.totalNewPlayerWithMultiTopup = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes > 1).length;
                             vm.newPlayerQuery.newValidPlayer = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionSum >= vm.partnerLevelConfig.validPlayerConsumptionAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes && player.valueScore >= vm.partnerLevelConfig.validPlayerValue);
                             vm.newPlayerQuery.totalNewValidPlayer = vm.newPlayerQuery.newValidPlayer.length;
+                            let backEndCreateWayExisted = false;
                             // ============ promote way new player ============
                             vm.newPlayerQuery.promoteWayData = vm.allPromoteWay.map(
                                 promoteWay => {
+                                    if (promoteWay.name === "客服后台开户") {
+                                        backEndCreateWayExisted = true;
+                                    }
                                     let promoteWayPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.promoteWay == promoteWay.name && !player.partner);
                                     return vm.calculateNewPlayerData(promoteWayPlayers, promoteWay.name);
                                 }
@@ -5027,9 +5031,11 @@ define(['js/app'], function (myApp) {
                             let partnerPlayersCalculatedData = vm.calculateNewPlayerData(partnerPlayers, $translate('partner'));
                             vm.newPlayerQuery.promoteWayData.push(partnerPlayersCalculatedData);
                             // 客服后台开户
-                            let fpmsPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.promoteWay === '客服后台开户');
-                            let fpmsPlayersCalculatedData = vm.calculateNewPlayerData(fpmsPlayers, '客服后台开户');
-                            vm.newPlayerQuery.promoteWayData.push(fpmsPlayersCalculatedData);
+                            if (!backEndCreateWayExisted) {
+                                let fpmsPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.promoteWay === '客服后台开户');
+                                let fpmsPlayersCalculatedData = vm.calculateNewPlayerData(fpmsPlayers, '客服后台开户');
+                                vm.newPlayerQuery.promoteWayData.push(fpmsPlayersCalculatedData);
+                            }
                             // no promote way new player
                             let noPromoteWayPlayers = vm.newPlayerQuery.newPlayers.filter(player => !player.partner && !player.promoteWay);
                             vm.newPlayerQuery.promoteWayData.push(vm.calculateNewPlayerData(noPromoteWayPlayers, $translate('No Promote Way')));
