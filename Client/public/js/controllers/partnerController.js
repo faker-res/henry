@@ -7559,6 +7559,7 @@ define(['js/app'], function (myApp) {
             vm.getPartnerApiLogData = function (newSearch) {
                 vm.loadingPartnerApiLogTable = true;
                 if (!authService.checkViewPermission('Platform', 'Partner', 'partnerApiLog')) {
+                    vm.loadingPartnerApiLogTable = false;
                     return;
                 }
 
@@ -7582,6 +7583,7 @@ define(['js/app'], function (myApp) {
                     vm.partnerApiLog.totalCount = total;
                     vm.drawPartnerApiLogTable(newSearch, tblData, total);
                     vm.loadingPartnerApiLogTable = false;
+                    $scope.$evalAsync();
                 });
             };
 
