@@ -5064,8 +5064,14 @@ define(['js/app'], function (myApp) {
                                 });
                             }
                         });
-                        setPartnerTableData(reply.data.data);
+                        // setPartnerTableData(reply.data.data);
                         // vm.partners = reply.data.data;
+                        if (reply && reply.data && reply.data.data && reply.data.data.length) {
+                            vm.drawPartnerTable(reply.data);
+                        } else {
+                            setPartnerTableData([])
+                        }
+
                         vm.searchPartnerCount = reply.data.size;
                     })
                 });
