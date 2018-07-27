@@ -423,9 +423,12 @@ let dbPlatformWechatPayGroup = {
     },
 
     updateWechatPayAcc: function (query, updateData) {
-    return dbconfig.collection_platformWechatPayList.findOneAndUpdate(query, updateData).lean();
-}
+        return dbconfig.collection_platformWechatPayList.findOneAndUpdate(query, updateData).lean();
+    },
 
+    deleteWechatPayAcc: function (WechatPayObjId) {
+        return dbconfig.collection_platformWechatPayList.remove({_id: WechatPayObjId}).exec();
+    }
 };
 
 module.exports = dbPlatformWechatPayGroup;
