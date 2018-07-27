@@ -2211,7 +2211,7 @@ define(['js/app'], function (myApp) {
 
             //update selected platform data
             vm.updatePlatformAction = function () {
-                if (vm.showPlatform.department.hasOwnProperty('_id')) {
+                if (vm.showPlatform.department && vm.showPlatform.department.hasOwnProperty('_id')) {
                     vm.showPlatform.department = vm.showPlatform.department._id;
                 }
 
