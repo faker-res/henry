@@ -1153,6 +1153,8 @@
   "Are you sure to settle again?": "是否尝试再次洗码?",
   "lastBonusTime": "最近提款时间",
   "BonusTime": "提款次数",
+  "PlayerOnlineTime": "玩家在线时间",
+  "PLAYER_ONLINE_TIME": "玩家在线时间",
   "WITHDRAWAL_TIMES": "提款次数",
   "BonusAmount": "提款额",
   "BONUS_AMOUNT": "提款额",
