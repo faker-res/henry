@@ -611,7 +611,8 @@ var roleChecker = {
                 PlayerDomain: ['getPlayerDomainAnalysisData'],
                 ManualApproval: ['getManualApprovalRecords'],
                 FrontEndRegistrationAttritionRate: ['getSpecificProposalTypeByName', 'getRegistrationClickCountRecords'],
-                WithdrawalSpeed: ['getWithdrawalProposal', 'getProposalByObjId']
+                WithdrawalSpeed: ['getWithdrawalProposal', 'getProposalByObjId'],
+                PlayerOnlineTime: ['getOnlineTimeLogByPlatform']
             }
         },
         Report: {

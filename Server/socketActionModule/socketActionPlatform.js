@@ -14,6 +14,7 @@ const dbPlayerLevel = require('./../db_modules/dbPlayerLevel');
 const dbRewardEvent = require('./../db_modules/dbRewardEvent');
 const dbRewardTaskGroup = require('./../db_modules/dbRewardTaskGroup');
 const dbPlayerCredibility = require('../db_modules/dbPlayerCredibility');
+const dbPlayerOnlineTime = require('../db_modules/dbPlayerOnlineTime');
 const dbSmsGroup = require('../db_modules/dbSmsGroup');
 const constProposalType = require('./../const/constProposalType');
 const constFinancialPointsType = require('./../const/constFinancialPointsType');
@@ -669,6 +670,12 @@ function socketActionPlatform(socketIO, socket) {
             }
             socketUtil.emitter(self.socket, dbPlatform.updatePlatformFinancialPoints, [ObjectId(data.platformId), proposalTypeName, data], actionName, isValidData);
         },
+
+        getOnlineTimeLogByPlatform: function getOnlineTimeLogByPlatform(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlayerOnlineTime.getOnlineTimeLogByPlatform, [data.platformObjId], actionName, isValidData);
+        }
     };
     socketActionPlatform.actions = this.actions;
 }

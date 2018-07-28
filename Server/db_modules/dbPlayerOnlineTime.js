@@ -44,6 +44,12 @@ let dbPlayerOnlineTime = {
                 }
             }
         )
+    },
+
+    getOnlineTimeLogByPlatform: function (platformObjId) {
+        return dbConfig.collection_playerOnlineTime.find({
+            platform: platformObjId
+        }).populate({path: "player", model: dbConfig.collection_players, select:{_id:1, name:1}}).lean();
     }
 };
 
