@@ -25,12 +25,16 @@
                 select.form-control(ng-model='vm.queryPara.clickCount.inputDevice', ng-options="i as v | translate for (i,v) in vm.clickCountDevice", style='max-width:200px', ng-change="vm.getClickCountPageName(vm.queryPara.clickCount.inputDevice)")
             div
                 label {{'PAGE_NAME' | translate}}
-                select.form-control(ng-model='vm.queryPara.clickCount.pageName', ng-options="i as v | translate for (i,v) in vm.clickCountPageName", style='max-width:200px')
+                select.form-control(ng-model='vm.queryPara.clickCount.pageName', ng-options="i as v | translate for (i,v) in vm.clickCountPageName", style='max-width:200px', ng-change="vm.getClickCountDomain(vm.queryPara.clickCount.inputDevice, vm.queryPara.clickCount.pageName)")
+            div
+                label {{'DOMAIN NAME' | translate}}
+                select.form-control(ng-model='vm.queryPara.clickCount.domain', ng-options="i as v | translate for (i,v) in vm.clickCountDomain", style='max-width:200px')
+                    option(value='') {{"any" | translate}}
             div
                 label &nbsp;
-                button.btn.btn-primary.common-button(ng-click='vm.getClickCountAnalysis(vm.queryPara.clickCount.inputDevice, vm.queryPara.clickCount.pageName)') {{'SEARCH' | translate}}
+                button.btn.btn-primary.common-button(ng-click='vm.getClickCountAnalysis(vm.queryPara.clickCount.inputDevice, vm.queryPara.clickCount.pageName, vm.queryPara.clickCount.domain)') {{'SEARCH' | translate}}
 
-        label.text-primary {{'clickCount' | translate}}: {{'DEVICE' | translate}}, {{'PAGE_NAME' | translate}} VS {{vm.queryPara.clickCount.periodText | translate}}
+        label.text-primary {{'clickCount' | translate}}: {{'DEVICE' | translate}}, {{'PAGE_NAME' | translate}}, {{'DOMAIN NAME' | translate}} VS {{vm.queryPara.clickCount.periodText | translate}}
         .row
             .col-md-12
                 .graph

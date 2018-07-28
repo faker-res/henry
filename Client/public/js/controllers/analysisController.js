@@ -2757,7 +2757,7 @@ define(['js/app'], function (myApp) {
                         vm.clickCountDevice[vm.deviceData[Object.keys(vm.deviceData)[i]]] = vm.deviceData[Object.keys(vm.deviceData)[i]];
                     }
 
-                    // set first page name as default selected page name
+                    // set first device name as default selected device name
                     vm.queryPara.clickCount.inputDevice = vm.clickCountDevice[Object.keys(vm.clickCountDevice)[0]] || "";
                     vm.getClickCountPageName(vm.queryPara.clickCount.inputDevice);
                 });
@@ -2784,17 +2784,44 @@ define(['js/app'], function (myApp) {
 
                     // set first page name as default selected page name
                     vm.queryPara.clickCount.pageName = vm.clickCountPageName[Object.keys(vm.clickCountPageName)[0]] || "";
+                    vm.getClickCountDomain(vm.queryPara.clickCount.inputDevice, vm.queryPara.clickCount.pageName);
                 });
             }, function (data) {
                 console.log("clickCount page name data not found?", data);
             });
         };
-
-        vm.getClickCountButtonName = function (device, pageName) {
+        
+        vm.getClickCountDomain = function (device, pageName) {
             let sendData = {
                 platformId: vm.selectedPlatform._id,
                 device: device,
                 pageName: pageName
+            };
+
+            socketService.$socket($scope.AppSocket, 'getClickCountDomain', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.clickCountDomain = {};
+                    vm.domainData = data.data;
+
+                    // replace object key with domain
+                    for (let i = 0; i < Object.keys(vm.domainData).length; i++) {
+                        vm.clickCountDomain[vm.domainData[Object.keys(vm.domainData)[i]]] = vm.domainData[Object.keys(vm.domainData)[i]];
+                    }
+
+                    // set first domain as default selected domain
+                    // vm.queryPara.clickCount.domain = vm.clickCountDomain[Object.keys(vm.clickCountDomain)[0]] || "";
+                });
+            }, function (data) {
+                console.log("clickCount domain data not found?", data);
+            });
+        };
+
+        vm.getClickCountButtonName = function (device, pageName, domain) {
+            let sendData = {
+                platformId: vm.selectedPlatform._id,
+                device: device,
+                pageName: pageName,
+                domain: domain
             };
 
             socketService.$socket($scope.AppSocket, 'getClickCountButtonName', sendData, function (data) {
@@ -2806,14 +2833,14 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.getClickCountAnalysis = function (device, pageName) {
+        vm.getClickCountAnalysis = function (device, pageName, domain) {
             vm.clickCountTable = "clickCountAnalysisTable"+vm.clickCountTimes;
             vm.clickCountTimes2 = vm.clickCountTimes - 1;
             vm.clickCountTable2 = vm.clickCountTable.slice(0, -1) + vm.clickCountTimes2;
             vm.clickCountTableID = '#'+vm.clickCountTable; // new table ID (increment)
             vm.clickCountTableID2 = '#'+vm.clickCountTable2; // previous table ID after first search (need to be replaced)
 
-            vm.getClickCountButtonName(device, pageName);
+            vm.getClickCountButtonName(device, pageName, domain);
             vm.isShowLoadingSpinner('#clickCountAnalysis', true);
             let sendData = {
                 platformId: vm.selectedPlatform._id,
@@ -2821,7 +2848,8 @@ define(['js/app'], function (myApp) {
                 startDate: vm.queryPara.clickCount.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.clickCount.endTime.data('datetimepicker').getLocalDate(),
                 device: device,
-                pageName: pageName
+                pageName: pageName,
+                domain: domain
             };
 
             socketService.$socket($scope.AppSocket, 'getClickCountAnalysis', sendData, function (data) {
