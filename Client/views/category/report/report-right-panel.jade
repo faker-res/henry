@@ -381,8 +381,8 @@
                     span#loadingPlayerDepositAnalysisReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Total" | translate}} {{vm.depositAnalysisQuery.totalCount}} {{"records" | translate}}
-            table.common-table#playerDepositAnalysisReportTable.display(style="width:100% ;overflow-x: scroll")
+            //label {{"Total" | translate}} {{vm.depositAnalysisQuery.totalCount}} {{"records" | translate}}
+            //table.common-table#playerDepositAnalysisReportTable.display(style="width:100% ;overflow-x: scroll")
             #playerDepositAnalysisReportTablePage
 
             div(ng-repeat="pda in vm.playerDepositAnalysis track by $index" ng-if="vm.playerDepositAnalysis.length > 0")

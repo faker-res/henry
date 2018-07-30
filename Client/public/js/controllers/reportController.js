@@ -3703,7 +3703,7 @@ define(['js/app'], function (myApp) {
                     });
                     vm.playerDepositAnalysis = tempFilter;
 
-                    vm.drawPlayerDepositAnalysisReport(drawData, data.data.total, data.data.size, newSearch);
+                    // vm.drawPlayerDepositAnalysisReport(drawData, data.data.total, data.data.size, newSearch);
                 });
             });
         };
@@ -7537,9 +7537,9 @@ define(['js/app'], function (myApp) {
                         vm.depositAnalysisQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                         vm.depositAnalysisQuery.end = utilService.createDatePicker('#endingEndDateTimePickerDepositAnalysis');
                         vm.depositAnalysisQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                        vm.depositAnalysisQuery.pageObj = utilService.createPageForPagingTable("#playerDepositAnalysisReportTablePage", {pageSize: 5000}, $translate, function (curP, pageSize) {
-                            vm.commonPageChangeHandler(curP, pageSize, "depositAnalysisQuery", vm.searchPlayerDepositAnalysisReport);
-                        });
+                        // vm.depositAnalysisQuery.pageObj = utilService.createPageForPagingTable("#playerDepositAnalysisReportTablePage", {pageSize: 5000}, $translate, function (curP, pageSize) {
+                        //     vm.commonPageChangeHandler(curP, pageSize, "depositAnalysisQuery", vm.searchPlayerDepositAnalysisReport);
+                        // });
                         vm.setupRemarksMultiInputDepositAnalysis();
                     });
                 })
