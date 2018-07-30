@@ -1842,18 +1842,6 @@ var proposalExecutor = {
                         return pmsAPI.bonus_applyBonus(message).then(
                             bonusData => {
                                 if (bonusData) {
-                                    let financialProposal = {
-                                        creator: proposalData.creator,
-                                        data: {
-                                            updateAmount: -proposalData.data.amount,
-                                            remark: "",
-                                            withdrawalProposalId: proposalData.proposalId,
-                                            noExecuteRequire: true
-                                        }
-                                    };
-                                    dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).catch(errorUtils.reportError);
-                                    dbProposal.createProposalWithTypeNameWithProcessInfo(partner.platform._id, constProposalType.FINANCIAL_POINTS_DEDUCT, financialProposal).catch(errorUtils.reportError);
-                                    return bonusData;
                                     return dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).then(
                                         platformData => {
                                             if (!platformData) {
