@@ -14532,7 +14532,7 @@ let dbPlayerInfo = {
 
         let stream = dbconfig.collection_players.aggregate({
             $match: matchObj
-        }).cursor({batchSize: 50}).allowDiskUse(true).exec();
+        }).cursor({batchSize: 10}).allowDiskUse(true).exec();
 
         let balancer = new SettlementBalancer();
 
@@ -14541,7 +14541,7 @@ let dbPlayerInfo = {
                 balancer.processStream(
                     {
                         stream: stream,
-                        batchSize: 50,
+                        batchSize: 10,
                         makeRequest: function (playerIdObjs, request) {
                             request("player", "getConsumptionDetailOfPlayers", {
                                 platformId: platform,
