@@ -1215,19 +1215,19 @@ define(['js/app'], function (myApp) {
         };
 
         vm.setupRemarksMultiInputDepositAnalysis = function () {
-            let remarkSelect = $('select#selectCredibilityRemarksDepositAnalysis');
-            if (remarkSelect.css('display').toLowerCase() === "none") {
-                return;
-            }
-            remarkSelect.multipleSelect({
-                showCheckbox: true,
-                allSelected: $translate("All Selected"),
-                selectAllText: $translate("Select All"),
-                displayValues: false,
-                countSelected: $translate('# of % selected')
+            $scope.$evalAsync(() => {
+                let remarkSelect = $('select#selectCredibilityRemarksDepositAnalysis');
+                if (remarkSelect.css('display').toLowerCase() === "none") {
+                    return;
+                }
+                remarkSelect.multipleSelect({
+                    showCheckbox: true,
+                    allSelected: $translate("All Selected"),
+                    selectAllText: $translate("Select All"),
+                    displayValues: false,
+                    countSelected: $translate('# of % selected')
+                });
             });
-
-            $scope.safeApply();
         };
 
         vm.getProposalTypeByPlatformId = function (id) {
@@ -7525,22 +7525,23 @@ define(['js/app'], function (myApp) {
                 })
             } else if (choice == "PLAYER_DEPOSIT_ANALYSIS_REPORT") {
                 utilService.actionAfterLoaded('#playerDepositAnalysisReportTablePage', function () {
-                    var yesterday = utilService.setNDaysAgo(new Date(), 8);
-                    var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
-                    var todayEndTime = utilService.getTodayEndTime();
-                    vm.depositAnalysisQuery = {};
-                    vm.depositAnalysisQuery.sortCol = {validConsumptionAmount: -1};
-                    vm.depositAnalysisQuery.limit = 5000;
-                    vm.depositAnalysisQuery.valueScoreOperator = ">=";
-                    vm.depositAnalysisQuery.start = utilService.createDatePicker('#startingDateTimePickerDepositAnalysis');
-                    vm.depositAnalysisQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
-                    vm.depositAnalysisQuery.end = utilService.createDatePicker('#endingEndDateTimePickerDepositAnalysis');
-                    vm.depositAnalysisQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                    vm.depositAnalysisQuery.pageObj = utilService.createPageForPagingTable("#playerDepositAnalysisReportTablePage", {pageSize: 5000}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "depositAnalysisQuery", vm.searchPlayerDepositAnalysisReport);
+                    $scope.$evalAsync(() => {
+                        var yesterday = utilService.setNDaysAgo(new Date(), 8);
+                        var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
+                        var todayEndTime = utilService.getTodayEndTime();
+                        vm.depositAnalysisQuery = {};
+                        vm.depositAnalysisQuery.sortCol = {validConsumptionAmount: -1};
+                        vm.depositAnalysisQuery.limit = 5000;
+                        vm.depositAnalysisQuery.valueScoreOperator = ">=";
+                        vm.depositAnalysisQuery.start = utilService.createDatePicker('#startingDateTimePickerDepositAnalysis');
+                        vm.depositAnalysisQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                        vm.depositAnalysisQuery.end = utilService.createDatePicker('#endingEndDateTimePickerDepositAnalysis');
+                        vm.depositAnalysisQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                        vm.depositAnalysisQuery.pageObj = utilService.createPageForPagingTable("#playerDepositAnalysisReportTablePage", {pageSize: 5000}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "depositAnalysisQuery", vm.searchPlayerDepositAnalysisReport);
+                        });
+                        vm.setupRemarksMultiInputDepositAnalysis();
                     });
-                    vm.setupRemarksMultiInputDepositAnalysis();
-                    $scope.safeApply();
                 })
             } else if (choice == "PLAYER_EXPENSE_REPORT") {
                 vm.playerExpenseQuery = {totalCount: 0};
