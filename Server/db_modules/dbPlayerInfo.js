@@ -14469,6 +14469,11 @@ let dbPlayerInfo = {
                 outputData[z].date = new Date(outputYear, outputMonth, outputDay);
             }
 
+            // display data in reverse date order
+            outputData.sort(function (a, b) {
+                return b.date - a.date
+            });
+
             //handle sum of field here
             for (let z = 0; z < outputData.length; z++) {
                 outputDataSum.topUpAmount += outputData[z].topUpAmount;
