@@ -1923,9 +1923,9 @@
                                 td {{v.topUpAmount | noRoundTwoDecimalPlaces}}
                                 td {{v.bonusAmount | noRoundTwoDecimalPlaces}}
                             tr(ng-if="vm.playerDepositAnalysisDetails.outputData.length > 0")
-                                td {{"Totalsum" | translate}}
-                                td {{vm.playerDepositAnalysisDetails.total.topUpAmount | noRoundTwoDecimalPlaces}}
-                                td {{vm.playerDepositAnalysisDetails.total.bonusAmount | noRoundTwoDecimalPlaces}}
+                                td(style="font-weight:bold") {{"Totalsum" | translate}}
+                                td(style="font-weight:bold") {{vm.playerDepositAnalysisDetails.total.topUpAmount | noRoundTwoDecimalPlaces}}
+                                td(style="font-weight:bold") {{vm.playerDepositAnalysisDetails.total.bonusAmount | noRoundTwoDecimalPlaces}}
 
 include ../common-widget/telephone-popover
 script(src='js/lib/flot/jquery.flot.min.js')
