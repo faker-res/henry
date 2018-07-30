@@ -14350,6 +14350,152 @@ let dbPlayerInfo = {
         );
     },
 
+    getPlayerDepositAnalysisDetails: function (platformObjId, query, playerObjId, dailyTotalDeposit) {
+        query = query ? query : {};
+        dailyTotalDeposit = dailyTotalDeposit ? dailyTotalDeposit : 0;
+
+        let startDate = new Date(query.start);
+        let endDate = new Date(query.end);
+        let topUpProm = [];
+        let bonusProm = [];
+        let outputDataSum = {
+            topUpAmount: 0,
+            bonusAmount: 0,
+        };
+
+        // loop for every day
+        while (startDate.getTime() < endDate.getTime()) {
+            let dayEndTime = getNextDateByPeriodAndDate('day', startDate);
+
+            topUpProm.push(dbconfig.collection_proposal.aggregate([
+                {
+                    "$match": {
+                        "data.playerObjId": playerObjId,
+                        "createTime": {
+                            "$gte": startDate,
+                            "$lte": dayEndTime
+                        },
+                        "mainType": "TopUp",
+                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                    }
+                },
+                {
+                    "$group": {
+                        // "_id": "$type",
+                        "_id": { month: { $month: "$settleTime" }, day: { $dayOfMonth: "$settleTime" }, year: { $year: "$settleTime" } },
+                        "typeId": {"$first": "$type"},
+                        "count": {"$sum": 1},
+                        "amount": {"$sum": "$data.amount"},
+                    }
+                }
+            ]).read("secondaryPreferred"));
+
+            bonusProm.push(dbconfig.collection_proposal.aggregate([
+                {
+                    "$match": {
+                        "data.playerObjId": playerObjId,
+                        "createTime": {
+                            "$gte": startDate,
+                            "$lte": dayEndTime
+                        },
+                        "mainType": "PlayerBonus",
+                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                    }
+                },
+                {
+                    "$group": {
+                        // "_id": null,
+                        "_id": { month: { $month: "$settleTime" }, day: { $dayOfMonth: "$settleTime" }, year: { $year: "$settleTime" } },
+                        "count": {"$sum": 1},
+                        "amount": {"$sum": "$data.amount"},
+                    }
+                }
+            ]).read("secondaryPreferred"));
+
+            startDate = dayEndTime;
+        }
+
+        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).then(
+            playerData => {
+                if (playerData) {
+                    return playerData.name;
+                }
+            }
+        );
+
+        return Promise.all([Promise.all(topUpProm), Promise.all(bonusProm), playerProm]).then(data => {
+            let topUpRecord = data[0];
+            let bonusRecord = data[1];
+            let playerName = data[2];
+
+            topUpRecord = [].concat(...topUpRecord);
+            bonusRecord = [].concat(...bonusRecord);
+
+            let outputData = [];
+
+            for (let x = 0; x < topUpRecord.length; x++) {
+                let isExceedDailyTotalDeposit = topUpRecord[x].amount >= dailyTotalDeposit; // true or false
+
+                outputData.push({
+                    date: topUpRecord[x]._id,
+                    topUpAmount: topUpRecord[x].amount,
+                    bonusAmount: 0,
+                    isExceedDailyTotalDeposit: isExceedDailyTotalDeposit,
+                });
+            }
+
+            for (let x = 0; x < bonusRecord.length; x++) {
+                let bonusDay = bonusRecord[x]._id.day;
+                let bonusMonth = bonusRecord[x]._id.month - 1; //month start from 0 to 11
+                let bonusYear = bonusRecord[x]._id.year;
+
+                for (let z = 0; z < outputData.length; z++) {
+                    let outputDay = outputData[z].date.day;
+                    let outputMonth = outputData[z].date.month - 1; //month start from 0 to 11
+                    let outputYear = outputData[z].date.year;
+
+                    if (bonusRecord && outputData && bonusDay === outputDay && bonusMonth === outputMonth && bonusYear === outputYear) {
+                        outputData[z].bonusAmount = bonusRecord[x].amount;
+                    }
+                }
+            }
+
+            // convert date format
+            for (let z = 0; z < outputData.length; z++) {
+                let outputDay = outputData[z].date.day;
+                let outputMonth = outputData[z].date.month - 1; //month start from 0 to 11
+                let outputYear = outputData[z].date.year;
+
+                outputData[z].date = new Date(outputYear, outputMonth, outputDay);
+            }
+
+            //handle sum of field here
+            for (let z = 0; z < outputData.length; z++) {
+                outputDataSum.topUpAmount += outputData[z].topUpAmount;
+                outputDataSum.bonusAmount += outputData[z].bonusAmount;
+            }
+
+            return {total: outputDataSum, outputData: outputData, playerName: playerName};
+
+            /*
+            outputData = [
+                {
+                    date: 1 july,
+                    topUpAmount: 10000,
+                    bonusAmount: 100,
+                },
+                {
+                    date: 2 july
+                },
+                resultSum: {
+                    topUpAmount: 12000,
+                    bonusAmount: 800
+                }
+            ]
+            */
+        });
+    },
+
     getDXNewPlayerReport: function (platform, query, index, limit, sortCol) {
         limit = limit ? limit : 20;
         index = index ? index : 0;

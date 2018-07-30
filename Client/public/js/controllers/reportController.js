@@ -3815,6 +3815,26 @@ define(['js/app'], function (myApp) {
                 vm.commonSortChangeHandler(a, 'depositAnalysisQuery', vm.searchPlayerDepositAnalysisReport);
             });
         };
+
+        vm.getPlayerDepositAnalysisDetails = function (playerObjId) {
+            let sendQuery = {
+                platformId: vm.curPlatformId,
+                query: {
+                    playerObjId: playerObjId,
+                    start: vm.depositAnalysisQuery.start.data('datetimepicker').getLocalDate(),
+                    end: vm.depositAnalysisQuery.end.data('datetimepicker').getLocalDate(),
+                    dailyTotalDeposit: vm.depositAnalysisQuery.dailyTotalDeposit,
+                }
+            };
+            console.log('sendQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'getPlayerDepositAnalysisDetails', sendQuery, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.playerDepositAnalysisDetails = data.data;
+                    $('#modalPlayerDepositAnalysisDetailsTable').modal().show();
+                });
+            });
+        };
         ///////////////// END player deposit analysis report /////////////////////////////
 
 
