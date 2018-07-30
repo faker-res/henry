@@ -322,7 +322,9 @@ var playerSchema = new Schema({
     // dian xiao mission related player
     dxMission: {type: Schema.ObjectId, ref: 'dxMission', index: true},
     //client data
-    clientData: {type: String}
+    clientData: {type: String},
+    //device id
+    deviceId: {type: String}
 });
 
 //record is unique by name and platform
