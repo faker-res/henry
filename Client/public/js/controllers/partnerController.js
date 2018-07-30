@@ -2276,7 +2276,7 @@ define(['js/app'], function (myApp) {
 
                         utilService.actionAfterLoaded('#partnerFeedbackRecord', function () {
                             vm.partnerFeedbackRecord.pageObj = utilService.createPageForPagingTable("#partnerFeedbackRecordTablePage", {}, $translate, function (curP, pageSize) {
-                                vm.commonPageChangeHandler(curP, pageSize, "partnerFeedbackRecord", vm.getFeedbackRecord)
+                                commonPageChangeHandler(curP, pageSize, "partnerFeedbackRecord", vm.getFeedbackRecord)
                             });
                             vm.getFeedbackRecord(true);
                         });
