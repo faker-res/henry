@@ -3830,11 +3830,16 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                     }
                 )
 
-                return Promise.all(rtgArr);
+                return Promise.all(rtgArr).catch(err => {
+                    // without current catch, the then chain might be broken
+                    console.log('unlockRewardTaskGroupByObjId error', err);
+                    return errorUtils.reportError(err)
+                });
             }
         }
     ).then(() => {
         // Create different process flow for lock provider group reward
+        console.log('reward here is reached')
         if (platform.useProviderGroup) {
             if (proposalData.data.providerGroup && gameProviderGroup) {
                 let deductFreeAmtProm = Promise.resolve();
@@ -3845,6 +3850,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
 
                 return deductFreeAmtProm.then(
                     () => {
+                        console.log('deduct function run succeed');
                         return dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData);
                     },
                     error => {
@@ -3860,6 +3866,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                         if (!output) {
                             return deferred;
                         }
+                        console.log("reward task group created", output);
 
                         dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                         sendMessageToPlayer(proposalData, rewardType, {rewardTask: taskData});
