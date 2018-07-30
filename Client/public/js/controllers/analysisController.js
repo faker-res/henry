@@ -453,6 +453,9 @@ define(['js/app'], function (myApp) {
                         vm.initSearchParameter('withdrawalSpeed', 'day', 3, function () {});
                         // vm.drawWithdrawSpeed();
                         break;
+                    case "PLAYER_ONLINE_TIME":
+                        vm.initSearchParameter('playerOnlineTime', 'day', 3, function () {});
+                        break;
                 }
                 // $(".flot-tick-label.tickLabel").addClass("rotate330");
                 //
@@ -1119,8 +1122,6 @@ define(['js/app'], function (myApp) {
         vm.getMerchantList = () => {
             return $scope.$socketPromise('getMerchantList', {platformId: vm.selectedPlatform.platformId}).then(function (data) {
                 vm.merchantList = data.data;
-                console.log('vm.merchantList',vm.merchantList);
-                $scope.safeApply();
             });
         };
 
@@ -1665,8 +1666,94 @@ define(['js/app'], function (myApp) {
                     console.log("Failed to retrieve the data", data);
                 }
             )
+        };
 
+        vm.drawPlayerOnlineTime = function () {
+            vm.withdrawSuccessAvg = {};
+            vm.withdrawFailedAvg = {};
+            vm.isShowLoadingSpinner('#playerOnlineTimeAnalysis', true);
 
+            let sendData = {
+                period: vm.queryPara.playerOnlineTime.periodText,
+                startDate: vm.queryPara.playerOnlineTime.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.playerOnlineTime.endTime.data('datetimepicker').getLocalDate(),
+                platformObjId: vm.selectedPlatform._id
+            };
+
+            socketService.$socket($scope.AppSocket, 'getOnlineTimeLogByPlatform', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    console.log('getOnlineTimeLogByPlatform', data);
+                    if (!data && !data[0] && !data[1]) {
+                        return Promise.reject({name: 'DataError', message: 'Can not find the proposal data'})
+                    }
+
+                    vm.isShowLoadingSpinner('#playerOnlineTimeAnalysis', false);
+
+                    vm.withdrawSuccessData = data.data[0];
+                    vm.withdrawSuccessAvg.totalCount = vm.calculateAverageData(vm.withdrawSuccessData, "totalCount");
+                    vm.withdrawSuccessAvg.count1 = vm.calculateAverageData(vm.withdrawSuccessData, "count1");
+                    vm.withdrawSuccessAvg.count2 = vm.calculateAverageData(vm.withdrawSuccessData, "count2");
+                    vm.withdrawSuccessAvg.count3 = vm.calculateAverageData(vm.withdrawSuccessData, "count3");
+                    vm.withdrawSuccessAvg.count4 = vm.calculateAverageData(vm.withdrawSuccessData, "count4");
+                    vm.withdrawSuccessAvg.count5 = vm.calculateAverageData(vm.withdrawSuccessData, "count5");
+                    vm.withdrawSuccessAvg.count6 = vm.calculateAverageData(vm.withdrawSuccessData, "count6");
+                    vm.withdrawSuccessAvg.count7 = vm.calculateAverageData(vm.withdrawSuccessData, "count7");
+                    vm.withdrawSuccessAvg.count8 = vm.calculateAverageData(vm.withdrawSuccessData, "count8");
+                    vm.withdrawSuccessAvg.count9 = vm.calculateAverageData(vm.withdrawSuccessData, "count9");
+
+                    let withdrawSuccessPieArr = [];
+                    let pieLabel = ["WITHDRAWAL_SUCCESS_TOTAL_TIMES", "0~1", "1~3", "3~5", "5~10", "10~20", "20~30", "30~45", "45~60", "60"];
+                    for (let i = 0; i < Object.keys(vm.withdrawSuccessAvg).length; i++) {
+                        if (i == 0) {
+                            continue;
+                        }
+                        let pieObj = {
+                            count: vm.withdrawSuccessAvg[Object.keys(vm.withdrawSuccessAvg)[i]]
+                        };
+                        pieObj.label = pieLabel[i] + $translate("mins");
+                        if (i == 9) {
+                            pieObj.label = pieObj.label + $translate("above");
+                        }
+                        withdrawSuccessPieArr.push(pieObj)
+                    }
+                    vm.drawManualApprovalPieChart(withdrawSuccessPieArr,"#pie-withdrawSuccess");
+
+                    vm.withdrawFailedData = data.data[1];
+                    vm.withdrawFailedAvg.totalCount = vm.calculateAverageData(vm.withdrawFailedData, "totalCount");
+                    vm.withdrawFailedAvg.count1 = vm.calculateAverageData(vm.withdrawFailedData, "count1");
+                    vm.withdrawFailedAvg.count2 = vm.calculateAverageData(vm.withdrawFailedData, "count2");
+                    vm.withdrawFailedAvg.count3 = vm.calculateAverageData(vm.withdrawFailedData, "count3");
+                    vm.withdrawFailedAvg.count4 = vm.calculateAverageData(vm.withdrawFailedData, "count4");
+                    vm.withdrawFailedAvg.count5 = vm.calculateAverageData(vm.withdrawFailedData, "count5");
+                    vm.withdrawFailedAvg.count6 = vm.calculateAverageData(vm.withdrawFailedData, "count6");
+                    vm.withdrawFailedAvg.count7 = vm.calculateAverageData(vm.withdrawFailedData, "count7");
+                    vm.withdrawFailedAvg.count8 = vm.calculateAverageData(vm.withdrawFailedData, "count8");
+                    vm.withdrawFailedAvg.count9 = vm.calculateAverageData(vm.withdrawFailedData, "count9");
+
+                    let withdrawFailedPieArr = [];
+                    let pieLabel2 = ["WITHDRAWAL_FAILED_TOTAL_TIMES", "0~1", "1~3", "3~5", "5~10", "10~20", "20~30", "30~45", "45~60", "60"];
+                    for (let j = 0; j < Object.keys(vm.withdrawFailedAvg).length; j++) {
+                        if (j == 0) {
+                            continue;
+                        }
+                        let pieObj = {
+                            count: vm.withdrawFailedAvg[Object.keys(vm.withdrawFailedAvg)[j]]
+                        };
+                        pieObj.label = pieLabel2[j] + $translate("mins");
+                        if (j == 9) {
+                            pieObj.label = pieObj.label + $translate("above");
+                        }
+                        withdrawFailedPieArr.push(pieObj)
+                    }
+                    vm.drawManualApprovalPieChart(withdrawFailedPieArr,"#pie-withdrawFailed");
+
+                });
+
+                },
+            err => {
+                    vm.isShowLoadingSpinner('#withdrawalSpeedAnalysis', false);
+                    console.log("Failed to retrieve the data", err);
+            })
         };
 
         vm.clickWithdrawDetail = function (proposalObjId) {
@@ -2757,7 +2844,7 @@ define(['js/app'], function (myApp) {
                         vm.clickCountDevice[vm.deviceData[Object.keys(vm.deviceData)[i]]] = vm.deviceData[Object.keys(vm.deviceData)[i]];
                     }
 
-                    // set first page name as default selected page name
+                    // set first device name as default selected device name
                     vm.queryPara.clickCount.inputDevice = vm.clickCountDevice[Object.keys(vm.clickCountDevice)[0]] || "";
                     vm.getClickCountPageName(vm.queryPara.clickCount.inputDevice);
                 });
@@ -2784,17 +2871,44 @@ define(['js/app'], function (myApp) {
 
                     // set first page name as default selected page name
                     vm.queryPara.clickCount.pageName = vm.clickCountPageName[Object.keys(vm.clickCountPageName)[0]] || "";
+                    vm.getClickCountDomain(vm.queryPara.clickCount.inputDevice, vm.queryPara.clickCount.pageName);
                 });
             }, function (data) {
                 console.log("clickCount page name data not found?", data);
             });
         };
-
-        vm.getClickCountButtonName = function (device, pageName) {
+        
+        vm.getClickCountDomain = function (device, pageName) {
             let sendData = {
                 platformId: vm.selectedPlatform._id,
                 device: device,
                 pageName: pageName
+            };
+
+            socketService.$socket($scope.AppSocket, 'getClickCountDomain', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.clickCountDomain = {};
+                    vm.domainData = data.data;
+
+                    // replace object key with domain
+                    for (let i = 0; i < Object.keys(vm.domainData).length; i++) {
+                        vm.clickCountDomain[vm.domainData[Object.keys(vm.domainData)[i]]] = vm.domainData[Object.keys(vm.domainData)[i]];
+                    }
+
+                    // set first domain as default selected domain
+                    // vm.queryPara.clickCount.domain = vm.clickCountDomain[Object.keys(vm.clickCountDomain)[0]] || "";
+                });
+            }, function (data) {
+                console.log("clickCount domain data not found?", data);
+            });
+        };
+
+        vm.getClickCountButtonName = function (device, pageName, domain) {
+            let sendData = {
+                platformId: vm.selectedPlatform._id,
+                device: device,
+                pageName: pageName,
+                domain: domain
             };
 
             socketService.$socket($scope.AppSocket, 'getClickCountButtonName', sendData, function (data) {
@@ -2806,14 +2920,14 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.getClickCountAnalysis = function (device, pageName) {
+        vm.getClickCountAnalysis = function (device, pageName, domain) {
             vm.clickCountTable = "clickCountAnalysisTable"+vm.clickCountTimes;
             vm.clickCountTimes2 = vm.clickCountTimes - 1;
             vm.clickCountTable2 = vm.clickCountTable.slice(0, -1) + vm.clickCountTimes2;
             vm.clickCountTableID = '#'+vm.clickCountTable; // new table ID (increment)
             vm.clickCountTableID2 = '#'+vm.clickCountTable2; // previous table ID after first search (need to be replaced)
 
-            vm.getClickCountButtonName(device, pageName);
+            vm.getClickCountButtonName(device, pageName, domain);
             vm.isShowLoadingSpinner('#clickCountAnalysis', true);
             let sendData = {
                 platformId: vm.selectedPlatform._id,
@@ -2821,7 +2935,8 @@ define(['js/app'], function (myApp) {
                 startDate: vm.queryPara.clickCount.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.clickCount.endTime.data('datetimepicker').getLocalDate(),
                 device: device,
-                pageName: pageName
+                pageName: pageName,
+                domain: domain
             };
 
             socketService.$socket($scope.AppSocket, 'getClickCountAnalysis', sendData, function (data) {
@@ -5684,7 +5799,6 @@ define(['js/app'], function (myApp) {
                 $(graphPanel).css('height', height + 'px');
                 $(tablePanel).css('height', height + 'px');
             }
-            $scope.safeApply();
             if (callback) {
                 callback(returnHeight);
             }

@@ -14,6 +14,7 @@ const dbPlayerLevel = require('./../db_modules/dbPlayerLevel');
 const dbRewardEvent = require('./../db_modules/dbRewardEvent');
 const dbRewardTaskGroup = require('./../db_modules/dbRewardTaskGroup');
 const dbPlayerCredibility = require('../db_modules/dbPlayerCredibility');
+const dbPlayerOnlineTime = require('../db_modules/dbPlayerOnlineTime');
 const dbSmsGroup = require('../db_modules/dbSmsGroup');
 const constProposalType = require('./../const/constProposalType');
 const constFinancialPointsType = require('./../const/constFinancialPointsType');
@@ -587,7 +588,7 @@ function socketActionPlatform(socketIO, socket) {
         getClickCountAnalysis: function getClickCountAnalysis(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.period && data.startDate && data.endDate && data.platformId && data.device && data.pageName);
-            socketUtil.emitter(self.socket, dbPlatform.getClickCountAnalysis, [ObjectId(data.platformId), new Date(data.startDate), new Date(data.endDate), data.period, data.device, data.pageName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.getClickCountAnalysis, [ObjectId(data.platformId), new Date(data.startDate), new Date(data.endDate), data.period, data.device, data.pageName, data.domain], actionName, isValidData);
         },
 
         getClickCountDevice: function getClickCountDevice(data) {
@@ -602,10 +603,16 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getClickCountPageName, [ObjectId(data.platformId), data.device], actionName, isValidData);
         },
 
+        getClickCountDomain: function getClickCountDomain(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.device && data.pageName);
+            socketUtil.emitter(self.socket, dbPlatform.getClickCountDomain, [ObjectId(data.platformId), data.device, data.pageName], actionName, isValidData);
+        },
+
         getClickCountButtonName: function getClickCountButtonName(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.device && data.pageName);
-            socketUtil.emitter(self.socket, dbPlatform.getClickCountButtonName, [ObjectId(data.platformId), data.device, data.pageName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.getClickCountButtonName, [ObjectId(data.platformId), data.device, data.pageName, data.domain], actionName, isValidData);
         },
 
         getPlatformPartnerSettLog: function getPlatformPartnerSettLog(data) {
@@ -663,6 +670,12 @@ function socketActionPlatform(socketIO, socket) {
             }
             socketUtil.emitter(self.socket, dbPlatform.updatePlatformFinancialPoints, [ObjectId(data.platformId), proposalTypeName, data], actionName, isValidData);
         },
+
+        getOnlineTimeLogByPlatform: function getOnlineTimeLogByPlatform(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlayerOnlineTime.getOnlineTimeLogByPlatform, [data.platformObjId], actionName, isValidData);
+        }
     };
     socketActionPlatform.actions = this.actions;
 }

@@ -1153,6 +1153,8 @@
   "Are you sure to settle again?": "是否尝试再次洗码?",
   "lastBonusTime": "最近提款时间",
   "BonusTime": "提款次数",
+  "PlayerOnlineTime": "玩家在线时间",
+  "PLAYER_ONLINE_TIME": "玩家在线时间",
   "WITHDRAWAL_TIMES": "提款次数",
   "BonusAmount": "提款额",
   "BONUS_AMOUNT": "提款额",
@@ -3854,6 +3856,7 @@
   "BULK_CALL": "批量拨出",
   "CALL_PERMISSION": "电话回访权限",
   "CALLABLE": "可播电",
+  "partnerApiLog": "代理登入记录",
 
   "Please Enter Task Name": "请输入该任务 名称",
   "Please Enter Task Description": "请输入该任务 备注",

@@ -2757,7 +2757,6 @@ let dbPlayerReward = {
         let promoCodeObj, playerObj, topUpProp;
         let isType2Promo = false;
         let platformObjId = '';
-
         return expirePromoCode().then(res => {
             return dbConfig.collection_players.findOne({
                 playerId: playerId
@@ -2766,8 +2765,7 @@ let dbPlayerReward = {
             playerData => {
                 playerObj = playerData;
                 platformObjId = playerObj.platform;
-
-                return dbPlayerUtil.setPlayerState(playerObj._id, "ApplyPromoCode");
+                return dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", true);
             }
         ).then(
             playerState => {
@@ -2842,6 +2840,7 @@ let dbPlayerReward = {
 
                     // Check latest top up has sufficient amount to apply
                     if ([1, 3].indexOf(promoCodeObj.promoCodeTypeObjId.type) > -1 && topUpProp.data.amount < promoCodeObj.minTopUpAmount) {
+
                         return Promise.reject({
                             status: constServerCode.PLAYER_NOT_MINTOPUP,
                             name: "ConditionError",
@@ -2993,8 +2992,18 @@ let dbPlayerReward = {
                 })
             }
         ).then(() => {
+            dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
             promoCodeObj.promoCodeTypeObjId = promoCodeObj.promoCodeTypeObjId._id;
             return promoCodeObj;
+
+        }).catch(err=>{
+            if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                // Ignore concurrent request for now
+            } else {
+                // Set BState back to false
+                dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
+            }
+            throw err;
         })
     },
 
@@ -3010,8 +3019,7 @@ let dbPlayerReward = {
             playerData => {
                 playerObj = playerData;
                 platformObjId = playerObj.platform;
-
-                return dbPlayerUtil.setPlayerState(playerObj._id, "ApplyPromoCode");
+                return dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", true);
             }
         ).then(
             playerState => {
@@ -3030,13 +3038,13 @@ let dbPlayerReward = {
                 if (promoCodeObjs && promoCodeObjs.length != 0) {
                     // if there is valid openPromoCode, check proposal
                     promoCodeObj = promoCodeObjs[0];
-                    
+
                     return dbConfig.collection_proposalType.findOne({
                         platformId: platformObjId,
                         name: constProposalType.PLAYER_PROMO_CODE_REWARD
                     }).lean().then (proposalType => {
                         if(proposalType) {
-                            
+
                             let proposalProm = dbConfig.collection_proposal.find({
                                 type: ObjectId(proposalType._id),
                                 'data.promoCode': parseInt(promoCode),
@@ -3069,7 +3077,7 @@ let dbPlayerReward = {
             }
         ).then(
             proposalData => {
-               
+
                 if (proposalData && proposalData.length == 2) {
 
                     let totalAppliedNumber = proposalData[0];
@@ -3115,7 +3123,7 @@ let dbPlayerReward = {
             }
         ).then(
             topUpProposal => {
-                
+
                 if (isType2Promo || (topUpProposal && topUpProposal.length > 0)) {
                     if (isType2Promo) {
                         return true;
@@ -3270,7 +3278,16 @@ let dbPlayerReward = {
                     // Hence this object id will be use specifically for promo code throughout system as eventObjId
                     addUsedRewardToTopUpRecord(topUpProp.proposalId, "59ca08a3ef187c1ccec863b9").catch(errorUtils.reportError);
                 }
+                dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
 
+        }).catch(err=>{
+            if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                // Ignore concurrent request for now
+            } else {
+                // Set BState back to false
+                dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
+            }
+            throw err;
         })
     },
 

@@ -210,6 +210,12 @@ function socketActionBankCardGroup(socketIO, socket) {
             let actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.updateData);
             socketUtil.emitter(self.socket, dbPlatformBankCardGroup.updateBankCardAcc, [data.query, data.updateData], actionName, isValidData);
+        },
+
+        deleteBankCardAcc: function deleteBankCardAcc(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data._id);
+            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.deleteBankCardAcc, [data._id], actionName, isValidData);
         }
     };
     socketActionBankCardGroup.actions = this.actions;

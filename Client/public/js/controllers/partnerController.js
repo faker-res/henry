@@ -2276,7 +2276,7 @@ define(['js/app'], function (myApp) {
 
                         utilService.actionAfterLoaded('#partnerFeedbackRecord', function () {
                             vm.partnerFeedbackRecord.pageObj = utilService.createPageForPagingTable("#partnerFeedbackRecordTablePage", {}, $translate, function (curP, pageSize) {
-                                vm.commonPageChangeHandler(curP, pageSize, "partnerFeedbackRecord", vm.getFeedbackRecord)
+                                commonPageChangeHandler(curP, pageSize, "partnerFeedbackRecord", vm.getFeedbackRecord)
                             });
                             vm.getFeedbackRecord(true);
                         });
@@ -5064,8 +5064,14 @@ define(['js/app'], function (myApp) {
                                 });
                             }
                         });
-                        setPartnerTableData(reply.data.data);
+                        // setPartnerTableData(reply.data.data);
                         // vm.partners = reply.data.data;
+                        if (reply && reply.data && reply.data.data && reply.data.data.length) {
+                            vm.drawPartnerTable(reply.data);
+                        } else {
+                            setPartnerTableData([])
+                        }
+
                         vm.searchPartnerCount = reply.data.size;
                     })
                 });
@@ -7559,6 +7565,7 @@ define(['js/app'], function (myApp) {
             vm.getPartnerApiLogData = function (newSearch) {
                 vm.loadingPartnerApiLogTable = true;
                 if (!authService.checkViewPermission('Platform', 'Partner', 'partnerApiLog')) {
+                    vm.loadingPartnerApiLogTable = false;
                     return;
                 }
 
@@ -7582,6 +7589,7 @@ define(['js/app'], function (myApp) {
                     vm.partnerApiLog.totalCount = total;
                     vm.drawPartnerApiLogTable(newSearch, tblData, total);
                     vm.loadingPartnerApiLogTable = false;
+                    $scope.$evalAsync();
                 });
             };
 

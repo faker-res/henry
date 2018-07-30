@@ -497,7 +497,7 @@ var roleChecker = {
                 AddPlayer: ['addPlayersToBankCardGroup'],
                 AddAllPlayer: ['addAllPlayersToBankCardGroup'],
                 CreateBankCard: ['createNewBankCardAcc'],
-                EditBankCard: ['updateBankCardAcc']
+                EditBankCard: ['updateBankCardAcc', 'deleteBankCardAcc']
             },
             "MerchantGroup": {
                 Read: ['getPlatformMerchantGroup', 'getMerchantTypeList', 'getIncludedMerchantByMerchantGroup', 'getExcludedMerchantByMerchantGroup'],
@@ -515,7 +515,7 @@ var roleChecker = {
                 AddPlayer: ['addPlayersToAlipayGroup'],
                 AddAllPlayer: ['addAllPlayersToAlipayGroup'],
                 CreateAlipay: ['createNewAlipayAcc'],
-                EditAlipay: ['updateAlipayAcc']
+                EditAlipay: ['updateAlipayAcc', 'deleteAlipayAcc']
             },
             "WechatPayGroup": {
                 Read: ['getPlatformWechatPayGroup'],
@@ -525,7 +525,7 @@ var roleChecker = {
                 AddPlayer: ['addPlayersToWechatPayGroup'],
                 AddAllPlayer: ['addAllPlayersToWechatPayGroup'],
                 CreateWechatPay: ['createNewWechatpayAcc'],
-                EditWechatPay: ['updateWechatPayAcc']
+                EditWechatPay: ['updateWechatPayAcc', 'deleteWechatPayAcc']
             },
             "QuickPayGroup": {
                 Read: ['getPlatformQuickPayGroup'],
@@ -611,7 +611,8 @@ var roleChecker = {
                 PlayerDomain: ['getPlayerDomainAnalysisData'],
                 ManualApproval: ['getManualApprovalRecords'],
                 FrontEndRegistrationAttritionRate: ['getSpecificProposalTypeByName', 'getRegistrationClickCountRecords'],
-                WithdrawalSpeed: ['getWithdrawalProposal', 'getProposalByObjId']
+                WithdrawalSpeed: ['getWithdrawalProposal', 'getProposalByObjId'],
+                PlayerOnlineTime: ['getOnlineTimeLogByPlatform']
             }
         },
         Report: {

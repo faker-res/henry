@@ -2942,8 +2942,13 @@ var dbPlatform = {
                     device: device,
                     pageName: pageName,
                     buttonName: buttonName,
-                    domain: domain
+                    // domain: domain
                 };
+
+                // domain is optional
+                if (domain) {
+                    clickCountObj.domain = domain;
+                }
 
                 let countObj = {};
                 let uniqueIp = {};
@@ -3000,17 +3005,32 @@ var dbPlatform = {
         return dbconfig.collection_clickCount.distinct("pageName", matchObj);
     },
 
-    getClickCountButtonName: (platformId, device, pageName) => {
+    getClickCountDomain: (platformId, device, pageName) => {
         let matchObj = {
             platform: platformId,
             device: device,
             pageName: pageName
         };
 
+        return dbconfig.collection_clickCount.distinct("domain", matchObj);
+    },
+
+    getClickCountButtonName: (platformId, device, pageName, domain) => {
+        let matchObj = {
+            platform: platformId,
+            device: device,
+            pageName: pageName
+        };
+
+        // domain is optional
+        if (domain) {
+            matchObj.domain = domain;
+        }
+
         return dbconfig.collection_clickCount.distinct("buttonName", matchObj);
     },
 
-    getClickCountAnalysis: (platformId, startDate, endDate, period, device, pageName) => {
+    getClickCountAnalysis: (platformId, startDate, endDate, period, device, pageName, domain) => {
         let buttonGroupProms = [];
         let dayStartTime = startDate;
         let getNextDate;
@@ -3044,6 +3064,12 @@ var dbPlatform = {
                 device: device,
                 pageName: pageName
             };
+
+            // domain is optional
+            if (domain) {
+                matchObj.domain = domain;
+            }
+
             let dayStartTimeStr = dayStartTime.toString();
             if (platformId !== 'all') {
                 matchObj.platform = platformId;

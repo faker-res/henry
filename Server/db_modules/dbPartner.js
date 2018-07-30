@@ -3043,7 +3043,7 @@ let dbPartner = {
                     );
                 }
                 else {
-                    playerQuery.partner = {$exists: true};
+                    playerQuery.partner = {$ne: null};
                     //return dbPlayerInfo.getPlayerByAdvanceQuery(platformObjId, playerQuery);
                     return dbPlayerInfo.getPagePlayerByAdvanceQuery(platformObjId, playerQuery, data.index, data.limit, data.sortCol);
 
@@ -3095,7 +3095,7 @@ let dbPartner = {
                     );
                 }
                 else {
-                    matchObj.partner = {$exists: true};
+                    matchObj.partner = {$ne: null};
                     return dbconfig.collection_players.aggregate(
                         {
                             $match: matchObj
