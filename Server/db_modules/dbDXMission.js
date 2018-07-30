@@ -518,8 +518,6 @@ let dbDXMission = {
                                                 if(alertPeriod >= new Date().getTime()){
                                                     return true;
                                                 }
-
-                                                return false;
                                             }
 
                                             return false;
@@ -860,7 +858,7 @@ let dbDXMission = {
 
             }
         })
-        
+
     },
 
     sendSMSToPlayer: function (adminObjId, adminName, data) {
@@ -1032,103 +1030,105 @@ let dbDXMission = {
         )
     },
 
-    getDXPlayerInfo: function (platformObjId, dxMission, type, searchCriteria, index, limit, sortCol) {
+    getDXPlayerInfo: function(platformObjId, dxMission, type, searchCriteria, index, limit, sortCol){
         limit = limit ? limit : 10;
         index = index ? index : 0;
 
-        let result = [];
         let matchObj = {
             platform: platformObjId,
-            dxMission: ObjectId(dxMission),
-            playerObjId: {$exists: true}
+            dxMission: ObjectId(dxMission)
         };
 
         if(searchCriteria && searchCriteria != ""){
             let playerObjId = searchCriteria.split(",");
-            matchObj.playerObjId = {$in: playerObjId.map(s => ObjectId(s))};
+            matchObj._id = {$in: playerObjId.map(p => ObjectId(p))};
         }
-
-        let dataSummaryListProm = [];
-
-        let totalCountProm = dbconfig.collection_dxPhone.find(matchObj).count();
-        let phoneDataProm = dbconfig.collection_dxPhone.find(matchObj).sort({createTime: -1}).skip(index).limit(limit).lean();
-        //let phoneDataProm = dbconfig.collection_dxPhone.find(matchObj).sort({createTime: -1}).lean();
-        let dxMissionProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).lean();
-        let size = 0;
-        let dxPhoneData = {};
-        let dxMissionData = {};
-        let alertDay = null;
-
-        return Promise.all([totalCountProm, phoneDataProm, dxMissionProm]).then(
-            result => {
-                if(result){
-                    size = result[0] ? result[0] : 0;
-                    dxPhoneData = result[1] ? result[1] : {};
-                    dxMissionData = result[2] ? result[2] : {};
-
-                    return {size: size, dxPhoneData: dxPhoneData, dxMissionData: dxMissionData};
+        let checkFeedBackProm = [];
+        let dxMissionObj = {};
+        let totalCountProm = dbconfig.collection_players.find(matchObj).count();
+        let playerDetailsProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).lean().then(
+            dxMissionData => {
+                dxMissionObj = dxMissionData;
+                let alertDay = null;
+                if(dxMissionData && dxMissionData.alertDays){
+                    alertDay = dxMissionData.alertDays;
                 }
-            }
-        ).then(
-            data => {
-                if (data.dxMissionData){
-                    alertDay = data.dxMissionData.alertDays;
-                }
-                data.dxPhoneData.forEach(
-                    phoneData => {
-                        if(phoneData){
-                                dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type, alertDay, phoneData.phoneNumber));
-                        }
-                    }
-                )
 
-                return Promise.all(dataSummaryListProm).then(
-                    summaryData => {
-                        let resultData = JSON.parse(JSON.stringify(data));
-                        let dataToBeDeleted = [];
+                return dbconfig.collection_players.find(matchObj).lean()
+                    .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints}).then(
+                    playerData => {
+                        if(playerData && playerData.length > 0){
+                            playerData.map(data => {
+                                if(data){
 
-                        if(summaryData){
-                            summaryData.forEach(
-                                summary => {
-                                    if(summary){
-                                        resultData.dxPhoneData.map(
-                                            (phoneData,i) => {
-                                                if(phoneData){
-                                                    if(summaryData && summaryData.find(s => s && s.playerObjId == phoneData.playerObjId)){
-                                                        if(phoneData.playerObjId && phoneData.playerObjId == summary.playerObjId){
-                                                            phoneData.playerData = summary.playerData;
-                                                            phoneData.totalTopUpAmount = summary.totalTopUpAmount;
-                                                            phoneData.totalConsumptionTime = summary.totalConsumptionTime;
-                                                            phoneData.totalConsumptionAmount = summary.totalConsumptionAmount;
-                                                            phoneData.totalDepositAmount = summary.totalDepositAmount;
-                                                            phoneData.phoneNumber = dbUtil.encodePhoneNum(summary.phoneNumber);
-                                                            phoneData.alerted = summary.alerted;
-                                                        }
-                                                    }else{
-                                                        if(dataToBeDeleted.findIndex(d => d == phoneData.playerObjId) == -1){
-                                                            dataToBeDeleted.push(phoneData.playerObjId);
-                                                        }
-                                                    }
+                                    let topupSum = data.topUpSum ?　data.topUpSum : 0;
+                                    let withdrawSum = data.withdrawSum ? data.withdrawSum : 0;
+                                    data.totalDepositAmount = topupSum - withdrawSum;
+                                    checkFeedBackProm.push(dbconfig.collection_playerFeedback.find({playerId: data._id}).lean().then(
+                                        feedBackData => {
+                                            if (!feedBackData || feedBackData.length <= 0) {
+                                                let registeredTime = new Date(data.registrationTime);
+                                                let alertPeriod = new Date(dbUtility.getNdaylaterFromSpecificStartTime(alertDay,registeredTime)).getTime();
+
+                                                if(alertPeriod >= new Date().getTime()){
+                                                    return {playerObjId: data._id, alert: true};
                                                 }
                                             }
-                                        )
-                                    }
+
+                                            return {playerObjId: data._id, alert: false};
+                                        }
+                                    ));
                                 }
-                            )
+                            })
+
+                            return Promise.all(checkFeedBackProm).then(
+                                alertList => {
+                                    if(alertList && alertList.length > 0){
+                                        alertList.forEach(alert => {
+                                            if(alert && alert.playerObjId){
+                                                let indexNo = playerData.findIndex(p => p._id == alert.playerObjId);
+                                                if(indexNo != -1){
+                                                    playerData[indexNo].alerted = alert.alert;
+                                                }
+                                            }
+                                        })
+                                    }
+
+                                    return playerData;
+                                }
+                            );
                         }
-
-                        //remove the data without playerinfo details
-                        dataToBeDeleted.forEach(playerObjId => {
-                            var indexNo = resultData.dxPhoneData.findIndex(r => r.playerObjId == playerObjId);
-
-                            if(indexNo != -1){
-                                resultData.dxPhoneData.splice(indexNo,1)
-                            }
-                        })
-
-                        return {totalCount: data.size, dxPhoneData: resultData.dxPhoneData, dxMissionData: data.dxMissionData}
                     }
-                )
+                );
+            }
+        );
+
+        function sortByRegistrationTime(a, b){
+            if(a.registrationTime < b.registrationTime){
+                return 1;
+            }else if(a.registrationTime > b.registrationTime){
+                return -1;
+            }
+
+            return 0;
+        }
+
+        return Promise.all([totalCountProm, playerDetailsProm]).then(
+            result => {
+                if(result){
+                    let size = result[0] ? result[0] : 0;
+                    let dxPhoneData = result[1] ? result[1] : {};
+                    let phoneDataWithAlert = dxPhoneData.filter(d => d.alerted == true);
+                    let phoneDataWithoutAlert = dxPhoneData.filter(d => d.alerted == false);
+
+                    //sort by alerted = true first, then registrationTime
+                    phoneDataWithAlert.sort(sortByRegistrationTime);
+                    phoneDataWithoutAlert.sort(sortByRegistrationTime);
+
+                    let finalDXPhoneData = phoneDataWithAlert.concat(phoneDataWithoutAlert);
+
+                    return {totalCount: size, dxPhoneData: finalDXPhoneData.slice(index, Number(limit) + Number(index)), dxMissionData: dxMissionObj};
+                }
             }
         );
     },

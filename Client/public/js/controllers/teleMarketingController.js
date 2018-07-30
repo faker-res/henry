@@ -1167,7 +1167,7 @@ define(['js/app'], function (myApp) {
                 //adminId: authService.adminId,
                 adminName: authService.adminName,
                 platformId: vm.selectedPlatform.id,
-                playerId: vm.telphonePlayer.playerObjId,
+                playerId: vm.telphonePlayer._id,
                 title: vm.messageForPlayer.title,
                 content: vm.messageForPlayer.content
             };
@@ -1338,8 +1338,8 @@ define(['js/app'], function (myApp) {
             var title, text;
             if (type == 'msg' && authService.checkViewPermission('Platform', 'Player', 'sendSMS')) {
                 vm.smsPlayer = {
-                    playerId: data.playerData.playerId,
-                    name: data.playerData.name,
+                    playerId: data.playerId,
+                    name: data.name,
                     nickName: data.nickName || "",
                     platformId: vm.selectedPlatform.data.platformId,
                     channel: $scope.channelList[0],
@@ -1351,14 +1351,14 @@ define(['js/app'], function (myApp) {
                 vm.showSmsTab(null);
             } else if (type == 'tel') {
                 var phoneCall = {
-                    playerId: data.playerData.playerId,
-                    name: data.playerData.name,
-                    toText: data.playerData.playerName ? data.playerData.playerName : data.playerData.name,
+                    playerId: data.playerId,
+                    name: data.name,
+                    toText: data.playerName ? data.playerName : data.name,
                     platform: "jinshihao",
                     loadingNumber: true,
                 }
                 $scope.initPhoneCall(phoneCall);
-                socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: data.playerData._id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: data._id}, function (data) {
                     $scope.phoneCall.phone = data.data;
                     $scope.phoneCall.loadingNumber = false;
                     $scope.safeApply();
@@ -1430,6 +1430,23 @@ define(['js/app'], function (myApp) {
                 smsSetting: selectedPlayer.smsSetting,
                 receiveSMS: selectedPlayer.receiveSMS
             };
+
+        };
+
+        vm.updateSMSSettings = function () {
+            let playerId = vm.isOneSelectedPlayer()._id;
+
+            var updateSMS = {
+                receiveSMS: vm.playerBeingEdited.receiveSMS != null ? vm.playerBeingEdited.receiveSMS : undefined,
+                smsSetting: vm.playerBeingEdited.smsSetting,
+            }
+
+            socketService.$socket($scope.AppSocket, 'updatePlayer', {
+                query: {_id: playerId},
+                updateData: updateSMS
+            }, function (updated) {
+                console.log('updated', updated);
+            });
 
         };
 
@@ -3789,13 +3806,14 @@ define(['js/app'], function (myApp) {
 
                 vm.teleMarketingPlayerInfo.data.forEach((item) => {
                     if(item){
-                        item.playerData.registrationTime = item.playerData.registrationTime ? vm.dateReformat(item.playerData.registrationTime) : "";
+                        item.registrationTime = item.registrationTime ? vm.dateReformat(item.registrationTime) : "";
                     }
                 });
 
                 vm.loadingTeleMarketingOverviewTable = false;
                 $scope.$evalAsync(() => {
                     vm.drawTelePlayerTable(newSearch, vm.teleMarketingPlayerInfo.data, vm.teleMarketingPlayerInfo.count);
+                    $('#telePlayerTable').resize();
                 });
             })
         };
@@ -3839,7 +3857,7 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         title: $translate('CUSTOMER_ACCOUNT_ID'),
-                        data: "playerData.name",
+                        data: "name",
                         render: function(data, type, row, index){
                             var link = $('<span>', {
                                 'style': (row.alerted ? "color:red;" : ""),
@@ -3849,7 +3867,7 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         title: $translate('TIME_OPENING_ACCOUNT'),
-                        data: "playerData.registrationTime",
+                        data: "registrationTime",
                         sClass: "sumText wordWrap",
                         render: function(data, type, row, index){
                             var link = $('<span>', {
@@ -3860,7 +3878,7 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         title: $translate('loginTimes'),
-                        data: "playerData.loginTimes",
+                        data: "loginTimes",
                         sClass: "sumFloat textRight",
                         render: function(data, type, row, index){
                             var link = $('<span>', {
@@ -3871,7 +3889,7 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         title: $translate('TOP_UP_TIMES'),
-                        data: "playerData.topUpTimes",
+                        data: "topUpTimes",
                         sClass: "sumFloat textRight",
                         render: function(data, type, row, index){
                             var link = $('<span>', {
@@ -3882,7 +3900,7 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         title: $translate('TOP_UP_AMOUNT'),
-                        data: "totalTopUpAmount",
+                        data: "topUpSum",
                         sClass: "sumFloat textRight",
                         render: function(data, type, row, index){
                             var link = $('<span>', {
@@ -3893,7 +3911,7 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         title: $translate('TIMES_CONSUMED'),
-                        data: "totalConsumptionTime",
+                        data: "consumptionTimes",
                         sClass: "sumFloat textRight",
                         render: function(data, type, row, index){
                             var link = $('<span>', {
@@ -3915,7 +3933,7 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         title: $translate('VALID_CONSUMPTION'),
-                        data: "totalConsumptionAmount",
+                        data: "consumptionSum",
                         sClass: "sumFloat textRight",
                         render: function(data, type, row, index){
                             var link = $('<span>', {
@@ -3929,12 +3947,12 @@ define(['js/app'], function (myApp) {
                         orderable: false,
                         render: function (data, type, row) {
                             data = data || '';
-                            var playerObjId = row.playerObjId ? row.playerObjId : "";
+                            var playerObjId = row._id ? row._id : "";
                             var link = $('<div>', {});
                             link.append($('<a>', {
                                 'style': (row.alerted ? "color:red;" : ""),
                                 'class': 'fa fa-envelope margin-right-5',
-                                'ng-click': 'vm.selectedSinglePlayer={_id:' + JSON.stringify(row.playerObjId) + '}; vm.initMessageModal(); vm.sendMessageToPlayerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
+                                'ng-click': 'vm.selectedSinglePlayer={_id:' + JSON.stringify(row._id) + '}; vm.initMessageModal(); vm.sendMessageToPlayerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
                                 'data-row': JSON.stringify(row),
                                 'data-toggle': 'tooltip',
                                 'title': $translate("SEND_MESSAGE_TO_PLAYER"),
@@ -3942,9 +3960,9 @@ define(['js/app'], function (myApp) {
                             }));
                             link.append($('<a>', {
                                 'style': (row.alerted ? "color:red;" : ""),
-                                'class': 'fa fa-comment margin-right-5' + (row.playerData.permission.SMSFeedBack === false ? " text-danger" : ""),
-                                'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.initSMSModal();' + "vm.onClickPlayerCheck(" +
-                                JSON.stringify(row.playerObjId) + ", " + "vm.telorMessageToPlayerBtn" +
+                                'class': 'fa fa-comment margin-right-5' + (row.permission.SMSFeedBack === false ? " text-danger" : ""),
+                                'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row) + ' ;vm.initSMSModal();' + "vm.onClickPlayerCheck(" +
+                                JSON.stringify(row._id) + ", " + "vm.telorMessageToPlayerBtn" +
                                 ", " + "[" + '"msg"' + ", " + JSON.stringify(row) + "]);",
                                 'data-row': JSON.stringify(row),
                                 'data-toggle': 'tooltip',
@@ -3953,7 +3971,7 @@ define(['js/app'], function (myApp) {
                             }));
                             link.append($('<a>', {
                                 'style': (row.alerted ? "color:red;" : ""),
-                                'class': 'fa fa-volume-control-phone margin-right-5' + (row.playerData.permission.phoneCallFeedback === false ? " text-danger" : ""),
+                                'class': 'fa fa-volume-control-phone margin-right-5' + (row.permission.phoneCallFeedback === false ? " text-danger" : ""),
                                 'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel",' + JSON.stringify(row) + ');',
                                 'data-row': JSON.stringify(row),
                                 'data-toggle': 'tooltip',
@@ -3964,8 +3982,8 @@ define(['js/app'], function (myApp) {
                                 link.append($('<a>', {
                                     'style': (row.alerted ? "color:red;" : ""),
                                     'class': 'fa fa-commenting margin-right-5',
-                                    'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.initFeedbackModal(' + JSON.stringify(row['playerData']) + ');',
-                                    'data-row': JSON.stringify(row.playerData),
+                                    'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row) + ' ;vm.initFeedbackModal(' + JSON.stringify(row) + ');',
+                                    'data-row': JSON.stringify(row),
                                     'data-toggle': 'modal',
                                     'data-target': '#modalAddPlayerFeedback',
                                     'title': $translate("ADD_FEEDBACK"),
@@ -3976,7 +3994,7 @@ define(['js/app'], function (myApp) {
                                 if ($scope.checkViewPermission('Platform', 'Player', 'ApplyManualTopup')) {
                                     link.append($('<a>', {
                                         'class': 'fa fa-plus-circle',
-                                        'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.getAllBankCard(); vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);',
+                                        'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row) + ' ;vm.getAllBankCard(); vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerTopUp',
@@ -3993,7 +4011,7 @@ define(['js/app'], function (myApp) {
                                         'src': (row.alerted ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
-                                        'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.initPlayerBonus();',
+                                        'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row) + ' ;vm.initPlayerBonus();',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerBonus',
@@ -4007,7 +4025,7 @@ define(['js/app'], function (myApp) {
                                         'src': (row.alerted ? "images/icon/rewardRed.png" : "images/icon/rewardBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
-                                        'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.rewardTabClicked();vm.initPlayerAddRewardTask();',
+                                        'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row) + ' ;vm.rewardTabClicked();vm.initPlayerAddRewardTask();',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerAddRewardTask',
@@ -4021,7 +4039,7 @@ define(['js/app'], function (myApp) {
                                         'src': (row.alerted ? "images/icon/reapplyRed.png" : "images/icon/reapplyBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
-                                        'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.showReapplyLostOrderTab(null);vm.prepareShowPlayerCredit();vm.prepareShowRepairPayment(\'#modalReapplyLostOrder\');',
+                                        'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row) + ' ;vm.showReapplyLostOrderTab(null);vm.prepareShowPlayerCredit();vm.prepareShowRepairPayment(\'#modalReapplyLostOrder\');',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'title': $translate("ALL_REAPPLY_ORDER"),
@@ -4034,7 +4052,7 @@ define(['js/app'], function (myApp) {
                                         'src': (row.alerted ? "images/icon/creditAdjustRed.png" : "images/icon/creditAdjustBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
-                                        'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerCreditAdjustment, \'adjust\')',
+                                        'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row) + ' ;vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerCreditAdjustment, \'adjust\')',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerCreditAdjustment',
@@ -4048,7 +4066,7 @@ define(['js/app'], function (myApp) {
                                         'src': (row.alerted ? "images/icon/rewardPointsRed.png" : "images/icon/rewardPointsBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
-                                        'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.showRewardPointsAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointsAdjustment);',
+                                        'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row) + ' ;vm.showRewardPointsAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointsAdjustment);',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPlayerRewardPointsAdjustment',
