@@ -3003,7 +3003,7 @@ var proposal = {
                                     },
                                 }
                             }
-                        ]);
+                        ]).read("secondaryPreferred");
                     }
                 );
             }else{
@@ -3075,7 +3075,7 @@ var proposal = {
                             },
                         }
                     }
-                ]);
+                ]).read("secondaryPreferred");
             }
             Q.all([a, b, c]).then(
                 function (data) {
