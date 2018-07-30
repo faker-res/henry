@@ -2841,7 +2841,6 @@ let dbPlayerReward = {
                     // Check latest top up has sufficient amount to apply
                     if ([1, 3].indexOf(promoCodeObj.promoCodeTypeObjId.type) > -1 && topUpProp.data.amount < promoCodeObj.minTopUpAmount) {
 
-                        dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                         return Promise.reject({
                             status: constServerCode.PLAYER_NOT_MINTOPUP,
                             name: "ConditionError",
@@ -2869,8 +2868,6 @@ let dbPlayerReward = {
 
                     return Promise.all([consumptionRecordProm, topUpRecordProm]);
                 } else {
-
-                    dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_MINTOPUP,
                         name: "ConditionError",
@@ -2884,8 +2881,6 @@ let dbPlayerReward = {
                 if (data && data[1]) {
                     let topUpRecord = data[1];
                     if (topUpRecord.bDirty || (topUpRecord.usedEvent && topUpRecord.usedEvent.length > 0)) {
-
-                        dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                         return Promise.reject({
                             status: constServerCode.PLAYER_NOT_MINTOPUP,
                             name: "ConditionError",
@@ -2896,8 +2891,6 @@ let dbPlayerReward = {
 
                 // if player apply for topup return , then he cannot apply promo code
                 if (topUpProp && topUpProp.data && topUpProp.data.topUpReturnCode) {
-
-                    dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                     return Q.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
@@ -2916,8 +2909,6 @@ let dbPlayerReward = {
                         return Promise.resolve();
                     }
                 } else {
-
-                    dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
                     return Promise.reject({
                         status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                         name: "ConditionError",
@@ -3004,7 +2995,7 @@ let dbPlayerReward = {
             dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
             promoCodeObj.promoCodeTypeObjId = promoCodeObj.promoCodeTypeObjId._id;
             return promoCodeObj;
-            
+
         }).catch(err=>{
             if (err.status === constServerCode.CONCURRENT_DETECTED) {
                 // Ignore concurrent request for now
