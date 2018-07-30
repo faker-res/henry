@@ -4737,7 +4737,8 @@ let dbPlayerInfo = {
                                 userAgent: uaObj,
                                 isRealPlayer: playerObj.isRealPlayer,
                                 isTestPlayer: playerObj.isTestPlayer,
-                                partner: playerObj.partner ? playerObj.partner : null
+                                partner: playerObj.partner ? playerObj.partner : null,
+                                deviceId: playerData.deviceId
                             };
 
                             if (platformObj.usePointSystem) {
