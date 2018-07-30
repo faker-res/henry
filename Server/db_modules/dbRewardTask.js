@@ -541,6 +541,7 @@ const dbRewardTask = {
         let totalConsumption = rewardTaskGroup.curConsumption;
 
         let usedTopUp = [];
+        let proposalProm = [];
 
         // remove the latest top up/ reward record for the case of platform.autoUnlockWhenInitAmtLessThanLostThreshold
         if (proposalData && proposalData.proposalId){
@@ -579,20 +580,23 @@ const dbRewardTask = {
                 usedTopUp.push(item.topUpProposal)
             }
 
-            dbconfig.collection_proposal.findOneAndUpdate({_id: ObjectId(item._id), createTime: item.createTime}, {'data.bonusProgress': item.data.bonusProgress, 'data.consumptionProgress': item.data.consumptionProgress}, {new: true}).exec();
+            proposalProm.push(dbconfig.collection_proposal.findOneAndUpdate({_id: ObjectId(item._id), createTime: item.createTime}, {'data.bonusProgress': item.data.bonusProgress, 'data.consumptionProgress': item.data.consumptionProgress}, {new: true}).exec());
         });
 
-        if (usedTopUp.length > 0) {
-            rewards = rewards.filter(rewardItem => {
+        return Promise.all(proposalProm).then( (a) => {
+            if (a){console.log("checking proposalData --- yH", a)}
+            if (usedTopUp.length > 0) {
+                rewards = rewards.filter(rewardItem => {
 
-                if (usedTopUp.indexOf(rewardItem.proposalId) < 0) {
-                    return rewardItem;
-                }
+                    if (usedTopUp.indexOf(rewardItem.proposalId) < 0) {
+                        return rewardItem;
+                    }
 
-            });
-        }
+                });
+            }
 
-        return rewards;
+            return rewards;
+        })
 
     },
     updateUnlockedRewardTasksRecord: function (rewards, status, playerId, platformId) {
