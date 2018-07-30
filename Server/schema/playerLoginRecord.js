@@ -42,7 +42,9 @@ var playerLoginRecordSchema = new Schema({
     //partnerId
     partner: {type: Schema.ObjectId, ref: 'partner', index: true},
     //any additional data
-    data: JSON
+    data: JSON,
+    //device id
+    deviceId: {type: String}
 });
 
 //record is unique by name and platform
