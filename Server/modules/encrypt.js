@@ -455,6 +455,7 @@ var encrypt = {
             if (data.proposalTypeId && data.proposalTypeId.length > 0) {
                 data.proposalTypeId = data.proposalTypeId.map(id => ObjectId(id));
                 query["type"] = {$in: data.proposalTypeId};
+                query["platformId"] = data.platformId;
             }
             else {
                 query["platformId"] = data.platformId;
