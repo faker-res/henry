@@ -333,6 +333,97 @@
             table.common-table#playerReportTable.display(style="width:100% ;overflow-x: scroll")
             #playerReportTablePage
 
+        div(ng-if='vm.showPageName=="PLAYER_DEPOSIT_ANALYSIS_REPORT"')
+            .block-query.col-md-12.well
+                div
+                    label {{'Player Name' | translate}}
+                    input.form-control.span.input-sm(ng-model="vm.depositAnalysisQuery.name")
+                div
+                    label(style='min-width:130px') {{"CREDIBILITY"|translate}}
+                    select.form-control#selectCredibilityRemarksDepositAnalysis(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model="vm.depositAnalysisQuery.credibilityRemarks")
+                div
+                    label {{"PlayerValue" | translate}}
+                    select.form-control(ng-model="vm.depositAnalysisQuery.valueScoreOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.depositAnalysisQuery.playerScoreValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.depositAnalysisQuery.valueScoreOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.depositAnalysisQuery.playerScoreValueTwo" style="width:80px;display:inline-block" ng-if="vm.depositAnalysisQuery.valueScoreOperator === 'range'")
+                div
+                    label {{'LEVEL' | translate}}
+                    select.form-control(ng-model="vm.depositAnalysisQuery.level", ng-options='a as b.name for (a,b) in vm.playerLvlData')
+                        option(value='') {{'any' | translate}}
+                div
+                    label {{"Provider" | translate}}
+                    select.form-control(ng-model='vm.depositAnalysisQuery.providerId', style='max-width:300px', required)
+                        option(value='') {{'all' | translate}}
+                        option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name | translate}}
+                div
+                    label {{'Start date' | translate}}
+                        .startTime
+                    #startingDateTimePickerDepositAnalysis
+                div
+                    label {{'End date' | translate}}
+                        .endTime
+                    #endingEndDateTimePickerDepositAnalysis
+                div
+                    label {{'DAILY_TOTAL_DEPOSIT' | translate}}
+                    input.form-control.span.input-sm(type="number" ng-model="vm.depositAnalysisQuery.dailyTotalDeposit")
+                div
+                    label {{'NUMBER_OF_DAYS' | translate}}
+                    input.form-control.span.input-sm(type="number" ng-model="vm.depositAnalysisQuery.numberOfDays")
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchPlayerDepositAnalysisReport(true)') {{'SEARCH' | translate}}
+                    span#loadingPlayerDepositAnalysisReportTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+            label {{"Total" | translate}} {{vm.depositAnalysisQuery.totalCount}} {{"records" | translate}}
+            table.common-table#playerDepositAnalysisReportTable.display(style="width:100% ;overflow-x: scroll")
+            #playerDepositAnalysisReportTablePage
+
+            div(ng-repeat="pda in vm.playerDepositAnalysis track by $index" ng-if="vm.playerDepositAnalysis.length > 0")
+                table.simple-table#playerDepositAnalysisTable(style='width:auto;min-width:99.9%')
+                    thead
+                        tr
+                            th(colspan=8) {{'FULFIL' | translate}} {{pda.day | translate}}/{{vm.playerDepositAnalysisDays| translate}} {{'DAYS' | translate}}
+                            th(colspan=3) {{'Total' | translate}}
+                            th {{'ACTION_BUTTON' | translate}}
+                        tr
+                            th {{'ORDER' | translate}}
+                            th {{'PLAYERNAME' | translate}}
+                            th {{'realName' | translate}}
+                            th {{'PlayerValue' | translate}}
+                            th {{'CREDIBILITY' | translate}}
+                            th {{'LEVEL' | translate}}
+                            th {{'LOBBY' | translate}}
+                            th {{'LAST_ACCESS_TIME' | translate}}
+                            th {{'TOTAL_DEPOSIT' | translate}}
+                            th {{'WITHDRAW_AMOUNT' | translate}}
+                            th {{'TOTAL_DEPOSIT_AMOUNT' | translate}}
+                            th {{'DETAILS' | translate}}
+                    tbody
+                        tr(ng-repeat='playerData in pda.playerData track by $index')
+                            td {{$index+1}}
+                            td#pdaName
+                                a(ng-click="vm.addToDepositTrackingReport(playerData._id)") {{playerData.name}}
+                            td {{playerData.realName}}
+                            td {{playerData.valueScore}}
+                            td {{playerData.credibility$}}
+                            td {{playerData.playerLevel$}}
+                            td {{playerData.provider$}}
+                            td {{playerData.lastAccessTime$}}
+                            td {{playerData.topUpAmount$}}
+                            td {{playerData.bonusAmount$}}
+                            td {{playerData.totalPlayerDepositAmount$}}
+                            td
+                                a(data-toggle="modal", data-target='#modalPlayerDepositAnalysisDetailsTable', ng-click="vm.getPlayerDepositAnalysisDetails(playerData._id)") {{'DETAILS' | translate}}
+                    br
+                br
+
         div(ng-if='vm.showPageName=="NEWACCOUNT_REPORT"')
             #newPlayerReportQuery.block-query.col-md-12.well
                 div

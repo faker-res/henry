@@ -14081,6 +14081,275 @@ let dbPlayerInfo = {
         );
     },
 
+    getPlayerDepositAnalysisReport: function (platformObjId, query, index, limit, sortCol, dailyTotalDeposit, numberOfDays) {
+        limit = limit ? limit : 20;
+        index = index ? index : 0;
+        query = query ? query : {};
+        dailyTotalDeposit = dailyTotalDeposit ? dailyTotalDeposit : 0;
+        numberOfDays = numberOfDays ? numberOfDays : 1;
+
+        let startDate = new Date(query.start);
+        let endDate = new Date(query.end);
+        let getPlayerProm = Promise.resolve("");
+        let playerData = null;
+        let result = [];
+        let resultSum = {
+            topUpAmount: 0,
+            bonusAmount: 0,
+            totalPlayerDepositAmount: 0,
+        };
+        let groupedPlayers = {};
+        let groupedResult = null;
+        let countDay = 0;
+        let playerObjArr = [];
+        let playerObjArray = [];
+
+
+        if (query && query.name) {
+            getPlayerProm = dbconfig.collection_players.findOne({name: query.name, platform: platformObjId}, {_id: 1}).lean();
+        }
+
+        return getPlayerProm.then(
+            player => {
+                let relevantPlayerQuery = {platformId: platformObjId, createTime: {$gte: startDate, $lte: endDate}};
+
+                if (player) {
+                    relevantPlayerQuery.playerId = player._id;
+                }
+
+                // relevant players are the players who played any game within given time period
+                return dbconfig.collection_playerConsumptionRecord.aggregate([
+                    {$match: relevantPlayerQuery},
+                    {$group: {_id: "$playerId"}}
+                ]).read("secondaryPreferred").then(
+                    consumptionData => {
+                        if (consumptionData && consumptionData.length) {
+                            playerObjArr = consumptionData.map(function (playerIdObj) {
+                                return String(playerIdObj._id);
+                            });
+                        }
+                        let proposalProm = [];
+
+                        // loop for every day
+                        while (startDate.getTime() < endDate.getTime()) {
+                            countDay += 1;
+                            let dayEndTime = getNextDateByPeriodAndDate('day', startDate);
+                            let proposalQuery = {
+                                mainType: "TopUp",
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                createTime: {$gte: startDate, $lte: dayEndTime},
+                                'data.platformId': platformObjId,
+                            };
+
+                            if (player) {
+                                proposalQuery['data.playerObjId'] = player._id;
+                            }
+
+                            proposalProm.push(dbconfig.collection_proposal.aggregate([
+                                {$match: proposalQuery},
+                                {
+                                    $group: {
+                                        _id: "$data.playerObjId",
+                                        createTime: {$addToSet: "$createTime"},
+                                        topUpAmount: {$sum: "$data.amount"},
+                                        count: {$sum: 1},
+                                        reachTargetDay: {$sum: 0}
+                                    }
+                                },
+                            ]).read("secondaryPreferred").then(data => {
+                                return data;
+                            }));
+
+                            startDate = dayEndTime;
+                        }
+
+                        // filter out player top up amount that exceeds dailyTotalDeposit
+                        return Q.all(proposalProm).then(proposals => {
+                            proposals.forEach(dailyProposal => {
+                                dailyProposal.forEach(player => {
+                                    if (player && player.topUpAmount >= dailyTotalDeposit) {
+                                        player.reachTargetDay += 1;
+                                    }
+                                    return player;
+                                });
+                                return dailyProposal;
+                            });
+                            return proposals;
+                        });
+                    }
+                ).then(
+                    proposalData => {
+                        proposalData = [].concat(...proposalData);
+                        if (proposalData && proposalData.length) {
+                            for (let i = 0; i < proposalData.length; i++) {
+                                if (proposalData[i]._id && playerObjArr.indexOf(String(proposalData[i]._id)) === -1) {
+                                    playerObjArr.push(proposalData[i]._id);
+                                }
+                            }
+                        }
+
+                        proposalData.forEach(function(proposal) {
+                            groupedPlayers[proposal._id] = (groupedPlayers[proposal._id] || 0) + proposal.reachTargetDay;
+                        });
+
+                        // filter out player reachTargetDay that exceeds numberOfDays
+                        groupedResult = Object.keys(groupedPlayers).filter(data => {
+                            return groupedPlayers[data] >= numberOfDays;
+                        }).map(function(data) {
+                            return { _id: data, reachTargetDay: groupedPlayers[data] }
+                        });
+
+                        // filter out playerObjArr that doesn't exist inside groupedResult
+                        groupedResult.forEach(result => {
+                            playerObjArr.forEach(player => {
+                                if (player && result && player.toString() === result._id.toString()) {
+                                    playerObjArray.push(player);
+                                    return player;
+                                }
+                            });
+                            return result;
+                        });
+
+                        // assign ObjectId
+                        for (let j = 0; j < playerObjArray.length; j++) {
+                            playerObjArray[j] = ObjectId(playerObjArray[j]);
+                        }
+
+                        return playerObjArray;
+                    }
+                );
+            }
+        ).then(
+            playerObjArrData => {
+                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}});
+                let stream = playerProm.cursor({batchSize: 100});
+                let balancer = new SettlementBalancer();
+
+                return balancer.initConns().then(function () {
+                    return Q(
+                        balancer.processStream(
+                            {
+                                stream: stream,
+                                batchSize: constSystemParam.BATCH_SIZE,
+                                makeRequest: function (playerIdObjs, request) {
+                                    request("player", "getConsumptionDetailOfPlayers", {
+                                        platformId: platformObjId,
+                                        startTime: query.start,
+                                        endTime: query.end,
+                                        query: query,
+                                        playerObjIds: playerIdObjs.map(function (playerIdObj) {
+                                            playerData = playerIdObjs;
+                                            return playerIdObj._id;
+                                        }),
+                                        isPromoteWay: true
+                                    });
+                                },
+                                processResponse: function (record) {
+                                    result = result.concat(record.data);
+                                }
+                            }
+                        )
+                    );
+                });
+
+            }
+        ).then(
+            () => {
+                // handle index limit sortcol here
+                if (Object.keys(sortCol).length > 0) {
+                    result.sort(function (a, b) {
+                        if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
+                            return 1 * sortCol[Object.keys(sortCol)[0]];
+                        } else {
+                            return -1 * sortCol[Object.keys(sortCol)[0]];
+                        }
+                    });
+                }
+                else {
+                    result.sort(function (a, b) {
+                        if (a._id > b._id) {
+                            return 1;
+                        } else {
+                            return -1;
+                        }
+                    });
+                }
+
+                result.forEach(data => {
+                    if (playerData) {
+                        playerData.forEach(player => {
+                            if (player && data && player._id.toString() === data._id.toString()) {
+                                data.realName = player.realName ? player.realName : "";
+                                data.lastAccessTime = player.lastAccessTime ? player.lastAccessTime : "";
+                            }
+                        });
+                    }
+                    data.totalPlayerDepositAmount = data.topUpAmount - data.bonusAmount;
+
+                    if (groupedResult) {
+                        groupedResult.forEach(player => {
+                            if (player && data && player._id.toString() === data._id.toString()) {
+                                data.reachTargetDay = player.reachTargetDay ? player.reachTargetDay : 0;
+                            }
+                        });
+                    }
+                    return data;
+                });
+
+                //handle sum of field here
+                for (let z = 0; z < result.length; z++) {
+                    resultSum.topUpAmount += result[z].topUpAmount;
+                    resultSum.bonusAmount += result[z].bonusAmount;
+                    resultSum.totalPlayerDepositAmount += result[z].totalPlayerDepositAmount;
+                }
+
+                let outputResult = [];
+                for (let i = 0, len = limit; i < len; i++) {
+                    result[index + i] ? outputResult.push(result[index + i]) : null;
+                }
+
+                let outputData = [];
+                for (let x = 0; x < countDay; x++) {
+                    outputData.push({
+                        day: x+1,
+                        size: 0,
+                        playerData: [],
+                        total: {}
+                    });
+                }
+
+                outputData.forEach(day => {
+                   result.forEach(player => {
+                       if (player && day && player.reachTargetDay === day.day) {
+                           day.playerData.push(player);
+                           day.size += 1;
+                       }
+                   })
+                });
+
+                /*
+                outputData = [
+                    {
+                        day: 1,
+                        size: 3,
+                        playerData: [{player1}, {player2}, {player3}],
+                        total: {
+                            topUpAmount: 111,
+                            bonusAmount: 222,
+                            totalPlayerDepositAmount: 333
+                        }
+                    },
+                    {
+                        day: 2
+                    }
+                ]
+                */
+
+                return {size: result.length, data: outputResult, total: resultSum, days: countDay, outputData: outputData};
+            }
+        );
+    },
+
     getDXNewPlayerReport: function (platform, query, index, limit, sortCol) {
         limit = limit ? limit : 20;
         index = index ? index : 0;
