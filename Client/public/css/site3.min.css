@@ -4102,6 +4102,10 @@ table.simple-table.platformFrontEndDisplayTable tbody td {
     display: inline-block;
     float: none;
 }
+
+.yellow-background {
+    background-color: yellow;
+}
 .navbar-right {
     padding-right: 10px !important;
 }

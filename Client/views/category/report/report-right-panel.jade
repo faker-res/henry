@@ -1919,9 +1919,9 @@
                             tr(ng-if="vm.playerDepositAnalysisDetails.outputData.length == 0")
                                 td(colspan = 3) {{ 'No data available in table' | translate }}
                             tr(ng-if="vm.playerDepositAnalysisDetails.outputData.length > 0", ng-repeat="v in vm.playerDepositAnalysisDetails.outputData")
-                                td {{v.date}}
-                                td {{v.topUpAmount | noRoundTwoDecimalPlaces}}
-                                td {{v.bonusAmount | noRoundTwoDecimalPlaces}}
+                                td(ng-class='v.isExceedDailyTotalDeposit ? "yellow-background" : ""') {{v.date}}
+                                td(ng-class='v.isExceedDailyTotalDeposit ? "yellow-background" : ""') {{v.topUpAmount | noRoundTwoDecimalPlaces}}
+                                td(ng-class='v.isExceedDailyTotalDeposit ? "yellow-background" : ""') {{v.bonusAmount | noRoundTwoDecimalPlaces}}
                             tr(ng-if="vm.playerDepositAnalysisDetails.outputData.length > 0")
                                 td(style="font-weight:bold") {{"Totalsum" | translate}}
                                 td(style="font-weight:bold") {{vm.playerDepositAnalysisDetails.total.topUpAmount | noRoundTwoDecimalPlaces}}
