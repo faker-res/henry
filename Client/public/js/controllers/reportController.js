@@ -3630,6 +3630,7 @@ define(['js/app'], function (myApp) {
                     $('#loadingPlayerDepositAnalysisReportTableSpin').hide();
 
                     let drawData = data.data.data.map(item => {
+                        let breakLine = "<br>";
                         item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                         item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
                         item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
@@ -3648,7 +3649,7 @@ define(['js/app'], function (myApp) {
                             for (let i = 0; i < item.credibilityRemarks.length; i++) {
                                 for (let j = 0; j < vm.credibilityRemarks.length; j++) {
                                     if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
-                                        item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                                        item.credibility$ += vm.credibilityRemarks[j].name + breakLine;
                                     }
                                 }
                             }
@@ -3672,7 +3673,7 @@ define(['js/app'], function (myApp) {
                                 for (let j = 0; j < vm.allProviders.length; j++) {
                                     if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
                                         item.providerArr[i].name = vm.allProviders[j].name;
-                                        item.provider$ += vm.allProviders[j].name + "<br>";
+                                        item.provider$ += vm.allProviders[j].name + breakLine;
                                     }
                                 }
                             }
