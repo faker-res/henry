@@ -3618,7 +3618,7 @@ define(['js/app'], function (myApp) {
                 },
                 index: newSearch ? 0 : (vm.depositAnalysisQuery.index || 0),
                 limit: vm.depositAnalysisQuery.limit || 5000,
-                sortCol: vm.depositAnalysisQuery.sortCol || {validConsumptionAmount: -1},
+                sortCol: vm.depositAnalysisQuery.sortCol || {},
             };
             console.log('sendQuery', sendQuery);
             socketService.$socket($scope.AppSocket, 'getPlayerDepositAnalysisReport', sendQuery, function (data) {
@@ -7535,7 +7535,7 @@ define(['js/app'], function (myApp) {
                         var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
                         var todayEndTime = utilService.getTodayEndTime();
                         vm.depositAnalysisQuery = {};
-                        vm.depositAnalysisQuery.sortCol = {validConsumptionAmount: -1};
+                        vm.depositAnalysisQuery.sortCol = {};
                         vm.depositAnalysisQuery.limit = 10;
                         vm.depositAnalysisQuery.valueScoreOperator = ">=";
                         vm.depositAnalysisQuery.start = utilService.createDatePicker('#startingDateTimePickerDepositAnalysis');
