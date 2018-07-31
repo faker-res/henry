@@ -3833,6 +3833,9 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getPlayerDepositAnalysisDetails', sendQuery, function (data) {
                 $scope.$evalAsync(() => {
                     vm.playerDepositAnalysisDetails = data.data;
+                    vm.playerDepositAnalysisDetails.outputData.map(dailyData => {
+                        dailyData.date = String(utilService.$getTimeFromStdTimeFormat(new Date(dailyData.date))).substring(0, 10);
+                    });
                     $('#modalPlayerDepositAnalysisDetailsTable').modal().show();
                 });
             });
