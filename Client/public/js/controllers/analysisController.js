@@ -2197,10 +2197,10 @@ define(['js/app'], function (myApp) {
                                     vm.registrationRecord = res.data;
 
                                     vm.registrationRecord.forEach(data => {
-                                        let webAvg = data.webUniqueCount == 0 ? 0 : 1 - data.webCount / data.webUniqueCount;
-                                        let appAvg = data.appUniqueCount == 0 ? 0 : 1 - data.appCount / data.appUniqueCount;
-                                        let H5Avg = data.H5UniqueCount == 0 ? 0 : 1 - data.H5Count / data.H5UniqueCount;
-                                        let frontEndAvg = data.frontEndUniqueCount == 0 ? 0 : 1 - data.frontEndCount / data.frontEndUniqueCount;
+                                        let webAvg = (data.webUniqueCount == 0 ? 0 : 1 - data.webCount / data.webUniqueCount).toFixed(2);
+                                        let appAvg = (data.appUniqueCount == 0 ? 0 : 1 - data.appCount / data.appUniqueCount).toFixed(2);
+                                        let H5Avg = (data.H5UniqueCount == 0 ? 0 : 1 - data.H5Count / data.H5UniqueCount).toFixed(2);
+                                        let frontEndAvg = (data.frontEndUniqueCount == 0 ? 0 : 1 - data.frontEndCount / data.frontEndUniqueCount).toFixed(2);
 
                                         data.webAttritionRate$ = $roundToTwoDecimalPlacesString(webAvg * 100);
                                         data.webAttritionRate = $noRoundTwoDecimalPlaces(webAvg * 100);
@@ -2215,7 +2215,7 @@ define(['js/app'], function (myApp) {
                                     // count avg value for web registration
                                     vm.webRegistration.avgCount = vm.calculateAverageData(vm.registrationRecord, 'webCount');
                                     vm.webRegistration.uniqueAvgCount = vm.calculateAverageData(vm.registrationRecord, 'webUniqueCount');
-                                    let webAvgVal = vm.webRegistration.uniqueAvgCount == 0 ? 0 : 1 - vm.webRegistration.avgCount / vm.webRegistration.uniqueAvgCount;
+                                    let webAvgVal = (vm.webRegistration.uniqueAvgCount == 0 ? 0 : 1 - vm.webRegistration.avgCount / vm.webRegistration.uniqueAvgCount).toFixed(2);
                                     vm.webRegistration.attritionAvgRate$ = $roundToTwoDecimalPlacesString(webAvgVal * 100);
                                     vm.webRegistration.attritionAvgRate = $noRoundTwoDecimalPlaces(webAvgVal * 100);
 
@@ -2225,7 +2225,7 @@ define(['js/app'], function (myApp) {
                                     // count avg value for app registration
                                     vm.appRegistration.avgCount = vm.calculateAverageData(vm.registrationRecord, 'appCount');
                                     vm.appRegistration.uniqueAvgCount = vm.calculateAverageData(vm.registrationRecord, 'appUniqueCount');
-                                    let appAvgVal = vm.appRegistration.uniqueAvgCount == 0 ? 0 : 1 - vm.appRegistration.avgCount / vm.appRegistration.uniqueAvgCount;
+                                    let appAvgVal = (vm.appRegistration.uniqueAvgCount == 0 ? 0 : 1 - vm.appRegistration.avgCount / vm.appRegistration.uniqueAvgCount).toFixed(2);
                                     vm.appRegistration.attritionAvgRate$ = $roundToTwoDecimalPlacesString(appAvgVal * 100);
                                     vm.appRegistration.attritionAvgRate = $noRoundTwoDecimalPlaces(appAvgVal * 100);
 
@@ -2235,7 +2235,7 @@ define(['js/app'], function (myApp) {
                                     // count avg value for H5 registration
                                     vm.H5Registration.avgCount = vm.calculateAverageData(vm.registrationRecord, 'H5Count');
                                     vm.H5Registration.uniqueAvgCount = vm.calculateAverageData(vm.registrationRecord, 'H5UniqueCount');
-                                    let H5AvgVal = vm.H5Registration.uniqueAvgCount == 0 ? 0 : 1 - vm.H5Registration.avgCount / vm.H5Registration.uniqueAvgCount;
+                                    let H5AvgVal = (vm.H5Registration.uniqueAvgCount == 0 ? 0 : 1 - vm.H5Registration.avgCount / vm.H5Registration.uniqueAvgCount).toFixed(2);
                                     vm.H5Registration.attritionAvgRate$ = $roundToTwoDecimalPlacesString(H5AvgVal * 100);
                                     vm.H5Registration.attritionAvgRate = $noRoundTwoDecimalPlaces(H5AvgVal * 100);
 
@@ -2246,7 +2246,7 @@ define(['js/app'], function (myApp) {
                                     // count avg value for all font-end registation
                                     vm.frontEndRegistration.avgCount = vm.calculateAverageData(vm.registrationRecord, 'frontEndCount');
                                     vm.frontEndRegistration.uniqueAvgCount = vm.calculateAverageData(vm.registrationRecord, 'frontEndUniqueCount');
-                                    let frontEndAvgVal = vm.frontEndRegistration.uniqueAvgCount == 0 ? 0 : 1 - vm.frontEndRegistration.avgCount / vm.frontEndRegistration.uniqueAvgCount;
+                                    let frontEndAvgVal = (vm.frontEndRegistration.uniqueAvgCount == 0 ? 0 : 1 - vm.frontEndRegistration.avgCount / vm.frontEndRegistration.uniqueAvgCount).toFixed(2);
                                     vm.frontEndRegistration.attritionAvgRate$ = $roundToTwoDecimalPlacesString(frontEndAvgVal * 100);
                                     vm.frontEndRegistration.attritionAvgRate = $noRoundTwoDecimalPlaces(frontEndAvgVal * 100);
 
