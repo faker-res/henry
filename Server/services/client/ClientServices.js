@@ -129,7 +129,8 @@
                 "createPlayerFromTel",
                 "getPlatformSetting",
                 "turnUrlToQr",
-                "getTemplateSetting"
+                "getTemplateSetting",
+                "addIpDomainLog"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

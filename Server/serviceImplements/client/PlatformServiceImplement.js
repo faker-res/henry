@@ -145,6 +145,11 @@ var PlatformServiceImplement = function () {
         let isValidData = Boolean(data && data.platformId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getTemplateSetting, [data.platformId, data.url], isValidData, null, null, true);
     };
+
+    this.addIpDomainLog.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && data.domain && data.ipAddress);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.addIpDomainLog, [data.platformId, data.domain, data.ipAddress], isValidData, null, null, true);
+    };
 };
 
 var proto = PlatformServiceImplement.prototype = Object.create(PlatformService.prototype);

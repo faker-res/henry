@@ -358,6 +358,8 @@ let partnerCommSettLogSchema = require('./../schema/logs2/partnerCommSettLog');
 let partnerCommSettLogModel = dbLogs2.model('partnerCommSettLog', partnerCommSettLogSchema, 'partnerCommSettLog');
 let playerOnlineTimeSchema = require('./../schema/logs2/playerOnlineTime');
 let playerOnlineTimeModel = dbLogs2.model('playerOnlineTime', playerOnlineTimeSchema, 'playerOnlineTime');
+let ipDomainLogSchema = require('./../schema/logs2/ipDomainLog');
+let ipDomainLogModel = dbLogs2.model('ipDomainLog', ipDomainLogSchema, 'ipDomainLog');
 
 let openPromoCodeTemplateSchema = require('./../schema/logs2/openPromoCodeTemplate');
 let openPromoCodeTemplateModel = dbLogs2.model('openPromoCodeTemplate', openPromoCodeTemplateSchema, 'openPromoCodeTemplate');
@@ -552,6 +554,7 @@ var dbProperties = {
 
     collection_systemLog: systemLogModel,
     collection_creditChangeLog: creditChangeLogModel,
+    collection_ipDomainLog: ipDomainLogModel,
     collection_partnerCreditChangeLog: partnerCreditChangeLogModel,
     collection_rewardLog: rewardLogModel,
     collection_playerStatusChangeLog: playerStatusChangeLogModal,
