@@ -2742,6 +2742,7 @@ var proposal = {
         var resultArray = null;
         var totalSize = 0;
         var summary = {};
+        let isApprove = false;
 
         if (reqData.status) {
             if (reqData.status == constProposalStatus.SUCCESS) {
@@ -2754,9 +2755,23 @@ var proposal = {
                     $in: [constProposalStatus.FAIL, constProposalStatus.REJECTED]
                 };
             }
+            if (reqData.status == constProposalStatus.APPROVE) {
+                isApprove = true;
+                reqData.status = {
+                    $in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]
+                };
+            }
         }
         if (!reqData.type && reqData.platformId) {
-            dbconfig.collection_proposalType.find({platformId: (ObjectId(reqData.platformId))}).then(
+            let searchQuery = {
+                platformId: ObjectId(reqData.platformId)
+            }
+
+            if(isApprove){
+                searchQuery.name = {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]} ;
+            }
+
+            dbconfig.collection_proposalType.find(searchQuery).then(
                 function (data) {
                     if (data && data.length > 0) {
                         for (var i = 0; i < data.length; i++) {
@@ -2855,74 +2870,213 @@ var proposal = {
                 reqData.type = {$in: arr}
             }
 
-            let a = dbconfig.collection_proposal.find(reqData).lean().count();
-            let b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
-                .populate({path: "type", model: dbconfig.collection_proposalType})
-                .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean();
-            let c = dbconfig.collection_proposal.aggregate([
-                {
-                    $match: reqData
-                },
-                {
-                    $group: {
-                        _id: null,
-                        totalAmount: {
-                            $sum: {
-                                $cond: [
-                                    {$eq: ["$data.amount", NaN]},
-                                    0,
-                                    "$data.amount"
-                                ]
-                            }
-                        },
-                        totalRewardAmount: {
-                            $sum: {
-                                $cond: [
-                                    {$eq: ["$data.rewardAmount", NaN]},
-                                    0,
-                                    "$data.rewardAmount"
-                                ]
-                            }
-                        },
-                        totalTopUpAmount: {
-                            $sum: {
-                                $cond: [
-                                    {$eq: ["$data.topUpAmount", NaN]},
-                                    0,
-                                    "$data.topUpAmount"
-                                ]
-                            }
-                        },
-                        totalUpdateAmount: {
-                            $sum: {
-                                $cond: [
-                                    {$eq: ["$data.updateAmount", NaN]},
-                                    0,
-                                    "$data.updateAmount"
-                                ]
-                            }
-                        },
-                        totalNegativeProfitAmount: {
-                            $sum: {
-                                $cond: [
-                                    {$eq: ["$data.negativeProfitAmount", NaN]},
-                                    0,
-                                    "$data.negativeProfitAmount"
-                                ]
-                            }
-                        },
-                        totalCommissionAmount: {
-                            $sum: {
-                                $cond: [
-                                    {$eq: ["$data.commissionAmount", NaN]},
-                                    0,
-                                    "$data.commissionAmount"
-                                ]
-                            }
-                        },
+            let a, b, c;
+            if(isApprove){
+                let searchQuery = {
+                    platformId: ObjectId(reqData.platformId),
+                    name: {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
+                };
+
+                a = dbconfig.collection_proposalType.find(searchQuery).then(
+                    proposalType => {
+                        delete reqData.platformId;
+                        if(proposalType && proposalType.length > 0){
+                            let proposalTypeIdList = [];
+                            proposalType.forEach(p => {
+                                if(p && p._id){
+                                    let indexNo = reqData.type.$in.findIndex(r => r == p.id);
+
+                                    if(indexNo != -1){
+                                        proposalTypeIdList.push(p._id);
+                                    }
+                                }
+                            });
+
+                            reqData.type = {$in: proposalTypeIdList};
+                        }
+
+                        return dbconfig.collection_proposal.find(reqData).lean().count();
                     }
-                }
-            ]);
+                );
+
+                b = dbconfig.collection_proposalType.find(searchQuery).then(
+                    proposalType => {
+                        delete reqData.platformId;
+                        if(proposalType && proposalType.length > 0){
+                            let proposalTypeIdList = [];
+                            proposalType.forEach(p => {
+                                if(p && p._id){
+                                    let indexNo = reqData.type.$in.findIndex(r => r == p.id);
+
+                                    if(indexNo != -1){
+                                        proposalTypeIdList.push(p._id);
+                                    }
+                                }
+                            });
+
+                            reqData.type = {$in: proposalTypeIdList};
+                        }
+
+                        return dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
+                            .populate({path: "type", model: dbconfig.collection_proposalType})
+                            .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean();
+                    }
+                );
+
+                c = dbconfig.collection_proposalType.find(searchQuery).then(
+                    proposalType => {
+                        delete reqData.platformId;
+                        if(proposalType && proposalType.length > 0){
+                            let proposalTypeIdList = [];
+                            proposalType.forEach(p => {
+                                if(p && p._id){
+                                    let indexNo = reqData.type.$in.findIndex(r => r == p.id);
+
+                                    if(indexNo != -1){
+                                        proposalTypeIdList.push(p._id);
+                                    }
+                                }
+                            });
+
+                            reqData.type = {$in: proposalTypeIdList};
+                        }
+                        return dbconfig.collection_proposal.aggregate([
+                            {
+                                $match: reqData
+                            },
+                            {
+                                $group: {
+                                    _id: null,
+                                    totalAmount: {
+                                        $sum: {
+                                            $cond: [
+                                                {$eq: ["$data.amount", NaN]},
+                                                0,
+                                                "$data.amount"
+                                            ]
+                                        }
+                                    },
+                                    totalRewardAmount: {
+                                        $sum: {
+                                            $cond: [
+                                                {$eq: ["$data.rewardAmount", NaN]},
+                                                0,
+                                                "$data.rewardAmount"
+                                            ]
+                                        }
+                                    },
+                                    totalTopUpAmount: {
+                                        $sum: {
+                                            $cond: [
+                                                {$eq: ["$data.topUpAmount", NaN]},
+                                                0,
+                                                "$data.topUpAmount"
+                                            ]
+                                        }
+                                    },
+                                    totalUpdateAmount: {
+                                        $sum: {
+                                            $cond: [
+                                                {$eq: ["$data.updateAmount", NaN]},
+                                                0,
+                                                "$data.updateAmount"
+                                            ]
+                                        }
+                                    },
+                                    totalNegativeProfitAmount: {
+                                        $sum: {
+                                            $cond: [
+                                                {$eq: ["$data.negativeProfitAmount", NaN]},
+                                                0,
+                                                "$data.negativeProfitAmount"
+                                            ]
+                                        }
+                                    },
+                                    totalCommissionAmount: {
+                                        $sum: {
+                                            $cond: [
+                                                {$eq: ["$data.commissionAmount", NaN]},
+                                                0,
+                                                "$data.commissionAmount"
+                                            ]
+                                        }
+                                    },
+                                }
+                            }
+                        ]).read("secondaryPreferred");
+                    }
+                );
+            }else{
+                delete reqData.platformId;
+                a = dbconfig.collection_proposal.find(reqData).lean().count();
+                b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
+                    .populate({path: "type", model: dbconfig.collection_proposalType})
+                    .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean();
+                c = dbconfig.collection_proposal.aggregate([
+                    {
+                        $match: reqData
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            totalAmount: {
+                                $sum: {
+                                    $cond: [
+                                        {$eq: ["$data.amount", NaN]},
+                                        0,
+                                        "$data.amount"
+                                    ]
+                                }
+                            },
+                            totalRewardAmount: {
+                                $sum: {
+                                    $cond: [
+                                        {$eq: ["$data.rewardAmount", NaN]},
+                                        0,
+                                        "$data.rewardAmount"
+                                    ]
+                                }
+                            },
+                            totalTopUpAmount: {
+                                $sum: {
+                                    $cond: [
+                                        {$eq: ["$data.topUpAmount", NaN]},
+                                        0,
+                                        "$data.topUpAmount"
+                                    ]
+                                }
+                            },
+                            totalUpdateAmount: {
+                                $sum: {
+                                    $cond: [
+                                        {$eq: ["$data.updateAmount", NaN]},
+                                        0,
+                                        "$data.updateAmount"
+                                    ]
+                                }
+                            },
+                            totalNegativeProfitAmount: {
+                                $sum: {
+                                    $cond: [
+                                        {$eq: ["$data.negativeProfitAmount", NaN]},
+                                        0,
+                                        "$data.negativeProfitAmount"
+                                    ]
+                                }
+                            },
+                            totalCommissionAmount: {
+                                $sum: {
+                                    $cond: [
+                                        {$eq: ["$data.commissionAmount", NaN]},
+                                        0,
+                                        "$data.commissionAmount"
+                                    ]
+                                }
+                            },
+                        }
+                    }
+                ]).read("secondaryPreferred");
+            }
             Q.all([a, b, c]).then(
                 function (data) {
                     totalSize = data[0];

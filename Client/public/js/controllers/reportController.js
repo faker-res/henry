@@ -47,7 +47,8 @@ define(['js/app'], function (myApp) {
             EXPIRED: "Expired",
             UNDETERMINED: "Undetermined",
             CSPENDING: "CsPending",
-            NOVERIFY: "NoVerify"
+            NOVERIFY: "NoVerify",
+            APPROVED: "approved"
         };
         vm.topUpTypeList = {
             TOPUPMANUAL: 1,
@@ -1212,6 +1213,22 @@ define(['js/app'], function (myApp) {
             });
 
             $scope.safeApply();
+        };
+
+        vm.setupRemarksMultiInputDepositAnalysis = function () {
+            $scope.$evalAsync(() => {
+                let remarkSelect = $('select#selectCredibilityRemarksDepositAnalysis');
+                if (remarkSelect.css('display').toLowerCase() === "none") {
+                    return;
+                }
+                remarkSelect.multipleSelect({
+                    showCheckbox: true,
+                    allSelected: $translate("All Selected"),
+                    selectAllText: $translate("Select All"),
+                    displayValues: false,
+                    countSelected: $translate('# of % selected')
+                });
+            });
         };
 
         vm.getProposalTypeByPlatformId = function (id) {
@@ -3581,6 +3598,248 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        ///////////////// START player deposit analysis report /////////////////////////////
+        vm.searchPlayerDepositAnalysisReport = function (newSearch) {
+            $('#loadingPlayerDepositAnalysisReportTableSpin').show();
+            let sendQuery = {
+                platformId: vm.curPlatformId,
+                query: {
+                    name: vm.depositAnalysisQuery.name,
+                    credibilityRemarks: vm.depositAnalysisQuery.credibilityRemarks,
+                    valueScoreOperator: vm.depositAnalysisQuery.valueScoreOperator,
+                    playerScoreValue: vm.depositAnalysisQuery.playerScoreValue,
+                    playerScoreValueTwo: vm.depositAnalysisQuery.playerScoreValueTwo,
+                    playerLevel: vm.depositAnalysisQuery.level,
+                    providerId: vm.depositAnalysisQuery.providerId,
+                    start: vm.depositAnalysisQuery.start.data('datetimepicker').getLocalDate(),
+                    end: vm.depositAnalysisQuery.end.data('datetimepicker').getLocalDate(),
+                    dailyTotalDeposit: vm.depositAnalysisQuery.dailyTotalDeposit,
+                    numberOfDays: vm.depositAnalysisQuery.numberOfDays,
+                },
+                index: newSearch ? 0 : (vm.depositAnalysisQuery.index || 0),
+                limit: vm.depositAnalysisQuery.limit || 5000,
+                sortCol: vm.depositAnalysisQuery.sortCol || {validConsumptionAmount: -1},
+            };
+            console.log('sendQuery', sendQuery);
+            socketService.$socket($scope.AppSocket, 'getPlayerDepositAnalysisReport', sendQuery, function (data) {
+                $scope.$evalAsync(() => {
+                    console.log('retData', data);
+                    vm.playerDepositAnalysis = data.data.outputData;
+                    vm.playerDepositAnalysisDays = data.data.days;
+                    vm.depositAnalysisQuery.totalCount = data.data.size;
+                    $('#loadingPlayerDepositAnalysisReportTableSpin').hide();
+
+                    let drawData = data.data.data.map(item => {
+                        item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
+                        item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
+                        item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                        item.totalPlayerDepositAmount$ = parseFloat(item.totalPlayerDepositAmount).toFixed(2);
+
+                        item.playerLevel$ = "";
+                        if (vm.playerLvlData[item.playerLevel]) {
+                            item.playerLevel$ = vm.playerLvlData[item.playerLevel].name;
+                        }
+                        else {
+                            item.playerLevel$ = "";
+                        }
+
+                        item.credibility$ = "";
+                        if (item.credibilityRemarks) {
+                            for (let i = 0; i < item.credibilityRemarks.length; i++) {
+                                for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                    if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                        item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                                    }
+                                }
+                            }
+                        }
+
+                        item.providerArr = [];
+                        for (let key in item.providerDetail) {
+                            if (item.providerDetail.hasOwnProperty(key)) {
+                                item.providerDetail[key].providerId = key;
+                                item.providerArr.push(item.providerDetail[key]);
+                            }
+                        }
+
+                        item.provider$ = "";
+                        if (item.providerDetail) {
+                            for (let i = 0; i < item.providerArr.length; i++) {
+                                item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
+                                item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
+                                item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
+                                item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                                for (let j = 0; j < vm.allProviders.length; j++) {
+                                    if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                        item.providerArr[i].name = vm.allProviders[j].name;
+                                        item.provider$ += vm.allProviders[j].name + "<br>";
+                                    }
+                                }
+                            }
+                        }
+                        return item;
+                    });
+
+                    vm.playerDepositAnalysis.forEach(day => {
+                        day.playerData.forEach(player => {
+                            drawData.forEach(data => {
+                                if (player._id.toString() === data._id.toString()) {
+                                    player.credibility$ = data.credibility$;
+                                    player.playerLevel$ = data.playerLevel$;
+                                    player.provider$ = data.provider$;
+                                    player.lastAccessTime$ = data.lastAccessTime$;
+                                    player.topUpAmount$ = data.topUpAmount$;
+                                    player.bonusAmount$ = data.bonusAmount$;
+                                    player.totalPlayerDepositAmount$ = data.totalPlayerDepositAmount$;
+                                }
+                            });
+                            return player;
+                        });
+                        return day;
+                    });
+
+                    // filter out days without player data, will not show empty table
+                    let tempFilter = vm.playerDepositAnalysis.filter(day => {
+                        return day.size !== 0;
+                    });
+                    vm.playerDepositAnalysis = tempFilter;
+
+                    // vm.drawPlayerDepositAnalysisReport(drawData, data.data.total, data.data.size, newSearch);
+                });
+            });
+        };
+
+        vm.drawPlayerDepositAnalysisReport = function (data, total, size, newSearch) {
+            var tableOptions = {
+                data: data,
+                "order": vm.depositAnalysisQuery.aaSorting || [[0, 'desc']],
+                aoColumnDefs: [
+                    {'sortCol': 'name', 'aTargets': [0], bSortable: true},
+                    {'sortCol': 'realName', 'aTargets': [1], bSortable: true},
+                    {'sortCol': 'valueScore', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'credibilityRemarks', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'playerLevel', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'provider', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'lastAccessTime', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'topUpAmount', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'bonusAmount', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'totalPlayerDepositAmount', 'aTargets': [9], bSortable: true},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
+                    {title: $translate('realName'), data: "realName", sClass: "realNameCell wordWrap"},
+                    {title: $translate('PlayerValue'), data: "valueScore"},
+                    {title: $translate('CREDIBILITY'), data: "credibility$"},
+                    {title: $translate('LEVEL'), data: "playerLevel$"},
+                    {
+                        title: $translate('LOBBY'), data: "provider$", sClass: "expandPlayerReport sumText",
+                        render: function (data) {
+                            return "<a>" + data + "</a>";
+                        }
+                    },
+                    {title: $translate('LAST_ACCESS_TIME'), data: "lastAccessTime$"},
+                    {title: $translate('TOTAL_DEPOSIT'), data: "topUpAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('WITHDRAW_AMOUNT'), data: "bonusAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('TOTAL_DEPOSIT_AMOUNT'), data: "totalPlayerDepositAmount$", sClass: 'sumFloat alignRight'},
+                ],
+                "paging": false,
+                "language": {
+                    "info": "Total _MAX_ records",
+                    "emptyTable": $translate("No data available in table"),
+                }
+            };
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            if (playerTbl) {
+                playerTbl.clear();
+            }
+            var playerTbl = utilService.createDatatableWithFooter('#playerDepositAnalysisReportTable', tableOptions, {
+                7: total.topUpAmount,
+                8: total.bonusAmount,
+                9: total.totalPlayerDepositAmount
+            });
+            utilService.setDataTablePageInput('playerDepositAnalysisReportTable', playerTbl, $translate);
+
+            vm.depositAnalysisQuery.pageObj.init({maxCount: size}, newSearch);
+
+            $('#playerDepositAnalysisReportTable').resize();
+            $('#playerDepositAnalysisReportTable tbody').off('click', 'td.expandPlayerReport');
+            $('#playerDepositAnalysisReportTable tbody').on('click', 'td.expandPlayerReport', function () {
+                var tr = $(this).closest('tr');
+                var row = playerTbl.row(tr);
+
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                    tr.removeClass('shown');
+                }
+                else {
+                    // Open this row
+                    var data = row.data();
+                    console.log('content', data);
+                    var id = 'playertable' + data._id;
+                    row.child(vm.createInnerTable(id)).show();
+                    vm[id] = {};
+                    // utilService.actionAfterLoaded("#" + id + 'Page', function () {
+                    //     vm[id].pageObj = utilService.createPageForPagingTable("#" + id + 'Page', {}, $translate, function (curP, pageSize) {
+                    //         vm.searchGameReportInProvider(data, id, false, (curP - 1) * pageSize, pageSize);
+                    //     });
+                    //
+                    // })
+                    vm.allGame = [];
+                    var gameId = [];
+                    if (data.gameDetail) {
+                        for (let n = 0; n < data.gameDetail.length; n++) {
+                            gameId[n] = data.gameDetail[n].gameId;
+                        }
+
+                        vm.getGameByIds(gameId).then(
+                            function () {
+                                for (let i = 0; i < data.gameDetail.length; i++) {
+                                    data.gameDetail[i].profit = parseFloat(data.gameDetail[i].bonusAmount / data.gameDetail[i].validAmount * -100).toFixed(2) + "%";
+                                    for (let j = 0; j < vm.allGame.length; j++) {
+                                        if (data.gameDetail[i].gameId.toString() == vm.allGame[j]._id.toString()) {
+                                            data.gameDetail[i].name = vm.allGame[j].name;
+                                        }
+                                    }
+                                }
+                                vm.drawPlatformTable(data, id, data.providerArr.length, newSearch, vm.depositAnalysisQuery);
+                            }
+                        )
+                    }
+
+                    tr.addClass('shown');
+                }
+            });
+            $('#playerDepositAnalysisReportTable').off('order.dt');
+            $('#playerDepositAnalysisReportTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'depositAnalysisQuery', vm.searchPlayerDepositAnalysisReport);
+            });
+        };
+
+        vm.getPlayerDepositAnalysisDetails = function (playerObjId) {
+            let sendQuery = {
+                platformId: vm.curPlatformId,
+                query: {
+                    playerObjId: playerObjId,
+                    start: vm.depositAnalysisQuery.start.data('datetimepicker').getLocalDate(),
+                    end: vm.depositAnalysisQuery.end.data('datetimepicker').getLocalDate(),
+                    dailyTotalDeposit: vm.depositAnalysisQuery.dailyTotalDeposit,
+                }
+            };
+            console.log('sendQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'getPlayerDepositAnalysisDetails', sendQuery, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.playerDepositAnalysisDetails = data.data;
+                    $('#modalPlayerDepositAnalysisDetailsTable').modal().show();
+                });
+            });
+        };
+        ///////////////// END player deposit analysis report /////////////////////////////
+
+
+        /////////////////telemarketing new account report/////////////////////////////
         vm.searchDXNewPlayerReport = function (newSearch) {
             $('#dxNewPlayerReportTableSpin').show();
 
@@ -7264,6 +7523,26 @@ define(['js/app'], function (myApp) {
                     });
                     vm.setupRemarksMultiInput();
                     $scope.safeApply();
+                })
+            } else if (choice == "PLAYER_DEPOSIT_ANALYSIS_REPORT") {
+                utilService.actionAfterLoaded('#playerDepositAnalysisReportTablePage', function () {
+                    $scope.$evalAsync(() => {
+                        var yesterday = utilService.setNDaysAgo(new Date(), 8);
+                        var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
+                        var todayEndTime = utilService.getTodayEndTime();
+                        vm.depositAnalysisQuery = {};
+                        vm.depositAnalysisQuery.sortCol = {validConsumptionAmount: -1};
+                        vm.depositAnalysisQuery.limit = 5000;
+                        vm.depositAnalysisQuery.valueScoreOperator = ">=";
+                        vm.depositAnalysisQuery.start = utilService.createDatePicker('#startingDateTimePickerDepositAnalysis');
+                        vm.depositAnalysisQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                        vm.depositAnalysisQuery.end = utilService.createDatePicker('#endingEndDateTimePickerDepositAnalysis');
+                        vm.depositAnalysisQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                        // vm.depositAnalysisQuery.pageObj = utilService.createPageForPagingTable("#playerDepositAnalysisReportTablePage", {pageSize: 5000}, $translate, function (curP, pageSize) {
+                        //     vm.commonPageChangeHandler(curP, pageSize, "depositAnalysisQuery", vm.searchPlayerDepositAnalysisReport);
+                        // });
+                        vm.setupRemarksMultiInputDepositAnalysis();
+                    });
                 })
             } else if (choice == "PLAYER_EXPENSE_REPORT") {
                 vm.playerExpenseQuery = {totalCount: 0};

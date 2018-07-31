@@ -1286,7 +1286,7 @@ var dbPlayerTopUpRecord = {
                         operateType: entryType == "ADMIN" ? 1 : 0,
                         remark: inputData.remark || ''
                     };
-                    if (!bPMSGroup) {
+                    if (!bPMSGroup || isFPMS) {
                         requestData.groupBankcardList = player.bankCardGroup ? player.bankCardGroup.banks : [];
                     }
                     if( inputData.supportMode ){
@@ -2360,7 +2360,7 @@ var dbPlayerTopUpRecord = {
                             createTime: cTimeString,
                             operateType: entryType == "ADMIN" ? 1 : 0
                         };
-                        if(!bPMSGroup){
+                        if(!bPMSGroup || isFPMS){
                             if (alipayAccount) {
                                 requestData.groupAlipayList = [alipayAccount];
                             }
@@ -2522,12 +2522,21 @@ var dbPlayerTopUpRecord = {
                             queryId: serverInstance.getQueryId()
                         }
 
-                        if (String(bPMSGroup) == "true") {
-                            pmsQuery.ip = userIp;
-                            pmsQuery.username = playerData.name;
-                            prom = pmsAPI.foundation_requestWechatpayByUsername(pmsQuery);
+                        let platformData = playerData.platform;
+                        if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                            prom = dbconfig.collection_platformWechatPayList.find({accountNumber: {$in: playerData.wechatPayGroup.wechats}, isFPMS: true}).lean().then(
+                                wechatpayListData => {
+                                    return {data: wechatpayListData}
+                                }
+                            )
                         } else {
-                            prom = pmsAPI.weChat_getWechatList(pmsQuery);
+                            if (String(bPMSGroup) == "true") {
+                                pmsQuery.ip = userIp;
+                                pmsQuery.username = playerData.name;
+                                prom = pmsAPI.foundation_requestWechatpayByUsername(pmsQuery);
+                            } else {
+                                prom = pmsAPI.weChat_getWechatList(pmsQuery);
+                            }
                         }
                         return prom.then(
                             wechats => {
@@ -2585,13 +2594,23 @@ var dbPlayerTopUpRecord = {
                             queryId: serverInstance.getQueryId()
                         }
 
-                        if (String(bPMSGroup) == "true") {
-                            pmsQuery.ip = userIp;
-                            pmsQuery.username = playerData.name;
-                            aliPayProm = pmsAPI.foundation_requestAlipayByUsername(pmsQuery);
+                        let platformData = playerData.platform;
+                        if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                            aliPayProm = dbconfig.collection_platformAlipayList.find({accountNumber: {$in: playerData.alipayGroup.alipays}, isFPMS: true}).lean().then(
+                                alipayListData => {
+                                    return {data: alipayListData}
+                                }
+                            )
                         } else {
-                            aliPayProm = pmsAPI.alipay_getAlipayList(pmsQuery);
+                            if (String(bPMSGroup) == "true") {
+                                pmsQuery.ip = userIp;
+                                pmsQuery.username = playerData.name;
+                                aliPayProm = pmsAPI.foundation_requestAlipayByUsername(pmsQuery);
+                            } else {
+                                aliPayProm = pmsAPI.alipay_getAlipayList(pmsQuery);
+                            }
                         }
+
 
                         let proposalQuery = {
                             'data.playerObjId': {$in: [ObjectId(playerData._id), String(playerData._id)]},
@@ -2871,7 +2890,7 @@ var dbPlayerTopUpRecord = {
                         if (remark) {
                             requestData.remark = remark;
                         }
-                        if(!bPMSGroup){
+                        if(!bPMSGroup || isFPMS){
                             if (wechatAccount) {
                                 requestData.groupWechatList = [wechatAccount];
                             }

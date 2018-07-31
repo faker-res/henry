@@ -23,10 +23,19 @@ const dbPlayerPayment = {
             data => {
                 if (data && data.platform && data.alipayGroup) {
                     playerData = data;
-                    return pmsAPI.alipay_getAlipayList({
-                        platformId: data.platform.platformId,
-                        queryId: serverInstance.getQueryId()
-                    });
+                    let platformData = playerData.platform;
+                    if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                        return dbconfig.collection_platformAlipayList.find({accountNumber: {$in: playerData.alipayGroup.alipays}, isFPMS: true}).lean().then(
+                            alipayListData => {
+                                return {data: alipayListData}
+                            }
+                        )
+                    } else {
+                        return pmsAPI.alipay_getAlipayList({
+                            platformId: data.platform.platformId,
+                            queryId: serverInstance.getQueryId()
+                        });
+                    }
                 } else {
                     return Q.reject({name: "DataError", message: "Invalid player data"})
                 }
@@ -189,19 +198,45 @@ const dbPlayerPayment = {
             playerData => {
                 if( playerData ){
                     playerObj = playerData;
-                    if( playerData.permission.topupManual){
-                        return pmsAPI.foundation_requestBankTypeByUsername(
-                            {
-                                queryId: serverInstance.getQueryId(),
-                                platformId: playerData.platform.platformId,
-                                username: playerData.name,
-                                ip: userIp,
-                                supportMode: supportMode
+                    let platformData = playerData.platform;
+                    if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                        return dbconfig.collection_platformBankCardList.find({platformId: platformData.platformId, isFPMS: true, status: "NORMAL"}).lean().then(
+                            bankCardListData => {
+                                let bankListArr = [];
+                                for (let j = 0; j < bankCardListData.length; j++) {
+                                    let bankCardObj = {
+                                        id: bankCardListData[j].bankTypeId,
+                                        bankTypeId: bankCardListData[j].bankTypeId,
+                                        name: bankCardListData[j].name,
+                                        status: 1
+                                    }
+                                    bankCardListData.splice(j, 1, bankCardObj);
+                                }
+                                for (let i = 1; i < 4; i++) {
+                                    let returnObj = {
+                                        depositMethod: String(i),
+                                        data: bankCardListData
+                                    }
+                                    bankListArr.push(returnObj);
+                                }
+                                return {data: bankListArr}
                             }
-                        );
-                    }
-                    else{
-                        return [];
+                        )
+                    } else {
+                        if (playerData.permission.topupManual) {
+                            return pmsAPI.foundation_requestBankTypeByUsername(
+                                {
+                                    queryId: serverInstance.getQueryId(),
+                                    platformId: playerData.platform.platformId,
+                                    username: playerData.name,
+                                    ip: userIp,
+                                    supportMode: supportMode
+                                }
+                            );
+                        }
+                        else {
+                            return [];
+                        }
                     }
                 }
                 else{
