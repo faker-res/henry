@@ -4334,6 +4334,41 @@ var dbPlatform = {
             }
         );
     },
+
+    addIpDomainLog: function (platformId, domain, ipAddress) {
+        let platformObjId;
+        let todayTime = dbUtility.getTodaySGTime();
+
+        return dbconfig.collection_platform.findOne({
+            platformId: platformId
+        }, '_id').lean().then(
+            platform => {
+                if (platform && platform._id) {
+                    platformObjId = platform._id;
+
+                    return dbconfig.collection_ipDomainLog.findOne({
+                        platform: platformObjId,
+                        createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
+                        domain: domain,
+                        ipAddress: ipAddress
+                    }, '_id').lean();
+                }
+            }
+        ).then(
+            ipDomainLog => {
+                if (!ipDomainLog) {
+                    let newLog = {
+                        platform: platformObjId,
+                        domain: domain,
+                        ipAddress: ipAddress,
+                        createTime: new Date()
+                    };
+
+                    dbconfig.collection_ipDomainLog(newLog).save().catch(errorUtils.reportError);
+                }
+            }
+        )
+    }
 };
 
 function getPlatformStringForCallback(platformStringArray, playerId, lineId) {

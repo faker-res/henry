@@ -3,11 +3,11 @@ let dbConfig = require('./../modules/dbproperties');
 let dbPlayerOnlineTime = {
     loginTimeLog: function (playerObjId, platformObjId, token) {
         return dbConfig.collection_playerOnlineTime.findOneAndUpdate({
-            player: playerObjId
+            player: playerObjId,
+            lastLoginToken: token
         }, {
             platform: platformObjId,
             lastLoginTime: new Date(),
-            lastLoginToken: token,
             lastAuthenticateTime: null
         }, {
             upsert: true
