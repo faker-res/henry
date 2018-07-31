@@ -2197,10 +2197,10 @@ define(['js/app'], function (myApp) {
                                     vm.registrationRecord = res.data;
 
                                     vm.registrationRecord.forEach(data => {
-                                        let webAvg = (data.webUniqueCount == 0 ? 0 : 1 - data.webCount / data.webUniqueCount).toFixed(20);
-                                        let appAvg = (data.appUniqueCount == 0 ? 0 : 1 - data.appCount / data.appUniqueCount).toFixed(20);
-                                        let H5Avg = (data.H5UniqueCount == 0 ? 0 : 1 - data.H5Count / data.H5UniqueCount).toFixed(20);
-                                        let frontEndAvg = (data.frontEndUniqueCount == 0 ? 0 : 1 - data.frontEndCount / data.frontEndUniqueCount).toFixed(20);
+                                        let webAvg = (data.webUniqueCount == 0 ? 0 : 1 - data.webCount / data.webUniqueCount).toFixed(2);
+                                        let appAvg = (data.appUniqueCount == 0 ? 0 : 1 - data.appCount / data.appUniqueCount).toFixed(2);
+                                        let H5Avg = (data.H5UniqueCount == 0 ? 0 : 1 - data.H5Count / data.H5UniqueCount).toFixed(2);
+                                        let frontEndAvg = (data.frontEndUniqueCount == 0 ? 0 : 1 - data.frontEndCount / data.frontEndUniqueCount).toFixed(2);
 
                                         data.webAttritionRate$ = $roundToTwoDecimalPlacesString(webAvg * 100);
                                         data.webAttritionRate = $noRoundTwoDecimalPlaces(webAvg * 100);
