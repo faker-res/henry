@@ -611,7 +611,8 @@ var roleChecker = {
                 PlayerDomain: ['getPlayerDomainAnalysisData'],
                 ManualApproval: ['getManualApprovalRecords'],
                 FrontEndRegistrationAttritionRate: ['getSpecificProposalTypeByName', 'getRegistrationClickCountRecords'],
-                WithdrawalSpeed: ['getWithdrawalProposal', 'getProposalByObjId']
+                WithdrawalSpeed: ['getWithdrawalProposal', 'getProposalByObjId'],
+                PlayerOnlineTime: ['getOnlineTimeLogByPlatform']
             }
         },
         Report: {
@@ -623,6 +624,7 @@ var roleChecker = {
                 PROVIDER_REPORT: ['operationReport', 'operationSummaryReport'],
                 PLAYER_EXPENSE_REPORT: ['getPlayerProviderReport', 'getProviderGamePlayerReport', 'getProviderGameReport', 'getPlayerProviderByGameReport', 'manualDailyProviderSettlement'],
                 PLAYER_REPORT: ['getPlayerReport', 'manualDailyProviderSettlement', 'getGames'],
+                PLAYER_DEPOSIT_ANALYSIS_REPORT: ['getPlayerDepositAnalysisReport', 'getPlayerDepositAnalysisDetails'],
                 NEWACCOUNT_REPORT: ['getPlayerDomainAnalysisData', 'getNewAccountReportData', 'getAllAdminInfo', 'getAllPromoteWay', 'getPartnerLevelConfig', 'getAllUrl'],
                 DX_NEWACCOUNT_REPORT: ['getDXNewPlayerReport', 'getAllPromoteWay', 'getDepartmentDetailsByPlatformObjId'],
                 PLAYERPARTNER_REPORT: ['getPartnerPlayers', 'getPartnerSummaryReport', 'getPartnerPlayerBonusReport'],

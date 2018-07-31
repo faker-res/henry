@@ -23,10 +23,19 @@ const dbPlayerPayment = {
             data => {
                 if (data && data.platform && data.alipayGroup) {
                     playerData = data;
-                    return pmsAPI.alipay_getAlipayList({
-                        platformId: data.platform.platformId,
-                        queryId: serverInstance.getQueryId()
-                    });
+                    let platformData = playerData.platform;
+                    if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
+                        return dbconfig.collection_platformAlipayList.find({accountNumber: {$in: playerData.alipayGroup.alipays}}).lean().then(
+                            alipayListData => {
+                                return {data: alipayListData}
+                            }
+                        )
+                    } else {
+                        return pmsAPI.alipay_getAlipayList({
+                            platformId: data.platform.platformId,
+                            queryId: serverInstance.getQueryId()
+                        });
+                    }
                 } else {
                     return Q.reject({name: "DataError", message: "Invalid player data"})
                 }

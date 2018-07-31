@@ -893,6 +893,7 @@ define(['js/app'], function (myApp) {
                         vm.loadAlipayGroupData();
                         vm.loadWechatPayGroupData();
                         vm.loadQuickPayGroupData();
+                        vm.getCredibilityRemarks();
                         vm.onGoingLoadPlatformData = false;
                     })
                 },
@@ -8908,20 +8909,21 @@ define(['js/app'], function (myApp) {
             vm.playerCredibilityRemarksUpdated = false;
             vm.prepareCredibilityConfig().then(
                 () => {
-                    if (!vm.selectedSinglePlayer.credibilityRemarks) {
-                        return;
-                    }
+                    $scope.$evalAsync(() => {
+                        if (!vm.selectedSinglePlayer.credibilityRemarks) {
+                            return;
+                        }
 
-                    let playerRemarksId = vm.selectedSinglePlayer.credibilityRemarks;
-                    for (let i = 0; i < playerRemarksId.length; i++) {
-                        for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                            if (playerRemarksId[i] === vm.credibilityRemarks[j]._id) {
-                                vm.credibilityRemarks[j].selected = true;
+                        let playerRemarksId = vm.selectedSinglePlayer.credibilityRemarks;
+                        for (let i = 0; i < playerRemarksId.length; i++) {
+                            for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                if (playerRemarksId[i] === vm.credibilityRemarks[j]._id) {
+                                    vm.credibilityRemarks[j].selected = true;
+                                }
                             }
                         }
-                    }
-                    vm.getPlayerCredibilityComment();
-                    $scope.safeApply();
+                        vm.getPlayerCredibilityComment();
+                  });
                 }
             );
         };
@@ -19556,7 +19558,7 @@ define(['js/app'], function (myApp) {
 
         vm.prepareCredibilityConfig = () => {
             vm.removedRemarkId = [];
-            return vm.getCredibilityRemarks().then(
+            return vm.getCredibilityRemarks(true).then(
                 () => {
                     let cloneRemarks = vm.credibilityRemarks.slice(0);
                     vm.positiveRemarks = [];
@@ -19585,8 +19587,6 @@ define(['js/app'], function (myApp) {
                     vm.negativeRemarks.sort((a, b) => {
                         return a.score - b.score;
                     });
-
-                    $scope.safeApply();
                 }
             );
         };
@@ -19627,14 +19627,16 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         };
 
-        vm.getCredibilityRemarks = () => {
+        vm.getCredibilityRemarks = (forbidUIRenderTwice) => {
             return new Promise((resolve, reject) => {
                 socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
                     vm.credibilityRemarks = data.data;
                     vm.filterCredibilityRemarks = data.data ? JSON.parse(JSON.stringify(data.data)) : [];
                     vm.filterCredibilityRemarks.push({'_id':'', 'name':'N/A'});
-                    vm.setupRemarksMultiInput();
-                    vm.setupRemarksMultiInputFeedback();
+                    if(!forbidUIRenderTwice){
+                        vm.setupRemarksMultiInput();
+                        vm.setupRemarksMultiInputFeedback();
+                    }
                     resolve();
                 }, function (err) {
                     reject(err);
@@ -21797,7 +21799,6 @@ define(['js/app'], function (myApp) {
                         log.createTime = $scope.timeReformat(new Date(log.createTime));
                     }
                     console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
-                    $scope.safeApply();
                 },
                 function (err) {
                     console.log(err);
