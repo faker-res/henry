@@ -3618,7 +3618,7 @@ define(['js/app'], function (myApp) {
                 },
                 index: newSearch ? 0 : (vm.depositAnalysisQuery.index || 0),
                 limit: vm.depositAnalysisQuery.limit || 5000,
-                sortCol: vm.depositAnalysisQuery.sortCol || {validConsumptionAmount: -1},
+                sortCol: vm.depositAnalysisQuery.sortCol || {},
             };
             console.log('sendQuery', sendQuery);
             socketService.$socket($scope.AppSocket, 'getPlayerDepositAnalysisReport', sendQuery, function (data) {
@@ -3630,6 +3630,7 @@ define(['js/app'], function (myApp) {
                     $('#loadingPlayerDepositAnalysisReportTableSpin').hide();
 
                     let drawData = data.data.data.map(item => {
+                        let breakLine = "<br>";
                         item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                         item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
                         item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
@@ -3648,7 +3649,7 @@ define(['js/app'], function (myApp) {
                             for (let i = 0; i < item.credibilityRemarks.length; i++) {
                                 for (let j = 0; j < vm.credibilityRemarks.length; j++) {
                                     if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
-                                        item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                                        item.credibility$ += vm.credibilityRemarks[j].name + breakLine;
                                     }
                                 }
                             }
@@ -3672,7 +3673,7 @@ define(['js/app'], function (myApp) {
                                 for (let j = 0; j < vm.allProviders.length; j++) {
                                     if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
                                         item.providerArr[i].name = vm.allProviders[j].name;
-                                        item.provider$ += vm.allProviders[j].name + "<br>";
+                                        item.provider$ += vm.allProviders[j].name + breakLine;
                                     }
                                 }
                             }
@@ -3832,6 +3833,9 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getPlayerDepositAnalysisDetails', sendQuery, function (data) {
                 $scope.$evalAsync(() => {
                     vm.playerDepositAnalysisDetails = data.data;
+                    vm.playerDepositAnalysisDetails.outputData.map(dailyData => {
+                        dailyData.date = String(utilService.$getTimeFromStdTimeFormat(new Date(dailyData.date))).substring(0, 10);
+                    });
                     $('#modalPlayerDepositAnalysisDetailsTable').modal().show();
                 });
             });
@@ -7527,12 +7531,12 @@ define(['js/app'], function (myApp) {
             } else if (choice == "PLAYER_DEPOSIT_ANALYSIS_REPORT") {
                 utilService.actionAfterLoaded('#playerDepositAnalysisReportTablePage', function () {
                     $scope.$evalAsync(() => {
-                        var yesterday = utilService.setNDaysAgo(new Date(), 8);
+                        var yesterday = utilService.setNDaysAgo(new Date(), 1);
                         var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
                         var todayEndTime = utilService.getTodayEndTime();
                         vm.depositAnalysisQuery = {};
-                        vm.depositAnalysisQuery.sortCol = {validConsumptionAmount: -1};
-                        vm.depositAnalysisQuery.limit = 5000;
+                        vm.depositAnalysisQuery.sortCol = {};
+                        vm.depositAnalysisQuery.limit = 10;
                         vm.depositAnalysisQuery.valueScoreOperator = ">=";
                         vm.depositAnalysisQuery.start = utilService.createDatePicker('#startingDateTimePickerDepositAnalysis');
                         vm.depositAnalysisQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));

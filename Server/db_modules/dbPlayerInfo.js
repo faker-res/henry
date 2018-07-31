@@ -14244,7 +14244,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
-                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}});
+                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}}).lean();
                 let stream = playerProm.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
 
@@ -14438,7 +14438,7 @@ let dbPlayerInfo = {
             startDate = dayEndTime;
         }
 
-        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).then(
+        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).lean().then(
             playerData => {
                 if (playerData) {
                     return playerData.name;

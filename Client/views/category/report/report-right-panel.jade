@@ -1902,7 +1902,7 @@
                                 td {{v.consumptionDetail.validAmount | noRoundTwoDecimalToFix}}
 
 #modalPlayerDepositAnalysisDetailsTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog
+    .modal-dialog(style='width:50%;')
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1919,13 +1919,13 @@
                             tr(ng-if="vm.playerDepositAnalysisDetails.outputData.length == 0")
                                 td(colspan = 3) {{ 'No data available in table' | translate }}
                             tr(ng-if="vm.playerDepositAnalysisDetails.outputData.length > 0", ng-repeat="v in vm.playerDepositAnalysisDetails.outputData")
-                                td {{v.date}}
-                                td {{v.topUpAmount | noRoundTwoDecimalPlaces}}
-                                td {{v.bonusAmount | noRoundTwoDecimalPlaces}}
+                                td(ng-class='v.isExceedDailyTotalDeposit ? "yellow-background" : ""') {{v.date}}
+                                td(ng-class='v.isExceedDailyTotalDeposit ? "yellow-background" : ""') {{v.topUpAmount | noRoundTwoDecimalPlaces}}
+                                td(ng-class='v.isExceedDailyTotalDeposit ? "yellow-background" : ""') {{v.bonusAmount | noRoundTwoDecimalPlaces}}
                             tr(ng-if="vm.playerDepositAnalysisDetails.outputData.length > 0")
-                                td {{"Totalsum" | translate}}
-                                td {{vm.playerDepositAnalysisDetails.total.topUpAmount | noRoundTwoDecimalPlaces}}
-                                td {{vm.playerDepositAnalysisDetails.total.bonusAmount | noRoundTwoDecimalPlaces}}
+                                td(style="font-weight:bold") {{"Totalsum" | translate}}
+                                td(style="font-weight:bold") {{vm.playerDepositAnalysisDetails.total.topUpAmount | noRoundTwoDecimalPlaces}}
+                                td(style="font-weight:bold") {{vm.playerDepositAnalysisDetails.total.bonusAmount | noRoundTwoDecimalPlaces}}
 
 include ../common-widget/telephone-popover
 script(src='js/lib/flot/jquery.flot.min.js')
