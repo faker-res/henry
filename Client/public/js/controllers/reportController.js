@@ -7531,12 +7531,12 @@ define(['js/app'], function (myApp) {
             } else if (choice == "PLAYER_DEPOSIT_ANALYSIS_REPORT") {
                 utilService.actionAfterLoaded('#playerDepositAnalysisReportTablePage', function () {
                     $scope.$evalAsync(() => {
-                        var yesterday = utilService.setNDaysAgo(new Date(), 8);
+                        var yesterday = utilService.setNDaysAgo(new Date(), 1);
                         var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
                         var todayEndTime = utilService.getTodayEndTime();
                         vm.depositAnalysisQuery = {};
                         vm.depositAnalysisQuery.sortCol = {validConsumptionAmount: -1};
-                        vm.depositAnalysisQuery.limit = 5000;
+                        vm.depositAnalysisQuery.limit = 10;
                         vm.depositAnalysisQuery.valueScoreOperator = ">=";
                         vm.depositAnalysisQuery.start = utilService.createDatePicker('#startingDateTimePickerDepositAnalysis');
                         vm.depositAnalysisQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
