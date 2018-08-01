@@ -4142,6 +4142,171 @@ var proposal = {
         )
     },
 
+    getRewardAnalysisProposal: (startDate, endDate, period, platformObjId, type, proposalNameArr) => {
+        let proposalArr = [];
+
+        var dayStartTime = startDate;
+        var getNextDate;
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+
+        let returnObjTemplate = {
+            totalProposalCount: 0,
+            totalPlayerCount: 0,
+            totalAmount: 0,
+        };
+
+        let allRewardObjId = [];
+        let allRewardObj = {};
+        let prom;
+
+        if (type == "rewardName") {
+            prom = dbconfig.collection_rewardEvent.find({platform: ObjectId(platformObjId), name: {$in: proposalNameArr}}).lean()
+        } else {
+            // let proposalNameArr = [];
+            // for (let key in constProposalMainType) {
+            //     if (constProposalMainType[key] == "Reward") {
+            //         proposalNameArr.push(key);
+            //     }
+            // }
+            prom = dbconfig.collection_proposalType.find(
+                {
+                    platformId: ObjectId(platformObjId),
+                    name: {$in: proposalNameArr}
+                }
+            ).lean()
+        }
+
+        return prom.then(
+            allRewardTypeData => {
+                if (!(allRewardTypeData && allRewardTypeData.length)) {
+                    return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+                }
+
+                allRewardTypeData.forEach(item => {
+                    if (type == "rewardName") {
+                        allRewardObjId.push(item.executeProposal);
+                    } else {
+                        allRewardObjId.push(item._id);
+                    }
+
+                    allRewardObj[String(item._id)] = item.name;
+                    returnObjTemplate[item.name] = {
+                        proposalCount: 0,
+                        player: 0,
+                        amount: 0
+                    };
+                });
+
+
+                // while (dayStartTime.getTime() < endDate.getTime()) {
+                for (; dayStartTime.getTime() < endDate.getTime(); dayStartTime = dayEndTime) {
+                    var dayEndTime = getNextDate.call(this, dayStartTime);
+
+
+                    let matchObj = {
+                        "data.platformId": ObjectId(platformObjId),
+                        // mainType: "Reward",
+                        type: {$in: allRewardObjId},
+                        createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                        status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                    };
+
+                    let groupObj = {
+                        _id: "$type",
+                        proposalCount: {$sum: 1},
+                        player: {$addToSet: "$data.playerObjId"},
+                        amount: {$sum: "$data.rewardAmount"}
+                    }
+
+                    if (type == "rewardName") {
+                        groupObj._id = "$data.eventName";
+                        // matchObj["data.promoCode"] = {$exists: false};
+                    }
+
+                    let returnObj = JSON.parse(JSON.stringify(returnObjTemplate));
+
+                    proposalArr.push(dbconfig.collection_proposal.aggregate([
+                        {
+                            $match: matchObj
+                        },
+                        {
+                            $group: groupObj
+                        }
+                    ]).read("secondaryPreferred").then(
+                        result => {
+                            if (result && result.length) {
+                                result.forEach(item => {
+                                    let key;
+                                    if (type == "rewardName") {
+                                        key = String(item._id);
+                                    } else {
+                                        key = allRewardObj[String(item._id)];
+                                    }
+                                    if (returnObj.hasOwnProperty(key)) {
+                                        returnObj[key].proposalCount += item.proposalCount;
+                                        returnObj[key].player += item.player.length || 0;
+                                        returnObj[key].amount += item.amount;
+                                    }
+                                    returnObj.totalProposalCount += item.proposalCount;
+                                    returnObj.totalPlayerCount += item.player.length || 0;
+                                    returnObj.totalAmount += item.amount;
+                                })
+                            }
+                            return returnObj;
+                        }
+                    ));
+
+
+                }
+                return Promise.all(proposalArr);
+            }
+        ).then(
+            data => {
+                if (!data) {
+                    return Q.reject({name: 'DataError', message: 'Can not find the proposal data'})
+                }
+                let tempDate = startDate;
+
+                if (data.length) {
+                    for (let i = 0; i < data.length; i++) {  // number of date
+                        // if (data[i]._id == null) { //manual reward does not have event name
+                        //     data[i]._id = "MANUAL_REWARD"
+                        // }
+                        data[i].date = new Date(tempDate);
+                        tempDate = getNextDate(tempDate);
+                    }
+                }
+                else {
+                    return Q.reject({name: 'DataError', message: 'The data mismatched'})
+                }
+
+                return data;
+
+            }
+        )
+
+    },
+
     getProposalByObjId: (proposalObjId) => {
         for (let i = 0; i < proposalObjId.length; i++) {
             proposalObjId[i] = ObjectId(proposalObjId[i]);
