@@ -1472,7 +1472,7 @@
                                             td
                                                 span {{ v.date | date:"yyyy-MM-dd" }}
                                             td(ng-repeat='(k, item) in v' ng-if='k != "date" && k != "$$hashkey" && k != "totalPlayerCount" && k != "totalAmount" && k != "totalProposalCount"')
-                                                span {{ item.amount }}
+                                                span {{ item.amount | noRoundTwoDecimalPlaces}}
                                            
 
         //MISCELLANEOUS_REPORT
