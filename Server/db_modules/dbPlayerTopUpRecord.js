@@ -2524,7 +2524,7 @@ var dbPlayerTopUpRecord = {
 
                         let platformData = playerData.platform;
                         if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
-                            prom = dbconfig.collection_platformWechatPayList.find({accountNumber: {$in: playerData.wechatPayGroup.wechats}}).lean().then(
+                            prom = dbconfig.collection_platformWechatPayList.find({accountNumber: {$in: playerData.wechatPayGroup.wechats}, isFPMS: true}).lean().then(
                                 wechatpayListData => {
                                     return {data: wechatpayListData}
                                 }
@@ -2596,7 +2596,7 @@ var dbPlayerTopUpRecord = {
 
                         let platformData = playerData.platform;
                         if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
-                            aliPayProm = dbconfig.collection_platformAlipayList.find({accountNumber: {$in: playerData.alipayGroup.alipays}}).lean().then(
+                            aliPayProm = dbconfig.collection_platformAlipayList.find({accountNumber: {$in: playerData.alipayGroup.alipays}, isFPMS: true}).lean().then(
                                 alipayListData => {
                                     return {data: alipayListData}
                                 }

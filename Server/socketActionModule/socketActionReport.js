@@ -210,6 +210,16 @@ function socketActionReport(socketIO, socket) {
         //     socketUtil.emitter(self.socket, dbProposal.getProposalsForReward, args, actionName, isValidData);
         // },
 
+        getRewardProposalReport: function getRewardProposalReport(data) {
+            var args = null;
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.startTime && data.endTime);
+            if (isValidData) {
+                args = [ObjectId(data.platformId), new Date(data.startTime), new Date(data.endTime), data.status, data.playerName, data.dayCountAfterRedeemPromo];
+            }
+            socketUtil.emitter(self.socket, dbProposal.getRewardProposalReport, args, actionName, isValidData);
+        },
+
         getRewardProposalReportByType: function getRewardProposalReportByType(data) {
             var args = null;
             var actionName = arguments.callee.name;
@@ -249,6 +259,15 @@ function socketActionReport(socketIO, socket) {
         //     }
         //     socketUtil.emitter(self.socket, dbProposal.getProposalsForReward, args, actionName, isValidData);
         // },
+
+
+        getRewardAnalysisProposal: function getRewardAnalysisProposal(data) {
+            let actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.startDate && data.endDate && data.period && data.platformObjId && data.type && data.proposalNameArr && data.proposalNameArr.length);
+            var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
+            var endTime = data.endDate ? new Date(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbProposal.getRewardAnalysisProposal, [startTime, endTime, data.period, data.platformObjId, data.type, data.proposalNameArr], actionName, isValidData);
+        },
 
         getPlayerReport: function getPlayerReport(data) {
             var actionName = arguments.callee.name;

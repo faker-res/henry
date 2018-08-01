@@ -342,6 +342,13 @@ define(['js/app'], function (myApp) {
                 NOVERIFY: "NoVerify"
             };
 
+            vm.constPromoCodeStatus = {
+                AVAILABLE: 1,
+                ACCEPTED: 2,
+                EXPIRED: 3,
+                DISABLE: 5
+            };
+
             vm.constRegistrationIntentRecordStatus = {
                 INTENT: 1,
                 VERIFICATION_CODE: 2,
@@ -27460,6 +27467,7 @@ define(['js/app'], function (myApp) {
                                 else {
                                     p.expirationTime = vm.dateReformat(p.expirationTime$.data('datetimepicker').getLocalDate());
                                     p.createTime = new Date();
+                                    p.status = vm.constPromoCodeStatus.AVAILABLE;
                                 }
 
                                 delete p.expirationTime$

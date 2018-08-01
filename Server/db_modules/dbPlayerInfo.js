@@ -1174,7 +1174,7 @@ let dbPlayerInfo = {
         let platformData = null;
         let pPrefix = null;
         let pName = null;
-        let csOfficer, promoteWay;
+        let csOfficer, promoteWay, ipDomain;
 
         playerdata.name = playerdata.name.toLowerCase();
 
@@ -1482,6 +1482,25 @@ let dbPlayerInfo = {
                         }
                     }
 
+                    // Add source url from ip
+                    if (playerData.lastLoginIp) {
+                        let todayTime = dbUtility.getTodaySGTime();
+
+                        promArr.push(
+                            dbconfig.collection_ipDomainLog.findOne({
+                                platform: playerdata.platform,
+                                createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
+                                ipAddress: playerData.lastLoginIp
+                            }, 'domain').lean().then(
+                                ipDomainLog => {
+                                    if (ipDomainLog && ipDomainLog.domain) {
+                                        ipDomain = ipDomainLog.domain;
+                                    }
+                                }
+                            )
+                        )
+                    }
+
                     return Promise.all(promArr);
                 }
                 else {
@@ -1552,6 +1571,9 @@ let dbPlayerInfo = {
 
                         playerUpdateData.promoteWay = promoteWay;
                     }
+
+                    // add ip domain to sourceUrl
+                    if (ipDomain) { playerUpdateData.sourceUrl = ipDomain }
 
                     proms.push(
                         dbconfig.collection_players.findOneAndUpdate(
@@ -14222,7 +14244,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
-                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}});
+                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}}).lean();
                 let stream = playerProm.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
 
@@ -14416,7 +14438,7 @@ let dbPlayerInfo = {
             startDate = dayEndTime;
         }
 
-        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).then(
+        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).lean().then(
             playerData => {
                 if (playerData) {
                     return playerData.name;

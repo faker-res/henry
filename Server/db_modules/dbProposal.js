@@ -2758,7 +2758,7 @@ var proposal = {
             if (reqData.status == constProposalStatus.APPROVE) {
                 isApprove = true;
                 reqData.status = {
-                    $in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]
+                    $in: [constProposalStatus.APPROVED]
                 };
             }
         }
@@ -3441,6 +3441,236 @@ var proposal = {
             }
         );
         return deferred.promise;
+    },
+
+    getRewardProposalReport: function (platformId, startTime, endTime, status, playerName, dayCountAfterRedeemPromo) {
+        let proposalTypeData = null;
+        let proposalRewardData = null;
+        let latestRewardData = null;
+        let countRewardAppliedData = null;
+        let totalBonusRecord = [];
+        let totalTopupRecord = [];
+        let totalPlayer = 0;
+        let result = {};
+        let matchObj = {};
+        let proposalQuery = {
+            $and: [{
+                platformId: platformId,
+            }]
+        };
+
+        return dbconfig.collection_proposalType.find(proposalQuery).then(proposalType => {
+            if (proposalType) {
+                proposalTypeData = proposalType;
+            }
+
+            matchObj = {
+                createTime: {
+                    $gte: new Date(startTime),
+                    $lt: new Date(endTime)
+                },
+                mainType: constProposalMainType['PlayerConsumptionReturn'],
+                "data.platformId": platformId
+            };
+
+            if (status && status != 'all') {
+                matchObj.status = status;
+            }
+
+            if (playerName) {
+                matchObj["data.playerName"] = playerName;
+            }
+
+            let rewardProposalProm = dbconfig.collection_proposal.aggregate([
+                { $match: {$and: [matchObj]}},
+                {
+                    $group: {
+                        _id: {"type": "$type", "eventName": "$data.eventName", "playerObjId": "$data.playerObjId"},
+                        sumReturnAmount: {$sum: "$data.returnAmount"},
+                        sumRewardAmount: {$sum: "$data.rewardAmount"},
+                        sumAmount: {$sum: "$data.amount"},
+                        sumApplyAmount: {$sum: "$data.applyAmount"}
+                    }
+                },
+                {
+                    $group: {
+                        _id: {"type": "$_id.type", "eventName": "$_id.eventName"},
+                        playerObjId: {$addToSet: "$_id.playerObjId"},
+                        sumTotalReturnAmount: {$sum: "$sumReturnAmount"},
+                        sumTotalRewardAmount: {$sum: "$sumRewardAmount"},
+                        sumTotalAmount: {$sum: "$sumAmount"},
+                        sumTotalApplyAmount: {$sum: "$sumApplyAmount"}
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        eventName: "$_id.eventName",
+                        type: "$_id.type",
+                        playerObjId: 1,
+                        sumTotalReturnAmount: 1,
+                        sumTotalRewardAmount: 1,
+                        sumTotalAmount: 1,
+                        sumTotalApplyAmount: 1,
+                        countPlayerApplied: {$size: "$playerObjId"}
+                    }
+                }
+            ]).read("secondaryPreferred");
+
+            let latestRewardProm = dbconfig.collection_proposal.aggregate([
+                { $match: {$and: [matchObj]}},
+                {
+                    $sort: {"type": 1, "data.eventName": 1, "data.playerObjId": 1, createTime: 1}
+                },
+                {
+                    $group: {
+                        _id: {"type": "$type", "eventName": "$data.eventName", "playerObjId": "$data.playerObjId"},
+                        lastRewardTime: {$last: "$createTime"}
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        eventName: "$_id.eventName",
+                        type: "$_id.type",
+                        playerObjId: "$_id.playerObjId",
+                        lastRewardTime: 1
+                    }
+                }
+            ]).read("secondaryPreferred");
+
+            let countRewardAppliedProm = dbconfig.collection_proposal.aggregate([
+                { $match: {$and: [matchObj]}},
+                {
+                    $group: {
+                        _id: {type: "$type", eventName: "$data.eventName"},
+                        countRewardApplied: {$sum: 1}
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        eventName: "$_id.eventName",
+                        type: "$_id.type",
+                        countRewardApplied: 1
+                    }
+                }
+            ]).read("secondaryPreferred");
+
+            let countTotalPlayerProm = dbconfig.collection_proposal.aggregate([
+                { $match: {$and: [matchObj]}},
+                {
+                    $group: {
+                        _id: "$data.playerObjId"
+                    }
+                },
+                {
+                    $group: {
+                        _id: 0,
+                        count: {$sum: 1}
+                    }
+                }
+            ]).read("secondaryPreferred");
+
+            return Promise.all([rewardProposalProm, latestRewardProm, countRewardAppliedProm, countTotalPlayerProm])
+
+        }).then(data => {
+            let promArr = []
+            proposalRewardData = data && data[0] ? data[0] : null;
+            latestRewardData = data && data[1] ? data[1] : null;
+            countRewardAppliedData = data && data[2] ? data[2] : null;
+            totalPlayer = data && data[3] && data[3] && data[3][0] && data[3][0] && data[3][0].count ? data[3][0].count : 0;
+
+            if (dayCountAfterRedeemPromo && dayCountAfterRedeemPromo > 0) {
+                promArr = getTopupProposalData(latestRewardData, dayCountAfterRedeemPromo, platformId)
+            } else {
+                promArr = getTopupProposalData(proposalRewardData, dayCountAfterRedeemPromo, platformId, startTime, endTime)
+            }
+
+            return Promise.all(promArr);
+
+        }).then(totalTopupData => {
+            let promArr = [];
+
+            totalTopupRecord = filterTopupData(totalTopupData, dayCountAfterRedeemPromo);
+
+            if (dayCountAfterRedeemPromo && dayCountAfterRedeemPromo > 0) {
+                promArr = getBonusProposalData(latestRewardData, dayCountAfterRedeemPromo, platformId)
+            } else {
+                promArr = getBonusProposalData(proposalRewardData, dayCountAfterRedeemPromo, platformId, startTime, endTime)
+            }
+
+            return Promise.all(promArr);
+
+        }).then(totalBonusData => {
+
+            totalBonusRecord = filterBonusData(totalBonusData, dayCountAfterRedeemPromo);
+
+            if (proposalRewardData && proposalRewardData.length) {
+                proposalRewardData.forEach(reward => {
+                    reward.sumTotalBonusAmount = 0;
+                    reward.sumTotalTopupAmount = 0;
+                    reward.countRewardApplied = 0;
+
+                    if (reward && reward.type && reward.eventName) {
+                        if (totalBonusRecord && totalBonusRecord.length) {
+                            let idx = totalBonusRecord.findIndex(x => x.type && x.eventName && (x.type.toString() == reward.type.toString() && x.eventName.toString() == reward.eventName.toString()));
+                            if (idx > -1) {
+                                reward.sumTotalBonusAmount = dbutility.noRoundTwoDecimalPlaces(totalBonusRecord[idx].sumTotalBonusAmount);
+                            }
+                        }
+
+                        if (totalTopupRecord && totalTopupRecord.length) {
+                            let idx = totalTopupRecord.findIndex(x => x.type && x.eventName && (x.type.toString() == reward.type.toString() && x.eventName.toString() == reward.eventName.toString()));
+                            if (idx > -1) {
+                                reward.sumTotalTopupAmount = dbutility.noRoundTwoDecimalPlaces(totalTopupRecord[idx].sumTotalTopupAmount);
+                            }
+                        }
+
+                        if (countRewardAppliedData && countRewardAppliedData.length) {
+                            let idx = countRewardAppliedData.findIndex(x => x.type && x.eventName && (x.type.toString() == reward.type.toString() && x.eventName.toString() == reward.eventName.toString()));
+                            if (idx > -1) {
+                                reward.countRewardApplied = countRewardAppliedData[idx].countRewardApplied;
+                            }
+                        }
+                    } else if (reward && reward.type && !reward.eventName) {
+                        if (totalBonusRecord && totalBonusRecord.length) {
+                            let idx = totalBonusRecord.findIndex(x => x.type && !x.eventName && (x.type.toString() == reward.type.toString()));
+                            if (idx > -1) {
+                                reward.sumTotalBonusAmount = dbutility.noRoundTwoDecimalPlaces(totalBonusRecord[idx].sumTotalBonusAmount);
+                            }
+                        }
+
+                        if (totalTopupRecord && totalTopupRecord.length) {
+                            let idx = totalTopupRecord.findIndex(x => x.type && !x.eventName && (x.type.toString() == reward.type.toString()));
+                            if (idx > -1) {
+                                reward.sumTotalTopupAmount = dbutility.noRoundTwoDecimalPlaces(totalTopupRecord[idx].sumTotalTopupAmount);
+                            }
+                        }
+
+                        if (countRewardAppliedData && countRewardAppliedData.length) {
+                            let idx = countRewardAppliedData.findIndex(x => x.type && !x.eventName && (x.type.toString() == reward.type.toString()));
+                            if (idx > -1) {
+                                reward.countRewardApplied = countRewardAppliedData[idx].countRewardApplied;
+                            }
+                        }
+                    }
+
+                    reward.sumPlayerProfit = reward.sumTotalTopupAmount - reward.sumTotalBonusAmount;
+
+                    if (reward.type && proposalTypeData && proposalTypeData.length) {
+                        let idx = proposalTypeData.findIndex(x => x._id && (x._id.toString() == reward.type.toString()));
+                        if (idx > -1) {
+                            reward.name = proposalTypeData[idx].name;
+                        }
+                    }
+                })
+            }
+
+            result = {data: proposalRewardData, totalPlayer: totalPlayer}
+
+            return result;
+        })
     },
 
     getRewardProposalReportByType: function (platformId, proposalTypeName, code, startTime, endTime, index, limit, sortCol) {
@@ -4140,6 +4370,171 @@ var proposal = {
                 }
             }
         )
+    },
+
+    getRewardAnalysisProposal: (startDate, endDate, period, platformObjId, type, proposalNameArr) => {
+        let proposalArr = [];
+
+        var dayStartTime = startDate;
+        var getNextDate;
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+
+        let returnObjTemplate = {
+            totalProposalCount: 0,
+            totalPlayerCount: 0,
+            totalAmount: 0,
+        };
+
+        let allRewardObjId = [];
+        let allRewardObj = {};
+        let prom;
+
+        if (type == "rewardName") {
+            prom = dbconfig.collection_rewardEvent.find({platform: ObjectId(platformObjId), name: {$in: proposalNameArr}}).lean()
+        } else {
+            // let proposalNameArr = [];
+            // for (let key in constProposalMainType) {
+            //     if (constProposalMainType[key] == "Reward") {
+            //         proposalNameArr.push(key);
+            //     }
+            // }
+            prom = dbconfig.collection_proposalType.find(
+                {
+                    platformId: ObjectId(platformObjId),
+                    name: {$in: proposalNameArr}
+                }
+            ).lean()
+        }
+
+        return prom.then(
+            allRewardTypeData => {
+                if (!(allRewardTypeData && allRewardTypeData.length)) {
+                    return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+                }
+
+                allRewardTypeData.forEach(item => {
+                    if (type == "rewardName") {
+                        allRewardObjId.push(item.executeProposal);
+                    } else {
+                        allRewardObjId.push(item._id);
+                    }
+
+                    allRewardObj[String(item._id)] = item.name;
+                    returnObjTemplate[item.name] = {
+                        proposalCount: 0,
+                        player: 0,
+                        amount: 0
+                    };
+                });
+
+
+                // while (dayStartTime.getTime() < endDate.getTime()) {
+                for (; dayStartTime.getTime() < endDate.getTime(); dayStartTime = dayEndTime) {
+                    var dayEndTime = getNextDate.call(this, dayStartTime);
+
+
+                    let matchObj = {
+                        "data.platformId": ObjectId(platformObjId),
+                        // mainType: "Reward",
+                        type: {$in: allRewardObjId},
+                        createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                        status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                    };
+
+                    let groupObj = {
+                        _id: "$type",
+                        proposalCount: {$sum: 1},
+                        player: {$addToSet: "$data.playerObjId"},
+                        amount: {$sum: "$data.rewardAmount"}
+                    }
+
+                    if (type == "rewardName") {
+                        groupObj._id = "$data.eventName";
+                        // matchObj["data.promoCode"] = {$exists: false};
+                    }
+
+                    let returnObj = JSON.parse(JSON.stringify(returnObjTemplate));
+
+                    proposalArr.push(dbconfig.collection_proposal.aggregate([
+                        {
+                            $match: matchObj
+                        },
+                        {
+                            $group: groupObj
+                        }
+                    ]).read("secondaryPreferred").then(
+                        result => {
+                            if (result && result.length) {
+                                result.forEach(item => {
+                                    let key;
+                                    if (type == "rewardName") {
+                                        key = String(item._id);
+                                    } else {
+                                        key = allRewardObj[String(item._id)];
+                                    }
+                                    if (returnObj.hasOwnProperty(key)) {
+                                        returnObj[key].proposalCount += item.proposalCount;
+                                        returnObj[key].player += item.player.length || 0;
+                                        returnObj[key].amount += item.amount;
+                                    }
+                                    returnObj.totalProposalCount += item.proposalCount;
+                                    returnObj.totalPlayerCount += item.player.length || 0;
+                                    returnObj.totalAmount += item.amount;
+                                })
+                            }
+                            return returnObj;
+                        }
+                    ));
+
+
+                }
+                return Promise.all(proposalArr);
+            }
+        ).then(
+            data => {
+                if (!data) {
+                    return Q.reject({name: 'DataError', message: 'Can not find the proposal data'})
+                }
+                let tempDate = startDate;
+
+                if (data.length) {
+                    for (let i = 0; i < data.length; i++) {  // number of date
+                        // if (data[i]._id == null) { //manual reward does not have event name
+                        //     data[i]._id = "MANUAL_REWARD"
+                        // }
+                        data[i].date = new Date(tempDate);
+                        tempDate = getNextDate(tempDate);
+                    }
+                }
+                else {
+                    return Q.reject({name: 'DataError', message: 'The data mismatched'})
+                }
+
+                return data;
+
+            }
+        )
+
     },
 
     getProposalByObjId: (proposalObjId) => {
@@ -5843,6 +6238,276 @@ function convertStringNumber(Arr) {
         result.push(Number(item));
     })
     return result;
+}
+
+function getTopupProposalData(itemArr, dayCount, platformId, startTime, endTime) {
+    let promArr = [];
+
+    if (itemArr && itemArr.length > 0) {
+        itemArr.forEach(el => {
+            let matchQuery = {};
+
+            if (dayCount && el.type && !el.eventName && el.playerObjId && typeof el.playerObjId == 'string') {
+                el.playerObjId = ObjectId(el.playerObjId);
+            } else if (!dayCount && el.type && !el.eventName && el.playerObjId && el.playerObjId.length > 0) {
+                let playerObjIdTempArr = []
+                el.playerObjId.forEach(el => {
+                    if (el && typeof el == 'string') {
+                        playerObjIdTempArr.push(ObjectId(el));
+                    }
+                })
+
+                if (playerObjIdTempArr && playerObjIdTempArr.length) {
+                    el.playerObjId = playerObjIdTempArr;
+                }
+            }
+
+            if (dayCount && el && el.playerObjId && el.lastRewardTime) {
+                let newStartDate = new Date(el.lastRewardTime);
+                let newEndDate = new Date(el.lastRewardTime);
+                newEndDate.setDate(newEndDate.getDate() + dayCount);
+
+                matchQuery = {
+                    playerId: el.playerObjId,
+                    platformId: platformId,
+                    createTime: {
+                        $gte: newStartDate,
+                        $lt: newEndDate
+                    }
+                }
+            }
+
+            if (!dayCount && el && el.playerObjId && el.playerObjId.length > 0) {
+                matchQuery = {
+                    playerId: {$in: el.playerObjId},
+                    platformId: platformId,
+                    createTime: {
+                        $gte: new Date(startTime),
+                        $lt: new Date(endTime)
+                    }
+                }
+            }
+
+            promArr.push(
+                dbconfig.collection_playerTopUpRecord.aggregate(
+                    {
+                        $match: {$and: [matchQuery]}
+                    },
+                    {
+                        $group: {
+                            _id: {playerId: "$playerId"},
+                            totalTopupAmount: {$sum: "$amount"}
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: {eventName: el.eventName, type: el.type},
+                            sumTotalTopupAmount: {$sum: "$totalTopupAmount"}
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 0,
+                            eventName: "$_id.eventName",
+                            type: "$_id.type",
+                            sumTotalTopupAmount: 1
+                        }
+                    }
+                ).read("secondaryPreferred")
+            )
+        });
+    }
+
+    return promArr;
+}
+
+function filterTopupData(itemArr, dayCount) {
+    let topupRecord = [];
+
+    if (itemArr && itemArr.length) {
+        itemArr.forEach(topup => {
+            if (topup && topup.length) {
+                topup.forEach(el => {
+                    if (el && el.type && el.sumTotalTopupAmount) {
+                        topupRecord.push({eventName: el.eventName, type: el.type, sumTotalTopupAmount: el.sumTotalTopupAmount});
+                    }
+                })
+            }
+        })
+    }
+
+    if (dayCount && topupRecord && topupRecord.length) {
+        let tempArr = [];
+
+        topupRecord.forEach(el => {
+            if(el && el.eventName && el.type){
+                var indexNo = tempArr.findIndex(n => n.eventName && n.type && (n.eventName.toString() == el.eventName.toString()) && (n.type.toString() == el.type.toString()));
+
+                if(indexNo != -1){
+                    tempArr[indexNo].sumTotalTopupAmount += el.sumTotalTopupAmount;
+                }
+                else{
+                    tempArr.push({eventName: el.eventName, type: el.type, sumTotalTopupAmount: el.sumTotalTopupAmount});
+                }
+            } else if (el && !el.eventName && el.type) {
+                var indexNo = tempArr.findIndex(n => !n.eventName && n.type && (n.type.toString() == el.type.toString()));
+
+                if(indexNo != -1){
+                    tempArr[indexNo].sumTotalTopupAmount += el.sumTotalTopupAmount;
+                }
+                else{
+                    tempArr.push({eventName: null, type: el.type, sumTotalTopupAmount: el.sumTotalTopupAmount});
+                }
+            }
+
+        });
+
+        topupRecord = tempArr;
+    }
+
+    return topupRecord;
+}
+
+function getBonusProposalData(itemArr, dayCount, platformId, startTime, endTime) {
+    let promArr = [];
+
+    if (itemArr && itemArr.length > 0) {
+        itemArr.forEach(el => {
+            let matchQuery = {};
+
+            if (dayCount && el.type && !el.eventName && el.playerObjId && typeof el.playerObjId == 'string') {
+                el.playerObjId = ObjectId(el.playerObjId);
+            } else if (!dayCount && el.type && !el.eventName && el.playerObjId && el.playerObjId.length > 0) {
+                let playerObjIdTempArr = []
+                el.playerObjId.forEach(el => {
+                    if (el && typeof el == 'string') {
+                        playerObjIdTempArr.push(ObjectId(el));
+                    }
+                })
+
+                if (playerObjIdTempArr && playerObjIdTempArr.length) {
+                    el.playerObjId = playerObjIdTempArr;
+                }
+            }
+
+            if (dayCount && el && el.playerObjId && el.lastRewardTime) {
+                let newStartDate = new Date(el.lastRewardTime);
+                let newEndDate = new Date(el.lastRewardTime);
+                newEndDate.setDate(newEndDate.getDate() + dayCount);
+
+                matchQuery = {
+                    'data.playerObjId': el.playerObjId,
+                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                    createTime: {
+                        $gte: newStartDate,
+                        $lt: newEndDate
+                    },
+                    "data.platformId": platformId
+                }
+            }
+
+            if (!dayCount && el && el.playerObjId && el.playerObjId.length > 0) {
+                matchQuery = {
+                    'data.playerObjId': {$in: el.playerObjId},
+                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                    createTime: {
+                        $gte: new Date(startTime),
+                        $lt: new Date(endTime)
+                    },
+                    "data.platformId": platformId
+                }
+            }
+
+
+            promArr.push(
+                dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_BONUS}).then(
+                    proposalType => {
+                        if (proposalType){
+                            if (proposalType._id) {
+                                matchQuery.type = proposalType._id;
+                            }
+
+                            return dbconfig.collection_proposal.aggregate([
+                                {
+                                    $match: {$and: [matchQuery]}
+                                },
+                                {
+                                    $group: {
+                                        _id: "$data.playerObjId",
+                                        totalBonusAmount: {$sum: "$data.amount"},
+
+                                    }
+                                },
+                                {
+                                    $group: {
+                                        _id: {eventName: el.eventName, type: el.type},
+                                        sumTotalBonusAmount: {$sum: "$totalBonusAmount"}
+                                    }
+                                },
+                                {
+                                    $project: {
+                                        _id: 0,
+                                        eventName: "$_id.eventName",
+                                        type: "$_id.type",
+                                        sumTotalBonusAmount: 1
+                                    }
+                                }
+                            ]).read("secondaryPreferred");
+
+                        }
+                    })
+            )
+        });
+    }
+
+    return promArr;
+}
+
+function filterBonusData(itemArr, dayCount) {
+    let bonusRecord = [];
+
+    if (itemArr && itemArr.length) {
+        itemArr.forEach(bonus => {
+            if (bonus && bonus.length) {
+                bonus.forEach(el => {
+                    if (el && el.type && el.sumTotalBonusAmount) {
+                        bonusRecord.push({eventName: el.eventName, type: el.type, sumTotalBonusAmount: el.sumTotalBonusAmount});
+                    }
+                })
+            }
+        })
+    }
+
+    if (dayCount && itemArr && itemArr.length) {
+        let tempArr = [];
+
+        bonusRecord.forEach(el => {
+            if(el && el.eventName && el.type){
+                var indexNo = tempArr.findIndex(n => n.eventName && n.type && (n.eventName.toString() == el.eventName.toString()) && (n.type.toString() == el.type.toString()));
+
+                if(indexNo != -1){
+                    tempArr[indexNo].sumTotalBonusAmount += el.sumTotalBonusAmount;
+                }
+                else{
+                    tempArr.push({eventName: el.eventName, type: el.type, sumTotalBonusAmount: el.sumTotalBonusAmount});
+                }
+            } else if (el && !el.eventName && el.type) {
+                var indexNo = tempArr.findIndex(n => !n.eventName && n.type && (n.type.toString() == el.type.toString()));
+
+                if(indexNo != -1){
+                    tempArr[indexNo].sumTotalBonusAmount += el.sumTotalBonusAmount;
+                }
+                else{
+                    tempArr.push({eventName: null, type: el.type, sumTotalBonusAmount: el.sumTotalBonusAmount});
+                }
+            }
+
+        });
+
+        bonusRecord = tempArr;
+    }
+
+    return bonusRecord;
 }
 
 var proto = proposalFunc.prototype;
