@@ -1174,7 +1174,7 @@ let dbPlayerInfo = {
         let platformData = null;
         let pPrefix = null;
         let pName = null;
-        let csOfficer, promoteWay;
+        let csOfficer, promoteWay, ipDomain;
 
         playerdata.name = playerdata.name.toLowerCase();
 
@@ -1482,6 +1482,25 @@ let dbPlayerInfo = {
                         }
                     }
 
+                    // Add source url from ip
+                    if (playerData.lastLoginIp) {
+                        let todayTime = dbUtility.getTodaySGTime();
+
+                        promArr.push(
+                            dbconfig.collection_ipDomainLog.findOne({
+                                platform: playerdata.platform,
+                                createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
+                                ipAddress: playerData.lastLoginIp
+                            }, 'domain').lean().then(
+                                ipDomainLog => {
+                                    if (ipDomainLog && ipDomainLog.domain) {
+                                        ipDomain = ipDomainLog.domain;
+                                    }
+                                }
+                            )
+                        )
+                    }
+
                     return Promise.all(promArr);
                 }
                 else {
@@ -1552,6 +1571,9 @@ let dbPlayerInfo = {
 
                         playerUpdateData.promoteWay = promoteWay;
                     }
+
+                    // add ip domain to sourceUrl
+                    if (ipDomain) { playerUpdateData.sourceUrl = ipDomain }
 
                     proms.push(
                         dbconfig.collection_players.findOneAndUpdate(

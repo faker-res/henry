@@ -1689,26 +1689,27 @@ define(['js/app'], function (myApp) {
 
                     vm.isShowLoadingSpinner('#playerOnlineTimeAnalysis', false);
 
-                    vm.withdrawSuccessData = data.data[0];
-                    vm.withdrawSuccessAvg.totalCount = vm.calculateAverageData(vm.withdrawSuccessData, "totalCount");
-                    vm.withdrawSuccessAvg.count1 = vm.calculateAverageData(vm.withdrawSuccessData, "count1");
-                    vm.withdrawSuccessAvg.count2 = vm.calculateAverageData(vm.withdrawSuccessData, "count2");
-                    vm.withdrawSuccessAvg.count3 = vm.calculateAverageData(vm.withdrawSuccessData, "count3");
-                    vm.withdrawSuccessAvg.count4 = vm.calculateAverageData(vm.withdrawSuccessData, "count4");
-                    vm.withdrawSuccessAvg.count5 = vm.calculateAverageData(vm.withdrawSuccessData, "count5");
-                    vm.withdrawSuccessAvg.count6 = vm.calculateAverageData(vm.withdrawSuccessData, "count6");
-                    vm.withdrawSuccessAvg.count7 = vm.calculateAverageData(vm.withdrawSuccessData, "count7");
-                    vm.withdrawSuccessAvg.count8 = vm.calculateAverageData(vm.withdrawSuccessData, "count8");
-                    vm.withdrawSuccessAvg.count9 = vm.calculateAverageData(vm.withdrawSuccessData, "count9");
+                    vm.playerOnlineTimeData = data.data;
+                    vm.playerOnlineTimeAvg = {};
+                    vm.playerOnlineTimeAvg.totalCount = vm.playerOnlineTimeData.length;
+                    vm.playerOnlineTimeAvg.count1 = vm.calculateAverageData(vm.playerOnlineTimeData, "count1");
+                    vm.playerOnlineTimeAvg.count2 = vm.calculateAverageData(vm.playerOnlineTimeData, "count2");
+                    vm.playerOnlineTimeAvg.count3 = vm.calculateAverageData(vm.playerOnlineTimeData, "count3");
+                    vm.playerOnlineTimeAvg.count4 = vm.calculateAverageData(vm.playerOnlineTimeData, "count4");
+                    vm.playerOnlineTimeAvg.count5 = vm.calculateAverageData(vm.playerOnlineTimeData, "count5");
+                    vm.playerOnlineTimeAvg.count6 = vm.calculateAverageData(vm.playerOnlineTimeData, "count6");
+                    vm.playerOnlineTimeAvg.count7 = vm.calculateAverageData(vm.playerOnlineTimeData, "count7");
+                    vm.playerOnlineTimeAvg.count8 = vm.calculateAverageData(vm.playerOnlineTimeData, "count8");
+                    vm.playerOnlineTimeAvg.count9 = vm.calculateAverageData(vm.playerOnlineTimeData, "count9");
 
                     let withdrawSuccessPieArr = [];
                     let pieLabel = ["WITHDRAWAL_SUCCESS_TOTAL_TIMES", "0~1", "1~3", "3~5", "5~10", "10~20", "20~30", "30~45", "45~60", "60"];
-                    for (let i = 0; i < Object.keys(vm.withdrawSuccessAvg).length; i++) {
+                    for (let i = 0; i < Object.keys(vm.playerOnlineTimeAvg).length; i++) {
                         if (i == 0) {
                             continue;
                         }
                         let pieObj = {
-                            count: vm.withdrawSuccessAvg[Object.keys(vm.withdrawSuccessAvg)[i]]
+                            count: vm.playerOnlineTimeAvg[Object.keys(vm.playerOnlineTimeAvg)[i]]
                         };
                         pieObj.label = pieLabel[i] + $translate("mins");
                         if (i == 9) {
@@ -1718,34 +1719,34 @@ define(['js/app'], function (myApp) {
                     }
                     vm.drawManualApprovalPieChart(withdrawSuccessPieArr,"#pie-withdrawSuccess");
 
-                    vm.withdrawFailedData = data.data[1];
-                    vm.withdrawFailedAvg.totalCount = vm.calculateAverageData(vm.withdrawFailedData, "totalCount");
-                    vm.withdrawFailedAvg.count1 = vm.calculateAverageData(vm.withdrawFailedData, "count1");
-                    vm.withdrawFailedAvg.count2 = vm.calculateAverageData(vm.withdrawFailedData, "count2");
-                    vm.withdrawFailedAvg.count3 = vm.calculateAverageData(vm.withdrawFailedData, "count3");
-                    vm.withdrawFailedAvg.count4 = vm.calculateAverageData(vm.withdrawFailedData, "count4");
-                    vm.withdrawFailedAvg.count5 = vm.calculateAverageData(vm.withdrawFailedData, "count5");
-                    vm.withdrawFailedAvg.count6 = vm.calculateAverageData(vm.withdrawFailedData, "count6");
-                    vm.withdrawFailedAvg.count7 = vm.calculateAverageData(vm.withdrawFailedData, "count7");
-                    vm.withdrawFailedAvg.count8 = vm.calculateAverageData(vm.withdrawFailedData, "count8");
-                    vm.withdrawFailedAvg.count9 = vm.calculateAverageData(vm.withdrawFailedData, "count9");
-
-                    let withdrawFailedPieArr = [];
-                    let pieLabel2 = ["WITHDRAWAL_FAILED_TOTAL_TIMES", "0~1", "1~3", "3~5", "5~10", "10~20", "20~30", "30~45", "45~60", "60"];
-                    for (let j = 0; j < Object.keys(vm.withdrawFailedAvg).length; j++) {
-                        if (j == 0) {
-                            continue;
-                        }
-                        let pieObj = {
-                            count: vm.withdrawFailedAvg[Object.keys(vm.withdrawFailedAvg)[j]]
-                        };
-                        pieObj.label = pieLabel2[j] + $translate("mins");
-                        if (j == 9) {
-                            pieObj.label = pieObj.label + $translate("above");
-                        }
-                        withdrawFailedPieArr.push(pieObj)
-                    }
-                    vm.drawManualApprovalPieChart(withdrawFailedPieArr,"#pie-withdrawFailed");
+                    // vm.withdrawFailedData = data.data[1];
+                    // vm.withdrawFailedAvg.totalCount = vm.calculateAverageData(vm.withdrawFailedData, "totalCount");
+                    // vm.withdrawFailedAvg.count1 = vm.calculateAverageData(vm.withdrawFailedData, "count1");
+                    // vm.withdrawFailedAvg.count2 = vm.calculateAverageData(vm.withdrawFailedData, "count2");
+                    // vm.withdrawFailedAvg.count3 = vm.calculateAverageData(vm.withdrawFailedData, "count3");
+                    // vm.withdrawFailedAvg.count4 = vm.calculateAverageData(vm.withdrawFailedData, "count4");
+                    // vm.withdrawFailedAvg.count5 = vm.calculateAverageData(vm.withdrawFailedData, "count5");
+                    // vm.withdrawFailedAvg.count6 = vm.calculateAverageData(vm.withdrawFailedData, "count6");
+                    // vm.withdrawFailedAvg.count7 = vm.calculateAverageData(vm.withdrawFailedData, "count7");
+                    // vm.withdrawFailedAvg.count8 = vm.calculateAverageData(vm.withdrawFailedData, "count8");
+                    // vm.withdrawFailedAvg.count9 = vm.calculateAverageData(vm.withdrawFailedData, "count9");
+                    //
+                    // let withdrawFailedPieArr = [];
+                    // let pieLabel2 = ["WITHDRAWAL_FAILED_TOTAL_TIMES", "0~1", "1~3", "3~5", "5~10", "10~20", "20~30", "30~45", "45~60", "60"];
+                    // for (let j = 0; j < Object.keys(vm.withdrawFailedAvg).length; j++) {
+                    //     if (j == 0) {
+                    //         continue;
+                    //     }
+                    //     let pieObj = {
+                    //         count: vm.withdrawFailedAvg[Object.keys(vm.withdrawFailedAvg)[j]]
+                    //     };
+                    //     pieObj.label = pieLabel2[j] + $translate("mins");
+                    //     if (j == 9) {
+                    //         pieObj.label = pieObj.label + $translate("above");
+                    //     }
+                    //     withdrawFailedPieArr.push(pieObj)
+                    // }
+                    // vm.drawManualApprovalPieChart(withdrawFailedPieArr,"#pie-withdrawFailed");
 
                 });
 
@@ -2196,10 +2197,10 @@ define(['js/app'], function (myApp) {
                                     vm.registrationRecord = res.data;
 
                                     vm.registrationRecord.forEach(data => {
-                                        let webAvg = data.webUniqueCount == 0 ? 0 : 1 - data.webCount / data.webUniqueCount;
-                                        let appAvg = data.appUniqueCount == 0 ? 0 : 1 - data.appCount / data.appUniqueCount;
-                                        let H5Avg = data.H5UniqueCount == 0 ? 0 : 1 - data.H5Count / data.H5UniqueCount;
-                                        let frontEndAvg = data.frontEndUniqueCount == 0 ? 0 : 1 - data.frontEndCount / data.frontEndUniqueCount;
+                                        let webAvg = (data.webUniqueCount == 0 ? 0 : 1 - data.webCount / data.webUniqueCount).toFixed(2);
+                                        let appAvg = (data.appUniqueCount == 0 ? 0 : 1 - data.appCount / data.appUniqueCount).toFixed(2);
+                                        let H5Avg = (data.H5UniqueCount == 0 ? 0 : 1 - data.H5Count / data.H5UniqueCount).toFixed(2);
+                                        let frontEndAvg = (data.frontEndUniqueCount == 0 ? 0 : 1 - data.frontEndCount / data.frontEndUniqueCount).toFixed(2);
 
                                         data.webAttritionRate$ = $roundToTwoDecimalPlacesString(webAvg * 100);
                                         data.webAttritionRate = $noRoundTwoDecimalPlaces(webAvg * 100);
@@ -2214,7 +2215,7 @@ define(['js/app'], function (myApp) {
                                     // count avg value for web registration
                                     vm.webRegistration.avgCount = vm.calculateAverageData(vm.registrationRecord, 'webCount');
                                     vm.webRegistration.uniqueAvgCount = vm.calculateAverageData(vm.registrationRecord, 'webUniqueCount');
-                                    let webAvgVal = vm.webRegistration.uniqueAvgCount == 0 ? 0 : 1 - vm.webRegistration.avgCount / vm.webRegistration.uniqueAvgCount;
+                                    let webAvgVal = (vm.webRegistration.uniqueAvgCount == 0 ? 0 : 1 - vm.webRegistration.avgCount / vm.webRegistration.uniqueAvgCount).toFixed(2);
                                     vm.webRegistration.attritionAvgRate$ = $roundToTwoDecimalPlacesString(webAvgVal * 100);
                                     vm.webRegistration.attritionAvgRate = $noRoundTwoDecimalPlaces(webAvgVal * 100);
 
@@ -2224,7 +2225,7 @@ define(['js/app'], function (myApp) {
                                     // count avg value for app registration
                                     vm.appRegistration.avgCount = vm.calculateAverageData(vm.registrationRecord, 'appCount');
                                     vm.appRegistration.uniqueAvgCount = vm.calculateAverageData(vm.registrationRecord, 'appUniqueCount');
-                                    let appAvgVal = vm.appRegistration.uniqueAvgCount == 0 ? 0 : 1 - vm.appRegistration.avgCount / vm.appRegistration.uniqueAvgCount;
+                                    let appAvgVal = (vm.appRegistration.uniqueAvgCount == 0 ? 0 : 1 - vm.appRegistration.avgCount / vm.appRegistration.uniqueAvgCount).toFixed(2);
                                     vm.appRegistration.attritionAvgRate$ = $roundToTwoDecimalPlacesString(appAvgVal * 100);
                                     vm.appRegistration.attritionAvgRate = $noRoundTwoDecimalPlaces(appAvgVal * 100);
 
@@ -2234,7 +2235,7 @@ define(['js/app'], function (myApp) {
                                     // count avg value for H5 registration
                                     vm.H5Registration.avgCount = vm.calculateAverageData(vm.registrationRecord, 'H5Count');
                                     vm.H5Registration.uniqueAvgCount = vm.calculateAverageData(vm.registrationRecord, 'H5UniqueCount');
-                                    let H5AvgVal = vm.H5Registration.uniqueAvgCount == 0 ? 0 : 1 - vm.H5Registration.avgCount / vm.H5Registration.uniqueAvgCount;
+                                    let H5AvgVal = (vm.H5Registration.uniqueAvgCount == 0 ? 0 : 1 - vm.H5Registration.avgCount / vm.H5Registration.uniqueAvgCount).toFixed(2);
                                     vm.H5Registration.attritionAvgRate$ = $roundToTwoDecimalPlacesString(H5AvgVal * 100);
                                     vm.H5Registration.attritionAvgRate = $noRoundTwoDecimalPlaces(H5AvgVal * 100);
 
@@ -2245,7 +2246,7 @@ define(['js/app'], function (myApp) {
                                     // count avg value for all font-end registation
                                     vm.frontEndRegistration.avgCount = vm.calculateAverageData(vm.registrationRecord, 'frontEndCount');
                                     vm.frontEndRegistration.uniqueAvgCount = vm.calculateAverageData(vm.registrationRecord, 'frontEndUniqueCount');
-                                    let frontEndAvgVal = vm.frontEndRegistration.uniqueAvgCount == 0 ? 0 : 1 - vm.frontEndRegistration.avgCount / vm.frontEndRegistration.uniqueAvgCount;
+                                    let frontEndAvgVal = (vm.frontEndRegistration.uniqueAvgCount == 0 ? 0 : 1 - vm.frontEndRegistration.avgCount / vm.frontEndRegistration.uniqueAvgCount).toFixed(2);
                                     vm.frontEndRegistration.attritionAvgRate$ = $roundToTwoDecimalPlacesString(frontEndAvgVal * 100);
                                     vm.frontEndRegistration.attritionAvgRate = $noRoundTwoDecimalPlaces(frontEndAvgVal * 100);
 
