@@ -1466,7 +1466,7 @@
                                             td
                                                 span {{ "average value" | translate }}
                                             td(ng-repeat='(i, v) in vm.rewardReportAmountAvg track by $index')
-                                                span {{ v }}
+                                                span {{ v | noRoundTwoDecimalPlaces}}
 
                                         tr(ng-repeat='(i, v) in vm.rewardReportAnalysisData | orderBy: vm.dataSort.rewardReportAmount')
                                             td
