@@ -1604,6 +1604,11 @@
   "Please Add Remark If Not Normal Executed!" : "Please add remark if Normal Executed is not selected",
   "SKIP" : "Skip",
   "Totalsum": "Total",
-  "totalCount": "Total Count"
-
+  "totalCount": "Total Count",
+  "DAY_COUNT_AFTER_REDEEM_PROMO": "Day count after redeem reward",
+  "CountRewardApplied": "Number of Reward Applied",
+  "TotalRewardAmount": "Total Reward Amount",
+  "CountPlayerApplied": "Number of Player Applied",
+  "Total_Bonus_Amount": "Total Bonus Amount",
+  "PlayerProfit": "Player Profit Amount"
 }
