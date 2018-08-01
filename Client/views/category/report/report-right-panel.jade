@@ -1458,7 +1458,7 @@
                     label {{"Total" | translate}} {{vm.generalRewardProposalQuery.totalCount}} {{"records" | translate}}
                     table#generalRewardProposalTable.common-table.display(style="width:100%")
                     #generalRewardProposalTablePage
-        div(ng-if='vm.currentRewardTaskName')
+        div(ng-if='vm.currentRewardTaskName && vm.showPageName!="RewardReport"')
             .panel.panel-primary
                 .panel-heading
                     label {{'Reward task' | translate}}
