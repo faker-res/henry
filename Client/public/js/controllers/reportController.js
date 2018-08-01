@@ -3630,7 +3630,7 @@ define(['js/app'], function (myApp) {
                     $('#loadingPlayerDepositAnalysisReportTableSpin').hide();
 
                     let drawData = data.data.data.map(item => {
-                        let breakLine = "<br>";
+                        let breakLine = ", ";
                         item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                         item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
                         item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
@@ -3655,6 +3655,9 @@ define(['js/app'], function (myApp) {
                             }
                         }
 
+                        // remove the last comma and any whitespace after it
+                        item.credibility$ = item.credibility$.replace(/,\s*$/, "");
+
                         item.providerArr = [];
                         for (let key in item.providerDetail) {
                             if (item.providerDetail.hasOwnProperty(key)) {
@@ -3678,6 +3681,10 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                         }
+
+                        // remove the last comma and any whitespace after it
+                        item.provider$ = item.provider$.replace(/,\s*$/, "");
+
                         return item;
                     });
 
