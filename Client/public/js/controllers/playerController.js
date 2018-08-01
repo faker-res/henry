@@ -19560,32 +19560,34 @@ define(['js/app'], function (myApp) {
             vm.removedRemarkId = [];
             return vm.getCredibilityRemarks(true).then(
                 () => {
-                    let cloneRemarks = vm.credibilityRemarks.slice(0);
-                    vm.positiveRemarks = [];
-                    vm.negativeRemarks = [];
-                    vm.neutralRemarks = [];
+                    $scope.$evalAsync(() => {
+                        let cloneRemarks = vm.credibilityRemarks.slice(0);
+                        vm.positiveRemarks = [];
+                        vm.negativeRemarks = [];
+                        vm.neutralRemarks = [];
 
-                    let len = cloneRemarks.length;
+                        let len = cloneRemarks.length;
 
-                    for (let i = 0; i < len; i++) {
-                        let remark = cloneRemarks[i];
-                        if (remark.score > 0) {
-                            vm.positiveRemarks.push(remark);
+                        for (let i = 0; i < len; i++) {
+                            let remark = cloneRemarks[i];
+                            if (remark.score > 0) {
+                                vm.positiveRemarks.push(remark);
+                            }
+                            else if (remark.score < 0) {
+                                vm.negativeRemarks.push(remark);
+                            }
+                            else {
+                                vm.neutralRemarks.push(remark);
+                            }
                         }
-                        else if (remark.score < 0) {
-                            vm.negativeRemarks.push(remark);
-                        }
-                        else {
-                            vm.neutralRemarks.push(remark);
-                        }
-                    }
 
-                    vm.positiveRemarks.sort((a, b) => {
-                        return b.score - a.score;
-                    });
+                        vm.positiveRemarks.sort((a, b) => {
+                            return b.score - a.score;
+                        });
 
-                    vm.negativeRemarks.sort((a, b) => {
-                        return a.score - b.score;
+                        vm.negativeRemarks.sort((a, b) => {
+                            return a.score - b.score;
+                        });
                     });
                 }
             );
