@@ -6081,6 +6081,22 @@ function getTopupProposalData(itemArr, dayCount, platformId, startTime, endTime)
     if (itemArr && itemArr.length > 0) {
         itemArr.forEach(el => {
             let matchQuery = {};
+
+            if (dayCount && el.type && !el.eventName && el.playerObjId && typeof el.playerObjId == 'string') {
+                el.playerObjId = ObjectId(el.playerObjId);
+            } else if (!dayCount && el.type && !el.eventName && el.playerObjId && el.playerObjId.length > 0) {
+                let playerObjIdTempArr = []
+                el.playerObjId.forEach(el => {
+                    if (el && typeof el == 'string') {
+                        playerObjIdTempArr.push(ObjectId(el));
+                    }
+                })
+
+                if (playerObjIdTempArr && playerObjIdTempArr.length) {
+                    el.playerObjId = playerObjIdTempArr;
+                }
+            }
+
             if (dayCount && el && el.playerObjId && el.lastRewardTime) {
                 let newStartDate = new Date(el.lastRewardTime);
                 let newEndDate = new Date(el.lastRewardTime);
@@ -6110,7 +6126,7 @@ function getTopupProposalData(itemArr, dayCount, platformId, startTime, endTime)
             promArr.push(
                 dbconfig.collection_playerTopUpRecord.aggregate(
                     {
-                        $match: matchQuery
+                        $match: {$and: [matchQuery]}
                     },
                     {
                         $group: {
@@ -6193,6 +6209,22 @@ function getBonusProposalData(itemArr, dayCount, platformId, startTime, endTime)
     if (itemArr && itemArr.length > 0) {
         itemArr.forEach(el => {
             let matchQuery = {};
+
+            if (dayCount && el.type && !el.eventName && el.playerObjId && typeof el.playerObjId == 'string') {
+                el.playerObjId = ObjectId(el.playerObjId);
+            } else if (!dayCount && el.type && !el.eventName && el.playerObjId && el.playerObjId.length > 0) {
+                let playerObjIdTempArr = []
+                el.playerObjId.forEach(el => {
+                    if (el && typeof el == 'string') {
+                        playerObjIdTempArr.push(ObjectId(el));
+                    }
+                })
+
+                if (playerObjIdTempArr && playerObjIdTempArr.length) {
+                    el.playerObjId = playerObjIdTempArr;
+                }
+            }
+
             if (dayCount && el && el.playerObjId && el.lastRewardTime) {
                 let newStartDate = new Date(el.lastRewardTime);
                 let newEndDate = new Date(el.lastRewardTime);
@@ -6232,7 +6264,7 @@ function getBonusProposalData(itemArr, dayCount, platformId, startTime, endTime)
 
                             return dbconfig.collection_proposal.aggregate([
                                 {
-                                    $match: matchQuery
+                                    $match: {$and: [matchQuery]}
                                 },
                                 {
                                     $group: {
