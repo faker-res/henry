@@ -921,7 +921,8 @@ var dbUtility = {
             .replace("http://www.", "")
             .replace("https://", "")
             .replace("http://", "")
-            .replace("www.", "");
+            .replace("www.", "")
+            .replace("m.", "");
     },
 
     encodeEmail: function(email) {
