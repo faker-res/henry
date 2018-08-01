@@ -1674,6 +1674,7 @@ let dbPlayerCreditTransfer = {
         let checkRTGProm = [];
         let transferOut = Promise.resolve();
         let transferOutSuccessData = [];
+        let transferOutErrorData = [];
         let gameCredit;
         let hasEbetWalletSettings = false;
         let waitTimePerRequest = 2000; //2seconds for one transaction
@@ -1720,6 +1721,7 @@ let dbPlayerCreditTransfer = {
                                             amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
                                             transferOutSuccessData.push(ret);
                                         }).catch(err => {
+                                            transferOutErrorData.push(err);
                                             return errorUtils.reportError(err);
                                         });
                                     }).then(delayTransferOut);
@@ -1739,6 +1741,7 @@ let dbPlayerCreditTransfer = {
                                 amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
                                 transferOutSuccessData.push(ret);
                             }).catch(err => {
+                                transferOutErrorData.push(err);
                                 return errorUtils.reportError(err);
                             })
                         });
@@ -1756,16 +1759,20 @@ let dbPlayerCreditTransfer = {
                                 transferRewardCredit += parseFloat(item.transferCredit.rewardCredit);
                             }
                         });
-                        return {
-                            playerId: transferOutSuccessData[0].playerId,
-                            providerId: transferOutSuccessData[0].providerId,
-                            providerCredit: providerCredit.toFixed(2),
-                            playerCredit: playerCredit.toFixed(2),
-                            rewardCredit: rewardCredit.toFixed(2),
-                            transferCredit: {
-                                playerCredit: transferPlayerCredit.toFixed(2),
-                                rewardCredit: transferRewardCredit.toFixed(2)
+                        if(transferOutSuccessData && transferOutSuccessData.length > 0) {
+                            return {
+                                playerId: transferOutSuccessData[0].playerId,
+                                providerId: transferOutSuccessData[0].providerId,
+                                providerCredit: providerCredit.toFixed(2),
+                                playerCredit: playerCredit.toFixed(2),
+                                rewardCredit: rewardCredit.toFixed(2),
+                                transferCredit: {
+                                    playerCredit: transferPlayerCredit.toFixed(2),
+                                    rewardCredit: transferRewardCredit.toFixed(2)
+                                }
                             }
+                        } else {
+                            return Promise.reject(transferOutErrorData[0]);
                         }
                     })
                     .catch(err => {
@@ -1997,16 +2004,16 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                     let curWalletCredit = res[0].wallet[gameProviderGroup.ebetWallet];
                     console.log("rewardGroupObj",rewardGroupObj);
                     if (rewardGroupObj) {
-                        amount = curWalletCredit;
+                        amount = Math.floor(curWalletCredit);
                         updateObj = {
-                            rewardAmt: curWalletCredit,
+                            rewardAmt: amount,
                             freeAmt: rewardGroupObj._inputFreeAmt,
                             _inputRewardAmt: -rewardGroupObj._inputRewardAmt,
                             _inputFreeAmt: -rewardGroupObj._inputFreeAmt
                         };
                     } else {
-                        amount = curWalletCredit;
-                        updateObj.freeAmt = curWalletCredit;
+                        amount = Math.floor(curWalletCredit);
+                        updateObj.freeAmt = amount;
                     }
                 } else {
                     // Process transfer amount
