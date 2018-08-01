@@ -147,8 +147,9 @@ var PlatformServiceImplement = function () {
     };
 
     this.addIpDomainLog.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.platformId && data.domain && data.ipAddress);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.addIpDomainLog, [data.platformId, data.domain, data.ipAddress], isValidData, null, null, true);
+        let isValidData = Boolean(data && data.platformId && data.domain);
+        let ipAddress = dbUtility.getIpAddress(conn);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.addIpDomainLog, [data.platformId, data.domain, ipAddress], isValidData, null, null, true);
     };
 };
 

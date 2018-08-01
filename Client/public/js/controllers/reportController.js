@@ -971,6 +971,13 @@ define(['js/app'], function (myApp) {
 
             drawReportQuery(choice);
 
+            if (VM.showPageName == 'RewardReport' && vm.currentRewardCode == 'ALL') {
+                vm.rewardProposalQuery = vm.rewardProposalQuery || {};
+                vm.rewardProposalQuery.totalCount = 0;
+                utilService.actionAfterLoaded("#rewardProposalPage", function () {
+                    vm.commonInitTime(vm.rewardProposalQuery, '#rewardProposalQuery', true);
+                })
+            }
             if (vm.currentRewardCode) {
                 vm.generalRewardProposalQuery = vm.generalRewardProposalQuery || {};
                 vm.generalRewardProposalQuery.totalCount = 0;
@@ -3630,7 +3637,7 @@ define(['js/app'], function (myApp) {
                     $('#loadingPlayerDepositAnalysisReportTableSpin').hide();
 
                     let drawData = data.data.data.map(item => {
-                        let breakLine = "<br>";
+                        let breakLine = ", ";
                         item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                         item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
                         item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
@@ -3655,6 +3662,9 @@ define(['js/app'], function (myApp) {
                             }
                         }
 
+                        // remove the last comma and any whitespace after it
+                        item.credibility$ = item.credibility$.replace(/,\s*$/, "");
+
                         item.providerArr = [];
                         for (let key in item.providerDetail) {
                             if (item.providerDetail.hasOwnProperty(key)) {
@@ -3678,6 +3688,10 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                         }
+
+                        // remove the last comma and any whitespace after it
+                        item.provider$ = item.provider$.replace(/,\s*$/, "");
+
                         return item;
                     });
 
@@ -6045,6 +6059,77 @@ define(['js/app'], function (myApp) {
         };
         // end partner commission report
 
+        // start of reward proposal report
+        vm.getRewardProposalReport = function () {
+            vm.rewardProposalQuery = vm.rewardProposalQuery || {};
+
+            var startTime = vm.rewardProposalQuery.startTime.data('datetimepicker').getLocalDate();
+            var endTime = vm.rewardProposalQuery.endTime.data('datetimepicker').getLocalDate();
+            vm["#rewardProposalQuery"] = {};
+            vm["#rewardProposalQuery"].startTime = startTime;
+            vm["#rewardProposalQuery"].endTime = endTime;
+            var sendData = {
+                platformId: vm.curPlatformId || vm.selectedPlatform._id,
+                startTime: startTime,
+                endTime: endTime,
+                status: vm.rewardProposalQuery.status,
+                playerName: vm.rewardProposalQuery.playerName,
+                dayCountAfterRedeemPromo: vm.rewardProposalQuery.dayCountAfterRedeemPromo
+            }
+            console.log('sendData', sendData);
+            $('#rewardProposalTableSpin').show();
+            socketService.$socket($scope.AppSocket, 'getRewardProposalReport', sendData, function (data) {
+                $('#rewardProposalTableSpin').hide();
+                console.log('getRewardProposalReport', data.data);
+                $scope.$evalAsync(() => {
+                    vm.rewardProposalQuery.totalCount = data.data.totalPlayer;
+                });
+                vm.drawRewardProposalReport(data.data.data
+                );
+
+            }, function (err) {
+                $('#rewardProposalTableSpin').hide();
+            }, true);
+        }
+
+        vm.drawRewardProposalReport = function (data) {
+            var tableData = data.map(
+                record => {
+                    record.name = record.name ? $translate(record.name) : "";
+                    record.eventName = record.eventName ? record.eventName : "";
+                    record.countRewardApplied = record.countRewardApplied ? record.countRewardApplied : 0;
+                    record.$amount = record.sumTotalRewardAmount ? record.sumTotalRewardAmount :
+                        (record.sumTotalReturnAmount ? record.sumTotalReturnAmount :
+                            (record.sumTotalAmount ? record.sumTotalAmount : 0));
+                    record.countPlayerApplied = record.countPlayerApplied ? record.countPlayerApplied : 0;
+                    record.sumTotalTopupAmount = record.sumTotalTopupAmount ? record.sumTotalTopupAmount : 0;
+                    record.sumTotalBonusAmount = record.sumTotalBonusAmount ? record.sumTotalBonusAmount : 0;
+                    record.sumPlayerProfit = record.sumPlayerProfit ? record.sumPlayerProfit : 0;
+                    return record
+                }
+            );
+            var option = $.extend({}, vm.commonTableOption, {
+                data: tableData,
+                columns: [
+                    {title: $translate('PROPOSAL_TYPE'), data: "name"},
+                    {title: $translate('event name'), data: "eventName"},
+                    {title: $translate('CountRewardApplied'), data: "countRewardApplied"},
+                    {title: $translate('TotalRewardAmount'), data: "$amount"},
+                    {title: $translate('CountPlayerApplied'), data: "countPlayerApplied"},
+                    {title: $translate('TOTAL_TOP_UP'), data: "sumTotalTopupAmount"},
+                    {title: $translate('Total_Bonus_Amount'), data: "sumTotalBonusAmount"},
+                    {title: $translate('PlayerProfit'), data: "sumPlayerProfit"}
+                ],
+                bSortClasses: false,
+                destroy: true,
+                paging: false,
+                autoWidth: true,
+            });
+            var a = utilService.createDatatableWithFooter('#rewardProposalTable', option, {});
+            $('#rewardProposalTable').resize();
+        }
+        // end of reward proposal report
+
         // start of general reward proposal report
         vm.generalRewardProposalSearch = function (newSearch) {
             vm.generalRewardProposalQuery = vm.generalRewardProposalQuery || {};
@@ -6126,6 +6211,234 @@ define(['js/app'], function (myApp) {
             $("#generalRewardProposalTable").resize();
         }
         // end of general reward proposal report
+
+        //region reward report analysis
+        vm.drawRewardReportAnalysis = function () {
+            vm.dataSort = {
+                rewardReportPlayer: 'date',
+                rewardReportProposal: 'date',
+                rewardReportAmount: 'date'
+            }
+
+            vm.rewardReportPlayerAvg = {};
+            vm.rewardReportProposalAvg = {};
+            vm.rewardReportAmountAvg = {};
+
+            let proposalNames
+            if (vm.rewardReportAnalysis.type == "rewardName") {
+                proposalNames = $('select#selectRewardAnalysisType').multipleSelect("getSelects");
+            } else {
+                proposalNames = $('select#selectRewardProposalType').multipleSelect("getSelects");
+            }
+
+
+            vm.isShowLoadingSpinner('#rewardReportAnalysis', true);
+            var sendData = {
+                period: vm.rewardReportAnalysis.periodText,
+                startDate: vm.rewardReportAnalysis.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.rewardReportAnalysis.endTime.data('datetimepicker').getLocalDate(),
+                platformObjId: vm.selectedPlatform._id,
+                type: vm.rewardReportAnalysis.type,
+                proposalNameArr: proposalNames
+            }
+
+            socketService.$socket($scope.AppSocket, 'getRewardAnalysisProposal', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        if (!data && !data.data) {
+                            return Q.reject({name: 'DataError', message: 'Can not find the proposal data'})
+                        }
+
+                        vm.isShowLoadingSpinner('#rewardReportAnalysis', false);
+
+                        vm.rewardReportAnalysisData = JSON.parse(JSON.stringify(data.data));
+                        vm.rewardReportPieLabel = [];
+                        for (let key in vm.rewardReportAnalysisData[0]) {
+                            if (key != "date" && key != "totalProposalCount" && key != "totalPlayerCount" && key != "totalAmount") {
+                                vm.rewardReportPieLabel.push(key);
+                            }
+                        }
+                        vm.rewardReportPlayerAvg = [];
+                        vm.rewardReportPieLabel.forEach((item,i) => {
+                            vm.rewardReportPlayerAvg[i] =  vm.calculateAverageData(vm.rewardReportAnalysisData, item, "player");
+                        })
+
+
+                        let rewardReportPlayerPieArr = [];
+                        for (let i = 0; i < vm.rewardReportPlayerAvg.length; i++) {
+                            if (i == 0) {
+                                continue;
+                            }
+                            let pieObj = {
+                                count: vm.rewardReportPlayerAvg[i]
+                            };
+                            pieObj.label = $translate(vm.rewardReportPieLabel[i]);
+                            rewardReportPlayerPieArr.push(pieObj)
+                        }
+                        vm.drawPieChart(rewardReportPlayerPieArr,"#pie-rewardAnalysisPlayer");
+
+                        //proposal count
+                        vm.rewardReportProposalAvg = [];
+                        vm.rewardReportPieLabel.forEach((item,i) => {
+                            vm.rewardReportProposalAvg[i] =  vm.calculateAverageData(vm.rewardReportAnalysisData, item, "proposalCount");
+                        })
+
+
+                        let rewardReportProposalPieArr = [];
+                        for (let i = 0; i < vm.rewardReportProposalAvg.length; i++) {
+                            if (i == 0) {
+                                continue;
+                            }
+                            let pieObj = {
+                                count: vm.rewardReportProposalAvg[i]
+                            };
+                            pieObj.label = $translate(vm.rewardReportPieLabel[i]);
+                            rewardReportProposalPieArr.push(pieObj)
+                        }
+                        vm.drawPieChart(rewardReportProposalPieArr,"#pie-rewardAnalysisCount");
+
+                        //amount
+                        vm.rewardReportAmountAvg = [];
+                        vm.rewardReportPieLabel.forEach((item,i) => {
+                            vm.rewardReportAmountAvg[i] =  vm.calculateAverageData(vm.rewardReportAnalysisData, item, "amount");
+                        })
+
+
+                        let rewardReportAmountPieArr = [];
+                        for (let i = 0; i < vm.rewardReportAmountAvg.length; i++) {
+                            if (i == 0) {
+                                continue;
+                            }
+                            let pieObj = {
+                                count: vm.rewardReportAmountAvg[i]
+                            };
+                            pieObj.label = $translate(vm.rewardReportPieLabel[i]);
+                            rewardReportAmountPieArr.push(pieObj)
+                        }
+                        vm.drawPieChart(rewardReportAmountPieArr,"#pie-rewardAnalysisAmount");
+
+                    });
+
+                }, function (data) {
+                    vm.isShowLoadingSpinner('#rewardReportAnalysis', false);
+                    console.log("Failed to retrieve the data", data);
+                }
+            )
+        };
+
+        vm.drawPieChart = function (srcData, pieChartName) {
+            var placeholder = pieChartName;
+
+            var pieData = srcData.filter(function (obj) {
+                return (obj.count);
+            }).map(function (obj) {
+                return {label: obj.label, data: obj.count};
+            }).sort(function (a, b) {
+                return b.data - a.data;
+            })
+            function labelFormatter(label, series) {
+                return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
+            }
+
+            socketService.$plotPie(placeholder, pieData, {
+                series: {
+                    pie: {
+                        show: true,
+                        radius: 1,
+                        //tilt: 0.5,
+                        label: {
+                            show: true,
+                            radius: 1,
+                            formatter: labelFormatter,
+                            background: {
+                                opacity: 0.80
+                            }
+                        },
+                        combine: {
+                            color: "#999",
+                            threshold: 0
+                        }
+                    }
+                },
+                grid: {
+                    hoverable: true,
+                    clickable: true
+                },
+                legend: {
+                    show: false
+                },
+                colors: [
+                    '#e6194b',
+                    '#3cb44b',
+                    '#ffe119',
+                    '#0082c8',
+                    '#f58231',
+                    '#911eb4',
+                    '#46f0f0',
+                    '#f032e6',
+                    '#d2f53c',
+                    '#fabebe',
+                    '#008080',
+                    '#10ff10',
+                    '#10ffbc',
+                    '#bc10ff',
+                    '#1010ff',
+                    '#c49102',
+                    '#e6beff',
+                    '#aa6e28',
+                    '#fffac8',
+                    '#800000',
+                    '#aaffc3',
+                    '#808000',
+                    '#ffd8b1',
+                    '#ff1010',
+                    '#000080',
+                    '#99ee34',
+                ],
+            }, '');
+            vm.bindHoverTitle(pieChartName);
+        };
+
+        vm.bindHoverTitle = function(pieChartName){
+            $(pieChartName).bind("plothover", function (event, pos, item) {
+                console.log(item);
+                if (!item || !item.seriesIndex) { return; }
+                $('.pieLabel').css('z-index',1);
+                $('.pieLabelBackground').css('z-index',1);
+                $('#pieLabel'+item.seriesIndex).css('z-index',999).prev('.pieLabelBackground').css('z-index',999);
+            });
+        };
+
+        vm.isShowLoadingSpinner = (containerId, isShow) => {
+            let loadingSpinner = "<i style='width: auto;' class='fa fa-spin fa-refresh margin-left-5 text-danger collapse'></i>";
+            if (isShow)
+                if ($(containerId).children('.block-query').length !== 0)
+                    $(containerId).children('.block-query').find("button.common-button").parent().append(loadingSpinner);
+                else
+                    $(containerId).find("button.common-button").parent().append(loadingSpinner);
+            else
+                $(containerId + ' .fa.fa-spin.fa-refresh').remove();
+        };
+
+        vm.calculateAverageData = (data, key1, key2) => {
+            let average = null;
+            if (key2) {
+                average = data.length !== 0 ? Math.floor(data.reduce((a, item) => a + (Number.isFinite(item[key1][key2]) ? item[key1][key2] : 0), 0) / data.length) : 0;
+            }else{
+                average = data.length !== 0 ? Math.floor(data.reduce((a, item) => a + (Number.isFinite(item[key1]) ? item[key1] : 0), 0) / data.length) : 0;
+            }
+
+            return average
+        };
+
+        vm.dataArraySort = (type , sortField, objField) => {
+            if (objField) {
+                vm.dataSort[type] = vm.dataSort[type] === sortField  + "." + objField? '-' + sortField + "." + objField: sortField + "." + objField;
+            } else {
+                vm.dataSort[type] = vm.dataSort[type] === sortField ? '-'+sortField : sortField;
+            }
+        };
+
+        //endregion
 
         /////////////// start of general reward task report
 
@@ -6588,9 +6901,12 @@ define(['js/app'], function (myApp) {
             return vm.allProviders.find(p => p._id === providerObjId);
         }
 
-        vm.getProposalTypeOptionValue = function (proposalType) {
-            var result = utilService.getProposalGroupValue(proposalType);
-            return $translate(result);
+        vm.getProposalTypeOptionValue = function (proposalType, performTranslate) {
+            var result = utilService.getProposalGroupValue(proposalType, performTranslate);
+            if (performTranslate) {
+                return $translate(result);
+            }
+            return result
         };
 
         vm.getProvinceName = function (provinceId, fieldName) {
@@ -7423,6 +7739,58 @@ define(['js/app'], function (myApp) {
                     vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[3]);
                     vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[1]);
                     vm.currentRewardTaskName = "ALL";
+                    vm.rewardReportAnalysis = {periodText: "day"};
+
+                    vm.allRewardProposalType = [];
+                    if (vm.allProposalType && vm.allProposalType.length) {
+                        vm.allProposalType.forEach(item => {
+                            if (vm.getProposalTypeOptionValue(item, false) == "Reward Proposal") {
+                                vm.allRewardProposalType.push(item);
+                            }
+                        })
+                    }
+                    utilService.actionAfterLoaded(('#rewardReportAnalysis'), function () {
+                        $('select#selectRewardProposalType').multipleSelect({
+                            allSelected: $translate("All Selected"),
+                            selectAllText: $translate("Select All"),
+                            displayValues: true,
+                            countSelected: $translate('# of % selected'),
+                        });
+                        var $multi = ($('select#selectRewardProposalType').next().find('.ms-choice'))[0];
+                        $('select#selectRewardProposalType').next().on('click', 'li input[type=checkbox]', function () {
+                            var upText = $($multi).text().split(',').map(item => {
+                                return $translate(item);
+                            }).join(',');
+                            $($multi).find('span').text(upText)
+                        });
+                        $("select#selectRewardProposalType").multipleSelect("checkAll");
+
+
+                        $('select#selectRewardAnalysisType').multipleSelect({
+                            allSelected: $translate("All Selected"),
+                            selectAllText: $translate("Select All"),
+                            displayValues: true,
+                            countSelected: $translate('# of % selected'),
+                        });
+                        var $multiReward = ($('select#selectRewardAnalysisType').next().find('.ms-choice'))[0];
+                        $('select#selectRewardAnalysisType').next().on('click', 'li input[type=checkbox]', function () {
+                            var upText = $($multiReward).text().split(',').map(item => {
+                                return $translate(item);
+                            }).join(',');
+                            $($multiReward).find('span').text(upText)
+                        });
+                        $("select#selectRewardAnalysisType").multipleSelect("checkAll");
+
+                        var tablePanel = $('#rewardReportAnalysis .tableDiv');
+                        var graphPanel = $('#rewardReportAnalysis .graphDiv');
+                        var height = $(tablePanel).width() * .7;
+                        $(graphPanel).height(height);
+                        $(tablePanel).css('max-height', height + 'px');
+                        vm.rewardReportAnalysis.startTime = utilService.createDatePicker('#rewardReportAnalysis .startTime');
+                        vm.rewardReportAnalysis.endTime = utilService.createDatePicker('#rewardReportAnalysis .endTime');
+                        vm.rewardReportAnalysis.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                        vm.rewardReportAnalysis.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                    })
                     break;
             }
 
