@@ -210,6 +210,16 @@ function socketActionReport(socketIO, socket) {
         //     socketUtil.emitter(self.socket, dbProposal.getProposalsForReward, args, actionName, isValidData);
         // },
 
+        getRewardProposalReport: function getRewardProposalReport(data) {
+            var args = null;
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.startTime && data.endTime);
+            if (isValidData) {
+                args = [ObjectId(data.platformId), new Date(data.startTime), new Date(data.endTime), data.status, data.playerName, data.dayCountAfterRedeemPromo];
+            }
+            socketUtil.emitter(self.socket, dbProposal.getRewardProposalReport, args, actionName, isValidData);
+        },
+
         getRewardProposalReportByType: function getRewardProposalReportByType(data) {
             var args = null;
             var actionName = arguments.callee.name;

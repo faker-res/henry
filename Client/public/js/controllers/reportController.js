@@ -971,6 +971,13 @@ define(['js/app'], function (myApp) {
 
             drawReportQuery(choice);
 
+            if (VM.showPageName == 'RewardReport' && vm.currentRewardCode == 'ALL') {
+                vm.rewardProposalQuery = vm.rewardProposalQuery || {};
+                vm.rewardProposalQuery.totalCount = 0;
+                utilService.actionAfterLoaded("#rewardProposalPage", function () {
+                    vm.commonInitTime(vm.rewardProposalQuery, '#rewardProposalQuery', true);
+                })
+            }
             if (vm.currentRewardCode) {
                 vm.generalRewardProposalQuery = vm.generalRewardProposalQuery || {};
                 vm.generalRewardProposalQuery.totalCount = 0;
@@ -6040,6 +6047,77 @@ define(['js/app'], function (myApp) {
             }, 500);
         };
         // end partner commission report
+
+        // start of reward proposal report
+        vm.getRewardProposalReport = function () {
+            vm.rewardProposalQuery = vm.rewardProposalQuery || {};
+
+            var startTime = vm.rewardProposalQuery.startTime.data('datetimepicker').getLocalDate();
+            var endTime = vm.rewardProposalQuery.endTime.data('datetimepicker').getLocalDate();
+            vm["#rewardProposalQuery"] = {};
+            vm["#rewardProposalQuery"].startTime = startTime;
+            vm["#rewardProposalQuery"].endTime = endTime;
+            var sendData = {
+                platformId: vm.curPlatformId || vm.selectedPlatform._id,
+                startTime: startTime,
+                endTime: endTime,
+                status: vm.rewardProposalQuery.status,
+                playerName: vm.rewardProposalQuery.playerName,
+                dayCountAfterRedeemPromo: vm.rewardProposalQuery.dayCountAfterRedeemPromo
+            }
+            console.log('sendData', sendData);
+            $('#rewardProposalTableSpin').show();
+            socketService.$socket($scope.AppSocket, 'getRewardProposalReport', sendData, function (data) {
+                $('#rewardProposalTableSpin').hide();
+                console.log('getRewardProposalReport', data.data);
+                $scope.$evalAsync(() => {
+                    vm.rewardProposalQuery.totalCount = data.data.totalPlayer;
+                });
+                vm.drawRewardProposalReport(data.data.data
+                );
+
+            }, function (err) {
+                $('#rewardProposalTableSpin').hide();
+            }, true);
+        }
+
+        vm.drawRewardProposalReport = function (data) {
+            var tableData = data.map(
+                record => {
+                    record.name = record.name ? $translate(record.name) : "";
+                    record.eventName = record.eventName ? record.eventName : "";
+                    record.countRewardApplied = record.countRewardApplied ? record.countRewardApplied : 0;
+                    record.$amount = record.sumTotalRewardAmount ? record.sumTotalRewardAmount :
+                        (record.sumTotalReturnAmount ? record.sumTotalReturnAmount :
+                            (record.sumTotalAmount ? record.sumTotalAmount : 0));
+                    record.countPlayerApplied = record.countPlayerApplied ? record.countPlayerApplied : 0;
+                    record.sumTotalTopupAmount = record.sumTotalTopupAmount ? record.sumTotalTopupAmount : 0;
+                    record.sumTotalBonusAmount = record.sumTotalBonusAmount ? record.sumTotalBonusAmount : 0;
+                    record.sumPlayerProfit = record.sumPlayerProfit ? record.sumPlayerProfit : 0;
+                    return record
+                }
+            );
+            var option = $.extend({}, vm.commonTableOption, {
+                data: tableData,
+                columns: [
+                    {title: $translate('PROPOSAL_TYPE'), data: "name"},
+                    {title: $translate('event name'), data: "eventName"},
+                    {title: $translate('CountRewardApplied'), data: "countRewardApplied"},
+                    {title: $translate('TotalRewardAmount'), data: "$amount"},
+                    {title: $translate('CountPlayerApplied'), data: "countPlayerApplied"},
+                    {title: $translate('TOTAL_TOP_UP'), data: "sumTotalTopupAmount"},
+                    {title: $translate('Total_Bonus_Amount'), data: "sumTotalBonusAmount"},
+                    {title: $translate('PlayerProfit'), data: "sumPlayerProfit"}
+                ],
+                bSortClasses: false,
+                destroy: true,
+                paging: false,
+                autoWidth: true,
+            });
+            var a = utilService.createDatatableWithFooter('#rewardProposalTable', option, {});
+            $('#rewardProposalTable').resize();
+        }
+        // end of reward proposal report
 
         // start of general reward proposal report
         vm.generalRewardProposalSearch = function (newSearch) {
