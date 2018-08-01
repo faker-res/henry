@@ -21788,17 +21788,19 @@ define(['js/app'], function (myApp) {
                 playerObjId: playerObjId
             };
             socketService.$socket($scope.AppSocket, 'getUpdateCredibilityLog', query, function (data) {
-                    vm.playerCredibilityComment = data.data;
-                    for (let i = 0, len = vm.playerCredibilityComment.length; i < len; i++) {
-                        let log = vm.playerCredibilityComment[i];
-                        log.remarks$ = "";
-                        for (let j = 0, len = log.credibilityRemarkNames.length; j < len; j++) {
-                            log.remarks$ += log.credibilityRemarkNames[j];
-                            j < (len - 1) ? log.remarks$ += ", " : null;
+                    $scope.$evalAsync(() => {
+                        vm.playerCredibilityComment = data.data;
+                        for (let i = 0, len = vm.playerCredibilityComment.length; i < len; i++) {
+                            let log = vm.playerCredibilityComment[i];
+                            log.remarks$ = "";
+                            for (let j = 0, len = log.credibilityRemarkNames.length; j < len; j++) {
+                                log.remarks$ += log.credibilityRemarkNames[j];
+                                j < (len - 1) ? log.remarks$ += ", " : null;
+                            }
+                            log.createTime = $scope.timeReformat(new Date(log.createTime));
                         }
-                        log.createTime = $scope.timeReformat(new Date(log.createTime));
-                    }
-                    console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
+                        console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
+                    });
                 },
                 function (err) {
                     console.log(err);
