@@ -1557,13 +1557,13 @@
                                             td
                                                 span {{ "average value" | translate }}
                                             td(ng-repeat='(i, v) in vm.rewardReportAmountAvg track by $index')
-                                                span {{ v }}
+                                                span {{ v | noRoundTwoDecimalPlaces}}
 
                                         tr(ng-repeat='(i, v) in vm.rewardReportAnalysisData | orderBy: vm.dataSort.rewardReportAmount')
                                             td
                                                 span {{ v.date | date:"yyyy-MM-dd" }}
                                             td(ng-repeat='(k, item) in v' ng-if='k != "date" && k != "$$hashkey" && k != "totalPlayerCount" && k != "totalAmount" && k != "totalProposalCount"')
-                                                span {{ item.amount }}
+                                                span {{ item.amount | noRoundTwoDecimalPlaces}}
                                            
 
         //MISCELLANEOUS_REPORT
