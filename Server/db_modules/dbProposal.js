@@ -2758,7 +2758,7 @@ var proposal = {
             if (reqData.status == constProposalStatus.APPROVE) {
                 isApprove = true;
                 reqData.status = {
-                    $in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]
+                    $in: [constProposalStatus.APPROVED]
                 };
             }
         }
