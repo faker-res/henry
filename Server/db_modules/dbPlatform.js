@@ -2984,6 +2984,9 @@ var dbPlatform = {
                     .update(clickCountObj, {$inc: countObj, $addToSet: uniqueIp}, {upsert: true})
                     .exec()
                     .catch(errorUtils.reportError);
+
+                // ip domain binding log
+                dbPlatform.addIpDomainLog(platformId, domain, ipAddress).catch(errorUtils.reportError);
             }
         )
     },
