@@ -1690,7 +1690,8 @@ var proposalExecutor = {
                     return dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).lean().then(
                         platformData => {
                             let promiseUse;
-                            if (platformData && platformData.useProviderGroup) {
+                            if (platformData && platformData.useProviderGroup && proposalData && proposalData.data && proposalData.data.spendingAmount) {
+                                // add to the unlocked progress bar if there is consumptionTimeRequired for XIMA; if there is consumptionTimeRequired, spendingAmount will be provided
                                 promiseUse = dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, constRewardType.PLAYER_CONSUMPTION_RETURN);
                             } else {
                                 promiseUse = changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.rewardAmount, constRewardType.PLAYER_CONSUMPTION_RETURN, proposalData.data);
