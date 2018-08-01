@@ -1405,7 +1405,39 @@
             #feedbackReportTablePage
 
         // rewards report
-        div(ng-if='vm.currentRewardCode')
+        div#rewardProposalPage(ng-if='vm.currentRewardCode && vm.showPageName=="RewardReport"')
+            .panel.panel-primary
+                .panel-heading
+                    label {{'PROPOSAL' | translate}}
+                .panel-body
+                    #rewardProposalQuery.block-query.col-md-12.well
+                        div
+                            label {{"Start date"|translate}}
+                            .startTime
+                        div
+                            label {{"End date"|translate}}
+                            .endTime
+                        div
+                            label {{"Proposal Status" | translate}}
+                            select.form-control(ng-model='vm.rewardProposalQuery.status', style='max-width:300px')
+                                option(value='all') {{'all' | translate}}
+                                option(ng-repeat='(i,v) in vm.proposalStatusList', value='{{v == "approved" ? "Approved" : v}}') {{v | translate}}
+                        div
+                            label {{"MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
+                            input.form-control(ng-model='vm.rewardProposalQuery.playerName' type='text' style='width:180px;')
+                        div
+                            label {{"DAY_COUNT_AFTER_REDEEM_PROMO" | translate}}
+                            input.form-control(ng-model='vm.rewardProposalQuery.dayCountAfterRedeemPromo' type='Number' style='width:100px;')
+                        div
+                            label &nbsp;
+                            button.btn.btn-success(ng-click='vm.getRewardProposalReport()') {{'SEARCH' | translate}}
+                            span#rewardProposalTableSpin.collapse
+                                i.fa.fa-spinner.fa-spin
+                    .clearfix
+                    label {{"TOTAL_PLAYER_COUNT" | translate}} : {{vm.rewardProposalQuery.totalCount}}
+                    table#rewardProposalTable.common-table.display(style="width:100%")
+                    #rewardProposalTablePage
+        div(ng-if='vm.currentRewardCode && vm.showPageName!="RewardReport"')
             .panel.panel-primary
                 .panel-heading
                     label {{'PROPOSAL' | translate}}
@@ -1426,7 +1458,7 @@
                     label {{"Total" | translate}} {{vm.generalRewardProposalQuery.totalCount}} {{"records" | translate}}
                     table#generalRewardProposalTable.common-table.display(style="width:100%")
                     #generalRewardProposalTablePage
-        div(ng-if='vm.currentRewardTaskName')
+        div(ng-if='vm.currentRewardTaskName && vm.showPageName!="RewardReport"')
             .panel.panel-primary
                 .panel-heading
                     label {{'Reward task' | translate}}

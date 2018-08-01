@@ -638,7 +638,7 @@ var roleChecker = {
                 PAST_COMMISSION_SETTLEMENT: ['settlePastCommission'],
             },
             Reward: {
-                Read: ['getPlatformRewardPageReport', 'getRewardProposalReportByType'],
+                Read: ['getPlatformRewardPageReport', 'getRewardProposalReportByType','getRewardProposalReport'],
                 // PlayerConsumption: ['getPlayerConsumptionReturn'],
                 // FullAttendance: ['getFullAttendanceProposalReport'],
                 // FirstTopUp: ['getPlayerFirstTopUpReturn'],
