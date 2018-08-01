@@ -7902,6 +7902,7 @@ define(['js/app'], function (myApp) {
                         var yesterday = utilService.setNDaysAgo(new Date(), 1);
                         var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
                         var todayEndTime = utilService.getTodayEndTime();
+                        vm.playerDepositAnalysis = {};
                         vm.depositAnalysisQuery = {};
                         vm.depositAnalysisQuery.sortCol = {};
                         vm.depositAnalysisQuery.limit = 5000;
