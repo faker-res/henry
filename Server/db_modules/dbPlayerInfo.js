@@ -1537,6 +1537,8 @@ let dbPlayerInfo = {
                         }
                     )
                 }
+
+                return data;
             }
         ).then(
             data => {
