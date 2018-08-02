@@ -3474,7 +3474,19 @@ var proposal = {
             };
 
             if (status && status != 'all') {
-                matchObj.status = status;
+                if (status == constProposalStatus.SUCCESS) {
+                    matchObj.status = {
+                        $in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]
+                    };
+                }
+                else if (status == constProposalStatus.FAIL) {
+                    matchObj.status = {
+                        $in: [constProposalStatus.FAIL, constProposalStatus.REJECTED]
+                    };
+                }
+                else {
+                    matchObj.status = status;
+                }
             }
 
             if (playerName) {
