@@ -3040,7 +3040,7 @@ var proposal = {
                             totalTopUpAmount: {
                                 $sum: {
                                     $cond: [
-                                        {$eq: ["$data.topUpAmount", NaN]},
+                                        {$or: [{$eq: ["$data.topUpAmount", NaN]}, {$gt: ["$data.rewardAmount", 0]}]},
                                         0,
                                         "$data.topUpAmount"
                                     ]
