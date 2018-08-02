@@ -1421,7 +1421,7 @@
                             label {{"Proposal Status" | translate}}
                             select.form-control(ng-model='vm.rewardProposalQuery.status', style='max-width:300px')
                                 option(value='all') {{'all' | translate}}
-                                option(ng-repeat='(i,v) in vm.proposalStatusList', value='{{v == "approved" ? "Approved" : v}}') {{v | translate}}
+                                option(ng-repeat='(i,v) in vm.proposalStatusList', value='{{v}}') {{v | translate}}
                         div
                             label {{"MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
                             input.form-control(ng-model='vm.rewardProposalQuery.playerName' type='text' style='width:180px;')

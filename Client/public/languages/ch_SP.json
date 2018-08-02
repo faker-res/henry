@@ -4075,5 +4075,6 @@
   "TotalRewardAmount": "总优惠金额",
   "CountPlayerApplied": "总领取人数",
   "Total_Bonus_Amount": "总提款",
-  "PlayerProfit": "玩家输赢"
+  "PlayerProfit": "玩家输赢",
+  "Promo code name must be unique": "优惠名称不可重复"
 }

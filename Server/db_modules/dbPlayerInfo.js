@@ -1482,25 +1482,6 @@ let dbPlayerInfo = {
                         }
                     }
 
-                    // Add source url from ip
-                    if (playerData.lastLoginIp) {
-                        let todayTime = dbUtility.getTodaySGTime();
-
-                        promArr.push(
-                            dbconfig.collection_ipDomainLog.findOne({
-                                platform: playerdata.platform,
-                                createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
-                                ipAddress: playerData.lastLoginIp
-                            }, 'domain').lean().then(
-                                ipDomainLog => {
-                                    if (ipDomainLog && ipDomainLog.domain) {
-                                        ipDomain = ipDomainLog.domain;
-                                    }
-                                }
-                            )
-                        )
-                    }
-
                     return Promise.all(promArr);
                 }
                 else {
@@ -1521,6 +1502,41 @@ let dbPlayerInfo = {
                     });
                 }
                 return Promise.reject(error);
+            }
+        ).then(
+            data => {
+                // Add source url from ip
+                if (playerData.lastLoginIp) {
+                    let todayTime = dbUtility.getTodaySGTime();
+
+                    return dbconfig.collection_ipDomainLog.findOne({
+                        platform: playerdata.platform,
+                        createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
+                        ipAddress: playerData.lastLoginIp
+                    }, 'domain').lean().then(
+                        ipDomainLog => {
+                            if (ipDomainLog && ipDomainLog.domain) {
+                                ipDomain = ipDomainLog.domain;
+
+                                if (!csOfficer || !promoteWay) {
+                                    return dbconfig.collection_csOfficerUrl.findOne({
+                                        domain: ipDomain,
+                                        platform: playerdata.platform
+                                    }, 'admin way').lean();
+                                }
+                            }
+                        }
+                    ).then(
+                        urlData => {
+                            if (urlData && urlData.admin && urlData.way) {
+                                csOfficer = urlData.admin;
+                                promoteWay = urlData.way;
+                            }
+
+                            return data;
+                        }
+                    )
+                }
             }
         ).then(
             data => {
