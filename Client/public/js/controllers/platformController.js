@@ -23324,18 +23324,18 @@ define(['js/app'], function (myApp) {
 
                             // special handling for openPromoCode gettign from proposal
                             if (item.data && item.data.templateId ){
-                                item.amount = item.data.templateId.amount || null;
-                                item.minTopUpAmount = item.data.templateId.minTopUpAmount || null;
-                                item.maxRewardAmount = item.data.templateId.maxRewardAmount || null;
-                                item.requiredConsumption = item.data.templateId.requiredConsumption || null;
-                                item.code = item.data.templateId.code || null;
+                                item.amount = item.data.amount$ || null;
+                                item.minTopUpAmount = item.data.minTopUpAmount$ || null;
+                                item.maxRewardAmount = item.data.maxRewardAmount$ || null;
+                                item.requiredConsumption = item.data.requiredConsumption$ || null;
+                                item.code = item.data.promoCode || null;
                                 item.adminName = item.creator ? item.creator.name : null;
                                 item.acceptedTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
-                                item.remark = item.data.templateId.remark || null;
-                                item.type = item.data.templateId.type;
-                                item.expirationTime$ = item.data.templateId.expirationTime ? utilService.$getTimeFromStdTimeFormat(item.data.templateId.expirationTime) : "-";
-                                item.createTime$ = item.data.templateId.createTime ? utilService.$getTimeFromStdTimeFormat(item.data.templateId.createTime) : "-";
-                                item.allowedProviders$ = item.data.providerGroup.length == 0 ? $translate("ALL_PROVIDERS") : item.data.providerGroup.map(e => item.data.templateId.isProviderGroup ? e.name : e.code);
+                                item.remark = item.data.remark || null;
+                                item.type = item.data.promoCodeTypeValue;
+                                item.expirationTime$ = item.data.openExpirationTime$ ? utilService.$getTimeFromStdTimeFormat(item.data.openExpirationTime$) : "-";
+                                item.createTime$ = item.data.openCreateTime$ ? utilService.$getTimeFromStdTimeFormat(item.data.openCreateTime$) : "-";
+                                item.allowedProviders$ = item.data.providerGroup.length == 0 ? $translate("ALL_PROVIDERS") : item.data.providerGroup.map(e => item.data.isProviderGroup$ ? e.name : e.code);
                             }
                             return item;
                         }), vm.promoCodeQuery.totalCount, {}, isNewSearch

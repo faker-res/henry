@@ -2403,9 +2403,6 @@ let dbPlayerReward = {
                                 }).populate({
                                     path: "data.providerGroup",
                                     model: searchQuery.isProviderGroup ? dbConfig.collection_gameProviderGroup : dbConfig.collection_gameProvider
-                                }).populate({
-                                    path: "data.templateId",
-                                    model: dbConfig.collection_openPromoCodeTemplate
                                 }).sort(searchQuery.sortCol).lean();
                             }else{
                                 return Promise.reject({
@@ -2433,7 +2430,7 @@ let dbPlayerReward = {
                     if (query.status == constPromoCodeStatus.EXPIRED){
                         f2Open = f2Open.filter(p => {
                            if(p && p.data && p.data.templateId){
-                               return new Date(p.data.templateId.expirationTime).getTime(0) < new Date().getTime()
+                               return new Date(p.data.openExpirationTime$).getTime(0) < new Date().getTime()
                            }
                         })
                     }
@@ -3289,10 +3286,12 @@ let dbPlayerReward = {
 
                     // Process amount and requiredConsumption for type 3 promo code
                     if (promoCodeObj.type == 3) {
+                        promoCodeObj.amount$ = promoCodeObj.amount;
                         promoCodeObj.amount = topUpProp.data.amount * promoCodeObj.amount * 0.01;
                         if (promoCodeObj.amount > promoCodeObj.maxRewardAmount) {
                             promoCodeObj.amount = promoCodeObj.maxRewardAmount;
                         }
+                        promoCodeObj.requiredConsumption$ = promoCodeObj.requiredConsumption;
                         promoCodeObj.requiredConsumption = (topUpProp.data.amount + promoCodeObj.amount) * promoCodeObj.requiredConsumption;
                     }
 
@@ -3395,7 +3394,16 @@ let dbPlayerReward = {
                         promoCodeName: promoCodeObj.name,
                         eventName: "开放式优惠代码",
                         eventCode: "KFSYHDM",
-                        remark: promoCodeObj.remark
+                        remark: promoCodeObj.remark,
+                        // special handling for history
+                        amount$: promoCodeObj.type === 3 ? promoCodeObj.amount$ : promoCodeObj.amount,
+                        requiredConsumption$: promoCodeObj.type === 3 ? promoCodeObj.requiredConsumption$ : promoCodeObj.requiredConsumption,
+                        minTopUpAmount$: promoCodeObj.minTopUpAmount || null,
+                        maxRewardAmount$: promoCodeObj.maxRewardAmount || null,
+                        openExpirationTime$: promoCodeObj.expirationTime,
+                        openCreateTime$: promoCodeObj.createTime,
+                        isProviderGroup$: promoCodeObj.isProviderGroup,
+
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS
