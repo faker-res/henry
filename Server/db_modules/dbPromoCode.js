@@ -121,6 +121,7 @@ let dbPromoCode = {
                         let proposalProm = dbconfig.collection_proposal.find({
                             type: ObjectId(proposalType._id),
                             'data.promoCode': parseInt(promoCode),
+                            createTime: { $gte: promoCodeObj.createTime, $lt: promoCodeObj.expirationTime},
                             status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
                         }).lean().count();
 
@@ -128,6 +129,7 @@ let dbPromoCode = {
                             type: ObjectId(proposalType._id),
                             'data.promoCode': parseInt(promoCode),
                             'data.playerId': playerId,
+                            createTime: { $gte: promoCodeObj.createTime, $lt: promoCodeObj.expirationTime},
                             status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
                         }).lean().count();
 
