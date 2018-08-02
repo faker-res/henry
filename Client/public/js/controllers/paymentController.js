@@ -1033,7 +1033,7 @@ define(['js/app'], function (myApp) {
                 }
             };
             utilService.actionAfterLoaded(id + "Page", function () {
-                vm.playerToGroupFilterObj.pageObj = utilService.createPageForPagingTable(id + "Page", {}, $translate, function (curP, pageSize) {
+                vm.playerToGroupFilterObj.pageObj = utilService.createPageForPagingTable(id + "Page", {pageSize: 100}, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "playerToGroupFilterObj", vm.playerToGroupFilter)
                 });
                 vm.playerToGroupFilter(true, which, id);
@@ -1082,7 +1082,7 @@ define(['js/app'], function (myApp) {
                 platformId: vm.selectedPlatform.id,
                 query: query,
                 index: newSearch ? 0 : vm.playerToGroupFilterObj.index,
-                limit: newSearch ? 10 : (vm.playerToGroupFilterObj.limit || 10),
+                limit: newSearch ? 100 : (vm.playerToGroupFilterObj.limit || 100),
                 sortCol: vm.playerToGroupFilterObj.sortCol || {}
             };
             socketService.$socket($scope.AppSocket, 'getPlayerForAttachGroup', apiQuery, function (data) {
@@ -1145,7 +1145,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('LEVEL'), "data": 'playerLevel',
                         render: function (data, type, row) {
-                            return $translate(data.name) || '';
+                            return $translate(data && data.name || '') || '';
                         },
                         "sClass": "alignLeft"
                     },

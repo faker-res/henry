@@ -19560,32 +19560,34 @@ define(['js/app'], function (myApp) {
             vm.removedRemarkId = [];
             return vm.getCredibilityRemarks(true).then(
                 () => {
-                    let cloneRemarks = vm.credibilityRemarks.slice(0);
-                    vm.positiveRemarks = [];
-                    vm.negativeRemarks = [];
-                    vm.neutralRemarks = [];
+                    $scope.$evalAsync(() => {
+                        let cloneRemarks = vm.credibilityRemarks.slice(0);
+                        vm.positiveRemarks = [];
+                        vm.negativeRemarks = [];
+                        vm.neutralRemarks = [];
 
-                    let len = cloneRemarks.length;
+                        let len = cloneRemarks.length;
 
-                    for (let i = 0; i < len; i++) {
-                        let remark = cloneRemarks[i];
-                        if (remark.score > 0) {
-                            vm.positiveRemarks.push(remark);
+                        for (let i = 0; i < len; i++) {
+                            let remark = cloneRemarks[i];
+                            if (remark.score > 0) {
+                                vm.positiveRemarks.push(remark);
+                            }
+                            else if (remark.score < 0) {
+                                vm.negativeRemarks.push(remark);
+                            }
+                            else {
+                                vm.neutralRemarks.push(remark);
+                            }
                         }
-                        else if (remark.score < 0) {
-                            vm.negativeRemarks.push(remark);
-                        }
-                        else {
-                            vm.neutralRemarks.push(remark);
-                        }
-                    }
 
-                    vm.positiveRemarks.sort((a, b) => {
-                        return b.score - a.score;
-                    });
+                        vm.positiveRemarks.sort((a, b) => {
+                            return b.score - a.score;
+                        });
 
-                    vm.negativeRemarks.sort((a, b) => {
-                        return a.score - b.score;
+                        vm.negativeRemarks.sort((a, b) => {
+                            return a.score - b.score;
+                        });
                     });
                 }
             );
@@ -21788,17 +21790,19 @@ define(['js/app'], function (myApp) {
                 playerObjId: playerObjId
             };
             socketService.$socket($scope.AppSocket, 'getUpdateCredibilityLog', query, function (data) {
-                    vm.playerCredibilityComment = data.data;
-                    for (let i = 0, len = vm.playerCredibilityComment.length; i < len; i++) {
-                        let log = vm.playerCredibilityComment[i];
-                        log.remarks$ = "";
-                        for (let j = 0, len = log.credibilityRemarkNames.length; j < len; j++) {
-                            log.remarks$ += log.credibilityRemarkNames[j];
-                            j < (len - 1) ? log.remarks$ += ", " : null;
+                    $scope.$evalAsync(() => {
+                        vm.playerCredibilityComment = data.data;
+                        for (let i = 0, len = vm.playerCredibilityComment.length; i < len; i++) {
+                            let log = vm.playerCredibilityComment[i];
+                            log.remarks$ = "";
+                            for (let j = 0, len = log.credibilityRemarkNames.length; j < len; j++) {
+                                log.remarks$ += log.credibilityRemarkNames[j];
+                                j < (len - 1) ? log.remarks$ += ", " : null;
+                            }
+                            log.createTime = $scope.timeReformat(new Date(log.createTime));
                         }
-                        log.createTime = $scope.timeReformat(new Date(log.createTime));
-                    }
-                    console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
+                        console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
+                    });
                 },
                 function (err) {
                     console.log(err);

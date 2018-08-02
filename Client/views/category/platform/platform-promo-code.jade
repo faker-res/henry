@@ -389,6 +389,8 @@
 
                 // Tab - SMS Content
                 div(ng-if='vm.selectedPromoCodeTab=="smsContent" && checkViewPermission("Platform", "promoCode", "smsContentConfig")')
+                    div(style="margin-bottom: 20px;")
+                        label(style="color: red") *{{ "Promo code name must be unique" | translate }}
                     table.common-table.playerLvlTable
                         thead
                             tr

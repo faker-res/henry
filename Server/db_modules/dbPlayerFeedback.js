@@ -295,7 +295,7 @@ var dbPlayerFeedback = {
             {
                 $match: matchObjFeedback
             }
-        ]).cursor({batchSize: 100}).allowDiskUse(true).exec();
+        ]).cursor({batchSize: 10}).allowDiskUse(true).exec();
 
         let balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {

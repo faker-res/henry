@@ -327,6 +327,8 @@
   "APPROVE": "通过",
   "No data was found for current query.": "没有找到数据",
   "PROPOSAL_TYPE": "提案类型",
+  "CUSTOM_REWARD": "自定义优惠",
+  "ITEM_FILTER": "筛选项目",
   "PROCESS_DETAIL": "流程细节",
   "DELETE_SELECTED": "清除所选",
   "SAVE_PROCESS": "保存流程",
@@ -4053,6 +4055,10 @@
   "startPlatformPlayerConsumptionIncentiveSettlement": "救援金",
   "startPlatformPlayerLevelSettlement": "玩家升降级",
   "startPlayerConsecutiveConsumptionSettlement": "智勇冲关",
+  "REWARD_ANALYSIS_REPORT": "优惠分析报表",
+  "REWARD_ANALYSIS_PLAYER_COUNT": "优惠人数占比",
+  "REWARD_ANALYSIS_COUNT": "优惠笔数占比",
+  "REWARD_ANALYSIS_AMOUNT": "优惠金额占比",
   "CreateAlipay": "创建个人支付宝",
   "CreateWechatPay": "创建个人微信",
   "Created successfully": "创建成功",
@@ -4064,6 +4070,12 @@
   "EditAlipay": "编辑个人支付宝",
   "EditWechatPay": "编辑个人微信",
   "DELETE_DX_MISSION": "删除电销任务",
-  "All records in this mission will be delete, except registered user's data, continue?": "删除后除了已开户的玩家，其馀导入电话记录、数据将一并删除，是否确认？"
-
+  "All records in this mission will be delete, except registered user's data, continue?": "删除后除了已开户的玩家，其馀导入电话记录、数据将一并删除，是否确认？",
+  "DAY_COUNT_AFTER_REDEEM_PROMO": "领取优惠后天数",
+  "CountRewardApplied": "申请笔数",
+  "TotalRewardAmount": "总优惠金额",
+  "CountPlayerApplied": "总领取人数",
+  "Total_Bonus_Amount": "总提款",
+  "PlayerProfit": "玩家输赢",
+  "Promo code name must be unique": "优惠名称不可重复"
 }

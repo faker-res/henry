@@ -996,12 +996,19 @@ var dbPlayerConsumptionRecord = {
                                 pastMonthConsumptionSum: validAmount,
                                 creditBalance: -validAmount
                             }
+                        },
+                        {
+                            new: true
                         }
                     );
                 }
             }
         ).then(
             data => {
+                if (data && data.dailyConsumptionSum && data.weeklyConsumptionSum && data.pastMonthConsumptionSum && data.name) {
+                    // debug log for consumption sum
+                    console.log("updateDataId: ", updateData && updateData._id, "|| player:", data.name, "|| dailyConsumptionSum:", data.dailyConsumptionSum, "|| weeklyConsumptionSum:", data.weeklyConsumptionSum, "|| pastMonthConsumptionSum", data.pastMonthConsumptionSum);
+                }
                 //ensure credit balance isn't less than 0
                 var creditProm = dbconfig.collection_players.findOneAndUpdate(
                     {_id: record.playerId, platform: record.platformId, creditBalance: {$lt: 0}},
