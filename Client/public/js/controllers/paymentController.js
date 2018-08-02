@@ -1145,7 +1145,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('LEVEL'), "data": 'playerLevel',
                         render: function (data, type, row) {
-                            return $translate(data.name) || '';
+                            return $translate(data && data.name || '') || '';
                         },
                         "sClass": "alignLeft"
                     },
