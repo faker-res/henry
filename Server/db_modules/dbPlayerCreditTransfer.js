@@ -1999,12 +1999,12 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                 if(useEbetWallet === true) {
                     console.log("res[0]",res[0]);
                     console.log("gameProviderGroup.ebetWallet",gameProviderGroup.ebetWallet);
-                    console.log("res[0].wallet",res[0].wallet);
-                    eBetWalletObj[gameProviderGroup.ebetWallet] = res[0].wallet[gameProviderGroup.ebetWallet];
-                    let curWalletCredit = res[0].wallet[gameProviderGroup.ebetWallet];
                     console.log("rewardGroupObj",rewardGroupObj);
+                    let curWalletCredit = res[0].wallet[gameProviderGroup.ebetWallet];
+                    let curWalletCreditRounded = Math.floor(curWalletCredit);
+                    eBetWalletObj[gameProviderGroup.ebetWallet] = curWalletCreditRounded;
                     if (rewardGroupObj) {
-                        amount = Math.floor(curWalletCredit);
+                        amount = curWalletCreditRounded;
                         updateObj = {
                             rewardAmt: amount,
                             freeAmt: rewardGroupObj._inputFreeAmt,
@@ -2012,7 +2012,7 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                             _inputFreeAmt: -rewardGroupObj._inputFreeAmt
                         };
                     } else {
-                        amount = Math.floor(curWalletCredit);
+                        amount = curWalletCreditRounded;
                         updateObj.freeAmt = amount;
                     }
                 } else {
