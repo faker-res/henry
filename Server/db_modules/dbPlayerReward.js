@@ -2433,7 +2433,6 @@ let dbPlayerReward = {
                     if (query.status == constPromoCodeStatus.EXPIRED){
                         f2Open = f2Open.filter(p => {
                            if(p && p.data && p.data.templateId){
-                               console.log("checking comparison", new Date(p.data.templateId.expirationTime).getTime(0) < new Date(openQuery.timeFilter).getTime())
                                return new Date(p.data.templateId.expirationTime).getTime(0) < new Date().getTime()
                            }
                         })
@@ -2493,70 +2492,70 @@ let dbPlayerReward = {
         isProviderGroup: Boolean(isProviderGroup)
     }).lean(),
 
-    getOpenPromoCodeTemplate: (platformObjId, isProviderGroup, deleteFlag) => dbConfig.collection_openPromoCodeTemplate.find({
-        platformObjId: ObjectId(platformObjId),
-        isProviderGroup: Boolean(isProviderGroup),
-        isDeleted: Boolean(deleteFlag)
-    }).lean().then(
-        template => {
-            if(template && template.length > 0){
-                let proposalProm = [];
-                return dbConfig.collection_proposalType.findOne({
-                    platformId: ObjectId(platformObjId),
-                    name: constProposalType.PLAYER_PROMO_CODE_REWARD
-                }).lean().then(proposalType => {
-                    if (proposalType) {
-                        template.forEach(t => {
-                            if (t && t._id) {
-                                proposalProm.push(dbConfig.collection_proposal.aggregate([
-                                    {
-                                        $match: {
-                                            type: ObjectId(proposalType._id),
-                                            'data.templateId': ObjectId(t._id),
-                                            createTime: {$gte: t.createTime, $lt: t.expirationTime},
-                                            status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+    getOpenPromoCodeTemplate: (platformObjId, isProviderGroup, deleteFlag) => {
+        return dbConfig.collection_openPromoCodeTemplate.find({
+            platformObjId: ObjectId(platformObjId),
+            isProviderGroup: Boolean(isProviderGroup),
+            isDeleted: Boolean(deleteFlag)
+        }).lean().then(
+            template => {
+                if (template && template.length > 0) {
+                    let proposalProm = [];
+                    return dbConfig.collection_proposalType.findOne({
+                        platformId: ObjectId(platformObjId),
+                        name: constProposalType.PLAYER_PROMO_CODE_REWARD
+                    }).lean().then(proposalType => {
+                        if (proposalType) {
+                            template.forEach(t => {
+                                if (t && t._id) {
+                                    proposalProm.push(dbConfig.collection_proposal.aggregate([
+                                        {
+                                            $match: {
+                                                type: ObjectId(proposalType._id),
+                                                'data.templateId': ObjectId(t._id),
+                                                createTime: {$gte: t.createTime, $lt: t.expirationTime},
+                                                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                                            }
+                                        },
+                                        {
+                                            $group: {
+                                                _id: "$data.templateId",
+                                                count: {$sum: 1}
+                                            }
                                         }
-                                    },
-                                    {
-                                        $group: {
-                                            _id: "$data.templateId",
-                                            count: {$sum: 1}
-                                        }
-                                    }
 
-                                ]))
-                            }
-                        })
-                        return Promise.all(proposalProm);
-                    }
-                }).then(retProposal => {
-                    if (retProposal){
-
-                        template.forEach(t => {
-                            if (t && t._id) {
-                                let index = retProposal.findIndex(p => {
-                                    if (p[0] && p[0]._id) {
-
-                                        return p[0]._id.toString() == t._id.toString();
-                                    }
-                                });
-                                if (index != -1) {
-                                    t.receivedQuantity = retProposal[index][0].count;
+                                    ]))
                                 }
-                            }
-                        })
+                            })
+                            return Promise.all(proposalProm);
+                        }
+                    }).then(retProposal => {
+                        if (retProposal) {
 
-                        return template;
-                    }
-                })
+                            template.forEach(t => {
+                                if (t && t._id) {
+                                    let index = retProposal.findIndex(p => {
+                                        if (p[0] && p[0]._id) {
+
+                                            return p[0]._id.toString() == t._id.toString();
+                                        }
+                                    });
+                                    if (index != -1) {
+                                        t.receivedQuantity = retProposal[index][0].count;
+                                    }
+                                }
+                            })
+
+                            return template;
+                        }
+                    })
+                }
+                else {
+                    return [];
+                }
             }
-            else{
-                return [];
-            }
-        }
-    ).catch(err => {
-        throw err;
-    }),
+        ).catch(errorUtils.reportError);
+    },
 
     updatePromoCodeTemplate: (platformObjId, promoCodeTemplate) => {
         let prom = [];
