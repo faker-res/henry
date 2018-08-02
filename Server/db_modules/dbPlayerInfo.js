@@ -1216,7 +1216,7 @@ let dbPlayerInfo = {
                     platformData = platform;
 
                     // check if player is created by partner; if yes, use partnerCreatePlayerPrefix
-                    pPrefix = playerdata.partnerId ? platformData.partnerCreatePlayerPrefix : platformData.prefix;
+                    pPrefix = playerdata.isTestPlayer ? platformData.demoPlayerPrefix :  playerdata.partnerId ? platformData.partnerCreatePlayerPrefix : platformData.prefix;
 
                     // let delimitedPrefix = platformData.prefix + PLATFORM_PREFIX_SEPARATOR;
                     // let delimitedPrefix = pPrefix + PLATFORM_PREFIX_SEPARATOR;
@@ -1249,6 +1249,9 @@ let dbPlayerInfo = {
                         return {isPlayerPrefixValid: true};
                     } else {
                         if (isDxMission) {
+                            return {isPlayerPrefixValid: true};
+                        }
+                        if(playerdata.isTestPlayer && pName.indexOf(pPrefix) === 1){
                             return {isPlayerPrefixValid: true};
                         }
                         return {isPlayerPrefixValid: false};
