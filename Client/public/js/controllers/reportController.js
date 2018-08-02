@@ -7896,15 +7896,16 @@ define(['js/app'], function (myApp) {
                     vm.setupRemarksMultiInput();
                     $scope.safeApply();
                 })
-            } else if (choice == "PLAYER_DEPOSIT_ANALYSIS_REPORT") {
+            } else if (choice === "PLAYER_DEPOSIT_ANALYSIS_REPORT") {
                 utilService.actionAfterLoaded('#playerDepositAnalysisReportTablePage', function () {
                     $scope.$evalAsync(() => {
                         var yesterday = utilService.setNDaysAgo(new Date(), 1);
                         var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
                         var todayEndTime = utilService.getTodayEndTime();
+                        vm.playerDepositAnalysis = {};
                         vm.depositAnalysisQuery = {};
                         vm.depositAnalysisQuery.sortCol = {};
-                        vm.depositAnalysisQuery.limit = 10;
+                        vm.depositAnalysisQuery.limit = 5000;
                         vm.depositAnalysisQuery.valueScoreOperator = ">=";
                         vm.depositAnalysisQuery.start = utilService.createDatePicker('#startingDateTimePickerDepositAnalysis');
                         vm.depositAnalysisQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
