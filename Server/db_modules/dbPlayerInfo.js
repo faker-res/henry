@@ -15045,13 +15045,8 @@ let dbPlayerInfo = {
                     model: dbconfig.collection_admin
                 }).lean() : Promise.resolve(false);
 
-            console.log('this player', playerObjId);
-
             return Promise.all([consumptionProm, topUpProm, bonusProm, consumptionReturnProm, rewardProm, playerProm, promoteWayProm]).then(
                 data => {
-                    console.log('result of this player');
-
-
                     if (!data[5]) {
                         return "";
                     }
