@@ -2324,16 +2324,30 @@ let dbPlayerReward = {
     },
 
     getPromoCodesHistory: (searchQuery) => {
-        return expirePromoCode().then(() => {
+
+        function sortByCreateTime(a, b){
+            if(new Date(a.createTime).getTime() < new Date(b.createTime).getTime()){
+                return searchQuery.sortCol && searchQuery.sortCol.createTime ? -searchQuery.sortCol.createTime : 1;
+            }else if(new Date(a.createTime).getTime() > new Date(b.createTime).getTime()){
+                return searchQuery.sortCol && searchQuery.sortCol.createTime ? searchQuery.sortCol.createTime : -1;
+            }
+
+            return 0;
+        }
+
+
+        let openQuery = {};
+        let query = {
+            platformObjId: searchQuery.platformObjId
+        };
+
+        return expirePromoCode().then(() => {return expirePromoCode(true)}).then(() => {
             return dbConfig.collection_players.findOne({
                 platform: searchQuery.platformObjId,
                 name: searchQuery.playerName
             }).lean();
         }).then(
             playerData => {
-                let query = {
-                    platformObjId: searchQuery.platformObjId
-                };
 
                 if (playerData) {
                     query.playerObjId = playerData._id;
@@ -2346,17 +2360,23 @@ let dbPlayerReward = {
                 }
 
                 if (searchQuery.startCreateTime) {
-                    query.createTime = {$gte: searchQuery.startCreateTime, $lt: searchQuery.endCreateTime}
+                    query.createTime = {$gte: searchQuery.startCreateTime, $lt: searchQuery.endCreateTime};
+                    openQuery.createTime = {$gte: searchQuery.startCreateTime, $lt: searchQuery.endCreateTime};
+                    openQuery.timeFilter = searchQuery.startCreateTime;
+
                 }
 
                 if (searchQuery.startAcceptedTime) {
-                    query.acceptedTime = {$gte: searchQuery.startAcceptedTime, $lt: searchQuery.endAcceptedTime}
+                    query.acceptedTime = {$gte: searchQuery.startAcceptedTime, $lt: searchQuery.endAcceptedTime};
+                    openQuery.createTime = {$gte: searchQuery.startAcceptedTime, $lt: searchQuery.endAcceptedTime};
+                    openQuery.timeFilter = searchQuery.startAcceptedTime;
                 }
 
                 // get the promoCode not from deleted promoCodeType
                 // query.isDeleted = false;
 
-                return dbConfig.collection_promoCode.find(query)
+                let openPromoCodeProm = [];
+                let promoCodeProm = dbConfig.collection_promoCode.find(query)
                     .populate({path: "playerObjId", model: dbConfig.collection_players})
                     .populate({
                         path: "promoCodeTypeObjId",
@@ -2367,18 +2387,85 @@ let dbPlayerReward = {
                         model: searchQuery.isProviderGroup ? dbConfig.collection_gameProviderGroup : dbConfig.collection_gameProvider
                     })
                     .sort(searchQuery.sortCol).lean();
+
+                if (query.status != constPromoCodeStatus.AVAILABLE){
+                    openPromoCodeProm = dbConfig.collection_proposalType.findOne({
+                        platformId: ObjectId(searchQuery.platformObjId),
+                        name: constProposalType.PLAYER_PROMO_CODE_REWARD
+                    }).lean().then(
+                        proposalType => {
+                            if(proposalType){
+                                return dbConfig.collection_proposal.find({
+                                    type: proposalType._id,
+                                    'data.eventCode': 'KFSYHDM',
+                                    status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+                                    createTime: openQuery.createTime
+                                }).populate({
+                                    path: "data.providerGroup",
+                                    model: searchQuery.isProviderGroup ? dbConfig.collection_gameProviderGroup : dbConfig.collection_gameProvider
+                                }).sort(searchQuery.sortCol).lean();
+                            }else{
+                                return Promise.reject({
+                                    name: "DataError",
+                                    message: "Cannot find the Proposal Type"
+                                })
+                            }
+                        }
+                    )
+                }
+
+                return Promise.all([promoCodeProm, openPromoCodeProm])
             }
         ).then(
             res => {
-                let f1 = searchQuery.promoCodeType ? res.filter(e => e.promoCodeTypeObjId.type == searchQuery.promoCodeType) : res;
-                let f2 = searchQuery.promoCodeSubType ? f1.filter(e => e.promoCodeTypeObjId.name == searchQuery.promoCodeSubType) : f1;
+                if (res && res.length == 2){
 
-                return {
-                    size: Object.keys(f2).length,
-                    data: f2.splice(searchQuery.index, searchQuery.limit)
-                };
+                    let f1 = searchQuery.promoCodeType ? res[0].filter(e => e.promoCodeTypeObjId.type == searchQuery.promoCodeType) : res[0];
+                    let f2 = searchQuery.promoCodeSubType ? f1.filter(e => e.promoCodeTypeObjId.name == searchQuery.promoCodeSubType) : f1;
+
+                    // special handling for openPromoCode as its structure is different
+                    let f1Open = searchQuery.promoCodeType ? res[1].filter(e => e.data.promoCodeTypeValue == searchQuery.promoCodeType) : res[1];
+                    let f2Open = searchQuery.promoCodeSubType ? f1Open.filter(e => e.data.promoCodeName == searchQuery.promoCodeSubType) : f1Open;
+
+                    if (query.status == constPromoCodeStatus.EXPIRED){
+                        f2Open = f2Open.filter(p => {
+                           if(p && p.data && p.data.templateId){
+                               return new Date(p.data.openExpirationTime$).getTime() < new Date().getTime()
+                           }
+                        })
+                    }
+
+                    // append promoCodeStatus to the openPromoCode for color displaying (according to status)
+                    f2Open.forEach( item => {
+                        if (item && item.data && item.data.templateId){
+                            if (new Date(item.data.openExpirationTime$).getTime() < new Date().getTime()){
+                                item.data.promoCodeStatus$ = constPromoCodeStatus.EXPIRED;
+                            }
+                            else{
+                                item.data.promoCodeStatus$ = constPromoCodeStatus.ACCEPTED;
+                            }
+                        }
+                    })
+
+                    let f2All = f2.concat(f2Open);
+
+                    // sorting by follow sortCol
+                    f2All.sort(sortByCreateTime);
+
+                    return {
+                        size: Object.keys(f2All).length,
+                        data: f2All.splice(searchQuery.index, searchQuery.limit)
+                    };
+
+                }
+                else{
+                   return Promise.reject({
+                       name: "DataError",
+                       message: "Cannot find the proposal Data"
+                   })
+                }
             }
-        );
+        ).catch(errorUtils.reportError);
     },
 
     updatePromoCodeSMSContent: (platformObjId, promoCodeSMSContent, isDelete) => {
@@ -2415,11 +2502,70 @@ let dbPlayerReward = {
         isProviderGroup: Boolean(isProviderGroup)
     }).lean(),
 
-    getOpenPromoCodeTemplate: (platformObjId, isProviderGroup, deleteFlag) => dbConfig.collection_openPromoCodeTemplate.find({
-        platformObjId: ObjectId(platformObjId),
-        isProviderGroup: Boolean(isProviderGroup),
-        isDeleted: Boolean(deleteFlag)
-    }).lean(),
+    getOpenPromoCodeTemplate: (platformObjId, isProviderGroup, deleteFlag) => {
+        return dbConfig.collection_openPromoCodeTemplate.find({
+            platformObjId: ObjectId(platformObjId),
+            isProviderGroup: Boolean(isProviderGroup),
+            isDeleted: Boolean(deleteFlag)
+        }).lean().then(
+            template => {
+                if (template && template.length > 0) {
+                    let proposalProm = [];
+                    return dbConfig.collection_proposalType.findOne({
+                        platformId: ObjectId(platformObjId),
+                        name: constProposalType.PLAYER_PROMO_CODE_REWARD
+                    }).lean().then(proposalType => {
+                        if (proposalType) {
+                            template.forEach(t => {
+                                if (t && t._id) {
+                                    proposalProm.push(dbConfig.collection_proposal.aggregate([
+                                        {
+                                            $match: {
+                                                type: ObjectId(proposalType._id),
+                                                'data.templateId': ObjectId(t._id),
+                                                createTime: {$gte: t.createTime, $lt: t.expirationTime},
+                                                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                                            }
+                                        },
+                                        {
+                                            $group: {
+                                                _id: "$data.templateId",
+                                                count: {$sum: 1}
+                                            }
+                                        }
+
+                                    ]))
+                                }
+                            })
+                            return Promise.all(proposalProm);
+                        }
+                    }).then(retProposal => {
+                        if (retProposal) {
+
+                            template.forEach(t => {
+                                if (t && t._id) {
+                                    let index = retProposal.findIndex(p => {
+                                        if (p[0] && p[0]._id) {
+
+                                            return p[0]._id.toString() == t._id.toString();
+                                        }
+                                    });
+                                    if (index != -1) {
+                                        t.receivedQuantity = retProposal[index][0].count;
+                                    }
+                                }
+                            })
+
+                            return template;
+                        }
+                    })
+                }
+                else {
+                    return [];
+                }
+            }
+        ).catch(errorUtils.reportError);
+    },
 
     updatePromoCodeTemplate: (platformObjId, promoCodeTemplate) => {
         let prom = [];
@@ -3048,6 +3194,7 @@ let dbPlayerReward = {
                             let proposalProm = dbConfig.collection_proposal.find({
                                 type: ObjectId(proposalType._id),
                                 'data.promoCode': parseInt(promoCode),
+                                createTime: { $gte: promoCodeObj.createTime, $lt: promoCodeObj.expirationTime},
                                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
                             }).lean().count();
 
@@ -3055,6 +3202,7 @@ let dbPlayerReward = {
                                 type: ObjectId(proposalType._id),
                                 'data.promoCode': parseInt(promoCode),
                                 'data.playerId': playerId,
+                                createTime: { $gte: promoCodeObj.createTime, $lt: promoCodeObj.expirationTime},
                                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
                             }).lean().count();
 
@@ -3151,10 +3299,12 @@ let dbPlayerReward = {
 
                     // Process amount and requiredConsumption for type 3 promo code
                     if (promoCodeObj.type == 3) {
+                        promoCodeObj.amount$ = promoCodeObj.amount;
                         promoCodeObj.amount = topUpProp.data.amount * promoCodeObj.amount * 0.01;
                         if (promoCodeObj.amount > promoCodeObj.maxRewardAmount) {
                             promoCodeObj.amount = promoCodeObj.maxRewardAmount;
                         }
+                        promoCodeObj.requiredConsumption$ = promoCodeObj.requiredConsumption;
                         promoCodeObj.requiredConsumption = (topUpProp.data.amount + promoCodeObj.amount) * promoCodeObj.requiredConsumption;
                     }
 
@@ -3238,6 +3388,7 @@ let dbPlayerReward = {
                             id: playerObj._id
                         },
                     data: {
+                        templateId: ObjectId(promoCodeObj._id),
                         playerObjId: playerObj._id,
                         playerId: playerObj.playerId,
                         playerName: playerObj.name,
@@ -3256,7 +3407,16 @@ let dbPlayerReward = {
                         promoCodeName: promoCodeObj.name,
                         eventName: "开放式优惠代码",
                         eventCode: "KFSYHDM",
-                        remark: promoCodeObj.remark
+                        remark: promoCodeObj.remark,
+                        // special handling for history
+                        amount$: promoCodeObj.type === 3 ? promoCodeObj.amount$ : promoCodeObj.amount,
+                        requiredConsumption$: promoCodeObj.type === 3 ? promoCodeObj.requiredConsumption$ : promoCodeObj.requiredConsumption,
+                        minTopUpAmount$: promoCodeObj.minTopUpAmount || null,
+                        maxRewardAmount$: promoCodeObj.maxRewardAmount || null,
+                        openExpirationTime$: promoCodeObj.expirationTime,
+                        openCreateTime$: promoCodeObj.createTime,
+                        isProviderGroup$: promoCodeObj.isProviderGroup,
+
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS

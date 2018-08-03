@@ -18886,13 +18886,64 @@ define(['js/app'], function (myApp) {
             })
 
         };
+
+        vm.telToPlayer = function (data) {
+            let playerObjId = null;
+            let phoneCall = {};
+
+            if (data.data && data.data.playerObjId && typeof data.data.playerObjId == 'string') {
+                playerObjId = data.data.playerObjId;
+                phoneCall = {
+                    playerId: data.data.playerId || '',
+                    name: data.data.playerName || '',
+                    toText: data.data.playerName || '',
+                    platform: "jinshihao",
+                    loadingNumber: true,
+                }
+            }
+
+            if (playerObjId) {
+                $scope.initPhoneCall(phoneCall);
+                socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: playerObjId}, function (data) {
+                    $scope.$evalAsync(() => {
+                        $scope.phoneCall.phone = data.data;
+                        $scope.phoneCall.loadingNumber = false;
+                        $scope.makePhoneCall(vm.selectedPlatform.platformId);
+                    })
+                }, function (err) {
+                    $scope.$evalAsync(() => {
+                        $scope.phoneCall.loadingNumber = false;
+                        $scope.phoneCall.err = err.error.message;
+                        alert($scope.phoneCall.err);
+                    });
+                }, true);
+            }
+        };
+
         // display  proposal detail
         vm.showProposalDetailField = function (obj, fieldName, val) {
             if (!obj) return '';
             var result = val ? val.toString() : (val === 0) ? "0" : "";
             if (obj.type.name === "UpdatePlayerPhone" && (fieldName === "updateData" || fieldName === "curData")) {
                 var str = val.phoneNumber
-                result = val.phoneNumber; //str.substring(0, 3) + "******" + str.slice(-4);
+                if (obj && obj.status && obj.status == 'Pending' && fieldName == 'updateData') {
+                    var $link = $('<a>', {
+                        class: 'a telToPlayerBtn',
+                        text: val.phoneNumber,
+                        'data-proposal': JSON.stringify(obj),
+                    });
+                    utilService.actionAfterLoaded(".telToPlayerBtn", function () {
+                        $('#ProposalDetail .telToPlayerBtn').off('click');
+                        $('#ProposalDetail .telToPlayerBtn').on('click', function () {
+                            var $tr = $(this).closest('tr');
+                            vm.telToPlayer(obj);
+                        })
+                    });
+
+                    result = $link.prop('outerHTML');
+                } else {
+                    result = val.phoneNumber; //str.substring(0, 3) + "******" + str.slice(-4);
+                }
             } else if (obj.status === "Expired" && fieldName === "validTime") {
                 var $time = $('<div>', {
                     class: 'inlineBlk margin-right-5'
@@ -21615,13 +21666,15 @@ define(['js/app'], function (myApp) {
                 platformId: vm.selectedPlatform.id
             };
             socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
+                $scope.$evalAsync(() => {
                     vm.allPromoteWay = data.data;
                     console.log("vm.allPromoteWay", vm.allPromoteWay);
-                    $scope.safeApply();
-                },
-                function (err) {
-                    console.log(err);
-                });
+
+                })
+            },
+            function (err) {
+                console.log(err);
+            });
         };
 
         vm.deletePromoteWay = function () {

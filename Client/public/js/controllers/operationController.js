@@ -675,6 +675,50 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        vm.telToPlayer = function (data) {
+            let player = {};
+            let playerObjId = null;
+            let phoneCall = {};
+
+            if (data && data.data && data.data.playerObjId && typeof data.data.playerObjId == 'object') {
+                player = data.data.playerObjId;
+                playerObjId = player && player._id ? player._id : null;
+                phoneCall = {
+                    playerId: player.playerId,
+                    name: player.name,
+                    toText: data.data.playerName ? data.data.playerName : player.name,
+                    platform: "jinshihao",
+                    loadingNumber: true,
+                }
+            } else if (data.data && data.data.playerObjId && typeof data.data.playerObjId == 'string') {
+                playerObjId = data.data.playerObjId;
+                phoneCall = {
+                    playerId: data.data.playerId,
+                    name: data.data.playerName,
+                    toText: data.data.playerName,
+                    platform: "jinshihao",
+                    loadingNumber: true,
+                }
+            }
+
+            if (playerObjId) {
+                $scope.initPhoneCall(phoneCall);
+                socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: playerObjId}, function (data) {
+                    $scope.$evalAsync(() => {
+                        $scope.phoneCall.phone = data.data;
+                        $scope.phoneCall.loadingNumber = false;
+                        $scope.makePhoneCall(vm.selectedPlatform.platformId);
+                    })
+                }, function (err) {
+                    $scope.$evalAsync(() => {
+                        $scope.phoneCall.loadingNumber = false;
+                        $scope.phoneCall.err = err.error.message;
+                        alert($scope.phoneCall.err);
+                    });
+                }, true);
+            }
+        };
+
         // vm.topupClicked = function () {
         //     vm.blinkTopUp = false;
         //     if (!authService.checkViewPermission('Operation', 'Proposal', 'TopupIntentionDetail')) {
@@ -693,7 +737,24 @@ define(['js/app'], function (myApp) {
             var result = val ? val.toString() : (val === 0) ? "0" : "";
             if (obj.type.name === "UpdatePlayerPhone" && (fieldName === "updateData" || fieldName === "curData")) {
                 var str = val.phoneNumber
-                result = val.phoneNumber; //str.substring(0, 3) + "******" + str.slice(-4);
+                if (obj && obj.status && obj.status == 'Pending' && fieldName == 'updateData') {
+                    var $link = $('<a>', {
+                        class: 'a telToPlayerBtn',
+                        text: val.phoneNumber,
+                        'data-proposal': JSON.stringify(obj),
+                    });
+                    utilService.actionAfterLoaded(".telToPlayerBtn", function () {
+                        $('#ProposalDetail .telToPlayerBtn').off('click');
+                        $('#ProposalDetail .telToPlayerBtn').on('click', function () {
+                            var $tr = $(this).closest('tr');
+                            vm.telToPlayer(obj);
+                        })
+                    });
+
+                    result = $link.prop('outerHTML');
+                } else {
+                    result = val.phoneNumber; //str.substring(0, 3) + "******" + str.slice(-4);
+                }
             } else if (obj.status === "Expired" && (fieldName === "validTime" || fieldName === "EXPIRY_DATE")) {
                 var $time = $('<div>', {
                     class: 'inlineBlk margin-right-5'

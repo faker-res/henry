@@ -73,6 +73,9 @@
 
   "DAYS": "天",
   "DAYS_AND_ABOVE": "天以上",
+  "NUMBER_OF_APPLICATION": "申请笔数",
+  "TOTAL_REWARD_AMOUNT": "总优惠金额",
+  "TOTAL_WITHDRAWAL_AMOUNT": "总提款",
 
   "PlayerConsumptionRewardGroup": "投注额优惠（组）",
   "Check consumption source by provider": "（领优惠前）检查投注额来源游戏厅",
@@ -127,6 +130,7 @@
   "Total _MAX_ partners": "代理总数 _MAX_",
   "Total Players": "玩家总数",
   "Minimal total consumption amount": "最小投注总额",
+  "CONSUMPTION_AMOUNT": "投注总额",
   "ForbidTopupTypes": "禁用充值类型",
   "ForbidRewards": "禁用优惠",
   "ForbidProviders": "禁用提供商",
@@ -1775,6 +1779,8 @@
   "CUSTOM": "定制",
   "REACH": "范围",
   "CLIENT_SOURCE": "访问来源",
+  "Number_Of_Day_After_Receiving": "领取后天数",
+  "Total Number of Applicant": "总申请人数",
   "mailLog": "站内信记录",
   "smsLog": "SMS记录",
   "sendSMS": "发短信",
@@ -2060,6 +2066,7 @@
   "OPEN_PROMO_CODE_TEMPLATE": "开放式代码模板",
   "RECEIVED_UPPER_LIMIT_FOR_INDIVIDUAL": "个人领取数量上限",
   "TOTAL_SENDING_LIMIT": "总领取提案数量上限",
+  "RECEIVED_QUANTITY": "已领取数量",
   "There are no applicable reward need to be applied.": "没有可申请的优惠。",
   "Expired": "过期",
   "phoneNumber": "电话号码",
@@ -4075,5 +4082,6 @@
   "TotalRewardAmount": "总优惠金额",
   "CountPlayerApplied": "总领取人数",
   "Total_Bonus_Amount": "总提款",
-  "PlayerProfit": "玩家输赢"
+  "PlayerProfit": "玩家输赢",
+  "Promo code name must be unique": "优惠名称不可重复"
 }
