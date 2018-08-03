@@ -3846,6 +3846,8 @@ var proposal = {
                 // find the game name
                 let gameIdArr = retData.map(p => {return ObjectId(p._id)});
 
+                console.log("checking----yH-gameProvider", retData)
+                console.log("checking----yH-gameIdArr", gameIdArr)
                 return dbconfig.collection_game.find({_id: {$in: gameIdArr}},{name: 1}).then(
                     games => {
                         if (games && games.length > 0){
