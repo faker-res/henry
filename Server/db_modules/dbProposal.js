@@ -533,9 +533,26 @@ var proposal = {
                         return proposalData;
                     }
                 }
-            )
+            ).then(proposalData => {
+                if (proposalData && proposalData.type && proposalData.type.name && proposalData.type.name == constProposalType.UPDATE_PLAYER_PHONE && proposalData.data.playerObjId) {
+                    return dbconfig.collection_players.findOne({_id: ObjectId(proposalData.data.playerObjId)}, {playerId: 1}).lean().then(player => {
+                        if (player && player.playerId) {
+                            proposalData.data.playerId = player.playerId;
+                        }
+                        return proposalData;
+                    })
+                } else {
+                    return proposalData;
+                }
+            })
             .then(
                 proposalData => {
+                    if (proposalData && proposalData.type && proposalData.type.name && proposalData.type.name == constProposalType.UPDATE_PLAYER_PHONE
+                        && proposalData.data && proposalData.data.updateData && Object.keys(proposalData.data.updateData)[0]
+                        && Object.keys(proposalData.data.updateData)[0] == 'phoneNumber' && proposalData.status && proposalData.status != constProposalStatus.PENDING) {
+                        proposalData.data.updateData.phoneNumber = dbutility.encodePhoneNum(proposalData.data.updateData.phoneNumber);
+                    }
+
                     if (proposalData && proposalData.data && proposalData.data.phone) {
                         proposalData.data.phone = dbutility.encodePhoneNum(proposalData.data.phone);
                     }

@@ -465,27 +465,29 @@ const dbPlayerMail = {
                     let pPrefix = isPartner ? platformData.partnerPrefix : (inputData.partnerId ? platformData.partnerCreatePlayerPrefix : platformData.prefix);
 
                     // check pName must start with prefix
-                    if (pName && pName.indexOf(pPrefix) !== 0) {
-                        if (isPartner) {
-                            return Q.reject({
-                                status: constServerCode.PARTNER_NAME_INVALID,
-                                name: "DataError",
-                                message: localization.localization.translate("Partner name should use ") + pPrefix + localization.localization.translate(" as prefix.")
-                            });
-                        } else {
-                            // check if player is created by partner
-                            if (inputData.partnerId) {
-                                return Promise.reject({
-                                    status: constServerCode.PLAYER_NAME_INVALID,
-                                    name: "DBError",
-                                    message: localization.localization.translate("Player name created by partner should use ") + pPrefix + localization.localization.translate(" as prefix.")
+                    if (purpose && purpose == constSMSPurpose.REGISTRATION || purpose === constSMSPurpose.PARTNER_REGISTRATION) {
+                        if (pName && pName.indexOf(pPrefix) !== 0) {
+                            if (isPartner) {
+                                return Q.reject({
+                                    status: constServerCode.PARTNER_NAME_INVALID,
+                                    name: "DataError",
+                                    message: localization.localization.translate("Partner name should use ") + pPrefix + localization.localization.translate(" as prefix.")
                                 });
                             } else {
-                                return Q.reject({
-                                    status: constServerCode.PLAYER_NAME_INVALID,
-                                    name: "DBError",
-                                    message: localization.localization.translate("Player name should use ") + pPrefix + localization.localization.translate(" as prefix.")
-                                });
+                                // check if player is created by partner
+                                if (inputData.partnerId) {
+                                    return Promise.reject({
+                                        status: constServerCode.PLAYER_NAME_INVALID,
+                                        name: "DBError",
+                                        message: localization.localization.translate("Player name created by partner should use ") + pPrefix + localization.localization.translate(" as prefix.")
+                                    });
+                                } else {
+                                    return Q.reject({
+                                        status: constServerCode.PLAYER_NAME_INVALID,
+                                        name: "DBError",
+                                        message: localization.localization.translate("Player name should use ") + pPrefix + localization.localization.translate(" as prefix.")
+                                    });
+                                }
                             }
                         }
                     }
@@ -590,6 +592,13 @@ const dbPlayerMail = {
 
                     if (!phoneValidation || !phoneValidation.isPhoneNumberValid) {
                         isSpam = true;
+                        if (purpose === constSMSPurpose.NEW_PHONE_NUMBER) {
+                            return Promise.reject({
+                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                message: "New phone number is already used. Please insert other phone number."
+                            });
+                        }
+
                         return Promise.reject({
                             status: constServerCode.PHONENUMBER_ALREADY_EXIST,
                             message: "This phone number is already used. Please insert other phone number."

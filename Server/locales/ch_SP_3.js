@@ -434,6 +434,7 @@ var simplifiedChinese = {
     "characters": "位的数字和字母",
     "The partner commission for this period is already settled.": "此代理该周期已经结算。",
     "Proposal No.": "提案号：",
+    "New phone number is already used. Please insert other phone number.": "新号码已绑定账号，不支持重复绑定。",
 
     //todo::add missing messages here
 
