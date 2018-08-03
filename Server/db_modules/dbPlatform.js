@@ -3114,6 +3114,28 @@ var dbPlatform = {
         );
     },
 
+    addPlayerToDepositTrackingReport: (platformObjId, playerObjId) => {
+        let query = {
+            platform: platformObjId,
+            _id: playerObjId,
+        };
+
+        return dbconfig.collection_players.findOne(query, {isDepositTracked: 1}).then(
+            playerData => {
+                if (!playerData) return Q.reject({name: "DataError", message: localization.localization.translate("Invalid player data")});
+
+                // toggle tracking on or off based on existing tracking status
+                let updateStatus = !playerData.isDepositTracked || false;
+
+                let updateData = {
+                    isDepositTracked: updateStatus
+                };
+
+                return dbconfig.collection_players.findOneAndUpdate(query, updateData, {new: true});
+            }
+        );
+    },
+
     getPlatformPartnerSettLog: (platformObjId, modes) => {
         let promArr = [];
         let partnerSettDetail = {};

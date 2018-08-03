@@ -317,6 +317,8 @@ var playerSchema = new Schema({
     promoteWay: {type: String},
     // reward point object
     rewardPointsObjId: {type: Schema.ObjectId, ref: 'rewardPoints'},
+    // is tracked for deposit tracking report
+    isDepositTracked: {type: Boolean},
     // xima withdrawal check bypass
     ximaWithdraw: {type: Number, default: 0},
     // dian xiao mission related player
