@@ -295,7 +295,7 @@ var dbPlayerFeedback = {
             {
                 $match: matchObjFeedback
             }, {
-                $group: {_id: '$playerId'}
+                $group: {_id: '$_id'}
             }
         ]).cursor({batchSize: 100}).allowDiskUse(true).exec();
 
