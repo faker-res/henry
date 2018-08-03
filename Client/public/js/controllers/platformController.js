@@ -22912,13 +22912,13 @@ define(['js/app'], function (myApp) {
                         vm.promoCodeTypes = data.data;
 
                         vm.promoCodeTypes.forEach(entry => {
-                            if (entry.type == 1) {
+                            if (entry.type == 1 && entry.hasOwnProperty("smsTitle")) {
                                 vm.promoCodeType1.push(entry);
                                 vm.promoCodeType1BeforeEdit.push($.extend({}, entry));
-                            } else if (entry.type == 2) {
+                            } else if (entry.type == 2 && entry.hasOwnProperty("smsTitle")) {
                                 vm.promoCodeType2.push(entry);
                                 vm.promoCodeType2BeforeEdit.push($.extend({}, entry));
-                            } else if (entry.type == 3) {
+                            } else if (entry.type == 3 && entry.hasOwnProperty("smsTitle")) {
                                 vm.promoCodeType3.push(entry);
                                 vm.promoCodeType3BeforeEdit.push($.extend({}, entry));
                             }
@@ -23295,12 +23295,48 @@ define(['js/app'], function (myApp) {
                     vm.drawPromoCodeHistoryTable(
                         vm.promoCodeQuery.result.map(item => {
                             item.expirationTime$ = item.expirationTime ? utilService.$getTimeFromStdTimeFormat(item.expirationTime) : "-";
-                            item.allowedProviders$ = item.allowedProviders.length == 0 ? $translate("ALL_PROVIDERS") : item.allowedProviders.map(e => item.isProviderGroup ? e.name : e.code);
+                            if(item.allowedProviders) {
+                                item.allowedProviders$ = item.allowedProviders.length == 0 ? $translate("ALL_PROVIDERS") : item.allowedProviders.map(e => item.isProviderGroup ? e.name : e.code);
+                            }
+                            else if (item.data && item.data.providerGroup){
+                                item.allowedProviders$ = item.data.providerGroup.length == 0 ? $translate("ALL_PROVIDERS") : item.data.providerGroup.map(e => item.isProviderGroup ? e.name : e.code);
+                            }
+
                             item.createTime$ = item.createTime ? utilService.$getTimeFromStdTimeFormat(item.createTime) : "-";
                             item.acceptedTime$ = item.acceptedTime ? utilService.$getTimeFromStdTimeFormat(item.acceptedTime) : "-";
                             item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
                             item.isForbidWithdraw = item.disableWithdraw ? $translate("true") : $translate("false");
 
+                            if (item.promoCodeTypeObjId && item.promoCodeTypeObjId.name){
+                                item.name = item.promoCodeTypeObjId.name;
+                            }
+                            else if (item.data && item.data.PROMO_CODE_TYPE){
+                                item.name = item.data.PROMO_CODE_TYPE;
+                            }
+
+                            if(item.playerObjId){
+                                item.playerName$ = item.playerObjId.name;
+
+                            }
+                            else if (item.data && item.data.playerName){
+                                item.playerName$ = item.data.playerName;
+                            }
+
+                            // special handling for openPromoCode gettign from proposal
+                            if (item.data && item.data.templateId ){
+                                item.amount = item.data.amount$ || null;
+                                item.minTopUpAmount = item.data.minTopUpAmount$ || null;
+                                item.maxRewardAmount = item.data.maxRewardAmount$ || null;
+                                item.requiredConsumption = item.data.requiredConsumption$ || null;
+                                item.code = item.data.promoCode || null;
+                                item.adminName = item.creator ? item.creator.name : null;
+                                item.acceptedTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
+                                item.remark = item.data.remark || null;
+                                item.type = item.data.promoCodeTypeValue;
+                                item.expirationTime$ = item.data.openExpirationTime$ ? utilService.$getTimeFromStdTimeFormat(item.data.openExpirationTime$) : "-";
+                                item.createTime$ = item.data.openCreateTime$ ? utilService.$getTimeFromStdTimeFormat(item.data.openCreateTime$) : "-";
+                                item.allowedProviders$ = item.data.providerGroup.length == 0 ? $translate("ALL_PROVIDERS") : item.data.providerGroup.map(e => item.data.isProviderGroup$ ? e.name : e.code);
+                            }
                             return item;
                         }), vm.promoCodeQuery.totalCount, {}, isNewSearch
                     );
@@ -24167,16 +24203,16 @@ define(['js/app'], function (myApp) {
                     columns: [
                         {
                             title: $translate('ACCOUNT'),
-                            data: "playerObjId.name"
+                            data: "playerName$"
                         },
                         {
                             title: $translate('PROMO_CODE_TYPE'),
-                            data: "promoCodeTypeObjId.name"
+                            data: "name"
                         },
                         {
                             title: $translate('PROMO_REWARD_AMOUNT'),
                             data: "amount",
-                            render: (data, index, row) => row.promoCodeTypeObjId.type == 3 ? data + "%" : data
+                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 ? data + "%" : data
                         },
                         {
                             title: $translate('PROMO_minTopUpAmount'),
@@ -24189,7 +24225,7 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('PROMO_CONSUMPTION'),
                             data: "requiredConsumption",
-                            render: (data, index, row) => row.promoCodeTypeObjId.type == 3 ? "*" + data : data
+                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 ? "*" + data : data
                         },
                         {
                             title: $translate('SHARE_WITH_XIMA'),
