@@ -875,6 +875,7 @@ let dbPlayerInfo = {
                     };
 
                     dbPlayerFeedback.createPlayerFeedback(feedback).catch(errorUtils.reportError);
+                    dbPlayerInfo.updatePlayerCredibilityRemark(inputData.accAdmin, data.platform, data._id, inputData.credibilityRemarks, '');
 
                     //todo::temp disable similar player untill ip is correct
                     if (data.lastLoginIp && data.lastLoginIp != "undefined") {
@@ -14777,9 +14778,7 @@ let dbPlayerInfo = {
                         let feedBackIds = playerObjIds;
                         let feedbackData;
 
-                        prom = dbconfig.collection_playerFeedback.findOne({
-                            _id: feedBackIds[p]
-                        }, 'createTime playerId adminId')
+                        prom = dbconfig.collection_playerFeedback.findById(feedBackIds[p], 'createTime playerId adminId')
                             .populate({path: 'adminId', select: '_id adminName', model: dbconfig.collection_admin})
                             .lean().then(
                                 data => {
