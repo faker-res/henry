@@ -3801,6 +3801,413 @@ var proposal = {
         return deferred.promise;
     },
 
+    getGameDetailByProvider: function(platformId, startTime, endTime, providerId, playerId){
+
+        return dbconfig.collection_playerConsumptionRecord.aggregate([
+            {
+                $match: {
+                    providerId: providerId,
+                    playerId: playerId,
+                    createTime: {
+                        $gte: new Date(startTime),
+                        $lt: new Date(endTime)
+                    }
+                }
+            }, {
+                $group: {
+                    _id: "$gameId",
+                    totalCount: {$sum: 1},
+                    totalBonusAmount: {$sum: "$bonusAmount"},
+                    totalValidAmount: {$sum: "$validAmount"},
+                    totalAmount: {$sum: "$amount"},
+
+                }
+            }
+        ]).read("secondaryPreferred").then( retData => {
+
+            if (retData && retData.length > 0){
+                // find the game name
+                let gameIdArr = retData.map(p => {return ObjectId(p._id)});
+
+                return dbconfig.collection_game.find({_id: {$in: gameIdArr}},{name: 1}).then(
+                    games => {
+                        if (games && games.length > 0){
+
+                            retData.forEach( inData => {
+
+                                let index = games.findIndex(p => p._id.toString() == inData._id.toString());
+
+                                if (index != -1){
+                                    inData.gameName = games[index].name;
+                                }
+                                inData.profitMargin = -(inData.totalBonusAmount/inData.totalValidAmount)*100;
+                            })
+
+                            return retData
+                        }
+                        else{
+                            return Promise.reject({name: "DataError", message: "Cannot find the records of games"});
+                        }
+                    }
+                )
+            }
+            else{
+                return Promise.reject({name: "DataError", message: "Cannot find players' consumption record"});
+            }
+        })
+    },
+
+    getRewardProposalByType: function (data, platformId, proposalTypeName, code, startTime, endTime, index, limit, sortCol) {
+        // var deferred = Q.defer();
+        var proposalData = null;
+        index = index || 0;
+        limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
+        sortCol = sortCol || {totalCount: -1};
+
+        var matchObj = {};
+        let searchQuery;
+        let totalPlayerCount = 0;
+        let bonusResult = [];
+        let depositResult = [];
+        let consumptionResult = [];
+        let playerResult = [];
+        let playerInfoResult = [];
+
+        var proposalQuery = proposalTypeName ? {
+            $and: [{
+                platformId: platformId,
+                name: proposalTypeName
+            }]
+        } : {
+            $and: [{
+                platformId: platformId,
+            }]
+        };
+
+        return dbconfig.collection_proposalType.findOne(proposalQuery).then(
+            function (proposalType) {
+
+                matchObj = proposalTypeName ? {
+                    createTime: {
+                        $gte: new Date(startTime),
+                        $lt: new Date(endTime)
+                    },
+                    type: ObjectId.isValid(proposalType._id) ? proposalType._id : ObjectId(proposalType._id),
+                    "data.eventCode": code,
+                    "data.platformId": platformId
+                } : {
+                    createTime: {
+                        $gte: new Date(startTime),
+                        $lt: new Date(endTime)
+                    },
+                    mainType: constProposalMainType['PlayerConsumptionReturn'],
+                    "data.platformId": platformId
+                };
+
+                searchQuery = Object.assign({}, matchObj);
+
+                if (data.playerName){
+                    matchObj["data.playerName"] = data.playerName;
+                }
+
+                return dbconfig.collection_proposal.distinct('data.playerObjId', matchObj).then(
+                    player => {
+
+                        if (player && player.length > 0){
+
+                            matchObj["data.playerObjId"] = {$in: player.map(p => ObjectId(p))};
+                            totalPlayerCount = player.length;
+                        }
+                        else {
+                            return [];
+                        }
+
+                        return dbconfig.collection_proposal.aggregate([
+                            {
+                                $match: matchObj
+                            }, {
+                                $group: {
+                                    _id: "$data.playerObjId",
+                                    totalCount: {$sum: 1},
+                                    totalRewardAmount: {$sum: "$data.rewardAmount"},
+                                }
+                            }
+                            ,{
+                                $sort: sortCol
+                            },{
+                                $skip: index
+                            },{
+                                $limit: limit
+                            }
+                        ]).read("secondaryPreferred").then( playerRecord => {
+                            if (playerRecord && playerRecord.length > 0){
+
+                                playerResult = playerRecord;
+
+                                let playerObjIdArr = playerRecord.map(p => { return p._id = ObjectId(p._id) });
+
+                                let depositProm = [];
+                                let bonusProm = [];
+                                let consumptionProm;
+                                let playerInfoProm;
+
+                                consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+                                    {
+                                        $match: {
+                                            playerId: {$in: playerObjIdArr},
+                                            createTime: {
+                                                $gte: new Date(startTime),
+                                                $lt: new Date(endTime)
+                                            },
+                                            $or: [
+                                                {isDuplicate: {$exists: false}},
+                                                {
+                                                    $and: [
+                                                        {isDuplicate: {$exists: true}},
+                                                        {isDuplicate: false}
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        $group: {
+                                            _id: "$playerId",
+                                            providerId: {$addToSet: "$providerId"},
+                                            winLostAmount: {$sum: "$bonusAmount"}
+                                        }
+                                    }
+                                ]).allowDiskUse(true).read("secondaryPreferred");
+
+                                playerInfoProm = dbconfig.collection_players.find({_id: {$in: playerObjIdArr}},{registrationTime: 1, name: 1}).lean();
+
+                                if (data.dayAfterReceiving){
+                                    return dbconfig.collection_proposal.aggregate([
+                                        {
+                                            $match: matchObj
+                                        },
+                                        {
+                                            $sort: {createTime: -1}
+                                        },
+                                        {
+                                            $group: {
+                                                _id: "$data.playerObjId",
+                                                lastRewardCreateTime: {$first: "$createTime"}
+
+                                            }
+                                        }
+                                    ]).read("secondaryPreferred").then( lastRewardTime => {
+
+                                        if (lastRewardTime && lastRewardTime.length > 0) {
+
+                                            return dbconfig.collection_proposalType.findOne({
+                                                platformId: platformId,
+                                                name: constProposalType.PLAYER_BONUS
+                                            }).then(
+                                                proposalType => {
+                                                    if (proposalType) {
+                                                        lastRewardTime.forEach(t => {
+
+                                                            if (t && t._id && t.lastRewardCreateTime) {
+
+                                                                bonusProm.push(dbconfig.collection_proposal.aggregate([
+                                                                    {
+                                                                        $match: {
+                                                                            type: proposalType._id,
+                                                                            'data.playerObjId': t._id,
+                                                                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                                                            createTime: {
+                                                                                $gte: new Date(t.lastRewardCreateTime),
+                                                                                $lt: new Date(t.lastRewardCreateTime.getTime() + data.dayAfterReceiving * 24 * 60 * 60 * 1000)
+                                                                            }
+                                                                        }
+                                                                    }, {
+                                                                        $group: {
+                                                                            _id: "$data.playerObjId",
+
+                                                                            totalBonusAmount: {$sum: "$data.amount"},
+
+                                                                        }
+                                                                    }
+                                                                ]).read("secondaryPreferred"));
+
+                                                                depositProm.push(dbconfig.collection_playerTopUpRecord.aggregate([
+                                                                    {
+                                                                        $match: {
+                                                                            playerId: t._id,
+                                                                            createTime: {
+                                                                                $gte: new Date(t.lastRewardCreateTime),
+                                                                                $lt: new Date(t.lastRewardCreateTime.getTime() + data.dayAfterReceiving * 24 * 60 * 60 * 1000)
+                                                                            }
+                                                                        }
+                                                                    }, {
+                                                                        $group: {
+                                                                            _id: "$playerId",
+                                                                            totalDepositAmount: {$sum: "$amount"},
+                                                                        }
+                                                                    }
+                                                                ]).read("secondaryPreferred"))
+
+                                                            }
+                                                        })
+
+                                                    }
+                                                    return Promise.all([Promise.all(bonusProm), Promise.all(depositProm),consumptionProm, playerInfoProm]);
+                                                })
+                                        }
+                                    })
+
+                                }
+                                else{
+                                    // get the withdrawal amount
+                                    bonusProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_BONUS}).then(
+                                        proposalType => {
+                                            if (proposalType){
+                                                return dbconfig.collection_proposal.aggregate([
+                                                    {
+                                                        $match: {
+                                                            type: proposalType._id,
+                                                            'data.playerObjId': {$in: playerObjIdArr},
+                                                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                                            createTime: {
+                                                                $gte: new Date(startTime),
+                                                                $lt: new Date(endTime)
+                                                            }
+                                                        }
+                                                    }, {
+                                                        $group: {
+                                                            _id: "$data.playerObjId",
+
+                                                            totalBonusAmount: {$sum: "$data.amount"},
+
+                                                        }
+                                                    }
+                                                ]).read("secondaryPreferred");
+
+                                            }
+                                        });
+
+                                    // get the deposit amount
+                                    depositProm = dbconfig.collection_playerTopUpRecord.aggregate([
+                                        {
+                                            $match: {
+                                                playerId: {$in: playerObjIdArr},
+                                                createTime: {
+                                                    $gte: new Date(startTime),
+                                                    $lt: new Date(endTime)
+                                                }
+                                            }
+                                        }, {
+                                            $group: {
+                                                _id: "$playerId",
+                                                totalDepositAmount: {$sum: "$amount"},
+                                            }
+                                        }
+                                    ]).read("secondaryPreferred");
+
+                                    return Promise.all([bonusProm, depositProm, consumptionProm, playerInfoProm]);
+                                }
+                            }
+                        }).then( retResult => {
+
+                            if(retResult && retResult.length == 4){
+
+                                consumptionResult = retResult[2];
+                                playerInfoResult = retResult[3];
+
+                                if (data.dayAfterReceiving){
+
+                                    if (retResult[0] && retResult[0].length > 0) {
+                                        retResult[0].forEach(inData => {
+                                            if (inData && inData.length > 0){
+                                                bonusResult.push(inData[0])
+                                            }
+                                        })
+                                    }
+
+                                    if (retResult[1] && retResult[1].length > 0) {
+                                        retResult[1].forEach(inData => {
+                                            if (inData && inData.length > 0){
+                                                depositResult.push(inData[0])
+                                            }
+                                        })
+                                    }
+                                }
+                                else{
+                                    bonusResult = retResult[0];
+                                    depositResult = retResult[1];
+                                }
+
+                                if (playerResult && playerResult.length > 0){
+                                    playerResult.forEach( player => {
+                                        if (bonusResult && bonusResult.length > 0){
+                                            let index = bonusResult.findIndex( a => a._id.toString() == player._id.toString());
+                                            if (index != -1){
+                                                player.totalBonusAmount = bonusResult[index].totalBonusAmount;
+                                            }
+                                            else{
+                                                player.totalBonusAmount = 0;
+                                            }
+                                        }
+
+                                        if (depositResult && depositResult.length > 0){
+                                            let index = depositResult.findIndex( a => a._id.toString() == player._id.toString());
+                                            if (index != -1){
+                                                player.totalDepositAmount = depositResult[index].totalDepositAmount;
+                                            }
+                                            else{
+                                                player.totalDepositAmount = 0;
+                                            }
+                                        }
+
+                                        if (consumptionResult && consumptionResult.length > 0){
+                                            let index = consumptionResult.findIndex( a => a._id.toString() == player._id.toString());
+                                            if (index != -1){
+                                                player.winLostAmount = consumptionResult[index].winLostAmount;
+                                                player.providerId = consumptionResult[index].providerId;
+                                            }
+                                            else{
+                                                player.winLostAmount = 0;
+                                                player.providerId = [];
+                                            }
+                                        }
+
+                                        if (playerInfoResult && playerInfoResult.length > 0){
+                                            let index = playerInfoResult.findIndex( a => a._id.toString() == player._id.toString());
+                                            if (index != -1){
+                                                player.name = playerInfoResult[index].name;
+                                                player.registrationTime = playerInfoResult[index].registrationTime;
+                                            }
+                                        }
+                                    })
+
+                                }
+
+                                return {data: playerResult, size: totalPlayerCount};
+                            }
+                            else{
+                                Promise.reject({
+                                    name: "DBError",
+                                    message: "No return event found in the platform!",
+                                });
+                            }
+                        })
+                    }
+                );
+            },
+            function (error) {
+                Promise.reject({
+                    name: "DBError",
+                    message: "No return event found in the platform!",
+                    error: error
+                });
+            }
+        ).catch(err => {
+            console.log('err', err);
+        });
+
+    },
+
     getRewardTypeProposals: function (platformId, proposalTypeName, startTime, endTime, limit) {
 
         return dbconfig.collection_proposalType.findOne({
