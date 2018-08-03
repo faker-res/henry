@@ -295,7 +295,7 @@ var dbPlayerFeedback = {
             {
                 $match: matchObjFeedback
             }
-        ]).cursor({batchSize: 50}).allowDiskUse(true).exec();
+        ]).cursor({batchSize: 500}).allowDiskUse(true).exec();
 
         let balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
@@ -303,8 +303,9 @@ var dbPlayerFeedback = {
                 balancer.processStream(
                     {
                         stream: stream,
-                        batchSize: 5,
+                        batchSize: 50,
                         makeRequest: function (feedbackIdObjs, request) {
+                            console.log('make request');
                             request("player", "getConsumptionDetailOfPlayers", {
                                 platformId: platform,
                                 startTime: query.start,
@@ -319,6 +320,7 @@ var dbPlayerFeedback = {
                             });
                         },
                         processResponse: function (record) {
+                            console.log('request result', record);
                             result = result.concat(record.data);
                         }
                     }
