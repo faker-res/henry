@@ -28,7 +28,8 @@ const SMSSender = {
                     smsAPI.channel_getChannelList({}).then(
                         channelData => {
                             if (channelData && channelData.channels && channelData.channels.length > 0) {
-                                defaultChannel = channelData.channels[0];
+                                //defaultChannel = channelData.channels[0];
+                                defaultChannel = channelData.channels[1];
                                 if( channelData.channels.length > 1 ){
                                     nextChannel = channelData.channels[1];
                                 }
