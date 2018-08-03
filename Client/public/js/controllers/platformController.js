@@ -23322,6 +23322,10 @@ define(['js/app'], function (myApp) {
                                 item.playerName$ = item.data.playerName;
                             }
 
+                            if (item.status){
+                                item.promoCodeStatus = item.status;
+                            }
+
                             // special handling for openPromoCode gettign from proposal
                             if (item.data && item.data.templateId ){
                                 item.amount = item.data.amount$ || null;
@@ -23336,6 +23340,7 @@ define(['js/app'], function (myApp) {
                                 item.expirationTime$ = item.data.openExpirationTime$ ? utilService.$getTimeFromStdTimeFormat(item.data.openExpirationTime$) : "-";
                                 item.createTime$ = item.data.openCreateTime$ ? utilService.$getTimeFromStdTimeFormat(item.data.openCreateTime$) : "-";
                                 item.allowedProviders$ = item.data.providerGroup.length == 0 ? $translate("ALL_PROVIDERS") : item.data.providerGroup.map(e => item.data.isProviderGroup$ ? e.name : e.code);
+                                item.promoCodeStatus = item.data.promoCodeStatus$;
                             }
                             return item;
                         }), vm.promoCodeQuery.totalCount, {}, isNewSearch
@@ -24336,15 +24341,15 @@ define(['js/app'], function (myApp) {
 
             vm.promoCodeTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                 switch (true) {
-                    case (aData.status == 3): {
+                    case (aData.promoCodeStatus == 3): {
                         $(nRow).find('td').css('background-color', 'rgba(138, 138, 138, 100)');
                         break;
                     }
-                    case (aData.status == 2): {
+                    case (aData.promoCodeStatus == 2): {
                         $(nRow).find('td').css('background-color', 'rgba(197, 181, 43, 100)');
                         break;
                     }
-                    case (aData.status == 5): {
+                    case (aData.promoCodeStatus == 5): {
                         $(nRow).find('td').css('background-color', 'rgba(138, 138, 138, 100)');
                         $(nRow).find('td').css('text-decoration', 'line-through');
                         break;
