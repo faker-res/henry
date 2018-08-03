@@ -14777,9 +14777,7 @@ let dbPlayerInfo = {
                         let feedBackIds = playerObjIds;
                         let feedbackData;
 
-                        prom = dbconfig.collection_playerFeedback.findOne({
-                            _id: feedBackIds[p]
-                        }, 'createTime playerId adminId')
+                        prom = dbconfig.collection_playerFeedback.findById(feedBackIds[p], 'createTime playerId adminId')
                             .populate({path: 'adminId', select: '_id adminName', model: dbconfig.collection_admin})
                             .lean().then(
                                 data => {
@@ -15046,8 +15044,13 @@ let dbPlayerInfo = {
                     model: dbconfig.collection_admin
                 }).lean() : Promise.resolve(false);
 
+            console.log('this player', playerObjId);
+
             return Promise.all([consumptionProm, topUpProm, bonusProm, consumptionReturnProm, rewardProm, playerProm, promoteWayProm]).then(
                 data => {
+                    console.log('result of this player');
+
+
                     if (!data[5]) {
                         return "";
                     }
