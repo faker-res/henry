@@ -14151,7 +14151,12 @@ let dbPlayerInfo = {
 
 
         if (query && query.name) {
-            getPlayerProm = dbconfig.collection_players.findOne({name: query.name, platform: platformObjId}, {_id: 1}).lean();
+            getPlayerProm = dbconfig.collection_players.findOne({name: query.name, platform: platformObjId}, {_id: 1}).lean().then(
+                player => {
+                    if (!player) return Q.reject({name: "DataError", message: localization.localization.translate("Invalid player data")});
+                    return player;
+                }
+            );
         }
 
         return getPlayerProm.then(
