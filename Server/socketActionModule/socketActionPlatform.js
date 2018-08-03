@@ -390,6 +390,12 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbGameProvider.getPlatformProviderGroup, [data.platformObjId], actionName, isValidData);
         },
 
+        getGameProviders: function getGameProviders() {
+            let actionName = arguments.callee.name;
+            let isValidData = true;
+            socketUtil.emitter(self.socket, dbGameProvider.getGameProviders, [{}], actionName, isValidData);
+        },
+
         addNewSmsGroup: function addNewSmsGroup(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);

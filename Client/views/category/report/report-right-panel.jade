@@ -1449,6 +1449,13 @@
                         div
                             label {{"End date"|translate}}
                             .endTime
+                        div(style= "width:100px;", ng-if="vm.currentRewardCode != 'ALL'")
+                            label {{'Number_Of_Day_After_Receiving' | translate}}
+                            input.form-control(type='number', ng-model='vm.generalRewardProposalQuery.dayAfterReceiving')
+                        div
+                            label {{'PLAYER_NAME' | translate}}
+                            input.form-control(type='text', ng-model='vm.generalRewardProposalQuery.playerName')
+                        div
                         div
                             label &nbsp;
                             button.btn.btn-success(ng-click='vm.generalRewardProposalSearch(true)') {{'SEARCH' | translate}}
@@ -1456,6 +1463,7 @@
                                 i.fa.fa-spinner.fa-spin
                     .clearfix
                     label {{"Total" | translate}} {{vm.generalRewardProposalQuery.totalCount}} {{"records" | translate}}
+                    label(style="padding-left:15px;") {{"Total Number of Applicant" | translate}}: {{vm.generalRewardProposalQuery.totalApplicant|| 0}}
                     table#generalRewardProposalTable.common-table.display(style="width:100%")
                     #generalRewardProposalTablePage
         div(ng-if='vm.currentRewardTaskName && vm.showPageName!="RewardReport"')
@@ -2051,6 +2059,32 @@
                                 td {{v.consumptionDetail.consumptionTimes}}
                                 td {{v.consumptionDetail.validAmount | noRoundTwoDecimalToFix}}
 
+#modalGameDetails.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{vm.selectedDisplayedPlayer}} : {{ vm.selectedProviderName}}
+            .modal-body
+                div
+                    table.simple-table
+                        thead
+                            tr
+                                th {{'GAME' | translate}}
+                                th {{'TIMES_CONSUMED' | translate}}
+                                th {{'TOTAL_CONSUMPTION' | translate}}
+                                th {{'VALID_CONSUMPTION' | translate}}
+                                th {{'PLAYER PROFIT AMOUNT' | translate}}
+                                th {{'COMPANY_PROFIT_POINT' | translate}}
+                        tbody
+                            tr(ng-repeat=" item in vm.gameDetails")
+                                td {{item.gameName}}
+                                td {{item.totalCount}}
+                                td {{item.totalAmount}}
+                                td {{item.totalValidAmount}}
+                                td {{item.totalBonusAmount}}
+                                td {{item.profitMargin}} %
+
 #modalPlayerDepositAnalysisDetailsTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:50%;')
         .modal-content
@@ -2076,6 +2110,8 @@
                                 td(style="font-weight:bold") {{"Totalsum" | translate}}
                                 td(style="font-weight:bold") {{vm.playerDepositAnalysisDetails.total.topUpAmount | noRoundTwoDecimalPlaces}}
                                 td(style="font-weight:bold") {{vm.playerDepositAnalysisDetails.total.bonusAmount | noRoundTwoDecimalPlaces}}
+
+
 
 include ../common-widget/telephone-popover
 script(src='js/lib/flot/jquery.flot.min.js')

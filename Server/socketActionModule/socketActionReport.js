@@ -230,6 +230,26 @@ function socketActionReport(socketIO, socket) {
             socketUtil.emitter(self.socket, dbProposal.getRewardProposalReportByType, args, actionName, isValidData);
         },
 
+        getGameDetailByProvider: function getGameDetailByProvider(data) {
+            var args = null;
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.startTime && data.endTime && data.providerId && data.playerId);
+            if (isValidData) {
+                args = [ObjectId(data.platformId), new Date(data.startTime), new Date(data.endTime), ObjectId(data.providerId), ObjectId(data.playerId)];
+            }
+            socketUtil.emitter(self.socket, dbProposal.getGameDetailByProvider, args, actionName, isValidData);
+        },
+
+        getRewardProposalByType: function getRewardProposalByType(data) {
+            var args = null;
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.startTime && data.endTime && data.type && data.code);
+            if (isValidData) {
+                args = [data, ObjectId(data.platformId), constProposalType[data.type], data.code, new Date(data.startTime), new Date(data.endTime), data.index, data.limit, data.sortCol];
+            }
+            socketUtil.emitter(self.socket, dbProposal.getRewardProposalByType, args, actionName, isValidData);
+        },
+
         // getPlayerTopUpReturn: function getPlayerTopUpReturn(data) {
         //     var args = null;
         //     var actionName = arguments.callee.name;
