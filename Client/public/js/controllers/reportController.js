@@ -3854,6 +3854,20 @@ define(['js/app'], function (myApp) {
                 });
             });
         };
+
+        vm.addPlayerToDepositTrackingReport = function (playerObjId) {
+            let sendQuery = {
+                platformObjId: vm.curPlatformId,
+                playerObjId: playerObjId
+            };
+            console.log('sendQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'addPlayerToDepositTrackingReport', sendQuery, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.searchPlayerDepositAnalysisReport();
+                });
+            });
+        };
         ///////////////// END player deposit analysis report /////////////////////////////
 
 

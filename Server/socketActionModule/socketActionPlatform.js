@@ -615,6 +615,14 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getClickCountButtonName, [ObjectId(data.platformId), data.device, data.pageName, data.domain], actionName, isValidData);
         },
 
+        addPlayerToDepositTrackingReport: function addPlayerToDepositTrackingReport(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.playerObjId);
+            let platformObjId = ObjectId(data.platformObjId);
+            let playerObjId = ObjectId(data.playerObjId);
+            socketUtil.emitter(self.socket, dbPlatform.addPlayerToDepositTrackingReport, [platformObjId, playerObjId], actionName, isValidData);
+        },
+
         getPlatformPartnerSettLog: function getPlatformPartnerSettLog(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.modes);

@@ -410,8 +410,8 @@
                     tbody
                         tr(ng-repeat='playerData in pda.playerData track by $index')
                             td {{$index+1}}
-                            td#pdaName
-                                a(ng-click="vm.addToDepositTrackingReport(playerData._id)") {{playerData.name}}
+                            td(ng-class='playerData.isDepositTracked ? "yellow-background" : ""')
+                                a(ng-click="vm.addPlayerToDepositTrackingReport(playerData._id)") {{playerData.name}}
                             td {{playerData.realName}}
                             td {{playerData.valueScore}}
                             td {{playerData.credibility$}}
