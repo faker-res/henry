@@ -293,12 +293,16 @@ var dbPlayerFeedback = {
 
         if (query.admins && query.admins.length) {
             query.admins = query.admins.map(e => ObjectId(e));
+            console.log('query.admins', query.admins);
             matchObjFeedback.adminId = {$in: query.admins}
         }
 
         let stream = dbconfig.collection_playerFeedback.aggregate([
             {
                 $match: matchObjFeedback
+            },
+            {
+                $group: {_id: '$_id'}
             }
         ]).cursor({batchSize: 500}).allowDiskUse(true).exec();
 
@@ -358,18 +362,6 @@ var dbPlayerFeedback = {
                 for (let i = 0, len = limit; i < len; i++) {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
-
-                // Output filter admin (which is CS officer)
-                outputResult = query.admins && query.admins.length > 0 ?
-                    outputResult.filter(e => {
-                        if(e.feedback && e.feedback.adminId && e.feedback.adminId._id) {
-                            return query.admins.indexOf(e.feedback.adminId._id) >= 0;
-                        }
-                        else {
-                            return false;
-                        }
-                    }) :
-                    outputResult;
 
                 return {size: outputResult.length, data: outputResult};
             }
