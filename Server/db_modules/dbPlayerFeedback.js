@@ -291,6 +291,10 @@ var dbPlayerFeedback = {
             delete query.playerType;
         }
 
+        if (query.admins) {
+            matchObjFeedback.adminId = {$in: query.admins}
+        }
+
         let stream = dbconfig.collection_playerFeedback.aggregate([
             {
                 $match: matchObjFeedback
