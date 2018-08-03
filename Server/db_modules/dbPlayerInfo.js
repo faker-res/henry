@@ -875,6 +875,7 @@ let dbPlayerInfo = {
                     };
 
                     dbPlayerFeedback.createPlayerFeedback(feedback).catch(errorUtils.reportError);
+                    dbPlayerInfo.updatePlayerCredibilityRemark(inputData.accAdmin, data.platform, data._id, inputData.credibilityRemarks, '');
 
                     //todo::temp disable similar player untill ip is correct
                     if (data.lastLoginIp && data.lastLoginIp != "undefined") {
@@ -15044,13 +15045,8 @@ let dbPlayerInfo = {
                     model: dbconfig.collection_admin
                 }).lean() : Promise.resolve(false);
 
-            console.log('this player', playerObjId);
-
             return Promise.all([consumptionProm, topUpProm, bonusProm, consumptionReturnProm, rewardProm, playerProm, promoteWayProm]).then(
                 data => {
-                    console.log('result of this player');
-
-
                     if (!data[5]) {
                         return "";
                     }
