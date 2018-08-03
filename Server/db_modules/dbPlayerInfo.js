@@ -875,6 +875,7 @@ let dbPlayerInfo = {
                     };
 
                     dbPlayerFeedback.createPlayerFeedback(feedback).catch(errorUtils.reportError);
+                    dbPlayerInfo.updatePlayerCredibilityRemark(inputData.accAdmin, data.platform, data._id, inputData.credibilityRemarks, '');
 
                     //todo::temp disable similar player untill ip is correct
                     if (data.lastLoginIp && data.lastLoginIp != "undefined") {
