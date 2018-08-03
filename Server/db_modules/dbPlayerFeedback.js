@@ -294,6 +294,8 @@ var dbPlayerFeedback = {
         let stream = dbconfig.collection_playerFeedback.aggregate([
             {
                 $match: matchObjFeedback
+            }, {
+                $group: {_id: '$playerId'}
             }
         ]).cursor({batchSize: 100}).allowDiskUse(true).exec();
 
