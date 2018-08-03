@@ -293,12 +293,16 @@ var dbPlayerFeedback = {
 
         if (query.admins && query.admins.length) {
             query.admins = query.admins.map(e => ObjectId(e));
+            console.log('query.admins', query.admins);
             matchObjFeedback.adminId = {$in: query.admins}
         }
 
         let stream = dbconfig.collection_playerFeedback.aggregate([
             {
                 $match: matchObjFeedback
+            },
+            {
+                $group: {_id: '_id'}
             }
         ]).cursor({batchSize: 500}).allowDiskUse(true).exec();
 
