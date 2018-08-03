@@ -775,7 +775,14 @@ var dbPlayerTopUpRecord = {
                     };
                     let proms = [firstTopUpProm, limitedOfferProm, merchantGroupProm()];
                     if (topupRequest.bonusCode) {
-                        let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount);
+                        let bonusCodeCheckProm;
+                        let isOpenPromoCode = topupRequest.bonusCode.toString().trim().length == 3 ? true : false;
+                        if (isOpenPromoCode){
+                            bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount);
+                        }
+                        else {
+                            bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount);
+                        }
                         proms.push(bonusCodeCheckProm)
                     }
 

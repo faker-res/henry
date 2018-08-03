@@ -21615,13 +21615,15 @@ define(['js/app'], function (myApp) {
                 platformId: vm.selectedPlatform.id
             };
             socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
+                $scope.$evalAsync(() => {
                     vm.allPromoteWay = data.data;
                     console.log("vm.allPromoteWay", vm.allPromoteWay);
-                    $scope.safeApply();
-                },
-                function (err) {
-                    console.log(err);
-                });
+
+                })
+            },
+            function (err) {
+                console.log(err);
+            });
         };
 
         vm.deletePromoteWay = function () {
