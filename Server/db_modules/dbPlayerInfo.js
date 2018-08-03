@@ -14151,7 +14151,12 @@ let dbPlayerInfo = {
 
 
         if (query && query.name) {
-            getPlayerProm = dbconfig.collection_players.findOne({name: query.name, platform: platformObjId}, {_id: 1}).lean();
+            getPlayerProm = dbconfig.collection_players.findOne({name: query.name, platform: platformObjId}, {_id: 1}).lean().then(
+                player => {
+                    if (!player) return Q.reject({name: "DataError", message: localization.localization.translate("Invalid player data")});
+                    return player;
+                }
+            );
         }
 
         return getPlayerProm.then(
@@ -14415,45 +14420,43 @@ let dbPlayerInfo = {
 
             topUpProm.push(dbconfig.collection_proposal.aggregate([
                 {
-                    "$match": {
+                    $match: {
                         "data.playerObjId": playerObjId,
-                        "createTime": {
-                            "$gte": startDate,
-                            "$lte": dayEndTime
+                        createTime: {
+                            $gte: startDate,
+                            $lte: dayEndTime
                         },
-                        "mainType": "TopUp",
-                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                        mainType: "TopUp",
+                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
                     }
                 },
                 {
-                    "$group": {
-                        // "_id": "$type",
-                        "_id": { month: { $month: "$settleTime" }, day: { $dayOfMonth: "$settleTime" }, year: { $year: "$settleTime" } },
-                        "typeId": {"$first": "$type"},
-                        "count": {"$sum": 1},
-                        "amount": {"$sum": "$data.amount"},
+                    $group: {
+                        _id: { month: { $month: "$settleTime" }, day: { $dayOfMonth: "$settleTime" }, year: { $year: "$settleTime" } },
+                        typeId: {$first: "$type"},
+                        count: {$sum: 1},
+                        amount: {$sum: "$data.amount"},
                     }
                 }
             ]).read("secondaryPreferred"));
 
             bonusProm.push(dbconfig.collection_proposal.aggregate([
                 {
-                    "$match": {
+                    $match: {
                         "data.playerObjId": playerObjId,
-                        "createTime": {
-                            "$gte": startDate,
-                            "$lte": dayEndTime
+                        createTime: {
+                            $gte: startDate,
+                            $lte: dayEndTime
                         },
-                        "mainType": "PlayerBonus",
-                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                        mainType: "PlayerBonus",
+                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
                     }
                 },
                 {
-                    "$group": {
-                        // "_id": null,
-                        "_id": { month: { $month: "$settleTime" }, day: { $dayOfMonth: "$settleTime" }, year: { $year: "$settleTime" } },
-                        "count": {"$sum": 1},
-                        "amount": {"$sum": "$data.amount"},
+                    $group: {
+                        _id: { month: { $month: "$settleTime" }, day: { $dayOfMonth: "$settleTime" }, year: { $year: "$settleTime" } },
+                        count: {$sum: 1},
+                        amount: {$sum: "$data.amount"},
                     }
                 }
             ]).read("secondaryPreferred"));
