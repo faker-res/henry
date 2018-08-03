@@ -28,14 +28,9 @@ const SMSSender = {
                     smsAPI.channel_getChannelList({}).then(
                         channelData => {
                             if (channelData && channelData.channels && channelData.channels.length > 0) {
-                                //defaultChannel = channelData.channels[0];
-                                if(channelData.channels.length > 1){
-                                    defaultChannel = channelData.channels[1];
-                                }else{
-                                    defaultChannel = channelData.channels[0];
-                                }
-                                if( channelData.channels.length > 2 ){
-                                    nextChannel = channelData.channels[2];
+                                defaultChannel = channelData.channels[0];
+                                if( channelData.channels.length > 1 ){
+                                    nextChannel = channelData.channels[1];
                                 }
                                 //get message template
                                 return dbconfig.collection_messageTemplate.findOne({
@@ -91,16 +86,16 @@ const SMSSender = {
                                     error => {
                                         dbLogger.createSMSLog(null, null, playerData.name, logData, {tel: playerData.phoneNumber}, null, 'failure',error);
                                         //todo::refactor this to properly while loop
-                                        if( nextChannel != null ){
-                                            var nextMessageData = {
-                                                channel: nextChannel,
-                                                tel: playerData.phoneNumber,
-                                                platformId: platformId,
-                                                message: template.content,
-                                                delay: 0
-                                            };
-                                            return smsAPI.sending_sendMessage(nextMessageData);
-                                        }
+                                        // if( nextChannel != null ){
+                                        //     var nextMessageData = {
+                                        //         channel: nextChannel,
+                                        //         tel: playerData.phoneNumber,
+                                        //         platformId: platformId,
+                                        //         message: template.content,
+                                        //         delay: 0
+                                        //     };
+                                        //     return smsAPI.sending_sendMessage(nextMessageData);
+                                        // }
                                     }
                                 );
                             }
