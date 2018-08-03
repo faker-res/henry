@@ -363,18 +363,6 @@ var dbPlayerFeedback = {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
 
-                // Output filter admin (which is CS officer)
-                outputResult = query.admins && query.admins.length > 0 ?
-                    outputResult.filter(e => {
-                        if(e.feedback && e.feedback.adminId && e.feedback.adminId._id) {
-                            return query.admins.indexOf(e.feedback.adminId._id) >= 0;
-                        }
-                        else {
-                            return false;
-                        }
-                    }) :
-                    outputResult;
-
                 return {size: outputResult.length, data: outputResult};
             }
         );
