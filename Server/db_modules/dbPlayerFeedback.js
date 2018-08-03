@@ -291,7 +291,8 @@ var dbPlayerFeedback = {
             delete query.playerType;
         }
 
-        if (query.admins) {
+        if (query.admins && query.admins.length) {
+            query.admins = query.admins.map(e => ObjectId(e));
             matchObjFeedback.adminId = {$in: query.admins}
         }
 
