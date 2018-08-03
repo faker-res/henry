@@ -1474,14 +1474,14 @@ var proposal = {
                 finalSummary = resultData[2] ? resultData[2][0] : {};
                 data.forEach(
                     record => {
-                        if (record.data && record.data.playerId && mongoose.Types.ObjectId.isValid(record.data.playerId)) {
+                        if (record.data && record.data.playerObjId && mongoose.Types.ObjectId.isValid(record.data.playerObjId)) {
                             proms.push(
-                                dbconfig.collection_players.findOne({_id: record.data.playerId}, {
+                                dbconfig.collection_players.findOne({_id: record.data.playerObjId}, {
                                     name: 1,
                                     playerId: 1
                                 }).lean().then(
                                     recordPlayer => {
-                                        record.data.playerId = recordPlayer;
+                                        record.data.playerId = recordPlayer.playerId;
                                         return record;
                                     }
                                 )
@@ -1636,7 +1636,9 @@ var proposal = {
                                             if (item.data && item.data.updateData) {
                                                 switch (Object.keys(item.data.updateData)[0]) {
                                                     case "phoneNumber":
-                                                        item.data.updateData.phoneNumber = dbutility.encodePhoneNum(item.data.updateData.phoneNumber);
+                                                        if (item && item.status && item.status != constProposalStatus.PENDING) {
+                                                            item.data.updateData.phoneNumber = dbutility.encodePhoneNum(item.data.updateData.phoneNumber);
+                                                        }
                                                         break;
                                                     case "email":
                                                         let startIndex = Math.max(Math.floor((item.data.updateData.email.length - 4) / 2), 0);

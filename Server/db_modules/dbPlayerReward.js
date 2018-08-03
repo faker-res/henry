@@ -2451,7 +2451,7 @@ let dbPlayerReward = {
                        message: "Cannot find the proposal Data"
                    })
                 }
-            },
+            }
         ).catch(errorUtils.reportError);
     },
 

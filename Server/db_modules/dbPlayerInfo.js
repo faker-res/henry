@@ -875,6 +875,7 @@ let dbPlayerInfo = {
                     };
 
                     dbPlayerFeedback.createPlayerFeedback(feedback).catch(errorUtils.reportError);
+                    dbPlayerInfo.updatePlayerCredibilityRemark(inputData.accAdmin, data.platform, data._id, inputData.credibilityRemarks, '');
 
                     //todo::temp disable similar player untill ip is correct
                     if (data.lastLoginIp && data.lastLoginIp != "undefined") {
@@ -14758,10 +14759,12 @@ let dbPlayerInfo = {
                 for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
                     let prom;
 
+                    console.log('option', option);
+
                     if (option.isDX) {
                         prom = dbconfig.collection_players.findOne({
                             _id: playerObjIds[p]
-                        }).then(
+                        }, 'registrationTime domain').lean().then(
                             playerData => {
                                 let qStartTime = new Date(playerData.registrationTime);
                                 let qEndTime = moment(qStartTime).add(query.days, 'day');
@@ -14775,11 +14778,9 @@ let dbPlayerInfo = {
                         let feedBackIds = playerObjIds;
                         let feedbackData;
 
-                        prom = dbconfig.collection_playerFeedback.findOne({
-                            _id: feedBackIds[p]
-                        })
+                        prom = dbconfig.collection_playerFeedback.findById(feedBackIds[p], 'createTime playerId adminId')
                             .populate({path: 'adminId', select: '_id adminName', model: dbconfig.collection_admin})
-                            .then(
+                            .lean().then(
                                 data => {
                                     feedbackData = JSON.parse(JSON.stringify(data));
                                     let qStartTime = new Date(feedbackData.createTime);
@@ -14801,7 +14802,7 @@ let dbPlayerInfo = {
                         if (isPromoteWay) { // for search with filter promote way
                             prom = dbconfig.collection_players.findOne({
                                 _id: playerObjIds[p]
-                            }).then(
+                            }, 'domain').then(
                                 playerData => {
                                     return getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime), playerData.domain);
                                 }
@@ -15029,7 +15030,8 @@ let dbPlayerInfo = {
 
             let playerProm = dbconfig.collection_players.findOne(
                 playerQuery, {
-                    playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1, accAdmin: 1, promoteWay: 1, phoneProvince: 1, phoneCity: 1, province: 1, city: 1
+                    playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1, accAdmin: 1,
+                    promoteWay: 1, phoneProvince: 1, phoneCity: 1, province: 1, city: 1
                 }
             ).lean();
 

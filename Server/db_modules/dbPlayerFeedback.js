@@ -291,11 +291,16 @@ var dbPlayerFeedback = {
             delete query.playerType;
         }
 
+        if (query.admins && query.admins.length) {
+            query.admins = query.admins.map(e => ObjectId(e));
+            matchObjFeedback.adminId = {$in: query.admins}
+        }
+
         let stream = dbconfig.collection_playerFeedback.aggregate([
             {
                 $match: matchObjFeedback
             }
-        ]).cursor({batchSize: 10}).allowDiskUse(true).exec();
+        ]).cursor({batchSize: 500}).allowDiskUse(true).exec();
 
         let balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
@@ -303,8 +308,9 @@ var dbPlayerFeedback = {
                 balancer.processStream(
                     {
                         stream: stream,
-                        batchSize: constSystemParam.BATCH_SIZE,
+                        batchSize: 50,
                         makeRequest: function (feedbackIdObjs, request) {
+                            console.log('make request');
                             request("player", "getConsumptionDetailOfPlayers", {
                                 platformId: platform,
                                 startTime: query.start,
@@ -319,6 +325,7 @@ var dbPlayerFeedback = {
                             });
                         },
                         processResponse: function (record) {
+                            console.log('request result', record);
                             result = result.concat(record.data);
                         }
                     }
