@@ -9,10 +9,8 @@ var constServerCode = require('./../../const/constServerCode');
 var constSystemParam = require('./../../const/constSystemParam');
 var jwt = require('jsonwebtoken');
 var uaParser = require('ua-parser-js');
-var geoip = require('geoip-lite');
 var localization = require('../../modules/localization').localization;
-var constPlayerSMSSetting = require('../../const/constPlayerSMSSetting');
-var SMSSender = require('../../modules/SMSSender');
+const constSMSPurpose = require('../../const/constSMSPurpose');
 var queryPhoneLocation = require('query-mobile-phone-area');
 
 let dbPlayerMail = require('./../../db_modules/dbPlayerMail');
@@ -382,7 +380,7 @@ var PartnerServiceImplement = function () {
 
     this.getSMSCode.expectsData = 'phoneNumber: String';
     this.getSMSCode.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.phoneNumber && data.platformId);
+        let isValidData = Boolean(data && data.phoneNumber && data.platformId && (data.purpose !== constSMSPurpose.NEW_PHONE_NUMBER));
         let randomCode = parseInt(Math.random() * 9000 + 1000);
         conn.phoneNumber = data.phoneNumber;
         conn.smsCode = randomCode;
