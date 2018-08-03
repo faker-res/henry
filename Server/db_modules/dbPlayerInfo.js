@@ -14304,6 +14304,7 @@ let dbPlayerInfo = {
                             if (player && data && player._id.toString() === data._id.toString()) {
                                 data.realName = player.realName ? player.realName : "";
                                 data.lastAccessTime = player.lastAccessTime ? player.lastAccessTime : "";
+                                data.isDepositTracked = player.isDepositTracked ? player.isDepositTracked : false;
                             }
                         });
                     }
