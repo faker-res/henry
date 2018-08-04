@@ -3846,25 +3846,22 @@ var proposal = {
                 // find the game name
                 let gameIdArr = retData.map(p => {return ObjectId(p._id)});
 
+                console.log("checking----yH-gameProvider", retData)
+                console.log("checking----yH-gameIdArr", gameIdArr)
                 return dbconfig.collection_game.find({_id: {$in: gameIdArr}},{name: 1}).then(
                     games => {
-                        if (games && games.length > 0){
 
-                            retData.forEach( inData => {
+                        retData.forEach(inData => {
+                            let index = games && games.length > 0 ? games.findIndex( p => p._id.toString() == inData._id.toString()) : -1;
+                            if (index != -1){
+                                inData.gameName = games[index].name;
+                            }
 
-                                let index = games.findIndex(p => p._id.toString() == inData._id.toString());
+                            inData.profitMargin = -(inData.totalBonusAmount/inData.totalValidAmount)*100;
 
-                                if (index != -1){
-                                    inData.gameName = games[index].name;
-                                }
-                                inData.profitMargin = -(inData.totalBonusAmount/inData.totalValidAmount)*100;
-                            })
+                        });
 
-                            return retData
-                        }
-                        else{
-                            return Promise.reject({name: "DataError", message: "Cannot find the records of games"});
-                        }
+                        return retData
                     }
                 )
             }
