@@ -3773,7 +3773,7 @@ define(['js/app'], function (myApp) {
                         }
 
                         // remove the last comma and any whitespace after it
-                        item.credibility$ = item.credibility$.replace(/,\s*$/, "");
+                        item.credibility$ = item.credibility$ ? item.credibility$.replace(/,\s*$/, "") : "--";
 
                         item.providerArr = [];
                         for (let key in item.providerDetail) {
@@ -3791,7 +3791,7 @@ define(['js/app'], function (myApp) {
                                 item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
                                 item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
                                 for (let j = 0; j < vm.allProviders.length; j++) {
-                                    if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                    if (item.providerArr[i].providerId.toString() === vm.allProviders[j]._id.toString()) {
                                         item.providerArr[i].name = vm.allProviders[j].name;
                                         item.provider$ += vm.allProviders[j].name + breakLine;
                                     }
@@ -3800,7 +3800,7 @@ define(['js/app'], function (myApp) {
                         }
 
                         // remove the last comma and any whitespace after it
-                        item.provider$ = item.provider$.replace(/,\s*$/, "");
+                        item.provider$ = item.provider$ ? item.provider$.replace(/,\s*$/, "") : "--";
 
                         return item;
                     });
@@ -3923,7 +3923,7 @@ define(['js/app'], function (myApp) {
                                 for (let i = 0; i < data.gameDetail.length; i++) {
                                     data.gameDetail[i].profit = parseFloat(data.gameDetail[i].bonusAmount / data.gameDetail[i].validAmount * -100).toFixed(2) + "%";
                                     for (let j = 0; j < vm.allGame.length; j++) {
-                                        if (data.gameDetail[i].gameId.toString() == vm.allGame[j]._id.toString()) {
+                                        if (data.gameDetail[i].gameId.toString() === vm.allGame[j]._id.toString()) {
                                             data.gameDetail[i].name = vm.allGame[j].name;
                                         }
                                     }
