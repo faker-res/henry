@@ -687,8 +687,8 @@ function socketActionPlatform(socketIO, socket) {
 
         getOnlineTimeLogByPlatform: function getOnlineTimeLogByPlatform(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId);
-            socketUtil.emitter(self.socket, dbPlayerOnlineTime.getOnlineTimeLogByPlatform, [data.platformObjId], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPlayerOnlineTime.getOnlineTimeLogByPlatform, [data.platformObjId, data.startTime, data.endTime], actionName, isValidData);
         }
     };
     socketActionPlatform.actions = this.actions;
