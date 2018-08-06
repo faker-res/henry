@@ -1216,10 +1216,10 @@ function socketActionPlayer(socketIO, socket) {
 
         modifyPlayerDepositTrackingGroup: function modifyPlayerDepositTrackingGroup(data){
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platform && data.playerId && data.trackingGroup);
+            let isValidData = Boolean(data && data.platform && data.playerId);
             let platform = ObjectId(data.platform);
             let playerId = ObjectId(data.playerId);
-            let trackingGroup = ObjectId(data.trackingGroup);
+            let trackingGroup = data.trackingGroup ? ObjectId(data.trackingGroup) : null;
             socketUtil.emitter(self.socket, dbPlayerInfo.modifyPlayerDepositTrackingGroup, [platform, playerId, trackingGroup], actionName, isValidData);
         },
 
@@ -1230,7 +1230,7 @@ function socketActionPlayer(socketIO, socket) {
             let playerId = ObjectId(data.playerId);
             socketUtil.emitter(self.socket, dbPlayerInfo.removePlayerFromDepositTrackingReport, [platform, playerId], actionName, isValidData);
         },
-        
+
         convertRewardPointsToCredit: function convertRewardPointsToCredit(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.convertRewardPointsAmount);
