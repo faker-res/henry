@@ -1516,18 +1516,18 @@ let dbPlayerInfo = {
                     return dbconfig.collection_ipDomainLog.findOne({
                         platform: playerdata.platform,
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
-                        ipAddress: playerData.lastLoginIp
-                    }, 'domain').lean().then(
+                        ipAddress: playerData.lastLoginIp,
+                        domain: {$exists: true}
+                    }, 'domain').sort({createTime:1}).limit(1).lean().then(
                         ipDomainLog => {
-                            if (ipDomainLog && ipDomainLog.domain) {
-                                ipDomain = ipDomainLog.domain;
+                            if (ipDomainLog && ipDomainLog[0] && ipDomainLog[0].domain) {
+                                ipDomain = ipDomainLog[0].domain;
 
-                                if (!csOfficer || !promoteWay) {
-                                    return dbconfig.collection_csOfficerUrl.findOne({
-                                        domain: ipDomain,
-                                        platform: playerdata.platform
-                                    }, 'admin way').lean();
-                                }
+                                // force using csOfficerUrl admin and way
+                                return dbconfig.collection_csOfficerUrl.findOne({
+                                    domain: ipDomain,
+                                    platform: playerdata.platform
+                                }, 'admin way').lean();
                             }
                         }
                     ).then(
@@ -14033,6 +14033,7 @@ let dbPlayerInfo = {
                                         playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                             return playerIdObj._id;
                                         }),
+                                        option: null,
                                         isPromoteWay: true
                                     });
                                 },
@@ -15091,8 +15092,6 @@ let dbPlayerInfo = {
                 for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
                     let prom;
 
-                    console.log('option', option);
-
                     if (option.isDX) {
                         prom = dbconfig.collection_players.findOne({
                             _id: playerObjIds[p]
@@ -15594,6 +15593,8 @@ let dbPlayerInfo = {
                     result.endTime = endTime;
 
                     let csOfficerDetail = data[6];
+                    console.log('csOfficerDetail', csOfficerDetail);
+                    console.log('playerDetail', playerDetail);
 
                     // related admin
                     if (playerDetail.accAdmin) {

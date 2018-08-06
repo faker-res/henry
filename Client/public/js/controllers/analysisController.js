@@ -1675,8 +1675,8 @@ define(['js/app'], function (myApp) {
 
             let sendData = {
                 period: vm.queryPara.playerOnlineTime.periodText,
-                startDate: vm.queryPara.playerOnlineTime.startTime.data('datetimepicker').getLocalDate(),
-                endDate: vm.queryPara.playerOnlineTime.endTime.data('datetimepicker').getLocalDate(),
+                startTime: vm.queryPara.playerOnlineTime.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.queryPara.playerOnlineTime.endTime.data('datetimepicker').getLocalDate(),
                 platformObjId: vm.selectedPlatform._id
             };
 
@@ -1693,14 +1693,14 @@ define(['js/app'], function (myApp) {
                     vm.playerOnlineTimeAvg = {};
                     vm.playerOnlineTimeAvg.totalCount = vm.playerOnlineTimeData.length;
                     vm.playerOnlineTimeAvg.count1 = vm.calculateAverageData(vm.playerOnlineTimeData, "count1");
-                    vm.playerOnlineTimeAvg.count2 = vm.calculateAverageData(vm.playerOnlineTimeData, "count2");
-                    vm.playerOnlineTimeAvg.count3 = vm.calculateAverageData(vm.playerOnlineTimeData, "count3");
-                    vm.playerOnlineTimeAvg.count4 = vm.calculateAverageData(vm.playerOnlineTimeData, "count4");
-                    vm.playerOnlineTimeAvg.count5 = vm.calculateAverageData(vm.playerOnlineTimeData, "count5");
-                    vm.playerOnlineTimeAvg.count6 = vm.calculateAverageData(vm.playerOnlineTimeData, "count6");
-                    vm.playerOnlineTimeAvg.count7 = vm.calculateAverageData(vm.playerOnlineTimeData, "count7");
-                    vm.playerOnlineTimeAvg.count8 = vm.calculateAverageData(vm.playerOnlineTimeData, "count8");
-                    vm.playerOnlineTimeAvg.count9 = vm.calculateAverageData(vm.playerOnlineTimeData, "count9");
+                    // vm.playerOnlineTimeAvg.count2 = vm.calculateAverageData(vm.playerOnlineTimeData, "count2");
+                    // vm.playerOnlineTimeAvg.count3 = vm.calculateAverageData(vm.playerOnlineTimeData, "count3");
+                    // vm.playerOnlineTimeAvg.count4 = vm.calculateAverageData(vm.playerOnlineTimeData, "count4");
+                    // vm.playerOnlineTimeAvg.count5 = vm.calculateAverageData(vm.playerOnlineTimeData, "count5");
+                    // vm.playerOnlineTimeAvg.count6 = vm.calculateAverageData(vm.playerOnlineTimeData, "count6");
+                    // vm.playerOnlineTimeAvg.count7 = vm.calculateAverageData(vm.playerOnlineTimeData, "count7");
+                    // vm.playerOnlineTimeAvg.count8 = vm.calculateAverageData(vm.playerOnlineTimeData, "count8");
+                    // vm.playerOnlineTimeAvg.count9 = vm.calculateAverageData(vm.playerOnlineTimeData, "count9");
 
                     let withdrawSuccessPieArr = [];
                     let pieLabel = ["WITHDRAWAL_SUCCESS_TOTAL_TIMES", "0~1", "1~3", "3~5", "5~10", "10~20", "20~30", "30~45", "45~60", "60"];
