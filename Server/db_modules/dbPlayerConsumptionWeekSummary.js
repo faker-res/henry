@@ -749,6 +749,7 @@ var dbPlayerConsumptionWeekSummary = {
             ).then(
                 function (data) {
                     var res = {totalAmount: 0, totalConsumptionAmount: 0, event: eventObj};
+                    console.log("getPlayerConsumptionReturn:", res);
                     for (let amounts of data) {
                         Object.keys(amounts).forEach(
                             type => {
