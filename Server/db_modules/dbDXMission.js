@@ -915,7 +915,7 @@ let dbDXMission = {
                             },
                             retErr => {
                                 dbLogger.createSMSLog(adminObjId, adminName, recipientName, msg, sendObj, msg.platformId, 'failure', retErr);
-                                console.log("SMS SENT FAILED");
+                                console.log("SMS SENT FAILED", {error: retErr, sendObj: sendObj});
                                 return {message: retErr, data: msg, failure: true};
                             }
                         );

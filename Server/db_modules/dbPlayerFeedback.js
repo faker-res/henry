@@ -73,7 +73,7 @@ var dbPlayerFeedback = {
         return dbconfig.collection_playerFeedback.find(query).sort({createTime: 1}).limit(constSystemParam.MAX_RECORD_NUM).exec();
     },
 
-    getAllPlayerFeedbacks: function (query, admin, cs, player, index, limit, sortCol) {
+    getAllPlayerFeedbacks: function (query, admin, cs, player, index, limit, sortCol, topupTimes) {
         var adminArr = [];
         var playerArr = [];
         var returnedData = [];
@@ -206,6 +206,12 @@ var dbPlayerFeedback = {
                     }
                     return test * val;
                 });
+
+                if (Number.isInteger(topupTimes)){
+                    finalData = finalData.filter(p => {return p.topupTimes == topupTimes});
+                    total= finalData.length;
+                }
+
                 return {data: finalData.slice(index, index + limit), size: total};
             }
         );
