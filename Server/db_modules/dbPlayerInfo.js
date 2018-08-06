@@ -13963,6 +13963,7 @@ let dbPlayerInfo = {
 
                 if (player) {
                     relevantPlayerQuery.playerId = player._id;
+                    console.log('relevantPlayerQuery.playerId', relevantPlayerQuery.playerId);
                 }
 
                 // relevant players are the players who played any game within given time period
@@ -14033,6 +14034,7 @@ let dbPlayerInfo = {
                                         playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                             return playerIdObj._id;
                                         }),
+                                        option: null,
                                         isPromoteWay: true
                                     });
                                 },
