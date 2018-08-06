@@ -5861,6 +5861,18 @@ define(['js/app'], function (myApp) {
                     columns: [
                         // {title: $translate('PLAYER_ID'), data: "playerId", advSearch: true},
                         {
+                            title: '<div><input type="checkbox" id="selectAllPlayers"></div>', advSearch:false, orderable: false,// $translate('All'), data: "playerId", "sClass": "",
+                            render: function (data, type, row) {
+
+                                var link = $('<div>', {});
+
+                                link.append($('<input type="checkbox" class="chosenPlayers" data-id="'+row.playerId+'">', {
+                                }).text(data));
+
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
                             title: $translate('PLAYERNAME'), data: "name", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
                                 let perm = (row && row.permission) ? row.permission : {};
@@ -6748,6 +6760,8 @@ define(['js/app'], function (myApp) {
                         });
 
                         $(".remarkCol > a").on("click", vm.initPlayerCredibility);
+
+                        $('#selectAllPlayers').on('click', vm.selectAllPlayers);
 
                         utilService.setupPopover({
                             context: container,
@@ -12549,6 +12563,14 @@ define(['js/app'], function (myApp) {
                 aTable.columns.adjust().draw();
                 $('#playerContactHistoryTbl').resize();
                 $scope.safeApply();
+            }
+
+            vm.selectAllPlayers = function(e){
+                if($(e.currentTarget).is(':checked')){
+                    $('.chosenPlayers').prop('checked', true);
+                }else{
+                    $('.chosenPlayers').prop('checked', false);
+                }
             }
 
             vm.getPlayerInfoHistory = function () {
@@ -22992,7 +23014,7 @@ define(['js/app'], function (myApp) {
                         vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate1);
                         vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate2);
                         vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate3);
-                    
+
                     })
                 });
             }
@@ -23002,7 +23024,7 @@ define(['js/app'], function (myApp) {
                 vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate2);
                 vm.loadOpenPromoCodeTemplateDate(vm.openPromoCodeTemplate3);
             }
-            
+
             vm.loadOpenPromoCodeTemplateDate = function(template){
                 if(template && template.length > 0){
                     template.forEach((p, index)=> {
@@ -27361,7 +27383,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initNewPromoCodeTemplate = function(type, tag) {
-                
+
                 if (!vm.promoCodeFieldCheckFlag) {
 
                     let id;
@@ -32562,6 +32584,34 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.selectedCallOutMission = function(){
+
+                $('#platformFeedbackSpin').show();
+                let sendQuery = {};
+                let selectedPlayers = [];
+
+                sendQuery.platformObjId = vm.selectedPlatform.id;
+                sendQuery.adminObjId = authService.adminId;
+                sendQuery.searchFilter = JSON.stringify(vm.playerFeedbackQuery);
+                sendQuery.searchQuery = JSON.stringify(vm.getPlayerFeedbackQuery());
+                sendQuery.sortCol = VM.playerFeedbackQuery.sortCol || {registrationTime: -1};
+
+                $('.chosenPlayers').each((i,ply)=>{
+                    let isChecked = $(ply).is(':checked');
+                    if(isChecked){
+                        let id = $(ply).attr('data-id');
+                        selectedPlayers.push(id);
+                    }
+                })
+
+                if(selectedPlayers.length > 0){
+                    sendQuery.selectedPlayers = selectedPlayers;
+                }
+
+                $scope.$socketPromise("createCallOutMission", sendQuery).then(data => {
+                    vm.getCtiData();
+                });
+            }
 
         };
 
