@@ -117,6 +117,7 @@ define(['js/app'], function (myApp) {
                 vm.getProposalTypeByPlatformId(vm.selectedPlatform._id);
                 vm.getPlayerLevelByPlatformId(vm.selectedPlatform._id);
                 vm.getCredibilityRemarksByPlatformId(vm.selectedPlatform._id);
+                vm.getDepositTrackingGroupByPlatformId(vm.selectedPlatform._id);
                 vm.getRewardList();
                 vm.getPromotionTypeList();
                 vm.getPlatformProviderGroup();
@@ -1266,6 +1267,19 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.getDepositTrackingGroupByPlatformId = function (id) {
+            socketService.$socket($scope.AppSocket, 'getDepositTrackingGroup', {platformObjId: id}, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.depositTrackingGroup = data.data;
+                    vm.filterDepositTrackingGroup = data.data ? JSON.parse(JSON.stringify(data.data)) : [];
+                    vm.filterDepositTrackingGroup.push({'_id':'', 'name':$translate('N/A')});
+                });
+            }, function (data) {
+                console.log("cannot get deposit tracking group", data);
+                vm.depositTrackingGroup = {};
+            });
+        };
+
         vm.setupRemarksMultiInput = function () {
             let remarkSelect = $('select#selectCredibilityRemarks');
             if (remarkSelect.css('display').toLowerCase() === "none") {
@@ -1289,6 +1303,38 @@ define(['js/app'], function (myApp) {
                     return;
                 }
                 remarkSelect.multipleSelect({
+                    showCheckbox: true,
+                    allSelected: $translate("All Selected"),
+                    selectAllText: $translate("Select All"),
+                    displayValues: false,
+                    countSelected: $translate('# of % selected')
+                });
+            });
+        };
+
+        vm.setupRemarksMultiInputDepositTracking = function () {
+            $scope.$evalAsync(() => {
+                let remarkSelect = $('select#selectCredibilityRemarksDepositTracking');
+                if (remarkSelect.css('display').toLowerCase() === "none") {
+                    return;
+                }
+                remarkSelect.multipleSelect({
+                    showCheckbox: true,
+                    allSelected: $translate("All Selected"),
+                    selectAllText: $translate("Select All"),
+                    displayValues: false,
+                    countSelected: $translate('# of % selected')
+                });
+            });
+        };
+
+        vm.setupMultiInputDepositTrackingGroup = function () {
+            $scope.$evalAsync(() => {
+                let trackingGroupSelect = $('select#selectTrackingGroupDepositTracking');
+                if (trackingGroupSelect.css('display').toLowerCase() === "none") {
+                    return;
+                }
+                trackingGroupSelect.multipleSelect({
                     showCheckbox: true,
                     allSelected: $translate("All Selected"),
                     selectAllText: $translate("Select All"),
@@ -3723,7 +3769,7 @@ define(['js/app'], function (myApp) {
                         }
 
                         // remove the last comma and any whitespace after it
-                        item.credibility$ = item.credibility$.replace(/,\s*$/, "");
+                        item.credibility$ = item.credibility$ ? item.credibility$.replace(/,\s*$/, "") : "--";
 
                         item.providerArr = [];
                         for (let key in item.providerDetail) {
@@ -3741,7 +3787,7 @@ define(['js/app'], function (myApp) {
                                 item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
                                 item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
                                 for (let j = 0; j < vm.allProviders.length; j++) {
-                                    if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                    if (item.providerArr[i].providerId.toString() === vm.allProviders[j]._id.toString()) {
                                         item.providerArr[i].name = vm.allProviders[j].name;
                                         item.provider$ += vm.allProviders[j].name + breakLine;
                                     }
@@ -3750,7 +3796,7 @@ define(['js/app'], function (myApp) {
                         }
 
                         // remove the last comma and any whitespace after it
-                        item.provider$ = item.provider$.replace(/,\s*$/, "");
+                        item.provider$ = item.provider$ ? item.provider$.replace(/,\s*$/, "") : "--";
 
                         return item;
                     });
@@ -3873,7 +3919,7 @@ define(['js/app'], function (myApp) {
                                 for (let i = 0; i < data.gameDetail.length; i++) {
                                     data.gameDetail[i].profit = parseFloat(data.gameDetail[i].bonusAmount / data.gameDetail[i].validAmount * -100).toFixed(2) + "%";
                                     for (let j = 0; j < vm.allGame.length; j++) {
-                                        if (data.gameDetail[i].gameId.toString() == vm.allGame[j]._id.toString()) {
+                                        if (data.gameDetail[i].gameId.toString() === vm.allGame[j]._id.toString()) {
                                             data.gameDetail[i].name = vm.allGame[j].name;
                                         }
                                     }
@@ -3930,6 +3976,185 @@ define(['js/app'], function (myApp) {
         };
         ///////////////// END player deposit analysis report /////////////////////////////
 
+        ///////////////// START player deposit tracking report /////////////////////////////
+        vm.searchPlayerDepositTrackingReport = function (newSearch) {
+            $('#loadingPlayerDepositTrackingReportTableSpin').show();
+            let sendQuery = {
+                platformId: vm.curPlatformId,
+                query: {
+                    name: vm.depositTrackingQuery.name,
+                    credibilityRemarks: vm.depositTrackingQuery.credibilityRemarks,
+                    depositTrackingGroup: vm.depositTrackingQuery.depositTrackingGroup,
+                },
+                index: newSearch ? 0 : (vm.depositTrackingQuery.index || 0),
+                limit: vm.depositTrackingQuery.limit || 5000,
+                sortCol: vm.depositTrackingQuery.sortCol || {},
+            };
+            console.log('sendQuery', sendQuery);
+            socketService.$socket($scope.AppSocket, 'getPlayerDepositTrackingReport', sendQuery, function (data) {
+                $scope.$evalAsync(() => {
+                    console.log('retData', data);
+                    vm.playerDepositTracking = data.data.data;
+                    $('#loadingPlayerDepositTrackingReportTableSpin').hide();
+
+                    let drawData = data.data.data.map(item => {
+                        let breakLine = ", ";
+                        item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
+                        item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
+                        item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                        item.totalPlayerDepositAmount$ = parseFloat(item.totalPlayerDepositAmount).toFixed(2);
+                        item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
+                        item.noDeposit = item.noDeposit || item.noDeposit === 0 ? item.noDeposit : "--";
+                        item.noWithdrawal = item.noWithdrawal || item.noWithdrawal === 0 ? item.noWithdrawal : "--";
+                        item.noConsumption = item.noConsumption || item.noConsumption === 0 ? item.noConsumption : "--";
+                        item.depositTrackingGroupName = item.depositTrackingGroupName ? item.depositTrackingGroupName : "--";
+
+                        item.playerLevel$ = "";
+                        if (vm.playerLvlData[item.playerLevel]) {
+                            item.playerLevel$ = vm.playerLvlData[item.playerLevel].name;
+                        }
+                        else {
+                            item.playerLevel$ = "";
+                        }
+
+                        item.credibility$ = "";
+                        if (item.credibilityRemarks) {
+                            for (let i = 0; i < item.credibilityRemarks.length; i++) {
+                                for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                    if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                        item.credibility$ += vm.credibilityRemarks[j].name + breakLine;
+                                    }
+                                }
+                            }
+                        }
+
+                        // remove the last comma and any whitespace after it
+                        item.credibility$ = item.credibility$ ? item.credibility$.replace(/,\s*$/, "") : "--";
+
+                        item.providerArr = [];
+                        for (let key in item.providerDetail) {
+                            if (item.providerDetail.hasOwnProperty(key)) {
+                                item.providerDetail[key].providerId = key;
+                                item.providerArr.push(item.providerDetail[key]);
+                            }
+                        }
+
+                        item.provider$ = "";
+                        if (item.providerDetail) {
+                            for (let i = 0; i < item.providerArr.length; i++) {
+                                item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
+                                item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
+                                item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
+                                item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                                for (let j = 0; j < vm.allProviders.length; j++) {
+                                    if (item.providerArr[i].providerId.toString() === vm.allProviders[j]._id.toString()) {
+                                        item.providerArr[i].name = vm.allProviders[j].name;
+                                        item.provider$ += vm.allProviders[j].name + breakLine;
+                                    }
+                                }
+                            }
+                        }
+
+                        // remove the last comma and any whitespace after it
+                        item.provider$ = item.provider$ ? item.provider$.replace(/,\s*$/, "") : "--";
+
+                        return item;
+                    });
+
+                    vm.playerDepositTracking.forEach(player => {
+                        drawData.forEach(data => {
+                            if (player._id.toString() === data._id.toString()) {
+                                player.credibility$ = data.credibility$;
+                                player.playerLevel$ = data.playerLevel$;
+                                player.provider$ = data.provider$;
+                                player.lastAccessTime$ = data.lastAccessTime$;
+                                player.topUpAmount$ = data.topUpAmount$;
+                                player.bonusAmount$ = data.bonusAmount$;
+                                player.totalPlayerDepositAmount$ = data.totalPlayerDepositAmount$;
+                                player.validConsumptionAmount$ = data.validConsumptionAmount$;
+                            }
+                        });
+                        return player;
+                    });
+
+                    // vm.drawPlayerDepositTrackingReport(drawData, data.data.total, data.data.size, newSearch);
+                });
+            });
+        };
+
+        vm.initDepositTrackingGroup = function () {
+            vm.editDepositTrackingGroup = false;
+            vm.modifyDepositTrackingGroup = false;
+            vm.newDepositTrackingGroup = [];
+            vm.selectedDepositTrackingGroup = {};
+        };
+
+        vm.newRowDepositTrackingGroup = (newDepositTrackingGroup) => {
+            newDepositTrackingGroup.push({name: "", remark: ""});
+        };
+
+        vm.saveDepositTrackingGroup = function (isDelete, index) {
+            if (isDelete) {
+                let deleteData = {
+                    platformObjId: vm.curPlatformId,
+                    trackingGroupObjId: index
+                };
+
+                socketService.$socket($scope.AppSocket, 'deleteDepositTrackingGroup', deleteData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.getDepositTrackingGroupByPlatformId(vm.curPlatformId);
+                        vm.searchPlayerDepositTrackingReport();
+                    });
+                });
+            } else {
+                let addData = {
+                    platformObjId: vm.curPlatformId,
+                    groupData: vm.newDepositTrackingGroup
+                };
+
+                socketService.$socket($scope.AppSocket, 'addDepositTrackingGroup', addData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.getDepositTrackingGroupByPlatformId(vm.curPlatformId);
+                        vm.searchPlayerDepositTrackingReport();
+                        vm.newDepositTrackingGroup = [];
+                    });
+                });
+            }
+        };
+
+        vm.modifyPlayerDepositTrackingGroup = function (playerId, trackingGroup) {
+            let sendData = {
+                platform: vm.curPlatformId,
+                playerId: playerId,
+                trackingGroup: trackingGroup
+            };
+
+            socketService.$socket($scope.AppSocket, 'modifyPlayerDepositTrackingGroup', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    if (data.success && data.data) {
+                        vm.modifyDepositTrackingGroupResult = 'SUCCESS';
+                        vm.searchPlayerDepositTrackingReport();
+                    } else {
+                        vm.modifyDepositTrackingGroupResult = 'FAIL';
+                    }
+                });
+            });
+        };
+
+        vm.removePlayerFromDepositTrackingReport = function (playerId) {
+            let sendData = {
+                platform: vm.curPlatformId,
+                playerId: playerId
+
+            };
+
+            socketService.$socket($scope.AppSocket, 'removePlayerFromDepositTrackingReport', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.searchPlayerDepositTrackingReport();
+                });
+            });
+        };
+        ///////////////// END player deposit tracking report /////////////////////////////
 
         /////////////////telemarketing new account report/////////////////////////////
         vm.searchDXNewPlayerReport = function (newSearch) {
@@ -8136,6 +8361,21 @@ define(['js/app'], function (myApp) {
                         //     vm.commonPageChangeHandler(curP, pageSize, "depositAnalysisQuery", vm.searchPlayerDepositAnalysisReport);
                         // });
                         vm.setupRemarksMultiInputDepositAnalysis();
+                    });
+                })
+            } else if (choice === "PLAYER_DEPOSIT_TRACKING_REPORT") {
+                utilService.actionAfterLoaded('#playerDepositTrackingReportTablePage', function () {
+                    $scope.$evalAsync(() => {
+                        vm.playerDepositTracking = {};
+                        vm.depositTrackingQuery = {};
+                        vm.depositTrackingQuery.sortCol = {};
+                        vm.depositTrackingQuery.limit = 5000;
+                        // vm.depositTrackingQuery.pageObj = utilService.createPageForPagingTable("#playerDepositTrackingReportTablePage", {pageSize: 5000}, $translate, function (curP, pageSize) {
+                        //     vm.commonPageChangeHandler(curP, pageSize, "depositTrackingQuery", vm.searchPlayerDepositTrackingReport);
+                        // });
+                        vm.setupRemarksMultiInputDepositTracking();
+                        vm.setupMultiInputDepositTrackingGroup();
+                        vm.searchPlayerDepositTrackingReport(); // auto search and display player being tracked when tab clicked
                     });
                 })
             } else if (choice == "PLAYER_EXPENSE_REPORT") {
