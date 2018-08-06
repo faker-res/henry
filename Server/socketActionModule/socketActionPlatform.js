@@ -629,6 +629,28 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.addPlayerToDepositTrackingReport, [platformObjId, playerObjId], actionName, isValidData);
         },
 
+        getDepositTrackingGroup: function getDepositTrackingGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            let platformObjId = ObjectId(data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatform.getDepositTrackingGroup, [platformObjId], actionName, isValidData);
+        },
+
+        addDepositTrackingGroup: function addDepositTrackingGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.groupData);
+            let platformObjId = ObjectId(data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatform.addDepositTrackingGroup, [platformObjId, data.groupData], actionName, isValidData);
+        },
+
+        deleteDepositTrackingGroup: function deleteDepositTrackingGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.trackingGroupObjId);
+            let platformObjId = ObjectId(data.platformObjId);
+            let trackingGroupObjId = ObjectId(data.trackingGroupObjId);
+            socketUtil.emitter(self.socket, dbPlatform.deleteDepositTrackingGroup, [platformObjId, trackingGroupObjId], actionName, isValidData);
+        },
+
         getPlatformPartnerSettLog: function getPlatformPartnerSettLog(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.modes);
@@ -687,8 +709,8 @@ function socketActionPlatform(socketIO, socket) {
 
         getOnlineTimeLogByPlatform: function getOnlineTimeLogByPlatform(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId);
-            socketUtil.emitter(self.socket, dbPlayerOnlineTime.getOnlineTimeLogByPlatform, [data.platformObjId], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPlayerOnlineTime.getOnlineTimeLogByPlatform, [data.platformObjId, data.startTime, data.endTime], actionName, isValidData);
         }
     };
     socketActionPlatform.actions = this.actions;

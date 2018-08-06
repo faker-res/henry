@@ -314,6 +314,14 @@ function socketActionReport(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDepositAnalysisDetails, [platformObjId, data.query, playerObjId, data.query.dailyTotalDeposit], actionName, isValidData);
         },
 
+        getPlayerDepositTrackingReport: function getPlayerDepositTrackingReport(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.platformId);
+            let platformObjId = ObjectId(data.platformId);
+
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDepositTrackingReport, [platformObjId, data.query, data.index, data.limit, data.sortCol, data.query.depositTrackingGroup], actionName, isValidData);
+        },
+
         getDXNewPlayerReport: function getDXNewPlayerReport(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.query && data.platformId && data.query.days);

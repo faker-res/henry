@@ -16861,6 +16861,9 @@ define(['js/app'], function (myApp) {
                 if (vm.feedbackAdminQuery.topic && vm.feedbackAdminQuery.topic != 'all') {
                     sendQuery.query.topic = vm.feedbackAdminQuery.topic
                 }
+                if (vm.feedbackAdminQuery.hasOwnProperty("topupTimes")) {
+                    sendQuery.topupTimes = vm.feedbackAdminQuery.topupTimes;
+                }
                 console.log("feedbackQuery", sendQuery);
                 $('#loadPlayerFeedbackAdminIcon').show();
                 socketService.$socket($scope.AppSocket, 'getAllPlayerFeedbacks', sendQuery, function (data) {

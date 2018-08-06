@@ -1838,6 +1838,7 @@ var proposalExecutor = {
                             bankName: partner.bankName || "",
                             phone: decryptedPhoneNo || "",
                             email: partner.email || "",
+                            loginName: partner.partnerName || "",
                             applyTime: cTimeString
                         };
                         return pmsAPI.bonus_applyBonus(message).then(
