@@ -1516,18 +1516,18 @@ let dbPlayerInfo = {
                     return dbconfig.collection_ipDomainLog.findOne({
                         platform: playerdata.platform,
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
-                        ipAddress: playerData.lastLoginIp
-                    }, 'domain').lean().then(
+                        ipAddress: playerData.lastLoginIp,
+                        domain: {$exists: true}
+                    }, 'domain').sort({createTime:1}).limit(1).lean().then(
                         ipDomainLog => {
-                            if (ipDomainLog && ipDomainLog.domain) {
-                                ipDomain = ipDomainLog.domain;
+                            if (ipDomainLog && ipDomainLog[0] && ipDomainLog[0].domain) {
+                                ipDomain = ipDomainLog[0].domain;
 
-                                if (!csOfficer || !promoteWay) {
-                                    return dbconfig.collection_csOfficerUrl.findOne({
-                                        domain: ipDomain,
-                                        platform: playerdata.platform
-                                    }, 'admin way').lean();
-                                }
+                                // force using csOfficerUrl admin and way
+                                return dbconfig.collection_csOfficerUrl.findOne({
+                                    domain: ipDomain,
+                                    platform: playerdata.platform
+                                }, 'admin way').lean();
                             }
                         }
                     ).then(
@@ -13963,7 +13963,6 @@ let dbPlayerInfo = {
 
                 if (player) {
                     relevantPlayerQuery.playerId = player._id;
-                    console.log('relevantPlayerQuery.playerId', relevantPlayerQuery.playerId);
                 }
 
                 // relevant players are the players who played any game within given time period
@@ -14765,8 +14764,6 @@ let dbPlayerInfo = {
                 for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
                     let prom;
 
-                    console.log('option', option);
-
                     if (option.isDX) {
                         prom = dbconfig.collection_players.findOne({
                             _id: playerObjIds[p]
@@ -15040,8 +15037,6 @@ let dbPlayerInfo = {
                     promoteWay: 1, phoneProvince: 1, phoneCity: 1, province: 1, city: 1
                 }
             ).lean();
-
-            console.log('domain-0806', domain);
 
             // Promise domain CS and promote way
             let promoteWayProm = domain ?
