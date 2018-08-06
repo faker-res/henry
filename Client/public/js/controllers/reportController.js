@@ -1268,19 +1268,15 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getDepositTrackingGroupByPlatformId = function (id) {
-            return new Promise(function (resolve) {
-                socketService.$socket($scope.AppSocket, 'getDepositTrackingGroup', {platformObjId: id}, function (data) {
-                    $scope.$evalAsync(() => {
-                        vm.depositTrackingGroup = data.data;
-                        vm.filterDepositTrackingGroup = data.data ? JSON.parse(JSON.stringify(data.data)) : [];
-                        vm.filterDepositTrackingGroup.push({'_id':'', 'name':$translate('N/A')});
-                        resolve(vm.depositTrackingGroup);
-                    });
-                }, function (data) {
-                    console.log("cannot get deposit tracking group", data);
-                    vm.depositTrackingGroup = {};
-                    resolve(vm.depositTrackingGroup);
+            socketService.$socket($scope.AppSocket, 'getDepositTrackingGroup', {platformObjId: id}, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.depositTrackingGroup = data.data;
+                    vm.filterDepositTrackingGroup = data.data ? JSON.parse(JSON.stringify(data.data)) : [];
+                    vm.filterDepositTrackingGroup.push({'_id':'', 'name':$translate('N/A')});
                 });
+            }, function (data) {
+                console.log("cannot get deposit tracking group", data);
+                vm.depositTrackingGroup = {};
             });
         };
 
