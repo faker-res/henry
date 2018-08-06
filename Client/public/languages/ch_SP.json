@@ -4095,5 +4095,18 @@
   "CountPlayerApplied": "总领取人数",
   "Total_Bonus_Amount": "总提款",
   "PlayerProfit": "玩家输赢",
-  "Promo code name must be unique": "优惠名称不可重复"
+  "Promo code name must be unique": "优惠名称不可重复",
+  "Feedback Mission Name": "回访任务名称",
+  "Feedback Mission Remarks": "回访任务备注",
+  "Feedback Mission Start Time": "任务开始时间",
+  "Feedback Mission End Time": "任务结束时间",
+  "Feedback Mission Default Status": "任务初始状态",
+  "Schedule Mission (Total of 3)": "定时任务（总计三次）",
+  "Day Since Previous Mission (Continue mission if player is unresponsive)": "间隔上次任务X天后（玩家持续未登入将持续发送）",
+  "Auto Promo Code Trigger Time": "触发自动优惠代码时间",
+  "Auto Promo Code Template": "绑定自动优惠代码模版",
+  "Feedback Result Setting": "回访结果预设",
+  "Feedback Topic Setting": "回访主题预设",
+  "Feedback Content Setting": "回访内容预设",
+  "Create Mission": "创建任务"
 }

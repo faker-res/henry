@@ -1,137 +1,285 @@
-style.
-    .bg-secondary {
-        background-color: #868E96;
-    }
 .row
     .col-md-12
-        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedAutoFeedbackTab === "create"}', ng-click='vm.autoFeedbackTabClicked("create")')
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedAutoFeedbackTab === "create"}', ng-click='vm.selectedAutoFeedbackTab="create";vm.autoFeedbackTabClicked("create")')
             span {{"Create Feedback Mission" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedAutoFeedbackTab === "overview"}', ng-click='vm.autoFeedbackTabClicked("overview")')
             span {{"Feedback Mission Overview" | translate}}
 
-    //.col-md-12
-        .panel.panel-primary
+    .col-md-12
+        .panel.panel-primary(ng-if='vm.selectedAutoFeedbackTab === "create"')
             .panel-heading.panel-heading-sm
-                label {{"rewardPoint" | translate}}
-            .panel-body.common-right-sub-panel-body(ng-if="!vm.curPlatformText")
-            .panel-body.common-right-sub-panel-body(ng-if="vm.curPlatformText")
-                .text-center(ng-if='!vm.selectedRewardPointTab')
-                    label.text-danger {{'Please select a type' | translate}}
+                label {{"Create Feedback Mission" | translate}}
+            .panel-body(style='margin:5px;')
+                //.full-width-input-block
+                //    label {{"REWARD_NAME" | translate}}
+                //    input.form-control(type='text', ng-model='vm.showReward.name', ng-disabled='vm.platformRewardShowEdit()', required)
+                //.full-width-input-block
+                //    label {{"REWARD_CODE" | translate}}
+                //    input.form-control(type='text', ng-model='vm.showReward.code', ng-disabled='vm.platformRewardShowEdit()', required)
+                //.full-width-input-block(ng-if='vm.rewardAttrConst.canApply.indexOf(vm.showRewardTypeData.name)>-1')
+                //    label {{"REWARD_NEED_APPLY" | translate}}
+                //    input.form-control(type='checkbox', ng-model='vm.showReward.needApply', ng-change='vm.clearCanApplyFromClient()' ng-disabled='vm.platformRewardShowEdit()')
+                //.full-width-input-block(ng-if='(vm.showRewardTypeData && vm.showRewardTypeData.name ==="PlayerConsumptionReturn") ||(vm.showReward.type && vm.showReward.type.name ==="PlayerConsumptionReturn")')
+                //    label {{"Display imageUrl" | translate}}
 
-                // Tab - rewardPointsRule
-                div#createPromoCodePage(ng-if='vm.selectedRewardPointTab=="rewardPointsRule" && checkViewPermission("Platform", "rewardPoints", "rewardPointsRule")')
-                    .full-width-input-block
-                        label {{"intervalPeriod" | translate}}
-                        select.form-control(ng-model='vm.rewardPointsLvlConfig.intervalPeriod' ng-change='vm.rewardPointsLvlConfigPeriodChange()' ng-options="+(i) as v | translate for (i,v) in constRewardPointsIntervalPeriod" ng-disabled='!vm.isRewardPointsLvlConfigEditing', required)
-                    .full-width-input-block(style='padding-left:50%' ng-if="vm.rewardPointsLvlConfig.intervalPeriod==6")
-                        div.dateTimePicker(id="rewardPointsLvlConfigStartDate" style="display: inline-block; width: 48%" ng-if="vm.rewardPointsLvlConfig.intervalPeriod==6")
-                        span(ng-if="vm.rewardPointsLvlConfig.intervalPeriod==6" style='font-size:23px') &nbsp;{{ 'to' | translate}}&nbsp;
-                        div.dateTimePicker(id="rewardPointsLvlConfigEndDate" style="display: inline-block; width: 48%" ng-if="vm.rewardPointsLvlConfig.intervalPeriod==6")
-                    .full-width-input-block
-                        label {{"applyMethod" | translate}}
-                        select.form-control(ng-model='vm.rewardPointsLvlConfig.applyMethod' ng-options="+(i) as v | translate for (i,v) in constRewardPointsApplyMethod" ng-disabled='!vm.isRewardPointsLvlConfigEditing', required)
-                    br
-                    br
-                    table.simple-table(style="width:100%")
-                        thead
-                            tr
-                                th {{'playerLevel' | translate}}
-                                th {{'dailyMaxPoints' | translate}}
-                                th {{'pointToCreditManualRate (N points : 1 Credit)' | translate}}
-                                th {{'pointToCreditManualMaxPoints' | translate}}
-                                th {{'pointToCreditAutoRate (N points : 1 credit)' | translate}}
-                                th {{'pointToCreditAutoMaxPoints' | translate}}
-                                th {{'spendingAmountOnReward' | translate}}
-                                th {{'providerGroup' | translate}}
-                        tbody
-                            tr(ng-repeat='(idx,val) in vm.rewardPointsLvlConfig.params')
-                                td(ng-repeat='(k,v) in vm.allPlayerLvl' ng-if='val.levelObjId==v._id') {{v.name}}
-                                td
-                                    input.form-control(type='number' ng-model='val.dailyMaxPoints' ng-disabled='!vm.isRewardPointsLvlConfigEditing')
-                                td
-                                    input.form-control(type='number' ng-model='val.pointToCreditManualRate' ng-disabled='!vm.isRewardPointsLvlConfigEditing')
-                                td
-                                    input.form-control(type='number' ng-model='val.pointToCreditManualMaxPoints' ng-disabled='!vm.isRewardPointsLvlConfigEditing')
-                                td
-                                    input.form-control(type='number' ng-model='val.pointToCreditAutoRate' ng-disabled='!vm.isRewardPointsLvlConfigEditing')
-                                td
-                                    input.form-control(type='number' ng-model='val.pointToCreditAutoMaxPoints' ng-disabled='!vm.isRewardPointsLvlConfigEditing')
-                                td
-                                    input.form-control(type='number' ng-model='val.spendingAmountOnReward' ng-disabled='!vm.isRewardPointsLvlConfigEditing')
-                                td
-                                    select.form-control(ng-model="val.providerGroup" ng-options="v._id as v.name | translate for (i,v) in vm.gameProviderGroup" ng-disabled='!vm.isRewardPointsLvlConfigEditing')
-                                        option(value='') {{'LOCAL_CREDIT' | translate}}
-                    br
-                    .pull-right
-                        button.btn.btn-danger.common-button(ng-if='vm.isRewardPointsLvlConfigEditing' ng-click='vm.rewardPointsLvlConfigSetDisable(true);vm.rewardPointsTabClicked("rewardPointsRule")') {{'CANCEL' | translate}}
-                        button.btn.btn-primary.common-button(ng-if='vm.isRewardPointsLvlConfigEditing' ng-click='vm.rewardPointsLvlConfigSubmit()') {{'CONFIRM' | translate}}
-                        button.btn.btn-primary.common-button(ng-if='!vm.isRewardPointsLvlConfigEditing' ng-click='vm.rewardPointsLvlConfigSetDisable(false);')
-                            text {{'EDIT' | translate}}
-                            img.img-edit
+                .full-width-input-block
+                    label {{"Feedback Mission Name"|translate}}
+                    div(style="display:inline-block;")
+                        input.form-control(type="text" ng-model="vm.autoFeedbackMission.name")
+                .full-width-input-block
+                    label {{"Feedback Mission Remarks"|translate}}
+                    div(style="display:inline-block;")
+                        input.form-control(type="text" ng-model="vm.autoFeedbackMission.remarks")
+                .full-width-input-block
+                    label.control-label {{'Feedback Mission Start Time' | translate}}
+                    #autoFeedbackMissionStartTimePicker.datetimepicker.form-control
+                        input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                        span.add-on
+                            i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                .full-width-input-block
+                    label.control-label {{'Feedback Mission End Time' | translate}}
+                    #autoFeedbackMissionEndTimePicker.datetimepicker.form-control
+                        input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                        span.add-on
+                            i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                .full-width-input-block
+                    label {{"Feedback Mission Default Status"|translate}}
+                    select.form-control(style='max-width:300px', ng-model="vm.autoFeedbackMission.defaultStatus")
+                        option(value='Real Player (all)') {{'manual' | translate}}
+                        option(value='Real Player (Individual)') {{'active' | translate}}
+                .full-width-input-block
+                    label {{"USER_TYPE"|translate}}
+                    select.form-control(style='max-width:300px', ng-model="vm.autoFeedbackMission.playerType")
+                        option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
+                        option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
+                        option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
+                        option(value='Test Player') {{'TEST_PLAYER' | translate}}
+                .full-width-input-block
+                    label {{"Player Level" | translate}}
+                    select.form-control(ng-model='vm.autoFeedbackMission.playerLevel')
+                        option(value='all') {{'ALL' | translate}}
+                        option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
+                .full-width-input-block
+                    label.control-label {{'CREDIBILITY' | translate}}
+                    div(style="display:inline-block;")
+                        select.form-control#selectCredibilityRemarkFeedback(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.autoFeedbackMission.credibilityRemarks')
+                //.full-width-input-block(style="width:200px;")
+                    label.control-label {{'CREDIBILITY_FILTER' | translate}}
+                    select.form-control#selectCredibilityRemarkFeedbackFilter(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.playerFeedbackQuery.credibilityRemarksFilter')
+                .full-width-input-block
+                    //上次登入（距今）
+                    label {{"LAST_ACCESS_TILL_NOW"|translate}}
+                    div(style="display:inline-block;")
+                        select.form-control(ng-model="vm.autoFeedbackMission.lastAccess" style="width:105px;display:inline-block")
+                            option(value='0-7') {{'0-7'}}{{'DAYS'|translate}}
+                            option(value='8-14') {{'8-14'}}{{'DAYS'|translate}}
+                            option(value='15-28') {{'15-28'}}{{'DAYS'|translate}}
+                            option(value='29') {{'29'}}{{'DAYS_AND_ABOVE'|translate}}
+                            option(value='range') {{'range'|translate}}
+                        div(style="width:8px;display:inline-block")
+                        input.form-control(type="number" ng-model="vm.autoFeedbackMission.lastAccessFormal" style="width:80px;display:inline-block" ng-show="vm.playerFeedbackQuery.lastAccess === 'range'")
+                        div.text-center(style="width:15px;display:inline-block" ng-show="vm.playerFeedbackQuery.lastAccess === 'range'") -
+                        input.form-control(type="number" ng-model="vm.autoFeedbackMission.lastAccessLatter" style="width:80px;display:inline-block" ng-show="vm.playerFeedbackQuery.lastAccess === 'range'")
+                .full-width-input-block
+                    //过滤回访（天）
+                    label {{"FILTER_FEEDBACK_DAY"|translate}}
+                    div(style="display:inline-block;")
+                        input.form-control(type="number" ng-model="vm.autoFeedbackMission.filterFeedback" style="width:100px;display:inline-block")
+                .full-width-input-block
+                    label {{"DEPOSIT_COUNT"|translate}}
+                    div(style="display:inline-block;")
+                        select.form-control(ng-model="vm.autoFeedbackMission.depositCountOperator" style="width:75px;display:inline-block")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        div(style="width:8px;display:inline-block")
+                        input.form-control(type="number" ng-model="vm.autoFeedbackMission.depositCountFormal" style="width:80px;display:inline-block")
+                        div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerFeedbackQuery.depositCountOperator === 'range'") -
+                        input.form-control(type="number" ng-model="vm.autoFeedbackMission.depositCountLatter" style="width:80px;display:inline-block" ng-if="vm.playerFeedbackQuery.depositCountOperator === 'range'")
+                .full-width-input-block
+                    label {{"PLAYER_VALUE"|translate}}
+                    div(style="display:inline-block;")
+                        select.form-control(ng-model="vm.autoFeedbackMission.playerValueOperator" style="width:75px;display:inline-block")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        div(style="width:8px;display:inline-block")
+                        input.form-control(type="number" ng-model="vm.autoFeedbackMission.playerValueFormal" style="width:80px;display:inline-block")
+                        div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerFeedbackQuery.playerValueOperator === 'range'") -
+                        input.form-control(type="number" ng-model="vm.autoFeedbackMission.playerValueLatter" style="width:80px;display:inline-block" ng-if="vm.playerFeedbackQuery.playerValueOperator === 'range'")
+                .full-width-input-block
+                    label {{"TOTAL_CONSUMPTION_TIMES"|translate}}
+                    div(style="display:inline-block;")
+                        select.form-control(ng-model="vm.autoFeedbackMission.consumptionTimesOperator" style="width:75px;display:inline-block")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        div(style="width:8px;display:inline-block")
+                        input.form-control(type="number" ng-model="vm.autoFeedbackMission.consumptionTimesFormal" style="width:80px;display:inline-block")
+                        div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerFeedbackQuery.consumptionTimesOperator === 'range'") -
+                        input.form-control(type="number" ng-model="vm.autoFeedbackMission.consumptionTimesLatter" style="width:80px;display:inline-block" ng-if="vm.playerFeedbackQuery.consumptionTimesOperator === 'range'")
+                .full-width-input-block
+                    label {{"PLAYER_PROFIT_AMOUNT"|translate}}
+                    div(style="display:inline-block;")
+                        select.form-control(ng-model="vm.autoFeedbackMission.bonusAmountOperator" style="width:75px;display:inline-block")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        div(style="width:8px;display:inline-block")
+                        input.form-control(type="number" ng-model="vm.autoFeedbackMission.bonusAmountFormal" style="width:80px;display:inline-block")
+                        div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerFeedbackQuery.bonusAmountOperator === 'range'") -
+                        input.form-control(type="number" ng-model="vm.autoFeedbackMission.bonusAmountLatter" style="width:80px;display:inline-block" ng-if="vm.playerFeedbackQuery.bonusAmountOperator === 'range'")
+                .full-width-input-block
+                    label {{"BonusTime"|translate}}
+                    div(style="display:inline-block;")
+                        select.form-control(ng-model="vm.autoFeedbackMission.withdrawTimesOperator" style="width:75px;display:inline-block")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        div(style="width:8px;display:inline-block")
+                        input.form-control(type="number" ng-model="vm.autoFeedbackMission.withdrawTimesFormal" style="width:80px;display:inline-block")
+                        div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerFeedbackQuery.withdrawTimesOperator === 'range'") -
+                        input.form-control(type="number" ng-model="vm.autoFeedbackMission.withdrawTimesLatter" style="width:80px;display:inline-block" ng-if="vm.playerFeedbackQuery.withdrawTimesOperator === 'range'")
+                .full-width-input-block
+                    label {{"TOTAL_TOP_UP"|translate}}
+                    div(style="display:inline-block;")
+                        select.form-control(ng-model="vm.autoFeedbackMission.topUpSumOperator" style="width:75px;display:inline-block")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        div(style="width:8px;display:inline-block")
+                        input.form-control(type="number" ng-model="vm.autoFeedbackMission.topUpSumFormal" style="width:80px;display:inline-block")
+                        div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerFeedbackQuery.topUpSumOperator === 'range'") -
+                        input.form-control(type="number" ng-model="vm.autoFeedbackMission.topUpSumLatter" style="width:80px;display:inline-block" ng-if="vm.playerFeedbackQuery.topUpSumOperator === 'range'")
+                .full-width-input-block
+                    label {{"GAME_LOBBY"|translate}}
+                    div(style="display:inline-block;")
+                        select.form-control#selectGameProvider(multiple="multiple", style='min-width:100px;height:34px;', ng-options='provider._id as provider.name for provider in vm.allGameProviders', ng-model='vm.playerFeedbackQuery.gameProviderId')
+                .full-width-input-block
+                    label {{"SYSTEM_PLAYER" | translate}}
+                    select.form-control(ng-model='vm.autoFeedbackMission.isNewSystem', style="width:100px;")
+                        option(value='') {{'all'|translate}}
+                        option(value='new') {{'NEW_SYSTEM'|translate}}
+                        option(value='old') {{'OLD_SYSTEM'|translate}}
+                .full-width-input-block
+                    label.control-label {{'REGISTRATION_TIME_START' | translate}}
+                    #autoFeedbackMissionRegisterStartTimePicker.datetimepicker.form-control
+                        input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                        span.add-on
+                            i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                .full-width-input-block
+                    label.control-label {{'REGISTRATION_TIME_END' | translate}}
+                    #autoFeedbackMissionRegisterEndTimePicker.datetimepicker.form-control
+                        input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                        span.add-on
+                            i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                .full-width-input-block
+                    label {{"REGISTRATION_DEPARTMENT"|translate}}
+                    div(style="display:inline-block;")
+                        select.spicker.form-control(ng-model='vm.autoFeedbackMission.departments', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryRole(vm.playerFeedbackQuery)", ng-options='dp._id as dp.departmentName | translate for dp in vm.queryDepartments')
+                .full-width-input-block
+                    label {{"REGISTRATION_ROLE"|translate}}
+                    div(style="display:inline-block;")
+                        select.spicker.form-control(ng-model='vm.autoFeedbackMission.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.playerFeedbackQuery)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
+                .full-width-input-block
+                    label {{"REGISTRATION_ADMIN"|translate}}
+                    div(style="display:inline-block;")
+                        select.spicker.form-control(ng-model='vm.autoFeedbackMission.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.queryAdmins')
+                .full-width-input-block
+                    label {{"CALL_PERMISSION"|translate}}
+                    div(style="display:inline-block;")
+                        select.form-control(ng-model="vm.autoFeedbackMission.callPermission" style="width:105px;display:inline-block")
+                            option(value='false') {{'DISABLE'|translate}}
+                            option(value='true') {{'CALLABLE'|translate}}
+                            option(value='all') {{'ALL'|translate}}
 
+                br
+                table#autoFeedbackMissionTable.simple-table(style='min-width:100%')
+                    thead
+                        //th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
+                        th {{"Schedule Mission (Total of 3)"|translate}}
+                        th {{"Day Since Previous Mission (Continue mission if player is unresponsive)"|translate}}
+                        th {{"Auto Promo Code Trigger Time"|translate}}
+                        th {{"Auto Promo Code Template"|translate}}
+                        th {{"Feedback Result Setting"|translate}}
+                        th {{"Feedback Topic Setting"|translate}}
+                        th {{"Feedback Content Setting"|translate}}
+                    tbody
+                        tr
+                            td 第一次
+                            td 条件满足任务过滤则发送
+                            td 14:00:00
+                            td
+                                select.form-control(ng-model='vm.autoFeedbackMission.schedule[0].template', required)
+                                    option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
+                            td
+                                select.form-control(ng-model='vm.autoFeedbackMission.schedule[0].feedbackResult', required)
+                                    option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
+                            td
+                                select.form-control(ng-model='vm.autoFeedbackMission.schedule[0].feedbackTopic', required)
+                                    option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
+                            td
+                                textarea.form-control(ng-model='vm.autoFeedbackMission.schedule[0].content' style="resize:vertical")
+                        tr
+                            td 第二次
+                            td
+                                input.form-control(type="number" ng-model='vm.autoFeedbackMission.schedule[1].dayAfterLastMission', required)
+                            td 15:00:00
+                            td
+                                select.form-control(ng-model='vm.autoFeedbackMission.schedule[1].template', required)
+                                    option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
+                            td
+                                select.form-control(ng-model='vm.autoFeedbackMission.schedule[1].feedbackResult', required)
+                                    option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
+                            td
+                                select.form-control(ng-model='vm.autoFeedbackMission.schedule[1].feedbackTopic', required)
+                                    option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
+                            td
+                                textarea.form-control(ng-model='vm.autoFeedbackMission.schedule[1].content' style="resize:vertical")
+                        tr
+                            td 第三次
+                            td
+                                input.form-control(type="number" ng-model='vm.autoFeedbackMission.schedule[2].dayAfterLastMission', required)
+                            td 16:00:00
+                            td
+                                select.form-control(ng-model='vm.autoFeedbackMission.schedule[2].template', required)
+                                    option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
+                            td
+                                select.form-control(ng-model='vm.autoFeedbackMission.schedule[2].feedbackResult', required)
+                                    option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
+                            td
+                                select.form-control(ng-model='vm.autoFeedbackMission.schedule[2].feedbackTopic', required)
+                                    option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
+                            td
+                                textarea.form-control(ng-model='vm.autoFeedbackMission.schedule[2].content' style="resize:vertical")
 
-                // Tab - loginRewardPoints
-                div#createLoginRewardPoints(ng-if='vm.selectedRewardPointTab=="loginRewardPoints" && checkViewPermission("Platform", "rewardPoints", "loginRewardPoints")')
-                    table.simple-table(style="width:100%")
-                        thead
-                            tr
-                                th {{'rewardPointsCategory' | translate}}
-                                th {{'LEVEL' | translate}}↑
-                                th {{'refreshPeriod' | translate}}
-                                th {{'displayOrder' | translate}}
-                                th {{'userAgent' | translate}}
-                                th {{'targetDestination' | translate}}
-                                th {{'consecutiveCount' | translate}}
-                                th {{'rewardPoints' | translate}}
-                                th {{'rewardTitle' | translate}}
-                                th {{'rewardContent' | translate}}
-                                th
-                        tbody
-                            tr(ng-repeat="(idx,val) in vm.rewardPointsEvent | orderBy: 'index'" ng-class="{'bg-secondary': !val.status}")
-                                td {{'loginRewardPoints' | translate}}
-                                td(style="min-width:80px;")
-                                    select.form-control(ng-model="val.level" ng-disabled='!val.isEditing')
-                                        option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
-                                td(style="min-width:150px;")
-                                    select.form-control(ng-model='val.period' ng-change='vm.rewardPointsEventPeriodChange(idx,val)' ng-options="+(i) as v | translate for (i,v) in constRewardPointsIntervalPeriod" ng-disabled='!val.isEditing' required)
-                                    br(ng-if="val.period==6")
-                                    div.dateTimePicker(id="rewardPointsEventStartDate-{{idx}}" style="display: inline-block" ng-if="val.period==6")
-                                    div(ng-if="val.period==6") {{ 'to' | translate}}
-                                    div.dateTimePicker(id="rewardPointsEventEndDate-{{idx}}" style="display: inline-block" ng-if="val.period==6")
-                                td(style="min-width:80px;")
-                                    input.form-control(type='number' style="width:100%;" ng-model='val.index' ng-disabled='!val.isEditing')
-                                td(style="min-width:150px;")
-                                    select.form-control(ng-model='val.userAgent' ng-options="+(i) as v | translate for (i,v) in vm.userAgentWithSelectAll" ng-disabled='!val.isEditing')
-                                td
-                                    select.spicker.form-control(ng-model="val.target.targetDestination" multiple, data-container="body" data-width='100%' data-actions-box='true' ng-disabled='!val.isEditing')
-                                        option(style="display: inline-block" value='') {{"ANY_PAGE" | translate}}
-                                        option(style="display: inline-block" ng-repeat='(i,v) in vm.allGameProviders', value='{{v._id}}') {{v.name}}
-                                td(style="min-width:60px;")
-                                    input.form-control(type='number' ng-model='val.consecutiveCount' ng-disabled='!val.isEditing')
-                                td(style="min-width:80px;")
-                                    input.form-control(type='number' ng-model='val.rewardPoints' ng-disabled='!val.isEditing')
-                                td(style="min-width:150px;")
-                                    input.form-control(type='text' ng-model='val.rewardTitle' ng-disabled='!val.isEditing' required)
-                                td(style="min-width:200px;")
-                                    input.form-control(type='text' ng-model='val.rewardContent' ng-disabled='!val.isEditing')
-                                td(style="min-width:200px;")
-                                    button.btn.btn-primary(ng-if='val.isEditing && !val._id' ng-click='vm.createRewardPointsEvent(val);vm.endLoadWeekDay();' ng-disabled='!val.rewardTitle' style='margin: 0 5px;') {{'CONFIRM' | translate}}
-                                    button.btn.btn-primary(ng-if='val.isEditing && val._id' ng-click='vm.updateRewardPointsEvent(idx,val);' ng-disabled='!val.rewardTitle' style='margin: 0 5px;') {{'CONFIRM' | translate}}
-                                    button.btn.btn-danger(ng-if='val.isEditing' ng-click='vm.rewardPointsEventSetDisable(idx,val,true);vm.rewardPointsEventReset(idx);' style='margin: 0 5px;') {{'CANCEL' | translate}}
-                                    button.btn.btn-primary(ng-if='!val.isEditing' ng-click='vm.rewardPointsEventSetDisable(idx,val,false);' style='margin: 0 5px;') {{'EDIT' | translate}}
-                                    button.btn.btn-danger(ng-if='!val.isEditing' data-toggle="modal", data-target='#modalDeleteRewardPointsEvent' ng-click="vm.deletingRewardPointsEvent=val" style='margin: 0 5px;') {{'DELETE' | translate}}
-                                    button.btn(class="{{val.status? 'btn-danger':'btn-success'}}" ng-if='!val.isEditing' ng-click='val.status = !val.status; vm.updateRewardPointsEvent(idx,val);' style='margin: 0px 5px;') {{val.status? 'Closed':'Open' | translate}}
+                br
+                .pull-right
+                    .inlineBlk
+                        button.btn.btn-warning(ng-if="checkViewPermission('Platform','AutoFeedback','create')" ng-click='') {{"CANCEL" | translate}}
+                    .inlineBlk
+                        button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','create')" ng-click='') {{"Create Mission" | translate}}
+                    //.inlineBlk
+                    //    button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="many";vm.submitPlayerFeedbackQuery(true, false);') {{"SEARCH_LIST" | translate}}
+                    //.inlineBlk
+                    //    button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission && !vm.showFinishCalloutMissionButton",ng-click='vm.toggleCallOutMissionStatus()') {{"Pause/Resume Mission" | translate}}
+                    //.inlineBlk
+                    //    button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission && !vm.showFinishCalloutMissionButton",ng-click='vm.stopCallOutMission()') {{"Stop Mission" | translate}}
+                    //.inlineBlk
+                    //    button.btn.btn-warning(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton",ng-click='vm.initBulkAddPlayerFeedback()') {{"Failed Call Player Feedback" | translate}}
+                    //.inlineBlk
+                    //    button.btn.btn-warning(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton",ng-click='vm.initBulkSMSToFailPlayers()') {{"Failed Call Player SMS" | translate}}
+                    //.inlineBlk
+                    //    button.btn.btn-success(ng-if="checkViewPermission('Platform','Feedback','BulkCall') && vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton",ng-click='vm.endCallOutMission()') {{"Finish Mission" | translate}}
+                    //span#platformFeedbackSpin.collapse
+                    //    i.fa.fa-spinner.fa-spin
+                    //span.margin-left-5
 
-                    br
-                    .pull-right
-                        button.btn.btn-primary.common-button(ng-if='!vm.rewardPointsEventUpdateAll' ng-click='vm.rewardPointsEventSetEditStatusAll();')
-                            text {{'EDIT_ALL' | translate}}
-                            img.img-edit
-                        button.btn.btn-primary.common-button(ng-if='vm.rewardPointsEventUpdateAll' ng-click='vm.updateAllRewardPointsEvent();')
-                            text {{'UPDATE_ALL' | translate}}
-                            img.img-edit
-                        button.btn.btn-primary.common-button(ng-click='vm.rewardPointsEventAddNewRow(constRewardPointsTaskCategory.LOGIN_REWARD_POINTS);vm.endLoadWeekDay();')
-                            text {{'ADD' | translate}}
-                            img.img-create
 
 
