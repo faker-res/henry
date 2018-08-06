@@ -6172,9 +6172,9 @@ define(['js/app'], function (myApp) {
                     record.name = record.name ? $translate(record.name) : "";
                     record.eventName = record.eventName ? record.eventName : "";
                     record.countRewardApplied = record.countRewardApplied ? record.countRewardApplied : 0;
-                    record.$amount = record.sumTotalRewardAmount ? record.sumTotalRewardAmount :
-                        (record.sumTotalReturnAmount ? record.sumTotalReturnAmount :
-                            (record.sumTotalAmount ? record.sumTotalAmount : 0));
+                    record.$amount = record.sumTotalRewardAmount ? $noRoundTwoDecimalPlaces(record.sumTotalRewardAmount) :
+                        (record.sumTotalReturnAmount ? $noRoundTwoDecimalPlaces(record.sumTotalReturnAmount) :
+                            (record.sumTotalAmount ? $noRoundTwoDecimalPlaces(record.sumTotalAmount) : 0));
                     record.countPlayerApplied = record.countPlayerApplied ? record.countPlayerApplied : 0;
                     record.sumTotalTopupAmount = record.sumTotalTopupAmount ? record.sumTotalTopupAmount : 0;
                     record.sumTotalBonusAmount = record.sumTotalBonusAmount ? record.sumTotalBonusAmount : 0;
