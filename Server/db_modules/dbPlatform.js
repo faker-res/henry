@@ -3136,6 +3136,43 @@ var dbPlatform = {
         );
     },
 
+    getDepositTrackingGroup: (platformId) => {
+        return dbconfig.collection_playerDepositTrackingGroup.find({platform: platformId}).lean().exec();
+    },
+
+    addDepositTrackingGroup: (platformObjId, groupData) => {
+        let groupProm = [];
+
+        for (let x = 0; x < groupData.length; x++) {
+            // only save group name that didn't exist
+            let query = {
+                name: groupData[x].name,
+                platform: platformObjId,
+            };
+
+            let newData = {
+                name: groupData[x].name,
+                platform: platformObjId,
+                remark: groupData[x].remark || "",
+            };
+
+            // upsert: create new document if group name is not duplicate
+            groupProm.push(dbconfig.collection_playerDepositTrackingGroup.findOneAndUpdate(query, newData, {upsert: true, new: true}));
+        }
+
+        return Promise.all(groupProm).then(
+            result => {
+                if (result) {
+                    return result;
+                }
+            }
+        );
+    },
+
+    deleteDepositTrackingGroup: (platformObjId, trackingGroupObjId) => {
+        return dbconfig.collection_playerDepositTrackingGroup.remove({_id: trackingGroupObjId, platform: platformObjId}).exec();
+    },
+
     getPlatformPartnerSettLog: (platformObjId, modes) => {
         let promArr = [];
         let partnerSettDetail = {};

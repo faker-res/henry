@@ -14550,6 +14550,334 @@ let dbPlayerInfo = {
         });
     },
 
+    getPlayerDepositTrackingReport: function (platformObjId, query, index, limit, sortCol, trackingGroup) {
+        limit = limit ? limit : 20;
+        index = index ? index : 0;
+        query = query ? query : {};
+
+        let startDate = new Date(1970, 1, 1);
+        let today = new Date(); // track for whole life time until now
+        let getPlayerProm = Promise.resolve("");
+        let playerData = null;
+        let result = [];
+        let resultSum = {
+            topUpAmount: 0,
+            bonusAmount: 0,
+            totalPlayerDepositAmount: 0,
+        };
+        let playerObjArr = [];
+        let topUpProm = [];
+        let bonusProm = [];
+        let consumptionProm = [];
+        let trackingGroupProm = [];
+        let outputResult = [];
+
+        if (query && query.name) {
+            // search single player with deposit tracked
+            getPlayerProm = dbconfig.collection_players.findOne({name: query.name, platform: platformObjId, isDepositTracked: true}, {_id: 1}).lean().then(
+                player => {
+                    if (!player) return Q.reject({name: "DataError", message: localization.localization.translate("Invalid player data")});
+                    return [player];
+                }
+            );
+        } else {
+            // search all player with deposit tracked
+            getPlayerProm = dbconfig.collection_players.find({platform: platformObjId, isDepositTracked: true}, {_id: 1}).lean().then(
+                player => {
+                    if (!player) return Q.reject({name: "DataError", message: localization.localization.translate("Invalid player data")});
+                    return player;
+                }
+            );
+        }
+
+        return getPlayerProm.then(
+            player => {
+                if (player && player.length) {
+                    for (let i = 0; i < player.length; i++) {
+                        playerObjArr.push(player[i]._id);
+                    }
+                }
+
+                // assign ObjectId
+                for (let j = 0; j < playerObjArr.length; j++) {
+                    playerObjArr[j] = ObjectId(playerObjArr[j]);
+                }
+
+                return playerObjArr;
+            }
+        ).then(
+            playerObjArrData => {
+                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}}).lean();
+                let stream = playerProm.cursor({batchSize: 100});
+                let balancer = new SettlementBalancer();
+
+                return balancer.initConns().then(function () {
+                    return Q(
+                        balancer.processStream(
+                            {
+                                stream: stream,
+                                batchSize: constSystemParam.BATCH_SIZE,
+                                makeRequest: function (playerIdObjs, request) {
+                                    request("player", "getConsumptionDetailOfPlayers", {
+                                        platformId: platformObjId,
+                                        startTime: startDate,
+                                        endTime: today,
+                                        query: query,
+                                        playerObjIds: playerIdObjs.map(function (playerIdObj) {
+                                            playerData = playerIdObjs;
+                                            return playerIdObj._id;
+                                        }),
+                                        isPromoteWay: true
+                                    });
+                                },
+                                processResponse: function (record) {
+                                    result = result.concat(record.data);
+                                }
+                            }
+                        )
+                    );
+                });
+            }
+        ).then(
+            () => {
+                // handle index limit sortcol here
+                if (Object.keys(sortCol).length > 0) {
+                    result.sort(function (a, b) {
+                        if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
+                            return 1 * sortCol[Object.keys(sortCol)[0]];
+                        } else {
+                            return -1 * sortCol[Object.keys(sortCol)[0]];
+                        }
+                    });
+                }
+                else {
+                    result.sort(function (a, b) {
+                        if (a._id > b._id) {
+                            return 1;
+                        } else {
+                            return -1;
+                        }
+                    });
+                }
+
+                result.forEach(data => {
+                    if (playerData) {
+                        playerData.forEach(player => {
+                            if (player && data && player._id.toString() === data._id.toString()) {
+                                data.realName = player.realName ? player.realName : "";
+                                data.lastAccessTime = player.lastAccessTime ? player.lastAccessTime : "";
+                            }
+                        });
+                    }
+                    data.totalPlayerDepositAmount = data.topUpAmount - data.bonusAmount;
+
+                    return data;
+                });
+
+                //handle sum of field here
+                for (let z = 0; z < result.length; z++) {
+                    resultSum.topUpAmount += result[z].topUpAmount;
+                    resultSum.bonusAmount += result[z].bonusAmount;
+                    resultSum.totalPlayerDepositAmount += result[z].totalPlayerDepositAmount;
+                    resultSum.validConsumptionAmount += result[z].validConsumptionAmount;
+                }
+
+                for (let i = 0, len = limit; i < len; i++) {
+                    result[index + i] ? outputResult.push(result[index + i]) : null;
+                }
+                return outputResult;
+            }
+        ).then(
+            playerData => {
+                if (!playerData) return Q.reject({name: "DataError", message: localization.localization.translate("No data was found for current query.")});
+
+                playerData.forEach(player => {
+                    topUpProm.push(dbconfig.collection_proposal.aggregate([
+                        {
+                            $match: {
+                                "data.playerObjId": ObjectId(player._id),
+                                mainType: "TopUp",
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            }
+                        },
+                        {
+                            $sort: { settleTime: 1 }
+                        },
+                        {
+                            $group: {
+                                _id: "$data.playerObjId",
+                                typeId: {$first: "$type"},
+                                count: {$sum: 1},
+                                amount: {$sum: "$data.amount"},
+                                lastTopUpDate: {$last: "$settleTime"},
+                            }
+                        }
+                    ]).read("secondaryPreferred"));
+
+                    bonusProm.push(dbconfig.collection_proposal.aggregate([
+                        {
+                            $match: {
+                                "data.playerObjId": ObjectId(player._id),
+                                mainType: "PlayerBonus",
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            }
+                        },
+                        {
+                            $sort: { settleTime: 1 }
+                        },
+                        {
+                            $group: {
+                                _id: "$data.playerObjId",
+                                count: {$sum: 1},
+                                amount: {$sum: "$data.amount"},
+                                lastBonusDate: {$last: "$settleTime"},
+                            }
+                        }
+                    ]).read("secondaryPreferred"));
+
+                    consumptionProm.push(dbconfig.collection_playerConsumptionRecord.aggregate([
+                        {
+                            $match: {
+                                playerId: ObjectId(player._id),
+                                $or: [
+                                    {isDuplicate: {$exists: false}},
+                                    {
+                                        $and: [
+                                            {isDuplicate: {$exists: true}},
+                                            {isDuplicate: false}
+                                        ]
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            $sort: { createTime: 1 }
+                        },
+                        {
+                            $group: {
+                                _id: "$playerId",
+                                gameId: {$first: "$gameId"},
+                                providerId: {$first: "$providerId"},
+                                count: {$sum: {$cond: ["$count", "$count", 1]}},
+                                amount: {$sum: "$amount"},
+                                validAmount: {$sum: "$validAmount"},
+                                bonusAmount: {$sum: "$bonusAmount"},
+                                lastConsumptionDate: {$last: "$createTime"},
+                            }
+                        }
+                    ]).allowDiskUse(true).read("secondaryPreferred"));
+
+                    trackingGroupProm.push(dbconfig.collection_players.findOne({_id: player._id})
+                        .populate({path: 'depositTrackingGroup', model: dbconfig.collection_playerDepositTrackingGroup})
+                        .lean().then(
+                            depositTrackingGroup => {
+                                if (depositTrackingGroup && depositTrackingGroup.depositTrackingGroup && depositTrackingGroup.depositTrackingGroup.name) {
+                                    return {
+                                        playerId: player._id,
+                                        depositTrackingGroupName: depositTrackingGroup.depositTrackingGroup.name
+                                    }
+                                }
+                            }
+                        ));
+                });
+
+                return Promise.all([Promise.all(topUpProm), Promise.all(bonusProm), Promise.all(consumptionProm), Promise.all(trackingGroupProm)]).then(data => {
+                    let topUpRecord = [].concat(...data[0]);
+                    let bonusRecord = [].concat(...data[1]);
+                    let consumptionRecord = [].concat(...data[2]);
+                    let trackingGroupRecord = [].concat(...data[3]);
+
+                    // assign last record date
+                    playerData.forEach(player => {
+                        topUpRecord.forEach(topUp => {
+                            if (player && topUp && player._id.toString() === topUp._id.toString()) {
+                                player.lastTopUpDate = topUp.lastTopUpDate;
+                            }
+                        });
+
+                        bonusRecord.forEach(bonus => {
+                            if (player && bonus && player._id.toString() === bonus._id.toString()) {
+                                player.lastBonusDate = bonus.lastBonusDate;
+                            }
+                        });
+
+                        consumptionRecord.forEach(consumption => {
+                            if (player && consumption && player._id.toString() === consumption._id.toString()) {
+                                player.lastConsumptionDate = consumption.lastConsumptionDate;
+                            }
+                        });
+
+                        // assign deposit tracking group name
+                        trackingGroupRecord.forEach(trackingGroup => {
+                            if (player && trackingGroup && player._id.toString() === trackingGroup.playerId.toString()) {
+                                player.depositTrackingGroupName = trackingGroup.depositTrackingGroupName;
+                            }
+                        });
+
+                        return player;
+                    });
+
+                    // count days without action
+                    playerData.forEach(player => {
+                        if (player && player.lastTopUpDate) {
+                            let timeDiff = Math.abs(today.getTime() - player.lastTopUpDate.getTime());
+                            player.noDeposit = Math.floor(timeDiff / (1000 * 3600 * 24)); // difference in days
+                        }
+                        if (player && player.lastBonusDate) {
+                            let timeDiff = Math.abs(today.getTime() - player.lastBonusDate.getTime());
+                            player.noWithdrawal = Math.floor(timeDiff / (1000 * 3600 * 24)); // difference in days
+                        }
+                        if (player && player.lastConsumptionDate) {
+                            let timeDiff = Math.abs(today.getTime() - player.lastConsumptionDate.getTime());
+                            player.noConsumption = Math.floor(timeDiff / (1000 * 3600 * 24)); // difference in days
+                        }
+                    });
+
+                    return {size: result.length, data: playerData, total: resultSum, topUpRecord: topUpRecord};
+                });
+            }
+        );
+    },
+
+    modifyPlayerDepositTrackingGroup: function (platform, playerId, trackingGroup) {
+        let query = {
+            _id: playerId,
+            platform: platform
+        };
+
+        return dbconfig.collection_players.findOne(query).lean().then(
+            playerData => {
+                if (!playerData) return Q.reject({name: "DataError", message: localization.localization.translate("Invalid player data")});
+
+                let updateData = {
+                    depositTrackingGroup: trackingGroup
+                };
+
+                return dbconfig.collection_players.findOneAndUpdate(query, updateData, {new: true})
+            }
+        )
+    },
+
+    removePlayerFromDepositTrackingReport: function (platform, playerId) {
+        let query = {
+            _id: playerId,
+            platform: platform
+        };
+
+        return dbconfig.collection_players.findOne(query, {isDepositTracked: 1}).then(
+            playerData => {
+                if (!playerData) return Q.reject({name: "DataError", message: localization.localization.translate("Invalid player data")});
+
+                // change status to false, player will be not be tracked anymore
+                let updateData = {
+                    isDepositTracked: false
+                };
+
+                return dbconfig.collection_players.findOneAndUpdate(query, updateData, {new: true});
+            }
+        );
+    },
+
     getDXNewPlayerReport: function (platform, query, index, limit, sortCol) {
         limit = limit ? limit : 20;
         index = index ? index : 0;
