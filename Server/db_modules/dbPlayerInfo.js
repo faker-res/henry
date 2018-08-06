@@ -15039,6 +15039,8 @@ let dbPlayerInfo = {
                 }
             ).lean();
 
+            console.log('domain-0806', domain);
+
             // Promise domain CS and promote way
             let promoteWayProm = domain ?
                 dbconfig.collection_csOfficerUrl.findOne({
@@ -15266,6 +15268,7 @@ let dbPlayerInfo = {
                     result.endTime = endTime;
 
                     let csOfficerDetail = data[6];
+                    console.log('csOfficerDetail', csOfficerDetail);
 
                     // related admin
                     if (playerDetail.accAdmin) {
