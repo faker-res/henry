@@ -221,6 +221,9 @@ let rewardPointsModel = db_player.model('rewardPoints', rewardPointsSchema, 'rew
 let rewardPointsRandomDataConfigModel = db_admin.model('rewardPointsRandomDataConfig', rewardPointsRandomDataConfigSchema, 'rewardPointsRandomDataConfig');
 let rewardPointsTaskModel = db_player.model('rewardPointsTask', rewardPointsTaskSchema, 'rewardPointsTask');
 
+let playerDepositTrackingGroupSchema = require('./../schema/playerDepositTrackingGroup');
+let playerDepositTrackingGroupModel = db_admin.model('playerDepositTrackingGroup', playerDepositTrackingGroupSchema, 'playerDepositTrackingGroup');
+
 //----------------------------------------logs db properties-----------------------------------------------------------
 var playerMailModel = dbLogs.model('playerMail', playerMailSchema, 'playerMail');
 
@@ -469,6 +472,7 @@ var dbProperties = {
     collection_playerLoginRecord: playerLoginRecordModel,
     collection_playerLevelConsumptionLevel: playerLevelConsumptionLimitModel,
     collection_playerCredibilityRemark: playerCredibilityRemarkModel,
+    collection_playerDepositTrackingGroup: playerDepositTrackingGroupModel,
 
     collection_apiUser: apiUserModel,
     collection_platform: platformModel,
