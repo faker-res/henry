@@ -3869,6 +3869,7 @@
   "TARGET_SITE": "目标网站",
   "EXPORT_PLAYER_COUNT": "转移玩家总数",
   "BULK_CALL": "批量拨出",
+  "SELECTED_CALL": "拨打至指定玩家",
   "CALL_PERMISSION": "电话回访权限",
   "CALLABLE": "可播电",
   "partnerApiLog": "代理登入记录",
