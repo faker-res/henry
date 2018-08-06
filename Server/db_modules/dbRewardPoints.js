@@ -1597,16 +1597,12 @@ let dbRewardPoints = {
                     return dbConfig.collection_players.findOne({
                         playerId: playerId,
                         platform: platformRecord._id
-                    }, {
-                        _id: 1,
-                        platform: 1,
-                        permission: 1
                     }).lean();
                 } else {
                     return Promise.reject({name: "DataError", message: "Platform Not Found"});
                 }
             })
-            .then(playerRecord => { console.log('JY check playerRecord::',playerRecord);
+            .then(playerRecord => {
                 let topupRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
                     platformObjId: platformData._id,
                     category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS,
