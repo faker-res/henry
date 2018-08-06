@@ -538,6 +538,9 @@ var dbPlayerConsumptionWeekSummary = {
                 else {
                     return Promise.reject({name: "DataError", message: "Incorrect player data"});
                 }
+            },
+            function (error) {
+                return Promise.reject({name: "DBError", message: "Error finding player", error: error});
             }
         ).then(
             playerState => {
@@ -556,9 +559,6 @@ var dbPlayerConsumptionWeekSummary = {
                         message: "Apply Reward Fail, please try again later"
                     })
                 }
-            },
-            function (error) {
-                return Promise.reject({name: "DBError", message: "Error finding player", error: error});
             }
         ).then(
             function (eventsData) {

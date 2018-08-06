@@ -12,7 +12,7 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
 let dbCallOutMission = {
-    createCallOutMission: (platformObjId, adminObjId, searchFilter, searchQuery, sortCol) => {
+    createCallOutMission: (platformObjId, adminObjId, searchFilter, searchQuery, sortCol, selectedPlayers) => {
         let platform, admin, calleeList, callOutMission;
         searchQuery = typeof searchQuery == "string" ? JSON.parse(searchQuery) : searchQuery;
 
@@ -31,7 +31,7 @@ let dbCallOutMission = {
                     return Promise.reject({name: "DataError", message: "No admin acc"});
                 }
 
-                return getCalleeList(searchQuery, sortCol);
+                return getCalleeList(searchQuery, sortCol, selectedPlayers);
             }
         ).then(
             calleeData => {
@@ -348,7 +348,7 @@ function getPlayerDetails(players) {
     return Promise.all(proms);
 }
 
-function getCalleeList (query, sortCol) {
+function getCalleeList (query, sortCol, selectedPlayers) {
     switch (query.playerType) {
         case 'Test Player':
             query.isRealPlayer = false;
@@ -375,6 +375,11 @@ function getCalleeList (query, sortCol) {
         query.csOfficer = {
             $in: query.csOfficer
         }
+    }
+
+    if(selectedPlayers && selectedPlayers.length > 0){
+        query = {};
+        query.playerId = {$in: selectedPlayers}
     }
 
     let players;
@@ -677,4 +682,3 @@ function callCtiApiWithRetry (platformId, path, param) {
         });
     }
 }
-
