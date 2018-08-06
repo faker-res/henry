@@ -1590,14 +1590,18 @@ let dbRewardPoints = {
         let gameProvider;
         let rewardPointsRanking;
 
-        return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
+        return dbConfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().then(
             platformRecord => {
                 if (platformRecord) {
                     platformData = platformRecord;
                     return dbConfig.collection_players.findOne({
                         playerId: playerId,
                         platform: platformRecord._id
-                    })
+                    }, {
+                        _id: 1,
+                        platform: 1,
+                        permission: 1
+                    }).lean();
                 } else {
                     return Promise.reject({name: "DataError", message: "Platform Not Found"});
                 }
