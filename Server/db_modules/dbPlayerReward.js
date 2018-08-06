@@ -2430,10 +2430,23 @@ let dbPlayerReward = {
                     if (query.status == constPromoCodeStatus.EXPIRED){
                         f2Open = f2Open.filter(p => {
                            if(p && p.data && p.data.templateId){
-                               return new Date(p.data.openExpirationTime$).getTime(0) < new Date().getTime()
+                               return new Date(p.data.openExpirationTime$).getTime() < new Date().getTime()
                            }
                         })
                     }
+
+                    // append promoCodeStatus to the openPromoCode for color displaying (according to status)
+                    f2Open.forEach( item => {
+                        if (item && item.data && item.data.templateId){
+                            if (new Date(item.data.openExpirationTime$).getTime() < new Date().getTime()){
+                                item.data.promoCodeStatus$ = constPromoCodeStatus.EXPIRED;
+                            }
+                            else{
+                                item.data.promoCodeStatus$ = constPromoCodeStatus.ACCEPTED;
+                            }
+                        }
+                    })
+
                     let f2All = f2.concat(f2Open);
 
                     // sorting by follow sortCol

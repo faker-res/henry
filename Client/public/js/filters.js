@@ -104,7 +104,7 @@ angular.module('myApp.filters', []).
             }
             else{
                 let splitString =  value.toLocaleString().split(".");
-                if (splitString[1].length == 1) {
+                if (splitString[1] && splitString[1].length == 1) {
                    return value.toLocaleString() + '0';
                 }
                 else{
