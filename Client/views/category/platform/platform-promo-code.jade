@@ -351,15 +351,15 @@
                     .col-md-12.playerBtn
                         hr.margin-top-bottom-small
                         .btn-group.margin-small
-                            //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'applyPromoCode') && vm.selectedPromoCodes.length < 2", ng-disabled="vm.selectedPromoCode.status != 1", ng-click='vm.applyPromoCode()')
-                            //    text {{"APPLY" | translate}}
-                            //    img.img-edit
-                            //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'sendSMS') && vm.selectedPromoCodes.length < 2", ng-disabled="!vm.promoCodeQuery.totalCount", ng-click='vm.selectedPromoCode ? vm.sendSMSByPromoCode() : vm.sendSMSByPromoCodeBatch()')
-                            //    text {{"sendSMS" | translate}}
-                            //    img.img-edit
-                            //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'applyPromoCode')", ng-disabled="vm.selectedPromoCode.status != 1 && vm.selectedPromoCodes.length < 1", ng-click="vm.disablePromoCodes()")
-                            //    text {{"DELETE" | translate}}
-                            //    img.img-edit
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'applyPromoCode') && vm.selectedPromoCodes.length < 2", ng-disabled="vm.selectedPromoCode.status != 1", ng-click='vm.applyPromoCode()')
+                                text {{"APPLY" | translate}}
+                                img.img-edit
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'sendSMS') && vm.selectedPromoCodes.length < 2", ng-disabled="!vm.promoCodeQuery.totalCount", ng-click='vm.selectedPromoCode ? vm.sendSMSByPromoCode() : vm.sendSMSByPromoCodeBatch()')
+                                text {{"sendSMS" | translate}}
+                                img.img-edit
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'applyPromoCode')", ng-disabled="vm.selectedPromoCode.status != 1 && vm.selectedPromoCodes.length < 1", ng-click="vm.disablePromoCodes()")
+                                text {{"DELETE" | translate}}
+                                img.img-edit
                             button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'applyPromoCode')", ng-disabled="!vm.promoCodeQuery.hasOwnProperty('result') || (vm.promoCodeQuery.result && vm.promoCodeQuery.result.length < 1)", ng-click="vm.promoCodeSelectAllToggle()")
                                 text {{"Select All" | translate}}
                                 img.img-edit
