@@ -1735,16 +1735,30 @@ let dbPlayerCreditTransfer = {
                         ebetWallet: 0
                     };
 
+                    checkRTGProm.push(
+                        dbConfig.collection_rewardTaskGroup.findOne({
+                            platformId: platform,
+                            playerId: playerObjId,
+                            providerGroup: null,
+                            status: {$in: [constRewardTaskStatus.STARTED]}
+                        }).populate({
+                            path: "lastPlayedProvider", model: dbConfig.collection_gameProvider
+                        }).lean().then(RTG => {
+                            if(RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name &&
+                                (RTG.lastPlayedProvider.name.toUpperCase() === "EBET" || RTG.lastPlayedProvider.name.toUpperCase() === "EBETSLOTS")) {
+                                transferOut = transferOut.then(() => {
+                                    return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
+                                        amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
+                                        transferOutSuccessData.push(ret);
+                                    }).catch(err => {
+                                        transferOutErrorData.push(err);
+                                        return errorUtils.reportError(err);
+                                    })
+                                });
+                            }
+                        })
+                    );
                     return Promise.all(checkRTGProm).then(() => {
-                        transferOut = transferOut.then(() => {
-                            return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
-                                amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
-                                transferOutSuccessData.push(ret);
-                            }).catch(err => {
-                                transferOutErrorData.push(err);
-                                return errorUtils.reportError(err);
-                            })
-                        });
                         return transferOut;
                     }).then(() => {
                         console.log('transferout promise data',transferOutSuccessData);
