@@ -84,15 +84,18 @@
                                     a(ng-click='vm.allGametoPlatform("remove","in");$event.stopPropagation();') {{"Clear All" | translate}}
                         #includedGames.panel-collapse.collapse.in
                             .panel-body(style='height:250px;overflow-y:auto')
-                                div.platformGame(ng-repeat='(i,v) in vm.includedGames', class='{{vm.highlightGame[v._id]}}')
+                                div.platformGame(ng-repeat='(i,v) in vm.includedGames', class='{{vm.highlightGame[v._id]}}' style="margin-bottom: 15px;")
                                     a(ng-click='vm.gameClicked(i,v)')
                                         img(async=on ng-if="vm.gameSmallShow[v._id]",src='{{vm.gameSmallShow[v._id]}}')
                                         div(ng-if="!vm.gameSmallShow[v._id]")
                                             .fa.fa-square-o.divfa
-                                        .text-center
-                                            label {{v.name}}
                                         .fa.fa-circle.masterStatusIcon(class='{{vm.getGameStatusClass(v.status)}}')
                                         .fa.fa-circle.statusIcon(class='{{vm.getGameStatusClass(vm.gameStatus[v._id])}}')
+                                    .text-center(style="margin-left: 10px; margin-top: -17px;" ng-if="!vm.isEditingGameName")
+                                        label(ng-click="vm.isEditingGameName = true" ng-style='v.isDefaultName ? {color:"blue"} : {color:"red"}') {{v.name$}}
+                                    form(ng-submit="vm.submitGameNameChange(i);")
+                                        .text-center(style="margin-left: 10px; margin-top: -17px;" ng-if="vm.isEditingGameName")
+                                            input(ng-model="vm.includedGames[i].name$")
 
                     .panel.panel-default
                         .panel-heading.panel-heading-sm(data-toggle='collapse',data-parent="#gameList", href='#excludedGames', ng-click='vm.showGameCate="exclude";vm.toggleGameType();vm.gameListCollapseOut();')
