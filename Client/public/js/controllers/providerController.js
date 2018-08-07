@@ -241,6 +241,12 @@ define(['js/app'], function (myApp) {
             $('#loadingProviderGames').removeClass('hidden');
             socketService.$socket($scope.AppSocket, 'getGamesByProviderId', {_id: id}, function (data) {
                 vm.allGames = data.data;
+                vm.allGames.forEach(game => {
+                    if(game){
+                        game.name$ = game.nameRedefined && game.nameRedefined != "" ? game.nameRedefined : game.name;
+                        game.isDefaultName = game.nameRedefined && game.nameRedefined != "" ? false : true;
+                    }
+                })
                 vm.filterAllGames = $.extend([], vm.allGames);
                 console.log('vm.allGames', vm.allGames);
                 $('#loadingProviderGames').addClass('hidden');
@@ -929,6 +935,29 @@ define(['js/app'], function (myApp) {
                 }
             }
         }
+
+        vm.submitProviderGameNameChange = function(index){
+            let sendQuery = {
+                gameObjId: vm.filterAllGames[index] && vm.filterAllGames[index]._id ? vm.filterAllGames[index]._id : null,
+                redefinedName: vm.filterAllGames[index] && vm.filterAllGames[index].name$ ? vm.filterAllGames[index].name$ : null
+            }
+
+            $scope.$socketPromise("renameGame", sendQuery).then(data => {
+                $scope.$evalAsync(() => {
+                    console.log("game name redefined.",data);
+                    if(vm.filterAllGames[index] && vm.filterAllGames[index].name$ && vm.filterAllGames[index].name$ != ""){
+                        vm.filterAllGames[index].isDefaultName = false;
+                    }
+                    else if(vm.filterAllGames[index].name$ == "" && vm.filterAllGames[index].name){
+                        vm.filterAllGames[index].name$ = vm.filterAllGames[index].name;
+                        vm.filterAllGames[index].isDefaultName = true;
+                    }
+
+                    vm.isEditingGameName = false;
+                })
+            });
+        }
+
         // $scope.$on('$viewContentLoaded', function () {
         var eventName = "$viewContentLoaded";
         if (!$scope.AppSocket) {
