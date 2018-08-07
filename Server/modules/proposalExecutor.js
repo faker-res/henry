@@ -1148,34 +1148,8 @@ var proposalExecutor = {
                             );
                         }
                         dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.ONLINE);
-                        let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData);
-                        let applyPromoCode = null;
-                        if (proposalData.data.bonusCode) {
-                            let isOpenPromoCode = proposalData.data.bonusCode.toString().length == 3? true : false;
-                            if (isOpenPromoCode){
-                                applyPromoCode = dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
-                            }
-                            else{
-                                applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
-                            }
-
-                        }
-                        let applyTopUpReturn = null;
-                        if (proposalData.data.topUpReturnCode) {
-                            let requiredData = {topUpRecordId: data._id}
-                            applyTopUpReturn = dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
-                                , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
-                        }
-                        Promise.all([applyPlayerTopUpPromo, applyPromoCode, applyTopUpReturn]).then(
-                            data => {
-                                sendMessageToPlayer (proposalData,constMessageType.ONLINE_TOPUP_SUCCESS,{});
-                                deferred.resolve(proposalData);
-                            },
-                            error => {
-                                deferred.reject(error)
-                            }
-                        )
-
+                        sendMessageToPlayer (proposalData,constMessageType.ONLINE_TOPUP_SUCCESS,{});
+                        deferred.resolve(proposalData);
                     },
                     function (error) {
                         deferred.reject(error);
@@ -1203,32 +1177,8 @@ var proposalExecutor = {
                         //     );
                         // }
                         dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.ALIPAY);
-                        let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'aliPay');
-                        let applyPromoCode = null;
-                        if (proposalData.data.bonusCode) {
-                            let isOpenPromoCode = proposalData.data.bonusCode.toString().length == 3? true : false;
-                            if (isOpenPromoCode){
-                                applyPromoCode = dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
-                            }
-                            else {
-                                applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
-                            }
-                        }
-                        let applyTopUpReturn = null;
-                        if (proposalData.data.topUpReturnCode) {
-                            let requiredData = {topUpRecordId: data._id}
-                            applyTopUpReturn = dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
-                                , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
-                        }
-                        Promise.all([applyPlayerTopUpPromo, applyPromoCode, applyTopUpReturn]).then(
-                            data => {
-                                sendMessageToPlayer (proposalData,constMessageType.ALIPAY_TOPUP_SUCCESS,{});
-                                deferred.resolve(proposalData);
-                            },
-                            error => {
-                                deferred.reject(error)
-                            }
-                        )
+                        sendMessageToPlayer (proposalData,constMessageType.ALIPAY_TOPUP_SUCCESS,{});
+                        deferred.resolve(proposalData);
                     },
                     function (error) {
                         deferred.reject(error);
@@ -1284,32 +1234,8 @@ var proposalExecutor = {
                         //     );
                         // }
                         dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.WECHAT);
-                        let applyPlayerTopUpPromo = dbPlayerReward.applyPlayerTopUpPromo(proposalData, 'weChat');
-                        let applyPromoCode = null;
-                        if (proposalData.data.bonusCode) {
-                            let isOpenPromoCode = proposalData.data.bonusCode.toString().length == 3? true : false;
-                            if (isOpenPromoCode){
-                                applyPromoCode = dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
-                            }
-                            else {
-                                applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
-                            }
-                        }
-                        let applyTopUpReturn = null;
-                        if (proposalData.data.topUpReturnCode) {
-                            let requiredData = {topUpRecordId: data._id}
-                            applyTopUpReturn = dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
-                                , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
-                        }
-                        Promise.all([applyPlayerTopUpPromo, applyPromoCode, applyTopUpReturn]).then(
-                            data => {
-                                sendMessageToPlayer (proposalData,constMessageType.WECHAT_TOPUP_SUCCESS,{});
-                                deferred.resolve(proposalData);
-                            },
-                            error => {
-                                deferred.reject(error)
-                            }
-                        )
+                        sendMessageToPlayer (proposalData,constMessageType.WECHAT_TOPUP_SUCCESS,{});
+                        deferred.resolve(proposalData);
                     },
                     function (error) {
                         deferred.reject(error);
@@ -1326,8 +1252,6 @@ var proposalExecutor = {
                 if (proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.amount) {
                     dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.MANUAL, proposalData).then(
                         function (data) {
-
-                            sendMessageToPlayer(proposalData,constMessageType.MANUAL_TOPUP_SUCCESS,{});
                             // SMSSender.sendByPlayerId(proposalData.data.playerId, constMessageType.MANUAL_TOPUP_SUCCESS);
                             // var wsMessageClient = serverInstance.getWebSocketMessageClient();
                             // if (wsMessageClient) {
@@ -1342,35 +1266,9 @@ var proposalExecutor = {
                             //     );
                             // }
                             // DEBUG: Reward sometime not applied issue
-                            console.log('applyForPlatformTransactionReward - Start', proposalData.proposalId);
                             dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.MANUAL);
-                            // return dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount, proposalData.data.playerLevel, proposalData.data.bankCardType);
-                            let applyforTransactionReward = dbPlayerInfo.applyForPlatformTransactionReward(proposalData.data.platformId, proposalData.data.playerId, proposalData.data.amount,
-                                proposalData.data.playerLevel, proposalData.data.bankCardType).catch(errorUtils.reportError);
-                            let applyPromoCode = null;
-                            if (proposalData.data.bonusCode) {
-                                let isOpenPromoCode = proposalData.data.bonusCode.toString().length == 3? true : false;
-                                if (isOpenPromoCode){
-                                    applyPromoCode = dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
-                                }
-                                else {
-                                    applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
-                                }
-                            }
-                            let applyTopUpReturn = null;
-                            if (proposalData.data.topUpReturnCode) {
-                                let requiredData = {topUpRecordId: data._id}
-                                applyTopUpReturn = dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
-                                    , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
-                            }
-                            Promise.all([applyforTransactionReward, applyPromoCode, applyTopUpReturn]).then(
-                                data => {
-                                    deferred.resolve(proposalData);
-                                },
-                                error => {
-                                    deferred.reject(error)
-                                }
-                            )
+                            sendMessageToPlayer(proposalData,constMessageType.MANUAL_TOPUP_SUCCESS,{});
+                            deferred.resolve(proposalData);
                         },
                         function (error) {
                             deferred.reject(error);
