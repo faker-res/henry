@@ -192,6 +192,10 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             input.form-control(type="number" ng-model="vm.telePlayerSendingMsgTable.msgTimes" style="width:80px;display:inline-block")
                             div.text-center(style="width:15px;display:inline-block" ng-if="vm.telePlayerSendingMsgTable.msgTimesOperator === 'range'") ~
                             input.form-control(type="number" ng-model="vm.telePlayerSendingMsgTable.msgTimes2" style="width:80px;display:inline-block" ng-if="vm.telePlayerSendingMsgTable.msgTimesOperator === 'range'")
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'Read')")
+                            label {{'IMPORTED_PHONE_NUMBER' | translate}}
+                                br
+                            input.form-control(ng-model="vm.telePlayerSendingMsgTable.phoneNumber" style="display:inline-block; width:calc(100% - 15px)")
                         .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-show="checkViewPermission('TeleMarketing', 'Overview', 'Read')")
                             button.common-button.btn.btn-primary(ng-click='vm.getTelePlayerSendingMsgTable(true)') {{'SEARCH' | translate}}
                         .inlineBlk(ng-show='vm.loadingTelePlayerSendingSMSTable')

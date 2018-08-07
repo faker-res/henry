@@ -954,6 +954,10 @@ let dbDXMission = {
             findQuery.playerObjId = {$exists: false};
         }
 
+        if(data.phoneNumber){
+            findQuery.phoneNumber = data.phoneNumber;
+        }
+
        // let sizeProm = dbconfig.collection_dxPhone.find(findQuery).count();
         let dxPhoneDataProm = dbconfig.collection_dxPhone.find(findQuery).populate({path: "playerObjId", model: dbconfig.collection_players}).sort({createTime: -1}).lean();
             //.sort(QsortCol).skip(Qindex).limit(Qlimit);
