@@ -84,7 +84,7 @@ let dbPlayerOnlineTime = {
 
             logs.forEach(log => {
                 retData.totalCount++;
-                retData.count1 += checkSecondsGroup(log.totalOnlineSeconds, 0, 60) ? 1 : 0;
+                retData.count1 += !log.totalOnlineSeconds || checkSecondsGroup(log.totalOnlineSeconds, 0, 60) ? 1 : 0;
                 retData.count2 += checkSecondsGroup(log.totalOnlineSeconds, 60, 180) ? 1 : 0;
                 retData.count3 += checkSecondsGroup(log.totalOnlineSeconds, 180, 300) ? 1 : 0;
                 retData.count4 += checkSecondsGroup(log.totalOnlineSeconds, 300, 600) ? 1 : 0;
