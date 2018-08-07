@@ -1614,7 +1614,7 @@ let dbRewardPoints = {
                 }).populate({path: "level", model: dbConfig.collection_playerLevel, select: {'name': 1, 'value': 1}}).lean().sort({index: 1});
 
                 if (playerRecord) {
-                    if(playerRecord && playerRecord.permission && !playerRecord.permission.rewardPointsTask){
+                    if(playerRecord && playerRecord.permission && playerRecord.permission.hasOwnProperty("rewardPointsTask") && (playerRecord.permission.rewardPointsTask.toString() == 'false')){
                         return Promise.reject({name: "DataError", message: "Player does not have permission for reward point task"});
                     }
                     playerData = playerRecord;
