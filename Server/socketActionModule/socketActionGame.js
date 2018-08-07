@@ -165,6 +165,12 @@ function socketActionGame(socketIO, socket) {
             let isValidData = Boolean(data && data.playerId && data.providerId && data.newPassword);
             let argArr = [data.playerId, data.providerId, data.newPassword, data.creator];
             socketUtil.emitter(self.socket, dbGame.modifyGamePassword, argArr, actionName, isValidData);
+        },
+
+        renameGame: function renameGame(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.gameObjId);
+            socketUtil.emitter(self.socket, dbGame.renameGame, [data.gameObjId, data.customName], actionName, isValidData);
         }
     };
     socketActionGame.actions = this.actions;
