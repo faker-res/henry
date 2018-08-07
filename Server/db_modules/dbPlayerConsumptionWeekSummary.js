@@ -355,68 +355,72 @@ var dbPlayerConsumptionWeekSummary = {
                                     });
                                 }
 
-                                // Generate xima proposal
-                                let proposalData = {
-                                    type: proposalTypeId,
-                                    entryType: bRequest ? constProposalEntryType.CLIENT : constProposalEntryType.SYSTEM,
-                                    userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                                    data: {
-                                        playerObjId: playerData._id,
-                                        platformId: platformId,
-                                        playerName: playerData.name,
-                                        playerId: playerData.playerId,
-                                        eventName: eventData.name,
-                                        eventCode: eventData.code,
-                                        rewardAmount: returnAmount < 0.01 ? 0 : returnAmount,
-                                        returnDetail: returnDetail,
-                                        nonXIMADetail: nonXIMADetail,
-                                        summaryIds: summaryIds,
-                                        bConsumptionReturnRequest: bRequest,
-                                        consumeValidAmount: applyAmount,
-                                        totalNonXIMAAmt: totalNonXIMAAmt,
-                                        eventDescription: eventData.description,
-                                        startTime: startTime,
-                                        endTime: endTime
-                                    }
-                                };
+                                if (returnAmount >= 0.01) {
+                                    // Generate xima proposal
+                                    let proposalData = {
+                                        type: proposalTypeId,
+                                        entryType: bRequest ? constProposalEntryType.CLIENT : constProposalEntryType.SYSTEM,
+                                        userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                                        data: {
+                                            playerObjId: playerData._id,
+                                            platformId: platformId,
+                                            playerName: playerData.name,
+                                            playerId: playerData.playerId,
+                                            eventName: eventData.name,
+                                            eventCode: eventData.code,
+                                            rewardAmount: returnAmount < 0.01 ? 0 : returnAmount,
+                                            returnDetail: returnDetail,
+                                            nonXIMADetail: nonXIMADetail,
+                                            summaryIds: summaryIds,
+                                            bConsumptionReturnRequest: bRequest,
+                                            consumeValidAmount: applyAmount,
+                                            totalNonXIMAAmt: totalNonXIMAAmt,
+                                            eventDescription: eventData.description,
+                                            startTime: startTime,
+                                            endTime: endTime
+                                        }
+                                    };
 
-                                if (eventData.param.consumptionTimesRequired && eventData.param.consumptionTimesRequired > 0) {
-                                    proposalData.data.spendingAmount = proposalData.data.rewardAmount * eventData.param.consumptionTimesRequired;
+                                    if (eventData.param.consumptionTimesRequired && eventData.param.consumptionTimesRequired > 0) {
+                                        proposalData.data.spendingAmount = proposalData.data.rewardAmount * eventData.param.consumptionTimesRequired;
+                                    }
+
+                                    if (adminId && adminName) {
+                                        proposalData.creator = {
+                                            name: adminName,
+                                            type: 'admin',
+                                            id: adminId
+                                        }
+                                    } else if (bRequest) {
+                                        // if userAgent is null, inputDevice should be H5 player or partner
+                                        proposalData.inputDevice = dbutility.getInputDevice(userAgent);
+                                        proposalData.creator = {
+                                            type: 'player',
+                                            name: playerData.name,
+                                            id: playerData.playerId
+                                        }
+                                    } else {
+                                        proposalData.inputDevice = constPlayerRegistrationInterface.BACKSTAGE;
+                                    }
+
+                                    // Check whether ignore audit
+                                    proposalData.data.isIgnoreAudit = eventData.param
+                                        && Number.isInteger(eventData.param.isIgnoreAudit)
+                                        && eventData.param.isIgnoreAudit >= proposalData.data.rewardAmount;
+
+                                    // Check minimum xima amount
+                                    if (eventData && eventData.param && eventData.param.earlyXimaMinAmount
+                                        && bRequest && !isForceApply && proposalData.data.rewardAmount < eventData.param.earlyXimaMinAmount)
+                                    {
+                                        // Not enough xima amount
+                                        isLessThanEnoughReward = true;
+                                    } else {
+                                        processedSummaries = processedSummaries.concat(thisPlayerSummaries);
+                                        return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
+                                    }
                                 }
 
-                                if (adminId && adminName) {
-                                    proposalData.creator = {
-                                        name: adminName,
-                                        type: 'admin',
-                                        id: adminId
-                                    }
-                                }else if(bRequest){
-                                    // if userAgent is null, inputDevice should be H5 player or partner
-                                    proposalData.inputDevice = dbutility.getInputDevice(userAgent);
-                                    proposalData.creator = {
-                                        type: 'player',
-                                        name: playerData.name,
-                                        id: playerData.playerId
-                                    }
-                                }else{
-                                    proposalData.inputDevice = constPlayerRegistrationInterface.BACKSTAGE;
-                                }
-
-                                // Check whether ignore audit
-                                proposalData.data.isIgnoreAudit = eventData.param
-                                    && Number.isInteger(eventData.param.isIgnoreAudit)
-                                    && eventData.param.isIgnoreAudit >= proposalData.data.rewardAmount;
-
-                                // Check minimum xima amount
-                                if (eventData && eventData.param && eventData.param.earlyXimaMinAmount
-                                    && bRequest && !isForceApply && proposalData.data.rewardAmount < eventData.param.earlyXimaMinAmount)
-                                {
-                                    // Not enough xima amount
-                                    isLessThanEnoughReward = true;
-                                } else {
-                                    processedSummaries = processedSummaries.concat(thisPlayerSummaries);
-                                    return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
-                                }
+                                return Promise.resolve(true);
                             }
                         }
                     ).catch(
