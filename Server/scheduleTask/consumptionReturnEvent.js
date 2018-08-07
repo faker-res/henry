@@ -75,7 +75,7 @@ let consumptionReturnEvent = {
                             'data.bConsumptionReturnRequest': {$exists: false}
                         }).lean().then(
                             prop => {
-                                if (prop) { console.log('prop', prop); isSettled = true }
+                                if (prop) { isSettled = true }
                             }
                         )
                     )
