@@ -8,7 +8,8 @@ let dbPlayerOnlineTime = {
         }, {
             platform: platformObjId,
             lastLoginTime: new Date(),
-            lastAuthenticateTime: null
+            lastAuthenticateTime: null,
+            totalOnlineSeconds: 0
         }, {
             upsert: true
         });
