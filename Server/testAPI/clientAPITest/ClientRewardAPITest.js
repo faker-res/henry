@@ -226,6 +226,12 @@
         this.rewardService.setBonusShowInfo.once(callback);
     };
 
+    proto.getRewardApplicationData = function (callback, requestData) {
+        let data = requestData || {};
+        this.rewardService.getRewardApplicationData.request(data);
+        this.rewardService.getRewardApplicationData.once(callback);
+    };
+
     proto.getSignInfo = function (callback, requestData) {
         let data = requestData || {};
 
