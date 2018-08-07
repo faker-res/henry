@@ -14415,9 +14415,29 @@ let dbPlayerInfo = {
             bonusAmount: 0,
         };
 
+        // adjust the timezone
+        let timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000;
+        let positiveTimeOffset = Math.abs(timezoneOffset);
+        let timezoneAdjust = {};
+
         // loop for every day
         while (startDate.getTime() < endDate.getTime()) {
             let dayEndTime = getNextDateByPeriodAndDate('day', startDate);
+
+            // convert UTC 16h to GMT 24h
+            if (parseInt(timezoneOffset) > 0) {
+                timezoneAdjust = {
+                    year: {$year: {$subtract: ['$settleTime', positiveTimeOffset]}},
+                    month: {$month: {$subtract: ['$settleTime', positiveTimeOffset]}},
+                    day: {$dayOfMonth: {$subtract: ['$settleTime', positiveTimeOffset]}}
+                }
+            } else {
+                timezoneAdjust = {
+                    year: {$year: {$add: ['$settleTime', positiveTimeOffset]}},
+                    month: {$month: {$add: ['$settleTime', positiveTimeOffset]}},
+                    day: {$dayOfMonth: {$add: ['$settleTime', positiveTimeOffset]}}
+                }
+            }
 
             topUpProm.push(dbconfig.collection_proposal.aggregate([
                 {
@@ -14433,7 +14453,8 @@ let dbPlayerInfo = {
                 },
                 {
                     $group: {
-                        _id: { month: { $month: "$settleTime" }, day: { $dayOfMonth: "$settleTime" }, year: { $year: "$settleTime" } },
+                        // _id: { month: { $month: "$settleTime" }, day: { $dayOfMonth: "$settleTime" }, year: { $year: "$settleTime" } },
+                        _id: timezoneAdjust,
                         typeId: {$first: "$type"},
                         count: {$sum: 1},
                         amount: {$sum: "$data.amount"},
@@ -14455,7 +14476,8 @@ let dbPlayerInfo = {
                 },
                 {
                     $group: {
-                        _id: { month: { $month: "$settleTime" }, day: { $dayOfMonth: "$settleTime" }, year: { $year: "$settleTime" } },
+                        // _id: { month: { $month: "$settleTime" }, day: { $dayOfMonth: "$settleTime" }, year: { $year: "$settleTime" } },
+                        _id: timezoneAdjust,
                         count: {$sum: 1},
                         amount: {$sum: "$data.amount"},
                     }
