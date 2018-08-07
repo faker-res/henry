@@ -12629,7 +12629,7 @@ let dbPlayerInfo = {
                                     return dbPlayerInfo.applyForGameProviderRewardAPI(userAgent, playerId, code, data.amount, adminInfo);
                                     break;
                                 //request consumption rebate
-                                case constRewardType.PLAYER_CONSUMPTION_RETURN: //XIMA
+                                case constRewardType.PLAYER_CONSUMPTION_RETURN:
                                     return dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn(playerId, true, adminId, code, userAgent, adminName, data.isForceApply);
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_RETURN:
@@ -12642,7 +12642,7 @@ let dbPlayerInfo = {
                                     }
                                     return dbPlayerInfo.applyTopUpReturn(userAgent, playerId, data.topUpRecordId, code, adminInfo);
                                     break;
-                                case constRewardType.PLAYER_CONSUMPTION_INCENTIVE: //consumption reward
+                                case constRewardType.PLAYER_CONSUMPTION_INCENTIVE:
                                     return dbPlayerInfo.applyConsumptionIncentive(userAgent, playerId, code, adminInfo);
                                     break;
                                 case constRewardType.PLAYER_TOP_UP_REWARD:
