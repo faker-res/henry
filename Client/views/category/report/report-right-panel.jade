@@ -426,6 +426,82 @@
                     br
                 br
 
+        div(ng-if='vm.showPageName=="PLAYER_DEPOSIT_TRACKING_REPORT"')
+            .block-query.col-md-12.well
+                div
+                    label {{'Player Name' | translate}}
+                    input.form-control.span.input-sm(ng-model="vm.depositTrackingQuery.name")
+                div
+                    label(style='min-width:130px') {{"CREDIBILITY"|translate}}
+                    select.form-control#selectCredibilityRemarksDepositTracking(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model="vm.depositTrackingQuery.credibilityRemarks")
+                div
+                    label(style='min-width:130px') {{"TRACKING_GROUP"|translate}}
+                    select.form-control#selectTrackingGroupDepositTracking(multiple="multiple", style='min-width:100px;height:34px;', ng-options='group._id as group.name | translate for group in vm.filterDepositTrackingGroup', ng-model="vm.depositTrackingQuery.depositTrackingGroup")
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchPlayerDepositTrackingReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-primary.margin-left-5(data-toggle="modal", data-target='#modalPlayerDepositTrackingGroupTable' ng-click='vm.initDepositTrackingGroup()') {{'EDIT_TRACKING_GROUP' | translate}}
+                    span#loadingPlayerDepositTrackingReportTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+            //label {{"Total" | translate}} {{vm.depositTrackingQuery.totalCount}} {{"records" | translate}}
+            //table.common-table#playerDepositTrackingReportTable.display(style="width:100% ;overflow-x: scroll")
+            #playerDepositTrackingReportTablePage
+
+            .text-center
+                table.simple-table#playerDepositTrackingTable(style='width:auto;min-width:99.9%')
+                    thead
+                        tr
+                            th {{'ORDER' | translate}}
+                            th {{'TRACKING_GROUP' | translate}}
+                            th {{'PLAYERNAME' | translate}}
+                            th {{'realName' | translate}}
+                            th {{'PlayerValue' | translate}}
+                            th {{'CREDIBILITY' | translate}}
+                            th {{'LEVEL' | translate}}
+                            th {{'LOBBY' | translate}}
+                            th {{'LAST_ACCESS_TIME' | translate}}
+                            th {{'NO_DEPOSIT' | translate}}
+                            th {{'NO_WITHDRAWAL' | translate}}
+                            th {{'NO_CONSUMPTION' | translate}}
+                            th {{'TOTAL_DEPOSIT' | translate}}
+                            th {{'WITHDRAW_AMOUNT' | translate}}
+                            th {{'TOTAL_DEPOSIT_AMOUNT' | translate}}
+                            th {{'VALID_CONSUMPTION' | translate}}
+                            th {{'T1' | translate}}
+                            th {{'T2' | translate}}
+                            th {{'T3' | translate}}
+                            th {{'MONTHLY_TOTAL_DEPOSIT_AMOUNT' | translate}}
+                            th {{'ACTION_BUTTON' | translate}}
+                    tbody
+                        tr(ng-repeat="playerData in vm.playerDepositTracking track by $index" ng-if="vm.playerDepositTracking.length > 0")
+                            td {{$index+1}}
+                            td
+                                a(data-toggle="modal", data-target='#modalPlayerDepositTrackingGroupModifyTable', ng-click="vm.selectedDepositTrackingGroupPlayerId = playerData._id; vm.modifyDepositTrackingGroupResult = '';") {{playerData.depositTrackingGroupName}}
+                            td {{playerData.name}}
+                            td {{playerData.realName}}
+                            td {{playerData.valueScore}}
+                            td {{playerData.credibility$}}
+                            td {{playerData.playerLevel$}}
+                            td {{playerData.provider$}}
+                            td {{playerData.lastAccessTime$}}
+                            td {{playerData.noDeposit}}
+                            td {{playerData.noWithdrawal}}
+                            td {{playerData.noConsumption}}
+                            td {{playerData.topUpAmount$}}
+                            td {{playerData.bonusAmount$}}
+                            td {{playerData.totalPlayerDepositAmount$}}
+                            td {{playerData.validConsumptionAmount$}}
+                            td {{playerData.t1}}
+                            td {{playerData.t2}}
+                            td {{playerData.t3}}
+                            td
+                                a(data-toggle="modal", data-target='#modalPlayerDepositTrackingMonthlyDetailsTable', ng-click="vm.getPlayerDepositTrackingMonthlyDetails(playerData._id)") {{'DETAILS' | translate}}
+                            td
+                                a(ng-click="vm.removePlayerFromDepositTrackingReport(playerData._id)") {{'DELETE' | translate}}
+                    br
+                br
+
         div(ng-if='vm.showPageName=="NEWACCOUNT_REPORT"')
             #newPlayerReportQuery.block-query.col-md-12.well
                 div
@@ -2113,7 +2189,73 @@
                                 td(style="font-weight:bold") {{vm.playerDepositAnalysisDetails.total.topUpAmount | noRoundTwoDecimalPlaces}}
                                 td(style="font-weight:bold") {{vm.playerDepositAnalysisDetails.total.bonusAmount | noRoundTwoDecimalPlaces}}
 
+#modalPlayerDepositTrackingGroupTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:50%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title.text-center {{"PLAYER_DEPOSIT_TRACKING_GROUP_TITLE" | translate}}
+            .modal-body
+                div
+                    table.simple-table
+                        thead
+                            tr
+                                th(ng-if='vm.editDepositTrackingGroup' style="width:150px;") {{'ACTION_BUTTON' | translate}}
+                                th {{'GROUP_NAME' | translate}}
+                                th {{'REMARKS' | translate}}
+                        tbody
+                            tr(ng-if="vm.depositTrackingGroup.length === 0")
+                                td(colspan = 3) {{ 'No data available in table' | translate }}
+                            tr(ng-if="vm.depositTrackingGroup.length > 0", ng-repeat="v in vm.depositTrackingGroup track by $index")
+                                td(ng-if='vm.editDepositTrackingGroup')
+                                    a(ng-click="vm.saveDepositTrackingGroup(true, v._id)") {{'DELETE' | translate}}
+                                        | &nbsp (
+                                        i.fa.fa-minus
+                                        | )
+                                td {{v.name}}
+                                td {{v.remark}}
+                            tr(ng-if='vm.editDepositTrackingGroup' ng-click="vm.newRowDepositTrackingGroup(vm.newDepositTrackingGroup)")
+                                td(colspan="3")
+                                    strong {{'ADD' | translate}}
+                                        | &nbsp (
+                                        i.fa.fa-plus
+                                        | )
+                            tr(ng-if='vm.editDepositTrackingGroup', ng-repeat="grp in vm.newDepositTrackingGroup track by $index")
+                                td {{$index+1}}
+                                td
+                                    input.form-control(type="text", ng-model="grp.name", required)
+                                td
+                                    input.form-control(type="text", ng-model="grp.remark")
+            .modal-footer
+                button.btn.btn-primary.margin-left-5(ng-if='!vm.editDepositTrackingGroup' ng-click='vm.editDepositTrackingGroup=!vm.editDepositTrackingGroup') {{'EDIT' | translate}}
+                button.btn.btn-warning.margin-left-5(ng-if='!vm.editDepositTrackingGroup' data-dismiss='modal') {{'CLOSE' | translate}}
+                button.btn.btn-success.margin-left-5(ng-if='vm.editDepositTrackingGroup' ng-click='vm.saveDepositTrackingGroup(false); vm.editDepositTrackingGroup=!vm.editDepositTrackingGroup') {{'SAVE' | translate}}
+                button.btn.btn-danger.margin-left-5(ng-if='vm.editDepositTrackingGroup' ng-click='vm.editDepositTrackingGroup=!vm.editDepositTrackingGroup; vm.newDepositTrackingGroup = []') {{'CANCEL' | translate}}
 
+#modalPlayerDepositTrackingGroupModifyTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:50%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"PLAYER_DEPOSIT_TRACKING_GROUP_MODIFY_TITLE" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"PLAYER_DEPOSIT_TRACKING_GROUP_MODIFY_INSTRUCTION" | translate}}:
+                                    select.form-control(ng-model='vm.selectedDepositTrackingGroup', data-width='100%')
+                                        option(value='') {{'--' | translate}}
+                                        option(ng-repeat='v in vm.depositTrackingGroup', value='{{v._id}}') {{v.name || translate}}
+            .modal-footer
+                div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.modifyDepositTrackingGroupResult | translate}}
+                button.btn.btn-success.common-button(ng-if="!vm.modifyDepositTrackingGroupResult" ng-click="vm.modifyPlayerDepositTrackingGroup(vm.selectedDepositTrackingGroupPlayerId, vm.selectedDepositTrackingGroup)")
+                    i.fa.fa-check
+                    text {{"CONFIRM" | translate}}
+                bbutton.btn.btn-danger.common-button(data-dismiss='modal')
+                    i.fa.fa-ban
+                    text {{"CANCEL" | translate}}
 
 include ../common-widget/telephone-popover
 script(src='js/lib/flot/jquery.flot.min.js')

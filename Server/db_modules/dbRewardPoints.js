@@ -1590,14 +1590,18 @@ let dbRewardPoints = {
         let gameProvider;
         let rewardPointsRanking;
 
-        return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
+        return dbConfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().then(
             platformRecord => {
                 if (platformRecord) {
                     platformData = platformRecord;
                     return dbConfig.collection_players.findOne({
                         playerId: playerId,
                         platform: platformRecord._id
-                    })
+                    }, {
+                        _id: 1,
+                        platform: 1,
+                        permission: 1
+                    }).lean();
                 } else {
                     return Promise.reject({name: "DataError", message: "Platform Not Found"});
                 }
@@ -1607,10 +1611,10 @@ let dbRewardPoints = {
                     platformObjId: platformData._id,
                     category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS,
                     status: true
-                }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
+                }).populate({path: "level", model: dbConfig.collection_playerLevel, select: {'name': 1, 'value': 1}}).lean().sort({index: 1});
 
                 if (playerRecord) {
-                    if(playerRecord && playerRecord.permission && !playerRecord.permission.rewardPointsTask){
+                    if(playerRecord && playerRecord.permission && playerRecord.permission.hasOwnProperty("rewardPointsTask") && (playerRecord.permission.rewardPointsTask.toString() == 'false')){
                         return Promise.reject({name: "DataError", message: "Player does not have permission for reward point task"});
                     }
                     playerData = playerRecord;
@@ -1713,13 +1717,13 @@ let dbRewardPoints = {
                     platformObjId: platformData._id,
                     category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS,
                     status: true
-                }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
+                }).populate({path: "level", model: dbConfig.collection_playerLevel, select: {'name': 1, 'value': 1}}).lean().sort({index: 1});
 
                 let gameRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
                     platformObjId: platformData._id,
                     category: constRewardPointsTaskCategory.GAME_REWARD_POINTS,
                     status: true
-                }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
+                }).populate({path: "level", model: dbConfig.collection_playerLevel, select: {'name': 1, 'value': 1}}).lean().sort({index: 1});
 
                 let gameProviderProm = dbConfig.collection_gameProvider.find({}).lean();
 
@@ -1732,7 +1736,7 @@ let dbRewardPoints = {
                     points: 1,
                     _id: 0
                 }).sort(sortCol)
-                    .populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
+                    .populate({path: "playerLevel", model: dbConfig.collection_playerLevel, select: {'name': 1, 'value': 1}}).lean();
 
                 return Promise.all([loginRewardPointProm, gameRewardPointProm, gameProviderProm, rewardPointsRankingProm])
             })

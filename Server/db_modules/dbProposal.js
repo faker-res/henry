@@ -3478,7 +3478,7 @@ var proposal = {
             }]
         };
 
-        return dbconfig.collection_proposalType.find(proposalQuery).then(proposalType => {
+        return dbconfig.collection_proposalType.find(proposalQuery).lean().then(proposalType => {
             if (proposalType) {
                 proposalTypeData = proposalType;
             }
@@ -3516,7 +3516,7 @@ var proposal = {
                 { $match: {$and: [matchObj]}},
                 {
                     $group: {
-                        _id: {"type": "$type", "eventName": "$data.eventName", "playerObjId": "$data.playerObjId"},
+                        _id: {"type": "$type", "eventName": "$data.eventName", "playerObjId": "$data.playerObjId", "playerName": "$data.playerName"},
                         sumReturnAmount: {$sum: "$data.returnAmount"},
                         sumRewardAmount: {$sum: "$data.rewardAmount"},
                         sumAmount: {$sum: "$data.amount"},
@@ -3527,6 +3527,7 @@ var proposal = {
                     $group: {
                         _id: {"type": "$_id.type", "eventName": "$_id.eventName"},
                         playerObjId: {$addToSet: "$_id.playerObjId"},
+                        playerName: {$addToSet: "$_id.playerName"},
                         sumTotalReturnAmount: {$sum: "$sumReturnAmount"},
                         sumTotalRewardAmount: {$sum: "$sumRewardAmount"},
                         sumTotalAmount: {$sum: "$sumAmount"},
@@ -3539,11 +3540,12 @@ var proposal = {
                         eventName: "$_id.eventName",
                         type: "$_id.type",
                         playerObjId: 1,
+                        playerName: 1,
                         sumTotalReturnAmount: 1,
                         sumTotalRewardAmount: 1,
                         sumTotalAmount: 1,
                         sumTotalApplyAmount: 1,
-                        countPlayerApplied: {$size: "$playerObjId"}
+                        countPlayerApplied: {$size: "$playerName"}
                     }
                 }
             ]).read("secondaryPreferred");
@@ -3551,11 +3553,11 @@ var proposal = {
             let latestRewardProm = dbconfig.collection_proposal.aggregate([
                 { $match: {$and: [matchObj]}},
                 {
-                    $sort: {"type": 1, "data.eventName": 1, "data.playerObjId": 1, createTime: 1}
+                    $sort: {"type": 1, "data.eventName": 1, "data.playerObjId": 1, "data.playerName": 1, createTime: 1}
                 },
                 {
                     $group: {
-                        _id: {"type": "$type", "eventName": "$data.eventName", "playerObjId": "$data.playerObjId"},
+                        _id: {"type": "$type", "eventName": "$data.eventName", "playerObjId": "$data.playerObjId", "playerName": "$data.playerName"},
                         lastRewardTime: {$last: "$createTime"}
                     }
                 },
@@ -3565,6 +3567,7 @@ var proposal = {
                         eventName: "$_id.eventName",
                         type: "$_id.type",
                         playerObjId: "$_id.playerObjId",
+                        playerName: "$_id.playerName",
                         lastRewardTime: 1
                     }
                 }
@@ -3592,7 +3595,7 @@ var proposal = {
                 { $match: {$and: [matchObj]}},
                 {
                     $group: {
-                        _id: "$data.playerObjId"
+                        _id: "$data.playerName"
                     }
                 },
                 {
