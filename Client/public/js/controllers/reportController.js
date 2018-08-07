@@ -4086,7 +4086,7 @@ define(['js/app'], function (myApp) {
             vm.editDepositTrackingGroup = false;
             vm.modifyDepositTrackingGroup = false;
             vm.newDepositTrackingGroup = [];
-            vm.selectedDepositTrackingGroup = {};
+            vm.selectedDepositTrackingGroup = '';
         };
 
         vm.newRowDepositTrackingGroup = (newDepositTrackingGroup) => {
@@ -4134,6 +4134,7 @@ define(['js/app'], function (myApp) {
                     if (data.success && data.data) {
                         vm.modifyDepositTrackingGroupResult = 'SUCCESS';
                         vm.searchPlayerDepositTrackingReport();
+                        vm.selectedDepositTrackingGroup = '';
                     } else {
                         vm.modifyDepositTrackingGroupResult = 'FAIL';
                     }

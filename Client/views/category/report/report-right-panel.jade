@@ -2237,14 +2237,14 @@
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"PLAYER_DEPOSIT_TRACKING_GROUP_MODIFY_TITLE" | translate}}:
+                h4.modal-title {{"PLAYER_DEPOSIT_TRACKING_GROUP_MODIFY_TITLE" | translate}}
             .modal-body
                 .panel.panel-primary
                     .panel-body
                         .row
                             .col-md-12
                                 .well
-                                    label {{"PLAYER_DEPOSIT_TRACKING_GROUP_MODIFY_INSTRUCTION" | translate}}
+                                    label {{"PLAYER_DEPOSIT_TRACKING_GROUP_MODIFY_INSTRUCTION" | translate}}:
                                     select.form-control(ng-model='vm.selectedDepositTrackingGroup', data-width='100%')
                                         option(value='') {{'--' | translate}}
                                         option(ng-repeat='v in vm.depositTrackingGroup', value='{{v._id}}') {{v.name || translate}}
