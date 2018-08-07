@@ -51,7 +51,7 @@ let dbPlayerOnlineTime = {
         return dbConfig.collection_playerOnlineTime.find({
             platform: platformObjId,
             lastLoginTime: {$gte: startTime, $lt: endTime}
-        }).populate({path: "player", model: dbConfig.collection_players, select:{_id:1, name:1}}).lean().then(
+        }, 'totalOnlineSeconds').lean().then(
             timeLogs => {
                 if (timeLogs && timeLogs.length) {
                     return timeLogResultGenerator(timeLogs);
@@ -70,16 +70,7 @@ let dbPlayerOnlineTime = {
                 count6: 0,
                 count7: 0,
                 count8: 0,
-                count9: 0,
-                // proposal1: [],
-                // proposal2: [],
-                // proposal3: [],
-                // proposal4: [],
-                // proposal5: [],
-                // proposal6: [],
-                // proposal7: [],
-                // proposal8: [],
-                // proposal9: []
+                count9: 0
             };
 
             logs.forEach(log => {
