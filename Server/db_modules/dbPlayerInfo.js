@@ -723,6 +723,9 @@ let dbPlayerInfo = {
     createPlayerFromTel: (inputData) => {
         let platformObj, adminObjId;
         let fbResult = {};
+        if(!inputData.domain){
+            inputData.domain = 'office.fpms8.me';
+        }
 
         if (!inputData.chatRecordContent) {
             return Promise.reject({name: "InputError", message: "Missing chat record content"})
