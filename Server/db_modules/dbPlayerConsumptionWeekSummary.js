@@ -251,9 +251,19 @@ var dbPlayerConsumptionWeekSummary = {
                                 createTime: {$gte: startTime, $lt: endTime},
                                 'data.platformId': platformId,
                                 'data.playerObjId': playerData._id,
-                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                'data.bConsumptionReturnRequest': true,
+                                'data.eventCode': eventData.code,
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                             };
+
+                            if (bRequest) {
+                                proposalQ.createTime = {$gte: startTime, $lt: endTime};
+                                proposalQ['data.bConsumptionReturnRequest'] = true;
+                            } else {
+                                // Check whether system has settled xima today
+                                let todayTime = dbutility.getTodayConsumptionReturnSGTime();
+                                proposalQ.createTime = {$gte: todayTime.startTime, $lt: todayTime.endTime};
+                                proposalQ['data.bConsumptionReturnRequest'] = {$exists: false};
+                            }
 
                             let pastProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ);
 
