@@ -4207,6 +4207,7 @@ define(['js/app'], function (myApp) {
                 sendQuery.msgTimes = Number.isInteger(vm.telePlayerSendingMsgTable.msgTimes) ? vm.telePlayerSendingMsgTable.msgTimes : null;
                 sendQuery.msgTimes2 = Number.isInteger(vm.telePlayerSendingMsgTable.msgTimes2) ? vm.telePlayerSendingMsgTable.msgTimes2 : null;
                 sendQuery.operator = vm.telePlayerSendingMsgTable.msgTimesOperator ? vm.telePlayerSendingMsgTable.msgTimesOperator : ">=";
+                sendQuery.phoneNumber = vm.telePlayerSendingMsgTable.phoneNumber ? vm.telePlayerSendingMsgTable.phoneNumber : null;
 
             }
 
