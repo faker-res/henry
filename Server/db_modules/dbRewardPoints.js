@@ -1657,7 +1657,7 @@ let dbRewardPoints = {
 
                             let prom = [];
                             if (playerData) {
-                                for (let i = 0; i < topupRewardPointEvent.length; i++) {
+                                for (let i = 0, rewardEvent = topupRewardPointEvent.length; i < rewardEvent; i++) {
                                     let event = topupRewardPointEvent[i];
                                     if (playerLevelRecord && playerLevelRecord.playerLevel && event && event.level && (playerLevelRecord.playerLevel.value >= event.level.value)) {
                                         let topupMatchQuery = buildTodayTopupAmountQuery(event, playerData, false);
@@ -2664,14 +2664,13 @@ function getPlayerPointInfo(rewardPointsData, playerData) {
 function checkGameRewardPointDetail(playerObjId, rewardPointEventObjId) {
     let player = {};
     let platform = {};
-    let playerLevel = {};
     let rewardPointEvent = {};
     let rewardPoint = {};
     let rewardPointsLvlConfig = {};
     let gameProviders = [];
     let eventPeriod;
 
-    return dbConfig.collection_players.findOne({_id: playerObjId}).populate({path: "platform", model: dbConfig.collection_platform}).populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean().then(
+    return dbConfig.collection_players.findOne({_id: playerObjId}, {_id: 1, platform: 1, name: 1}).populate({path: "platform", model: dbConfig.collection_platform, select: {_id: 1, gameProviders: 1}}).lean().then(
         playerData => {
             if (!playerData) {
                 return Promise.reject({name: "DataError", message: "Player Not Found"});
@@ -2679,9 +2678,9 @@ function checkGameRewardPointDetail(playerObjId, rewardPointEventObjId) {
 
             player = playerData;
             platform = playerData.platform;
-            playerLevel = playerData.playerLevel;
 
-            let getRewardPointEventProm = dbConfig.collection_rewardPointsEvent.findOne({_id: rewardPointEventObjId}).populate({path: "level", model: dbConfig.collection_playerLevel}).lean();
+            let getRewardPointEventProm = dbConfig.collection_rewardPointsEvent.findOne({_id: rewardPointEventObjId})
+                .populate({path: "level", model: dbConfig.collection_playerLevel, select: {'name': 1, 'value': 1}}).lean();
             let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(player._id);
             let getRewardPointsLvlConfigProm = dbRewardPointsLvlConfig.getRewardPointsLvlConfig(platform._id);
             let getGameProvidersProm = dbGameProvider.getGameProviders({_id: {$in: platform.gameProviders}});
