@@ -3427,7 +3427,29 @@ let dbPlayerInfo = {
                     dbPlayerInfo.checkPlayerLevelUp(playerId, player.platform).catch(console.log);
 
                     if (useProviderGroup) {
-                        topupUpdateRTG(player, platform, amount);
+                        topupUpdateRTG(player, platform, amount).then(
+                            () => {
+                                if (proposalData && proposalData.data) {
+                                    // Move bonus code and apply top up promo here
+                                    if (proposalData.data.bonusCode) {
+                                        let isOpenPromoCode = proposalData.data.bonusCode.toString().length == 3;
+                                        if (isOpenPromoCode){
+                                            dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                                        }
+                                        else{
+                                            dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                                        }
+
+                                    }
+
+                                    if (proposalData.data.topUpReturnCode) {
+                                        let requiredData = {topUpRecordId: topupRecordData._id};
+                                        dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
+                                            , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
+                                    }
+                                }
+                            }
+                        );
                     }
 
                     return Promise.resolve(data && data[0]);
