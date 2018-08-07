@@ -243,8 +243,8 @@ define(['js/app'], function (myApp) {
                 vm.allGames = data.data;
                 vm.allGames.forEach(game => {
                     if(game){
-                        game.name$ = game.nameRedefined && game.nameRedefined != "" ? game.nameRedefined : game.name;
-                        game.isDefaultName = game.nameRedefined && game.nameRedefined != "" ? false : true;
+                        game.name$ = game.customName && game.customName != "" ? game.customName : game.name;
+                        game.isDefaultName = game.customName && game.customName != "" ? false : true;
                     }
                 })
                 vm.filterAllGames = $.extend([], vm.allGames);
@@ -939,7 +939,7 @@ define(['js/app'], function (myApp) {
         vm.submitProviderGameNameChange = function(index){
             let sendQuery = {
                 gameObjId: vm.filterAllGames[index] && vm.filterAllGames[index]._id ? vm.filterAllGames[index]._id : null,
-                redefinedName: vm.filterAllGames[index] && vm.filterAllGames[index].name$ ? vm.filterAllGames[index].name$ : null
+                customName: vm.filterAllGames[index] && vm.filterAllGames[index].name$ ? vm.filterAllGames[index].name$ : null
             }
 
             $scope.$socketPromise("renameGame", sendQuery).then(data => {

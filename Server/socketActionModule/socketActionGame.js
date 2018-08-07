@@ -170,7 +170,7 @@ function socketActionGame(socketIO, socket) {
         renameGame: function renameGame(data){
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.gameObjId);
-            socketUtil.emitter(self.socket, dbGame.renameGame, [data.gameObjId, data.redefinedName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbGame.renameGame, [data.gameObjId, data.customName], actionName, isValidData);
         }
     };
     socketActionGame.actions = this.actions;

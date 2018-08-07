@@ -668,7 +668,7 @@ var dbGame = {
     },
 
     renameGame: (gameObjId, newName) => {
-        return dbconfig.collection_game.findOneAndUpdate({_id: gameObjId}, {nameRedefined: newName})
+        return dbconfig.collection_game.findOneAndUpdate({_id: gameObjId}, {customName: newName})
     }
 
 };

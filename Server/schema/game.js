@@ -8,8 +8,8 @@ var gameSchema = new Schema({
     gameId: {type: String, unique: true, index: true},
     //game name
     name: {type: String, required: true},
-    //game name nameRedefined
-    nameRedefined: {type: String},
+    //customized game name
+    customName: {type: String},
     //game title
     title: {type: String},
     //code

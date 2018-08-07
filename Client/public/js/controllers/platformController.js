@@ -3052,8 +3052,8 @@ define(['js/app'], function (myApp) {
                         }
                         var newObj = v.game;
                         newObj.index = (v && v.index) ? v.index : 1;
-                        newObj.name$ = newObj.nameRedefined && newObj.nameRedefined != "" ? newObj.nameRedefined : newObj.name;
-                        newObj.isDefaultName = newObj.nameRedefined && newObj.nameRedefined != "" ? false : true;
+                        newObj.name$ = newObj.customName && newObj.customName != "" ? newObj.customName : newObj.name;
+                        newObj.isDefaultName = newObj.customName && newObj.customName != "" ? false : true;
                         vm.includedGamesGroup.push(newObj);
                         vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
                     })
@@ -3584,8 +3584,8 @@ define(['js/app'], function (myApp) {
                         //     newObj.maintenanceMinute = v.maintenanceMinute || 'null';
                         // }
                         newObj.platformVisible = v.visible;
-                        newObj.name$ = newObj.nameRedefined && newObj.nameRedefined != "" ? newObj.nameRedefined : newObj.name;
-                        newObj.isDefaultName = newObj.nameRedefined && newObj.nameRedefined != "" ? false : true;
+                        newObj.name$ = newObj.customName && newObj.customName != "" ? newObj.customName : newObj.name;
+                        newObj.isDefaultName = newObj.customName && newObj.customName != "" ? false : true;
                         vm.includedGames.push(newObj);
                         if (v.hasOwnProperty('status')) {
                             vm.gameStatus[v.game._id] = v.status;
@@ -32623,7 +32623,7 @@ define(['js/app'], function (myApp) {
             vm.submitGameNameChange = function(index){
                 let sendQuery = {
                     gameObjId: vm.includedGames[index] && vm.includedGames[index]._id ? vm.includedGames[index]._id : null,
-                    redefinedName: vm.includedGames[index] && vm.includedGames[index].name$ ? vm.includedGames[index].name$ : null
+                    customName: vm.includedGames[index] && vm.includedGames[index].name$ ? vm.includedGames[index].name$ : null
                 };
 
                 $scope.$socketPromise("renameGame", sendQuery).then(data => {
@@ -32645,7 +32645,7 @@ define(['js/app'], function (myApp) {
             vm.submitGroupGameNameChange = function(index){
                 let sendQuery = {
                     gameObjId: vm.includedGamesGroup[index] && vm.includedGamesGroup[index]._id ? vm.includedGamesGroup[index]._id : null,
-                    redefinedName: vm.includedGamesGroup[index] && vm.includedGamesGroup[index].name$ ? vm.includedGamesGroup[index].name$ : null
+                    customName: vm.includedGamesGroup[index] && vm.includedGamesGroup[index].name$ ? vm.includedGamesGroup[index].name$ : null
                 };
 
                 $scope.$socketPromise("renameGame", sendQuery).then(data => {
