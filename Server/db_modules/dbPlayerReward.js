@@ -862,7 +862,8 @@ let dbPlayerReward = {
         });
     },
 
-    getPlayerConsecutiveRewardDetail: (playerId, code, isApply, platform, applyTargetTime) => {
+    //isCheckToday only for getRewardApplicationData, to check today consecutive reward only
+    getPlayerConsecutiveRewardDetail: (playerId, code, isApply, platform, applyTargetTime, isCheckToday) => {
         // reward event code is an optional value, getting the latest relevant event by default
         let currentTime = applyTargetTime || new Date();
         let today = applyTargetTime ? dbUtility.getDayTime(applyTargetTime) : dbUtility.getTodaySGTime();
@@ -985,14 +986,18 @@ let dbPlayerReward = {
                 numberOfParam = paramOfLevel.length; // number of step
             }
 
-            if (!rewardProposalData || rewardProposalData.length === 0) {
-                startCheckTime = event.validStartTime > intervalTime.startTime ? event.validStartTime : intervalTime.startTime;
+            if (isCheckToday) {
+                startCheckTime = today.startTime;
             } else {
-                latestRewardProposal = rewardProposalData[0];
-                let lastRewardDate = dbUtility.getTargetSGTime(latestRewardProposal.data.applyTargetDate).startTime;
-                let nextDay = lastRewardDate.setDate(lastRewardDate.getDate() + 1);
-                startCheckTime = nextDay;
-                consecutiveNumber = latestRewardProposal.data.consecutiveNumber + 1;
+                if (!rewardProposalData || rewardProposalData.length === 0) {
+                    startCheckTime = event.validStartTime > intervalTime.startTime ? event.validStartTime : intervalTime.startTime;
+                } else {
+                    latestRewardProposal = rewardProposalData[0];
+                    let lastRewardDate = dbUtility.getTargetSGTime(latestRewardProposal.data.applyTargetDate).startTime;
+                    let nextDay = lastRewardDate.setDate(lastRewardDate.getDate() + 1);
+                    startCheckTime = nextDay;
+                    consecutiveNumber = latestRewardProposal.data.consecutiveNumber + 1;
+                }
             }
 
             selectedParam = paramOfLevel[Math.min(consecutiveNumber - 1, paramOfLevel.length - 1)];
@@ -1011,7 +1016,7 @@ let dbPlayerReward = {
             // let today = dbUtility.getTodaySGTime();
             let currentDay = dbUtility.getTargetSGTime(startCheckTime);
             while (currentDay.startTime <= today.startTime && player) {
-                checkRequirementMeetProms.push(isDayMeetRequirement(event, player, currentDay, requiredBet, requiredDeposit, requireBoth));
+                checkRequirementMeetProms.push(isDayMeetRequirement(event, player, currentDay, requiredBet, requiredDeposit, requireBoth, isCheckToday));
                 currentDay = dbUtility.getTargetSGTime(currentDay.endTime);
             }
 
@@ -1132,6 +1137,17 @@ let dbPlayerReward = {
                 insertOutputList(0, i + 1, bonus, requestedTimes);
             }
 
+            if (isCheckToday) {
+                return {
+                    startTime: event.validStartTime,
+                    endTime: event.validEndTime,
+                    deposit: event.param.requiredTopUpAmount,
+                    effectiveBet: event.param.requiredConsumptionAmount,
+                    checkResult: checkResults[0],
+                    list: outputList[0]
+                }
+            }
+
             return {
                 startTime: event.validStartTime,
                 endTime: event.validEndTime,
@@ -1141,7 +1157,7 @@ let dbPlayerReward = {
             }
         });
 
-        function isDayMeetRequirement(event, playerData, targetDate, requiredConsumptionAmount, requiredTopUpAmount, operatorOption) {
+        function isDayMeetRequirement(event, playerData, targetDate, requiredConsumptionAmount, requiredTopUpAmount, operatorOption, isCheckToday) {
             let playerObjId = ObjectId(playerData._id);
             let startTime = new Date(targetDate.startTime);
             let endTime = new Date(targetDate.endTime);
@@ -1235,6 +1251,10 @@ let dbPlayerReward = {
                 let response = {targetDate, meetRequirement, requiredConsumptionMet, requiredTopUpMet};
                 if (isApply && meetRequirement && requiredTopUpMet) {
                     response.usedTopUpRecord = usedTopUpRecord;
+                }
+                if (isCheckToday) {
+                    response.totalTopUpAmount = totalTopUpAmount;
+                    response.consumptionAmount = consumptionAmount;
                 }
 
                 return response;
