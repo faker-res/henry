@@ -12,7 +12,10 @@
                     img.fa.fa-times.thumb(ng-if="!v.bigShow")
                 td(style='width:30px')
         label(title='{{v.name}}', class='{{vm.getGameStatusClass(v.status)}}') &nbsp;&nbsp;&nbsp;&nbsp;{{"GAME_TITLE" | translate}} :&nbsp;
-            span.text-primary {{v.name}}
+            span.text-primary(ng-if="!vm.isEditingGameName" ng-click="vm.isEditingGameName = true" ng-style='v.isDefaultName ? {color:"blue"} : {color:"red"}') {{v.name$}}
+            form(ng-submit="vm.submitProviderGameNameChange(i);")
+                .text-center(style="margin-left: 10px; margin-top: 4px;" ng-if="vm.isEditingGameName")
+                    input(ng-model="vm.filterAllGames[i].name$")
         label(title='{{v.type}}', class='{{vm.getGameStatusClass(v.status)}}') &nbsp;&nbsp;&nbsp;&nbsp;{{"GAME_TYPE" | translate}} :&nbsp;
             span.text-primary {{vm.allGameTypes[v.type] || 'VOID' | translate}}
         label(title='{{v.gameId}}', class='{{vm.getGameStatusClass(v.status)}}') &nbsp;&nbsp;&nbsp;&nbsp;{{"GAME_ID" | translate}} :&nbsp;

@@ -1234,7 +1234,7 @@ a.highlightProposalType:hover {
 .platformGame {
     display: inline-block;
     width: 140px;
-    height: 129px;
+    height: 135px;
     padding: 5px;
     overflow-y: hidden !important;
 }
@@ -3046,3 +3046,4 @@ table.simple-table.platformFrontEndDisplayTable tbody td {
 .yellow-background {
     background-color: yellow;
 }
+
