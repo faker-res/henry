@@ -1717,7 +1717,7 @@ define(['js/app'], function (myApp) {
                         }
                         onlineTimePieArr.push(pieObj)
                     }
-                    vm.drawManualApprovalPieChart(onlineTimePieArr, "#pie-withdrawSuccess");
+                    vm.drawManualApprovalPieChart(onlineTimePieArr, "#pie-playerOnlineTime");
 
                     // vm.withdrawFailedData = data.data[1];
                     // vm.withdrawFailedAvg.totalCount = vm.calculateAverageData(vm.withdrawFailedData, "totalCount");
