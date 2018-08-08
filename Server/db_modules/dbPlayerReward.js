@@ -990,7 +990,7 @@ let dbPlayerReward = {
                 startCheckTime = today.startTime;
             } else {
                 if (!rewardProposalData || rewardProposalData.length === 0) {
-                    startCheckTime = new Date(event.validStartTime).getTime() > new Date(intervalTime.startTime).getTime() ? event.validStartTime : intervalTime.startTime;
+                    startCheckTime = event.validStartTime > intervalTime.startTime ? event.validStartTime : intervalTime.startTime;
                 } else {
                     latestRewardProposal = rewardProposalData[0];
                     let lastRewardDate = dbUtility.getTargetSGTime(latestRewardProposal.data.applyTargetDate).startTime;
