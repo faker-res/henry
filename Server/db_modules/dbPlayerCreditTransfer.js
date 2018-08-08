@@ -1734,29 +1734,29 @@ let dbPlayerCreditTransfer = {
                     let freeCreditGroupData = {
                         ebetWallet: 0
                     };
+                    // return Promise.all(checkRTGProm).then(() => {
+                    //     return dbConfig.collection_rewardTaskGroup.findOne({
+                    //         platformId: platform,
+                    //         playerId: playerObjId,
+                    //         status: {$in: [constRewardTaskStatus.STARTED]},
+                    //         $or: [{providerGroup:{ $exists: false }}, {providerGroup: null}]
+                    //     }).populate({
+                    //         path: "lastPlayedProvider", model: dbConfig.collection_gameProvider
+                    //     }).lean()
+                    // }).then(RTG => {
+                    //     console.log("checkRTG for free credit", RTG);
+                    //     if(RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name &&
+                    //         (RTG.lastPlayedProvider.name.toUpperCase() === "EBET" || RTG.lastPlayedProvider.name.toUpperCase() === "EBETSLOTS")) {
                     return Promise.all(checkRTGProm).then(() => {
-                        return dbConfig.collection_rewardTaskGroup.findOne({
-                            platformId: platform,
-                            playerId: playerObjId,
-                            status: {$in: [constRewardTaskStatus.STARTED]},
-                            $or: [{providerGroup:{ $exists: false }}, {providerGroup: null}]
-                        }).populate({
-                            path: "lastPlayedProvider", model: dbConfig.collection_gameProvider
-                        }).lean()
-                    }).then(RTG => {
-                        console.log("checkRTG for free credit", RTG);
-                        if(RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name &&
-                            (RTG.lastPlayedProvider.name.toUpperCase() === "EBET" || RTG.lastPlayedProvider.name.toUpperCase() === "EBETSLOTS")) {
-                            transferOut = transferOut.then(() => {
-                                return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
-                                    amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
-                                    transferOutSuccessData.push(ret);
-                                }).catch(err => {
-                                    transferOutErrorData.push(err);
-                                    return errorUtils.reportError(err);
-                                })
-                            });
-                        }
+                        transferOut = transferOut.then(() => {
+                            return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
+                                amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
+                                transferOutSuccessData.push(ret);
+                            }).catch(err => {
+                                transferOutErrorData.push(err);
+                                return errorUtils.reportError(err);
+                            })
+                        });
                         return transferOut;
                     }).then(() => {
                         console.log('transferOut Success Data',transferOutSuccessData);
