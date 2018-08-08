@@ -1869,7 +1869,7 @@ let dbPlayerInfo = {
         ).then(
             function (platformData) {
                 apiData.platformId = platformData.platformId;
-                apiData.name = apiData.name.replace(platformData.prefix, "");
+                // apiData.name = apiData.name.replace(platformData.prefix, "");
                 delete apiData.platform;
                 var a, b, c;
                 a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({
