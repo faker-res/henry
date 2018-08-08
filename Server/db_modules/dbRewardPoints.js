@@ -1729,40 +1729,51 @@ let dbRewardPoints = {
 
                 let gameProviderProm = dbConfig.collection_gameProvider.find({}).lean();
 
-                let rewardPointsRankingProm = dbConfig.collection_rewardPoints.find({
-                    platformObjId: platformData._id
-                }, {
-                    playerObjId: 1,
-                    playerName: 1,
-                    playerLevel: 1,
-                    points: 1,
-                    _id: 0
-                }).populate({path: "playerLevel", model: dbConfig.collection_playerLevel, select: {'name': 1, 'value': 1}}).lean().then(
-                    rewardPoints => {
-                        console.log('rewardPoints.length', rewardPoints.length);
-                        rewardPoints = rewardPoints.sort((a, b) => {
-                            if (a.points !== b.points) {
-                                return b.points - a.points;
-                            } else {
-                                return a.lastUpdate - b.lastUpdate;
-                            }
+                let rewardPointsRankingProm = dbConfig.collection_rewardPoints.aggregate(
+                    {$match: {platformObjId: platformData._id}},
+                    {$sort: sortCol},
+                    {$limit: 1000},
+                    {
+                        $project: {
+                            playerObjId: 1,
+                            playerName: 1,
+                            playerLevel: 1,
+                            points: 1,
+                            _id: 0
+                        }
+                    }
+                ).then(
+                    rankings => {
+                        return dbConfig.collection_playerLevel.populate(rankings, {
+                            path: 'playerLevel',
+                            model: dbConfig.collection_playerLevel,
+                            select: {name: 1}
                         });
-
-                        console.log('done sorting');
-                        return rewardPoints;
                     }
                 );
 
-                return Promise.all([loginRewardPointProm, gameRewardPointProm, gameProviderProm, rewardPointsRankingProm])
+                let playerRewardPointProm = Promise.resolve(false);
+                if (playerData) {
+                    playerRewardPointProm = dbConfig.collection_rewardPoints.findOne({
+                        platformObjId: platformData._id,
+                        playerObjId: playerData._id
+                    }, 'playerLevel points').populate({
+                        path: 'playerLevel',
+                        model: dbConfig.collection_playerLevel,
+                        select: {name: 1}
+                    }).lean();
+                }
+
+                return Promise.all([loginRewardPointProm, gameRewardPointProm, gameProviderProm, rewardPointsRankingProm, playerRewardPointProm])
             })
             .then(data => {
-                console.log('then-6');
                 let limit = 10;
 
                 loginRewardPointEvent = data[0] ? data[0] : [];
                 gameRewardPointEvent = data[1] ? data[1] : [];
                 gameProvider = data[2] ? data[2] : [];
                 rewardPointsRanking = data[3] ? data[3] : [];
+                let playerRewardPoint = data[4] ? data[4] : [];
 
                 if (rewardPointsRanking && rewardPointsRanking.length > 0) {
                     let rewardPointsRankingListArr = getRewardPointsRanking(rewardPointsRanking.slice(0, limit));
@@ -1770,6 +1781,13 @@ let dbRewardPoints = {
 
                     if (playerData) {
                         let playerPointInfoListArr = getPlayerPointInfo(rewardPointsRanking, playerData, playerLevelRecord);
+                        if (!(playerPointInfoListArr && playerPointInfoListArr.length) && playerRewardPoint) {
+                            playerPointInfoListArr = [{
+                                "rank": "1000+",
+                                "grade": playerRewardPoint.playerLevel.name,
+                                "totalPoint": playerRewardPoint.points
+                            }]
+                        }
                         returnData.playerPointInfo = playerPointInfoListArr;
                     }
                 }
