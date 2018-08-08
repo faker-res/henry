@@ -18908,7 +18908,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         $scope.phoneCall.phone = data.data;
                         $scope.phoneCall.loadingNumber = false;
-                        $scope.makePhoneCall(vm.selectedPlatform.platformId);
+                        $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
                     })
                 }, function (err) {
                     $scope.$evalAsync(() => {

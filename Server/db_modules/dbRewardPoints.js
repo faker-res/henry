@@ -1657,7 +1657,7 @@ let dbRewardPoints = {
 
                             let prom = [];
                             if (playerData) {
-                                for (let i = 0; i < topupRewardPointEvent.length; i++) {
+                                for (let i = 0, rewardEvent = topupRewardPointEvent.length; i < rewardEvent; i++) {
                                     let event = topupRewardPointEvent[i];
                                     if (playerLevelRecord && playerLevelRecord.playerLevel && event && event.level && (playerLevelRecord.playerLevel.value >= event.level.value)) {
                                         let topupMatchQuery = buildTodayTopupAmountQuery(event, playerData, false);
@@ -1760,8 +1760,10 @@ let dbRewardPoints = {
 
                 let gameRewardProm = [];
                 if(gameRewardPointEvent && gameRewardPointEvent.length > 0){
-                    gameRewardPointEvent.forEach(item => {
-                        if (item._id) {
+                    for (let x = 0, len = gameRewardPointEvent.length; x < len; x++) {
+                        let item = gameRewardPointEvent[x];
+
+                        if (item && item._id) {
                             let eventPeriodStartTime = getEventPeriodStartTime(item);
                             let rewardProm = dbConfig.collection_rewardPointsProgress.findOne({
                                 rewardPointsObjId: rewardPointRecord._id,
@@ -1775,7 +1777,7 @@ let dbRewardPoints = {
 
                             gameRewardProm.push(rewardProm);
                         }
-                    })
+                    }
                 }
 
                 return Promise.all(gameRewardProm).then(
@@ -1800,8 +1802,10 @@ let dbRewardPoints = {
                 () => {
                     let loginRewardProm = [];
                     if(loginRewardPointEvent && loginRewardPointEvent.length > 0){
-                        loginRewardPointEvent.forEach(item => {
-                            if (item._id) {
+                        for (let x = 0, len = loginRewardPointEvent.length; x < len; x++) {
+                            let item = loginRewardPointEvent[x];
+
+                            if (item && item._id) {
                                 let eventPeriodStartTime = getEventPeriodStartTime(item);
                                 let rewardProm = dbConfig.collection_rewardPointsProgress.findOne({
                                     rewardPointsObjId: rewardPointRecord._id,
@@ -1810,7 +1814,7 @@ let dbRewardPoints = {
                                 }).lean();
                                 loginRewardProm.push(rewardProm);
                             }
-                        })
+                        }
                     }
 
                     return Promise.all(loginRewardProm).then(
@@ -1829,8 +1833,10 @@ let dbRewardPoints = {
                 () => {
                     let topUpRewardProm = [];
                     if(topupRewardPointEvent && topupRewardPointEvent.length > 0){
-                        topupRewardPointEvent.forEach(item => {
-                            if (item._id) {
+                        for (let x = 0, len = topupRewardPointEvent.length; x < len; x++) {
+                            let item = topupRewardPointEvent[x];
+
+                            if (item && item._id) {
                                 let eventPeriodStartTime = getEventPeriodStartTime(item);
                                 let rewardProm = dbConfig.collection_rewardPointsProgress.findOne({
                                     rewardPointsObjId: rewardPointRecord._id,
@@ -1839,7 +1845,7 @@ let dbRewardPoints = {
                                 }).lean();
                                 topUpRewardProm.push(rewardProm);
                             }
-                        })
+                        }
                     }
 
                     return Promise.all(topUpRewardProm).then(
@@ -2452,7 +2458,8 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
     let rewardPointListArr = [];
 
     if (rewardPointEvent && rewardPointEvent.length > 0) {
-        rewardPointEvent.forEach(reward => {
+        for (let x = 0, len = rewardPointEvent.length; x < len; x++) {
+            let reward = rewardPointEvent[x];
             let rewardStartTime;
             let rewardEndTime;
             let rewardPeriod;
@@ -2476,33 +2483,39 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
             }
 
             if (rewardPointsProgress && rewardPointsProgress.length > 0) {
-                rewardPointsProgress.filter(item => {
-                    if (item.rewardPointsEventObjId && item.rewardPointsEventObjId.toString() === reward._id.toString()
-                        && item.lastUpdateTime >= rewardStartTime && item.lastUpdateTime <= rewardEndTime) {
-                        currentGoal = item.count;
-                        turnQualifiedLoginDate = item.turnQualifiedLoginDate || "";
-                        if (item.isApplied) {
+                for (let x = 0, len = rewardPointsProgress.length; x < len; x++) {
+                    let progressData = rewardPointsProgress[x];
+
+                    if (progressData.rewardPointsEventObjId && progressData.rewardPointsEventObjId.toString() === reward._id.toString()
+                        && progressData.lastUpdateTime >= rewardStartTime && progressData.lastUpdateTime <= rewardEndTime) {
+                        currentGoal = progressData.count;
+                        turnQualifiedLoginDate = progressData.turnQualifiedLoginDate || "";
+                        if (progressData.isApplied) {
                             status = 2;
                         }
-                        else if (item.isApplicable) {
+                        else if (progressData.isApplicable) {
                             status = 1;
                         }
                     }
-                });
+                }
             }
 
             switch (category) {
                 case constRewardPointsTaskCategory.LOGIN_REWARD_POINTS: {
                     if (reward.target && reward.target.targetDestination && reward.target.targetDestination.length > 0) {
-                        reward.target.targetDestination.forEach(item => {
+                        for (let x = 0, len = reward.target.targetDestination.length; x < len; x++) {
+                            let targetDestinationObjId = reward.target.targetDestination[x];
+
                             if (gameProvider && gameProvider.length > 0) {
-                                gameProvider.forEach(gameItem => {
-                                    if (item == gameItem._id.toString()) {
-                                        providerIds.push(gameItem.providerId);
+                                for (let y in gameProvider) {
+                                    let gameProviderData = gameProvider[y];
+
+                                    if (targetDestinationObjId && gameProviderData && gameProviderData._id && (targetDestinationObjId == gameProviderData._id)) {
+                                        providerIds.push(gameProviderData.providerId);
                                     }
-                                });
+                                }
                             }
-                        })
+                        }
                     }
 
                     rewards = {
@@ -2544,18 +2557,15 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                     break;
                 }
                 case constRewardPointsTaskCategory.GAME_REWARD_POINTS: {
-                    // if (playerObjId) {
-                    //     return checkGameRewardPointDetail(playerObjId, reward._id);
-                    // }
-                    // else {
                     let dailyRequestBetCountsAndAmount = [];
                     if (reward.target && reward.target.targetDestination) {
                         if (gameProvider && gameProvider.length > 0) {
-                            gameProvider.forEach(gameItem => {
-                                if (reward.target.targetDestination == gameItem._id.toString()) {
-                                    providerIds.push(gameItem.providerId);
+                            for (let x = 0, len = gameProvider.length; x < len; x++) {
+                                let gameProviderData = gameProvider[x];
+                                if (reward.target.targetDestination && gameProviderData && (reward.target.targetDestination == gameProviderData._id.toString())) {
+                                    providerIds.push(gameProviderData.providerId);
                                 }
-                            });
+                            }
                         }
                     }
 
@@ -2583,12 +2593,11 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "goal": reward.consecutiveCount,
                         "currentGoal": currentGoal
                     }
-                    // }
                     break;
                 }
             }
             rewardPointListArr.push(rewards);
-        });
+        }
     }
 
     return rewardPointListArr;
@@ -2599,7 +2608,9 @@ function getRewardPointsRanking(rewardPoints) {
     let rankNo = 0;
 
     if(rewardPoints && rewardPoints.length > 0) {
-        rewardPoints.forEach(rank => {
+        for (let x = 0, len = rewardPoints.length; x < len; x++) {
+            let rank = rewardPoints[x];
+
             //censor playerName start
             let censoredName, front, censor = "***", rear, level = "";
             front = rank.playerName.substr(0,2);    // extract first char
@@ -2619,7 +2630,7 @@ function getRewardPointsRanking(rewardPoints) {
                 "rank": rankNo
             }
             rewardPointsRankingListArr.push(ranks);
-        });
+        }
     }
 
     return rewardPointsRankingListArr;
@@ -2637,24 +2648,24 @@ function getPlayerPointInfo(rewardPointsData, playerData) {
         });
 
         if (playerData && playerData._id) {
-            rewardPointsData.filter(playerRank => {
+            for (let x in rewardPointsData) {
+                let playerRank = rewardPointsData[x];
+                if (playerRank.playerObjId
+                    && (playerRank.playerObjId.toString() == playerData._id.toString())) {
 
-               if (playerRank.playerObjId
-                   && (playerRank.playerObjId.toString() == playerData._id.toString())) {
+                    if(playerRank.playerLevel && playerRank.playerLevel.name) {
+                        level = playerRank.playerLevel.name;
+                    }
 
-                   if(playerRank.playerLevel && playerRank.playerLevel.name) {
-                       level = playerRank.playerLevel.name;
-                   }
+                    let playerPointInfo = {
+                        "rank": playerRank.rank,
+                        "grade": level,
+                        "totalPoint": playerRank.points
+                    }
 
-                   let playerPointInfo = {
-                       "rank": playerRank.rank,
-                       "grade": level,
-                       "totalPoint": playerRank.points
-                   }
-
-                   playerPointInfoListArr.push(playerPointInfo);
-               }
-            });
+                    playerPointInfoListArr.push(playerPointInfo);
+                }
+            }
         }
     }
 
@@ -2664,14 +2675,13 @@ function getPlayerPointInfo(rewardPointsData, playerData) {
 function checkGameRewardPointDetail(playerObjId, rewardPointEventObjId) {
     let player = {};
     let platform = {};
-    let playerLevel = {};
     let rewardPointEvent = {};
     let rewardPoint = {};
     let rewardPointsLvlConfig = {};
     let gameProviders = [];
     let eventPeriod;
 
-    return dbConfig.collection_players.findOne({_id: playerObjId}).populate({path: "platform", model: dbConfig.collection_platform}).populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean().then(
+    return dbConfig.collection_players.findOne({_id: playerObjId}, {_id: 1, platform: 1, name: 1}).populate({path: "platform", model: dbConfig.collection_platform, select: {_id: 1, gameProviders: 1}}).lean().then(
         playerData => {
             if (!playerData) {
                 return Promise.reject({name: "DataError", message: "Player Not Found"});
@@ -2679,9 +2689,9 @@ function checkGameRewardPointDetail(playerObjId, rewardPointEventObjId) {
 
             player = playerData;
             platform = playerData.platform;
-            playerLevel = playerData.playerLevel;
 
-            let getRewardPointEventProm = dbConfig.collection_rewardPointsEvent.findOne({_id: rewardPointEventObjId}).populate({path: "level", model: dbConfig.collection_playerLevel}).lean();
+            let getRewardPointEventProm = dbConfig.collection_rewardPointsEvent.findOne({_id: rewardPointEventObjId})
+                .populate({path: "level", model: dbConfig.collection_playerLevel, select: {'name': 1, 'value': 1}}).lean();
             let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(player._id);
             let getRewardPointsLvlConfigProm = dbRewardPointsLvlConfig.getRewardPointsLvlConfig(platform._id);
             let getGameProvidersProm = dbGameProvider.getGameProviders({_id: {$in: platform.gameProviders}});

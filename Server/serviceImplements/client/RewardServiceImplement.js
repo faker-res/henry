@@ -204,6 +204,12 @@ let RewardServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setShowInfo, [conn.playerId, "limitedOfferInfo", data.showInfo], isValidData, false, false, true);
     };
 
+    // to show if player can apply reward
+    this.getRewardApplicationData.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.code && data.hasOwnProperty("platformId") && conn.playerObjId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbRewardEvent.getRewardApplicationData, [conn.playerObjId, data.platformId, data.code], isValidData);
+    };
+
     // to enable or disable showing ShowInfo
     this.setBonusShowInfo.expectsData = 'setShowInfo: Number|String';
     this.setBonusShowInfo.onRequest = function (wsFunc, conn, data) {

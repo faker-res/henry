@@ -723,6 +723,9 @@ let dbPlayerInfo = {
     createPlayerFromTel: (inputData) => {
         let platformObj, adminObjId;
         let fbResult = {};
+        if(!inputData.domain){
+            inputData.domain = 'office.fpms8.me';
+        }
 
         if (!inputData.chatRecordContent) {
             return Promise.reject({name: "InputError", message: "Missing chat record content"})
@@ -3424,7 +3427,29 @@ let dbPlayerInfo = {
                     dbPlayerInfo.checkPlayerLevelUp(playerId, player.platform).catch(console.log);
 
                     if (useProviderGroup) {
-                        topupUpdateRTG(player, platform, amount);
+                        topupUpdateRTG(player, platform, amount).then(
+                            () => {
+                                if (proposalData && proposalData.data) {
+                                    // Move bonus code and apply top up promo here
+                                    if (proposalData.data.bonusCode) {
+                                        let isOpenPromoCode = proposalData.data.bonusCode.toString().length == 3;
+                                        if (isOpenPromoCode){
+                                            dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                                        }
+                                        else{
+                                            dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                                        }
+
+                                    }
+
+                                    if (proposalData.data.topUpReturnCode) {
+                                        let requiredData = {topUpRecordId: topupRecordData._id};
+                                        dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
+                                            , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
+                                    }
+                                }
+                            }
+                        );
                     }
 
                     return Promise.resolve(data && data[0]);
@@ -14415,9 +14440,29 @@ let dbPlayerInfo = {
             bonusAmount: 0,
         };
 
+        // adjust the timezone
+        let timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000;
+        let positiveTimeOffset = Math.abs(timezoneOffset);
+        let timezoneAdjust = {};
+
         // loop for every day
         while (startDate.getTime() < endDate.getTime()) {
             let dayEndTime = getNextDateByPeriodAndDate('day', startDate);
+
+            // convert UTC 16h to GMT 24h
+            if (parseInt(timezoneOffset) > 0) {
+                timezoneAdjust = {
+                    year: {$year: {$subtract: ['$settleTime', positiveTimeOffset]}},
+                    month: {$month: {$subtract: ['$settleTime', positiveTimeOffset]}},
+                    day: {$dayOfMonth: {$subtract: ['$settleTime', positiveTimeOffset]}}
+                }
+            } else {
+                timezoneAdjust = {
+                    year: {$year: {$add: ['$settleTime', positiveTimeOffset]}},
+                    month: {$month: {$add: ['$settleTime', positiveTimeOffset]}},
+                    day: {$dayOfMonth: {$add: ['$settleTime', positiveTimeOffset]}}
+                }
+            }
 
             topUpProm.push(dbconfig.collection_proposal.aggregate([
                 {
@@ -14433,7 +14478,8 @@ let dbPlayerInfo = {
                 },
                 {
                     $group: {
-                        _id: { month: { $month: "$settleTime" }, day: { $dayOfMonth: "$settleTime" }, year: { $year: "$settleTime" } },
+                        // _id: { month: { $month: "$settleTime" }, day: { $dayOfMonth: "$settleTime" }, year: { $year: "$settleTime" } },
+                        _id: timezoneAdjust,
                         typeId: {$first: "$type"},
                         count: {$sum: 1},
                         amount: {$sum: "$data.amount"},
@@ -14455,7 +14501,8 @@ let dbPlayerInfo = {
                 },
                 {
                     $group: {
-                        _id: { month: { $month: "$settleTime" }, day: { $dayOfMonth: "$settleTime" }, year: { $year: "$settleTime" } },
+                        // _id: { month: { $month: "$settleTime" }, day: { $dayOfMonth: "$settleTime" }, year: { $year: "$settleTime" } },
+                        _id: timezoneAdjust,
                         count: {$sum: 1},
                         amount: {$sum: "$data.amount"},
                     }
