@@ -723,6 +723,9 @@ let dbPlayerInfo = {
     createPlayerFromTel: (inputData) => {
         let platformObj, adminObjId;
         let fbResult = {};
+        if(!inputData.domain){
+            inputData.domain = 'office.fpms8.me';
+        }
 
         if (!inputData.chatRecordContent) {
             return Promise.reject({name: "InputError", message: "Missing chat record content"})
@@ -3424,7 +3427,29 @@ let dbPlayerInfo = {
                     dbPlayerInfo.checkPlayerLevelUp(playerId, player.platform).catch(console.log);
 
                     if (useProviderGroup) {
-                        topupUpdateRTG(player, platform, amount);
+                        topupUpdateRTG(player, platform, amount).then(
+                            () => {
+                                if (proposalData && proposalData.data) {
+                                    // Move bonus code and apply top up promo here
+                                    if (proposalData.data.bonusCode) {
+                                        let isOpenPromoCode = proposalData.data.bonusCode.toString().length == 3;
+                                        if (isOpenPromoCode){
+                                            dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                                        }
+                                        else{
+                                            dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                                        }
+
+                                    }
+
+                                    if (proposalData.data.topUpReturnCode) {
+                                        let requiredData = {topUpRecordId: topupRecordData._id};
+                                        dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
+                                            , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
+                                    }
+                                }
+                            }
+                        );
                     }
 
                     return Promise.resolve(data && data[0]);
@@ -5893,7 +5918,7 @@ let dbPlayerInfo = {
                 deferred.resolve(data);
             },
             function (err) {
-                if (!err || !err.hasLog) {
+                if (!err || (!err.hasLog && !err.insufficientAmount)) {
                     var platformId = playerObj.platform ? playerObj.platform.platformId : null;
                     var platformObjId = playerObj.platform ? playerObj.platform._id : null;
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, platformObjId, platformId, "transferOut", "unknown",

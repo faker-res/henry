@@ -460,6 +460,26 @@
     </div>
 </div>
 
+<h3>CHECK REWARD APPLICABLE (获取申请优惠相关信息)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform ID
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Reward Code
+            <input type=text name="code">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <button id="getRewardApplicationData" data-api-name="getRewardApplicationData">Get</button>
+    </div>
+</div>
+
     <script>
         require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientRewardAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientRewardAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {

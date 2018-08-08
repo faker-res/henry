@@ -665,6 +665,10 @@ var dbGame = {
             }
         );
         return Q.all(gameProms);
+    },
+
+    renameGame: (gameObjId, newName) => {
+        return dbconfig.collection_game.findOneAndUpdate({_id: gameObjId}, {customName: newName})
     }
 
 };

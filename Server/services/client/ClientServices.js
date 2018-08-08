@@ -298,6 +298,7 @@
                 "getLimitedOfferBonus",
                 "setLimitedOfferShowInfo",
                 "setBonusShowInfo",
+                "getRewardApplicationData",
                 "getSignInfo",
                 "getSignBonus",
                 "getSlotInfo",
