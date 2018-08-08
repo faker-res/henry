@@ -5918,7 +5918,7 @@ let dbPlayerInfo = {
                 deferred.resolve(data);
             },
             function (err) {
-                if (!err || !err.hasLog) {
+                if (!err || (!err.hasLog && !err.insufficientAmount)) {
                     var platformId = playerObj.platform ? playerObj.platform.platformId : null;
                     var platformObjId = playerObj.platform ? playerObj.platform._id : null;
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, platformObjId, platformId, "transferOut", "unknown",
