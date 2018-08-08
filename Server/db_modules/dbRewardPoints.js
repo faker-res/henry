@@ -1713,23 +1713,21 @@ let dbRewardPoints = {
                 }
             })
             .then(rewardPoints => {
-                console.log('then-5');
                 let sortCol = {points: -1, lastUpdate: 1};
 
                 let loginRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
                     platformObjId: platformData._id,
                     category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS,
                     status: true
-                }).populate({path: "level", model: dbConfig.collection_playerLevel, select: {'name': 1, 'value': 1}}).lean().sort({index: 1})
-                    .then(data => {console.log('loginRewardPointProm'); return data;});
+                }).populate({path: "level", model: dbConfig.collection_playerLevel, select: {'name': 1, 'value': 1}}).lean().sort({index: 1});
 
                 let gameRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
                     platformObjId: platformData._id,
                     category: constRewardPointsTaskCategory.GAME_REWARD_POINTS,
                     status: true
-                }).populate({path: "level", model: dbConfig.collection_playerLevel, select: {'name': 1, 'value': 1}}).lean().sort({index: 1}).then(data => {console.log('gameRewardPointProm'); return data;});
+                }).populate({path: "level", model: dbConfig.collection_playerLevel, select: {'name': 1, 'value': 1}}).lean().sort({index: 1});
 
-                let gameProviderProm = dbConfig.collection_gameProvider.find({}).lean().then(data => {console.log('gameProviderProm'); return data;});
+                let gameProviderProm = dbConfig.collection_gameProvider.find({}).lean();
 
                 let rewardPointsRankingProm = dbConfig.collection_rewardPoints.find({
                     platformObjId: platformData._id
@@ -1739,8 +1737,19 @@ let dbRewardPoints = {
                     playerLevel: 1,
                     points: 1,
                     _id: 0
-                }).sort(sortCol)
-                    .populate({path: "playerLevel", model: dbConfig.collection_playerLevel, select: {'name': 1, 'value': 1}}).lean().then(data => {console.log('rewardPointsRankingProm'); return data;});
+                }).populate({path: "playerLevel", model: dbConfig.collection_playerLevel, select: {'name': 1, 'value': 1}}).lean().then(
+                    rewardPoints => {
+                        rewardPoints = rewardPoints.sort((a, b) => {
+                            if (a.points !== b.points) {
+                                return b.points - a.points;
+                            } else {
+                                return a.lastUpdate - b.lastUpdate;
+                            }
+                        });
+
+                        return rewardPoints;
+                    }
+                );
 
                 return Promise.all([loginRewardPointProm, gameRewardPointProm, gameProviderProm, rewardPointsRankingProm])
             })
