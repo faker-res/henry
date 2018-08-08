@@ -129,6 +129,8 @@ var roleChecker = {
         "getLastMonthConsumptionReturnSGTime": true,
 
         "getPlatformProviderGroup": true,
+        "getPMSPaymentGroup": true,
+        "getPMSUserPaymentGroup": true,
 
         // API Actions - can be ignored
         'createApiUser': true,
