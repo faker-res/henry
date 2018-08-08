@@ -26583,12 +26583,14 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getCommissionRateGameProviderGroup = function () {
+                vm.isParentRateEditing = false;
                 vm.isCommissionRateEditing = false;
                 vm.rateAfterRebateGameProviderGroup = [];
                 vm.rateAfterRebatePromo = null;
                 vm.rateAfterRebatePlatform = null;
                 vm.rateAfterRebateTotalDeposit = null;
                 vm.rateAfterRebateTotalWithdrawal = null;
+                vm.parentCommissionRate = null;
                 vm.custCommissionRateConfig = [];
                 vm.srcCommissionRateConfig = {};
 
@@ -26626,6 +26628,7 @@ define(['js/app'], function (myApp) {
                                     vm.rateAfterRebateTotalDeposit = vm.commissionRateConfig.rateAfterRebateTotalDeposit;
                                     vm.rateAfterRebateTotalWithdrawal = vm.commissionRateConfig.rateAfterRebateTotalWithdrawal;
                                     vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
+                                    vm.parentCommissionRate = vm.commissionRateConfig.parentCommissionRate;
                                 }
                             })
                         } else {
@@ -26636,6 +26639,36 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     });
+                });
+            };
+
+            vm.editParentRateSetting = function () {
+                vm.isParentRateEditing = true;
+            };
+
+            vm.cancelParentRateSetting = function () {
+                vm.isParentRateEditing = false;
+                vm.parentCommissionRate = vm.srcCommissionRateConfig.parentCommissionRate;
+            };
+
+            vm.submitParentCommissionRateSetting = function () {
+
+                var updateDate = {
+                    platform: vm.selectedPlatform.id,
+                    parentCommissionRate: vm.parentCommissionRate
+                }
+
+                var sendData = {
+                    query: {
+                        platform: vm.selectedPlatform.id
+                    },
+                    updateData: updateDate
+                }
+                socketService.$socket($scope.AppSocket, 'createUpdatePartnerCommissionRateConfig', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('partnerCommissionRateConfig success ',data);
+                        vm.isParentRateEditing = false;
+                    })
                 });
             };
 
