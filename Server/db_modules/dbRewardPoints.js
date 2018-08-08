@@ -1739,6 +1739,7 @@ let dbRewardPoints = {
                     _id: 0
                 }).populate({path: "playerLevel", model: dbConfig.collection_playerLevel, select: {'name': 1, 'value': 1}}).lean().then(
                     rewardPoints => {
+                        console.log('rewardPoints.length', rewardPoints.length);
                         rewardPoints = rewardPoints.sort((a, b) => {
                             if (a.points !== b.points) {
                                 return b.points - a.points;
@@ -1747,6 +1748,7 @@ let dbRewardPoints = {
                             }
                         });
 
+                        console.log('done sorting');
                         return rewardPoints;
                     }
                 );
