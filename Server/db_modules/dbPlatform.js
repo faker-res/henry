@@ -3170,7 +3170,44 @@ var dbPlatform = {
     },
 
     deleteDepositTrackingGroup: (platformObjId, trackingGroupObjId) => {
-        return dbconfig.collection_playerDepositTrackingGroup.remove({_id: trackingGroupObjId, platform: platformObjId}).exec();
+        return dbconfig.collection_playerDepositTrackingGroup.remove({_id: trackingGroupObjId, platform: platformObjId}).exec().then(
+            () => {
+                let query = {
+                    platform: platformObjId,
+                    depositTrackingGroup: trackingGroupObjId,
+                };
+
+                // need remove deposit tracking group for related players
+                return dbconfig.collection_players.find(query).lean().then(
+                    playerData => {
+                        let proms = [];
+                        if (playerData && playerData.length > 0) {
+                            for (let index in playerData) {
+                                let player = playerData[index];
+
+                                let removeQuery = {
+                                    _id: player._id,
+                                    platform: platformObjId
+                                };
+
+                                // remove field
+                                let updateData = {
+                                    $unset: {depositTrackingGroup: ""}
+                                };
+
+                                let removeProm = dbconfig.collection_players.findOneAndUpdate(removeQuery, updateData, {new: true});
+                                proms.push(removeProm);
+                            }
+                        }
+                        return Q.all(proms);
+                    }
+                ).then(
+                    removedTrackingGroup => {
+                        return removedTrackingGroup;
+                    }
+                );
+            }
+        );
     },
 
     getPlatformPartnerSettLog: (platformObjId, modes) => {
