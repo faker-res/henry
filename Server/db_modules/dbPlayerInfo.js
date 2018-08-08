@@ -18474,7 +18474,7 @@ function getProviderCredit(providers, playerName, platformId) {
     let providerCredit = 0;
 
     providers.forEach(provider => {
-        if (provider) {
+        if (provider && provider.status == constProviderStatus.NORMAL) {
             promArr.push(
                 cpmsAPI.player_queryCredit(
                     {
