@@ -13,17 +13,17 @@ var rewardPointsEvent = new Schema({
     // category of reward, base on constRewardPointsTaskCategory
     category: {type: Number, required: true},
     // period
-    period: {type: Number, required: true},
+    period: {type: Number, required: true, index: true},
     // start time - only use when period is 'custom'
     customPeriodStartTime: {type: Date},
     // end time - only use when period is 'custom'
     customPeriodEndTime: {type: Date},
     // userAgent, base on constPlayerRegistrationInterface
-    userAgent: {type: Number},
+    userAgent: {type: Number, index: true},
     // number of streak
-    consecutiveCount: {type: Number},
+    consecutiveCount: {type: Number, index: true},
 
-    rewardPoints: {type: Number},
+    rewardPoints: {type: Number, index: true},
 
     createTime: {type: Date, default: Date.now},
 
