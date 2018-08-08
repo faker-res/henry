@@ -1755,7 +1755,7 @@ let dbRewardPoints = {
                     returnData.pointRanking = rewardPointsRankingListArr;
 
                     if (playerData) {
-                        let playerPointInfoListArr = getPlayerPointInfo(rewardPointsRanking, playerData);
+                        let playerPointInfoListArr = getPlayerPointInfo(rewardPointsRanking, playerData, playerLevelRecord);
                         returnData.playerPointInfo = playerPointInfoListArr;
                     }
                 }
@@ -2638,7 +2638,7 @@ function getRewardPointsRanking(rewardPoints) {
     return rewardPointsRankingListArr;
 }
 
-function getPlayerPointInfo(rewardPointsData, playerData) {
+function getPlayerPointInfo(rewardPointsData, playerData, playerLevelRecord) {
     let playerPointInfoListArr = [];
     let rankNo = 0;
     let level = "";
@@ -2653,7 +2653,9 @@ function getPlayerPointInfo(rewardPointsData, playerData) {
             for (let x in rewardPointsData) {
                 let playerRank = rewardPointsData[x];
                 if (playerRank.playerObjId
-                    && (playerRank.playerObjId.toString() == playerData._id.toString())) {
+                    && (playerRank.playerObjId.toString() == playerData._id.toString())
+                    && playerLevelRecord && playerLevelRecord.playerLevel && playerLevelRecord.playerLevel._id && playerRank.playerLevel &&  playerRank.playerLevel._id
+                    && (playerLevelRecord.playerLevel._id.toString() == playerRank.playerLevel._id.toString())) {
 
                     if(playerRank.playerLevel && playerRank.playerLevel.name) {
                         level = playerRank.playerLevel.name;
@@ -2666,6 +2668,7 @@ function getPlayerPointInfo(rewardPointsData, playerData) {
                     }
 
                     playerPointInfoListArr.push(playerPointInfo);
+                    break;
                 }
             }
         }
