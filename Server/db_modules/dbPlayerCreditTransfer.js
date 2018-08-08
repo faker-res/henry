@@ -1738,8 +1738,8 @@ let dbPlayerCreditTransfer = {
                         return dbConfig.collection_rewardTaskGroup.findOne({
                             platformId: platform,
                             playerId: playerObjId,
-                            providerGroup: null,
-                            status: {$in: [constRewardTaskStatus.STARTED]}
+                            status: {$in: [constRewardTaskStatus.STARTED]},
+                            $or: [{providerGroup:{ $exists: false }}, {providerGroup: null}]
                         }).populate({
                             path: "lastPlayedProvider", model: dbConfig.collection_gameProvider
                         }).lean()
