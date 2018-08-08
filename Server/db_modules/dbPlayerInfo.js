@@ -14473,7 +14473,7 @@ let dbPlayerInfo = {
                             $lte: dayEndTime
                         },
                         mainType: "TopUp",
-                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                        status: constProposalStatus.SUCCESS,
                     }
                 },
                 {
@@ -14496,7 +14496,7 @@ let dbPlayerInfo = {
                             $lte: dayEndTime
                         },
                         mainType: "PlayerBonus",
-                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                        status: constProposalStatus.SUCCESS,
                     }
                 },
                 {
@@ -14778,7 +14778,7 @@ let dbPlayerInfo = {
                             $match: {
                                 "data.playerObjId": ObjectId(player._id),
                                 mainType: "TopUp",
-                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                status: constProposalStatus.SUCCESS,
                             }
                         },
                         {
@@ -14800,7 +14800,7 @@ let dbPlayerInfo = {
                             $match: {
                                 "data.playerObjId": ObjectId(player._id),
                                 mainType: "PlayerBonus",
-                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                status: constProposalStatus.SUCCESS,
                             }
                         },
                         {
