@@ -8376,7 +8376,7 @@ define(['js/app'], function (myApp) {
                         // });
                         vm.setupRemarksMultiInputDepositTracking();
                         vm.setupMultiInputDepositTrackingGroup();
-                        vm.searchPlayerDepositTrackingReport(); // auto search and display player being tracked when tab clicked
+                        //vm.searchPlayerDepositTrackingReport(); // auto search and display player being tracked when tab clicked
                     });
                 })
             } else if (choice == "PLAYER_EXPENSE_REPORT") {
