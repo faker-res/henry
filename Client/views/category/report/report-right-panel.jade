@@ -2212,8 +2212,13 @@
                                         | &nbsp (
                                         i.fa.fa-minus
                                         | )
-                                td {{v.name}}
-                                td {{v.remark}}
+                                td(ng-if='!vm.editDepositTrackingGroup') {{v.name}}
+                                td(ng-if='!vm.editDepositTrackingGroup') {{v.remark}}
+                                td(ng-if='vm.editDepositTrackingGroup')
+                                    input.form-control(type="text", ng-model="v.name", required)
+                                td(ng-if='vm.editDepositTrackingGroup')
+                                    input.form-control(type="text", ng-model="v.remark", required)
+
                             tr(ng-if='vm.editDepositTrackingGroup' ng-click="vm.newRowDepositTrackingGroup(vm.newDepositTrackingGroup)")
                                 td(colspan="3")
                                     strong {{'ADD' | translate}}
