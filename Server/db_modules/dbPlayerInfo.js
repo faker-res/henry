@@ -3231,8 +3231,11 @@ let dbPlayerInfo = {
                                                 if (providerGroup && providerGroup.providers && providerGroup.providers.length) {
                                                     return getProviderCredit(providerGroup.providers, player.name, platform.platformId).then(
                                                         credit => {
-                                                            if(credit){
+                                                            if (credit >= 0) {
                                                                 rtg.totalCredit += credit;
+                                                            } else {
+                                                                // set totalCredit to -1 to bypass unlock when provider not available
+                                                                rtg.totalCredit = -1;
                                                             }
 
                                                             return rtg;
@@ -3251,8 +3254,11 @@ let dbPlayerInfo = {
 
                                     let calCreditProm = getProviderCredit(platform.gameProviders, player.name, platform.platformId).then(
                                         credit => {
-                                            if(credit){
+                                            if (credit >= 0) {
                                                 rtg.totalCredit += credit;
+                                            } else {
+                                                // set totalCredit to -1 to bypass unlock when provider not available
+                                                rtg.totalCredit = -1;
                                             }
 
                                             return rtg;
@@ -3290,7 +3296,7 @@ let dbPlayerInfo = {
                                     })
                                 }
                             }
-                        )
+                        );
 
                         return Promise.all(rtgArr);
                     }
@@ -18494,6 +18500,7 @@ function determineRegistrationInterface(inputData) {
 function getProviderCredit(providers, playerName, platformId) {
     let promArr = [];
     let providerCredit = 0;
+    let isError = false;
 
     providers.forEach(provider => {
         if (provider && provider.status == constProviderStatus.NORMAL) {
@@ -18508,6 +18515,7 @@ function getProviderCredit(providers, playerName, platformId) {
                     data => data,
                     error => {
                         console.log("error when getting provider credit", error);
+                        isError = true;
                         return {credit: 0};
                     }
                 )
@@ -18515,17 +18523,22 @@ function getProviderCredit(providers, playerName, platformId) {
         }
     });
 
-    return Promise.all(promArr)
-        .then(providerCreditData => {
-            providerCreditData.forEach(provider => {
-                if (provider && provider.hasOwnProperty("credit")) {
-                    providerCredit += !isNaN(provider.credit) ? parseFloat(provider.credit) : 0;
-                }
-            });
+    return Promise.all(promArr).then(
+        providerCreditData => {
+            if (isError) {
+                // Error when query one of the provider (timeout/etc)
+                providerCredit = -1;
+            } else {
+                providerCreditData.forEach(provider => {
+                    if (provider && provider.hasOwnProperty("credit")) {
+                        providerCredit += !isNaN(provider.credit) ? parseFloat(provider.credit) : 0;
+                    }
+                });
+            }
+
             return providerCredit;
-        });
-
-
+        }
+    );
 }
 
 function checkRouteSetting(url, setting) {
