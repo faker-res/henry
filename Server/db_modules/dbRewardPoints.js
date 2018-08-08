@@ -1633,7 +1633,9 @@ let dbRewardPoints = {
                     let rewardProgressProm = [];
 
                     if (topupRewardPointEvent.length) {
-                        topupRewardPointEvent.forEach(relevantData => {
+                        for (let x = 0, len = topupRewardPointEvent.length; x < len; x++) {
+                            let relevantData = topupRewardPointEvent[x];
+
                             if (relevantData && relevantData._id) {
                                 let eventPeriodStartTime = getEventPeriodStartTime(relevantData);
                                 let rewardProm = dbConfig.collection_rewardPointsProgress.findOne({
@@ -1643,7 +1645,7 @@ let dbRewardPoints = {
                                 }).lean();
                                 rewardProgressProm.push(rewardProm);
                             }
-                        });
+                        }
                     }
 
                     return Promise.all(rewardProgressProm).then(
@@ -2486,7 +2488,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                 for (let x = 0, len = rewardPointsProgress.length; x < len; x++) {
                     let progressData = rewardPointsProgress[x];
 
-                    if (progressData.rewardPointsEventObjId && progressData.rewardPointsEventObjId.toString() === reward._id.toString()
+                    if (progressData && progressData.rewardPointsEventObjId && progressData.rewardPointsEventObjId.toString() === reward._id.toString()
                         && progressData.lastUpdateTime >= rewardStartTime && progressData.lastUpdateTime <= rewardEndTime) {
                         currentGoal = progressData.count;
                         turnQualifiedLoginDate = progressData.turnQualifiedLoginDate || "";
@@ -2562,7 +2564,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         if (gameProvider && gameProvider.length > 0) {
                             for (let x = 0, len = gameProvider.length; x < len; x++) {
                                 let gameProviderData = gameProvider[x];
-                                if (reward.target.targetDestination && gameProviderData && (reward.target.targetDestination == gameProviderData._id.toString())) {
+                                if (reward.target.targetDestination && gameProviderData && gameProviderData._id && (reward.target.targetDestination == gameProviderData._id.toString())) {
                                     providerIds.push(gameProviderData.providerId);
                                 }
                             }
