@@ -1734,34 +1734,33 @@ let dbPlayerCreditTransfer = {
                     let freeCreditGroupData = {
                         ebetWallet: 0
                     };
-
-                    checkRTGProm.push(
-                        dbConfig.collection_rewardTaskGroup.findOne({
+                    return Promise.all(checkRTGProm).then(() => {
+                        return dbConfig.collection_rewardTaskGroup.findOne({
                             platformId: platform,
                             playerId: playerObjId,
                             providerGroup: null,
                             status: {$in: [constRewardTaskStatus.STARTED]}
                         }).populate({
                             path: "lastPlayedProvider", model: dbConfig.collection_gameProvider
-                        }).lean().then(RTG => {
-                            if(RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name &&
-                                (RTG.lastPlayedProvider.name.toUpperCase() === "EBET" || RTG.lastPlayedProvider.name.toUpperCase() === "EBETSLOTS")) {
-                                transferOut = transferOut.then(() => {
-                                    return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
-                                        amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
-                                        transferOutSuccessData.push(ret);
-                                    }).catch(err => {
-                                        transferOutErrorData.push(err);
-                                        return errorUtils.reportError(err);
-                                    })
-                                });
-                            }
-                        })
-                    );
-                    return Promise.all(checkRTGProm).then(() => {
+                        }).lean()
+                    }).then(RTG => {
+                        console.log("checkRTG for free credit", RTG);
+                        if(RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name &&
+                            (RTG.lastPlayedProvider.name.toUpperCase() === "EBET" || RTG.lastPlayedProvider.name.toUpperCase() === "EBETSLOTS")) {
+                            transferOut = transferOut.then(() => {
+                                return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
+                                    amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
+                                    transferOutSuccessData.push(ret);
+                                }).catch(err => {
+                                    transferOutErrorData.push(err);
+                                    return errorUtils.reportError(err);
+                                })
+                            });
+                        }
                         return transferOut;
                     }).then(() => {
-                        console.log('transferout promise data',transferOutSuccessData);
+                        console.log('transferOut Success Data',transferOutSuccessData);
+                        console.log('transferOut Error Data',transferOutErrorData);
                         let providerCredit = 0, playerCredit = 0, rewardCredit = 0, transferPlayerCredit = 0, transferRewardCredit = 0;
                         transferOutSuccessData.forEach(item => {
                             if(item && item.providerCredit && item.playerCredit && item.rewardCredit &&
