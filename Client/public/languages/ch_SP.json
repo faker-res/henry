@@ -3856,6 +3856,9 @@
   "Partner not found.": "搜索代理失败",
   "Apply Commission Succeed": "结算佣金成功",
   "PAST_COMMISSION_SETTLEMENT": "结算之前周期的佣金",
+  "FPMS Group": "FPMS组",
+  "PMS Group": "PMS组",
+  "Player's Name (PMS Group Search)": "会员账号（PMS 分组查询）",
 
   "RECEIVE_BANK_TYPE": "收款银行类型",
   "RECEIVE_BANK_ACC": "收款银行账号",

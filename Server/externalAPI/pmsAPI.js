@@ -219,6 +219,14 @@ const pmsAPI = {
         return callPMSAPI("bankcard", "getBankType", data);
     },
 
+    bankcard_bankCardByGroupReq: function (data) {
+        return callPMSAPI("bankcard", "bankCardByGroupReq", data)
+    },
+
+    bankcard_bankCardByUserReq: function (data) {
+        return callPMSAPI("bankcard", "bankCardByUserReq", data)
+    },
+
     //merchant service
     merchant_getMerchantList: function (data) {
         return callPMSAPI("merchant", "getMerchantList", data);

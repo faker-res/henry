@@ -442,7 +442,30 @@ var dbPlatformBankCardGroup = {
 
     deleteBankCardAcc: function (bankCardObjId) {
         return dbconfig.collection_platformBankCardList.remove({_id: bankCardObjId}).exec();
-    }
+    },
+
+    // type: 1 - bankcard, 2 - alipay
+    getPaymentGroup: function (platformId, type) {
+        // debug param, todo :: remove later
+        // platformId = "100";
+        // delete type;
+        return pmsAPI.bankcard_bankCardByGroupReq({platformId: platformId, bankCardType: type}).then(
+            data => {
+                return data;
+            }
+        );
+    },
+
+    getUserPaymentGroup: function (platformId, playerName) {
+        // debug param, todo :: remove later
+        // platformId = "100";
+        // playerName = "111";
+        return pmsAPI.bankcard_bankCardByUserReq({platformId: platformId, userName: playerName}).then(
+            data => {
+                return data;
+            }
+        );
+    },
 
 };
 

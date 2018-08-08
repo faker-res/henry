@@ -44,6 +44,7 @@ define(['js/app'], function (myApp) {
         vm.allPlayersStatusKeys = ['NORMAL', 'FORBID_GAME', 'FORBID', 'BALCKLIST', 'ATTENTION', 'LOGOFF', 'CHEAT_NEW_ACCOUNT_REWARD', 'TOPUP_ATTENTION', 'HEDGING', 'TOPUP_BONUS_SPAM', 'MULTIPLE_ACCOUNT', 'BANNED', 'FORBID_ONLINE_TOPUP'];
 
         ////////////////Mark::Platform functions//////////////////
+        vm.groupUsed = "FPMS";
         vm.updatePageTile = function () {
             window.document.title = $translate("payment") + "->" + $translate(vm.paymentPageName);
         };
@@ -239,11 +240,12 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getAllBankCard = function () {
+            console.log('aaa')
             return $scope.$socketPromise('getAllBankCard', {platform: vm.selectedPlatform.data.platformId}).then(data => {
                 console.log('getAllBankCard', data);
                 vm.allBankCards = data.data.data;
 
-                $scope.safeApply();
+                $scope.$evalAsync();
             });
         };
 
@@ -256,6 +258,57 @@ define(['js/app'], function (myApp) {
         }
 
         vm.loadBankCardGroup = () => {
+            if (vm.groupUsed == "PMS") {
+                vm.pmsGroupPlayerName = "";
+                return $scope.$socketPromise('getPMSPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, type: "1"}).then(data => {
+                    console.log('getPMSPaymentGroup', data)
+                    data = data.data;
+                    vm.platformBankCardGroupList = [];
+                    if (data && data.map && data.map["银行卡"]) {
+                        console.log('data.map["银行卡"]', data.map["银行卡"])
+                        Object.entries(data.map["银行卡"]).forEach(([groupName, value]) => {
+                            console.log('a', groupName, value)
+                            let groupData = {
+                                code: groupName,
+                                displayName: groupName,
+                                groupId: groupName,
+                                name: groupName,
+                                cards: []
+                            };
+
+                            if (value && value.length) {
+                                value.map(bankCard => {
+                                    let data = {};
+                                    data.accountNumber = bankCard.bankCard;
+                                    if (vm.cloneAllBankTypeList && vm.cloneAllBankTypeList.length) {
+                                        for(let i = 0; i < vm.cloneAllBankTypeList.length; i++) {
+                                            if (vm.cloneAllBankTypeList[i].name && vm.cloneAllBankTypeList[i].name.match(bankCard.bankName)) {
+                                                data.bankTypeId = vm.cloneAllBankTypeList[i].bankTypeId;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    data.bankTypeId = data.bankTypeId || bankCard.bankName;
+
+                                    data.cityName = bankCard.cityName;
+                                    data.name = bankCard.cardName;
+                                    data.provinceName = bankCard.provinceName;
+                                    data.quota = bankCard.dailyLimit;
+                                    data.openingPoint = bankCard.bankAddress;
+                                    data.show$ = true;
+                                    data.included = true;
+                                    data.status = bankCard.flag ? bankCard.flag.split(" ")[0] : "DISABLED";
+
+                                    groupData.cards.push(data);
+                                });
+                            }
+                            vm.platformBankCardGroupList.push(groupData);
+                        });
+                    }
+                    $scope.$evalAsync();
+                });
+            }
+
             return $scope.$socketPromise('getPlatformBankCardGroupLite', {platform: vm.selectedPlatform.id}).then(data => {
                 $scope.$evalAsync(() => {
                     console.log('bankgroup', data);
@@ -265,6 +318,7 @@ define(['js/app'], function (myApp) {
                     $.each(vm.platformBankCardGroupList, function (i, v) {
                         vm.platformBankCardGroupListCheck[v._id] = true;
                     });
+                    $scope.$evalAsync();
                 });
             })
         };
@@ -315,64 +369,73 @@ define(['js/app'], function (myApp) {
         }
 
         vm.bankCardGroupClicked = function (i, bankCardGroup) {
-            if (vm.platformBankCardGroupList) {
-                for (let i = 0; i < vm.platformBankCardGroupList.length; i++) {
-                    if (vm.platformBankCardGroupList[i]._id.toString() === bankCardGroup._id.toString()) {
-                        bankCardGroup = vm.platformBankCardGroupList[i];
-                    }
-                }
-            }
-
-            if (vm.allBankTypeList && vm.bankCardFilterOptions && !vm.bankCardFilterOptions.bankTypes) {
-                vm.bankCardFilterOptions.bankTypes = {};
-                for (let key in vm.allBankTypeList) {
-                    if (vm.allBankTypeList.hasOwnProperty(key)) {
-                        vm.bankCardFilterOptions.bankTypes[key] = true;
-                    }
-                }
-            }
-
-            if (vm.bankCardFilterOptions && !vm.bankCardFilterOptions.status) {
-                vm.bankCardFilterOptions.status = {
-                    "NORMAL": true,
-                    "LOCK": true,
-                    "DISABLED": true,
-                    "CLOSE": true,
-                    "TOBEFOLLOWEDUP": true,
-                    "SUSPEND": true
-                }
-            }
-
-            vm.SelectedBankCardGroupNode = bankCardGroup;
-            vm.includedBanks = null;
-            vm.excludedBanks = null;
             vm.bankCardTableLoading = true;
-            console.log('bankCardGroup clicked', bankCardGroup);
-            // var query = {
-            //     platform: vm.selectedPlatform.data.platformId,
-            //     bankCardGroup: bankCardGroup._id
-            // }
-
-            let proms = [];
-
-            vm.BankCardNameChanged = function(){
-                vm.filterBankAccountNo = vm.filterBankCardName;
-            };
-
-            vm.BankAccountNumberChanged = function(){
-                vm.filterBankCardName = vm.filterBankAccountNo;
-            };
-
-            if (!vm.allBankCards) {
-                proms.push(vm.getAllBankCard());
-            }
-
-            Promise.all(proms).then(() => {
-                vm.checkIncludedBankCards();
-                vm.bankCardsFilter();
+            if (vm.groupUsed == "PMS") {
+                vm.SelectedBankCardGroupNode = bankCardGroup;
+                vm.allBankCards = bankCardGroup.cards;
                 vm.bankCardTableLoading = false;
-                $scope.safeApply();
-            });
+                $scope.$evalAsync();
+            }
+            else {
+                if (vm.platformBankCardGroupList) {
+                    for (let i = 0; i < vm.platformBankCardGroupList.length; i++) {
+                        if (vm.platformBankCardGroupList[i]._id.toString() === bankCardGroup._id.toString()) {
+                            bankCardGroup = vm.platformBankCardGroupList[i];
+                        }
+                    }
+                }
+
+                if (vm.allBankTypeList && vm.bankCardFilterOptions && !vm.bankCardFilterOptions.bankTypes) {
+                    vm.bankCardFilterOptions.bankTypes = {};
+                    for (let key in vm.allBankTypeList) {
+                        if (vm.allBankTypeList.hasOwnProperty(key)) {
+                            vm.bankCardFilterOptions.bankTypes[key] = true;
+                        }
+                    }
+                }
+
+                if (vm.bankCardFilterOptions && !vm.bankCardFilterOptions.status) {
+                    vm.bankCardFilterOptions.status = {
+                        "NORMAL": true,
+                        "LOCK": true,
+                        "DISABLED": true,
+                        "CLOSE": true,
+                        "TOBEFOLLOWEDUP": true,
+                        "SUSPEND": true
+                    }
+                }
+
+                vm.SelectedBankCardGroupNode = bankCardGroup;
+                vm.includedBanks = null;
+                vm.excludedBanks = null;
+                vm.bankCardTableLoading = true;
+                console.log('bankCardGroup clicked', bankCardGroup);
+                // var query = {
+                //     platform: vm.selectedPlatform.data.platformId,
+                //     bankCardGroup: bankCardGroup._id
+                // }
+
+                let proms = [];
+
+                vm.BankCardNameChanged = function () {
+                    vm.filterBankAccountNo = vm.filterBankCardName;
+                };
+
+                vm.BankAccountNumberChanged = function () {
+                    vm.filterBankCardName = vm.filterBankAccountNo;
+                };
+
+                if (!vm.allBankCards) {
+                    proms.push(vm.getAllBankCard());
+                }
+
+                Promise.all(proms).then(() => {
+                    vm.checkIncludedBankCards();
+                    vm.bankCardsFilter();
+                    vm.bankCardTableLoading = false;
+                    $scope.safeApply();
+                });
+            }
 
             // vm.BankTypeChanged = function(){
             //     socketService.$socket($scope.AppSocket, 'getIncludedBankCardByBankCardGroup', query, function(data2){
@@ -453,6 +516,25 @@ define(['js/app'], function (myApp) {
             //     }
             //     $scope.safeApply();
             // })
+        };
+
+        vm.playerPMSBankCardGroupSearch = () => {
+            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName}).then(data => {
+                console.log('getPMSUserPaymentGroup', data)
+                if (data && data.data && data.data.map && data.data.map["银行卡组"]) {
+                    let groupName = Object.entries(data.data.map["银行卡组"])[0][0];
+                    if (vm.platformBankCardGroupList && vm.platformBankCardGroupList.length) {
+                        for (let i = 0; i < vm.platformBankCardGroupList.length; i++) {
+                            if (vm.platformBankCardGroupList[i].code == groupName) {
+                                vm.bankCardGroupClicked(i, vm.platformBankCardGroupList[i]);
+                            }
+                        }
+                    }
+                }
+                else {
+
+                }
+            });
         };
 
         vm.checkIncludedBankCards = () => {
