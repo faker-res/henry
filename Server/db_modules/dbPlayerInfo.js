@@ -1872,7 +1872,7 @@ let dbPlayerInfo = {
         ).then(
             function (platformData) {
                 apiData.platformId = platformData.platformId;
-                apiData.name = apiData.name.replace(platformData.prefix, "");
+                // apiData.name = apiData.name.replace(platformData.prefix, "");
                 delete apiData.platform;
                 var a, b, c;
                 a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({
@@ -18474,7 +18474,7 @@ function getProviderCredit(providers, playerName, platformId) {
     let providerCredit = 0;
 
     providers.forEach(provider => {
-        if (provider) {
+        if (provider && provider.status == constProviderStatus.NORMAL) {
             promArr.push(
                 cpmsAPI.player_queryCredit(
                     {
