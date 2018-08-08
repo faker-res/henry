@@ -15439,10 +15439,31 @@ let dbPlayerInfo = {
                 }
             }
 
+            if (query.depositTrackingGroup && query.depositTrackingGroup.length !== 0) {
+                let tempArr = [];
+                let isNoneExist = false;
+
+                query.depositTrackingGroup.forEach(group => {
+                    if (group == "") {
+                        isNoneExist = true;
+                    } else {
+                        tempArr.push(group);
+                    }
+                });
+
+                if (isNoneExist && tempArr.length > 0) {
+                    playerQuery.$or = [{depositTrackingGroup: []}, {depositTrackingGroup: {$exists: false}}, {depositTrackingGroup: {$in: tempArr}}];
+                } else if (isNoneExist && !tempArr.length) {
+                    playerQuery.$or = [{depositTrackingGroup: []}, {depositTrackingGroup: {$exists: false}}];
+                } else if (tempArr.length > 0 && !isNoneExist) {
+                    playerQuery.depositTrackingGroup = {$in: query.depositTrackingGroup};
+                }
+            }
+
             let playerProm = dbconfig.collection_players.findOne(
                 playerQuery, {
                     playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1, accAdmin: 1,
-                    promoteWay: 1, phoneProvince: 1, phoneCity: 1, province: 1, city: 1
+                    promoteWay: 1, phoneProvince: 1, phoneCity: 1, province: 1, city: 1, depositTrackingGroup: 1
                 }
             ).lean();
 
@@ -15670,6 +15691,7 @@ let dbPlayerInfo = {
                     result.name = playerDetail.name;
                     result.valueScore = playerDetail.valueScore;
                     result.registrationTime = playerDetail.registrationTime;
+                    result.depositTrackingGroup = playerDetail.depositTrackingGroup;
                     result.endTime = endTime;
 
                     let csOfficerDetail = data[6];
