@@ -1590,8 +1590,10 @@ let dbRewardPoints = {
         let gameProvider;
         let rewardPointsRanking;
 
+        console.log('ricco-start');
         return dbConfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().then(
             platformRecord => {
+                console.log('then-1');
                 if (platformRecord) {
                     platformData = platformRecord;
                     return dbConfig.collection_players.findOne({
@@ -1607,6 +1609,7 @@ let dbRewardPoints = {
                 }
             })
             .then(playerRecord => {
+                console.log('then-2');
                 let topupRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
                     platformObjId: platformData._id,
                     category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS,
@@ -1625,6 +1628,7 @@ let dbRewardPoints = {
                 return Promise.all([topupRewardPointProm, rewardPointsProm, playerLevelProm])
             })
             .then(playerTopupRewardPointsRecord => {
+                console.log('then-3');
                 topupRewardPointEvent = playerTopupRewardPointsRecord[0] ? playerTopupRewardPointsRecord[0] : [];
                 rewardPointRecord = playerTopupRewardPointsRecord[1] ? playerTopupRewardPointsRecord[1] : [];
                 playerLevelRecord = playerTopupRewardPointsRecord[2] ? playerTopupRewardPointsRecord[2] : [];
@@ -1650,6 +1654,7 @@ let dbRewardPoints = {
 
                     return Promise.all(rewardProgressProm).then(
                         progressData => {
+                            console.log('then-4');
                             let rewardProgressList = progressData && progressData.length ? progressData : [];
                             for (let j = rewardProgressList.length - 1; j >= 0; j--) {
                                 if (!rewardProgressList[j]) {
@@ -1713,6 +1718,7 @@ let dbRewardPoints = {
                 }
             })
             .then(rewardPoints => {
+                console.log('then-5');
                 let sortCol = {points: -1, lastUpdate: 1};
 
                 let loginRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
@@ -1743,6 +1749,7 @@ let dbRewardPoints = {
                 return Promise.all([loginRewardPointProm, gameRewardPointProm, gameProviderProm, rewardPointsRankingProm])
             })
             .then(data => {
+                console.log('then-6');
                 let limit = 10;
 
                 loginRewardPointEvent = data[0] ? data[0] : [];
@@ -1784,6 +1791,7 @@ let dbRewardPoints = {
 
                 return Promise.all(gameRewardProm).then(
                     gameRewardPointsData => {
+                        console.log('then-8');
                         if (gameRewardPointsData && gameRewardPointsData.length) {
                             for (let j = gameRewardPointsData.length - 1; j >= 0; j--) {
                                 if (!gameRewardPointsData[j]) {
@@ -1802,6 +1810,7 @@ let dbRewardPoints = {
 
             }).then(
                 () => {
+                    console.log('then-9');
                     let loginRewardProm = [];
                     if(loginRewardPointEvent && loginRewardPointEvent.length > 0){
                         for (let x = 0, len = loginRewardPointEvent.length; x < len; x++) {
@@ -1821,6 +1830,7 @@ let dbRewardPoints = {
 
                     return Promise.all(loginRewardProm).then(
                         loginRewardPointsData => {
+                            console.log('then-10');
                             if (loginRewardPointsData && loginRewardPointsData.length) {
                                 for (let j = loginRewardPointsData.length - 1; j >= 0; j--) {
                                     if (!loginRewardPointsData[j]) {
@@ -1833,6 +1843,7 @@ let dbRewardPoints = {
                     );
             }).then(
                 () => {
+                    console.log('then-11');
                     let topUpRewardProm = [];
                     if(topupRewardPointEvent && topupRewardPointEvent.length > 0){
                         for (let x = 0, len = topupRewardPointEvent.length; x < len; x++) {
@@ -1852,6 +1863,7 @@ let dbRewardPoints = {
 
                     return Promise.all(topUpRewardProm).then(
                         topUpRewardPointsData => {
+                            console.log('then-12');
                             if (topUpRewardPointsData && topUpRewardPointsData.length) {
                                 for (let j = topUpRewardPointsData.length - 1; j >= 0; j--) {
                                     if (!topUpRewardPointsData[j]) {
@@ -1860,6 +1872,7 @@ let dbRewardPoints = {
                                 }
                             }
                             returnData.rechargePointList =  getRewardPointEvent(constRewardPointsTaskCategory.TOPUP_REWARD_POINTS, topupRewardPointEvent, gameProvider, topUpRewardPointsData);
+                            console.log('ricco-end');
                             return returnData;
                         }
                     );
