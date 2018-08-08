@@ -4109,7 +4109,8 @@ define(['js/app'], function (myApp) {
             } else {
                 let addData = {
                     platformObjId: vm.curPlatformId,
-                    groupData: vm.newDepositTrackingGroup
+                    groupData: vm.newDepositTrackingGroup,
+                    modifyData: vm.depositTrackingGroup
                 };
 
                 socketService.$socket($scope.AppSocket, 'addDepositTrackingGroup', addData, function (data) {
