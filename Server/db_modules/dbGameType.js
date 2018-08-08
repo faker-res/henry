@@ -24,6 +24,19 @@ var dbGameType = {
         );
     },
 
+    getAllGameTypesName: function () {
+        return dbGameType.getGameTypeList().then(
+            function (gameTypes) {
+                var allGameTypes = {};
+                gameTypes.forEach(function (gameType) {
+                    var GAMETYPE = gameType.gameTypeId;
+                    allGameTypes[GAMETYPE] = gameType.name;
+                });
+                return allGameTypes;
+            }
+        );
+    },
+
     getAllGameTypesAPI: function () {
         return dbconfig.collection_gameType.find({}, {_id:0, gameTypeId:1, code:1, name:1});
     },

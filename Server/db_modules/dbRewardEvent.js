@@ -1,3 +1,7 @@
+var dbRewardEventFunc = function () {
+};
+module.exports = new dbRewardEventFunc();
+
 var dbconfig = require('./../modules/dbproperties');
 var Q = require("q");
 var constRewardPriority = require('./../const/constRewardPriority');
@@ -10,6 +14,8 @@ const constGameStatus = require('./../const/constGameStatus');
 const constServerCode = require('../const/constServerCode');
 const dbPlayerReward = require('../db_modules/dbPlayerReward');
 const dbProposalUtil = require('../db_common/dbProposalUtility');
+const dbPlayerConsumptionWeekSummary = require('./../db_modules/dbPlayerConsumptionWeekSummary');
+const dbGameType = require('../db_modules/dbGameType');
 
 let cpmsAPI = require("../externalAPI/cpmsAPI");
 let SettlementBalancer = require('../settlementModule/settlementBalancer');
@@ -223,6 +229,46 @@ var dbRewardEvent = {
                     });
                 }
                 switch (rewardEvent.type.name) {
+                    case constRewardType.PLAYER_CONSUMPTION_RETURN:
+                        let returnData = {
+                            status: 2,
+                            condition: {
+                                ximaRatios: []
+                            }
+                        }
+                        return dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturn(playerObj.playerId, rewardEvent.code).then(
+                            ximaData => {
+                                if (ximaData) {
+                                    returnData.status = 1;
+                                    returnData.result = {
+                                        rewardAmount: ximaData.totalAmount? ximaData.totalAmount: 0,
+                                        betTimes: ximaData.event && ximaData.event.param && ximaData.event.param.consumptionTimesRequired? ximaData.event.param.consumptionTimesRequired: 0,
+                                    }
+                                    delete ximaData.totalAmount;
+                                    delete ximaData.totalConsumptionAmount;
+                                    delete ximaData.event;
+                                    delete ximaData.settleTime;
+                                    return dbGameType.getAllGameTypesName().then(
+                                        gameType => {
+                                            for (let key in ximaData) {
+                                                if (gameType[key]) {
+                                                    let ximaObj = {
+                                                        gameType: gameType[key],
+                                                        ratio: ximaData[key].ratio || 0,
+                                                        amountBet: ximaData[key].consumptionAmount || 0
+                                                    }
+                                                    returnData.condition.ximaRatios.push(ximaObj);
+                                                }
+                                            }
+                                            return returnData;
+                                        }
+                                    )
+                                } else {
+                                    return returnData;
+                                }
+                            }
+                        );
+                        break;
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                     case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
                     case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
@@ -267,29 +313,29 @@ var dbRewardEvent = {
                                 function checkRewardEventWithTopUp(topUpDataObj) {
                                     return dbRewardEvent.checkRewardEventGroupApplicable(playerObj, rewardEvent, {selectedTopup: topUpDataObj}).then(
                                         checkRewardData => {
-                                            if (checkRewardData.status == 1 && (checkRewardData.deposit.status == 2 || checkRewardData.bet.status == 2 || checkRewardData.telephone.status == 2 || checkRewardData.ip.status == 2 || checkRewardData.SMSCode.status == 2)) {
+                                            if (checkRewardData.status == 1 && (checkRewardData.condition.deposit.status == 2 || checkRewardData.condition.bet.status == 2 || checkRewardData.condition.telephone.status == 2 || checkRewardData.condition.ip.status == 2 || checkRewardData.condition.SMSCode.status == 2)) {
                                                 checkRewardData.status = 2;
                                             }
-                                            if (checkRewardData.telephone.status == 0) {
-                                                delete checkRewardData.telephone;
+                                            if (checkRewardData.condition.telephone.status == 0) {
+                                                delete checkRewardData.condition.telephone;
                                             }
-                                            if (checkRewardData.ip.status == 0) {
-                                                delete checkRewardData.ip;
+                                            if (checkRewardData.condition.ip.status == 0) {
+                                                delete checkRewardData.condition.ip;
                                             }
-                                            if (checkRewardData.SMSCode.status == 0) {
-                                                delete checkRewardData.SMSCode;
+                                            if (checkRewardData.condition.SMSCode.status == 0) {
+                                                delete checkRewardData.condition.SMSCode;
                                             }
-                                            if (checkRewardData.deposit.status == 1 && topUpDataObj) {
-                                                checkRewardData.deposit.details = {
+                                            if (checkRewardData.condition.deposit.status == 1 && topUpDataObj) {
+                                                checkRewardData.condition.deposit.details = {
                                                     id: topUpDataObj.proposalId,
                                                     amount: topUpDataObj.amount
                                                 };
                                             }
-                                            if (checkRewardData.deposit.status == 0) {
-                                                delete checkRewardData.deposit;
+                                            if (checkRewardData.condition.deposit.status == 0) {
+                                                delete checkRewardData.condition.deposit;
                                             }
-                                            if (checkRewardData.bet.status == 0) {
-                                                delete checkRewardData.bet;
+                                            if (checkRewardData.condition.bet.status == 0) {
+                                                delete checkRewardData.condition.bet;
                                             }
                                             if (checkRewardData.status == 2) {
                                                 delete checkRewardData.result;
@@ -315,8 +361,8 @@ var dbRewardEvent = {
                                             let topUpDetails = [];
                                             let returnData;
                                             for (let j = 0; j < res.length; j++) {
-                                                if (res[j].deposit && res[j].deposit.status == 1 && res[j].deposit.details) {
-                                                    topUpDetails.push(res[j].deposit.details)
+                                                if (res[j].condition.deposit && res[j].condition.deposit.status == 1 && res[j].condition.deposit.details) {
+                                                    topUpDetails.push(res[j].condition.deposit.details)
                                                 }
                                                 if (j == 0) {
                                                     returnData = res[j];
@@ -329,14 +375,14 @@ var dbRewardEvent = {
                                                 }
                                             }
 
-                                            if (returnData.deposit) {
-                                                returnData.deposit.details = topUpDetails;
+                                            if (returnData.condition.deposit) {
+                                                returnData.condition.deposit.details = topUpDetails;
                                             }
 
                                             let gameProviderProm = Promise.resolve(returnData);
-                                            if (returnData.bet && returnData.bet.gameGroup && returnData.bet.gameGroup.length) {
+                                            if (returnData.condition.bet && returnData.condition.bet.gameGroup && returnData.condition.bet.gameGroup.length) {
                                                 gameProviderProm = dbconfig.collection_gameProvider.populate(returnData, {
-                                                    path: 'bet.gameGroup',
+                                                    path: 'condition.bet.gameGroup',
                                                     model: dbconfig.collection_gameProvider,
                                                     select: "providerId name"
                                                 })
@@ -404,20 +450,22 @@ var dbRewardEvent = {
 
         let returnData = {
             status: 1,  // 1: success, 2: fail
-            deposit: {
-                status: 0,
-                allAmount: 0,
-                times: 0,
+            condition: {
+                deposit: {
+                    status: 0,
+                    allAmount: 0,
+                    times: 0,
+                },
+                bet: {
+                    status: 0,
+                    needBet: 0,
+                    alreadyBet: 0,
+                    gameGroup: []
+                },
+                telephone: {status: 0},
+                ip: {status: 0},
+                SMSCode: {status: 0},
             },
-            bet: {
-                status: 0,
-                needBet: 0,
-                alreadyBet: 0,
-                gameGroup: []
-            },
-            telephone: {status: 0},
-            ip: {status: 0},
-            SMSCode: {status: 0},
             result: {
                 rewardAmount: 0,
                 betAmount: 0,
@@ -477,7 +525,7 @@ var dbRewardEvent = {
         }
 
         if (eventData.condition.consumptionProvider && eventData.condition.consumptionProvider.length > 0) {
-            returnData.bet.gameGroup = eventData.condition.consumptionProvider;
+            returnData.condition.bet.gameGroup = eventData.condition.consumptionProvider;
         }
 
 
@@ -551,7 +599,7 @@ var dbRewardEvent = {
             }
 
             if (eventData.condition.consumptionProvider && eventData.condition.consumptionProvider.length > 0) {
-                returnData.bet.gameGroup = eventData.condition.consumptionProvider;
+                returnData.condition.bet.gameGroup = eventData.condition.consumptionProvider;
                 let consumptionProviders = [];
                 eventData.condition.consumptionProvider.forEach(providerId => {
                     consumptionProviders.push(ObjectId(providerId));
@@ -817,7 +865,7 @@ var dbRewardEvent = {
                 consumptionQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
             }
             if (eventData.condition.consumptionProviderSource) {
-                returnData.bet.gameGroup = eventData.condition.consumptionProviderSource;
+                returnData.condition.bet.gameGroup = eventData.condition.consumptionProviderSource;
                 consumptionQuery.providerId = {$in: eventData.condition.consumptionProviderSource};
             }
 
@@ -888,7 +936,7 @@ var dbRewardEvent = {
                     }
 
                     if (eventData.condition.checkIPFreeTrialReward) {
-                        returnData.ip.status = 1;
+                        returnData.condition.ip.status = 1;
                     }
                     // check IP address
                     if (playerData.lastLoginIp !== '' && eventData.condition.checkIPFreeTrialReward) {
@@ -914,7 +962,7 @@ var dbRewardEvent = {
 
                     // check phone number
                     if (eventData.condition.checkPhoneFreeTrialReward) {
-                        returnData.telephone.status = 1;
+                        returnData.condition.telephone.status = 1;
                         for (let i = 0; i < countReward.length; i++) {
                             // check if same phone number has already received this reward
                             if (playerData.phoneNumber === countReward[i].data.phoneNumber) {
@@ -939,7 +987,7 @@ var dbRewardEvent = {
 
             // check sms verification
             if (eventData.condition.needSMSVerification) {
-                returnData.SMSCode.status = 1;
+                returnData.condition.SMSCode.status = 1;
             }
 
             promArr.push(countInRewardInterval);
@@ -987,13 +1035,13 @@ var dbRewardEvent = {
                             topUpTimes = [">=" + value1, "<" + value2];
                             break;
                     }
-                    if (!returnData.deposit.status && value1) {
-                        returnData.deposit.status = 1;
+                    if (!returnData.condition.deposit.status && value1) {
+                        returnData.condition.deposit.status = 1;
                     }
-                    returnData.deposit.times = topUpTimes;
+                    returnData.condition.deposit.times = topUpTimes;
 
                     if (!hasMetTopupCondition) {
-                        returnData.deposit.status = 2;
+                        returnData.condition.deposit.status = 2;
                     }
 
                 }
@@ -1001,20 +1049,20 @@ var dbRewardEvent = {
                 // Count reward amount and spending amount
                 switch (eventData.type.name) {
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
-                            if (!returnData.deposit.status) {
-                                returnData.deposit.status = 1;
+                            if (!returnData.condition.deposit.status) {
+                                returnData.condition.deposit.status = 1;
                             }
 
                             // Check withdrawal after top up condition
                             if (!eventData.condition.allowApplyAfterWithdrawal && rewardSpecificData && rewardSpecificData[0]) {
-                                returnData.deposit.status = 2;
+                                returnData.condition.deposit.status = 2;
                             }
 
                             // check correct topup type
                             let correctTopUpType = true;
                             if ((rewardData && rewardData.selectedTopup)) {
                                 if (intervalTime && !isDateWithinPeriod(selectedTopUp.createTime, intervalTime)) {
-                                    returnData.deposit.status = 2;
+                                    returnData.condition.deposit.status = 2;
                                 }
 
                                 if (eventData.condition.topupType && eventData.condition.topupType.length > 0 && eventData.condition.topupType.indexOf(selectedTopUp.topUpType) === -1) {
@@ -1029,7 +1077,7 @@ var dbRewardEvent = {
                                     correctTopUpType = false;
                                 }
                             } else {
-                                returnData.deposit.status = 2;
+                                returnData.condition.deposit.status = 2;
                                 correctTopUpType = false;
                             }
 
@@ -1047,9 +1095,9 @@ var dbRewardEvent = {
                                 selectedRewardParam = selectedRewardParam[0];
                             }
 
-                            returnData.deposit.allAmount = selectedRewardParam.minTopUpAmount;
+                            returnData.condition.deposit.allAmount = selectedRewardParam.minTopUpAmount;
                             if (applyAmount < selectedRewardParam.minTopUpAmount || !correctTopUpType) {
-                                returnData.deposit.status = 2;
+                                returnData.condition.deposit.status = 2;
                             }
 
                             if (eventData.condition.isDynamicRewardAmount) {
@@ -1061,7 +1109,7 @@ var dbRewardEvent = {
                                 // Check reward amount exceed daily limit
                                 if (eventData.param.dailyMaxRewardAmount) {
                                     if (rewardAmountInPeriod >= eventData.param.dailyMaxRewardAmount) {
-                                        returnData.deposit.status = 2;
+                                        returnData.condition.deposit.status = 2;
                                     } else if (rewardAmount + rewardAmountInPeriod > eventData.param.dailyMaxRewardAmount) {
                                         rewardAmount = eventData.param.dailyMaxRewardAmount - rewardAmountInPeriod;
                                     }
@@ -1095,27 +1143,27 @@ var dbRewardEvent = {
                     case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
                         isMultiApplication = true;
                         applyAmount = 0;
-                        delete returnData.deposit.times;
+                        delete returnData.condition.deposit.times;
 
                         let playerRewardDetail = rewardSpecificData[0];
                         if (playerRewardDetail.checkResult) {
                             if (playerRewardDetail.deposit) {
-                                if (!returnData.deposit.status) {
-                                    returnData.deposit.status = 1;
+                                if (!returnData.condition.deposit.status) {
+                                    returnData.condition.deposit.status = 1;
                                 }
-                                returnData.deposit.allAmount = playerRewardDetail.deposit;
+                                returnData.condition.deposit.allAmount = playerRewardDetail.deposit;
                                 if (!playerRewardDetail.checkResult.requiredTopUpMet) {
-                                    returnData.deposit.status = 2;
+                                    returnData.condition.deposit.status = 2;
                                 }
                             }
                             if (playerRewardDetail.effectiveBet) {
-                                if (!returnData.bet.status) {
-                                    returnData.bet.status = 1;
+                                if (!returnData.condition.bet.status) {
+                                    returnData.condition.bet.status = 1;
                                 }
-                                returnData.bet.needBet = playerRewardDetail.effectiveBet - playerRewardDetail.checkResult.consumptionAmount;
-                                returnData.bet.alreadyBet = playerRewardDetail.checkResult.consumptionAmount;
+                                returnData.condition.bet.needBet = playerRewardDetail.effectiveBet - playerRewardDetail.checkResult.consumptionAmount;
+                                returnData.condition.bet.alreadyBet = playerRewardDetail.checkResult.consumptionAmount;
                                 if (!playerRewardDetail.checkResult.requiredConsumptionMet) {
-                                    returnData.bet.status = 2;
+                                    returnData.condition.bet.status = 2;
                                 }
                             }
                         }
@@ -1181,22 +1229,22 @@ var dbRewardEvent = {
 
                         if (selectedCondition) {
                             if (selectedCondition.minDeposit) {
-                                if (!returnData.deposit.status) {
-                                    returnData.deposit.status = 1;
+                                if (!returnData.condition.deposit.status) {
+                                    returnData.condition.deposit.status = 1;
                                 }
-                                returnData.deposit.allAmount = selectedCondition.minDeposit;
+                                returnData.condition.deposit.allAmount = selectedCondition.minDeposit;
                                 if (topUpinPeriod < selectedCondition.minDeposit) {
-                                    returnData.deposit.status = 2;
+                                    returnData.condition.deposit.status = 2;
                                 }
                             }
                             if (selectedCondition.minLoseAmount) {
-                                if (!returnData.bet.status) {
-                                    returnData.bet.status = 1;
+                                if (!returnData.condition.bet.status) {
+                                    returnData.condition.bet.status = 1;
                                 }
-                                returnData.bet.needBet = selectedCondition.minLoseAmount;
-                                returnData.bet.alreadyBet = loseAmount;
+                                returnData.condition.bet.needBet = selectedCondition.minLoseAmount;
+                                returnData.condition.bet.alreadyBet = loseAmount;
                                 if (loseAmount < selectedCondition.minLoseAmount) {
-                                    returnData.bet.status = 2;
+                                    returnData.condition.bet.status = 2;
                                 }
                             }
                         }
@@ -1226,8 +1274,8 @@ var dbRewardEvent = {
                             returnData.status = 2;
                         }
 
-                        if (!returnData.bet.status) {
-                            returnData.bet.status = 1;
+                        if (!returnData.condition.bet.status) {
+                            returnData.condition.bet.status = 1;
                         }
 
                         let consumptions = rewardSpecificData[0];
@@ -1245,12 +1293,12 @@ var dbRewardEvent = {
                         }
 
                         if (!selectedRewardParam || totalConsumption < selectedRewardParam.minConsumptionAmount) {
-                            returnData.bet.status = 2;
+                            returnData.condition.bet.status = 2;
                         }
 
                         if (selectedRewardParam && selectedRewardParam.minConsumptionAmount) {
-                            returnData.bet.needBet = selectedRewardParam.minConsumptionAmount;
-                            returnData.bet.alreadyBet = totalConsumption;
+                            returnData.condition.bet.needBet = selectedRewardParam.minConsumptionAmount;
+                            returnData.condition.bet.alreadyBet = totalConsumption;
                         }
 
                         rewardAmount = selectedRewardParam.rewardAmount;
@@ -1275,11 +1323,11 @@ var dbRewardEvent = {
                             }
 
                             if (!matchIPAddress) {
-                                returnData.ip.status = 2;
+                                returnData.condition.ip.status = 2;
                             }
 
                             if (!matchPhoneNum) {
-                                returnData.telephone.status = 2;
+                                returnData.condition.telephone.status = 2;
                             }
                         }
                         else {
@@ -1309,23 +1357,23 @@ var dbRewardEvent = {
 
 
                         if (selectedRewardParam.requiredTopUpAmount) {
-                            if (!returnData.deposit.status) {
-                                returnData.deposit.status = 1;
+                            if (!returnData.condition.deposit.status) {
+                                returnData.condition.deposit.status = 1;
                             }
-                            returnData.deposit.allAmount = selectedRewardParam.requiredTopUpAmount;
+                            returnData.condition.deposit.allAmount = selectedRewardParam.requiredTopUpAmount;
                             if (topUpAmount < selectedRewardParam.requiredTopUpAmount) {
-                                returnData.deposit.status = 2;
+                                returnData.condition.deposit.status = 2;
                             }
                         }
 
                         if (selectedRewardParam.requiredConsumptionAmount) {
-                            if (!returnData.bet.status) {
-                                returnData.bet.status = 1;
+                            if (!returnData.condition.bet.status) {
+                                returnData.condition.bet.status = 1;
                             }
-                            returnData.bet.needBet = selectedRewardParam.requiredConsumptionAmount;
-                            returnData.bet.alreadyBet = consumptionAmount - applyRewardAmount;
+                            returnData.condition.bet.needBet = selectedRewardParam.requiredConsumptionAmount;
+                            returnData.condition.bet.alreadyBet = consumptionAmount - applyRewardAmount;
                             if ((consumptionAmount - applyRewardAmount) < selectedRewardParam.requiredConsumptionAmount) {
-                                returnData.bet.status = 2;
+                                returnData.condition.bet.status = 2;
                             }
                         }
 
@@ -1403,9 +1451,9 @@ var dbRewardEvent = {
                 if (eventData.condition.providerGroup) {
                     returnData.result.providerGroup = eventData.condition.providerGroup;
                 }
-                if (returnData.deposit && returnData.deposit.status == 1) {
+                if (returnData.condition.deposit && returnData.condition.deposit.status == 1) {
                     if (checkTopupRecordIsDirtyForReward(eventData, rewardData)) {
-                        returnData.deposit.status = 2;
+                        returnData.condition.deposit.status = 2;
                     }
                 }
                 return returnData;
@@ -1965,3 +2013,9 @@ function getIntervalPeriodFromEvent(event, applyTargetTime) {
 
     return intervalTime;
 }
+
+var proto = dbRewardEventFunc.prototype;
+proto = Object.assign(proto, dbRewardEvent);
+
+// This make WebStorm navigation work
+module.exports = dbRewardEvent;
