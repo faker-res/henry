@@ -2988,7 +2988,7 @@ var dbPlatform = {
                     .catch(errorUtils.reportError);
 
                 // ip domain binding log
-                dbPlatform.addIpDomainLog(platformId, domain, ipAddress).catch(errorUtils.reportError);
+                // dbPlatform.addIpDomainLog(platformId, domain, ipAddress).catch(errorUtils.reportError);
             }
         )
     },
@@ -4477,15 +4477,19 @@ var dbPlatform = {
 
                     return dbconfig.collection_ipDomainLog.findOne({
                         platform: platformObjId,
-                        createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
                         domain: domain,
-                        ipAddress: ipAddress
-                    }, '_id').lean();
+                        ipAddress: ipAddress,
+                        createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+                    });
                 }
             }
         ).then(
             ipDomainLog => {
-                if (!ipDomainLog) {
+                if (ipDomainLog) {
+                    dbconfig.collection_ipDomainLog.findByIdAndUpdate(ipDomainLog._id, {
+                        createTime: new Date()
+                    })
+                } else {
                     let newLog = {
                         platform: platformObjId,
                         domain: domain,
