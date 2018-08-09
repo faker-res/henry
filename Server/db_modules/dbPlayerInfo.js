@@ -1523,7 +1523,7 @@ let dbPlayerInfo = {
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
                         ipAddress: playerData.lastLoginIp,
                         $and: [{domain: {$exists: true}}, {domain: {$ne: playerData.domain}}]
-                    }, 'domain').sort({createTime:-1}).limit(1).lean().then(
+                    }).lean().then(
                         ipDomainLog => {
                             console.log('ricco-1234', ipDomainLog);
                             if (ipDomainLog && ipDomainLog[0] && ipDomainLog[0].domain) {
