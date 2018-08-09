@@ -5022,7 +5022,12 @@ let dbPlayerReward = {
                     $match: {
                         "createTime": freeTrialQuery.createTime,
                         "data.eventId": eventData._id,
-                        "status": 'Approved'
+                        "status": 'Approved',
+                        $or: [
+                            {'data.playerObjId': playerData._id},
+                            {'data.lastLoginIp': playerData.lastLoginIp},
+                            {'data.phoneNumber': playerData.phoneNumber}
+                        ]
                     }
                 },
                 {
