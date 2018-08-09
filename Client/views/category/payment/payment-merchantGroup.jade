@@ -11,7 +11,7 @@ style.
             .panel-heading.panel-heading-sm
                 label {{"MERCHANT_GROUP" | translate}}
             .panel-body
-                div
+                div(ng-if="false")
                     input#FPMSMerchantPaymentGroup(type='radio' value='FPMS' ng-model="vm.merchantGroupUsed" ng-change="vm.loadMerchantGroupData()")
                     label(for='FPMSMerchantPaymentGroup') {{"FPMS Group" | translate}}
                     input#PMSMerchantPaymentGroup(type='radio' value='PMS' ng-model="vm.merchantGroupUsed" ng-change="vm.loadMerchantGroupData()")
