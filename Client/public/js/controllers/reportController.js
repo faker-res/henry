@@ -4108,6 +4108,8 @@ define(['js/app'], function (myApp) {
                         setTimeout(function () {
                             $('#selectTrackingGroupDepositTracking').multipleSelect('refresh');
                         }, 1000);
+                        vm.playerDepositTracking = {}; // reset report table become blank
+                        vm.depositTrackingQuery = {};
                         vm.getDepositTrackingGroupByPlatformId(vm.curPlatformId);
                         // vm.searchPlayerDepositTrackingReport();
                     });
@@ -4124,6 +4126,8 @@ define(['js/app'], function (myApp) {
                         setTimeout(function () {
                             $('#selectTrackingGroupDepositTracking').multipleSelect('refresh');
                         }, 1000);
+                        vm.playerDepositTracking = {}; // reset report table become blank
+                        vm.depositTrackingQuery = {};
                         vm.getDepositTrackingGroupByPlatformId(vm.curPlatformId);
                         // vm.searchPlayerDepositTrackingReport();
                         vm.newDepositTrackingGroup = [];
