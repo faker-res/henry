@@ -923,7 +923,7 @@ let dbPlayerCreditTransfer = {
                             })
                         }
                     }).then(() => {
-                        counterManager.incrementAndGetCounter("transferId")
+                        return counterManager.incrementAndGetCounter("transferId");
                     }).then(
                         id => {
                             transferId = id;
