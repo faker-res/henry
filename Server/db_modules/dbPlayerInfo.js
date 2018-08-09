@@ -14325,7 +14325,10 @@ let dbPlayerInfo = {
                                             playerData = playerIdObjs;
                                             return playerIdObj._id;
                                         }),
-                                        isPromoteWay: true
+                                        isPromoteWay: true,
+                                        option: {
+                                            isDepositReport: true
+                                        }
                                     });
                                 },
                                 processResponse: function (record) {
@@ -14716,7 +14719,10 @@ let dbPlayerInfo = {
                                             playerData = playerIdObjs;
                                             return playerIdObj._id;
                                         }),
-                                        isPromoteWay: true
+                                        isPromoteWay: true,
+                                        option: {
+                                            isDepositReport: true
+                                        }
                                     });
                                 },
                                 processResponse: function (record) {
@@ -15321,7 +15327,7 @@ let dbPlayerInfo = {
                             "$lte": new Date(endTime)
                         },
                         "mainType": "TopUp",
-                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                        "status": option.isDepositReport ? constProposalStatus.SUCCESS : {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                     }
                 },
                 {
@@ -15343,7 +15349,7 @@ let dbPlayerInfo = {
                             "$lte": new Date(endTime)
                         },
                         "mainType": "PlayerBonus",
-                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                        "status": option.isDepositReport ? constProposalStatus.SUCCESS : {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                     }
                 },
                 {
