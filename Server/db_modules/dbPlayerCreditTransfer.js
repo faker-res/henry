@@ -787,6 +787,15 @@ let dbPlayerCreditTransfer = {
         let bTransfered = false;
         let transferId = new Date().getTime();
         let transferAmount = 0;
+        let waitTimeBeforeRequest = 3000;
+        let delayTransferIn = ()=>{
+            return new Promise ((resolve) => {
+                setTimeout(() => {
+                        return resolve();
+                    }, waitTimeBeforeRequest
+                );
+            });
+        };
 
         let player, gameProviderGroup, rewardTaskGroupObjId;
 
@@ -905,7 +914,17 @@ let dbPlayerCreditTransfer = {
                         return true;
                     }
 
-                    return counterManager.incrementAndGetCounter("transferId").then(
+                    return Promise.resolve().then(() => {
+                        if (cpName.toUpperCase() === "IPMKENO") {
+                            return dbConfig.collection_playerCreditTransferLog.findOne({providerId: providerShortId}).lean().then(log => {
+                                if(!log) {
+                                    return delayTransferIn;
+                                }
+                            })
+                        }
+                    }).then(() => {
+                        counterManager.incrementAndGetCounter("transferId")
+                    }).then(
                         id => {
                             transferId = id;
                             //let lockedAmount = rewardData.currentAmount ? rewardData.currentAmount : 0;
