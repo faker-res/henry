@@ -2944,7 +2944,11 @@ let dbPlayerReward = {
                         path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType
                     }).lean();
                 } else {
-                    return Promise.reject({name: "DataError", errorMessage: "Concurrent issue detected"});
+                    return Promise.reject({
+                      name: "DataError",
+                      errorMessage: "Concurrent issue detected",
+                      status: constServerCode.CONCURRENT_DETECTED
+                    });
                 }
             }
         ).then(
@@ -4593,6 +4597,7 @@ let dbPlayerReward = {
      * @returns {Promise.<TResult>}
      */
     applyGroupReward: (userAgent, playerData, eventData, adminInfo, rewardData) => {
+        console.log('applyGroupReward - ricco');
         rewardData = rewardData || {};
         let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate) : dbUtility.getTodaySGTime();
         // let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate): dbUtility.getYesterdaySGTime();
@@ -5031,6 +5036,7 @@ let dbPlayerReward = {
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP) {
+            console.log('first if - ');
             let freeTrialQuery = {
                 platformId: playerData.platform._id,
                 playerId: playerData._id,
@@ -5048,7 +5054,12 @@ let dbPlayerReward = {
                     $match: {
                         "createTime": freeTrialQuery.createTime,
                         "data.eventId": eventData._id,
-                        "status": 'Approved'
+                        "status": 'Approved',
+                        $or: [
+                            {'data.playerObjId': playerData._id},
+                            {'data.lastLoginIp': playerData.lastLoginIp},
+                            {'data.phoneNumber': playerData.phoneNumber}
+                        ]
                     }
                 },
                 {
@@ -5064,6 +5075,7 @@ let dbPlayerReward = {
                 }
             ).then(
                 countReward => { // display approved proposal data during this event period
+                    console.log('proposal aggregate - 1', countReward.length);
                     let resultArr = [];
                     let samePlayerObjIdResult;
                     let sameIPAddressResult;
@@ -5144,12 +5156,13 @@ let dbPlayerReward = {
                 checkSMSProm = dbPlayerMail.verifySMSValidationCode(playerData.phoneNumber, playerData.platform, rewardData.smsCode);
             }
 
-            promArr.push(countInRewardInterval);
-            promArr.push(checkSMSProm);
+            promArr.push(countInRewardInterval.then(data => {console.log('countInRewardInterval'); return data;}));
+            promArr.push(checkSMSProm.then(data => {console.log('checkSMSProm'); return data;}));
         }
 
         return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
             data => {
+                console.log('main then - 1');
                 let topupInPeriodData = data[0];
                 let eventInPeriodData = data[1];
                 let rewardSpecificData = data[2];

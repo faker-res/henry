@@ -3449,6 +3449,28 @@ let dbPartner = {
         return dbconfig.collection_partnerCommissionRateConfig.find(query);
     },
 
+    updateParentCommissionRateConfig: function  (query, data) {
+        return dbconfig.collection_partnerCommissionRateConfig.find({platform: query.platform}).lean().then(
+            configData => {
+                //check if config exist
+                if (configData && configData.length > 0) {
+                    let arrProm = [];
+
+                    for (let i in configData) {
+                        if (configData[i] && configData[i]._id) {
+                            let prom = dbconfig.collection_partnerCommissionRateConfig.findOneAndUpdate({_id: configData[i]._id, platform: query.platform}, data);
+                            arrProm.push(prom);
+                        }
+                    }
+
+                    return Promise.all(arrProm);
+                } else {
+                    let newCommissionRateConfig = new dbconfig.collection_partnerCommissionRateConfig(data);
+                    return newCommissionRateConfig.save();
+                }
+            });
+
+    },
     createUpdatePartnerCommissionConfig: function  (query, data, clearCustomize) {
         return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, _id: query._id}).lean().then(
             configData => {

@@ -667,8 +667,42 @@ var dbGame = {
         return Q.all(gameProms);
     },
 
-    renameGame: (gameObjId, newName) => {
-        return dbconfig.collection_game.findOneAndUpdate({_id: gameObjId}, {customName: newName})
+    renameGame: (platformObjId, gameObjId, newName) => {
+        if(!platformObjId || !gameObjId){
+            return;
+        }
+
+        let platform;
+
+        return dbconfig.collection_platform.findOne({_id: platformObjId}).then(
+            platformData => {
+                if(platformData && platformData.platformId){
+                    platform = platformData;
+
+                    return dbconfig.collection_game.findOne({_id: gameObjId});
+                }
+            }
+        ).then(
+            gameData => {
+                if(gameData){
+                    let changedNameObj = {};
+                    changedNameObj[platform.platformId] = newName;
+
+                    if(gameData.changedName && gameData.changedName.hasOwnProperty(platform.platformId)){
+                        if(newName){
+                            gameData.changedName[platform.platformId] = newName;
+                        }else{
+                            delete gameData.changedName[platform.platformId];
+                        }
+
+                    }else{
+                        gameData.changedName = Object.assign(gameData.changedName || {}, changedNameObj);
+                    }
+
+                    return dbconfig.collection_game.findOneAndUpdate({_id: gameObjId}, {changedName: gameData.changedName});
+                }
+            }
+        )
     }
 
 };

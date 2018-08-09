@@ -241,10 +241,26 @@ define(['js/app'], function (myApp) {
             $('#loadingProviderGames').removeClass('hidden');
             socketService.$socket($scope.AppSocket, 'getGamesByProviderId', {_id: id}, function (data) {
                 vm.allGames = data.data;
+                let platformId = null;
+                if(vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.platformId){
+                    platformId = vm.selectedPlatform.data.platformId
+                }else if(vm.platformList && vm.platformList.length > 0){
+                    vm.platformList.forEach(platform => {
+                        if(platform && platform._id && platform._id == vm.selectedPlatformID){
+                            platformId = platform.platformId || null;
+                        }
+                    })
+                }
                 vm.allGames.forEach(game => {
                     if(game){
-                        game.name$ = game.customName && game.customName != "" ? game.customName : game.name;
-                        game.isDefaultName = game.customName && game.customName != "" ? false : true;
+                        if(game.changedName && game.changedName.hasOwnProperty(platformId)){
+                            game.name$ = game.changedName[platformId] || game.name;
+                            game.isDefaultName = game.changedName[platformId] && game.changedName[platformId] != ''
+                                ? false : true;
+                        }else{
+                            game.name$ = game.name;
+                            game.isDefaultName = true;
+                        }
                     }
                 })
                 vm.filterAllGames = $.extend([], vm.allGames);
@@ -939,21 +955,22 @@ define(['js/app'], function (myApp) {
         vm.submitProviderGameNameChange = function(index){
             let sendQuery = {
                 gameObjId: vm.filterAllGames[index] && vm.filterAllGames[index]._id ? vm.filterAllGames[index]._id : null,
-                customName: vm.filterAllGames[index] && vm.filterAllGames[index].name$ ? vm.filterAllGames[index].name$ : null
+                customName: vm.editingGameName || null,
+                platformObjId: vm.selectedPlatformID
             }
 
             $scope.$socketPromise("renameGame", sendQuery).then(data => {
                 $scope.$evalAsync(() => {
                     console.log("game name redefined.",data);
-                    if(vm.filterAllGames[index] && vm.filterAllGames[index].name$ && vm.filterAllGames[index].name$ != ""){
+                    if(vm.editingGameName){
+                        vm.filterAllGames[index].name$ = vm.editingGameName;
                         vm.filterAllGames[index].isDefaultName = false;
-                    }
-                    else if(vm.filterAllGames[index].name$ == "" && vm.filterAllGames[index].name){
-                        vm.filterAllGames[index].name$ = vm.filterAllGames[index].name;
+                    }else{
+                        vm.filterAllGames[index].name$ = data.data.name;
                         vm.filterAllGames[index].isDefaultName = true;
                     }
 
-                    vm.isEditingGameName = false;
+                    vm.selectedGameName = '';
                 })
             });
         }
