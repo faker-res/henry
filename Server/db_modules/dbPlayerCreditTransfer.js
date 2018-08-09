@@ -916,7 +916,7 @@ let dbPlayerCreditTransfer = {
 
                     return Promise.resolve().then(() => {
                         if (cpName.toUpperCase() === "IPMKENO") {
-                            return dbConfig.collection_playerCreditTransferLog.findOne({providerId: providerShortId}).lean().then(log => {
+                            return dbConfig.collection_playerCreditTransferLog.findOne({providerId: providerShortId, playerObjId: playerObjId}).lean().then(log => {
                                 if(!log) {
                                     return delayTransferIn;
                                 }
