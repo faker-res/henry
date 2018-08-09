@@ -638,9 +638,9 @@ function socketActionPlatform(socketIO, socket) {
 
         addDepositTrackingGroup: function addDepositTrackingGroup(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.groupData);
+            let isValidData = Boolean(data && data.platformObjId && data.groupData && data.modifyData);
             let platformObjId = ObjectId(data.platformObjId);
-            socketUtil.emitter(self.socket, dbPlatform.addDepositTrackingGroup, [platformObjId, data.groupData], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.addDepositTrackingGroup, [platformObjId, data.groupData, data.modifyData], actionName, isValidData);
         },
 
         deleteDepositTrackingGroup: function deleteDepositTrackingGroup(data) {
