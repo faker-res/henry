@@ -408,7 +408,7 @@ var roleChecker = {
                 ValidActiveRead: ['getPartnerLevelConfig'],
                 ValidActiveUpdate: ['updatePartnerLevelConfig'],
                 PartnerCommission: ['createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig','getPartnerCommissionRateConfig',
-                'createUpdatePartnerCommissionRateConfig','createUpdatePartnerCommissionConfigWithGameProviderGroup','getPartnerCommissionConfigWithGameProviderGroup'],
+                'createUpdatePartnerCommissionRateConfig','createUpdatePartnerCommissionConfigWithGameProviderGroup','getPartnerCommissionConfigWithGameProviderGroup','updateParentCommissionRateConfig'],
                 platformBasic: [],
                 phoneFilterConfig: [],
                 financialSettlementConfig: ['updateAllAdminInfo', 'updatePlatform', 'updatePlatformFinancialPoints', 'updatePlatformAllBankCardGroup', 'updatePlatformAllWechatPayGroup', 'updatePlatformAllAlipayGroup'],
