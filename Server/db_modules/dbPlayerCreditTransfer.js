@@ -1391,17 +1391,19 @@ let dbPlayerCreditTransfer = {
                         return transferIn;
                     }).then(() => {
                         console.log('transferin promise data',transferInSuccessData);
-                        return Promise.resolve({
-                            playerId: transferInSuccessData[0].playerId,
-                            providerId: transferInSuccessData[0].providerId,
-                            providerCredit: transferInSuccessData[0].providerCredit,
-                            playerCredit: transferInSuccessData[0].playerCredit,
-                            rewardCredit: transferInSuccessData[0].rewardCredit,
-                            transferCredit: {
-                                playerCredit: transferInSuccessData[0].transferCredit.playerCredit,
-                                rewardCredit: transferInSuccessData[0].transferCredit.rewardCredit
-                            }
-                        });
+                        if(transferInSuccessData && transferInSuccessData.length > 0) {
+                            return Promise.resolve({
+                                playerId: transferInSuccessData[0].playerId,
+                                providerId: transferInSuccessData[0].providerId,
+                                providerCredit: transferInSuccessData[0].providerCredit,
+                                playerCredit: transferInSuccessData[0].playerCredit,
+                                rewardCredit: transferInSuccessData[0].rewardCredit,
+                                transferCredit: {
+                                    playerCredit: transferInSuccessData[0].transferCredit.playerCredit,
+                                    rewardCredit: transferInSuccessData[0].transferCredit.rewardCredit
+                                }
+                            });
+                        }
                     })
                     .catch(err => {
                         errorUtils.reportError(err);
