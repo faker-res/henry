@@ -1872,7 +1872,7 @@ let dbPlayerInfo = {
         ).then(
             function (platformData) {
                 apiData.platformId = platformData.platformId;
-                apiData.name = apiData.name.replace(platformData.prefix, "");
+                // apiData.name = apiData.name.replace(platformData.prefix, "");
                 delete apiData.platform;
                 var a, b, c;
                 a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({
@@ -3231,8 +3231,11 @@ let dbPlayerInfo = {
                                                 if (providerGroup && providerGroup.providers && providerGroup.providers.length) {
                                                     return getProviderCredit(providerGroup.providers, player.name, platform.platformId).then(
                                                         credit => {
-                                                            if(credit){
+                                                            if (credit >= 0) {
                                                                 rtg.totalCredit += credit;
+                                                            } else {
+                                                                // set totalCredit to -1 to bypass unlock when provider not available
+                                                                rtg.totalCredit = -1;
                                                             }
 
                                                             return rtg;
@@ -3251,8 +3254,11 @@ let dbPlayerInfo = {
 
                                     let calCreditProm = getProviderCredit(platform.gameProviders, player.name, platform.platformId).then(
                                         credit => {
-                                            if(credit){
+                                            if (credit >= 0) {
                                                 rtg.totalCredit += credit;
+                                            } else {
+                                                // set totalCredit to -1 to bypass unlock when provider not available
+                                                rtg.totalCredit = -1;
                                             }
 
                                             return rtg;
@@ -3290,7 +3296,7 @@ let dbPlayerInfo = {
                                     })
                                 }
                             }
-                        )
+                        );
 
                         return Promise.all(rtgArr);
                     }
@@ -3427,7 +3433,29 @@ let dbPlayerInfo = {
                     dbPlayerInfo.checkPlayerLevelUp(playerId, player.platform).catch(console.log);
 
                     if (useProviderGroup) {
-                        topupUpdateRTG(player, platform, amount);
+                        topupUpdateRTG(player, platform, amount).then(
+                            () => {
+                                if (proposalData && proposalData.data) {
+                                    // Move bonus code and apply top up promo here
+                                    if (proposalData.data.bonusCode) {
+                                        let isOpenPromoCode = proposalData.data.bonusCode.toString().length == 3;
+                                        if (isOpenPromoCode){
+                                            dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                                        }
+                                        else{
+                                            dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                                        }
+
+                                    }
+
+                                    if (proposalData.data.topUpReturnCode) {
+                                        let requiredData = {topUpRecordId: topupRecordData._id};
+                                        dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
+                                            , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
+                                    }
+                                }
+                            }
+                        );
                     }
 
                     return Promise.resolve(data && data[0]);
@@ -5896,7 +5924,7 @@ let dbPlayerInfo = {
                 deferred.resolve(data);
             },
             function (err) {
-                if (!err || !err.hasLog) {
+                if (!err || (!err.hasLog && !err.insufficientAmount)) {
                     var platformId = playerObj.platform ? playerObj.platform.platformId : null;
                     var platformObjId = playerObj.platform ? playerObj.platform._id : null;
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, platformObjId, platformId, "transferOut", "unknown",
@@ -14451,7 +14479,7 @@ let dbPlayerInfo = {
                             $lte: dayEndTime
                         },
                         mainType: "TopUp",
-                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                        status: constProposalStatus.SUCCESS,
                     }
                 },
                 {
@@ -14474,7 +14502,7 @@ let dbPlayerInfo = {
                             $lte: dayEndTime
                         },
                         mainType: "PlayerBonus",
-                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                        status: constProposalStatus.SUCCESS,
                     }
                 },
                 {
@@ -14518,22 +14546,55 @@ let dbPlayerInfo = {
                     isExceedDailyTotalDeposit: isExceedDailyTotalDeposit,
                 });
             }
+            let onlyBonusRecord = [];
 
-            for (let x = 0; x < bonusRecord.length; x++) {
-                let bonusDay = bonusRecord[x]._id.day;
-                let bonusMonth = bonusRecord[x]._id.month - 1; //month start from 0 to 11
-                let bonusYear = bonusRecord[x]._id.year;
+            outputData.forEach(output => {
+                bonusRecord.forEach(bonus => {
+                    if (!bonus.bUsed) {  // only check bonus not used
+                        let outputDate = new Date(output.date.year, output.date.month, output.date.day);
+                        let bonusDate = new Date(bonus._id.year, bonus._id.month, bonus._id.day);
 
-                for (let z = 0; z < outputData.length; z++) {
-                    let outputDay = outputData[z].date.day;
-                    let outputMonth = outputData[z].date.month - 1; //month start from 0 to 11
-                    let outputYear = outputData[z].date.year;
+                        if (outputDate.getTime() === bonusDate.getTime()) {
+                            output.bonusAmount = bonus.amount;
+                            bonus.bUsed = true; // to skip this bonus if used
+                        }
 
-                    if (bonusRecord && outputData && bonusDay === outputDay && bonusMonth === outputMonth && bonusYear === outputYear) {
-                        outputData[z].bonusAmount = bonusRecord[x].amount;
+                        if (outputDate.getTime() !== bonusDate.getTime()) {
+                            // compile bonus without top up record
+                            onlyBonusRecord.push({
+                                date: bonus._id,
+                                topUpAmount: 0,
+                                bonusAmount: bonus.amount,
+                                isExceedDailyTotalDeposit: false
+                            });
+                            bonus.bUsed = true; // to skip this bonus if used
+                        }
                     }
-                }
+                });
+            });
+
+            // merge only bonus record, top up will be 0
+            if (onlyBonusRecord && onlyBonusRecord.length > 0) {
+                outputData = outputData.concat(...onlyBonusRecord);
             }
+
+            // for (let x = 0; x < bonusRecord.length; x++) {
+            //     let bonusDay = bonusRecord[x]._id.day;
+            //     let bonusMonth = bonusRecord[x]._id.month - 1; //month start from 0 to 11
+            //     let bonusYear = bonusRecord[x]._id.year;
+            //     let bonusDate = new Date(bonusYear, bonusMonth, bonusDay);
+            //
+            //     for (let z = 0; z < outputData.length; z++) {
+            //         let outputDay = outputData[z].date.day;
+            //         let outputMonth = outputData[z].date.month - 1; //month start from 0 to 11
+            //         let outputYear = outputData[z].date.year;
+            //         let outputDate = new Date(outputYear, outputMonth, outputDay);
+            //
+            //         if (bonusRecord && outputData && bonusDate === outputDate) {
+            //             outputData[z].bonusAmount = bonusRecord[x].amount;
+            //         }
+            //     }
+            // }
 
             // convert date format
             for (let z = 0; z < outputData.length; z++) {
@@ -14723,7 +14784,7 @@ let dbPlayerInfo = {
                             $match: {
                                 "data.playerObjId": ObjectId(player._id),
                                 mainType: "TopUp",
-                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                status: constProposalStatus.SUCCESS,
                             }
                         },
                         {
@@ -14745,7 +14806,7 @@ let dbPlayerInfo = {
                             $match: {
                                 "data.playerObjId": ObjectId(player._id),
                                 mainType: "PlayerBonus",
-                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                status: constProposalStatus.SUCCESS,
                             }
                         },
                         {
@@ -15384,10 +15445,31 @@ let dbPlayerInfo = {
                 }
             }
 
+            if (query.depositTrackingGroup && query.depositTrackingGroup.length !== 0) {
+                let tempArr = [];
+                let isNoneExist = false;
+
+                query.depositTrackingGroup.forEach(group => {
+                    if (group == "") {
+                        isNoneExist = true;
+                    } else {
+                        tempArr.push(group);
+                    }
+                });
+
+                if (isNoneExist && tempArr.length > 0) {
+                    playerQuery.$or = [{depositTrackingGroup: []}, {depositTrackingGroup: {$exists: false}}, {depositTrackingGroup: {$in: tempArr}}];
+                } else if (isNoneExist && !tempArr.length) {
+                    playerQuery.$or = [{depositTrackingGroup: []}, {depositTrackingGroup: {$exists: false}}];
+                } else if (tempArr.length > 0 && !isNoneExist) {
+                    playerQuery.depositTrackingGroup = {$in: query.depositTrackingGroup};
+                }
+            }
+
             let playerProm = dbconfig.collection_players.findOne(
                 playerQuery, {
                     playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1, accAdmin: 1,
-                    promoteWay: 1, phoneProvince: 1, phoneCity: 1, province: 1, city: 1
+                    promoteWay: 1, phoneProvince: 1, phoneCity: 1, province: 1, city: 1, depositTrackingGroup: 1
                 }
             ).lean();
 
@@ -15615,6 +15697,7 @@ let dbPlayerInfo = {
                     result.name = playerDetail.name;
                     result.valueScore = playerDetail.valueScore;
                     result.registrationTime = playerDetail.registrationTime;
+                    result.depositTrackingGroup = playerDetail.depositTrackingGroup;
                     result.endTime = endTime;
 
                     let csOfficerDetail = data[6];
@@ -18417,9 +18500,10 @@ function determineRegistrationInterface(inputData) {
 function getProviderCredit(providers, playerName, platformId) {
     let promArr = [];
     let providerCredit = 0;
+    let isError = false;
 
     providers.forEach(provider => {
-        if (provider) {
+        if (provider && provider.status == constProviderStatus.NORMAL) {
             promArr.push(
                 cpmsAPI.player_queryCredit(
                     {
@@ -18431,6 +18515,7 @@ function getProviderCredit(providers, playerName, platformId) {
                     data => data,
                     error => {
                         console.log("error when getting provider credit", error);
+                        isError = true;
                         return {credit: 0};
                     }
                 )
@@ -18438,17 +18523,22 @@ function getProviderCredit(providers, playerName, platformId) {
         }
     });
 
-    return Promise.all(promArr)
-        .then(providerCreditData => {
-            providerCreditData.forEach(provider => {
-                if (provider && provider.hasOwnProperty("credit")) {
-                    providerCredit += !isNaN(provider.credit) ? parseFloat(provider.credit) : 0;
-                }
-            });
+    return Promise.all(promArr).then(
+        providerCreditData => {
+            if (isError) {
+                // Error when query one of the provider (timeout/etc)
+                providerCredit = -1;
+            } else {
+                providerCreditData.forEach(provider => {
+                    if (provider && provider.hasOwnProperty("credit")) {
+                        providerCredit += !isNaN(provider.credit) ? parseFloat(provider.credit) : 0;
+                    }
+                });
+            }
+
             return providerCredit;
-        });
-
-
+        }
+    );
 }
 
 function checkRouteSetting(url, setting) {

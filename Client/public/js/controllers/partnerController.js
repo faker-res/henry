@@ -5386,7 +5386,7 @@ define(['js/app'], function (myApp) {
                         //    }
                         //},
                         //{title: 'ID', "data": "_id"},
-                        {title: $translate('PARTNER_ID'), data: 'partnerId', advSearch: true, "sClass": ""},
+                        // {title: $translate('PARTNER_ID'), data: 'partnerId', advSearch: true, "sClass": ""},
                         {
                             title: $translate('PARTNER_NAME'), data: "partnerName", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
@@ -5559,7 +5559,7 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {
-                            title: $translate('TOTAL_CHILDREN_COUNT'), data: "totalPlayerDownline", advSearch: true, "sClass": "",
+                            title: $translate("TOTAL_CHILDREN") + "<br>" + $translate("CHILDREN_COUNT"), data: "totalPlayerDownline", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
                                 let link = $('<a>', {
                                     'ng-click': 'vm.getChildrenDetails("' + row._id + '")'
@@ -5568,7 +5568,7 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {
-                            title: $translate('TOTAL_CHILDREN_DEPOSIT'),
+                            title: $translate("TOTAL_CHILDREN") + "<br>" + $translate("CHILDREN_DEPOSIT"),
                             data: "totalChildrenDeposit",
                             advSearch: true,
                             "sClass": "alignRight sumFloat",
@@ -5580,7 +5580,7 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {
-                            title: $translate('TOTAL_CHILDREN_BALANCE'),
+                            title: $translate("TOTAL_CHILDREN") + "<br>" + $translate("CHILDREN_BALANCE"),
                             data: "totalChildrenBalance",
                             advSearch: true,
                             "sClass": "alignRight sumFloat",
@@ -5592,7 +5592,7 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {
-                            title: $translate('SETTLED_COMMISSION'),
+                            title: $translate("settled commission") + "<br>" + $translate("(TOTAL)"),
                             data: "totalSettledCommission",
                             advSearch: true,
                             "sClass": "alignRight sumFloat",

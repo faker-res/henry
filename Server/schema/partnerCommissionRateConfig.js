@@ -11,7 +11,9 @@ let partnerCommissionRateConfigSchema = new Schema({
     rateAfterRebatePlatform: {type: String},
     rateAfterRebateGameProviderGroup: [],
     rateAfterRebateTotalDeposit: {type: String},
-    rateAfterRebateTotalWithdrawal: {type: String}
+    rateAfterRebateTotalWithdrawal: {type: String},
+    // parent partner commission rate
+    parentCommissionRate: {type: String}
 });
 
 partnerCommissionRateConfigSchema.index({platform: 1, partner: 1});

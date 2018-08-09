@@ -9561,15 +9561,15 @@ define(['js/app'], function (myApp) {
                     if (item.beforeAmount < 0) {
                         item.beforeAmount = 0
                     }
-                    item.beforeAmount = item.beforeAmount.toFixed(2);
+                    item.beforeAmount = $noRoundTwoDecimalPlaces(item.beforeAmount);
                     item.beforeUnlockedAmount = item.lockedAmount - item.changedLockedAmount;
-                    item.beforeUnlockedAmount = item.beforeUnlockedAmount.toFixed(2);
+                    item.beforeUnlockedAmount = $noRoundTwoDecimalPlaces(item.beforeUnlockedAmount);
                     let remark = (item.data && item.data.remark) ? $translate('remark') + ':' + item.data.remark + ', ' : '';
                     item.details$ = remark + item.detail.join(', ');
                     item.proposalId$ = item.data ? item.data.proposalId : '';
-                    item.totalAmountBefore$ = (Number(item.beforeAmount) + Number(item.beforeUnlockedAmount)).toFixed(2) + "(" + item.beforeAmount + "/" + item.beforeUnlockedAmount + ")";
-                    item.totalAmountAfter$ = (Number(item.curAmount) + Number(item.lockedAmount)).toFixed(2) + "(" + item.curAmount + "/" + item.lockedAmount + ")";
-                    item.totalChangedAmount$ = (Number(item.amount) + Number(item.changedLockedAmount)).toFixed(2) + "(" + item.amount + "/" + item.changedLockedAmount + ")";
+                    item.totalAmountBefore$ = $noRoundTwoDecimalPlaces((Number(item.beforeAmount) + Number(item.beforeUnlockedAmount))) + "(" + item.beforeAmount + "/" + item.beforeUnlockedAmount + ")";
+                    item.totalAmountAfter$ = $noRoundTwoDecimalPlaces((Number(item.curAmount) + Number(item.lockedAmount))) + "(" + item.curAmount + "/" + item.lockedAmount + ")";
+                    item.totalChangedAmount$ = $noRoundTwoDecimalPlaces((Number(item.amount) + Number(item.changedLockedAmount))) + "(" + item.amount + "/" + item.changedLockedAmount + ")";
                     return item;
                 });
 
@@ -26595,12 +26595,14 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getCommissionRateGameProviderGroup = function () {
+                vm.isParentRateEditing = false;
                 vm.isCommissionRateEditing = false;
                 vm.rateAfterRebateGameProviderGroup = [];
                 vm.rateAfterRebatePromo = null;
                 vm.rateAfterRebatePlatform = null;
                 vm.rateAfterRebateTotalDeposit = null;
                 vm.rateAfterRebateTotalWithdrawal = null;
+                vm.parentCommissionRate = null;
                 vm.custCommissionRateConfig = [];
                 vm.srcCommissionRateConfig = {};
 
@@ -26638,6 +26640,7 @@ define(['js/app'], function (myApp) {
                                     vm.rateAfterRebateTotalDeposit = vm.commissionRateConfig.rateAfterRebateTotalDeposit;
                                     vm.rateAfterRebateTotalWithdrawal = vm.commissionRateConfig.rateAfterRebateTotalWithdrawal;
                                     vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
+                                    vm.parentCommissionRate = vm.commissionRateConfig.parentCommissionRate;
                                 }
                             })
                         } else {
@@ -26648,6 +26651,36 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     });
+                });
+            };
+
+            vm.editParentRateSetting = function () {
+                vm.isParentRateEditing = true;
+            };
+
+            vm.cancelParentRateSetting = function () {
+                vm.isParentRateEditing = false;
+                vm.parentCommissionRate = vm.srcCommissionRateConfig.parentCommissionRate;
+            };
+
+            vm.submitParentCommissionRateSetting = function () {
+
+                var updateDate = {
+                    platform: vm.selectedPlatform.id,
+                    parentCommissionRate: vm.parentCommissionRate
+                }
+
+                var sendData = {
+                    query: {
+                        platform: vm.selectedPlatform.id
+                    },
+                    updateData: updateDate
+                }
+                socketService.$socket($scope.AppSocket, 'createUpdatePartnerCommissionRateConfig', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('partnerCommissionRateConfig success ',data);
+                        vm.isParentRateEditing = false;
+                    })
                 });
             };
 

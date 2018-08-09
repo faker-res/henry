@@ -1072,7 +1072,7 @@ let dbPlayerCreditTransfer = {
                     if (providerPlayerObj.gameCredit < 1 || amount == 0 || providerPlayerObj.gameCredit < amount) {
                         if (bResolve) {
                             checkBResolve = true;
-                            return Promise.reject({message: "Insufficient amount to transfer out"});
+                            return Promise.reject({message: "Insufficient amount to transfer out", insufficientAmount: true});
                         }
                         else {
                             return Promise.resolve(
@@ -1391,17 +1391,19 @@ let dbPlayerCreditTransfer = {
                         return transferIn;
                     }).then(() => {
                         console.log('transferin promise data',transferInSuccessData);
-                        return Promise.resolve({
-                            playerId: transferInSuccessData[0].playerId,
-                            providerId: transferInSuccessData[0].providerId,
-                            providerCredit: transferInSuccessData[0].providerCredit,
-                            playerCredit: transferInSuccessData[0].playerCredit,
-                            rewardCredit: transferInSuccessData[0].rewardCredit,
-                            transferCredit: {
-                                playerCredit: transferInSuccessData[0].transferCredit.playerCredit,
-                                rewardCredit: transferInSuccessData[0].transferCredit.rewardCredit
-                            }
-                        });
+                        if(transferInSuccessData && transferInSuccessData.length > 0) {
+                            return Promise.resolve({
+                                playerId: transferInSuccessData[0].playerId,
+                                providerId: transferInSuccessData[0].providerId,
+                                providerCredit: transferInSuccessData[0].providerCredit,
+                                playerCredit: transferInSuccessData[0].playerCredit,
+                                rewardCredit: transferInSuccessData[0].rewardCredit,
+                                transferCredit: {
+                                    playerCredit: transferInSuccessData[0].transferCredit.playerCredit,
+                                    rewardCredit: transferInSuccessData[0].transferCredit.rewardCredit
+                                }
+                            });
+                        }
                     })
                     .catch(err => {
                         errorUtils.reportError(err);
@@ -1714,8 +1716,12 @@ let dbPlayerCreditTransfer = {
                                 playerId: playerObjId,
                                 providerGroup: group._id,
                                 status: constRewardTaskStatus.STARTED
+                            }).populate({
+                                path: "lastPlayedProvider", model: dbConfig.collection_gameProvider
                             }).lean().then(RTG => {
-                                if(RTG || gameCredit.wallet[group.ebetWallet] > 0) {
+                                console.log("Reward Task Group filter",RTG);
+                                if(RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name && (RTG.lastPlayedProvider.name.toUpperCase() === "EBET" ||
+                                    RTG.lastPlayedProvider.name.toUpperCase() === "EBETSLOTS") || gameCredit.wallet[group.ebetWallet] > 0) {
                                     transferOut = transferOut.then(() => {
                                         return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(group, playerObjId, platform, providerId,
                                             amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
@@ -1734,7 +1740,19 @@ let dbPlayerCreditTransfer = {
                     let freeCreditGroupData = {
                         ebetWallet: 0
                     };
-
+                    // return Promise.all(checkRTGProm).then(() => {
+                    //     return dbConfig.collection_rewardTaskGroup.findOne({
+                    //         platformId: platform,
+                    //         playerId: playerObjId,
+                    //         status: {$in: [constRewardTaskStatus.STARTED]},
+                    //         $or: [{providerGroup:{ $exists: false }}, {providerGroup: null}]
+                    //     }).populate({
+                    //         path: "lastPlayedProvider", model: dbConfig.collection_gameProvider
+                    //     }).lean()
+                    // }).then(RTG => {
+                    //     console.log("checkRTG for free credit", RTG);
+                    //     if(RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name &&
+                    //         (RTG.lastPlayedProvider.name.toUpperCase() === "EBET" || RTG.lastPlayedProvider.name.toUpperCase() === "EBETSLOTS")) {
                     return Promise.all(checkRTGProm).then(() => {
                         transferOut = transferOut.then(() => {
                             return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
@@ -1747,7 +1765,8 @@ let dbPlayerCreditTransfer = {
                         });
                         return transferOut;
                     }).then(() => {
-                        console.log('transferout promise data',transferOutSuccessData);
+                        console.log('transferOut Success Data',transferOutSuccessData);
+                        console.log('transferOut Error Data',transferOutErrorData);
                         let providerCredit = 0, playerCredit = 0, rewardCredit = 0, transferPlayerCredit = 0, transferRewardCredit = 0;
                         transferOutSuccessData.forEach(item => {
                             if(item && item.providerCredit && item.playerCredit && item.rewardCredit &&
@@ -1824,7 +1843,7 @@ let dbPlayerCreditTransfer = {
                     if (providerPlayerObj.gameCredit < 1 || amount == 0 || providerPlayerObj.gameCredit < amount) {
                         if (bResolve) {
                             checkBResolve = true;
-                            return Promise.reject({message: "Insufficient amount to transfer out"});
+                            return Promise.reject({message: "Insufficient amount to transfer out", insufficientAmount: true});
                         }
                         else {
                             return Promise.resolve(

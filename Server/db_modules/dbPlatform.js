@@ -3140,37 +3140,102 @@ var dbPlatform = {
         return dbconfig.collection_playerDepositTrackingGroup.find({platform: platformId}).lean().exec();
     },
 
-    addDepositTrackingGroup: (platformObjId, groupData) => {
-        let groupProm = [];
+    addDepositTrackingGroup: (platformObjId, groupData, modifyData) => {
+        let groupProm = Promise.resolve(true);
+        let modifyProm = Promise.resolve(true);
+        let proms1 = [];
+        let proms2 = [];
 
-        for (let x = 0; x < groupData.length; x++) {
-            // only save group name that didn't exist
-            let query = {
-                name: groupData[x].name,
-                platform: platformObjId,
-            };
+        // for new data
+        if (groupData && groupData.length > 0) {
+            for (let x = 0; x < groupData.length; x++) {
+                // only save group name that didn't exist
+                let query = {
+                    name: groupData[x].name,
+                    platform: platformObjId,
+                };
 
-            let newData = {
-                name: groupData[x].name,
-                platform: platformObjId,
-                remark: groupData[x].remark || "",
-            };
+                let newData = {
+                    name: groupData[x].name,
+                    platform: platformObjId,
+                    remark: groupData[x].remark || "",
+                };
 
-            // upsert: create new document if group name is not duplicate
-            groupProm.push(dbconfig.collection_playerDepositTrackingGroup.findOneAndUpdate(query, newData, {upsert: true, new: true}));
+                // upsert: create new document if group name is not duplicate
+                groupProm = dbconfig.collection_playerDepositTrackingGroup.findOneAndUpdate(query, newData, {upsert: true, new: true});
+                proms1.push(groupProm);
+            }
         }
 
-        return Promise.all(groupProm).then(
+        // for existing data
+        if (modifyData && modifyData.length > 0) {
+            for (let z = 0; z < modifyData.length; z++) {
+                let upDateQuery = {
+                    _id: modifyData[z]._id,
+                    platform: platformObjId,
+                };
+
+                let updateData = {
+                    name: modifyData[z].name,
+                    remark: modifyData[z].remark || "",
+                };
+
+                modifyProm = dbconfig.collection_playerDepositTrackingGroup.findOneAndUpdate(upDateQuery, updateData, {new: true});
+                proms2.push(modifyProm);
+            }
+        }
+
+        return Promise.all([Promise.all(proms1), Promise.all(proms2)]).then(
             result => {
                 if (result) {
-                    return result;
+                    let newData = result[0];
+                    let existingData = result[1];
+
+                    return {newData: newData, existingData: existingData};
                 }
             }
         );
     },
 
     deleteDepositTrackingGroup: (platformObjId, trackingGroupObjId) => {
-        return dbconfig.collection_playerDepositTrackingGroup.remove({_id: trackingGroupObjId, platform: platformObjId}).exec();
+        return dbconfig.collection_playerDepositTrackingGroup.remove({_id: trackingGroupObjId, platform: platformObjId}).exec().then(
+            () => {
+                let query = {
+                    platform: platformObjId,
+                    depositTrackingGroup: trackingGroupObjId,
+                };
+
+                // need remove deposit tracking group for related players
+                return dbconfig.collection_players.find(query).lean().then(
+                    playerData => {
+                        let proms = [];
+                        if (playerData && playerData.length > 0) {
+                            for (let index in playerData) {
+                                let player = playerData[index];
+
+                                let removeQuery = {
+                                    _id: player._id,
+                                    platform: platformObjId
+                                };
+
+                                // remove field
+                                let updateData = {
+                                    $unset: {depositTrackingGroup: ""}
+                                };
+
+                                let removeProm = dbconfig.collection_players.findOneAndUpdate(removeQuery, updateData, {new: true});
+                                proms.push(removeProm);
+                            }
+                        }
+                        return Q.all(proms);
+                    }
+                ).then(
+                    removedTrackingGroup => {
+                        return removedTrackingGroup;
+                    }
+                );
+            }
+        );
     },
 
     getPlatformPartnerSettLog: (platformObjId, modes) => {

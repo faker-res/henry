@@ -11,6 +11,11 @@ style.
             .panel-heading.panel-heading-sm
                 label {{"Bankcard Group" | translate}}
             .panel-body
+                div
+                    input#FPMSPaymentGroup(type='radio' value='FPMS' ng-model="vm.groupUsed" ng-change="vm.getAllBankCard();vm.loadBankCardGroup()")
+                    label(for='FPMSPaymentGroup') {{"FPMS Group" | translate}}
+                    input#PMSPaymentGroup(type='radio' value='PMS' ng-model="vm.groupUsed" ng-change="vm.loadBankCardGroup()")
+                    label(for='PMSPaymentGroup') {{"PMS Group" | translate}}
                 div(ng-if='!vm.platformBankCardGroupList || vm.platformBankCardGroupList.length==0', style="height: 50px; overflow-y: auto;")
                     label.text-danger {{"NO_BANKCARD_GROUP_MESSAGE" | translate}}
                 //div#bankCardGroupTree(style="height: 430px; overflow-y: auto;")
@@ -22,22 +27,22 @@ style.
                     button.btn.btn-primary.common-button(ng-if="vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && checkViewPermission('Payment', 'BankCardGroup', 'CreateBankCard')", data-toggle="modal", ng-click='vm.newBankCardAcc={};', data-target='#modalAddNewBankCard')
                         text {{"CreateBankCard" | translate}}
                         img.img-create
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'Create')", data-toggle="modal", ng-click='vm.newBankCardGroup={};vm.newBankCardGroup.parent=vm.SelectedBankCardGroupNode.id', data-target='#modalAddBankCardGroup')
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'Create') && vm.groupUsed != 'PMS'", data-toggle="modal", ng-click='vm.newBankCardGroup={};vm.newBankCardGroup.parent=vm.SelectedBankCardGroupNode.id', data-target='#modalAddBankCardGroup')
                         text {{"ADD" | translate}}
                         img.img-create
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'Delete')", ng-disabled="!vm.selectedPlatform || !vm.SelectedBankCardGroupNode", data-toggle="modal", data-target='#modalRemoveBankCardGroup', ng-click='')
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'Delete') && vm.groupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedBankCardGroupNode", data-toggle="modal", data-target='#modalRemoveBankCardGroup', ng-click='')
                         text {{"DELETE" | translate}}
                         img.img-delete
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'Update')", ng-disabled="!vm.selectedPlatform || !vm.SelectedBankCardGroupNode", data-toggle="modal", data-target='#modalRenameBankCardGroup', ng-click='vm.initRenameBankCardGroup()')
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'Update') && vm.groupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedBankCardGroupNode", data-toggle="modal", data-target='#modalRenameBankCardGroup', ng-click='vm.initRenameBankCardGroup()')
                         text {{"EDIT" | translate}}
                         img.img-edit
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'Update')", ng-disabled="!vm.selectedPlatform || !(vm.platformBankCardGroupList.length>0)", data-toggle="modal", data-target='#modalSetBankCardGroupDefault')
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'Update') && vm.groupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !(vm.platformBankCardGroupList.length>0)", data-toggle="modal", data-target='#modalSetBankCardGroupDefault')
                         text {{"Default" | translate}}
                         img.img-edit
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'AddPlayer')", ng-disabled="!vm.selectedPlatform || !vm.SelectedBankCardGroupNode", data-toggle="modal", data-target='#modalAddPlayersToBankCardGroup', ng-click='vm.preparePlayerToGroupDialog("bankcardGroup","#playertoGroupDataTable")')
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'AddPlayer') && vm.groupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedBankCardGroupNode", data-toggle="modal", data-target='#modalAddPlayersToBankCardGroup', ng-click='vm.preparePlayerToGroupDialog("bankcardGroup","#playertoGroupDataTable")')
                         text {{"ADD_PLAYER" | translate}}
                         img.img-create
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'AddAllPlayer')", ng-disabled="!vm.selectedPlatform || !vm.SelectedBankCardGroupNode", data-toggle="modal", data-target='#modalAddAllPlayersToBankCardGroup', ng-click='vm.addAllPlayerToBankCardResult=""')
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'AddAllPlayer') && vm.groupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedBankCardGroupNode", data-toggle="modal", data-target='#modalAddAllPlayersToBankCardGroup', ng-click='vm.addAllPlayerToBankCardResult=""')
                         text {{"ADD_ALL_PLAYER" | translate}}
                         img.img-create
     .col-md-10(style="padding-left:0;padding-right:15px")
@@ -48,31 +53,13 @@ style.
                 .text-center(ng-if='!vm.SelectedBankCardGroupNode')
                     label.text-danger {{"NO_BANKCARD_GROUP_MESSAGE" | translate}}
                 .well
-                    //.inlineBlk.margin-right-5
-                    //    .control-label {{"BANK_TYPE" | translate}}
-                    //    select.input-sm.form-control.merchantNoList(id="selectBankType", ng-model='vm.filterBankType', ng-options="a | translate for a in vm.allBankTypeList", style='max-width:200px', ng-change='vm.BankTypeChanged();',multiple,bsp)
-                        //select.input-sm.form-control(ng-model='vm.filterBankType', style='max-width:200px', ng-change='vm.BankTypeChanged();')
-                        //    option(value='all') {{'any' | translate}}
-                        //    option(ng-repeat='(i,v) in vm.allBankTypeList', value='{{i}}') {{v}}
-                    //.inlineBlk.margin-right-5
-                    //    .control-label {{"Bank Card Name" | translate}}
-                    //    select.input-sm.form-control.merchantNoList(id="selectBankCardName", ng-model='vm.filterBankCardName', ng-options="a.name for a in vm.allBankCardList", style='max-width:200px', ng-init='vm.filterBankCardName="all"',ng-change='vm.BankCardNameChanged();',multiple,bsp,rddl)
-                        //select.input-sm.form-control(ng-model='vm.filterBankCardName', style='max-width:200px', ng-init='vm.filterBankCardName="all"',ng-change='vm.BankCardNameChanged();' )
-                        //    option(value='all') {{'any' | translate}}
-                        //    option(ng-repeat='(i,v) in vm.allBankCardList', value='{{i}}') {{v.name | translate}}
-                    //.inlineBlk.margin-right-5
-                    //    .control-label {{"BANK_ACCOUNT_NUMBER" | translate}}
-                    //    select.input-sm.form-control.merchantNoList(id="selectBankAccountNumber", ng-model='vm.filterBankAccountNo', ng-options="a.accountNumber for a in vm.allBankCardList", style='max-width:200px',ng-init='vm.filterBankAccountNo="all"',ng-change='vm.BankAccountNumberChanged();',multiple,bsp,rddl)
-                        //select.input-sm.form-control(ng-model='vm.filterBankAccountNo', style='max-width:200px',ng-init='vm.filterBankAccountNo="all"',ng-change='vm.BankAccountNumberChanged();')
-                        //    option(value='all') {{'any' | translate}}
-                        //    option(ng-repeat='(i,v) in vm.allBankCardList', value='{{i}}') {{v.accountNumber}}
                     .inlineBlk.margin-right-5
                         .control-label {{"Bank Card Name" | translate}}
                         input.input-sm.form-control(type='text', ng-model='vm.bankCardFilterOptions.bankAccountName')
                     .inlineBlk.margin-right-5
                         .control-label {{"BANK_ACCOUNT_NUMBER" | translate}}
                         input.input-sm.form-control(type='text', ng-model='vm.bankCardFilterOptions.bankAccountNumber')
-                    .inlineBlk.margin-right-5
+                    .inlineBlk.margin-right-5(ng-if="vm.groupUsed != 'PMS'")
                         .control-label {{"IS_IN_GROUP" | translate}}
                         select.input-sm.form-control(ng-model="vm.bankCardFilterOptions.included")
                             option(value='all') {{'any' | translate}}
@@ -80,11 +67,16 @@ style.
                             option(value='no') {{'NOT_IN_GROUP' | translate}}
                     .inlineBlk
                         button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.bankCardsFilter()") {{"FILTER" | translate}}
+                    .inlineBlk.margin-right-5(ng-if="vm.groupUsed == 'PMS'")
+                        .control-label {{"Player's Name (PMS Group Search)" | translate}}
+                        input.input-sm.form-control(type='text', ng-model='vm.pmsGroupPlayerName')
+                    .inlineBlk(ng-if="vm.groupUsed == 'PMS'")
+                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.playerPMSBankCardGroupSearch()") {{"FILTER" | translate}}
                 span {{"All Pages" | translate}}: {{vm.totalBankCardShows()}}
                 table#bankCards.table(ng-if='vm.SelectedBankCardGroupNode')
                     thead
                         tr
-                            th {{'SELECT' | translate}}
+                            th(ng-if='vm.groupUsed != "PMS"') {{'SELECT' | translate}}
                             th(data-toggle="modal", data-target="#modalFilterBankCardStatus", style="cursor: pointer")
                                 u {{'STATUS' | translate}}
                             th(data-toggle="modal", data-target="#modalFilterBankCardType", style="cursor: pointer")
@@ -97,7 +89,7 @@ style.
                             th {{'DAY_LIMIT' | translate}}
                     tbody
                         tr(ng-repeat="v in vm.allBankCards" ng-class="{'bg-secondary': !v.included}" ng-show="v.show$")
-                            td
+                            td(ng-if='vm.groupUsed != "PMS"')
                                 input(type="checkbox" ng-model="v.selected")
                             td.text-center(ng-class="{'text-disabled': v.state === 'DISABLED'}") {{v.status === 'DISABLED' ? 'DISABLE' : v.status | translate}}
                             td {{v.bankTypeId ? vm.getBankCardTypeTextbyId(v.bankTypeId) : ("VOID" | translate)}}
@@ -230,7 +222,7 @@ style.
                     .panel-body(style='height:80px;padding:5px')
                         .textareaDetail
                             textarea(disabled, readonly, rows="3" style="border:none") {{'BANK_TYPE' | translate}}&nbsp;:&nbsp;{{vm.curBank.bankTypeId ? vm.getBankCardTypeTextbyId(vm.curBank.bankTypeId) : ("VOID" | translate)}}
-                div(ng-if='vm.SelectedBankCardGroupNode && checkViewPermission("Payment", "BankCardGroup", "Update")')
+                div(ng-if='vm.SelectedBankCardGroupNode && checkViewPermission("Payment", "BankCardGroup", "Update") && vm.groupUsed != "PMS"')
                     button.btn.btn-info.common-button.pull-right(ng-click="vm.selectBankCard(true)") {{"Select All" | translate}}
                     button.btn.btn-info.common-button.pull-right(ng-click="vm.selectBankCard(false)") {{"Clear All" | translate}}
                     button.btn.btn-primary.common-button.pull-right(ng-click="vm.removeBankCardFromGroup()")
