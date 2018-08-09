@@ -1309,6 +1309,7 @@ define(['js/app'], function (myApp) {
                     displayValues: false,
                     countSelected: $translate('# of % selected')
                 });
+                remarkSelect.multipleSelect('refresh');
             });
         };
 
@@ -1325,6 +1326,7 @@ define(['js/app'], function (myApp) {
                     displayValues: false,
                     countSelected: $translate('# of % selected')
                 });
+                remarkSelect.multipleSelect('refresh');
             });
         };
 
@@ -1341,6 +1343,7 @@ define(['js/app'], function (myApp) {
                     displayValues: false,
                     countSelected: $translate('# of % selected')
                 });
+                trackingGroupSelect.multipleSelect('refresh');
             });
         };
 
@@ -4102,6 +4105,9 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'deleteDepositTrackingGroup', deleteData, function (data) {
                     $scope.$evalAsync(() => {
+                        setTimeout(function () {
+                            $('#selectTrackingGroupDepositTracking').multipleSelect('refresh');
+                        }, 1000);
                         vm.getDepositTrackingGroupByPlatformId(vm.curPlatformId);
                         vm.searchPlayerDepositTrackingReport();
                     });
@@ -4115,6 +4121,9 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'addDepositTrackingGroup', addData, function (data) {
                     $scope.$evalAsync(() => {
+                        setTimeout(function () {
+                            $('#selectTrackingGroupDepositTracking').multipleSelect('refresh');
+                        }, 1000);
                         vm.getDepositTrackingGroupByPlatformId(vm.curPlatformId);
                         vm.searchPlayerDepositTrackingReport();
                         vm.newDepositTrackingGroup = [];
