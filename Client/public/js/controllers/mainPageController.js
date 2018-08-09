@@ -363,7 +363,8 @@ define(['js/app'], function (myApp) {
                 //remove vm.SelectedDepartmentNode.id
                 if (type == "department") {
                     vm.curDepartmentParent = vm.SelectedDepartmentNode.parent;
-                    var parentFindNode = $('#departmentTreeForMoving').treeview('search', [vm.SelectedDepartmentNode.text, {
+                    let searchText = vm.SelectedDepartmentNode.text.replace(/\(|\)/g, '\\$&');
+                    var parentFindNode = $('#departmentTreeForMoving').treeview('search', [searchText, {
                         exactMatch: true,
                         revealResults: false
                     }]);
@@ -377,7 +378,8 @@ define(['js/app'], function (myApp) {
                 } else if (type == "user") {
                     //vm.SelectedDepartmentNode=
                     //vm.curDepartmentParent = null;
-                    var parentFindNode = $('#departmentTreeForMoving').treeview('search', [vm.curCommonDepartmentText, {
+                    let searchText = vm.curCommonDepartmentText.replace(/\(|\)/g, '\\$&');
+                    var parentFindNode = $('#departmentTreeForMoving').treeview('search', [searchText, {
                         exactMatch: true,
                         revealResults: false
                     }]);

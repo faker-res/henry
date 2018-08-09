@@ -7,6 +7,11 @@
             .panel-heading.panel-heading-sm
                 label {{"Alipay Group" | translate}}
             .panel-body
+                div(ng-if="false")
+                    input#FPMSAlipayPaymentGroup(type='radio' value='FPMS' ng-model="vm.alipayGroupUsed" ng-change="vm.loadAlipayGroupData()")
+                    label(for='FPMSAlipayPaymentGroup') {{"FPMS Group" | translate}}
+                    input#PMSAlipayPaymentGroup(type='radio' value='PMS' ng-model="vm.alipayGroupUsed" ng-change="vm.loadAlipayGroupData()")
+                    label(for='PMSAlipayPaymentGroup') {{"PMS Group" | translate}}
                 div(ng-if='!vm.platformAlipayGroupList || vm.platformAlipayGroupList.length==0', style="height: 50px; overflow-y: auto;")
                     label.text-danger {{"NO_ALIPAY_GROUP_MESSAGE" | translate}}
                 ul.list-group(ng-if='vm.platformAlipayGroupList.length > 0', style="height: 430px; overflow-y: auto;")
@@ -17,22 +22,22 @@
                     button.btn.btn-primary.common-button(ng-if="vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && checkViewPermission('Payment', 'AlipayGroup', 'CreateAlipay')", data-toggle="modal", ng-click='vm.newAlipayAcc={};', data-target='#modalAddNewAlipay')
                         text {{"CreateAlipay" | translate}}
                         img.img-create
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Create')", data-toggle="modal", ng-click='vm.newAlipayGroup={};', data-target='#modalAddAlipayGroup')
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Create') && vm.alipayGroupUsed != 'PMS'", data-toggle="modal", ng-click='vm.newAlipayGroup={};', data-target='#modalAddAlipayGroup')
                         text {{"ADD" | translate}}
                         img.img-create
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Delete')", ng-disabled="!vm.selectedPlatform || !vm.SelectedAlipayGroupNode", data-toggle="modal", data-target='#modalRemoveAlipayGroup', ng-click='')
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Delete') && vm.alipayGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedAlipayGroupNode", data-toggle="modal", data-target='#modalRemoveAlipayGroup', ng-click='')
                         text {{"DELETE" | translate}}
                         img.img-delete
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update')", ng-disabled="!vm.selectedPlatform || !vm.SelectedAlipayGroupNode", data-toggle="modal", data-target='#modalRenameAlipayGroup', ng-click='vm.initRenameAlipayGroup()')
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update') && vm.alipayGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedAlipayGroupNode", data-toggle="modal", data-target='#modalRenameAlipayGroup', ng-click='vm.initRenameAlipayGroup()')
                         text {{"EDIT" | translate}}
                         img.img-edit
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update')", ng-disabled="!vm.selectedPlatform || !(vm.platformAlipayGroupList.length>0)", data-toggle="modal", data-target='#modalSetAlipayGroupDefault')
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update') && vm.alipayGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !(vm.platformAlipayGroupList.length>0)", data-toggle="modal", data-target='#modalSetAlipayGroupDefault')
                         text {{"Default" | translate}}
                         img.img-edit
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Create')", ng-disabled="!vm.selectedPlatform || !vm.SelectedAlipayGroupNode", data-toggle="modal", data-target='#modalAddPlayersToAlipayGroup', ng-click='vm.preparePlayerToGroupDialog("alipayGroup","#playertoAlipayGroupDataTable")')
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Create') && vm.alipayGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedAlipayGroupNode", data-toggle="modal", data-target='#modalAddPlayersToAlipayGroup', ng-click='vm.preparePlayerToGroupDialog("alipayGroup","#playertoAlipayGroupDataTable")')
                         text {{"ADD_PLAYER" | translate}}
                         img.img-create
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'AddAllPlayer')", ng-disabled="!vm.selectedPlatform || !vm.SelectedAlipayGroupNode", data-toggle="modal", data-target='#modalAddAllPlayersToAlipayGroup', ng-click='vm.addAllPlayerToAlipayResult=""')
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'AddAllPlayer') && vm.alipayGroupUsed != 'PMS'", ng-disabled="!vm.selectedPlatform || !vm.SelectedAlipayGroupNode", data-toggle="modal", data-target='#modalAddAllPlayersToAlipayGroup', ng-click='vm.addAllPlayerToAlipayResult=""')
                         text {{"ADD_ALL_PLAYER" | translate}}
                         img.img-create
                     //- button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'Bank', 'DetachProvider')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalTachProvider', ng-click='vm.linkProvider("detach");vm.linkProviderType="DETACH"')
@@ -53,17 +58,22 @@
                     .inlineBlk.margin-right-5
                         .control-label {{"alipayName" | translate}}
                         input.input-sm.form-control.merchantNoList(ng-model='vm.filterAlipayName', type='text', style='max-width:200px')
-                    .inlineBlk.margin-right-5
+                    .inlineBlk.margin-right-5(ng-if="vm.alipayGroupUsed != 'PMS'")
                         .control-label {{"isInGroup" | translate}}
                         select.input-sm.form-control.merchantNoList(ng-model='vm.filterAlipayInGroup' style='max-width:200px', ng-init='vm.filterAlipayInGroup="all"')
                             option(value='all') {{'any' | translate}}
                             option(value='false') {{'noInGroup' | translate}}
                             option(value='true') {{'inGroup' | translate}}
+                    .inlineBlk.margin-right-5(ng-if="vm.alipayGroupUsed == 'PMS'")
+                        .control-label {{"Player's Name (PMS Group Search)" | translate}}
+                        input.input-sm.form-control(type='text', ng-model='vm.pmsGroupPlayerName')
+                    .inlineBlk(ng-if="vm.alipayGroupUsed == 'PMS'")
+                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.playerPMSAlipayGroupSearch()") {{"SEARCH" | translate}}
                 text.blink.margin-left-5.text-danger(ng-if='vm.SelectedAlipayGroupNode && !vm.allAlipayList') {{'loading alipays' | translate}}...
                 text.margin-left-5(ng-if='vm.SelectedAlipayGroupNode && vm.allAlipayList') {{'Total' | translate}}: {{filteredAlipayList.length}}
                 table#aliPayTable.simple-table.table-vertical-middle
                     thead
-                        th {{ 'select' | translate }}
+                        th(ng-if="vm.alipayGroupUsed != 'PMS'") {{ 'select' | translate }}
                         th(data-toggle="modal", data-target="#modalFilterAlipayStatus", style="cursor: pointer") {{ 'STATUS' | translate }}
                         th {{ 'alipayAccount' | translate }}
                         th {{ 'alipayName' | translate }}
@@ -71,7 +81,7 @@
                         th {{ 'DAY_LIMIT' | translate }}
                     tbody
                         tr(ng-repeat="(idx,val) in vm.allAlipayList | filter: vm.filterAlipay as filteredAlipayList" style='{{ !val.isInGroup ? "background-color: grey;": "" }}')
-                            td
+                            td(ng-if="vm.alipayGroupUsed != 'PMS'")
                                 input(type="checkbox" ng-model="val.isCheck" ng-change="vm.alipayListUncheckDifferentGroup(val.isCheck, val.isInGroup);")
                             td {{ val.state === 'DISABLED' ? 'DISABLE' : val.state | translate}}
                             td {{ val.accountNumber | translate}}
@@ -80,15 +90,15 @@
                             td {{ val.quota | translate}}
                 br
                 .div.pull-right
-                    button.btn.btn-info.common-button.pull-right(ng-click="vm.selectAlipay(true)") {{"Select All" | translate}}
-                    button.btn.btn-info.common-button.pull-right(ng-click="vm.selectAlipay(false)") {{"Clear All" | translate}}
-                    button.btn.btn-primary.common-button(ng-if="vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && vm.allAlipayList.length > 0 && checkViewPermission('Payment', 'AlipayGroup', 'EditAlipay')" ng-click="vm.showEditAlipayInfo()" ng-disabled="vm.disableEditAlipay()", data-toggle="modal", data-target='#modalEditAlipay')
+                    button.btn.btn-info.common-button.pull-right(ng-click="vm.selectAlipay(true)" ng-if="vm.alipayGroupUsed != 'PMS'") {{"Select All" | translate}}
+                    button.btn.btn-info.common-button.pull-right(ng-click="vm.selectAlipay(false)" ng-if="vm.alipayGroupUsed != 'PMS'") {{"Clear All" | translate}}
+                    button.btn.btn-primary.common-button(ng-if="vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && vm.allAlipayList.length > 0 && checkViewPermission('Payment', 'AlipayGroup', 'EditAlipay') && vm.alipayGroupUsed != 'PMS'" ng-click="vm.showEditAlipayInfo()" ng-disabled="vm.disableEditAlipay()", data-toggle="modal", data-target='#modalEditAlipay')
                         img.img-edit
                         text {{"EditAlipay" | translate}}
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update')" ng-click='vm.alipaytoAlipayGroup("attach")')
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update') && vm.alipayGroupUsed != 'PMS'" ng-click='vm.alipaytoAlipayGroup("attach")')
                         i.fa.fa-plus-square
                         text {{"INCLUDE" | translate}}
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update')" ng-click='vm.alipaytoAlipayGroup("detach")')
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Update') && vm.alipayGroupUsed != 'PMS'" ng-click='vm.alipaytoAlipayGroup("detach")')
                         i.fa.fa-minus-square
                         text {{"EXCLUDE" | translate}}
 
