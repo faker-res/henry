@@ -1522,7 +1522,7 @@ let dbPlayerInfo = {
                         platform: playerdata.platform,
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
                         ipAddress: playerData.lastLoginIp,
-                        $or: [{domain: {$exists: true}}, {domain: {$ne: playerData.domain}}]
+                        $and: [{domain: {$exists: true}}, {domain: {$ne: playerData.domain}}]
                     }, 'domain').sort({createTime:-1}).limit(1).lean().then(
                         ipDomainLog => {
                             console.log('ricco-1234', ipDomainLog);
