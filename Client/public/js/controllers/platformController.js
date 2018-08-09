@@ -3052,8 +3052,14 @@ define(['js/app'], function (myApp) {
                         }
                         var newObj = v.game;
                         newObj.index = (v && v.index) ? v.index : 1;
-                        newObj.name$ = newObj.customName && newObj.customName != "" ? newObj.customName : newObj.name;
-                        newObj.isDefaultName = newObj.customName && newObj.customName != "" ? false : true;
+                        if(newObj.changedName && newObj.changedName.hasOwnProperty(vm.selectedPlatform.data.platformId)){
+                            newObj.name$ = newObj.changedName[vm.selectedPlatform.data.platformId] || newObj.name;
+                            newObj.isDefaultName = newObj.changedName[vm.selectedPlatform.data.platformId] && newObj.changedName[vm.selectedPlatform.data.platformId] != ''
+                                ? false : true;
+                        }else{
+                            newObj.name$ = newObj.name;
+                            newObj.isDefaultName = true;
+                        }
                         vm.includedGamesGroup.push(newObj);
                         vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
                     })
@@ -3584,8 +3590,14 @@ define(['js/app'], function (myApp) {
                         //     newObj.maintenanceMinute = v.maintenanceMinute || 'null';
                         // }
                         newObj.platformVisible = v.visible;
-                        newObj.name$ = newObj.customName && newObj.customName != "" ? newObj.customName : newObj.name;
-                        newObj.isDefaultName = newObj.customName && newObj.customName != "" ? false : true;
+                        if(newObj.changedName && newObj.changedName.hasOwnProperty(vm.selectedPlatform.data.platformId)){
+                            newObj.name$ = newObj.changedName[vm.selectedPlatform.data.platformId] || newObj.name;
+                            newObj.isDefaultName = newObj.changedName[vm.selectedPlatform.data.platformId] && newObj.changedName[vm.selectedPlatform.data.platformId] != ''
+                                                    ? false : true;
+                        }else{
+                            newObj.name$ = newObj.name;
+                            newObj.isDefaultName = true;
+                        }
                         vm.includedGames.push(newObj);
                         if (v.hasOwnProperty('status')) {
                             vm.gameStatus[v.game._id] = v.status;
@@ -32623,21 +32635,22 @@ define(['js/app'], function (myApp) {
             vm.submitGameNameChange = function(index){
                 let sendQuery = {
                     gameObjId: vm.includedGames[index] && vm.includedGames[index]._id ? vm.includedGames[index]._id : null,
-                    customName: vm.includedGames[index] && vm.includedGames[index].name$ ? vm.includedGames[index].name$ : null
+                    customName: vm.editingGameName || null,
+                    platformObjId: vm.selectedPlatform.id
                 };
 
                 $scope.$socketPromise("renameGame", sendQuery).then(data => {
                     $scope.$evalAsync(() => {
                         console.log("game name redefined.",data);
-                        if(vm.includedGames[index] && vm.includedGames[index].name$ && vm.includedGames[index].name$ != ""){
+                        if(vm.editingGameName){
+                            vm.includedGames[index].name$ = vm.editingGameName;
                             vm.includedGames[index].isDefaultName = false;
-                        }
-                        else if(vm.includedGames[index].name$ == "" && vm.includedGames[index].name){
-                            vm.includedGames[index].name$ = vm.includedGames[index].name;
+                        }else{
+                            vm.includedGames[index].name$ = data.data.name;
                             vm.includedGames[index].isDefaultName = true;
                         }
 
-                        vm.isEditingGameName = false;
+                        vm.selectedGameName = '';
                     })
                 });
             };
@@ -32645,21 +32658,22 @@ define(['js/app'], function (myApp) {
             vm.submitGroupGameNameChange = function(index){
                 let sendQuery = {
                     gameObjId: vm.includedGamesGroup[index] && vm.includedGamesGroup[index]._id ? vm.includedGamesGroup[index]._id : null,
-                    customName: vm.includedGamesGroup[index] && vm.includedGamesGroup[index].name$ ? vm.includedGamesGroup[index].name$ : null
+                    customName: vm.editingGameName || null,
+                    platformObjId: vm.selectedPlatform.id
                 };
 
                 $scope.$socketPromise("renameGame", sendQuery).then(data => {
                     $scope.$evalAsync(() => {
                         console.log("game name redefined.",data);
-                        if(vm.includedGamesGroup[index] && vm.includedGamesGroup[index].name$ && vm.includedGamesGroup[index].name$ != ""){
+                        if(vm.editingGameName){
+                            vm.includedGamesGroup[index].name$ = vm.editingGameName;
                             vm.includedGamesGroup[index].isDefaultName = false;
-                        }
-                        else if(vm.includedGamesGroup[index].name$ == "" && vm.includedGamesGroup[index].name){
-                            vm.includedGamesGroup[index].name$ = vm.includedGamesGroup[index].name;
+                        }else{
+                            vm.includedGamesGroup[index].name$ = data.data.name;
                             vm.includedGamesGroup[index].isDefaultName = true;
                         }
 
-                        vm.isEditingGameName = false;
+                        vm.selectedGameName = '';
                     })
                 });
             }
