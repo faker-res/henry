@@ -5042,7 +5042,7 @@ let dbPlayerReward = {
                 }
             ).then(
                 countReward => { // display approved proposal data during this event period
-                    console.log('proposal aggregate - 1');
+                    console.log('proposal aggregate - 1', countReward.length);
                     let resultArr = [];
                     let samePlayerObjIdResult;
                     let sameIPAddressResult;
