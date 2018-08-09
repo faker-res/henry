@@ -1516,7 +1516,7 @@ let dbPlayerInfo = {
                 if (playerData.lastLoginIp) {
                     let todayTime = dbUtility.getTodaySGTime();
 
-                    return dbconfig.collection_ipDomainLog.findOne({
+                    return dbconfig.collection_ipDomainLog.find({
                         platform: playerdata.platform,
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
                         ipAddress: playerData.lastLoginIp,
