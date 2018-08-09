@@ -3679,7 +3679,9 @@ var dbPlatform = {
         ).then(
             data => {
                 platformString = data&&data[0] ? data[0] : "";
-                phoneNumber = data&&data[1] ? data[1].phoneNumber : phoneNumber;
+                if( !phoneNumber || (phoneNumber && phoneNumber.indexOf("*") > 0) ){
+                    phoneNumber = data&&data[1] ? data[1].phoneNumber : phoneNumber;
+                }
 
                 url = platform.callRequestUrlConfig;
 
