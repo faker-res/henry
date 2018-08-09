@@ -26676,9 +26676,9 @@ define(['js/app'], function (myApp) {
                     },
                     updateData: updateDate
                 }
-                socketService.$socket($scope.AppSocket, 'createUpdatePartnerCommissionRateConfig', sendData, function (data) {
+                socketService.$socket($scope.AppSocket, 'updateParentCommissionRateConfig', sendData, function (data) {
                     $scope.$evalAsync(() => {
-                        console.log('partnerCommissionRateConfig success ',data);
+                        console.log('updateParentCommissionRateConfig success ',data);
                         vm.isParentRateEditing = false;
                     })
                 });

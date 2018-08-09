@@ -240,7 +240,6 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getAllBankCard = function () {
-            console.log('aaa')
             return $scope.$socketPromise('getAllBankCard', {platform: vm.selectedPlatform.data.platformId}).then(data => {
                 console.log('getAllBankCard', data);
                 vm.allBankCards = data.data.data;
@@ -265,9 +264,7 @@ define(['js/app'], function (myApp) {
                     data = data.data;
                     vm.platformBankCardGroupList = [];
                     if (data && data.map && data.map["银行卡"]) {
-                        console.log('data.map["银行卡"]', data.map["银行卡"])
                         Object.entries(data.map["银行卡"]).forEach(([groupName, value]) => {
-                            console.log('a', groupName, value)
                             let groupData = {
                                 code: groupName,
                                 displayName: groupName,
@@ -1407,6 +1404,7 @@ define(['js/app'], function (myApp) {
         /////////////////////////////////////// Merchant Group start  /////////////////////////////////////////////////
 
         vm.merchantGroupTabClicked = function () {
+            vm.merchantGroupUsed = "FPMS"
             socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
                 $scope.$evalAsync(() => {
                     if (data && data.data && data.data.merchantTypes && data.data.merchantTypes.length > 0) {
@@ -1415,12 +1413,53 @@ define(['js/app'], function (myApp) {
                             vm.allMerchantTypeList[item.merchantTypeId] = item;
                         });
                         console.log('merchanttype', vm.allMerchantTypeList);
+                        $scope.$evalAsync();
                     }
                 });
             })
         };
 
         vm.loadMerchantGroupData = function (keepSelected, selectGroupId) {
+            if (vm.merchantGroupUsed == "PMS") {
+                vm.pmsGroupPlayerName = "";
+                return $scope.$socketPromise('getPMSPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, type: "4"}).then(data => {
+                    console.log('getPMSPaymentGroup', data);
+                    vm.platformMerchantGroupList = [];
+                    if (data && data.data && data.data.map && data.data.map["在线"]) {
+                        Object.entries(data.data.map["在线"]).forEach(([groupName, value]) => {
+                            let groupData = {
+                                code: groupName,
+                                displayName: groupName,
+                                groupId: groupName,
+                                name: groupName,
+                                merchants: []
+                            };
+
+                            if (value && value.length) {
+                                value.map(merchant => {
+                                    let data = {};
+                                    data.isIncluded = true;
+                                    data.show$ = true;
+                                    data.merchantNo = merchant.merchantNo;
+                                    data.merchantTypeId = merchant.merchantTypeId;
+                                    data.name = merchant.name;
+                                    data.permerchantLimits = merchant.permerchantLimits;
+                                    data.permerchantminLimits = merchant.permerchantminLimits;
+                                    data.status = merchant.status;
+                                    data.targetDevices = merchant.targetDevices;
+                                    data.topupType = merchant.topupType;
+                                    data.transactionForPlayerOneDay = merchant.transactionForPlayerOneDay;
+
+                                    groupData.merchants.push(data);
+                                });
+                            }
+
+                            vm.platformMerchantGroupList.push(groupData);
+                        });
+                    }
+                    $scope.$evalAsync();
+                });
+            }
             //init gametab start===============================
             vm.showMerchantCate = "include";
             vm.curGame = null;
@@ -1443,6 +1482,7 @@ define(['js/app'], function (myApp) {
                 if(selectGroupId){
                     vm.selectedMerchantGroup(selectGroupId);
                 }
+                $scope.$evalAsync()
             })
         }
 
@@ -1457,57 +1497,81 @@ define(['js/app'], function (myApp) {
 
         vm.merchantGroupClicked = function (i, merchantGroup) {
             vm.SelectedMerchantGroupNode = merchantGroup;
-            vm.includedMerchants = null;
-            vm.excludedMerchants = null;
-            console.log('merchantGroup clicked', merchantGroup);
-
-            if (vm.merchantFilterOptions && !vm.merchantFilterOptions.status) {
-                vm.merchantFilterOptions.status = {
-                    "ENABLED": true,
-                    "DISABLED": true,
-                    "CLOSE": true
-                }
+            if (vm.merchantGroupUsed == "PMS") {
+                vm.allMerchantList = merchantGroup.merchants;
+                $scope.$evalAsync();
             }
+            else {
+                vm.includedMerchants = null;
+                vm.excludedMerchants = null;
+                console.log('merchantGroup clicked', merchantGroup);
 
-            if ($scope.merchantTargetDeviceJson && vm.merchantFilterOptions && !vm.merchantFilterOptions.targetDevices) {
-                vm.merchantFilterOptions.targetDevices = {};
-                for (let key in $scope.merchantTargetDeviceJson) {
-                    if ($scope.merchantTargetDeviceJson.hasOwnProperty(key)) {
-                        vm.merchantFilterOptions.targetDevices[key] = true;
+                if (vm.merchantFilterOptions && !vm.merchantFilterOptions.status) {
+                    vm.merchantFilterOptions.status = {
+                        "ENABLED": true,
+                        "DISABLED": true,
+                        "CLOSE": true
                     }
                 }
-            }
 
-            if ($scope.merchantTopupTypeJson && vm.merchantFilterOptions && !vm.merchantFilterOptions.topupType) {
-                vm.merchantFilterOptions.topupType = {};
-                for (let key in $scope.merchantTopupTypeJson) {
-                    if ($scope.merchantTopupTypeJson.hasOwnProperty(key)) {
-                        vm.merchantFilterOptions.topupType[key] = true;
+                if ($scope.merchantTargetDeviceJson && vm.merchantFilterOptions && !vm.merchantFilterOptions.targetDevices) {
+                    vm.merchantFilterOptions.targetDevices = {};
+                    for (let key in $scope.merchantTargetDeviceJson) {
+                        if ($scope.merchantTargetDeviceJson.hasOwnProperty(key)) {
+                            vm.merchantFilterOptions.targetDevices[key] = true;
+                        }
                     }
                 }
-            }
 
-            if (vm.allMerchantTypeList && vm.merchantFilterOptions && !vm.merchantFilterOptions.merchantTypeId) {
-                vm.merchantFilterOptions.merchantTypeId = {};
-                for (let key in vm.allMerchantTypeList) {
-                    if (vm.allMerchantTypeList.hasOwnProperty(key)) {
-                        vm.merchantFilterOptions.merchantTypeId[key] = true;
+                if ($scope.merchantTopupTypeJson && vm.merchantFilterOptions && !vm.merchantFilterOptions.topupType) {
+                    vm.merchantFilterOptions.topupType = {};
+                    for (let key in $scope.merchantTopupTypeJson) {
+                        if ($scope.merchantTopupTypeJson.hasOwnProperty(key)) {
+                            vm.merchantFilterOptions.topupType[key] = true;
+                        }
                     }
                 }
-            }
 
-            var query = {
-                platform: vm.selectedPlatform.data.platformId,
-                merchantGroup: merchantGroup._id
-            }
+                if (vm.allMerchantTypeList && vm.merchantFilterOptions && !vm.merchantFilterOptions.merchantTypeId) {
+                    vm.merchantFilterOptions.merchantTypeId = {};
+                    for (let key in vm.allMerchantTypeList) {
+                        if (vm.allMerchantTypeList.hasOwnProperty(key)) {
+                            vm.merchantFilterOptions.merchantTypeId[key] = true;
+                        }
+                    }
+                }
 
-            socketService.$socket($scope.AppSocket, 'getMerchantByMerchantGroup', query, function(data){
-                console.log('MerchantGroupList', data);
-                //provider list init
-                vm.allMerchantList = data.data;
-                $scope.$evalAsync(vm.merchantPayFilter());
+                var query = {
+                    platform: vm.selectedPlatform.data.platformId,
+                    merchantGroup: merchantGroup._id
+                }
+
+                socketService.$socket($scope.AppSocket, 'getMerchantByMerchantGroup', query, function(data){
+                    console.log('MerchantGroupList', data);
+                    //provider list init
+                    vm.allMerchantList = data.data;
+                    $scope.$evalAsync(vm.merchantPayFilter());
+                });
+            }
+        };
+
+        vm.playerPMSMerchantGroupSearch = () => {
+            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName}).then(data => {
+                console.log('getPMSUserPaymentGroup', data)
+                if (data && data.data && data.data.map && data.data.map["在线组"]) {
+                    let groupName = Object.entries(data.data.map["在线组"])[0][0];
+                    if (vm.platformMerchantGroupList && vm.platformMerchantGroupList.length) {
+                        for (let i = 0; i < vm.platformMerchantGroupList.length; i++) {
+                            if (vm.platformMerchantGroupList[i].code == groupName) {
+                                vm.merchantGroupClicked(i, vm.platformMerchantGroupList[i]);
+                            }
+                        }
+                    }
+                }
+                else {
+
+                }
             });
-
         }
 
         vm.changeMerchantFilter = (objKey, select) => {
