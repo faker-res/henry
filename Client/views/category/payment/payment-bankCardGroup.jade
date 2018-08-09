@@ -11,7 +11,7 @@ style.
             .panel-heading.panel-heading-sm
                 label {{"Bankcard Group" | translate}}
             .panel-body
-                div
+                div(ng-if="false")
                     input#FPMSPaymentGroup(type='radio' value='FPMS' ng-model="vm.groupUsed" ng-change="vm.getAllBankCard();vm.loadBankCardGroup()")
                     label(for='FPMSPaymentGroup') {{"FPMS Group" | translate}}
                     input#PMSPaymentGroup(type='radio' value='PMS' ng-model="vm.groupUsed" ng-change="vm.loadBankCardGroup()")
