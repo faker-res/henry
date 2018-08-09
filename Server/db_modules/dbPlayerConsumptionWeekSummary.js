@@ -252,27 +252,30 @@ var dbPlayerConsumptionWeekSummary = {
                                 'data.platformId': platformId,
                                 'data.playerObjId': playerData._id,
                                 'data.eventCode': eventData.code,
-                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                'data.bConsumptionReturnRequest': true
                             };
 
-                            if (bRequest) {
-                                proposalQ.createTime = {$gte: startTime, $lt: endTime};
-                                proposalQ['data.bConsumptionReturnRequest'] = true;
-                            } else {
-                                // Check whether system has settled xima today
-                                let todayTime = dbutility.getTodayConsumptionReturnSGTime();
-                                proposalQ.createTime = {$gte: todayTime.startTime, $lt: todayTime.endTime};
-                                proposalQ['data.bConsumptionReturnRequest'] = {$exists: false};
-                            }
+                            // Get this period settled xima proposal
+                            let todayTime = dbutility.getTodayConsumptionReturnSGTime();
+                            let thisPeriodProposal = {
+                                createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
+                                'data.platformId': platformId,
+                                'data.playerObjId': playerData._id,
+                                'data.eventCode': eventData.code,
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                'data.bConsumptionReturnRequest': {$exists: false}
+                            };
 
                             let pastProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ);
+                            let thisPeriodPropProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, thisPeriodProposal);
 
-                            return Promise.all([Promise.resolve(playerData), recProm, summaryProm, pastProm]);
+                            return Promise.all([Promise.resolve(playerData), recProm, summaryProm, pastProm, thisPeriodPropProm]);
                         }
                     ).then(
                         promArrRes => {
                             if (promArrRes) {
-                                let [playerData, recSumm, consumptionSumm, pastProps] = promArrRes;
+                                let [playerData, recSumm, consumptionSumm, pastProps, thisPeriodProps] = promArrRes;
 
                                 let returnAmount = 0;
                                 let returnDetail = {};
@@ -289,6 +292,23 @@ var dbPlayerConsumptionWeekSummary = {
                                 // Done xima proposals
                                 if (pastProps && pastProps.length) {
                                     pastProps.map(prop => {
+                                        if (prop.data && prop.data.returnDetail) {
+                                            Object.keys(prop.data.returnDetail).forEach(el => {
+                                                doneXIMAConsumption[el] && doneXIMAConsumption[el].consumeValidAmount
+                                                    ? doneXIMAConsumption[el].consumeValidAmount = Number(doneXIMAConsumption[el].consumeValidAmount) + Number(prop.data.returnDetail[el].consumeValidAmount)
+                                                    : doneXIMAConsumption[el] = prop.data.returnDetail[el];
+
+                                                if (prop.data.nonXIMADetail && prop.data.nonXIMADetail[el] && prop.data.nonXIMADetail[el].nonXIMAAmt) {
+                                                    doneXIMAConsumption[el].consumeValidAmount = Number(doneXIMAConsumption[el].consumeValidAmount) + Number(prop.data.nonXIMADetail[el].nonXIMAAmt);
+                                                }
+                                            });
+                                        }
+                                    })
+                                }
+
+                                // Settled xima proposals
+                                if (thisPeriodProps && thisPeriodProps.length) {
+                                    thisPeriodProps.map(prop => {
                                         if (prop.data && prop.data.returnDetail) {
                                             Object.keys(prop.data.returnDetail).forEach(el => {
                                                 doneXIMAConsumption[el] && doneXIMAConsumption[el].consumeValidAmount
