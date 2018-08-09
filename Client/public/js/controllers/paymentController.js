@@ -45,6 +45,7 @@ define(['js/app'], function (myApp) {
 
         ////////////////Mark::Platform functions//////////////////
         vm.groupUsed = "FPMS";
+        vm.wechatGroupUsed = "FPMS";
         vm.updatePageTile = function () {
             window.document.title = $translate("payment") + "->" + $translate(vm.paymentPageName);
         };
@@ -1848,7 +1849,7 @@ define(['js/app'], function (myApp) {
         /////////////////////////////////////// Alipay Group start  /////////////////////////////////////////////////
 
         vm.alipayGroupTabClicked = function () {
-
+            vm.alipayGroupUsed = "FPMS";
         }
         vm.loadAlipayGroupData = function () {
             //init gametab start===============================
@@ -1857,6 +1858,42 @@ define(['js/app'], function (myApp) {
             //init gameTab end==================================
             if (!vm.selectedPlatform) {
                 return
+            }
+
+            if (vm.alipayGroupUsed == "PMS") {
+                vm.pmsGroupPlayerName = "";
+                return $scope.$socketPromise('getPMSPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, type: "2"}).then(data => {
+                    console.log('getPMSPaymentGroup', data);
+                    vm.platformAlipayGroupList = [];
+                    if (data && data.data && data.data.map && data.data.map["支付宝"]) {
+                        Object.entries(data.data.map["支付宝"]).forEach(([groupName, value]) => {
+                            let groupData = {
+                                code: groupName,
+                                displayName: groupName,
+                                groupId: groupName,
+                                name: groupName,
+                                alipays: []
+                            };
+
+                            if (value && value.length) {
+                                value.map(alipay => {
+                                    let data = {};
+                                    data.isInGroup = true;
+                                    data.show$ = true;
+                                    data.accountNumber = alipay.bankCard;
+                                    data.name = alipay.cardName;
+                                    data.singleLimit = alipay.singleLimit;
+                                    data.state = alipay.flag ? alipay.flag.split(" ")[0] : "DISABLED";
+
+                                    groupData.alipays.push(data);
+                                });
+                            }
+
+                            vm.platformAlipayGroupList.push(groupData);
+                        });
+                    }
+                    $scope.$evalAsync();
+                });
             }
             console.log("getAlipays", vm.selectedPlatform.id);
             socketService.$socket($scope.AppSocket, 'getPlatformAlipayGroup', {platform: vm.selectedPlatform.id}, function (data) {
@@ -1939,64 +1976,54 @@ define(['js/app'], function (myApp) {
         }
         vm.alipayGroupClicked = function (i, alipayGroup) {
             vm.SelectedAlipayGroupNode = alipayGroup;
-            vm.includedAlipays = null;
-            vm.excludedAlipays = null;
-            vm.allAlipayList = null;
-            console.log('alipayGroup clicked', alipayGroup);
-            var query = {
-                platform: vm.selectedPlatform.data.platformId,
-                alipayGroup: alipayGroup._id
-            }
-            vm.alipayStatusFilterOptions = {"NORMAL": true, "LOCK": true, "DISABLED": true, "CLOSE": true, "TOBEFOLLOWEDUP": true, "SUSPEND": true};
-            socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroupWithIsInGroup', query, function(data){
-                $scope.$evalAsync(() => {
-                    //provider list init
-                    vm.allAlipayList = data.data;
-                    console.log('vm.allAlipayList', vm.allAlipayList);
+            if (vm.alipayGroupUsed == "PMS") {
+                vm.allAlipayList = alipayGroup.alipays;
+                $scope.$evalAsync();
+            } else {
+                vm.includedAlipays = null;
+                vm.excludedAlipays = null;
+                vm.allAlipayList = null;
+                console.log('alipayGroup clicked', alipayGroup);
+                var query = {
+                    platform: vm.selectedPlatform.data.platformId,
+                    alipayGroup: alipayGroup._id
+                }
+                vm.alipayStatusFilterOptions = {
+                    "NORMAL": true,
+                    "LOCK": true,
+                    "DISABLED": true,
+                    "CLOSE": true,
+                    "TOBEFOLLOWEDUP": true,
+                    "SUSPEND": true
+                };
+                socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroupWithIsInGroup', query, function (data) {
+                    $scope.$evalAsync(() => {
+                        //provider list init
+                        vm.allAlipayList = data.data;
+                        console.log('vm.allAlipayList', vm.allAlipayList);
+                    });
                 });
-            });
-
-            // socketService.$socket($scope.AppSocket, 'getIncludedAlipayByAlipayGroup', query, function(data){
-            //     console.log('AlipayList', data);
-            //     //provider list init
-            //     vm.allAlipayList = data.data;
-            //     $.each(vm.allAlipayList, function (i, v) {
-            //         vm.allAlipayList[v._id] = true;
-            //     })
-            //     $scope.safeApply();
-            // });
-            //
-            // socketService.$socket($scope.AppSocket, 'getIncludedAlipayByAlipayGroup', query, function (data2) {
-            //     console.log("attached alipays", data2);
-            //     if (data2 && data2.data) {
-            //         vm.includedAlipays = [];
-            //         $.each(data2.data, function (i, v) {
-            //             if (vm.filterAlipayAccount && (vm.filterAlipayAccount != 'all' && vm.filterAlipayAccount != '') && (!vm.filterAlipayAccount.find(aa => aa.accountNumber == v.accountNumber))) {
-            //
-            //             } else if (vm.filterAlipayName && (vm.filterAlipayName != 'all' && vm.filterAlipayName != '') && (!vm.filterAlipayName.find(an => an.name == v.name))) {
-            //
-            //             } else {
-            //                 vm.includedAlipays.push(v);
-            //             }
-            //
-            //         });
-            //
-            //     } else {
-            //         vm.includedAlipays = [];
-            //     }
-            //     $scope.safeApply();
-            // })
-            //
-            // socketService.$socket($scope.AppSocket, 'getExcludedAlipayByAlipayGroup', query, function (data2) {
-            //     console.log("not attached alipays", data2);
-            //     if (data2 && data2.data) {
-            //         vm.excludedAlipays = data2.data;
-            //     } else {
-            //         vm.excludedAlipays = [];
-            //     }
-            //     $scope.safeApply();
-            // })
+            }
         }
+
+        vm.playerPMSAlipayGroupSearch = () => {
+            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName}).then(data => {
+                console.log('getPMSUserPaymentGroup', data)
+                if (data && data.data && data.data.map && data.data.map["支付宝组"]) {
+                    let groupName = Object.entries(data.data.map["支付宝组"])[0][0];
+                    if (vm.platformAlipayGroupList && vm.platformAlipayGroupList.length) {
+                        for (let i = 0; i < vm.platformAlipayGroupList.length; i++) {
+                            if (vm.platformAlipayGroupList[i].code == groupName) {
+                                vm.alipayGroupClicked(i, vm.platformAlipayGroupList[i]);
+                            }
+                        }
+                    }
+                }
+                else {
+
+                }
+            });
+        };
 
         // vm.alipayFilter = function(i, alipayGroup){
         //     vm.SelectedAlipayGroupNode = alipayGroup;
@@ -2482,6 +2509,44 @@ define(['js/app'], function (myApp) {
             if (!vm.selectedPlatform) {
                 return
             }
+
+            if (vm.wechatGroupUsed == "PMS") {
+                vm.pmsGroupPlayerName = "";
+                return $scope.$socketPromise('getPMSPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, type: "3"}).then(data => {
+                    console.log('getPMSPaymentGroup', data);
+                    vm.platformWechatPayGroupList = [];
+                    if (data && data.data && data.data.map && data.data.map["微信"]) {
+                        Object.entries(data.data.map["微信"]).forEach(([groupName, value]) => {
+                            let groupData = {
+                                code: groupName,
+                                displayName: groupName,
+                                groupId: groupName,
+                                name: groupName,
+                                wechats: []
+                            };
+
+                            if (value && value.length) {
+                                value.map(wechat => {
+                                    let data = {};
+                                    data.isInGroup = true;
+                                    data.show$ = true;
+                                    data.accountNumber = wechat.bankCard;
+                                    data.name = wechat.cardName;
+                                    data.singleLimit = wechat.singleLimit;
+                                    data.dailyLimit = wechat.dailyLimit;
+                                    data.state = wechat.flag ? wechat.flag.split(" ")[0] : "DISABLED";
+
+                                    groupData.wechats.push(data);
+                                });
+                            }
+
+                            vm.platformWechatPayGroupList.push(groupData);
+                        });
+                    }
+                    $scope.$evalAsync();
+                });
+            }
+
             socketService.$socket($scope.AppSocket, 'getPlatformWechatPayGroup', {platform: vm.selectedPlatform.id}, function (data) {
                 $scope.$evalAsync(() => {
                     //provider list init
@@ -2557,28 +2622,39 @@ define(['js/app'], function (myApp) {
 
         vm.wechatPayGroupClicked = function (i, wechatPayGroup) {
             vm.SelectedWechatPayGroupNode = wechatPayGroup;
-            vm.includedWechatPays = null;
-            vm.excludedWechatPays = null;
-            vm.allWechatList = null;
-            let query = {
-                platform: vm.selectedPlatform.data.platformId,
-                wechatGroup: wechatPayGroup._id
-            };
-            vm.wechatStatusFilterOptions = {"NORMAL": true, "LOCK": true, "DISABLED": true, "CLOSE": true, "TOBEFOLLOWEDUP": true, "SUSPEND": true};
-            socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroupWithIsInGroup', query, function(data){
+            if (vm.wechatGroupUsed == "PMS") {
+                vm.allWechatList = wechatPayGroup.wechats;
+                $scope.$evalAsync();
+            } else {
+                vm.includedWechatPays = null;
+                vm.excludedWechatPays = null;
+                vm.allWechatList = null;
+                let query = {
+                    platform: vm.selectedPlatform.data.platformId,
+                    wechatGroup: wechatPayGroup._id
+                };
+                vm.wechatStatusFilterOptions = {
+                    "NORMAL": true,
+                    "LOCK": true,
+                    "DISABLED": true,
+                    "CLOSE": true,
+                    "TOBEFOLLOWEDUP": true,
+                    "SUSPEND": true
+                };
+                socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroupWithIsInGroup', query, function (data) {
 
-                //provider list init
-                vm.allWechatList = data.data;
-                // loop get alipay status for future add extra status, no need change code
-                vm.allWechatList.forEach(wechat => {
-                    if (!vm.wechatStatusFilterOptions.hasOwnProperty(wechat.state)) {
-                        vm.wechatStatusFilterOptions[wechat.state] = true;
-                    }
+                    //provider list init
+                    vm.allWechatList = data.data;
+                    // loop get alipay status for future add extra status, no need change code
+                    vm.allWechatList.forEach(wechat => {
+                        if (!vm.wechatStatusFilterOptions.hasOwnProperty(wechat.state)) {
+                            vm.wechatStatusFilterOptions[wechat.state] = true;
+                        }
+                    });
+                    console.log('vm.allWechatList', vm.allWechatList);
+                    $scope.safeApply();
                 });
-                console.log('vm.allWechatList', vm.allWechatList);
-                $scope.safeApply();
-            });
-
+            }
             // socketService.$socket($scope.AppSocket, 'getIncludedWechatsByWechatPayGroup', query, function(data){
             //     console.log('WechatList', data);
             //     //provider list init
@@ -2617,6 +2693,25 @@ define(['js/app'], function (myApp) {
             //     }
             //     $scope.safeApply();
             // })
+        };
+
+        vm.playerPMSWechatGroupSearch = () => {
+            return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName}).then(data => {
+                console.log('getPMSUserPaymentGroup', data)
+                if (data && data.data && data.data.map && data.data.map["微信组"]) {
+                    let groupName = Object.entries(data.data.map["微信组"])[0][0];
+                    if (vm.platformWechatPayGroupList && vm.platformWechatPayGroupList.length) {
+                        for (let i = 0; i < vm.platformWechatPayGroupList.length; i++) {
+                            if (vm.platformWechatPayGroupList[i].code == groupName) {
+                                vm.wechatPayGroupClicked(i, vm.platformWechatPayGroupList[i]);
+                            }
+                        }
+                    }
+                }
+                else {
+
+                }
+            });
         };
 
         vm.filterWechat = (wechat) => {
