@@ -2944,7 +2944,11 @@ let dbPlayerReward = {
                         path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType
                     }).lean();
                 } else {
-                    return Promise.reject({name: "DataError", errorMessage: "Concurrent issue detected"});
+                    return Promise.reject({
+                      name: "DataError",
+                      errorMessage: "Concurrent issue detected",
+                      status: constServerCode.CONCURRENT_DETECTED
+                    });
                 }
             }
         ).then(
