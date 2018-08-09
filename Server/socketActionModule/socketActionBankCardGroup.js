@@ -216,7 +216,19 @@ function socketActionBankCardGroup(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data._id);
             socketUtil.emitter(self.socket, dbPlatformBankCardGroup.deleteBankCardAcc, [data._id], actionName, isValidData);
-        }
+        },
+
+        getPMSPaymentGroup: function getPMSPaymentGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.getPaymentGroup, [data.platformId, data.type], actionName, isValidData);
+        },
+
+        getPMSUserPaymentGroup: function getPMSUserPaymentGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.playerName);
+            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.getUserPaymentGroup, [data._id, data.playerName], actionName, isValidData);
+        },
     };
     socketActionBankCardGroup.actions = this.actions;
 };

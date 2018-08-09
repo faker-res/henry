@@ -165,7 +165,9 @@
                 "getBankcardList",
                 "getBankcard",
                 "getBankTypeList",
-                "getBankType"
+                "getBankType",
+                "bankCardByGroupReq",
+                "bankCardByUserReq",
             ];
             addServiceSyncFunctions(sinonet, this, functionNames, ["queryId"]);
         };
