@@ -9753,7 +9753,9 @@ let dbPlayerInfo = {
     countNewPlayersAllPlatform: function (startDate, endDate, platform) {
         var matchObj = {
             registrationTime: {$gte: startDate, $lt: endDate},
+            isRealPlayer: true
         }
+        
         if (platform !== 'all') {
             matchObj.platform = platform
         }
