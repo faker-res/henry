@@ -676,47 +676,34 @@ define(['js/app'], function (myApp) {
         };
 
         vm.telToPlayer = function (data) {
-            let player = {};
-            let playerObjId = null;
-            let phoneCall = {};
+            $scope.$evalAsync(() => {
+                let player = {};
+                let phoneCall = {};
 
-            if (data && data.data && data.data.playerObjId && typeof data.data.playerObjId == 'object') {
-                player = data.data.playerObjId;
-                playerObjId = player && player._id ? player._id : null;
-                phoneCall = {
-                    playerId: player.playerId,
-                    name: player.name,
-                    toText: data.data.playerName ? data.data.playerName : player.name,
-                    platform: "jinshihao",
-                    loadingNumber: true,
+                if (data && data.data && data.data.playerObjId && typeof data.data.playerObjId == 'object') {
+                    player = data.data.playerObjId;
+                    phoneCall = {
+                        playerId: player.playerId,
+                        name: player.name,
+                        toText: data.data.playerName ? data.data.playerName : player.name,
+                        platform: "jinshihao",
+                        loadingNumber: true,
+                    }
+                } else if (data.data && data.data.playerObjId && typeof data.data.playerObjId == 'string') {
+                    phoneCall = {
+                        playerId: data.data.playerId,
+                        name: data.data.playerName,
+                        toText: data.data.playerName,
+                        platform: "jinshihao",
+                        loadingNumber: true,
+                    }
                 }
-            } else if (data.data && data.data.playerObjId && typeof data.data.playerObjId == 'string') {
-                playerObjId = data.data.playerObjId;
-                phoneCall = {
-                    playerId: data.data.playerId,
-                    name: data.data.playerName,
-                    toText: data.data.playerName,
-                    platform: "jinshihao",
-                    loadingNumber: true,
-                }
-            }
 
-            if (playerObjId) {
                 $scope.initPhoneCall(phoneCall);
-                socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: playerObjId}, function (data) {
-                    $scope.$evalAsync(() => {
-                        $scope.phoneCall.phone = data.data;
-                        $scope.phoneCall.loadingNumber = false;
-                        $scope.makePhoneCall(vm.selectedPlatform.platformId);
-                    })
-                }, function (err) {
-                    $scope.$evalAsync(() => {
-                        $scope.phoneCall.loadingNumber = false;
-                        $scope.phoneCall.err = err.error.message;
-                        alert($scope.phoneCall.err);
-                    });
-                }, true);
-            }
+                $scope.phoneCall.phone = data.data.updateData.phoneNumber;
+                $scope.phoneCall.loadingNumber = false;
+                $scope.makePhoneCall(vm.selectedPlatform.platformId);
+            });
         };
 
         // vm.topupClicked = function () {
