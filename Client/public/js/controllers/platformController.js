@@ -27297,6 +27297,10 @@ define(['js/app'], function (myApp) {
 
             vm.checkPromoCodeField = function (insertData, type){
 
+                if (!insertData && !type) {
+                    return false;
+                }
+
                 if (!insertData.amount) {
                     if (type == 3) {
                         return socketService.showErrorMessage($translate("Promo Reward % is required"));
@@ -27319,10 +27323,6 @@ define(['js/app'], function (myApp) {
                     } else {
                         return socketService.showErrorMessage($translate("Promo Consumption is required"));
                     }
-                }
-
-                if (!insertData && !type) {
-                    return false;
                 }
 
                 if(!insertData.applyLimitPerPlayer){

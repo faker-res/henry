@@ -161,10 +161,7 @@ let dbPromoCode = {
                 let totalAppliedNumber = proposalData[0];
                 let playerAppliedNumber = proposalData[1];
                 let ipAppliedNumber = proposalData[2];
-                console.log("checking---ipAppliedNumber", ipAppliedNumber);
-
-
-
+                
                 let totalLimit = promoCodeObj.totalApplyLimit || 0;
                 let playerLimit = promoCodeObj.applyLimitPerPlayer || 0;
                 let ipLimit = promoCodeObj.ipLimit || 0;

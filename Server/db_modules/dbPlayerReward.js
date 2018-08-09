@@ -3231,7 +3231,7 @@ let dbPlayerReward = {
                             }).lean().count();
 
                             let ipProposalProm;
-                            console.log("checking--- ip just before create the rewardProposal", lastLoginIp)
+
                             if (lastLoginIp){
                                 ipProposalProm = dbConfig.collection_proposal.find({
                                     type: ObjectId(proposalType._id),
@@ -3271,7 +3271,6 @@ let dbPlayerReward = {
                     let totalAppliedNumber = proposalData[0];
                     let playerAppliedNumber = proposalData[1];
                     let ipAppliedNumber = proposalData[2];
-                    console.log("checking---ipAppliedNumber", ipAppliedNumber);
 
                     let totalLimit = promoCodeObj.totalApplyLimit || 0;
                     let playerLimit = promoCodeObj.applyLimitPerPlayer || 0;
