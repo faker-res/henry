@@ -610,6 +610,7 @@ var dbPlayerConsumptionRecord = {
             (playerUpdatedData) => {
                 playerData = playerUpdatedData;
                 // Check auto player level up
+                dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).catch(errorUtils.reportError);
                 return dbRewardTask.checkPlayerRewardTaskGroupForConsumption(record, platformObj);
             },
             error => {
@@ -638,7 +639,6 @@ var dbPlayerConsumptionRecord = {
                 if (record) {
                     console.log('debug log #0FD400');
                     dbRewardPoints.updateGameRewardPointProgress(record).catch(errorUtils.reportError);
-                    dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).catch(errorUtils.reportError);
                 }
                 return record
             },
