@@ -268,7 +268,10 @@ var dbPlayerConsumptionWeekSummary = {
                             };
 
                             let pastProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ);
-                            let thisPeriodPropProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, thisPeriodProposal);
+                            let thisPeriodPropProm = Promise.resolve(false);
+                            if (!bRequest) {
+                                thisPeriodPropProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, thisPeriodProposal);
+                            }
 
                             return Promise.all([Promise.resolve(playerData), recProm, summaryProm, pastProm, thisPeriodPropProm]);
                         }
