@@ -125,10 +125,6 @@ var dbPlatformGameGroup = {
                         gameGroupData.games.forEach(
                             game => {
                                 if (game && game.game) {
-                                    if(game.game.name && game.game.customName && game.game.customName != ""){
-                                        game.game.name = game.game.customName;
-                                    }
-
                                     gameStatusDataProm.push(dbconfig.collection_platformGameStatus.findOne({
                                         game: game.game._id,
                                         platform: platformObjId
