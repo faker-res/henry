@@ -4109,7 +4109,7 @@ define(['js/app'], function (myApp) {
                             $('#selectTrackingGroupDepositTracking').multipleSelect('refresh');
                         }, 1000);
                         vm.getDepositTrackingGroupByPlatformId(vm.curPlatformId);
-                        vm.searchPlayerDepositTrackingReport();
+                        // vm.searchPlayerDepositTrackingReport();
                     });
                 });
             } else {
@@ -4125,7 +4125,7 @@ define(['js/app'], function (myApp) {
                             $('#selectTrackingGroupDepositTracking').multipleSelect('refresh');
                         }, 1000);
                         vm.getDepositTrackingGroupByPlatformId(vm.curPlatformId);
-                        vm.searchPlayerDepositTrackingReport();
+                        // vm.searchPlayerDepositTrackingReport();
                         vm.newDepositTrackingGroup = [];
                     });
                 });
