@@ -60,7 +60,7 @@ let dbPromoCode = {
         });
     },
 
-    isOpenPromoCodeValid: function (playerId, promoCode, amount) {
+    isOpenPromoCodeValid: function (playerId, promoCode, amount, lastLoginIp) {
         let promoCodeObj;
         let platformObjId;
         return dbconfig.collection_players.findOne({playerId: playerId}, {platform: 1}).lean().then(playerData => {
@@ -133,7 +133,21 @@ let dbPromoCode = {
                             status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
                         }).lean().count();
 
-                        return Promise.all([proposalProm, playerProposalProm]);
+                        let ipProposalProm;
+                        if (lastLoginIp){
+                            ipProposalProm = dbconfig.collection_proposal.find({
+                                type: ObjectId(proposalType._id),
+                                'data.promoCode': parseInt(promoCode),
+                                'data.lastLoginIp': lastLoginIp,
+                                createTime: { $gte: promoCodeObj.createTime, $lt: promoCodeObj.expirationTime},
+                                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                            }).lean().count();
+                        }
+                        else{
+                            ipProposalProm = Promise.resolve(0);
+                        }
+
+                        return Promise.all([proposalProm, playerProposalProm, ipProposalProm]);
 
                     }
                     else{
@@ -142,12 +156,18 @@ let dbPromoCode = {
                 });
             }
         }).then(proposalData => {
-            if (proposalData && proposalData.length == 2) {
+            if (proposalData && proposalData.length == 3) {
 
                 let totalAppliedNumber = proposalData[0];
                 let playerAppliedNumber = proposalData[1];
+                let ipAppliedNumber = proposalData[2];
+                console.log("checking---ipAppliedNumber", ipAppliedNumber);
+
+
+
                 let totalLimit = promoCodeObj.totalApplyLimit || 0;
                 let playerLimit = promoCodeObj.applyLimitPerPlayer || 0;
+                let ipLimit = promoCodeObj.ipLimit || 0;
 
                 if (totalAppliedNumber >= totalLimit){
                     return Promise.reject({
@@ -162,6 +182,14 @@ let dbPromoCode = {
                         status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                         name: "ConditionError",
                         message: "Exceed the total application limit of the player"
+                    })
+                }
+
+                if (ipAppliedNumber >= ipLimit){
+                    return Promise.reject({
+                        status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                        name: "ConditionError",
+                        message: "Exceed the total application limit from the same IP"
                     })
                 }
 

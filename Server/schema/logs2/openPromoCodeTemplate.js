@@ -47,7 +47,9 @@ let openPromoCodeTemplateSchema = new Schema({
     // the appply limit per player
     applyLimitPerPlayer: {type: Number},
     // the total available quantity for application
-    totalApplyLimit: {type: Number}
+    totalApplyLimit: {type: Number},
+    // the requeting limit for the same IP
+    ipLimit: {type: Number}
 
 });
 

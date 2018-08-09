@@ -3440,7 +3440,8 @@ let dbPlayerInfo = {
                                     if (proposalData.data.bonusCode) {
                                         let isOpenPromoCode = proposalData.data.bonusCode.toString().length == 3;
                                         if (isOpenPromoCode){
-                                            dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                                            console.log("checking---lastLoginIp in proposal ", proposalData.data.lastLoginIp)
+                                            dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode, null, null, proposalData.data.lastLoginIp).catch(errorUtils.reportError);
                                         }
                                         else{
                                             dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
@@ -9755,7 +9756,7 @@ let dbPlayerInfo = {
             registrationTime: {$gte: startDate, $lt: endDate},
             isRealPlayer: true
         }
-        
+
         if (platform !== 'all') {
             matchObj.platform = platform
         }
@@ -10457,6 +10458,7 @@ let dbPlayerInfo = {
 
                                 if (updateProposal && updateProposal.status != constProposalStatus.SUCCESS
                                     && updateProposal.status != constProposalStatus.FAIL) {
+                                    console.log("checking---data.type.executionType", data.type.executionType)
                                     return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
                                         () => dbconfig.collection_proposal.findOneAndUpdate(
                                             {_id: data._id, createTime: data.createTime},

@@ -154,11 +154,20 @@ let RewardServiceImplement = function () {
     this.applyPromoCode.expectsData = 'promoCode: Number|String';
     this.applyPromoCode.onRequest = function(wsFunc, conn, data){
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
+
+        var lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
+        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            if(forwardedIp[0].trim() != "undefined"){
+                lastLoginIp = forwardedIp[0].trim();
+            }
+        }
+
         let isValidData = Boolean(data && conn.playerId && data.promoCode);
         if (isValidData) {
             let isOpenPromoCode = data.promoCode.toString().length == 3 ? true : false;
             if (isOpenPromoCode) {
-                WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyOpenPromoCode, [conn.playerId, data.promoCode, null, userAgent], isValidData, false, false, true);
+                WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyOpenPromoCode, [conn.playerId, data.promoCode, null, userAgent, lastLoginIp], isValidData, false, false, true);
             }
             else {
                 WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.applyPromoCode, [conn.playerId, data.promoCode, null, userAgent], isValidData, false, false, true);
