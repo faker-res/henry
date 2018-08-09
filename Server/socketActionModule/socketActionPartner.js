@@ -349,6 +349,11 @@ function socketActionPartner(socketIO, socket) {
             var isValidData = Boolean(data && data.query && data.updateData);
             socketUtil.emitter(self.socket, dbPartner.updatePartnerCommissionLevel, [data.query, data.updateData], actionName, isValidData);
         },
+        updateParentCommissionRateConfig: function updateParentCommissionRateConfig(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPartner.updateParentCommissionRateConfig, [data.query, data.updateData], actionName, isValidData);
+        },
         createUpdatePartnerCommissionRateConfig: function createUpdatePartnerCommissionRateConfig(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.updateData);

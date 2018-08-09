@@ -71,7 +71,7 @@ style.
                         .control-label {{"Player's Name (PMS Group Search)" | translate}}
                         input.input-sm.form-control(type='text', ng-model='vm.pmsGroupPlayerName')
                     .inlineBlk(ng-if="vm.groupUsed == 'PMS'")
-                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.playerPMSBankCardGroupSearch()") {{"FILTER" | translate}}
+                        button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.playerPMSBankCardGroupSearch()") {{"SEARCH" | translate}}
                 span {{"All Pages" | translate}}: {{vm.totalBankCardShows()}}
                 table#bankCards.table(ng-if='vm.SelectedBankCardGroupNode')
                     thead
