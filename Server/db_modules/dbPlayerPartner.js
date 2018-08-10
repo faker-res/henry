@@ -736,7 +736,9 @@ let dbPlayerPartner = {
                     let plyProm = dbUtility.findOneAndUpdateForShard(dbConfig.collection_players, playerQuery, updateData, constShardKeys.collection_players);
                     let partnerProm = dbUtility.findOneAndUpdateForShard(dbConfig.collection_partner, partnerQuery, updateData, constShardKeys.collection_partner);
 
-                    return Promise.all([plyProm, partnerProm]);
+                    return Promise.all([plyProm, partnerProm]).then(
+                        data => true
+                    );
                 }
             }
         )

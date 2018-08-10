@@ -572,36 +572,20 @@ define(['js/app'], function (myApp) {
         }
 
         vm.telToPlayer = function (data) {
-            let playerObjId = null;
-            let phoneCall = {};
-
-            if (data.data && data.data.playerObjId && typeof data.data.playerObjId == 'string') {
-                playerObjId = data.data.playerObjId;
-                phoneCall = {
+            $scope.$evalAsync(() => {
+                let phoneCall = {
                     playerId: data.data.playerId || '',
                     name: data.data.playerName || '',
                     toText: data.data.playerName || '',
                     platform: "jinshihao",
                     loadingNumber: true,
                 }
-            }
 
-            if (playerObjId) {
                 $scope.initPhoneCall(phoneCall);
-                socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: playerObjId}, function (data) {
-                    $scope.$evalAsync(() => {
-                        $scope.phoneCall.phone = data.data;
-                        $scope.phoneCall.loadingNumber = false;
-                        $scope.makePhoneCall(vm.selectedPlatform.platformId);
-                    })
-                }, function (err) {
-                    $scope.$evalAsync(() => {
-                        $scope.phoneCall.loadingNumber = false;
-                        $scope.phoneCall.err = err.error.message;
-                        alert($scope.phoneCall.err);
-                    });
-                }, true);
-            }
+                $scope.phoneCall.phone = data.data.updateData.phoneNumber;
+                $scope.phoneCall.loadingNumber = false;
+                $scope.makePhoneCall(vm.selectedPlatform.platformId);
+            });
         };
 
         // display  proposal detail
@@ -1309,6 +1293,7 @@ define(['js/app'], function (myApp) {
                     displayValues: false,
                     countSelected: $translate('# of % selected')
                 });
+                remarkSelect.multipleSelect('refresh');
             });
         };
 
@@ -1325,6 +1310,7 @@ define(['js/app'], function (myApp) {
                     displayValues: false,
                     countSelected: $translate('# of % selected')
                 });
+                remarkSelect.multipleSelect('refresh');
             });
         };
 
@@ -1341,6 +1327,7 @@ define(['js/app'], function (myApp) {
                     displayValues: false,
                     countSelected: $translate('# of % selected')
                 });
+                trackingGroupSelect.multipleSelect('refresh');
             });
         };
 
@@ -4102,8 +4089,13 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'deleteDepositTrackingGroup', deleteData, function (data) {
                     $scope.$evalAsync(() => {
+                        setTimeout(function () {
+                            $('#selectTrackingGroupDepositTracking').multipleSelect('refresh');
+                        }, 1000);
+                        vm.playerDepositTracking = {}; // reset report table become blank
+                        vm.depositTrackingQuery = {};
                         vm.getDepositTrackingGroupByPlatformId(vm.curPlatformId);
-                        vm.searchPlayerDepositTrackingReport();
+                        // vm.searchPlayerDepositTrackingReport();
                     });
                 });
             } else {
@@ -4115,8 +4107,13 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'addDepositTrackingGroup', addData, function (data) {
                     $scope.$evalAsync(() => {
+                        setTimeout(function () {
+                            $('#selectTrackingGroupDepositTracking').multipleSelect('refresh');
+                        }, 1000);
+                        vm.playerDepositTracking = {}; // reset report table become blank
+                        vm.depositTrackingQuery = {};
                         vm.getDepositTrackingGroupByPlatformId(vm.curPlatformId);
-                        vm.searchPlayerDepositTrackingReport();
+                        // vm.searchPlayerDepositTrackingReport();
                         vm.newDepositTrackingGroup = [];
                     });
                 });

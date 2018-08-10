@@ -1513,16 +1513,19 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 // Add source url from ip
+                console.log('ricco-lastLoginIp', playerData.lastLoginIp);
+                console.log('ricco-domain', playerData.domain);
                 if (playerData.lastLoginIp) {
                     let todayTime = dbUtility.getTodaySGTime();
 
-                    return dbconfig.collection_ipDomainLog.findOne({
+                    return dbconfig.collection_ipDomainLog.find({
                         platform: playerdata.platform,
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
                         ipAddress: playerData.lastLoginIp,
-                        domain: {$exists: true}
-                    }, 'domain').sort({createTime:1}).limit(1).lean().then(
+                        $and: [{domain: {$exists: true}}, {domain: {$ne: playerData.domain}}]
+                    }).sort({createTime:-1}).limit(1).lean().then(
                         ipDomainLog => {
+                            console.log('ricco-1234', ipDomainLog);
                             if (ipDomainLog && ipDomainLog[0] && ipDomainLog[0].domain) {
                                 ipDomain = ipDomainLog[0].domain;
 
@@ -1834,7 +1837,7 @@ let dbPlayerInfo = {
             model: dbconfig.collection_rewardPoints
         }).lean().then(
             function (data) {
-                data.fullPhoneNumber = data.phoneNumber;
+                // data.fullPhoneNumber = data.phoneNumber;
                 data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
                 data.email = dbUtility.encodeEmail(data.email);
                 if (data.bankAccount) {
@@ -9753,7 +9756,9 @@ let dbPlayerInfo = {
     countNewPlayersAllPlatform: function (startDate, endDate, platform) {
         var matchObj = {
             registrationTime: {$gte: startDate, $lt: endDate},
+            isRealPlayer: true
         }
+        
         if (platform !== 'all') {
             matchObj.platform = platform
         }
@@ -14323,7 +14328,10 @@ let dbPlayerInfo = {
                                             playerData = playerIdObjs;
                                             return playerIdObj._id;
                                         }),
-                                        isPromoteWay: true
+                                        isPromoteWay: true,
+                                        option: {
+                                            isDepositReport: true
+                                        }
                                     });
                                 },
                                 processResponse: function (record) {
@@ -14714,7 +14722,10 @@ let dbPlayerInfo = {
                                             playerData = playerIdObjs;
                                             return playerIdObj._id;
                                         }),
-                                        isPromoteWay: true
+                                        isPromoteWay: true,
+                                        option: {
+                                            isDepositReport: true
+                                        }
                                     });
                                 },
                                 processResponse: function (record) {
@@ -15319,7 +15330,7 @@ let dbPlayerInfo = {
                             "$lte": new Date(endTime)
                         },
                         "mainType": "TopUp",
-                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                        "status": option.isDepositReport ? constProposalStatus.SUCCESS : {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                     }
                 },
                 {
@@ -15341,7 +15352,7 @@ let dbPlayerInfo = {
                             "$lte": new Date(endTime)
                         },
                         "mainType": "PlayerBonus",
-                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                        "status": option.isDepositReport ? constProposalStatus.SUCCESS : {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                     }
                 },
                 {
