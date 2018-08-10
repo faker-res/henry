@@ -206,7 +206,7 @@ var dbPlatformGameStatus = {
                         platform: data[0]._id
                     };
                     if (name) {
-                        queryObj.name = new RegExp("^" + name, "i")
+                        queryObj.name = new RegExp(name);
                     }
                     var games = null;
                     var bGames = groupCode != null || type != null ? true : false;
