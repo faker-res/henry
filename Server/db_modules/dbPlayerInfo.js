@@ -1513,7 +1513,7 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 // Add source url from ip
-                if (playerData.lastLoginIp) {
+                if (playerData.lastLoginIp && !promoteWay) {
                     let todayTime = dbUtility.getTodaySGTime();
 
                     return dbconfig.collection_ipDomainLog.find({
