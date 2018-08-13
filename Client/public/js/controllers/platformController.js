@@ -3021,7 +3021,8 @@ define(['js/app'], function (myApp) {
                         name: vm.newGameGroup.name,
                         displayName: vm.newGameGroup.displayName,
                         code: vm.newGameGroup.code,
-                        originalName: vm.newGameGroup.orginalName
+                        originalName: vm.newGameGroup.orginalName,
+                        gameGroupIconUrl: vm.newGameGroup.gameGroupIconUrl
                     }
                 }
                 socketService.$socket($scope.AppSocket, 'renamePlatformGameGroup', sendData, function (data) {
@@ -3062,7 +3063,12 @@ define(['js/app'], function (myApp) {
                             newObj.isDefaultName = true;
                         }
                         vm.includedGamesGroup.push(newObj);
-                        vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
+                        if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
+                            let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
+                            vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, platformCustomImage);
+                        }else{
+                            vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
+                        }
                     })
                     console.log("vm.includedGamesGroup", vm.includedGamesGroup);
                     if (vm.showGameCate == "include") {
@@ -3603,7 +3609,13 @@ define(['js/app'], function (myApp) {
                         if (v.hasOwnProperty('status')) {
                             vm.gameStatus[v.game._id] = v.status;
                         }
-                        vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
+
+                        if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
+                            let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
+                            vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, platformCustomImage);
+                        }else{
+                            vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
+                        }
                     })
                     console.log("vm.includedGames", vm.includedGames);
                     $scope.safeApply();
@@ -27297,6 +27309,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.checkPromoCodeField = function (insertData, type){
+
                 if (!insertData && !type) {
                     return false;
                 }
@@ -27323,6 +27336,23 @@ define(['js/app'], function (myApp) {
                     } else {
                         return socketService.showErrorMessage($translate("Promo Consumption is required"));
                     }
+                }
+
+                if(!insertData.applyLimitPerPlayer){
+                    return socketService.showErrorMessage($translate("The application limit of individual is required"));
+                }
+
+                if(!insertData.totalApplyLimit){
+                    return socketService.showErrorMessage($translate("The total application limit is required"));
+                }
+
+                if(!insertData.ipLimit){
+                    return socketService.showErrorMessage($translate("The application limit from the same IP is required"));
+                }
+
+
+                if(insertData.ipLimit && insertData.applyLimitPerPlayer && insertData.ipLimit < insertData.applyLimitPerPlayer){
+                    return socketService.showErrorMessage($translate("The application limit from the same IP has to be at least equal to the application limit of the individual"));
                 }
 
                 return true;
@@ -27607,9 +27637,10 @@ define(['js/app'], function (myApp) {
 
             vm.generateOpenPromoCode = function (col, index, data, type, template) {
 
+                vm.promoCodeFieldCheckFlag = false;
                 let sendData = Object.assign({},data);
                 let returnedMsg = vm.checkPromoCodeField(data, type);
-                vm.promoCodeFieldCheckFlag = false;
+
                 if (returnedMsg) {
 
                     if (!sendData.hasOwnProperty("isProviderGroup")){
