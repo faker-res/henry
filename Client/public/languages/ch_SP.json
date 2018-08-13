@@ -4124,5 +4124,6 @@
   "Second Level Partner": "二级代理",
   "Follow partner commission config": "按照代理提成设置阶梯",
   "winlose X above ratio": "产生报表输赢x上述比例",
-  "Represent a player winlose share between 2 levels": "表示一个玩家的报表输赢只会往上分两层"
+  "Represent a player winlose share between 2 levels": "表示一个玩家的报表输赢只会往上分两层",
+  "gameGroupIconUrl": "游戏组图标位置"
 }

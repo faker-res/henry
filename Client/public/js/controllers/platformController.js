@@ -3020,7 +3020,8 @@ define(['js/app'], function (myApp) {
                         name: vm.newGameGroup.name,
                         displayName: vm.newGameGroup.displayName,
                         code: vm.newGameGroup.code,
-                        originalName: vm.newGameGroup.orginalName
+                        originalName: vm.newGameGroup.orginalName,
+                        gameGroupIconUrl: vm.newGameGroup.gameGroupIconUrl
                     }
                 }
                 socketService.$socket($scope.AppSocket, 'renamePlatformGameGroup', sendData, function (data) {
