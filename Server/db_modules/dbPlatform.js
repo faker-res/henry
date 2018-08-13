@@ -3669,11 +3669,19 @@ var dbPlatform = {
                     });
                 }
 
-                return getPlatformStringForCallback(platformStringArray, playerId, lineId);
+                let stringProm = getPlatformStringForCallback(platformStringArray, playerId, lineId);
+                let playerProm = null;
+                if(playerId){
+                    playerProm = dbconfig.collection_players.findOne({playerId: playerId}).lean();
+                }
+                return Promise.all([stringProm, playerProm]);
             }
         ).then(
-            platformStringData => {
-                platformString = platformStringData;
+            data => {
+                platformString = data&&data[0] ? data[0] : "";
+                if( !phoneNumber || (phoneNumber && phoneNumber.indexOf("*") > 0) ){
+                    phoneNumber = data&&data[1] ? data[1].phoneNumber : phoneNumber;
+                }
 
                 url = platform.callRequestUrlConfig;
 
