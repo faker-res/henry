@@ -13987,12 +13987,12 @@ let dbPlayerInfo = {
         };
 
         if (query.name) {
-            getPlayerProm = dbconfig.collection_players.findOne({name: query.name, platform: platform}, {_id: 1}).lean();
+            getPlayerProm = dbconfig.collection_players.findOne({name: query.name, platform: platform, isRealPlayer: true}, {_id: 1}).lean();
         }
 
         return getPlayerProm.then(
             player => {
-                let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}};
+                let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}, isRealPlayer: true};
 
                 if (player) {
                     relevantPlayerQuery.playerId = player._id;
