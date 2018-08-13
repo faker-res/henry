@@ -1513,15 +1513,15 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 // Add source url from ip
-                if (playerData.lastLoginIp) {
+                if (playerData.lastLoginIp && !promoteWay) {
                     let todayTime = dbUtility.getTodaySGTime();
 
-                    return dbconfig.collection_ipDomainLog.findOne({
+                    return dbconfig.collection_ipDomainLog.find({
                         platform: playerdata.platform,
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
                         ipAddress: playerData.lastLoginIp,
-                        domain: {$exists: true}
-                    }, 'domain').sort({createTime:1}).limit(1).lean().then(
+                        $and: [{domain: {$exists: true}}, {domain: {$ne: playerData.domain}}]
+                    }).sort({createTime:-1}).limit(1).lean().then(
                         ipDomainLog => {
                             if (ipDomainLog && ipDomainLog[0] && ipDomainLog[0].domain) {
                                 ipDomain = ipDomainLog[0].domain;
@@ -1834,7 +1834,7 @@ let dbPlayerInfo = {
             model: dbconfig.collection_rewardPoints
         }).lean().then(
             function (data) {
-                data.fullPhoneNumber = data.phoneNumber;
+                // data.fullPhoneNumber = data.phoneNumber;
                 data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
                 data.email = dbUtility.encodeEmail(data.email);
                 if (data.bankAccount) {

@@ -2988,7 +2988,7 @@ var dbPlatform = {
                     .catch(errorUtils.reportError);
 
                 // ip domain binding log
-                dbPlatform.addIpDomainLog(platformId, domain, ipAddress).catch(errorUtils.reportError);
+                // dbPlatform.addIpDomainLog(platformId, domain, ipAddress).catch(errorUtils.reportError);
             }
         )
     },
@@ -3669,11 +3669,19 @@ var dbPlatform = {
                     });
                 }
 
-                return getPlatformStringForCallback(platformStringArray, playerId, lineId);
+                let stringProm = getPlatformStringForCallback(platformStringArray, playerId, lineId);
+                let playerProm = null;
+                if(playerId){
+                    playerProm = dbconfig.collection_players.findOne({playerId: playerId}).lean();
+                }
+                return Promise.all([stringProm, playerProm]);
             }
         ).then(
-            platformStringData => {
-                platformString = platformStringData;
+            data => {
+                platformString = data&&data[0] ? data[0] : "";
+                if( !phoneNumber || (phoneNumber && phoneNumber.indexOf("*") > 0) ){
+                    phoneNumber = data&&data[1] ? data[1].phoneNumber : phoneNumber;
+                }
 
                 url = platform.callRequestUrlConfig;
 
@@ -4477,15 +4485,19 @@ var dbPlatform = {
 
                     return dbconfig.collection_ipDomainLog.findOne({
                         platform: platformObjId,
-                        createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
                         domain: domain,
-                        ipAddress: ipAddress
-                    }, '_id').lean();
+                        ipAddress: ipAddress,
+                        createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+                    });
                 }
             }
         ).then(
             ipDomainLog => {
-                if (!ipDomainLog) {
+                if (ipDomainLog) {
+                    dbconfig.collection_ipDomainLog.findByIdAndUpdate(ipDomainLog._id, {
+                        createTime: new Date()
+                    })
+                } else {
                     let newLog = {
                         platform: platformObjId,
                         domain: domain,
