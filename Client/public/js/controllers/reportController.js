@@ -3996,6 +3996,14 @@ define(['js/app'], function (myApp) {
                         item.noConsumption = item.noConsumption || item.noConsumption === 0 ? item.noConsumption : "--";
                         item.depositTrackingGroupName = item.depositTrackingGroupName ? item.depositTrackingGroupName : "--";
 
+                        // promo code type 1, type 2, type 3
+                        item.promoCodeType1Total = item.promoCodeType1Total ? item.promoCodeType1Total : 0;
+                        item.promoCodeType1Accepted = item.promoCodeType1Accepted ? item.promoCodeType1Accepted : 0;
+                        item.promoCodeType2Total = item.promoCodeType2Total ? item.promoCodeType2Total : 0;
+                        item.promoCodeType2Accepted = item.promoCodeType2Accepted ? item.promoCodeType2Accepted : 0;
+                        item.promoCodeType3Total = item.promoCodeType3Total ? item.promoCodeType3Total : 0;
+                        item.promoCodeType3Accepted = item.promoCodeType3Accepted ? item.promoCodeType3Accepted : 0;
+
                         item.playerLevel$ = "";
                         if (vm.playerLvlData[item.playerLevel]) {
                             item.playerLevel$ = vm.playerLvlData[item.playerLevel].name;
@@ -4059,6 +4067,12 @@ define(['js/app'], function (myApp) {
                                 player.bonusAmount$ = data.bonusAmount$;
                                 player.totalPlayerDepositAmount$ = data.totalPlayerDepositAmount$;
                                 player.validConsumptionAmount$ = data.validConsumptionAmount$;
+                                player.promoCodeType1Total = data.promoCodeType1Total;
+                                player.promoCodeType1Accepted = data.promoCodeType1Accepted;
+                                player.promoCodeType2Total = data.promoCodeType2Total;
+                                player.promoCodeType2Accepted = data.promoCodeType2Accepted;
+                                player.promoCodeType3Total = data.promoCodeType3Total;
+                                player.promoCodeType3Accepted = data.promoCodeType3Accepted;
                             }
                         });
                         return player;

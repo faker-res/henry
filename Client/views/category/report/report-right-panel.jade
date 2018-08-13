@@ -492,9 +492,9 @@
                             td {{playerData.bonusAmount$}}
                             td {{playerData.totalPlayerDepositAmount$}}
                             td {{playerData.validConsumptionAmount$}}
-                            td {{playerData.t1}}
-                            td {{playerData.t2}}
-                            td {{playerData.t3}}
+                            td {{playerData.promoCodeType1Accepted}}/{{playerData.promoCodeType1Total}}
+                            td {{playerData.promoCodeType2Accepted}}/{{playerData.promoCodeType2Total}}
+                            td {{playerData.promoCodeType3Accepted}}/{{playerData.promoCodeType3Total}}
                             td
                                 a(data-toggle="modal", data-target='#modalPlayerDepositTrackingMonthlyDetailsTable', ng-click="vm.getPlayerDepositTrackingMonthlyDetails(playerData._id)") {{'DETAILS' | translate}}
                             td

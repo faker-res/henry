@@ -14642,6 +14642,12 @@ let dbPlayerInfo = {
         let bonusProm = [];
         let consumptionProm = [];
         let trackingGroupProm = [];
+        let promoCodeType1TotalProm = [];
+        let promoCodeType1AcceptedProm = [];
+        let promoCodeType2TotalProm = [];
+        let promoCodeType2AcceptedProm = [];
+        let promoCodeType3TotalProm = [];
+        let promoCodeType3AcceptedProm = [];
         let outputResult = [];
 
         if (query && query.name) {
@@ -14854,13 +14860,62 @@ let dbPlayerInfo = {
                                 }
                             }
                         ));
+
+                    dbconfig.collection_promoCode.find({playerObjId: player._id})
+                        .populate({path: 'promoCodeTypeObjId', model: dbconfig.collection_promoCodeType})
+                        .lean().then(
+                            promoCode => {
+                                if (promoCode && promoCode.length > 0) {
+                                    let type1Total = 0;
+                                    let type1Accepted = 0;
+                                    let type2Total = 0;
+                                    let type2Accepted = 0;
+                                    let type3Total = 0;
+                                    let type3Accepted = 0;
+
+                                    promoCode.forEach(promo => {
+                                        if (promo.promoCodeTypeObjId.type === 1) {
+                                            type1Total += 1;
+                                        }
+                                        if (promo.promoCodeTypeObjId.type === 1 && promo.status === 2) { // status 2 is accepted
+                                            type1Accepted += 1;
+                                        }
+                                        if (promo.promoCodeTypeObjId.type === 2) {
+                                            type2Total += 1;
+                                        }
+                                        if (promo.promoCodeTypeObjId.type === 2 && promo.status === 2) { // status 2 is accepted
+                                            type2Accepted += 1;
+                                        }
+                                        if (promo.promoCodeTypeObjId.type === 3) {
+                                            type3Total += 1;
+                                        }
+                                        if (promo.promoCodeTypeObjId.type === 3 && promo.status === 2) { // status 2 is accepted
+                                            type3Accepted += 1;
+                                        }
+                                    });
+
+                                    promoCodeType1TotalProm.push({playerId: player._id, count: type1Total});
+                                    promoCodeType1AcceptedProm.push({playerId: player._id, count: type1Accepted});
+                                    promoCodeType2TotalProm.push({playerId: player._id, count: type2Total});
+                                    promoCodeType2AcceptedProm.push({playerId: player._id, count: type2Accepted});
+                                    promoCodeType3TotalProm.push({playerId: player._id, count: type3Total});
+                                    promoCodeType3AcceptedProm.push({playerId: player._id, count: type3Accepted});
+                                }
+                            }
+                        )
                 });
 
-                return Promise.all([Promise.all(topUpProm), Promise.all(bonusProm), Promise.all(consumptionProm), Promise.all(trackingGroupProm)]).then(data => {
+                return Promise.all([Promise.all(topUpProm), Promise.all(bonusProm), Promise.all(consumptionProm), Promise.all(trackingGroupProm), promoCodeType1TotalProm, promoCodeType1AcceptedProm, promoCodeType2TotalProm, promoCodeType2AcceptedProm, promoCodeType3TotalProm, promoCodeType3AcceptedProm]).then(data => {
                     let topUpRecord = [].concat(...data[0]);
                     let bonusRecord = [].concat(...data[1]);
                     let consumptionRecord = [].concat(...data[2]);
                     let trackingGroupRecord = [].concat(...data[3]);
+                    let promoCodeType1Total = [].concat(...data[4]);
+                    let promoCodeType1Accepted = [].concat(...data[5]);
+                    let promoCodeType2Total = [].concat(...data[6]);
+                    let promoCodeType2Accepted = [].concat(...data[7]);
+                    let promoCodeType3Total = [].concat(...data[8]);
+                    let promoCodeType3Accepted = [].concat(...data[9]);
 
                     // assign last record date
                     playerData.forEach(player => {
@@ -14886,6 +14941,42 @@ let dbPlayerInfo = {
                         trackingGroupRecord.forEach(trackingGroup => {
                             if (player && trackingGroup && player._id.toString() === trackingGroup.playerId.toString()) {
                                 player.depositTrackingGroupName = trackingGroup.depositTrackingGroupName;
+                            }
+                        });
+
+                        promoCodeType1Total.forEach(promoCode => {
+                            if (player && promoCode && player._id.toString() === promoCode.playerId.toString()) {
+                                player.promoCodeType1Total = promoCode.count;
+                            }
+                        });
+
+                        promoCodeType1Accepted.forEach(promoCode => {
+                            if (player && promoCode && player._id.toString() === promoCode.playerId.toString()) {
+                                player.promoCodeType1Accepted = promoCode.count;
+                            }
+                        });
+
+                        promoCodeType2Total.forEach(promoCode => {
+                            if (player && promoCode && player._id.toString() === promoCode.playerId.toString()) {
+                                player.promoCodeType2Total = promoCode.count;
+                            }
+                        });
+
+                        promoCodeType2Accepted.forEach(promoCode => {
+                            if (player && promoCode && player._id.toString() === promoCode.playerId.toString()) {
+                                player.promoCodeType2Accepted = promoCode.count;
+                            }
+                        });
+
+                        promoCodeType3Total.forEach(promoCode => {
+                            if (player && promoCode && player._id.toString() === promoCode.playerId.toString()) {
+                                player.promoCodeType3Total = promoCode.count;
+                            }
+                        });
+
+                        promoCodeType3Accepted.forEach(promoCode => {
+                            if (player && promoCode && player._id.toString() === promoCode.playerId.toString()) {
+                                player.promoCodeType3Accepted = promoCode.count;
                             }
                         });
 
