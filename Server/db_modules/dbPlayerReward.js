@@ -2344,6 +2344,7 @@ let dbPlayerReward = {
     },
 
     getPromoCodesHistory: (searchQuery) => {
+        let playerObjId;
 
         function sortByCreateTime(a, b){
             if(new Date(a.createTime).getTime() < new Date(b.createTime).getTime()){
@@ -2371,6 +2372,7 @@ let dbPlayerReward = {
 
                 if (playerData) {
                     query.playerObjId = playerData._id;
+                    playerObjId = playerData._id;
                 } else if (searchQuery.playerName) {
                     return [];
                 }
@@ -2418,6 +2420,7 @@ let dbPlayerReward = {
                                 return dbConfig.collection_proposal.find({
                                     type: proposalType._id,
                                     'data.eventCode': 'KFSYHDM',
+                                    'data.playerObjId': playerObjId,
                                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                                     createTime: openQuery.createTime
                                 }).populate({
@@ -3177,7 +3180,7 @@ let dbPlayerReward = {
         })
     },
 
-    applyOpenPromoCode: (playerId, promoCode, adminInfo, userAgent) => {
+    applyOpenPromoCode: (playerId, promoCode, adminInfo, userAgent, lastLoginIp) => {
         let promoCodeObj, playerObj, topUpProp;
         let isType2Promo = false;
         let platformObjId = '';
@@ -3230,7 +3233,23 @@ let dbPlayerReward = {
                                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
                             }).lean().count();
 
-                            return Promise.all([proposalProm, playerProposalProm]);
+                            let ipProposalProm;
+
+                            if (lastLoginIp){
+                                ipProposalProm = dbConfig.collection_proposal.find({
+                                    type: ObjectId(proposalType._id),
+                                    'data.promoCode': parseInt(promoCode),
+                                    'data.lastLoginIp': lastLoginIp,
+                                    createTime: { $gte: promoCodeObj.createTime, $lt: promoCodeObj.expirationTime},
+                                    status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                                }).lean().count();
+                            }
+                            else{
+                                ipProposalProm = Promise.resolve(0);
+                            }
+
+
+                            return Promise.all([proposalProm, playerProposalProm, ipProposalProm]);
 
                         }
                         else{
@@ -3250,12 +3269,15 @@ let dbPlayerReward = {
         ).then(
             proposalData => {
 
-                if (proposalData && proposalData.length == 2) {
+                if (proposalData && proposalData.length == 3) {
 
                     let totalAppliedNumber = proposalData[0];
                     let playerAppliedNumber = proposalData[1];
+                    let ipAppliedNumber = proposalData[2];
+
                     let totalLimit = promoCodeObj.totalApplyLimit || 0;
                     let playerLimit = promoCodeObj.applyLimitPerPlayer || 0;
+                    let ipLimit = promoCodeObj.ipLimit || 0;
 
                     if (totalAppliedNumber >= totalLimit){
                         return Q.reject({
@@ -3270,6 +3292,14 @@ let dbPlayerReward = {
                             status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                             name: "ConditionError",
                             message: "Exceed the total application limit of the player"
+                        })
+                    }
+
+                    if (ipAppliedNumber >= ipLimit){
+                        return Q.reject({
+                            status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                            name: "ConditionError",
+                            message: "Exceed the total application limit from the same IP"
                         })
                     }
 
@@ -3440,7 +3470,7 @@ let dbPlayerReward = {
                         openExpirationTime$: promoCodeObj.expirationTime,
                         openCreateTime$: promoCodeObj.createTime,
                         isProviderGroup$: promoCodeObj.isProviderGroup,
-
+                        lastLoginIp: lastLoginIp || null
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS

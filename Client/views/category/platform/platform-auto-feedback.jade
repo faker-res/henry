@@ -1,8 +1,8 @@
 .row
     .col-md-12
-        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedAutoFeedbackTab === "create"}', ng-click='vm.selectedAutoFeedbackTab="create";vm.autoFeedbackTabClicked("create")')
+        button.btn.btn-primary.common-button(ng-click='vm.selectedAutoFeedbackTab="create";vm.initAutoFeedbackCreate();')
             span {{"Create Feedback Mission" | translate}}
-        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedAutoFeedbackTab === "overview"}', ng-click='vm.autoFeedbackTabClicked("overview")')
+        button.btn.btn-primary.common-button(ng-click='vm.selectedAutoFeedbackTab="overview"')
             span {{"Feedback Mission Overview" | translate}}
 
     .col-md-12
@@ -45,8 +45,8 @@
                 .full-width-input-block
                     label {{"Feedback Mission Default Status"|translate}}
                     select.form-control(style='max-width:300px', ng-model="vm.autoFeedbackMission.defaultStatus")
-                        option(value='Real Player (all)') {{'manual' | translate}}
-                        option(value='Real Player (Individual)') {{'active' | translate}}
+                        option(value='0') {{'Manual' | translate}}
+                        option(value='1') {{'active' | translate}}
                 .full-width-input-block
                     label {{"USER_TYPE"|translate}}
                     select.form-control(style='max-width:300px', ng-model="vm.autoFeedbackMission.playerType")
@@ -217,7 +217,7 @@
                             td 14:00:00
                             td
                                 select.form-control(ng-model='vm.autoFeedbackMission.schedule[0].template', required)
-                                    option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
+                                    option(ng-repeat='(i,v) in vm.promoCodeTemplateData', value='{{v._id}}') {{v.name}}
                             td
                                 select.form-control(ng-model='vm.autoFeedbackMission.schedule[0].feedbackResult', required)
                                     option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
@@ -233,7 +233,7 @@
                             td 15:00:00
                             td
                                 select.form-control(ng-model='vm.autoFeedbackMission.schedule[1].template', required)
-                                    option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
+                                    option(ng-repeat='(i,v) in vm.promoCodeTemplateData', value='{{v._id}}') {{v.name}}
                             td
                                 select.form-control(ng-model='vm.autoFeedbackMission.schedule[1].feedbackResult', required)
                                     option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
@@ -249,7 +249,7 @@
                             td 16:00:00
                             td
                                 select.form-control(ng-model='vm.autoFeedbackMission.schedule[2].template', required)
-                                    option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
+                                    option(ng-repeat='(i,v) in vm.promoCodeTemplateData', value='{{v._id}}') {{v.name}}
                             td
                                 select.form-control(ng-model='vm.autoFeedbackMission.schedule[2].feedbackResult', required)
                                     option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}

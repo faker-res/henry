@@ -1178,6 +1178,7 @@
                                 th {{"REMARKS" | translate}}
                                 th(style="width:6%") {{"RECEIVED_UPPER_LIMIT_FOR_INDIVIDUAL" | translate}}
                                 th(style="width:6%") {{"TOTAL_SENDING_LIMIT" | translate}}
+                                th(style="width:6%") {{"LIMIT_FOR_THE_SAME_IP" | translate}}
                                 th(style="width:6%") {{"RECEIVED_QUANTITY" | translate}}
                         tbody
                             tr(ng-repeat= 'promoCode in vm.openPromoCodeTemplate1 track by $index')
@@ -1219,13 +1220,15 @@
                                 td
                                     input.form-control(type='string', ng-model="promoCode.remark", ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
-                                    input.form-control(type='number', ng-model="promoCode.applyLimitPerPlayer", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                    input.form-control(type='number', ng-model="promoCode.applyLimitPerPlayer", ng-change='promoCode.ipLimit = promoCode.applyLimitPerPlayer', ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
                                     input.form-control(type='number', ng-model='promoCode.totalApplyLimit', ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
+                                    input.form-control(type='number', ng-model='promoCode.ipLimit', ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
                                     input.form-control(type='number', ng-model='promoCode.receivedQuantity', ng-disabled="true")
                             tr(ng-if='vm.openPromoCodeTemplateEdit')
-                                td(colspan=14) {{'ADD' | translate}}
+                                td(colspan=15) {{'ADD' | translate}}
                             tr(ng-if='vm.openPromoCodeTemplateEdit')
                                 td
                                     i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.openPromoCodeTemplate1, vm.newPromoCodeTemplate1, 1, "openPromoCode"); vm.initNewPromoCodeTemplate(1, "openPromoCode"); ')
@@ -1267,9 +1270,11 @@
                                 td
                                     input.form-control(type='text', ng-model="vm.newPromoCodeTemplate1.remark", ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
-                                    input.form-control(type='number', ng-model="vm.newPromoCodeTemplate1.applyLimitPerPlayer", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                    input.form-control(type='number', ng-model="vm.newPromoCodeTemplate1.applyLimitPerPlayer", ng-change='vm.newPromoCodeTemplate1.ipLimit = vm.newPromoCodeTemplate1.applyLimitPerPlayer', ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
                                     input.form-control(type='number', ng-model='vm.newPromoCodeTemplate1.totalApplyLimit', ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model='vm.newPromoCodeTemplate1.ipLimit', ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
                                     input.form-control(type='number', ng-model='vm.newPromoCodeTemplate1.receivedQuantity', ng-disabled="true")
 
@@ -1294,6 +1299,7 @@
                                 th {{"REMARKS" | translate}}
                                 th(style="width:6%") {{"RECEIVED_UPPER_LIMIT_FOR_INDIVIDUAL" | translate}}
                                 th(style="width:6%") {{"TOTAL_SENDING_LIMIT" | translate}}
+                                th(style="width:6%") {{"LIMIT_FOR_THE_SAME_IP" | translate}}
                                 th(style="width:6%") {{"RECEIVED_QUANTITY" | translate}}
                         tbody
                             tr(ng-repeat= 'promoCode in vm.openPromoCodeTemplate2 track by $index')
@@ -1333,13 +1339,15 @@
                                 td
                                     input.form-control(type='string', ng-model="promoCode.remark", ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
-                                    input.form-control(type='number', ng-model="promoCode.applyLimitPerPlayer", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                    input.form-control(type='number', ng-model="promoCode.applyLimitPerPlayer", ng-change='promoCode.ipLimit = promoCode.applyLimitPerPlayer', ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
                                     input.form-control(type='number', ng-model='promoCode.totalApplyLimit', ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
+                                    input.form-control(type='number', ng-model='promoCode.ipLimit', ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
                                     input.form-control(type='number', ng-model='promoCode.receivedQuantity', ng-disabled="true")
                             tr(ng-if='vm.openPromoCodeTemplateEdit')
-                                td(colspan=15) {{'ADD' | translate}}
+                                td(colspan=16) {{'ADD' | translate}}
                             tr(ng-if='vm.openPromoCodeTemplateEdit')
                                 td
                                     i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.openPromoCodeTemplate2, vm.newPromoCodeTemplate2, 2,"openPromoCode"); vm.initNewPromoCodeTemplate(2, "openPromoCode"); ')
@@ -1378,9 +1386,11 @@
                                 td
                                     input.form-control(type='text', ng-model="vm.newPromoCodeTemplate2.remark", ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
-                                    input.form-control(type='number', ng-model="vm.newPromoCodeTemplate2.applyLimitPerPlayer", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                    input.form-control(type='number', ng-model="vm.newPromoCodeTemplate2.applyLimitPerPlayer", ng-change='vm.newPromoCodeTemplate2.ipLimit = vm.newPromoCodeTemplate2.applyLimitPerPlayer', ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
                                     input.form-control(type='number', ng-model='vm.newPromoCodeTemplate2.totalApplyLimit', ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model='vm.newPromoCodeTemplate2.ipLimit', ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
                                     input.form-control(type='number', ng-model='vm.newPromoCodeTemplate2.receivedQuantity', ng-disabled="true")
 
@@ -1406,6 +1416,7 @@
                                 th {{"REMARKS" | translate}}
                                 th(style="width:6%") {{"RECEIVED_UPPER_LIMIT_FOR_INDIVIDUAL" | translate}}
                                 th(style="width:6%") {{"TOTAL_SENDING_LIMIT" | translate}}
+                                th(style="width:6%") {{"LIMIT_FOR_THE_SAME_IP" | translate}}
                                 th(style="width:6%") {{"RECEIVED_QUANTITY" | translate}}
                         tbody
                             tr(ng-repeat= 'promoCode in vm.openPromoCodeTemplate3 track by $index')
@@ -1449,13 +1460,15 @@
                                 td
                                     input.form-control(type='string', ng-model="promoCode.remark", ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
-                                    input.form-control(type='number', ng-model="promoCode.applyLimitPerPlayer", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                    input.form-control(type='number', ng-model="promoCode.applyLimitPerPlayer", ng-change='promoCode.ipLimit = promoCode.applyLimitPerPlayer', ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
                                     input.form-control(type='number', ng-model='promoCode.totalApplyLimit', ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
+                                    input.form-control(type='number', ng-model='promoCode.ipLimit', ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
                                     input.form-control(type='number', ng-model='promoCode.receivedQuantity', ng-disabled="true")
                             tr(ng-if='vm.openPromoCodeTemplateEdit')
-                                td(colspan=14) {{'ADD' | translate}}
+                                td(colspan=16) {{'ADD' | translate}}
                             tr(ng-if='vm.openPromoCodeTemplateEdit')
                                 td
                                     i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.openPromoCodeTemplate3, vm.newPromoCodeTemplate3, 3, "openPromoCode"); vm.initNewPromoCodeTemplate(3, "openPromoCode"); ')
@@ -1498,9 +1511,11 @@
                                 td
                                     input.form-control(type='text', ng-model="vm.newPromoCodeTemplate3.remark", ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
-                                    input.form-control(type='number', ng-model="vm.newPromoCodeTemplate3.applyLimitPerPlayer", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                    input.form-control(type='number', ng-model="vm.newPromoCodeTemplate3.applyLimitPerPlayer", ng-change='vm.newPromoCodeTemplate3.ipLimit = vm.newPromoCodeTemplate3.applyLimitPerPlayer',ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
                                     input.form-control(type='number', ng-model='vm.newPromoCodeTemplate3.totalApplyLimit', ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                td
+                                    input.form-control(type='number', ng-model='vm.newPromoCodeTemplate3.ipLimit', ng-disabled="!vm.openPromoCodeTemplateEdit")
                                 td
                                     input.form-control(type='number', ng-model='vm.newPromoCodeTemplate3.receivedQuantity', ng-disabled="true")
 

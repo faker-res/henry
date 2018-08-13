@@ -1605,6 +1605,9 @@
   "DEPOSIT_BONUS": "提款",
   "DEPOSIT_TOPUP_BONUS": "存-提",
   "DEPOSIT_VALID_CONSUMPTION": "有效投注",
+  "TRACKING_DETAILS_MONTHLY_REPORT_TITLE": "月存提款详情",
+  "Month": "月份",
+  "DAILY_TOPUP": "日存款",
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
@@ -2080,8 +2083,13 @@
   "REWARD_NEED_APPLY": "可以个别提出申请",
   "OPEN_PROMO_CODE_TEMPLATE": "开放式代码模板",
   "RECEIVED_UPPER_LIMIT_FOR_INDIVIDUAL": "个人领取数量上限",
+  "The application limit of individual is required": "必须填上个人领取数量上限",
+  "The total application limit is required": "必须填上总领取提案数量上限",
+  "The application limit from the same IP is required": "必须填上同IP领取上限",
   "TOTAL_SENDING_LIMIT": "总领取提案数量上限",
   "RECEIVED_QUANTITY": "已领取数量",
+  "LIMIT_FOR_THE_SAME_IP": "同IP领取上限",
+  "The application limit from the same IP has to be at least equal to the application limit of the individual": "同IP领取上限至少等于个人领取数量上限",
   "There are no applicable reward need to be applied.": "没有可申请的优惠。",
   "Expired": "过期",
   "phoneNumber": "电话号码",
@@ -4128,5 +4136,6 @@
   "Second Level Partner": "二级代理",
   "Follow partner commission config": "按照代理提成设置阶梯",
   "winlose X above ratio": "产生报表输赢x上述比例",
-  "Represent a player winlose share between 2 levels": "表示一个玩家的报表输赢只会往上分两层"
+  "Represent a player winlose share between 2 levels": "表示一个玩家的报表输赢只会往上分两层",
+  "gameGroupIconUrl": "游戏组图标位置"
 }

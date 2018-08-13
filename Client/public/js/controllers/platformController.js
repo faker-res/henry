@@ -1067,6 +1067,7 @@ define(['js/app'], function (myApp) {
                             vm.promoCodeTabClicked();
                             vm.phoneNumFilterClicked();
                             vm.rewardPointsTabClicked();
+                            loadPromoCodeTemplate();
                             vm.onGoingLoadPlatformData = false;
                         })
                     },
@@ -1221,7 +1222,7 @@ define(['js/app'], function (myApp) {
                         vm.initPlayerFeedback();
                         break;
                     case "AutoFeedback":
-                        // vm.initPlayerFeedback();
+                        vm.initAutoFeedback();
                         break;
                     case "FeedbackAdmin":
                         initFeedbackAdmin();
@@ -3020,7 +3021,8 @@ define(['js/app'], function (myApp) {
                         name: vm.newGameGroup.name,
                         displayName: vm.newGameGroup.displayName,
                         code: vm.newGameGroup.code,
-                        originalName: vm.newGameGroup.orginalName
+                        originalName: vm.newGameGroup.orginalName,
+                        gameGroupIconUrl: vm.newGameGroup.gameGroupIconUrl
                     }
                 }
                 socketService.$socket($scope.AppSocket, 'renamePlatformGameGroup', sendData, function (data) {
@@ -27307,6 +27309,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.checkPromoCodeField = function (insertData, type){
+
                 if (!insertData && !type) {
                     return false;
                 }
@@ -27333,6 +27336,23 @@ define(['js/app'], function (myApp) {
                     } else {
                         return socketService.showErrorMessage($translate("Promo Consumption is required"));
                     }
+                }
+
+                if(!insertData.applyLimitPerPlayer){
+                    return socketService.showErrorMessage($translate("The application limit of individual is required"));
+                }
+
+                if(!insertData.totalApplyLimit){
+                    return socketService.showErrorMessage($translate("The total application limit is required"));
+                }
+
+                if(!insertData.ipLimit){
+                    return socketService.showErrorMessage($translate("The application limit from the same IP is required"));
+                }
+
+
+                if(insertData.ipLimit && insertData.applyLimitPerPlayer && insertData.ipLimit < insertData.applyLimitPerPlayer){
+                    return socketService.showErrorMessage($translate("The application limit from the same IP has to be at least equal to the application limit of the individual"));
                 }
 
                 return true;
@@ -27617,9 +27637,10 @@ define(['js/app'], function (myApp) {
 
             vm.generateOpenPromoCode = function (col, index, data, type, template) {
 
+                vm.promoCodeFieldCheckFlag = false;
                 let sendData = Object.assign({},data);
                 let returnedMsg = vm.checkPromoCodeField(data, type);
-                vm.promoCodeFieldCheckFlag = false;
+
                 if (returnedMsg) {
 
                     if (!sendData.hasOwnProperty("isProviderGroup")){
@@ -32720,6 +32741,61 @@ define(['js/app'], function (myApp) {
                         vm.selectedGameName = '';
                     })
                 });
+            };
+
+            vm.initAutoFeedback = function() {
+                //
+            };
+
+            vm.initAutoFeedbackCreate = function() {
+                // vm.selectedAutoFeedbackTab = "create";
+                vm.autoFeedbackMission = {
+                    registerStartTime: null,
+                    registerEndTime: null,
+                    missionStartTime: null,
+                    missionEndTime: null
+                };
+                utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
+                    vm.setupRemarksMultiInputFeedback();
+                    vm.setupGameProviderMultiInputFeedback();
+
+                    $('#autoFeedbackMissionStartTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackMissionEndTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackMissionRegisterStartTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackMissionRegisterEndTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
+                    $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
+                    $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
+                    $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
+
+                    vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
+                });
+            }
+            vm.autoFeedbackCreateMission = function() {
+            //    autofeedbackcreatemission
             }
 
         };

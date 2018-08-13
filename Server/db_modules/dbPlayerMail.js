@@ -409,7 +409,7 @@ const dbPlayerMail = {
         let isSpam = false;
 
         return getPlatform.then(
-            function (platformData) {
+            platformData => {
                 if (platformData) {
                     platform = platformData;
                     platformObjId = platform._id;
@@ -424,6 +424,36 @@ const dbPlayerMail = {
                         }
                     }
 
+                    if (isPartner) {
+                        return dbconfig.collection_partner.findOne({_id: partnerObjId}).lean().then(
+                            partnerData => {
+                                if (partnerData && partnerData.phoneNumber) {
+                                    telNum = rsaCrypto.decrypt(partnerData.phoneNumber);
+                                }
+                            }
+                        )
+                    } else {
+                        return dbconfig.collection_players.findOne({
+                            platform: platformObjId,
+                            name: playerName
+                        }).lean().then(
+                            playerData => {
+                                if (playerData && playerData.phoneNumber) {
+                                    telNum = rsaCrypto.decrypt(playerData.phoneNumber);
+                                }
+                            }
+                        )
+                    }
+                } else {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Platform does not exist"
+                    });
+                }
+            }
+        ).then(
+            () => {
+                if (telNum) {
                     /*
                     if (purpose && purpose == constSMSPurpose.REGISTRATION) {
                         let letterNumber = /^[0-9a-zA-Z]+$/;
@@ -462,10 +492,10 @@ const dbPlayerMail = {
 
                     let pName = playerName; //could be player or partner
                     let letterNumber = /^[0-9a-zA-Z]+$/;
-                    let pPrefix = isPartner ? platformData.partnerPrefix : (inputData.partnerId ? platformData.partnerCreatePlayerPrefix : platformData.prefix);
+                    let pPrefix = isPartner ? platform.partnerPrefix : (inputData.partnerId ? platform.partnerCreatePlayerPrefix : platform.prefix);
 
                     // check pName must start with prefix
-                    if (purpose && purpose == constSMSPurpose.REGISTRATION || purpose === constSMSPurpose.PARTNER_REGISTRATION) {
+                    if (purpose && purpose === constSMSPurpose.REGISTRATION || purpose === constSMSPurpose.PARTNER_REGISTRATION) {
                         if (pName && pName.indexOf(pPrefix) !== 0) {
                             if (isPartner) {
                                 return Q.reject({
@@ -501,27 +531,27 @@ const dbPlayerMail = {
                     }
 
                     if (purpose && purpose === constSMSPurpose.REGISTRATION) {
-                        if ((platformData.playerNameMaxLength > 0 && pName.length > platformData.playerNameMaxLength) || (platformData.playerNameMinLength > 0 && pName.length < platformData.playerNameMinLength)) {
+                        if ((platform.playerNameMaxLength > 0 && pName.length > platform.playerNameMaxLength) || (platform.playerNameMinLength > 0 && pName.length < platform.playerNameMinLength)) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_NAME_INVALID,
                                 name: "DBError",
-                                message: localization.localization.translate("Player name should be between ") + platformData.playerNameMinLength + " - " + platformData.playerNameMaxLength + localization.localization.translate(" characters."),
+                                message: localization.localization.translate("Player name should be between ") + platform.playerNameMinLength + " - " + platform.playerNameMaxLength + localization.localization.translate(" characters."),
                             });
                         }
                     }
 
                     if (purpose && purpose === constSMSPurpose.PARTNER_REGISTRATION && isPartner) {
-                        if ((platformData.partnerNameMaxLength > 0 && pName.length > platformData.partnerNameMaxLength) || (platformData.partnerNameMinLength > 0 && pName.length < platformData.partnerNameMinLength)) {
+                        if ((platform.partnerNameMaxLength > 0 && pName.length > platform.partnerNameMaxLength) || (platform.partnerNameMinLength > 0 && pName.length < platform.partnerNameMinLength)) {
                             return Q.reject({
                                 status: constServerCode.PARTNER_NAME_INVALID,
                                 name: "DBError",
-                                message: localization.localization.translate("Partner name should be between ") + platformData.partnerNameMinLength + " - " + platformData.partnerNameMaxLength + localization.localization.translate(" characters."),
+                                message: localization.localization.translate("Partner name should be between ") + platform.partnerNameMinLength + " - " + platform.partnerNameMaxLength + localization.localization.translate(" characters."),
                             });
                         }
                     }
 
-                    if(telNum && platformData.blackListingPhoneNumbers){
-                        let indexNo = platformData.blackListingPhoneNumbers.findIndex(p => p == telNum);
+                    if(telNum && platform.blackListingPhoneNumbers){
+                        let indexNo = platform.blackListingPhoneNumbers.findIndex(p => p == telNum);
 
                         if(indexNo != -1){
                             isSpam = true;
@@ -543,8 +573,8 @@ const dbPlayerMail = {
                     let validPhoneNumberProm = Promise.resolve({isPhoneNumberValid: true});
                     if (purpose === constSMSPurpose.REGISTRATION || purpose === constSMSPurpose.PARTNER_REGISTRATION || purpose === constSMSPurpose.NEW_PHONE_NUMBER) {
                         if (!(platform[whiteListPhone]
-                            && platform[whiteListPhone].length > 0
-                            && platform[whiteListPhone].indexOf(telNum) > -1)) {
+                                && platform[whiteListPhone].length > 0
+                                && platform[whiteListPhone].indexOf(telNum) > -1)) {
                             let query = {
                                 phoneNumber: rsaCrypto.encrypt(telNum.toString()),
                                 platform: platformObjId,
@@ -568,11 +598,6 @@ const dbPlayerMail = {
 
 
                     return Promise.all([smsChannelProm, smsVerificationLogProm, messageTemplateProm, validPhoneNumberProm, getPartnerProm]);
-                } else {
-                    return Q.reject({
-                        name: "DataError",
-                        message: "Platform does not exist"
-                    });
                 }
             }
         ).then(
@@ -581,7 +606,7 @@ const dbPlayerMail = {
                     channel = data[0] && data[0].channels && data[0].channels[0] ? 1 : 2;
                     lastMinuteHistory = data[1];
                     template = data[2];
-                    phoneValidation = data[3];
+                    let phoneValidation = data[3];
                     partner = data[4] ? data[4] : null;
 
                     if (isPartner) {
