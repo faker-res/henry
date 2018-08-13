@@ -658,7 +658,7 @@ let dbPartner = {
         }).lean().then(
             function (data) {
                 if (data) {
-                    data.fullPhoneNumber = data.phoneNumber;
+                    // data.fullPhoneNumber = data.phoneNumber;
                     data.phoneNumber = dbUtil.encodePhoneNum(data.phoneNumber);
                     data.email = dbUtil.encodeEmail(data.email);
                     if (data.bankAccount) {

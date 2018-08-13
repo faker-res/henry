@@ -82,7 +82,7 @@
                                     a(ng-click='vm.allGametoGameGroup("remove","in");$event.stopPropagation();') {{"Clear All" | translate}}
                         #includedGroupGames.panel-collapse.collapse.in
                             .panel-body(style='height:250px;overflow-y:auto')
-                                div.platformGame(ng-repeat='(i,v) in vm.includedGamesGroup | orderBy:"index"', class='{{vm.highlightGame[v._id]}}')
+                                div.platformGame(ng-repeat='(i,v) in vm.includedGamesGroup', class='{{vm.highlightGame[v._id]}}')
                                     a(ng-click='vm.gameInGroupClicked(i,v,"in");vm.newIndex=v.index')
                                         img(async=on ng-if="vm.gameSmallShow[v._id]",src='{{vm.gameSmallShow[v._id]}}')
                                         div(ng-if="!vm.gameSmallShow[v._id]")
@@ -91,7 +91,7 @@
                                         label(ng-click="vm.selectedGameName = vm.includedGamesGroup[i].name$" ng-style='v.isDefaultName ? {color:"blue"} : {color:"red"}')  {{v.name$}}
                                     form(ng-submit="vm.submitGroupGameNameChange(i);")
                                         .text-center(style="margin-left: 10px; margin-top: 4px;" ng-if="vm.selectedGameName == vm.includedGamesGroup[i].name$")
-                                            input(ng-model="vm.editingGameName" ng-init="vm.editingGameName = vm.includedGamesGroup[i].name$")
+                                            input(ng-model="vm.editingGameName" ng-init="vm.editingGameName = vm.includedGamesGroup[i].name$" style="color: black")
                     .panel.panel-default
                         .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#groupGameList", href='#excludedGroupGames', ng-click='vm.showGameCate="exclude";vm.toggleGameType();vm.groupGameListCollapseOut();')
                             h4.panel-title
