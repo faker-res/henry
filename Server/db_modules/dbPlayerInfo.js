@@ -1513,9 +1513,7 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 // Add source url from ip
-                console.log('ricco-lastLoginIp', playerData.lastLoginIp);
-                console.log('ricco-domain', playerData.domain);
-                if (playerData.lastLoginIp) {
+                if (playerData.lastLoginIp && !promoteWay) {
                     let todayTime = dbUtility.getTodaySGTime();
 
                     return dbconfig.collection_ipDomainLog.find({
@@ -1525,7 +1523,6 @@ let dbPlayerInfo = {
                         $and: [{domain: {$exists: true}}, {domain: {$ne: playerData.domain}}]
                     }).sort({createTime:-1}).limit(1).lean().then(
                         ipDomainLog => {
-                            console.log('ricco-1234', ipDomainLog);
                             if (ipDomainLog && ipDomainLog[0] && ipDomainLog[0].domain) {
                                 ipDomain = ipDomainLog[0].domain;
 
