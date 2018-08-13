@@ -337,7 +337,8 @@ const dbRewardTask = {
                 if (freeProviderGroup) {
                     let updObj = {
                         $inc: {
-                            currentAmt: -rewardData.applyAmount
+                            currentAmt: -rewardData.applyAmount,
+                            initAmt: -rewardData.applyAmount
                         }
                     };
 
