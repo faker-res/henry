@@ -352,6 +352,7 @@ var simplifiedChinese = {
     "This reward only applicable on platform with provider group": "此优惠只适用于有锁大厅的平台",
     "Top up does not meet Promo Code minimum required amount": "您的存款金额低于该优惠代码限制，请调整存款金额。",
     "Exceed the total application limit": "优惠已全数发送完毕， 谢谢。",
+    "Exceed the total application limit from the same IP": "已达同IP领取数量上限",
     "Exceed the total application limit of the player": "已达个人领取数量上限。",
     "SMS failure, please retry": "短信验证码发送失败，请重新点击获取",
     "SMS failure for more than 5 times, please contact customer service": "短信验证码连续发送失败5次，请联系客服人员",
