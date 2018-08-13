@@ -4,6 +4,7 @@ div
     .col-md-9(ng-if="checkViewPermission('Provider', 'Game')",)
         .panel(class='{{vm.selectedPenalClass}}')
             .panel-heading
+                #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
                 label.strong(ng-if='vm.SelectedProvider')
                     text.span {{"TOTAL_GAMES" | translate}}&nbsp;:&nbsp;
                     text.span ({{vm.allGames.length}})

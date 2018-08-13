@@ -185,6 +185,17 @@ var dbPlatformGameGroup = {
                                 });
                                 game.changedName = gameChangedName;
                             }
+
+                            let gameChangedImage = {};
+                            if(game.images && platformId){
+                                Object.keys(game.images).forEach(function(key) {
+                                    if(key == platformId){
+                                        gameChangedImage[key] = game.images[key];
+                                        return;
+                                    }
+                                });
+                                game.images = gameChangedImage;
+                            }
                         }
                     }
                 }
