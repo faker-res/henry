@@ -10,6 +10,7 @@ const constPlayerSMSSetting = require('../../const/constPlayerSMSSetting');
 const SMSSender = require('../../modules/SMSSender');
 const dbPlayerPayment = require('../../db_modules/dbPlayerPayment');
 const uaParser = require('ua-parser-js');
+const dbUtility = require('./../../modules/dbutility');
 
 var PaymentServiceImplement = function () {
     PaymentService.call(this);
@@ -24,13 +25,8 @@ var PaymentServiceImplement = function () {
             let userAgent = uaParser(userAgentConn);
             data.userAgent = userAgent;
         }
-        var lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
-        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
-        if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            if(forwardedIp[0].trim() != "undefined"){
-                lastLoginIp = forwardedIp[0].trim();
-            }
-        }
+
+        let lastLoginIp = dbUtility.getIpAddress(conn);
         var isValidData = Boolean(data && data.hasOwnProperty("topupType") && data.amount && Number.isInteger(data.amount) && data.amount < 10000000);
         var merchantUseType = data.merchantUseType || 1;
         var clientType = data.clientType || 1;
@@ -133,13 +129,8 @@ var PaymentServiceImplement = function () {
             let userAgent = uaParser(userAgentConn);
             data.userAgent = userAgent;
         }
-        var lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
-        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
-        if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            if(forwardedIp[0].trim() != "undefined"){
-                lastLoginIp = forwardedIp[0].trim();
-            }
-        }
+       
+        let lastLoginIp = dbUtility.getIpAddress(conn);
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && Number.isInteger(data.amount) && data.amount < 10000000);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.addManualTopupRequest, [data.userAgent, conn.playerId, data, "CLIENT", false, false, false,
             data.bPMSGroup, data.topUpReturnCode, lastLoginIp], isValidData, true, false, false).then(
@@ -174,14 +165,8 @@ var PaymentServiceImplement = function () {
             data.userAgent = userAgent;
         }
 
-        var lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
-        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
-        if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            if(forwardedIp[0].trim() != "undefined"){
-                lastLoginIp = forwardedIp[0].trim();
-            }
-        }
-
+       
+        let lastLoginIp = dbUtility.getIpAddress(conn);
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.alipayName && Number.isInteger(data.amount) && data.amount < 10000000);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestAlipayTopup, [data.userAgent, conn.playerId, data.amount, data.alipayName, data.alipayAccount,
             data.bonusCode, "CLIENT", null, null, null, null, data.realName, data.limitedOfferObjId, data.topUpReturnCode, data.bPMSGroup, lastLoginIp], isValidData);
@@ -196,14 +181,8 @@ var PaymentServiceImplement = function () {
             data.userAgent = userAgent;
         }
 
-        var lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
-        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
-        if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            if(forwardedIp[0].trim() != "undefined"){
-                lastLoginIp = forwardedIp[0].trim();
-            }
-        }
 
+        let lastLoginIp = dbUtility.getIpAddress(conn);
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && Number.isInteger(data.amount) && data.amount < 10000000);
         // if ([10, 20, 50, 100].indexOf(data.amount) < 0) {
         //     isValidData = false;

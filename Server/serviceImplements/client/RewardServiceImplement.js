@@ -9,6 +9,7 @@ var Q = require('q');
 var constPlayerSMSSetting = require('../../const/constPlayerSMSSetting');
 var SMSSender = require('../../modules/SMSSender');
 var constServerCode = require('./../../const/constServerCode');
+const dbUtility = require('./../../modules/dbutility');
 
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
@@ -155,13 +156,7 @@ let RewardServiceImplement = function () {
     this.applyPromoCode.onRequest = function(wsFunc, conn, data){
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
 
-        var lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
-        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
-        if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            if(forwardedIp[0].trim() != "undefined"){
-                lastLoginIp = forwardedIp[0].trim();
-            }
-        }
+        let lastLoginIp = dbUtility.getIpAddress(conn);
 
         let isValidData = Boolean(data && conn.playerId && data.promoCode);
         if (isValidData) {
