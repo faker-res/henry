@@ -227,7 +227,7 @@ function socketActionBankCardGroup(socketIO, socket) {
         getPMSUserPaymentGroup: function getPMSUserPaymentGroup(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.playerName);
-            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.getUserPaymentGroup, [data._id, data.playerName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.getUserPaymentGroup, [data.platformId, data.playerName], actionName, isValidData);
         },
     };
     socketActionBankCardGroup.actions = this.actions;
