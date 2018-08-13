@@ -425,9 +425,11 @@ const dbPlayerMail = {
                     }
 
                     if (isPartner) {
-                        return dbconfig.collection_partner.findById(partnerObjId).lean().then(
+                        return dbconfig.collection_partner.findOne({_id: partnerObjId}).lean().then(
                             partnerData => {
-                                telNum = rsaCrypto.decrypt(partnerData.phoneNumber);
+                                if (partnerData && partnerData.phoneNumber) {
+                                    telNum = rsaCrypto.decrypt(partnerData.phoneNumber);
+                                }
                             }
                         )
                     } else {
@@ -436,7 +438,9 @@ const dbPlayerMail = {
                             name: playerName
                         }).lean().then(
                             playerData => {
-                                telNum = rsaCrypto.decrypt(playerData.phoneNumber);
+                                if (playerData && playerData.phoneNumber) {
+                                    telNum = rsaCrypto.decrypt(playerData.phoneNumber);
+                                }
                             }
                         )
                     }
