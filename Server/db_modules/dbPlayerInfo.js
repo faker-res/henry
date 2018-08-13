@@ -2318,7 +2318,7 @@ let dbPlayerInfo = {
     /**
      *  Update password
      */
-    updatePassword: function (playerId, currPassword, newPassword, smsCode) {
+    updatePassword: function (playerId, currPassword, newPassword, smsCode, userAgent) {
         let db_password = null;
         let playerObj = null;
         if (newPassword.length < constSystemParam.PASSWORD_LENGTH) {
@@ -2426,6 +2426,10 @@ let dbPlayerInfo = {
                                         entryType: constProposalEntryType.CLIENT,
                                         userType: constProposalUserType.PLAYERS,
                                     };
+                                    if (userAgent) {
+                                        let inputDeviceData = dbUtility.getInputDevice(userAgent, false);
+                                        proposalData.inputDevice = inputDeviceData;
+                                    }
                                     dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.UPDATE_PLAYER_INFO, proposalData).then(
                                         () => {
                                             SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
