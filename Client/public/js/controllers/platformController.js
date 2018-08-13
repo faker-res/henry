@@ -1067,6 +1067,7 @@ define(['js/app'], function (myApp) {
                             vm.promoCodeTabClicked();
                             vm.phoneNumFilterClicked();
                             vm.rewardPointsTabClicked();
+                            loadPromoCodeTemplate();
                             vm.onGoingLoadPlatformData = false;
                         })
                     },
@@ -1221,7 +1222,7 @@ define(['js/app'], function (myApp) {
                         vm.initPlayerFeedback();
                         break;
                     case "AutoFeedback":
-                        // vm.initPlayerFeedback();
+                        vm.initAutoFeedback();
                         break;
                     case "FeedbackAdmin":
                         initFeedbackAdmin();
@@ -32709,6 +32710,61 @@ define(['js/app'], function (myApp) {
                         vm.selectedGameName = '';
                     })
                 });
+            };
+
+            vm.initAutoFeedback = function() {
+                //
+            };
+
+            vm.initAutoFeedbackCreate = function() {
+                // vm.selectedAutoFeedbackTab = "create";
+                vm.autoFeedbackMission = {
+                    registerStartTime: null,
+                    registerEndTime: null,
+                    missionStartTime: null,
+                    missionEndTime: null
+                };
+                utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
+                    vm.setupRemarksMultiInputFeedback();
+                    vm.setupGameProviderMultiInputFeedback();
+
+                    $('#autoFeedbackMissionStartTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackMissionEndTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackMissionRegisterStartTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackMissionRegisterEndTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
+                    $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
+                    $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
+                    $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
+
+                    vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
+                });
+            }
+            vm.autoFeedbackCreateMission = function() {
+            //    autofeedbackcreatemission
             }
 
         };
