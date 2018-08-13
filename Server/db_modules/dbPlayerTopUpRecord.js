@@ -717,7 +717,7 @@ var dbPlayerTopUpRecord = {
      * @param {Number} topupRequest.topupType
      */
 
-    addOnlineTopupRequest: function (userAgent, playerId, topupRequest, merchantUseType, clientType, topUpReturnCode, bPMSGroup = false) {
+    addOnlineTopupRequest: function (userAgent, playerId, topupRequest, merchantUseType, clientType, topUpReturnCode, bPMSGroup = false, lastLoginIp) {
         var userAgentStr = userAgent;
         var player = null;
         var proposal = null;
@@ -778,7 +778,7 @@ var dbPlayerTopUpRecord = {
                         let bonusCodeCheckProm;
                         let isOpenPromoCode = topupRequest.bonusCode.toString().trim().length == 3 ? true : false;
                         if (isOpenPromoCode){
-                            bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount);
+                            bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount, lastLoginIp);
                         }
                         else {
                             bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount);
@@ -1001,6 +1001,10 @@ var dbPlayerTopUpRecord = {
                     updateData.data.amount = merchantResponse.result.revisedAmount;
                 }
 
+                if(lastLoginIp){
+                    updateData.data.lastLoginIp = lastLoginIp;
+                }
+
                 let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
 
                 updateOnlineTopUpProposalDailyLimit(proposalQuery, merchantResponse.result.merchantNo, merchantUseType).catch(errorUtils.reportError);
@@ -1047,7 +1051,7 @@ var dbPlayerTopUpRecord = {
      * @param playerID
      * @param inputData
      */
-    addManualTopupRequest: function (userAgent, playerId, inputData, entryType, adminId, adminName, fromFPMS, bPMSGroup, topUpReturnCode) {
+    addManualTopupRequest: function (userAgent, playerId, inputData, entryType, adminId, adminName, fromFPMS, bPMSGroup, topUpReturnCode, lastLoginIp) {
         var player = null;
         var proposal = null;
         var request = null;
@@ -1114,7 +1118,7 @@ var dbPlayerTopUpRecord = {
                         let bonusCodeCheckProm;
                         let isOpenPromoCode = inputData.bonusCode.toString().trim().length == 3 ? true : false;
                         if (isOpenPromoCode){
-                            bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, inputData.bonusCode, inputData.amount);
+                            bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, inputData.bonusCode, inputData.amount, lastLoginIp);
                         }
                         else {
                             bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, inputData.bonusCode, inputData.amount);
@@ -2177,7 +2181,7 @@ var dbPlayerTopUpRecord = {
      * @param adminName
      */
 
-    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime, realName, limitedOfferObjId, topUpReturnCode, bPMSGroup = false) {
+    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime, realName, limitedOfferObjId, topUpReturnCode, bPMSGroup = false, lastLoginIp) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -2231,7 +2235,7 @@ var dbPlayerTopUpRecord = {
                             let bonusCodeCheckProm;
                             let isOpenPromoCode = bonusCode.toString().trim().length == 3 ? true : false;
                             if (isOpenPromoCode){
-                                bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, bonusCode, amount);
+                                bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, bonusCode, amount, lastLoginIp);
                             }
                             else {
                                 bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, bonusCode, amount);
@@ -2702,7 +2706,7 @@ var dbPlayerTopUpRecord = {
      * @param limitedOfferObjId
      */
 
-    requestWechatTopup: function (useQR, userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime, limitedOfferObjId, topUpReturnCode, bPMSGroup = false) {
+    requestWechatTopup: function (useQR, userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime, limitedOfferObjId, topUpReturnCode, bPMSGroup = false, lastLoginIp) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -2763,7 +2767,7 @@ var dbPlayerTopUpRecord = {
                             let bonusCodeCheckProm;
                             let isOpenPromoCode = bonusCode.toString().trim().length == 3 ? true : false;
                             if (isOpenPromoCode){
-                                bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, bonusCode, amount);
+                                bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, bonusCode, amount, lastLoginIp);
                             }
                             else {
                                 bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, bonusCode, amount);

@@ -185,6 +185,17 @@ var dbPlatformGameGroup = {
                                 });
                                 game.changedName = gameChangedName;
                             }
+
+                            let gameChangedImage = {};
+                            if(game.images && platformId){
+                                Object.keys(game.images).forEach(function(key) {
+                                    if(key == platformId){
+                                        gameChangedImage[key] = game.images[key];
+                                        return;
+                                    }
+                                });
+                                game.images = gameChangedImage;
+                            }
                         }
                     }
                 }
@@ -274,9 +285,11 @@ var dbPlatformGameGroup = {
      */
     getGameGroupTree: function (code, platformId, containGames, playerId, startIndex, count) {
         var groupProm = null;
+        let routeSetting;
         if (containGames && containGames !== "false") {
             groupProm = dbconfig.collection_platform.findOne({platformId: platformId}).then(
                 platformData => {
+                    routeSetting = platformData && platformData.playerRouteSetting ? platformData.playerRouteSetting : null;
                     return dbconfig.collection_platformGameGroup.find({platform: platformData._id}).then(
                         groups => {
                             if (groups && groups.length > 0) {
@@ -298,7 +311,11 @@ var dbPlatformGameGroup = {
         }
         else {
             groupProm = dbconfig.collection_platform.findOne({platformId: platformId}).then(
-                platformData => dbconfig.collection_platformGameGroup.find({platform: platformData._id})
+                platformData =>
+                {
+                    routeSetting = platformData && platformData.playerRouteSetting ? platformData.playerRouteSetting : null;
+                    return dbconfig.collection_platformGameGroup.find({platform: platformData._id});
+                }
             );
         }
         return groupProm.then(
@@ -308,6 +325,9 @@ var dbPlatformGameGroup = {
                     groups.forEach(
                         group => {
                             if (group) {
+                                if (group.gameGroupIconUrl) {
+                                    group.gameGroupIconUrl = checkRouteSetting(group.gameGroupIconUrl, routeSetting)
+                                }
                                 groupMap[group._id] = group;
                             }
                         }
@@ -609,5 +629,13 @@ var dbPlatformGameGroup = {
         return deferred.promise;
     }
 };
+
+function checkRouteSetting(url, setting) {
+    if (url && (url.indexOf("http") == -1 || url.indexOf("https") == -1 || url.indexOf("") == -1) && setting) {
+        url = setting.concat(url.trim());
+    }
+
+    return url;
+}
 
 module.exports = dbPlatformGameGroup;

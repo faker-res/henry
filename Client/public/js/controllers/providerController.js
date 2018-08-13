@@ -2,12 +2,15 @@
 
 define(['js/app'], function (myApp) {
 
-    var injectParams = ['$scope', '$filter', '$location', '$log', '$timeout', 'authService', 'utilService', 'socketService', 'CONFIG'];
+    var injectParams = ['$scope', '$filter', '$location', '$log', '$timeout', 'authService', 'utilService', 'socketService', 'CONFIG', "$cookies"];
 
-    var providerController = function ($scope, $filter, $location, $log, $timeout, authService, utilService, socketService, CONFIG) {
+    var providerController = function ($scope, $filter, $location, $log, $timeout, authService, utilService, socketService, CONFIG, $cookies) {
         var Upload = {};
         var $translate = $filter('translate');
         var vm = this;
+
+        // For debugging:
+        window.VM = vm;
 
         // declare constants
         vm.allProviderStatusString = {
@@ -33,6 +36,110 @@ define(['js/app'], function (myApp) {
         //        console.log("create not", data);
         //    });
         //}
+
+/*********************************************Start of Platform functions ******************************************************/
+
+//set selected platform node
+        async function selectPlatformNode (node, option)  {
+            vm.selectedPlatform = node;
+            $cookies.put("platform", node.text);
+        }
+
+        function searchAndSelectPlatform (text, option) {
+            var findNodes = $('#platformTree').treeview('search', [text, {
+                ignoreCase: false,
+                exactMatch: true
+            }]);
+            if (findNodes && findNodes.length > 0) {
+                selectPlatformNode(findNodes[0], option);
+                $('#platformTree').treeview('selectNode', [findNodes[0], {silent: true}]);
+            }
+        }
+
+        //build platform list based on platform data from server
+        function buildPlatformList (data) {
+            vm.platformList = [];
+            for (var i = 0; i < data.length; i++) {
+                vm.platformList.push(vm.createPlatformNode(data[i]));
+            }
+            //var platformsToDisplay = vm.platformList;
+            var searchText = (vm.platformSearchText || '').toLowerCase();
+            var platformsToDisplay = vm.platformList.filter(platformData => platformData.data.name.toLowerCase().includes(searchText));
+            $('#platformTree').treeview(
+                {
+                    data: platformsToDisplay,
+                    highlightSearchResults: false,
+                    showImage: true,
+                    showIcon: false,
+                }
+            );
+            $('#platformTree').on('nodeSelected', function (event, data) {
+                selectPlatformNode(data);
+                vm.showPlatformDropDownList = false;
+            });
+        }
+
+        //get all platform data from server
+        function loadPlatformData (option) {
+            if (vm.onGoingLoadPlatformData) {
+                return;
+            }
+
+            if (option && option.noParallelTrigger) {
+                vm.onGoingLoadPlatformData = true;
+            }
+
+            if ($('#platformRefresh').hasClass('fa-spin')) {
+                return
+            }
+            $('#platformRefresh').addClass('fa-spin');
+
+            socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
+                vm.allPlatformData = data.data;
+                if (data.data) {
+                    buildPlatformList(data.data);
+                }
+                $('#platformRefresh').removeClass('fa-spin');
+
+                $('#platformRefresh').addClass('fa-check');
+                $('#platformRefresh').removeClass('fa-refresh');
+                setTimeout(function () {
+                    $('#platformRefresh').removeClass('fa-check');
+                    $('#platformRefresh').addClass('fa-refresh').fadeIn(100);
+                    vm.onGoingLoadPlatformData = false;
+                }, 1000);
+
+                //select platform from cookies data
+                let storedPlatform = $cookies.get("platform");
+                if (storedPlatform) {
+                    searchAndSelectPlatform(storedPlatform, option);
+                }
+            }, function (err) {
+                $('#platformRefresh').removeClass('fa-spin');
+            });
+        }
+
+        $scope.$on('switchPlatform', () => {
+            loadPlatformData({loadAll: true, noParallelTrigger: true});
+        });
+
+        //create platform node for platform list
+        vm.createPlatformNode = function (v) {
+            var obj = {
+                text: v.name,
+                id: v._id,
+                selectable: true,
+                data: v,
+                image: {
+                    url: v.icon,
+                    width: 30,
+                    height: 30,
+                }
+            };
+            return obj;
+        };
+
+/*********************************************End of Platform functions ******************************************************/
 
         vm.getAllGameType = function () {
             return $scope.$socketPromise('getGameTypeList', {})
@@ -261,6 +368,13 @@ define(['js/app'], function (myApp) {
                             game.name$ = game.name;
                             game.isDefaultName = true;
                         }
+
+                        if(game.images && game.images.hasOwnProperty(platformId)){
+                            let platformCustomImage = game.images[platformId] || game.bigShow;
+                            game.bigShow$ = processImgAddr(platformCustomImage);
+                        }else{
+                            game.bigShow$ = processImgAddr(game.bigShow);
+                        }
                     }
                 })
                 vm.filterAllGames = $.extend([], vm.allGames);
@@ -270,6 +384,14 @@ define(['js/app'], function (myApp) {
             }, function (data) {
                 console.log("create not", data);
             });
+        }
+
+        function processImgAddr(addr) {//img in platformGame, and img in game
+            if (/^(f|ht)tps?:\/\//.test(addr)) {
+                return addr;
+            } else {
+                return "http://img99.neweb.me/" + addr;
+            }
         }
         // vm.prepareShowProviderExpense = function () {
         //     socketService.$socket($scope.AppSocket, 'getGameProviderConsumptionRecord', {providerObjId: vm.SelectedProvider._id}, function (data) {
@@ -984,6 +1106,7 @@ define(['js/app'], function (myApp) {
         $scope.$on(eventName, function (e, d) {
             setTimeout(
                 function () {
+                    loadPlatformData({loadAll: true, noParallelTrigger: true});
                     vm.getAllProvider();
                     vm.queryPara = {};
                     vm.gameStatus = {};

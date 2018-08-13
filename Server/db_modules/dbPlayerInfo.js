@@ -2318,7 +2318,7 @@ let dbPlayerInfo = {
     /**
      *  Update password
      */
-    updatePassword: function (playerId, currPassword, newPassword, smsCode) {
+    updatePassword: function (playerId, currPassword, newPassword, smsCode, userAgent) {
         let db_password = null;
         let playerObj = null;
         if (newPassword.length < constSystemParam.PASSWORD_LENGTH) {
@@ -2426,6 +2426,10 @@ let dbPlayerInfo = {
                                         entryType: constProposalEntryType.CLIENT,
                                         userType: constProposalUserType.PLAYERS,
                                     };
+                                    if (userAgent) {
+                                        let inputDeviceData = dbUtility.getInputDevice(userAgent, false);
+                                        proposalData.inputDevice = inputDeviceData;
+                                    }
                                     dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.UPDATE_PLAYER_INFO, proposalData).then(
                                         () => {
                                             SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
@@ -3440,7 +3444,7 @@ let dbPlayerInfo = {
                                     if (proposalData.data.bonusCode) {
                                         let isOpenPromoCode = proposalData.data.bonusCode.toString().length == 3;
                                         if (isOpenPromoCode){
-                                            dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                                            dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode, null, null, proposalData.data.lastLoginIp).catch(errorUtils.reportError);
                                         }
                                         else{
                                             dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
@@ -9755,7 +9759,7 @@ let dbPlayerInfo = {
             registrationTime: {$gte: startDate, $lt: endDate},
             isRealPlayer: true
         }
-        
+
         if (platform !== 'all') {
             matchObj.platform = platform
         }
@@ -13987,12 +13991,12 @@ let dbPlayerInfo = {
         };
 
         if (query.name) {
-            getPlayerProm = dbconfig.collection_players.findOne({name: query.name, platform: platform}, {_id: 1}).lean();
+            getPlayerProm = dbconfig.collection_players.findOne({name: query.name, platform: platform, isRealPlayer: true}, {_id: 1}).lean();
         }
 
         return getPlayerProm.then(
             player => {
-                let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}};
+                let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}, isRealPlayer: true};
 
                 if (player) {
                     relevantPlayerQuery.playerId = player._id;
