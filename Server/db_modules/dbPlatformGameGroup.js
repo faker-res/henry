@@ -92,10 +92,12 @@ var dbPlatformGameGroup = {
         var platformObjId = null;
         var gameGroup = [];
         var providerObjId = null;
+        var platformId = null;
         return dbconfig.collection_platform.findOne({platformId: query.platformId}).lean().then(
             platformData => {
                 if (platformData) {
                     platformObjId = platformData._id;
+                    platformId = platformData.platformId;
                     var providerProm = Q.resolve(null);
                     if (providerId != null) {
                         providerProm = dbconfig.collection_gameProvider.findOne({providerId}).lean();
@@ -171,6 +173,17 @@ var dbPlatformGameGroup = {
                                         game.smallShow = pltGameStatusArr[j].smallShow;
                                     }
                                 }
+                            }
+
+                            let gameChangedName = {};
+                            if(game.changedName && platformId){
+                                Object.keys(game.changedName).forEach(function(key) {
+                                    if(key == platformId){
+                                        gameChangedName[key] = game.changedName[key];
+                                        return;
+                                    }
+                                });
+                                game.changedName = gameChangedName;
                             }
                         }
                     }
