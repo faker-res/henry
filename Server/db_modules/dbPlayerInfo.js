@@ -14551,7 +14551,6 @@ let dbPlayerInfo = {
                     isExceedDailyTotalDeposit: isExceedDailyTotalDeposit,
                 });
             }
-            let onlyBonusRecord = [];
 
             outputData.forEach(output => {
                 bonusRecord.forEach(bonus => {
@@ -14562,44 +14561,25 @@ let dbPlayerInfo = {
                         if (outputDate.getTime() === bonusDate.getTime()) {
                             output.bonusAmount = bonus.amount;
                             bonus.bUsed = true; // to skip this bonus if used
-                        }
-
-                        if (outputDate.getTime() !== bonusDate.getTime()) {
-                            // compile bonus without top up record
-                            onlyBonusRecord.push({
-                                date: bonus._id,
-                                topUpAmount: 0,
-                                bonusAmount: bonus.amount,
-                                isExceedDailyTotalDeposit: false
-                            });
-                            bonus.bUsed = true; // to skip this bonus if used
+                        } else {
+                            bonus.bUsed = false;
                         }
                     }
                 });
             });
 
-            // merge only bonus record, top up will be 0
-            if (onlyBonusRecord && onlyBonusRecord.length > 0) {
-                outputData = outputData.concat(...onlyBonusRecord);
-            }
-
-            // for (let x = 0; x < bonusRecord.length; x++) {
-            //     let bonusDay = bonusRecord[x]._id.day;
-            //     let bonusMonth = bonusRecord[x]._id.month - 1; //month start from 0 to 11
-            //     let bonusYear = bonusRecord[x]._id.year;
-            //     let bonusDate = new Date(bonusYear, bonusMonth, bonusDay);
-            //
-            //     for (let z = 0; z < outputData.length; z++) {
-            //         let outputDay = outputData[z].date.day;
-            //         let outputMonth = outputData[z].date.month - 1; //month start from 0 to 11
-            //         let outputYear = outputData[z].date.year;
-            //         let outputDate = new Date(outputYear, outputMonth, outputDay);
-            //
-            //         if (bonusRecord && outputData && bonusDate === outputDate) {
-            //             outputData[z].bonusAmount = bonusRecord[x].amount;
-            //         }
-            //     }
-            // }
+            // for scenario when that month doesn't have top up record
+            bonusRecord.forEach(bonus => {
+                if (!bonus.bUsed) {
+                    outputData.push({
+                        date: bonus._id,
+                        topUpAmount: 0,
+                        bonusAmount: bonus.amount,
+                        isExceedDailyTotalDeposit: false
+                    });
+                    bonus.bUsed = true;
+                }
+            });
 
             // convert date format
             for (let z = 0; z < outputData.length; z++) {
