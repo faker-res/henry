@@ -141,6 +141,7 @@
   "CREATE_POLICY": "新建策略",
   "POLICY_ACTIONS": "策略行为",
   "ATTACH_ADMIN": "添加用户",
+  "Old phone number doesn't match": "旧的电话号码匹配失败，请重新输入。",
   "DETACH_ADMIN": "移除用户",
   "EDIT": "编辑",
   "EDIT_ALL": "编辑全部",

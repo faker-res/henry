@@ -36,6 +36,7 @@ var simplifiedChinese = {
     "Currently no available bank card": "目前无可用银行卡",
     "Currently no available alipay": "目前无可用支付宝",
     "Currently no available wechatpay": "目前无可用微信支付",
+    "Old phone number doesn't match": "旧的电话号码匹配失败，请重新输入。",
 
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",
