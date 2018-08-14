@@ -1418,6 +1418,12 @@ function updateDxPhoneBUsed (dxPhone, usedPlayerObjId) {
 }
 
 function generateDXPlayerName (lastXDigit, platformPrefix, dxPrefix, dxPhone, tries) {
+    let platformObjId = dxPhone.platform;
+
+    if (dxPhone && dxPhone.platform && dxPhone.platform._id) {
+        platformObjId = dxPhone.platform._id;
+    }
+
     tries = (Number(tries) || 0) + 1;
     if (tries > 13) {
         return Promise.reject({
@@ -1427,7 +1433,7 @@ function generateDXPlayerName (lastXDigit, platformPrefix, dxPrefix, dxPhone, tr
     let playerName = dxPrefix + String(dxPhone.phoneNumber).slice(-(lastXDigit));
     let fullPlayerName = platformPrefix + playerName;
 
-    return dbconfig.collection_players.findOne({name: fullPlayerName, platform: dxPhone.platform}).lean().then(
+    return dbconfig.collection_players.findOne({name: {$in: [fullPlayerName, playerName]}, platform: platformObjId}).lean().then(
         playerExist => {
             if (playerExist) {
                 return generateDXPlayerName(lastXDigit + 1, platformPrefix, dxPrefix, dxPhone, tries);

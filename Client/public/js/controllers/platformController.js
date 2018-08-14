@@ -3063,7 +3063,12 @@ define(['js/app'], function (myApp) {
                             newObj.isDefaultName = true;
                         }
                         vm.includedGamesGroup.push(newObj);
-                        vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
+                        if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
+                            let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
+                            vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, platformCustomImage);
+                        }else{
+                            vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
+                        }
                     })
                     console.log("vm.includedGamesGroup", vm.includedGamesGroup);
                     if (vm.showGameCate == "include") {
@@ -3604,7 +3609,13 @@ define(['js/app'], function (myApp) {
                         if (v.hasOwnProperty('status')) {
                             vm.gameStatus[v.game._id] = v.status;
                         }
-                        vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
+
+                        if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
+                            let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
+                            vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, platformCustomImage);
+                        }else{
+                            vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
+                        }
                     })
                     console.log("vm.includedGames", vm.includedGames);
                     $scope.safeApply();
