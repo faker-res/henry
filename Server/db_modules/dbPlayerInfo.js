@@ -14649,12 +14649,6 @@ let dbPlayerInfo = {
         let promoCodeType1Prom = [];
         let promoCodeType2Prom = [];
         let promoCodeType3Prom = [];
-        let promoCodeType1TotalProm = [];
-        let promoCodeType1AcceptedProm = [];
-        let promoCodeType2TotalProm = [];
-        let promoCodeType2AcceptedProm = [];
-        let promoCodeType3TotalProm = [];
-        let promoCodeType3AcceptedProm = [];
         let outputResult = [];
 
         if (query && query.name) {
@@ -14868,52 +14862,8 @@ let dbPlayerInfo = {
                             }
                         ));
 
-                    dbconfig.collection_promoCode.find({playerObjId: player._id})
-                        .populate({path: 'promoCodeTypeObjId', model: dbconfig.collection_promoCodeType})
-                        .lean().then(
-                            promoCode => {
-                                if (promoCode && promoCode.length > 0) {
-                                    let type1Total = 0;
-                                    let type1Accepted = 0;
-                                    let type2Total = 0;
-                                    let type2Accepted = 0;
-                                    let type3Total = 0;
-                                    let type3Accepted = 0;
-
-                                    promoCode.forEach(promo => {
-                                        if (promo.promoCodeTypeObjId.type === 1) {
-                                            type1Total += 1;
-                                        }
-                                        if (promo.promoCodeTypeObjId.type === 1 && promo.status === 2) { // status 2 is accepted
-                                            type1Accepted += 1;
-                                        }
-                                        if (promo.promoCodeTypeObjId.type === 2) {
-                                            type2Total += 1;
-                                        }
-                                        if (promo.promoCodeTypeObjId.type === 2 && promo.status === 2) { // status 2 is accepted
-                                            type2Accepted += 1;
-                                        }
-                                        if (promo.promoCodeTypeObjId.type === 3) {
-                                            type3Total += 1;
-                                        }
-                                        if (promo.promoCodeTypeObjId.type === 3 && promo.status === 2) { // status 2 is accepted
-                                            type3Accepted += 1;
-                                        }
-                                    });
-
-                                    promoCodeType1TotalProm.push({playerId: player._id, count: type1Total});
-                                    promoCodeType1AcceptedProm.push({playerId: player._id, count: type1Accepted});
-                                    promoCodeType2TotalProm.push({playerId: player._id, count: type2Total});
-                                    promoCodeType2AcceptedProm.push({playerId: player._id, count: type2Accepted});
-                                    promoCodeType3TotalProm.push({playerId: player._id, count: type3Total});
-                                    promoCodeType3AcceptedProm.push({playerId: player._id, count: type3Accepted});
-                                }
-                            }
-                        );
-
                     dbconfig.collection_promoCodeType.find({platformObjId: platformObjId}).lean().then(
                         promoCode => {
-                            // console.log('promoCode===', promoCode);
                             let promoCodeType1 = [];
                             let promoCodeType2 = [];
                             let promoCodeType3 = [];
@@ -14943,20 +14893,13 @@ let dbPlayerInfo = {
                                     $project: {
                                         playerObjId: 1,
                                         acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
-                                        acceptedAmount: 1,
-                                        amount: 1,
-                                        topUpAmount: 1,
-                                        totalRecord: {$sum: 1}
                                     }
                                 },
                                 {
                                     $group: {
                                         _id: "$playerObjId",
-                                        amount: {$sum: "$amount"},
                                         acceptedCount: {$sum: "$acceptedCount"},
-                                        acceptedAmount: {$sum: "$acceptedAmount"},
                                         sendCount: {$sum: 1},
-                                        topUpAmount: {$sum: "$topUpAmount"}
                                     }
                                 }
                             ]).read("secondaryPreferred").then(
@@ -14979,20 +14922,13 @@ let dbPlayerInfo = {
                                     $project: {
                                         playerObjId: 1,
                                         acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
-                                        acceptedAmount: 1,
-                                        amount: 1,
-                                        topUpAmount: 1,
-                                        totalRecord: {$sum: 1}
                                     }
                                 },
                                 {
                                     $group: {
                                         _id: "$playerObjId",
-                                        amount: {$sum: "$amount"},
                                         acceptedCount: {$sum: "$acceptedCount"},
-                                        acceptedAmount: {$sum: "$acceptedAmount"},
                                         sendCount: {$sum: 1},
-                                        topUpAmount: {$sum: "$topUpAmount"}
                                     }
                                 }
                             ]).read("secondaryPreferred").then(
@@ -15015,20 +14951,13 @@ let dbPlayerInfo = {
                                     $project: {
                                         playerObjId: 1,
                                         acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
-                                        acceptedAmount: 1,
-                                        amount: 1,
-                                        topUpAmount: 1,
-                                        totalRecord: {$sum: 1}
                                     }
                                 },
                                 {
                                     $group: {
                                         _id: "$playerObjId",
-                                        amount: {$sum: "$amount"},
                                         acceptedCount: {$sum: "$acceptedCount"},
-                                        acceptedAmount: {$sum: "$acceptedAmount"},
                                         sendCount: {$sum: 1},
-                                        topUpAmount: {$sum: "$topUpAmount"}
                                     }
                                 }
                             ]).read("secondaryPreferred").then(
