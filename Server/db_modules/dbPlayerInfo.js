@@ -14658,6 +14658,9 @@ let dbPlayerInfo = {
         let bonusProm = [];
         let consumptionProm = [];
         let trackingGroupProm = [];
+        let promoCodeType1Prom = [];
+        let promoCodeType2Prom = [];
+        let promoCodeType3Prom = [];
         let outputResult = [];
 
         if (query && query.name) {
@@ -14870,13 +14873,127 @@ let dbPlayerInfo = {
                                 }
                             }
                         ));
+
+                    dbconfig.collection_promoCodeType.find({platformObjId: platformObjId}).lean().then(
+                        promoCode => {
+                            let promoCodeType1 = [];
+                            let promoCodeType2 = [];
+                            let promoCodeType3 = [];
+
+                            if (promoCode && promoCode.length > 0) {
+                                promoCode.forEach(promo => {
+                                    if (promo.type === 1) {
+                                        promoCodeType1.push( ObjectId(promo._id) );
+                                    }
+                                    if (promo.type === 2) {
+                                        promoCodeType2.push( ObjectId(promo._id) );
+                                    }
+                                    if (promo.type === 3) {
+                                        promoCodeType3.push( ObjectId(promo._id) );
+                                    }
+                                });
+                            }
+
+                            dbconfig.collection_promoCode.aggregate([
+                                {
+                                    $match: {
+                                        playerObjId: ObjectId(player._id),
+                                        promoCodeTypeObjId: {$in: promoCodeType1}
+                                    }
+                                },
+                                {
+                                    $project: {
+                                        playerObjId: 1,
+                                        acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
+                                    }
+                                },
+                                {
+                                    $group: {
+                                        _id: "$playerObjId",
+                                        acceptedCount: {$sum: "$acceptedCount"},
+                                        sendCount: {$sum: 1},
+                                    }
+                                }
+                            ]).read("secondaryPreferred").then(
+                                data => {
+                                    if (data && data.length > 0) {
+                                        promoCodeType1Prom.push(data[0]);
+                                    }
+                                    return data;
+                                }
+                            );
+
+                            dbconfig.collection_promoCode.aggregate([
+                                {
+                                    $match: {
+                                        playerObjId: ObjectId(player._id),
+                                        promoCodeTypeObjId: {$in: promoCodeType2}
+                                    }
+                                },
+                                {
+                                    $project: {
+                                        playerObjId: 1,
+                                        acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
+                                    }
+                                },
+                                {
+                                    $group: {
+                                        _id: "$playerObjId",
+                                        acceptedCount: {$sum: "$acceptedCount"},
+                                        sendCount: {$sum: 1},
+                                    }
+                                }
+                            ]).read("secondaryPreferred").then(
+                                data => {
+                                    if (data && data.length > 0) {
+                                        promoCodeType2Prom.push(data[0]);
+                                    }
+                                    return data;
+                                }
+                            );
+
+                            dbconfig.collection_promoCode.aggregate([
+                                {
+                                    $match: {
+                                        playerObjId: ObjectId(player._id),
+                                        promoCodeTypeObjId: {$in: promoCodeType3}
+                                    }
+                                },
+                                {
+                                    $project: {
+                                        playerObjId: 1,
+                                        acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
+                                    }
+                                },
+                                {
+                                    $group: {
+                                        _id: "$playerObjId",
+                                        acceptedCount: {$sum: "$acceptedCount"},
+                                        sendCount: {$sum: 1},
+                                    }
+                                }
+                            ]).read("secondaryPreferred").then(
+                                data => {
+                                    if (data && data.length > 0) {
+                                        promoCodeType3Prom.push(data[0]);
+                                    }
+                                    return data;
+                                }
+                            );
+
+                            return promoCode;
+                        }
+                    );
                 });
 
-                return Promise.all([Promise.all(topUpProm), Promise.all(bonusProm), Promise.all(consumptionProm), Promise.all(trackingGroupProm)]).then(data => {
+                return Promise.all([Promise.all(topUpProm), Promise.all(bonusProm), Promise.all(consumptionProm), Promise.all(trackingGroupProm), promoCodeType1Prom, promoCodeType2Prom, promoCodeType3Prom]).then(data => {
                     let topUpRecord = [].concat(...data[0]);
                     let bonusRecord = [].concat(...data[1]);
                     let consumptionRecord = [].concat(...data[2]);
                     let trackingGroupRecord = [].concat(...data[3]);
+                    let promoCodeType11 = data[4];
+                    let promoCodeType22 = data[5];
+                    let promoCodeType33 = data[6];
 
                     // assign last record date
                     playerData.forEach(player => {
@@ -14902,6 +15019,27 @@ let dbPlayerInfo = {
                         trackingGroupRecord.forEach(trackingGroup => {
                             if (player && trackingGroup && player._id.toString() === trackingGroup.playerId.toString()) {
                                 player.depositTrackingGroupName = trackingGroup.depositTrackingGroupName;
+                            }
+                        });
+
+                        promoCodeType11.forEach(promoCode => {
+                            if (player && promoCode && player._id.toString() === promoCode._id.toString()) {
+                                player.promoCodeType1Total = promoCode.sendCount;
+                                player.promoCodeType1Accepted = promoCode.acceptedCount;
+                            }
+                        });
+
+                        promoCodeType22.forEach(promoCode => {
+                            if (player && promoCode && player._id.toString() === promoCode._id.toString()) {
+                                player.promoCodeType2Total = promoCode.sendCount;
+                                player.promoCodeType2Accepted = promoCode.acceptedCount;
+                            }
+                        });
+
+                        promoCodeType33.forEach(promoCode => {
+                            if (player && promoCode && player._id.toString() === promoCode._id.toString()) {
+                                player.promoCodeType3Total = promoCode.sendCount;
+                                player.promoCodeType3Accepted = promoCode.acceptedCount;
                             }
                         });
 
