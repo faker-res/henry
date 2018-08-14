@@ -101,7 +101,6 @@ module.exports = {
             decrypted = crt.publicDecrypt(msg, 'base64', 'utf8')
         } catch (e) {
             decrypted = msg;
-            console.log('decrypted msg', msg);
         }
 
         return decrypted;

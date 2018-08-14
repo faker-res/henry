@@ -210,6 +210,9 @@ let partnerPageAdvertisementInfoModel = db_admin.model('partnerPageAdvertisement
 let smsGroupModel = db_admin.model('smsGroup', smsGroupSchema, 'smsGroup');
 
 let promoCodeTemplateModel = db_admin.model('promoCodeTemplate', promoCodeTemplateSchema, 'promoCodeTemplate');
+
+let platformAutoFeedbackSchema = require('./../schema/platformAutoFeedback');
+let platformAutoFeedbackModel = db_admin.model('platformAutoFeedback', platformAutoFeedbackSchema, 'platformAutoFeedback');
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
 var playerFeedbackModel = db_player.model('playerFeedback', playerFeedbackSchema, 'playerFeedback');
@@ -487,6 +490,7 @@ var dbProperties = {
     collection_platformWechatPayGroup: platformWechatPayGroupModel,
     collection_platformWechatPayList: platformWechatPayListModel,
     collection_platformQuickPayGroup: platformQuickPayGroupModel,
+    collection_autoFeedback: platformAutoFeedbackModel,
 
     collection_gameType: gameTypeModel,
     collection_game: gameModel,
