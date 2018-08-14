@@ -204,6 +204,7 @@ var simplifiedChinese = {
     "Incorrect player data": "玩家数据错误",
     "Error finding player": "无法找到玩家",
     "Error getting platform reward data": "无法找到奖励数据",
+    "Old phone number doesn't match": "旧的电话号码匹配失败，请重新输入。",
     "Error creating proposal": "无法创建提案",
     "The player already has this reward. Not Valid for the reward.": "不符合领取",
     "This top up record has been used": "该充值记录已被使用",
