@@ -630,7 +630,7 @@ let dbPlayerPartner = {
                         break;
                 }
 
-                return result;
+                return true;
             }
         )
     },
