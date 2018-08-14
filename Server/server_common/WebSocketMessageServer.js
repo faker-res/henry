@@ -79,7 +79,10 @@ class WebSocketMessageServer {
             return true;
         };
 
-        this.wss.on("connection", function(ws){
+        this.wss.on("connection", function(ws, req){
+            if (req && !ws.upgradeReq) {
+                ws.upgradeReq = req;
+            }
             console.log("A new connection is coming.");
 
             //add ws to client array
