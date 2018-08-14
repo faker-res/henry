@@ -28567,10 +28567,6 @@ define(['js/app'], function (myApp) {
 
             // right panel required functions
             vm.loadAlldepartment = function (callback) {
-
-                if (!authService.checkViewPermission('Platform', 'Proposal', 'Create') && !authService.checkViewPermission('Platform', 'Proposal', 'Update')) {
-                    return;
-                }
                 socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
 
                 function success(data) {
