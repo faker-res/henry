@@ -464,7 +464,7 @@ var PartnerServiceImplement = function () {
 
     this.preditCommission.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data.platformId && conn.partnerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.preditCommission, [data.platformId, conn.partnerId], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.preditCommission, [data.platformId, conn.partnerId, data.searchPreviousPeriod], isValidData);
     };
 
     this.getCommissionProposalList.onRequest = function (wsFunc, conn, data) {

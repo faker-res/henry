@@ -4,6 +4,7 @@ var dbconfig = require('./../modules/dbproperties');
 var dbGame = require('./../db_modules/dbGame');
 var constGameStatus = require('./../const/constGameStatus');
 var Q = require("q");
+var ObjectId = mongoose.Types.ObjectId;
 
 var dbPlatformGameGroup = {
 
@@ -384,12 +385,47 @@ var dbPlatformGameGroup = {
      * @param {Json}  query - platform , groupId
      */
     getGameGroupGamesArr: function (query) {
+        let gameStatusProm = [];
+        let gameGroupData;
         query.status = {$ne: constGameStatus.DELETED};
         return dbconfig.collection_platformGameGroup.findOne(query)
             .populate({
                 path: "games.game",
                 model: dbconfig.collection_game
-            }).exec();
+            }).lean().then(platformGameGroupData => {
+                gameGroupData = platformGameGroupData;
+                if(platformGameGroupData && platformGameGroupData.games && platformGameGroupData.games.length > 0){
+                    platformGameGroupData.games.forEach(game => {
+                        if(game && game._id){
+                            let sendQuery = {
+                                platform: ObjectId(query.platform),
+                                game: ObjectId(game.game._id),
+                                status: {$ne: constGameStatus.DELETED}
+                            };
+
+                            gameStatusProm.push(dbconfig.collection_platformGameStatus.find(sendQuery))
+                        }
+                    })
+
+                    return Promise.all(gameStatusProm);
+                }
+            }).then(
+                gameStatusList => {
+                    if(gameStatusList && gameStatusList.length > 0){
+                        gameStatusList.forEach(gameStatus => {
+                            if(gameStatus && gameStatus.length > 0 && gameStatus[0].game && gameGroupData && gameGroupData.games && gameGroupData.games.length > 0){
+                                gameGroupData.games.map(game => {
+                                    if(game && game.game && game.game._id && game.game._id.toString() == gameStatus[0].game.toString()){
+                                        game.game.platformGameStatus = gameStatus[0].status;
+                                    }
+                                })
+                            }
+                        })
+                    }
+
+                    return gameGroupData;
+                }
+            );
     }
     ,
 

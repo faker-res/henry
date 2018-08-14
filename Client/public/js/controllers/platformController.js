@@ -3069,6 +3069,10 @@ define(['js/app'], function (myApp) {
                         }else{
                             vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
                         }
+
+                        if (v.game && v.game.hasOwnProperty('platformGameStatus')) {
+                            vm.gameStatus[v.game._id] = v.game.platformGameStatus;
+                        }
                     })
                     console.log("vm.includedGamesGroup", vm.includedGamesGroup);
                     if (vm.showGameCate == "include") {
@@ -28567,10 +28571,6 @@ define(['js/app'], function (myApp) {
 
             // right panel required functions
             vm.loadAlldepartment = function (callback) {
-
-                if (!authService.checkViewPermission('Platform', 'Proposal', 'Create') && !authService.checkViewPermission('Platform', 'Proposal', 'Update')) {
-                    return;
-                }
                 socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
 
                 function success(data) {
@@ -32793,9 +32793,18 @@ define(['js/app'], function (myApp) {
                     vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
                 });
-            }
+            };
             vm.autoFeedbackCreateMission = function() {
-            //    autofeedbackcreatemission
+                vm.autoFeedbackMission.platformObjId = vm.selectedPlatform.id;
+                vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
+                console.log(vm.autoFeedbackMission);
+
+                socketService.$socket($scope.AppSocket, 'createAutoFeedback', vm.autoFeedbackMission, function (data) {
+                    console.log("createAutoFeedback ret",data);
+                });
             }
 
         };
