@@ -394,6 +394,7 @@ const dbPlayerMail = {
         let platform;
         let isFailedSms = false;
         let partner = null;
+        let savedNumber;
         let getPlatform = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
         let seletedDb = dbPlayerInfo;
         let sameTelPermission = "allowSamePhoneNumberToRegister";
@@ -407,6 +408,14 @@ const dbPlayerMail = {
             seletedDb = dbPartner;
         }
         let isSpam = false;
+
+        if (purpose === constSMSPurpose.NEW_PHONE_NUMBER && !inputData.oldPhoneNumber) {
+            return Promise.reject({
+                status: constServerCode.OLD_PHONE_NUMBER_REQUIRED,
+                name: "DataError",
+                message: "Old phone number is required",
+            })
+        }
 
         return getPlatform.then(
             platformData => {
@@ -428,18 +437,27 @@ const dbPlayerMail = {
                         return dbconfig.collection_partner.findOne({_id: partnerObjId}).lean().then(
                             partnerData => {
                                 if (partnerData && partnerData.phoneNumber) {
-                                    telNum = rsaCrypto.decrypt(partnerData.phoneNumber);
+                                    savedNumber = rsaCrypto.decrypt(partnerData.phoneNumber);
+
+                                    if (!telNum) {
+                                        telNum = savedNumber;
+                                    }
+
                                 }
                             }
                         )
                     } else {
                         return dbconfig.collection_players.findOne({
                             platform: platformObjId,
-                            name: playerName
+                            playerId: inputData.playerId
                         }).lean().then(
                             playerData => {
                                 if (playerData && playerData.phoneNumber) {
-                                    telNum = rsaCrypto.decrypt(playerData.phoneNumber);
+                                    savedNumber = rsaCrypto.decrypt(playerData.phoneNumber);
+
+                                    if (!telNum) {
+                                        telNum = savedNumber;
+                                    }
                                 }
                             }
                         )
@@ -489,6 +507,15 @@ const dbPlayerMail = {
                         }
                     }
                     */
+                    if (inputData.oldPhoneNumber) {
+                        if (savedNumber.toString() !== inputData.oldPhoneNumber.toString()) {
+                            return Promise.reject({
+                                status: constServerCode.INVALID_OLD_PHONENUMBER,
+                                name: "DataError",
+                                message: "Old phone number doesn't match",
+                            })
+                        }
+                    }
 
                     let pName = playerName; //could be player or partner
                     let letterNumber = /^[0-9a-zA-Z]+$/;
@@ -575,7 +602,6 @@ const dbPlayerMail = {
                         if (!(platform[whiteListPhone]
                                 && platform[whiteListPhone].length > 0
                                 && platform[whiteListPhone].indexOf(telNum) > -1)) {
-                            console.log('telNum', telNum);
                             let query = {
                                 phoneNumber: rsaCrypto.encrypt(telNum.toString()),
                                 platform: platformObjId,
