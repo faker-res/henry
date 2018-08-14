@@ -5416,6 +5416,7 @@ let dbPlayerInfo = {
                             return Promise.reject({
                                 name: "DBError",
                                 status: constServerCode.CONCURRENT_DETECTED,
+                                dontLogTransfer: true,
                                 message: "Apply Reward Fail, please try again later"
                             })
                         }
@@ -5429,12 +5430,14 @@ let dbPlayerInfo = {
                 deferred.resolve(data);
             },
             function (err) {
-                if (!err || !err.hasLog) {
+                if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer)) {
                     let platformId = playerData.platform ? playerData.platform.platformId : null;
                     let platformObjId = playerData.platform ? playerData.platform._id : null;
+                    let status = (err.error && err.error.errorMessage && err.error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
                     // Second log - failed processing before calling cpmsAPI
+                    console.log('debug transfer error E:', err);
                     dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, platformObjId, platformId, "transferIn",
-                        "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, err, constPlayerCreditTransferStatus.FAIL);
+                        "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, err, status);
                     // Set BState back to false
                     dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
                 }
@@ -5728,6 +5731,7 @@ let dbPlayerInfo = {
                                     // var lockedAmount = rewardData.currentAmount ? rewardData.currentAmount : 0;
                                     let status = (error && error.errorMessage && error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
                                     // Third log - transfer in failed
+                                    console.log('debug transfer error F:', error);
                                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerData.playerId, playerData.name, platform, platformId, "transferIn",
                                         id, providerShortId, transferAmount, lockedAmount, adminName, error, status);
                                     error.hasLog = true;
@@ -5914,7 +5918,8 @@ let dbPlayerInfo = {
                             } else {
                                 return Promise.reject({
                                     name: "DBError",
-                                    message: "transfer credit fail, please try again later"
+                                    message: "transfer credit fail, please try again later",
+                                    dontLogTransfer: true
                                 })
                             }
                         });
@@ -5932,9 +5937,10 @@ let dbPlayerInfo = {
                 deferred.resolve(data);
             },
             function (err) {
-                if (!err || (!err.hasLog && !err.insufficientAmount)) {
+                if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer)) {
                     var platformId = playerObj.platform ? playerObj.platform.platformId : null;
                     var platformObjId = playerObj.platform ? playerObj.platform._id : null;
+                    console.log('debug transfer error G:', err);
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, platformObjId, platformId, "transferOut", "unknown",
                         providerId, amount, 0, adminName, err, constPlayerCreditTransferStatus.FAIL);
                 }
@@ -6135,8 +6141,10 @@ let dbPlayerInfo = {
                                 res => res,
                                 error => {
                                     // var lockedAmount = rewardTask && rewardTask.currentAmount ? rewardTask.currentAmount : 0;
+                                    console.log('debug transfer error H:', error);
+                                    let status = (error && error.errorMessage && error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
                                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
-                                        providerShortId, amount, lockedAmount, adminName, error, constPlayerCreditTransferStatus.FAIL);
+                                        providerShortId, amount, lockedAmount, adminName, error, status);
                                     error.hasLog = true;
                                     return Q.reject(error);
                                 }
@@ -14650,6 +14658,9 @@ let dbPlayerInfo = {
         let bonusProm = [];
         let consumptionProm = [];
         let trackingGroupProm = [];
+        let promoCodeType1Prom = [];
+        let promoCodeType2Prom = [];
+        let promoCodeType3Prom = [];
         let outputResult = [];
 
         if (query && query.name) {
@@ -14862,13 +14873,127 @@ let dbPlayerInfo = {
                                 }
                             }
                         ));
+
+                    dbconfig.collection_promoCodeType.find({platformObjId: platformObjId}).lean().then(
+                        promoCode => {
+                            let promoCodeType1 = [];
+                            let promoCodeType2 = [];
+                            let promoCodeType3 = [];
+
+                            if (promoCode && promoCode.length > 0) {
+                                promoCode.forEach(promo => {
+                                    if (promo.type === 1) {
+                                        promoCodeType1.push( ObjectId(promo._id) );
+                                    }
+                                    if (promo.type === 2) {
+                                        promoCodeType2.push( ObjectId(promo._id) );
+                                    }
+                                    if (promo.type === 3) {
+                                        promoCodeType3.push( ObjectId(promo._id) );
+                                    }
+                                });
+                            }
+
+                            dbconfig.collection_promoCode.aggregate([
+                                {
+                                    $match: {
+                                        playerObjId: ObjectId(player._id),
+                                        promoCodeTypeObjId: {$in: promoCodeType1}
+                                    }
+                                },
+                                {
+                                    $project: {
+                                        playerObjId: 1,
+                                        acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
+                                    }
+                                },
+                                {
+                                    $group: {
+                                        _id: "$playerObjId",
+                                        acceptedCount: {$sum: "$acceptedCount"},
+                                        sendCount: {$sum: 1},
+                                    }
+                                }
+                            ]).read("secondaryPreferred").then(
+                                data => {
+                                    if (data && data.length > 0) {
+                                        promoCodeType1Prom.push(data[0]);
+                                    }
+                                    return data;
+                                }
+                            );
+
+                            dbconfig.collection_promoCode.aggregate([
+                                {
+                                    $match: {
+                                        playerObjId: ObjectId(player._id),
+                                        promoCodeTypeObjId: {$in: promoCodeType2}
+                                    }
+                                },
+                                {
+                                    $project: {
+                                        playerObjId: 1,
+                                        acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
+                                    }
+                                },
+                                {
+                                    $group: {
+                                        _id: "$playerObjId",
+                                        acceptedCount: {$sum: "$acceptedCount"},
+                                        sendCount: {$sum: 1},
+                                    }
+                                }
+                            ]).read("secondaryPreferred").then(
+                                data => {
+                                    if (data && data.length > 0) {
+                                        promoCodeType2Prom.push(data[0]);
+                                    }
+                                    return data;
+                                }
+                            );
+
+                            dbconfig.collection_promoCode.aggregate([
+                                {
+                                    $match: {
+                                        playerObjId: ObjectId(player._id),
+                                        promoCodeTypeObjId: {$in: promoCodeType3}
+                                    }
+                                },
+                                {
+                                    $project: {
+                                        playerObjId: 1,
+                                        acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
+                                    }
+                                },
+                                {
+                                    $group: {
+                                        _id: "$playerObjId",
+                                        acceptedCount: {$sum: "$acceptedCount"},
+                                        sendCount: {$sum: 1},
+                                    }
+                                }
+                            ]).read("secondaryPreferred").then(
+                                data => {
+                                    if (data && data.length > 0) {
+                                        promoCodeType3Prom.push(data[0]);
+                                    }
+                                    return data;
+                                }
+                            );
+
+                            return promoCode;
+                        }
+                    );
                 });
 
-                return Promise.all([Promise.all(topUpProm), Promise.all(bonusProm), Promise.all(consumptionProm), Promise.all(trackingGroupProm)]).then(data => {
+                return Promise.all([Promise.all(topUpProm), Promise.all(bonusProm), Promise.all(consumptionProm), Promise.all(trackingGroupProm), promoCodeType1Prom, promoCodeType2Prom, promoCodeType3Prom]).then(data => {
                     let topUpRecord = [].concat(...data[0]);
                     let bonusRecord = [].concat(...data[1]);
                     let consumptionRecord = [].concat(...data[2]);
                     let trackingGroupRecord = [].concat(...data[3]);
+                    let promoCodeType11 = data[4];
+                    let promoCodeType22 = data[5];
+                    let promoCodeType33 = data[6];
 
                     // assign last record date
                     playerData.forEach(player => {
@@ -14894,6 +15019,27 @@ let dbPlayerInfo = {
                         trackingGroupRecord.forEach(trackingGroup => {
                             if (player && trackingGroup && player._id.toString() === trackingGroup.playerId.toString()) {
                                 player.depositTrackingGroupName = trackingGroup.depositTrackingGroupName;
+                            }
+                        });
+
+                        promoCodeType11.forEach(promoCode => {
+                            if (player && promoCode && player._id.toString() === promoCode._id.toString()) {
+                                player.promoCodeType1Total = promoCode.sendCount;
+                                player.promoCodeType1Accepted = promoCode.acceptedCount;
+                            }
+                        });
+
+                        promoCodeType22.forEach(promoCode => {
+                            if (player && promoCode && player._id.toString() === promoCode._id.toString()) {
+                                player.promoCodeType2Total = promoCode.sendCount;
+                                player.promoCodeType2Accepted = promoCode.acceptedCount;
+                            }
+                        });
+
+                        promoCodeType33.forEach(promoCode => {
+                            if (player && promoCode && player._id.toString() === promoCode._id.toString()) {
+                                player.promoCodeType3Total = promoCode.sendCount;
+                                player.promoCodeType3Accepted = promoCode.acceptedCount;
                             }
                         });
 

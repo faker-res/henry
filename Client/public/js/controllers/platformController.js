@@ -3070,6 +3070,10 @@ define(['js/app'], function (myApp) {
                         }else{
                             vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
                         }
+
+                        if (v.game && v.game.hasOwnProperty('platformGameStatus')) {
+                            vm.gameStatus[v.game._id] = v.game.platformGameStatus;
+                        }
                     })
                     console.log("vm.includedGamesGroup", vm.includedGamesGroup);
                     if (vm.showGameCate == "include") {
@@ -28568,10 +28572,6 @@ define(['js/app'], function (myApp) {
 
             // right panel required functions
             vm.loadAlldepartment = function (callback) {
-
-                if (!authService.checkViewPermission('Platform', 'Proposal', 'Create') && !authService.checkViewPermission('Platform', 'Proposal', 'Update')) {
-                    return;
-                }
                 socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
 
                 function success(data) {
