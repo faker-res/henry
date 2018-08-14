@@ -1281,53 +1281,44 @@ define(['js/app'], function (myApp) {
         };
 
         vm.setupRemarksMultiInputDepositAnalysis = function () {
-            $scope.$evalAsync(() => {
-                let remarkSelect = $('select#selectCredibilityRemarksDepositAnalysis');
-                if (remarkSelect.css('display').toLowerCase() === "none") {
-                    return;
-                }
-                remarkSelect.multipleSelect({
-                    showCheckbox: true,
-                    allSelected: $translate("All Selected"),
-                    selectAllText: $translate("Select All"),
-                    displayValues: false,
-                    countSelected: $translate('# of % selected')
-                });
-                remarkSelect.multipleSelect('refresh');
+            let remarkSelect = $('select#selectCredibilityRemarksDepositAnalysis');
+            if (remarkSelect.css('display').toLowerCase() === "none") {
+                return;
+            }
+            remarkSelect.multipleSelect({
+                showCheckbox: true,
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: false,
+                countSelected: $translate('# of % selected')
             });
         };
 
         vm.setupRemarksMultiInputDepositTracking = function () {
-            $scope.$evalAsync(() => {
-                let remarkSelect = $('select#selectCredibilityRemarksDepositTracking');
-                if (remarkSelect.css('display').toLowerCase() === "none") {
-                    return;
-                }
-                remarkSelect.multipleSelect({
-                    showCheckbox: true,
-                    allSelected: $translate("All Selected"),
-                    selectAllText: $translate("Select All"),
-                    displayValues: false,
-                    countSelected: $translate('# of % selected')
-                });
-                remarkSelect.multipleSelect('refresh');
+            let remarkSelect = $('select#selectCredibilityRemarksDepositTracking');
+            if (remarkSelect.css('display').toLowerCase() === "none") {
+                return;
+            }
+            remarkSelect.multipleSelect({
+                showCheckbox: true,
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: false,
+                countSelected: $translate('# of % selected')
             });
         };
 
         vm.setupMultiInputDepositTrackingGroup = function () {
-            $scope.$evalAsync(() => {
-                let trackingGroupSelect = $('select#selectTrackingGroupDepositTracking');
-                if (trackingGroupSelect.css('display').toLowerCase() === "none") {
-                    return;
-                }
-                trackingGroupSelect.multipleSelect({
-                    showCheckbox: true,
-                    allSelected: $translate("All Selected"),
-                    selectAllText: $translate("Select All"),
-                    displayValues: false,
-                    countSelected: $translate('# of % selected')
-                });
-                trackingGroupSelect.multipleSelect('refresh');
+            let trackingGroupSelect = $('select#selectTrackingGroupDepositTracking');
+            if (trackingGroupSelect.css('display').toLowerCase() === "none") {
+                return;
+            }
+            trackingGroupSelect.multipleSelect({
+                showCheckbox: true,
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: false,
+                countSelected: $translate('# of % selected')
             });
         };
 
@@ -4105,7 +4096,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         setTimeout(function () {
                             $('#selectTrackingGroupDepositTracking').multipleSelect('refresh');
-                        }, 1000);
+                        }, 500);
                         vm.playerDepositTracking = {}; // reset report table become blank
                         vm.depositTrackingQuery = {};
                         vm.getDepositTrackingGroupByPlatformId(vm.curPlatformId);
@@ -4123,7 +4114,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         setTimeout(function () {
                             $('#selectTrackingGroupDepositTracking').multipleSelect('refresh');
-                        }, 1000);
+                        }, 500);
                         vm.playerDepositTracking = {}; // reset report table become blank
                         vm.depositTrackingQuery = {};
                         vm.getDepositTrackingGroupByPlatformId(vm.curPlatformId);
@@ -8373,39 +8364,35 @@ define(['js/app'], function (myApp) {
                 })
             } else if (choice === "PLAYER_DEPOSIT_ANALYSIS_REPORT") {
                 utilService.actionAfterLoaded('#playerDepositAnalysisReportTablePage', function () {
-                    $scope.$evalAsync(() => {
-                        var yesterday = utilService.setNDaysAgo(new Date(), 1);
-                        var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
-                        var todayEndTime = utilService.getTodayEndTime();
-                        vm.playerDepositAnalysis = {};
-                        vm.depositAnalysisQuery = {};
-                        vm.depositAnalysisQuery.sortCol = {};
-                        vm.depositAnalysisQuery.limit = 5000;
-                        vm.depositAnalysisQuery.valueScoreOperator = ">=";
-                        vm.depositAnalysisQuery.start = utilService.createDatePicker('#startingDateTimePickerDepositAnalysis');
-                        vm.depositAnalysisQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
-                        vm.depositAnalysisQuery.end = utilService.createDatePicker('#endingEndDateTimePickerDepositAnalysis');
-                        vm.depositAnalysisQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                        // vm.depositAnalysisQuery.pageObj = utilService.createPageForPagingTable("#playerDepositAnalysisReportTablePage", {pageSize: 5000}, $translate, function (curP, pageSize) {
-                        //     vm.commonPageChangeHandler(curP, pageSize, "depositAnalysisQuery", vm.searchPlayerDepositAnalysisReport);
-                        // });
-                        vm.setupRemarksMultiInputDepositAnalysis();
-                    });
+                    var yesterday = utilService.setNDaysAgo(new Date(), 1);
+                    var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
+                    var todayEndTime = utilService.getTodayEndTime();
+                    vm.playerDepositAnalysis = {};
+                    vm.depositAnalysisQuery = {};
+                    vm.depositAnalysisQuery.sortCol = {};
+                    vm.depositAnalysisQuery.limit = 5000;
+                    vm.depositAnalysisQuery.valueScoreOperator = ">=";
+                    vm.depositAnalysisQuery.start = utilService.createDatePicker('#startingDateTimePickerDepositAnalysis');
+                    vm.depositAnalysisQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                    vm.depositAnalysisQuery.end = utilService.createDatePicker('#endingEndDateTimePickerDepositAnalysis');
+                    vm.depositAnalysisQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                    // vm.depositAnalysisQuery.pageObj = utilService.createPageForPagingTable("#playerDepositAnalysisReportTablePage", {pageSize: 5000}, $translate, function (curP, pageSize) {
+                    //     vm.commonPageChangeHandler(curP, pageSize, "depositAnalysisQuery", vm.searchPlayerDepositAnalysisReport);
+                    // });
+                    vm.setupRemarksMultiInputDepositAnalysis();
                 })
             } else if (choice === "PLAYER_DEPOSIT_TRACKING_REPORT") {
                 utilService.actionAfterLoaded('#playerDepositTrackingReportTablePage', function () {
-                    $scope.$evalAsync(() => {
-                        vm.playerDepositTracking = {};
-                        vm.depositTrackingQuery = {};
-                        vm.depositTrackingQuery.sortCol = {};
-                        vm.depositTrackingQuery.limit = 5000;
-                        // vm.depositTrackingQuery.pageObj = utilService.createPageForPagingTable("#playerDepositTrackingReportTablePage", {pageSize: 5000}, $translate, function (curP, pageSize) {
-                        //     vm.commonPageChangeHandler(curP, pageSize, "depositTrackingQuery", vm.searchPlayerDepositTrackingReport);
-                        // });
-                        vm.setupRemarksMultiInputDepositTracking();
-                        vm.setupMultiInputDepositTrackingGroup();
-                        //vm.searchPlayerDepositTrackingReport(); // auto search and display player being tracked when tab clicked
-                    });
+                    vm.playerDepositTracking = {};
+                    vm.depositTrackingQuery = {};
+                    vm.depositTrackingQuery.sortCol = {};
+                    vm.depositTrackingQuery.limit = 5000;
+                    // vm.depositTrackingQuery.pageObj = utilService.createPageForPagingTable("#playerDepositTrackingReportTablePage", {pageSize: 5000}, $translate, function (curP, pageSize) {
+                    //     vm.commonPageChangeHandler(curP, pageSize, "depositTrackingQuery", vm.searchPlayerDepositTrackingReport);
+                    // });
+                    vm.setupRemarksMultiInputDepositTracking();
+                    vm.setupMultiInputDepositTrackingGroup();
+                    //vm.searchPlayerDepositTrackingReport(); // auto search and display player being tracked when tab clicked
                 })
             } else if (choice == "PLAYER_EXPENSE_REPORT") {
                 vm.playerExpenseQuery = {totalCount: 0};
