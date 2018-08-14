@@ -231,7 +231,7 @@ const dbPlayerUtility = {
                 if (player.validCredit < 0) {
                     // First reset the deduction, then report the problem
                     return Q.resolve().then(
-                        () => dbPlayerUtility.refundPlayerCredit(playerObjId, platformObjId, +updateAmount, constPlayerCreditChangeType.DEDUCT_BELOW_ZERO_REFUND, data)
+                        () => dbPlayerUtility.changePlayerCredit(playerObjId, platformObjId, +updateAmount, constPlayerCreditChangeType.DEDUCT_BELOW_ZERO_REFUND, data)
                     ).then(
                         () => Q.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
@@ -243,7 +243,7 @@ const dbPlayerUtility = {
                 } else if (playerCreditBeforeDeduct - updateAmount != player.validCredit) {
                     // First reset the deduction, then report the problem
                     return Q.resolve().then(
-                        () => dbPlayerUtility.refundPlayerCredit(playerObjId, platformObjId, +updateAmount, constPlayerCreditChangeType.DEDUCT_BELOW_ZERO_REFUND, data)
+                        () => dbPlayerUtility.changePlayerCredit(playerObjId, platformObjId, +updateAmount, constPlayerCreditChangeType.DEDUCT_BELOW_ZERO_REFUND, data)
                     ).then(
                         () => Q.reject({
                             status: constServerCode.ABNORMAL_CREDIT_DEDUCTION,
