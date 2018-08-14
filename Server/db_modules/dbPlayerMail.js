@@ -409,14 +409,6 @@ const dbPlayerMail = {
         }
         let isSpam = false;
 
-        if (purpose === constSMSPurpose.NEW_PHONE_NUMBER && !inputData.oldPhoneNumber) {
-            return Promise.reject({
-                status: constServerCode.OLD_PHONE_NUMBER_REQUIRED,
-                name: "DataError",
-                message: "Old phone number is required",
-            })
-        }
-
         return getPlatform.then(
             platformData => {
                 if (platformData) {
@@ -431,6 +423,14 @@ const dbPlayerMail = {
                                 message: "Invalid image captcha"
                             });
                         }
+                    }
+
+                    if (!platform.twoStepsForModifyPhoneNumber && purpose === constSMSPurpose.NEW_PHONE_NUMBER && !inputData.oldPhoneNumber) {
+                        return Promise.reject({
+                            status: constServerCode.OLD_PHONE_NUMBER_REQUIRED,
+                            name: "DataError",
+                            message: "Old phone number is required",
+                        })
                     }
 
                     if (isPartner) {
