@@ -3285,6 +3285,7 @@ let dbPlayerInfo = {
                             rtg => {
                                 if(rtg && platform && rtg._id && rtg.totalCredit >= 0 && platform.autoUnlockWhenInitAmtLessThanLostThreshold
                                     && platform.autoApproveLostThreshold && rtg.totalCredit <= platform.autoApproveLostThreshold) {
+                                    console.log('JY check rtg ---', rtg);
 
                                     rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
 
@@ -3302,7 +3303,10 @@ let dbPlayerInfo = {
                             }
                         );
 
-                        return Promise.all(rtgArr);
+                        return Promise.all(rtgArr).then(data => {
+                            console.log('JY check data ---', data);
+                            return data;
+                        });
                     }
                 }
             ).then(() => dbPlayerInfo.checkFreeAmountRewardTaskGroup(player._id, player.platform, amount))
