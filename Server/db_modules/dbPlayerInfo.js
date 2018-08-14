@@ -16246,7 +16246,7 @@ let dbPlayerInfo = {
                         return dbPlayerInfo.getPlayerSmsStatus(playerData.playerId).then(
                             (smsSetting) => {
                                 playerData.smsSetting = smsSetting;
-                                return playerData;
+                                return true;
                             }
                         );
                     }
