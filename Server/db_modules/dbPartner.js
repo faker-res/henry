@@ -6520,6 +6520,7 @@ let dbPartner = {
 
                     rawCommissions.push({
                         crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
+                        crewProfitDetail: providerGroupConsumptionData[groupRate.groupName].crewProfitDetail,
                         groupName: groupRate.groupName,
                         groupId: groupRate.groupId,
                         amount: rawCommission,
@@ -8467,6 +8468,7 @@ let dbPartner = {
                             providerGroupCommission: providerCommission.amount,
                             providerGroupFee: providerCommission.platformFee,
                             crewProfit: providerCommission.crewProfit,
+                            crewProfitDetail: providerCommission.crewProfitDetail,
                             commissionRate: providerCommission.commissionRate ? providerCommission.commissionRate : 0,
                             providerGroupFeeRate: providerCommission.platformFeeRate ? providerCommission.platformFeeRate / 100 : 0
                         })
@@ -9503,6 +9505,7 @@ function getTotalPlayerConsumptionByProviderGroupName (downLineRawDetail, provid
                 validAmount: 0,
                 bonusAmount: 0,
                 consumptionTimes: 0,
+                crewProfitDetail: [],
             };
         });
 
@@ -9512,6 +9515,12 @@ function getTotalPlayerConsumptionByProviderGroupName (downLineRawDetail, provid
                     total[group.name].validAmount += downLine.consumptionDetail.consumptionProviderDetail[group.name].validAmount;
                     total[group.name].bonusAmount += downLine.consumptionDetail.consumptionProviderDetail[group.name].bonusAmount;
                     total[group.name].consumptionTimes += downLine.consumptionDetail.consumptionProviderDetail[group.name].consumptionTimes;
+                    if (downLine.consumptionDetail.consumptionProviderDetail[group.name].consumptionTimes) {
+                        total[group.name].crewProfitDetail.push({
+                            crewAccount: downLine.name,
+                            singleCrewProfit: downLine.consumptionDetail.consumptionProviderDetail[group.name].bonusAmount
+                        });
+                    }
                 }
             });
         });
