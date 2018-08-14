@@ -5412,6 +5412,7 @@ let dbPlayerInfo = {
                             return Promise.reject({
                                 name: "DBError",
                                 status: constServerCode.CONCURRENT_DETECTED,
+                                dontLogTransfer: true,
                                 message: "Apply Reward Fail, please try again later"
                             })
                         }
@@ -5425,12 +5426,14 @@ let dbPlayerInfo = {
                 deferred.resolve(data);
             },
             function (err) {
-                if (!err || !err.hasLog) {
+                if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer)) {
                     let platformId = playerData.platform ? playerData.platform.platformId : null;
                     let platformObjId = playerData.platform ? playerData.platform._id : null;
+                    let status = (err.error && err.error.errorMessage && err.error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
                     // Second log - failed processing before calling cpmsAPI
+                    console.log('debug transfer error E:', err);
                     dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, platformObjId, platformId, "transferIn",
-                        "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, err, constPlayerCreditTransferStatus.FAIL);
+                        "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, err, status);
                     // Set BState back to false
                     dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
                 }
@@ -5724,6 +5727,7 @@ let dbPlayerInfo = {
                                     // var lockedAmount = rewardData.currentAmount ? rewardData.currentAmount : 0;
                                     let status = (error && error.errorMessage && error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
                                     // Third log - transfer in failed
+                                    console.log('debug transfer error F:', error);
                                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerData.playerId, playerData.name, platform, platformId, "transferIn",
                                         id, providerShortId, transferAmount, lockedAmount, adminName, error, status);
                                     error.hasLog = true;
@@ -5910,7 +5914,8 @@ let dbPlayerInfo = {
                             } else {
                                 return Promise.reject({
                                     name: "DBError",
-                                    message: "transfer credit fail, please try again later"
+                                    message: "transfer credit fail, please try again later",
+                                    dontLogTransfer: true
                                 })
                             }
                         });
@@ -5928,9 +5933,10 @@ let dbPlayerInfo = {
                 deferred.resolve(data);
             },
             function (err) {
-                if (!err || (!err.hasLog && !err.insufficientAmount)) {
+                if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer)) {
                     var platformId = playerObj.platform ? playerObj.platform.platformId : null;
                     var platformObjId = playerObj.platform ? playerObj.platform._id : null;
+                    console.log('debug transfer error G:', err);
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, platformObjId, platformId, "transferOut", "unknown",
                         providerId, amount, 0, adminName, err, constPlayerCreditTransferStatus.FAIL);
                 }
@@ -6131,8 +6137,10 @@ let dbPlayerInfo = {
                                 res => res,
                                 error => {
                                     // var lockedAmount = rewardTask && rewardTask.currentAmount ? rewardTask.currentAmount : 0;
+                                    console.log('debug transfer error H:', error);
+                                    let status = (error && error.errorMessage && error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
                                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
-                                        providerShortId, amount, lockedAmount, adminName, error, constPlayerCreditTransferStatus.FAIL);
+                                        providerShortId, amount, lockedAmount, adminName, error, status);
                                     error.hasLog = true;
                                     return Q.reject(error);
                                 }
