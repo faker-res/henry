@@ -2344,6 +2344,7 @@ let dbPlayerReward = {
     },
 
     getPromoCodesHistory: (searchQuery) => {
+        let playerObjId;
 
         function sortByCreateTime(a, b){
             if(new Date(a.createTime).getTime() < new Date(b.createTime).getTime()){
@@ -2371,6 +2372,7 @@ let dbPlayerReward = {
 
                 if (playerData) {
                     query.playerObjId = playerData._id;
+                    playerObjId = playerData._id;
                 } else if (searchQuery.playerName) {
                     return [];
                 }
@@ -2418,6 +2420,7 @@ let dbPlayerReward = {
                                 return dbConfig.collection_proposal.find({
                                     type: proposalType._id,
                                     'data.eventCode': 'KFSYHDM',
+                                    'data.playerObjId': playerObjId,
                                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                                     createTime: openQuery.createTime
                                 }).populate({

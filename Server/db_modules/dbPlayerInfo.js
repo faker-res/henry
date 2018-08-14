@@ -2318,7 +2318,7 @@ let dbPlayerInfo = {
     /**
      *  Update password
      */
-    updatePassword: function (playerId, currPassword, newPassword, smsCode) {
+    updatePassword: function (playerId, currPassword, newPassword, smsCode, userAgent) {
         let db_password = null;
         let playerObj = null;
         if (newPassword.length < constSystemParam.PASSWORD_LENGTH) {
@@ -2426,6 +2426,10 @@ let dbPlayerInfo = {
                                         entryType: constProposalEntryType.CLIENT,
                                         userType: constProposalUserType.PLAYERS,
                                     };
+                                    if (userAgent) {
+                                        let inputDeviceData = dbUtility.getInputDevice(userAgent, false);
+                                        proposalData.inputDevice = inputDeviceData;
+                                    }
                                     dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.UPDATE_PLAYER_INFO, proposalData).then(
                                         () => {
                                             SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
@@ -13987,12 +13991,12 @@ let dbPlayerInfo = {
         };
 
         if (query.name) {
-            getPlayerProm = dbconfig.collection_players.findOne({name: query.name, platform: platform}, {_id: 1}).lean();
+            getPlayerProm = dbconfig.collection_players.findOne({name: query.name, platform: platform, isRealPlayer: true}, {_id: 1}).lean();
         }
 
         return getPlayerProm.then(
             player => {
-                let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}};
+                let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}, isRealPlayer: true};
 
                 if (player) {
                     relevantPlayerQuery.playerId = player._id;
@@ -14551,7 +14555,6 @@ let dbPlayerInfo = {
                     isExceedDailyTotalDeposit: isExceedDailyTotalDeposit,
                 });
             }
-            let onlyBonusRecord = [];
 
             outputData.forEach(output => {
                 bonusRecord.forEach(bonus => {
@@ -14562,44 +14565,25 @@ let dbPlayerInfo = {
                         if (outputDate.getTime() === bonusDate.getTime()) {
                             output.bonusAmount = bonus.amount;
                             bonus.bUsed = true; // to skip this bonus if used
-                        }
-
-                        if (outputDate.getTime() !== bonusDate.getTime()) {
-                            // compile bonus without top up record
-                            onlyBonusRecord.push({
-                                date: bonus._id,
-                                topUpAmount: 0,
-                                bonusAmount: bonus.amount,
-                                isExceedDailyTotalDeposit: false
-                            });
-                            bonus.bUsed = true; // to skip this bonus if used
+                        } else {
+                            bonus.bUsed = false;
                         }
                     }
                 });
             });
 
-            // merge only bonus record, top up will be 0
-            if (onlyBonusRecord && onlyBonusRecord.length > 0) {
-                outputData = outputData.concat(...onlyBonusRecord);
-            }
-
-            // for (let x = 0; x < bonusRecord.length; x++) {
-            //     let bonusDay = bonusRecord[x]._id.day;
-            //     let bonusMonth = bonusRecord[x]._id.month - 1; //month start from 0 to 11
-            //     let bonusYear = bonusRecord[x]._id.year;
-            //     let bonusDate = new Date(bonusYear, bonusMonth, bonusDay);
-            //
-            //     for (let z = 0; z < outputData.length; z++) {
-            //         let outputDay = outputData[z].date.day;
-            //         let outputMonth = outputData[z].date.month - 1; //month start from 0 to 11
-            //         let outputYear = outputData[z].date.year;
-            //         let outputDate = new Date(outputYear, outputMonth, outputDay);
-            //
-            //         if (bonusRecord && outputData && bonusDate === outputDate) {
-            //             outputData[z].bonusAmount = bonusRecord[x].amount;
-            //         }
-            //     }
-            // }
+            // for scenario when that month doesn't have top up record
+            bonusRecord.forEach(bonus => {
+                if (!bonus.bUsed) {
+                    outputData.push({
+                        date: bonus._id,
+                        topUpAmount: 0,
+                        bonusAmount: bonus.amount,
+                        isExceedDailyTotalDeposit: false
+                    });
+                    bonus.bUsed = true;
+                }
+            });
 
             // convert date format
             for (let z = 0; z < outputData.length; z++) {
@@ -14971,6 +14955,233 @@ let dbPlayerInfo = {
                 return dbconfig.collection_players.findOneAndUpdate(query, updateData, {new: true});
             }
         );
+    },
+
+    getPlayerDepositTrackingMonthlyDetails: function (platformObjId, playerObjId) {
+        let startDate = new Date(1970, 1, 1);
+        let today = new Date(); // track for whole life time until now
+        let consumptionProm = [];
+        let topUpProm = [];
+        let bonusProm = [];
+        let outputDataSum = {
+            validConsumption: 0,
+            topUpAmount: 0,
+            bonusAmount: 0,
+        };
+
+        // adjust the timezone
+        let timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000;
+        let positiveTimeOffset = Math.abs(timezoneOffset);
+        let timezoneAdjust = {}; //for topup and bonus
+        let timezoneAdjust2 = {}; //for consumption
+
+        // convert UTC 16h to GMT 24h
+        if (parseInt(timezoneOffset) > 0) {
+            timezoneAdjust = {
+                year: {$year: {$subtract: ['$settleTime', positiveTimeOffset]}},
+                month: {$month: {$subtract: ['$settleTime', positiveTimeOffset]}},
+            }
+        } else {
+            timezoneAdjust = {
+                year: {$year: {$add: ['$settleTime', positiveTimeOffset]}},
+                month: {$month: {$add: ['$settleTime', positiveTimeOffset]}},
+            }
+        }
+        if (parseInt(timezoneOffset) > 0) {
+            timezoneAdjust2 = {
+                year: {$year: {$subtract: ['$createTime', positiveTimeOffset]}},
+                month: {$month: {$subtract: ['$createTime', positiveTimeOffset]}},
+            }
+        } else {
+            timezoneAdjust2 = {
+                year: {$year: {$add: ['$createTime', positiveTimeOffset]}},
+                month: {$month: {$add: ['$createTime', positiveTimeOffset]}},
+            }
+        }
+
+        consumptionProm.push(dbconfig.collection_playerConsumptionRecord.aggregate([
+            {
+                $match: {
+                    playerId: playerObjId,
+                    platformId: platformObjId,
+                    createTime: {
+                        $gte: startDate,
+                        $lte: today
+                    },
+                    $or: [
+                        {isDuplicate: {$exists: false}},
+                        {
+                            $and: [
+                                {isDuplicate: {$exists: true}},
+                                {isDuplicate: false}
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                $group: {
+                    _id: timezoneAdjust2,
+                    count: {$sum: {$cond: ["$count", "$count", 1]}},
+                    amount: {$sum: "$amount"},
+                    validAmount: {$sum: "$validAmount"},
+                }
+            }
+        ]).allowDiskUse(true).read("secondaryPreferred"));
+
+        topUpProm.push(dbconfig.collection_proposal.aggregate([
+            {
+                $match: {
+                    "data.playerObjId": playerObjId,
+                    "data.platformId": platformObjId,
+                    createTime: {
+                        $gte: startDate,
+                        $lte: today
+                    },
+                    mainType: "TopUp",
+                    status: constProposalStatus.SUCCESS,
+                }
+            },
+            {
+                $group: {
+                    _id: timezoneAdjust,
+                    typeId: {$first: "$type"},
+                    count: {$sum: 1},
+                    amount: {$sum: "$data.amount"},
+                }
+            }
+        ]).read("secondaryPreferred"));
+
+        bonusProm.push(dbconfig.collection_proposal.aggregate([
+            {
+                $match: {
+                    "data.playerObjId": playerObjId,
+                    "data.platformId": platformObjId,
+                    createTime: {
+                        $gte: startDate,
+                        $lte: today
+                    },
+                    mainType: "PlayerBonus",
+                    status: constProposalStatus.SUCCESS,
+                }
+            },
+            {
+                $group: {
+                    _id: timezoneAdjust,
+                    count: {$sum: 1},
+                    amount: {$sum: "$data.amount"},
+                }
+            }
+        ]).read("secondaryPreferred"));
+
+        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).lean().then(
+            playerData => {
+                if (playerData) {
+                    return {playerId: playerData._id, playerName: playerData.name};
+                }
+            }
+        );
+
+        return Promise.all([Promise.all(topUpProm), Promise.all(bonusProm), Promise.all(consumptionProm), playerProm]).then(data => {
+            let topUpRecord = data[0];
+            let bonusRecord = data[1];
+            let consumptionRecord = data[2];
+            let playerData = data[3];
+
+            topUpRecord = [].concat(...topUpRecord);
+            bonusRecord = [].concat(...bonusRecord);
+            consumptionRecord = [].concat(...consumptionRecord);
+
+            let outputData = [];
+            for (let x = 0; x < topUpRecord.length; x++) {
+                outputData.push({
+                    date: topUpRecord[x]._id,
+                    validConsumption: 0,
+                    topUpAmount: topUpRecord[x].amount,
+                    bonusAmount: 0
+                });
+            }
+
+            outputData.forEach(output => {
+                bonusRecord.forEach(bonus => {
+                    if (!bonus.bUsed) {  // only check bonus not used
+                        let outputDate = new Date(output.date.year, output.date.month);
+                        let bonusDate = new Date(bonus._id.year, bonus._id.month);
+
+                        if (outputDate.getTime() === bonusDate.getTime()) {
+                            output.bonusAmount = bonus.amount;
+                            bonus.bUsed = true; // to skip this bonus if used
+                        } else {
+                            bonus.bUsed = false;
+                        }
+                    }
+                });
+            });
+
+            // for scenario when that month doesn't have top up record
+            bonusRecord.forEach(bonus => {
+                if (!bonus.bUsed) {
+                    outputData.push({
+                        date: bonus._id,
+                        topUpAmount: 0,
+                        bonusAmount: bonus.amount,
+                        validConsumption: 0
+                    });
+                    bonus.bUsed = true;
+                }
+            });
+
+            outputData.forEach(output => {
+                consumptionRecord.forEach(consumption => {
+                    if (!consumption.bUsed) {  // only check consumption not used
+                        let outputDate = new Date(output.date.year, output.date.month);
+                        let consumptionDate = new Date(consumption._id.year, consumption._id.month);
+
+                        if (outputDate.getTime() === consumptionDate.getTime()) {
+                            output.validConsumption = consumption.validAmount;
+                            consumption.bUsed = true; // to skip this consumption if used
+                        } else {
+                            consumption.bUsed = false;
+                        }
+                    }
+                });
+            });
+
+            // for scenario when that month doesn't have top up and bonus record
+            consumptionRecord.forEach(consumption => {
+                if (!consumption.bUsed) {
+                    outputData.push({
+                        date: consumption._id,
+                        topUpAmount: 0,
+                        bonusAmount: 0,
+                        validConsumption: consumption.validAmount
+                    });
+                    consumption.bUsed = true;
+                }
+            });
+
+            // convert date format
+            for (let z = 0; z < outputData.length; z++) {
+                let outputMonth = outputData[z].date.month - 1; //month start from 0 to 11
+                let outputYear = outputData[z].date.year;
+
+                outputData[z].date = new Date(outputYear, outputMonth);
+            }
+
+            // display data in reverse date order
+            outputData.sort(function (a, b) {
+                return b.date - a.date
+            });
+
+            //handle sum of field here
+            for (let z = 0; z < outputData.length; z++) {
+                outputDataSum.validConsumption += outputData[z].validConsumption;
+                outputDataSum.topUpAmount += outputData[z].topUpAmount;
+                outputDataSum.bonusAmount += outputData[z].bonusAmount;
+            }
+
+            return {total: outputDataSum, outputData: outputData, playerName: playerData.playerName, playerId: playerData.playerId};
+        });
     },
 
     getDXNewPlayerReport: function (platform, query, index, limit, sortCol) {
@@ -16035,7 +16246,7 @@ let dbPlayerInfo = {
                         return dbPlayerInfo.getPlayerSmsStatus(playerData.playerId).then(
                             (smsSetting) => {
                                 playerData.smsSetting = smsSetting;
-                                return playerData;
+                                return true;
                             }
                         );
                     }
