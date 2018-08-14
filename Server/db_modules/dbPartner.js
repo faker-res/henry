@@ -8445,7 +8445,7 @@ let dbPartner = {
         );
     },
 
-    preditCommission: (platformId, partnerId) => {
+    preditCommission: (platformId, partnerId, searchPreviousPeriod = 0) => {
         let platform = {};
         let partner = {};
 
@@ -8475,6 +8475,11 @@ let dbPartner = {
 
                 partner = partnerData;
                 let period = getCurrentCommissionPeriod(partner.commissionType);
+                if (searchPreviousPeriod && !isNaN(Number(searchPreviousPeriod))) {
+                    for (let i = 0; i < Number(searchPreviousPeriod); i++) {
+                        period = getPreviousCommissionPeriod(partner.commissionType, period);
+                    }
+                }
 
                 return dbPartner.calculatePartnerCommissionDetail(partner._id, partner.commissionType, new Date(period.startTime), new Date(period.endTime));
             }
