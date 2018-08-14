@@ -4174,6 +4174,23 @@ define(['js/app'], function (myApp) {
                 });
             });
         };
+
+        vm.getPlayerDepositTrackingDailyDetails = function(date) {
+            let sendData = {
+                platform: vm.curPlatformId,
+                playerId: vm.depositTrackingMonthlyDetails.playerId,
+                date: date
+            };
+
+            socketService.$socket($scope.AppSocket, 'getPlayerDepositTrackingDailyDetails', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.depositTrackingDailyDetails = data.data;
+                    vm.depositTrackingDailyDetails.outputData.map(dailyData => {
+                        dailyData.date = String(utilService.$getTimeFromStdTimeFormat(new Date(dailyData.date))).substring(0, 10);
+                    });
+                });
+            });
+        };
         ///////////////// END player deposit tracking report /////////////////////////////
 
         /////////////////telemarketing new account report/////////////////////////////
