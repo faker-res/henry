@@ -425,7 +425,7 @@ const dbPlayerMail = {
                         }
                     }
 
-                    if (!platform.twoStepsForModifyPhoneNumber && purpose === constSMSPurpose.NEW_PHONE_NUMBER && !inputData.oldPhoneNumber) {
+                    if (!platform.usePhoneNumberTwoStepsVerification && purpose === constSMSPurpose.NEW_PHONE_NUMBER && !inputData.oldPhoneNumber) {
                         return Promise.reject({
                             status: constServerCode.OLD_PHONE_NUMBER_REQUIRED,
                             name: "DataError",
