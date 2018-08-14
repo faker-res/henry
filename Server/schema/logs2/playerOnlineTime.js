@@ -3,7 +3,7 @@ let Schema = mongoose.Schema;
 
 let playerOnlineTimeSchema = new Schema({
     // playerId
-    player: {type: Schema.Types.ObjectId, ref: 'player', required: true},
+    player: {type: Schema.Types.ObjectId, ref: 'player', required: true, index: true},
     // Platform
     platform: {type: Schema.Types.ObjectId, ref: 'platform', required: true, index: true},
     // Current login time
