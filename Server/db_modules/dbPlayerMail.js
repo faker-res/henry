@@ -575,6 +575,7 @@ const dbPlayerMail = {
                         if (!(platform[whiteListPhone]
                                 && platform[whiteListPhone].length > 0
                                 && platform[whiteListPhone].indexOf(telNum) > -1)) {
+                            console.log('telNum', telNum);
                             let query = {
                                 phoneNumber: rsaCrypto.encrypt(telNum.toString()),
                                 platform: platformObjId,
