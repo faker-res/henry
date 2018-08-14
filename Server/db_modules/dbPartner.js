@@ -6547,7 +6547,7 @@ let dbPartner = {
 
                 nettCommission = grossCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
 
-                return {
+                let returnObj = {
                     partner: partner._id,
                     platform: platform._id,
                     commissionType: commissionType,
@@ -6575,6 +6575,47 @@ let dbPartner = {
                     nettCommission: nettCommission,
                     disableCommissionSettlement: Boolean(partner.permission && partner.permission.disableCommSettlement),
                 };
+
+                if (totalTopUp) {
+                    let depositCrewDetail = [];
+                    downLinesRawData.forEach(downLine => {
+                        if (downLine.topUpDetail.topUpAmount) {
+                            depositCrewDetail.push({
+                                crewAccount: downLine.name,
+                                crewDepositAmount: downLine.topUpDetail.topUpAmount
+                            })
+                        }
+                    });
+                    returnObj.depositCrewDetail = depositCrewDetail;
+                }
+
+                if (totalWithdrawal) {
+                    let withdrawCrewDetail = [];
+                    downLinesRawData.forEach(downLine => {
+                        if (downLine.withdrawalDetail.withdrawalAmount) {
+                            withdrawCrewDetail.push({
+                                crewAccount: downLine.name,
+                                crewWithdrawAmount: downLine.withdrawalDetail.withdrawalAmount
+                            })
+                        }
+                    });
+                    returnObj.withdrawCrewDetail = withdrawCrewDetail;
+                }
+
+                if (totalWithdrawal) {
+                    let bonusCrewDetail = [];
+                    downLinesRawData.forEach(downLine => {
+                        if (downLine.rewardDetail.total) {
+                            bonusCrewDetail.push({
+                                crewAccount: downLine.name,
+                                crewBonusAmount: downLine.rewardDetail.total
+                            })
+                        }
+                    });
+                    returnObj.bonusCrewDetail = bonusCrewDetail;
+                }
+
+                return returnObj;
             }
         );
     },
@@ -8447,12 +8488,21 @@ let dbPartner = {
 
                 output.activeCrewNumbers = commissionDetail.activeDownLines;
                 output.totalDepositAmount = commissionDetail.totalTopUp;
+                if (commissionDetail.depositCrewDetail) {
+                    output.depositCrewDetail = commissionDetail.depositCrewDetail;
+                }
                 output.depositFeeRate = commissionDetail.topUpFeeRate;
                 output.totalDepositFee = commissionDetail.totalTopUpFee;
                 output.totalWithdrawAmount = commissionDetail.totalWithdrawal;
+                if (commissionDetail.withdrawCrewDetail) {
+                    output.withdrawCrewDetail = commissionDetail.withdrawCrewDetail;
+                }
                 output.withdrawFeeRate = commissionDetail.withdrawFeeRate;
                 output.totalWithdrawalFee = commissionDetail.totalWithdrawalFee;
                 output.totalBonusAmount = commissionDetail.totalReward;
+                if (commissionDetail.bonusCrewDetail) {
+                    output.bonusCrewDetail = commissionDetail.bonusCrewDetail;
+                }
                 output.bonusFeeRate = commissionDetail.rewardFeeRate;
                 output.totalBonusFee = commissionDetail.totalRewardFee;
                 output.totalProviderFee = commissionDetail.totalPlatformFee;
