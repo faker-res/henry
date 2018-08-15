@@ -4,6 +4,7 @@ define(['js/app'], function (myApp) {
     let playerController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, commonService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants) {
         let $translate = $filter('translate');
         let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
+        let $noRoundTwoDecimalToFix = $filter('noRoundTwoDecimalToFix');
         let vm = this;
 
         // For debugging:
@@ -3173,7 +3174,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate("TRANSFER") + " ID", data: 'transferId'},
                     {title: $translate('playerName'), data: 'playerName'},
                     {
-                        title: $translate("CREDIT"),
+                        title: $translate("TotalChangeAmount"),
                         data: 'amount',
                         render: function (data, type, row) {
                             return parseFloat(data).toFixed(2);
@@ -3181,8 +3182,8 @@ define(['js/app'], function (myApp) {
                     },
                     {title: $translate("provider"), data: 'providerText'},
                     {
-                        title: $translate("amount"),
-                        data: 'amount',
+                        title: $translate("LOCAL_CREDIT"),
+                        data: `amount-lockedAmount$`,
                         render: function (data, type, row) {
                             return parseFloat(data).toFixed(2);
                         }
@@ -3201,7 +3202,7 @@ define(['js/app'], function (myApp) {
 
 
             let tableElem = vm.platformCreditTransferLog.isPopup ? '#platformCreditTransferLogPopupTable' : '#platformCreditTransferLogTable';
-            console.log(tableElem);
+
             let table = utilService.createDatatableWithFooter(tableElem, option, {});
             vm.platformCreditTransferLog.pageObj.init({maxCount: size}, newSearch);
 
@@ -12886,7 +12887,16 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     //相關存款提案號
-                    {title: $translate('REWARD_AMOUNT'), data: "bonusAmount"},
+                    {
+                        title: $translate('REWARD_AMOUNT'), data: "bonusAmount",
+                        render: function(data, type, row){
+                            let bonusAmount = data;
+                            if(typeof bonusAmount === 'number'){
+                                bonusAmount = $noRoundTwoDecimalToFix(bonusAmount);
+                            }
+                            return "<div>" + bonusAmount + "</div>";
+                        }
+                    },
                     {
                         //解锁进度（投注额）
                         "title": $translate('Unlock Progress(Consumption)'), data: "curConsumption$",
