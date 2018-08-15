@@ -6819,7 +6819,7 @@ let dbPartner = {
             let remark = commissionApplication.remark;
 
             let prom = applyCommissionToPartner(logObjId, settleType, remark, adminInfo).catch(err => {
-                console.error('settle fail', logObjId, err);
+                console.log('settle fail', logObjId, err);
                 return errorUtils.reportError(err);
             });
 
