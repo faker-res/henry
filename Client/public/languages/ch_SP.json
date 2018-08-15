@@ -1729,6 +1729,7 @@
   "LOGOFF": "注销",
   "forbidPlayerFromLogin": "登入网站",
   "forbidPartnerFromLogin": "登入网站",
+  "This domain is not allowed to delete nor edit as there is new registration within 90 days.": "此域名 90 天内仍有新开户注册，不允许删除、编辑。",
   "Partner is forbidden to apply bonus": "您暂时被禁止提款，请联系代理经理",
   "forbidPlayerFromEnteringGame" : "登入游戏",
   "CHEAT_NEW_ACCOUNT_REWARD": "骗开户优惠",
