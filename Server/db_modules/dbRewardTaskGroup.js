@@ -138,6 +138,8 @@ let dbRewardTaskGroup = {
                             unlockTime: new Date()
                         };
 
+                        console.log('RTG unlock due to provider group delete', grp._id);
+
                         proms.push(
                             dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                                 _id: grp._id
@@ -311,6 +313,8 @@ let dbRewardTaskGroup = {
             status: constRewardTaskStatus.SYSTEM_UNLOCK,
             unlockTime: new Date()
         };
+
+        console.log('system unlock rtg', rewardTaskGroup._id)
 
         return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
             _id: rewardTaskGroup._id
