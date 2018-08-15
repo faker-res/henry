@@ -16895,8 +16895,15 @@ define(['js/app'], function (myApp) {
                 if (vm.feedbackAdminQuery.topic && vm.feedbackAdminQuery.topic != 'all') {
                     sendQuery.query.topic = vm.feedbackAdminQuery.topic
                 }
-                if (vm.feedbackAdminQuery.hasOwnProperty("topupTimes")) {
-                    sendQuery.topupTimes = vm.feedbackAdminQuery.topupTimes;
+
+                if (vm.feedbackAdminQuery.topUpTimesOperator) {
+                    sendQuery.topUpTimesOperator = vm.feedbackAdminQuery.topUpTimesOperator;
+                }
+                if (vm.feedbackAdminQuery.hasOwnProperty("topUpTimesValue")) {
+                    sendQuery.topUpTimesValue = vm.feedbackAdminQuery.topUpTimesValue;
+                }
+                if (vm.feedbackAdminQuery.hasOwnProperty("topUpTimesValueTwo")) {
+                    sendQuery.topUpTimesValueTwo = vm.feedbackAdminQuery.topUpTimesValueTwo;
                 }
                 console.log("feedbackQuery", sendQuery);
                 $('#loadPlayerFeedbackAdminIcon').show();
@@ -32643,7 +32650,8 @@ define(['js/app'], function (myApp) {
 
                 vm.feedbackAdminQuery = {
                     result: 'all',
-                    topic: 'all'
+                    topic: 'all',
+                    topUpTimesOperator: ">="
                 };
                 utilService.actionAfterLoaded("#feedbackAdminTablePage", function () {
                     vm.feedbackAdminQuery.pageObj = utilService.createPageForPagingTable("#feedbackAdminTablePage", {}, $translate, function (curP, pageSize) {
