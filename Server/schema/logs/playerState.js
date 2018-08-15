@@ -20,6 +20,10 @@ let playerStateSchema = new Schema({
     lastTransferFromProvider: {type: Date, default: new Date()},
     // Last apply transfer credit from provider
     lastApplyRewardEvent: {type: Date, default: new Date()},
+
+    // Spam control
+    // Last player get sms code
+    lastGetVerificationCode: {type: Date, default: new Date()},
 });
 
 module.exports = playerStateSchema;

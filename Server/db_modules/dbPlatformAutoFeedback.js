@@ -30,6 +30,20 @@ let dbPlatformAutoFeedback = {
                 return Promise.reject({name: "DBError", message: "Error creating auto feedback.", error: error});
             }
         );
+    },
+
+    getAutoFeedback: function (query) {
+        console.log(query);
+        if(query.missionStartTime) {
+            query.missionStartTime = {$gte: query.missionStartTime};
+        }
+        if(query.missionEndTime) {
+            query.missionEndTime = {$lte: query.missionEndTime};
+        }
+        console.log(query);
+        return dbconfig.collection_autoFeedback.find(query).lean().then(autoFeedbacks => {
+            return autoFeedbacks;
+        });
     }
 };
 
