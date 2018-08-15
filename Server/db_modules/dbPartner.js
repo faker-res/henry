@@ -6819,7 +6819,7 @@ let dbPartner = {
             let remark = commissionApplication.remark;
 
             let prom = applyCommissionToPartner(logObjId, settleType, remark, adminInfo).catch(err => {
-                console.error('settle fail', logObjId, err);
+                console.log('settle fail', logObjId, err);
                 return errorUtils.reportError(err);
             });
 
@@ -9860,7 +9860,7 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
                     endTime: commissionLog.endTime,
                     commissionType: commissionLog.commissionType,
                     partnerCommissionRateConfig: commissionLog.partnerCommissionRateConfig,
-                    rawCommissions: commissionLog.rawCommissions,
+                    // rawCommissions: commissionLog.rawCommissions,
                     activeCount: commissionLog.activeDownLines,
                     totalRewardFee: commissionLog.totalRewardFee,
                     totalReward: commissionLog.totalReward,
