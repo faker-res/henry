@@ -445,7 +445,6 @@ const dbPlayerMail = {
                                     if (!telNum) {
                                         telNum = savedNumber;
                                     }
-
                                 }
                             }
                         )
@@ -486,11 +485,9 @@ const dbPlayerMail = {
                         }
                     )
                 }
-
-                return telNum
             }
         ).then(
-            telNum => {
+            () => {
                 if (telNum) {
                     /*
                     if (purpose && purpose == constSMSPurpose.REGISTRATION) {
@@ -741,7 +738,7 @@ const dbPlayerMail = {
             }
         ).then(
             retData => {
-                console.log('[smsAPI] Sent verification code to: ', telNum);
+                console.log('[smsAPI] Sent verification code 2 to: ', telNum);
                 if (retData) {
                     if (purpose && purpose == constSMSPurpose.REGISTRATION) {
                         if (inputData) {
