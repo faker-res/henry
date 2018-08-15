@@ -459,6 +459,7 @@ const dbPlayerMail = {
                                 if (playerData && playerData.phoneNumber) {
                                     savedNumber = rsaCrypto.decrypt(playerData.phoneNumber);
                                     player = playerData;
+                                    playerName = playerData.name;
 
                                     if (!telNum) {
                                         telNum = savedNumber;
