@@ -814,6 +814,7 @@ var dbLogger = {
 
     // this actually create all the validation sms log instead of just for registration
     createRegisterSMSLog: function (type, platformObjId, platformId, tel, message, channel, purpose, inputDevice, playerName, status, error) {
+        console.log('createRegisterSMSLog - ricco');
         let smsPurposes = Object.keys(constSMSPurpose).map(function (key) {
             return constSMSPurpose[key];
         });
@@ -854,6 +855,8 @@ var dbLogger = {
                     status: status,
                     error: error
                 };
+
+                console.log('logData', logData);
 
                 //do not log recipientName if sms is use for creating demo account,
                 //an incorrect recipientName will be attached to the log if executed.
