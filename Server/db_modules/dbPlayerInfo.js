@@ -3304,6 +3304,7 @@ let dbPlayerInfo = {
                                     && platform.autoApproveLostThreshold && rtg.totalCredit <= platform.autoApproveLostThreshold) {
                                     console.log('JY check rtg ---', rtg);
 
+                                    console.log('unlock rtg due to consumption clear in other location A', rtg._id);
                                     rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
 
                                     dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then( rewards => {
@@ -10009,6 +10010,7 @@ let dbPlayerInfo = {
                         let totalTargetConsumption = targetConsumption + forbidXIMAAmt;
 
                         if(currentConsumption >= totalTargetConsumption) {
+                            console.log('unlock rtg due to consumption clear in other location B', RTG._id);
                             return dbRewardTaskGroup.unlockRewardTaskGroupByObjId(RTG) .then(
                                 () => {
                                     return findStartedRewardTaskGroup(player.platform, player._id);

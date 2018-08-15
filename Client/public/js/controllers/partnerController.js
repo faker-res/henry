@@ -22,7 +22,7 @@ define(['js/app'], function (myApp) {
             vm.existRealName = false;
             vm.rewardPointsChange = {};
             vm.rewardPointsConvert = {};
-            vm.platformPageName = 'Player';
+            vm.platformPageName = 'Partner';
             vm.platformToReplicate = "";
 
             // constants declaration
