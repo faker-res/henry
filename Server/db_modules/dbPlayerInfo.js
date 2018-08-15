@@ -3287,6 +3287,7 @@ let dbPlayerInfo = {
                                     && platform.autoApproveLostThreshold && rtg.totalCredit <= platform.autoApproveLostThreshold) {
                                     console.log('JY check rtg ---', rtg);
 
+                                    console.log('unlock rtg due to consumption clear in other location A', rtg._id);
                                     rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
 
                                     dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then( rewards => {
@@ -9992,6 +9993,7 @@ let dbPlayerInfo = {
                         let totalTargetConsumption = targetConsumption + forbidXIMAAmt;
 
                         if(currentConsumption >= totalTargetConsumption) {
+                            console.log('unlock rtg due to consumption clear in other location B', RTG._id);
                             return dbRewardTaskGroup.unlockRewardTaskGroupByObjId(RTG) .then(
                                 () => {
                                     return findStartedRewardTaskGroup(player.platform, player._id);
@@ -15316,6 +15318,246 @@ let dbPlayerInfo = {
                 let outputYear = outputData[z].date.year;
 
                 outputData[z].date = new Date(outputYear, outputMonth);
+            }
+
+            // display data in reverse date order
+            outputData.sort(function (a, b) {
+                return b.date - a.date
+            });
+
+            //handle sum of field here
+            for (let z = 0; z < outputData.length; z++) {
+                outputDataSum.validConsumption += outputData[z].validConsumption;
+                outputDataSum.topUpAmount += outputData[z].topUpAmount;
+                outputDataSum.bonusAmount += outputData[z].bonusAmount;
+            }
+
+            return {total: outputDataSum, outputData: outputData, playerName: playerData.playerName, playerId: playerData.playerId};
+        });
+    },
+
+    getPlayerDepositTrackingDailyDetails: function (platformObjId, playerObjId, date) {
+        let newDate = new Date(date);
+        let startDate = dbUtility.getMonthSGTIme(newDate).startTime;
+        let endDate = dbUtility.getMonthSGTIme(newDate).endTime;
+        let consumptionProm = [];
+        let topUpProm = [];
+        let bonusProm = [];
+        let outputDataSum = {
+            validConsumption: 0,
+            topUpAmount: 0,
+            bonusAmount: 0,
+        };
+
+        // loop for every day
+        while (startDate.getTime() < endDate.getTime()) {
+            let dayEndTime = getNextDateByPeriodAndDate('day', startDate);
+
+            // adjust the timezone
+            let timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000;
+            let positiveTimeOffset = Math.abs(timezoneOffset);
+            let timezoneAdjust = {}; //for topup and bonus
+            let timezoneAdjust2 = {}; //for consumption
+
+            // convert UTC 16h to GMT 24h
+            if (parseInt(timezoneOffset) > 0) {
+                timezoneAdjust = {
+                    year: {$year: {$subtract: ['$settleTime', positiveTimeOffset]}},
+                    month: {$month: {$subtract: ['$settleTime', positiveTimeOffset]}},
+                    day: {$dayOfMonth: {$subtract: ['$settleTime', positiveTimeOffset]}},
+                }
+            } else {
+                timezoneAdjust = {
+                    year: {$year: {$add: ['$settleTime', positiveTimeOffset]}},
+                    month: {$month: {$add: ['$settleTime', positiveTimeOffset]}},
+                    day: {$dayOfMonth: {$add: ['$settleTime', positiveTimeOffset]}},
+                }
+            }
+            if (parseInt(timezoneOffset) > 0) {
+                timezoneAdjust2 = {
+                    year: {$year: {$subtract: ['$createTime', positiveTimeOffset]}},
+                    month: {$month: {$subtract: ['$createTime', positiveTimeOffset]}},
+                    day: {$dayOfMonth: {$subtract: ['$createTime', positiveTimeOffset]}},
+                }
+            } else {
+                timezoneAdjust2 = {
+                    year: {$year: {$add: ['$createTime', positiveTimeOffset]}},
+                    month: {$month: {$add: ['$createTime', positiveTimeOffset]}},
+                    day: {$dayOfMonth: {$add: ['$createTime', positiveTimeOffset]}},
+                }
+            }
+
+            consumptionProm.push(dbconfig.collection_playerConsumptionRecord.aggregate([
+                {
+                    $match: {
+                        playerId: playerObjId,
+                        platformId: platformObjId,
+                        createTime: {
+                            $gte: startDate,
+                            $lte: dayEndTime
+                        },
+                        $or: [
+                            {isDuplicate: {$exists: false}},
+                            {
+                                $and: [
+                                    {isDuplicate: {$exists: true}},
+                                    {isDuplicate: false}
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
+                    $group: {
+                        _id: timezoneAdjust2,
+                        count: {$sum: {$cond: ["$count", "$count", 1]}},
+                        amount: {$sum: "$amount"},
+                        validAmount: {$sum: "$validAmount"},
+                    }
+                }
+            ]).allowDiskUse(true).read("secondaryPreferred"));
+
+            topUpProm.push(dbconfig.collection_proposal.aggregate([
+                {
+                    $match: {
+                        "data.playerObjId": playerObjId,
+                        "data.platformId": platformObjId,
+                        createTime: {
+                            $gte: startDate,
+                            $lte: dayEndTime
+                        },
+                        mainType: "TopUp",
+                        status: constProposalStatus.SUCCESS,
+                    }
+                },
+                {
+                    $group: {
+                        _id: timezoneAdjust,
+                        typeId: {$first: "$type"},
+                        count: {$sum: 1},
+                        amount: {$sum: "$data.amount"},
+                    }
+                }
+            ]).read("secondaryPreferred"));
+
+            bonusProm.push(dbconfig.collection_proposal.aggregate([
+                {
+                    $match: {
+                        "data.playerObjId": playerObjId,
+                        "data.platformId": platformObjId,
+                        createTime: {
+                            $gte: startDate,
+                            $lte: dayEndTime
+                        },
+                        mainType: "PlayerBonus",
+                        status: constProposalStatus.SUCCESS,
+                    }
+                },
+                {
+                    $group: {
+                        _id: timezoneAdjust,
+                        count: {$sum: 1},
+                        amount: {$sum: "$data.amount"},
+                    }
+                }
+            ]).read("secondaryPreferred"));
+
+            startDate = dayEndTime;
+        }
+
+        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).lean().then(
+            playerData => {
+                if (playerData) {
+                    return {playerId: playerData._id, playerName: playerData.name};
+                }
+            }
+        );
+
+        return Promise.all([Promise.all(topUpProm), Promise.all(bonusProm), Promise.all(consumptionProm), playerProm]).then(data => {
+            let topUpRecord = data[0];
+            let bonusRecord = data[1];
+            let consumptionRecord = data[2];
+            let playerData = data[3];
+
+            topUpRecord = [].concat(...topUpRecord);
+            bonusRecord = [].concat(...bonusRecord);
+            consumptionRecord = [].concat(...consumptionRecord);
+
+            let outputData = [];
+            for (let x = 0; x < topUpRecord.length; x++) {
+                outputData.push({
+                    date: topUpRecord[x]._id,
+                    validConsumption: 0,
+                    topUpAmount: topUpRecord[x].amount,
+                    bonusAmount: 0
+                });
+            }
+
+            outputData.forEach(output => {
+                bonusRecord.forEach(bonus => {
+                    if (!bonus.bUsed) {  // only check bonus not used
+                        let outputDate = new Date(output.date.year, output.date.month, output.date.day);
+                        let bonusDate = new Date(bonus._id.year, bonus._id.month, bonus._id.day);
+
+                        if (outputDate.getTime() === bonusDate.getTime()) {
+                            output.bonusAmount = bonus.amount;
+                            bonus.bUsed = true; // to skip this bonus if used
+                        } else {
+                            bonus.bUsed = false;
+                        }
+                    }
+                });
+            });
+
+            // for scenario when that day doesn't have top up record
+            bonusRecord.forEach(bonus => {
+                if (!bonus.bUsed) {
+                    outputData.push({
+                        date: bonus._id,
+                        topUpAmount: 0,
+                        bonusAmount: bonus.amount,
+                        validConsumption: 0
+                    });
+                    bonus.bUsed = true;
+                }
+            });
+
+            outputData.forEach(output => {
+                consumptionRecord.forEach(consumption => {
+                    if (!consumption.bUsed) {  // only check consumption not used
+                        let outputDate = new Date(output.date.year, output.date.month, output.date.day);
+                        let consumptionDate = new Date(consumption._id.year, consumption._id.month, consumption._id.day);
+
+                        if (outputDate.getTime() === consumptionDate.getTime()) {
+                            output.validConsumption = consumption.validAmount;
+                            consumption.bUsed = true; // to skip this consumption if used
+                        } else {
+                            consumption.bUsed = false;
+                        }
+                    }
+                });
+            });
+
+            // for scenario when that day doesn't have top up and bonus record
+            consumptionRecord.forEach(consumption => {
+                if (!consumption.bUsed) {
+                    outputData.push({
+                        date: consumption._id,
+                        topUpAmount: 0,
+                        bonusAmount: 0,
+                        validConsumption: consumption.validAmount
+                    });
+                    consumption.bUsed = true;
+                }
+            });
+
+            // convert date format
+            for (let z = 0; z < outputData.length; z++) {
+                let outputDay = outputData[z].date.day;
+                let outputMonth = outputData[z].date.month - 1; //month start from 0 to 11
+                let outputYear = outputData[z].date.year;
+
+                outputData[z].date = new Date(outputYear, outputMonth, outputDay);
             }
 
             // display data in reverse date order

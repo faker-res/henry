@@ -2287,13 +2287,42 @@
                                 td {{v.topUpAmount | noRoundTwoDecimalPlaces}}
                                 td {{v.bonusAmount | noRoundTwoDecimalPlaces}}
                                 td
-                                    a(data-toggle="modal", data-target='#modalPlayerDepositTrackingDailyDetailsTable', ng-click="vm.getPlayerDepositTrackingDailyDetails()") {{'DETAILS' | translate}}
+                                    a(data-toggle="modal", data-target='#modalPlayerDepositTrackingDailyDetailsTable', ng-click="vm.getPlayerDepositTrackingDailyDetails(v.date)") {{'DETAILS' | translate}}
                             tr(ng-if="vm.depositTrackingMonthlyDetails.outputData.length > 0")
                                 td(style="font-weight:bold") {{"Totalsum" | translate}}
                                 td(style="font-weight:bold") {{vm.depositTrackingMonthlyDetails.total.validConsumption | noRoundTwoDecimalPlaces}}
                                 td(style="font-weight:bold") {{vm.depositTrackingMonthlyDetails.total.topUpAmount | noRoundTwoDecimalPlaces}}
                                 td(style="font-weight:bold") {{vm.depositTrackingMonthlyDetails.total.bonusAmount | noRoundTwoDecimalPlaces}}
                                 td
+
+#modalPlayerDepositTrackingDailyDetailsTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:40%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title.text-center ({{vm.depositTrackingDailyDetails.playerName}}) {{"TRACKING_DETAILS_DAILY_REPORT_TITLE" | translate}}
+            .modal-body
+                div
+                    table.simple-table
+                        thead
+                            tr
+                                th {{'Day' | translate}}
+                                th {{'DEPOSIT_VALID_CONSUMPTION' | translate}}
+                                th {{'DEPOSIT_TOPUP' | translate}}
+                                th {{'DEPOSIT_BONUS' | translate}}
+                        tbody
+                            tr(ng-if="vm.depositTrackingDailyDetails.outputData.length === 0")
+                                td(colspan = 3) {{ 'No data available in table' | translate }}
+                            tr(ng-if="vm.depositTrackingDailyDetails.outputData.length > 0", ng-repeat="v in vm.depositTrackingDailyDetails.outputData")
+                                td {{v.date}}
+                                td {{v.validConsumption | noRoundTwoDecimalPlaces}}
+                                td {{v.topUpAmount | noRoundTwoDecimalPlaces}}
+                                td {{v.bonusAmount | noRoundTwoDecimalPlaces}}
+                            tr(ng-if="vm.depositTrackingDailyDetails.outputData.length > 0")
+                                td(style="font-weight:bold") {{"Totalsum" | translate}}
+                                td(style="font-weight:bold") {{vm.depositTrackingDailyDetails.total.validConsumption | noRoundTwoDecimalPlaces}}
+                                td(style="font-weight:bold") {{vm.depositTrackingDailyDetails.total.topUpAmount | noRoundTwoDecimalPlaces}}
+                                td(style="font-weight:bold") {{vm.depositTrackingDailyDetails.total.bonusAmount | noRoundTwoDecimalPlaces}}
 
 include ../common-widget/telephone-popover
 script(src='js/lib/flot/jquery.flot.min.js')

@@ -6520,6 +6520,7 @@ let dbPartner = {
 
                     rawCommissions.push({
                         crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
+                        crewProfitDetail: providerGroupConsumptionData[groupRate.groupName].crewProfitDetail,
                         groupName: groupRate.groupName,
                         groupId: groupRate.groupId,
                         amount: rawCommission,
@@ -6546,7 +6547,7 @@ let dbPartner = {
 
                 nettCommission = grossCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
 
-                return {
+                let returnObj = {
                     partner: partner._id,
                     platform: platform._id,
                     commissionType: commissionType,
@@ -6574,6 +6575,47 @@ let dbPartner = {
                     nettCommission: nettCommission,
                     disableCommissionSettlement: Boolean(partner.permission && partner.permission.disableCommSettlement),
                 };
+
+                if (totalTopUp) {
+                    let depositCrewDetail = [];
+                    downLinesRawData.forEach(downLine => {
+                        if (downLine.topUpDetail.topUpAmount) {
+                            depositCrewDetail.push({
+                                crewAccount: downLine.name,
+                                crewDepositAmount: downLine.topUpDetail.topUpAmount
+                            })
+                        }
+                    });
+                    returnObj.depositCrewDetail = depositCrewDetail;
+                }
+
+                if (totalWithdrawal) {
+                    let withdrawCrewDetail = [];
+                    downLinesRawData.forEach(downLine => {
+                        if (downLine.withdrawalDetail.withdrawalAmount) {
+                            withdrawCrewDetail.push({
+                                crewAccount: downLine.name,
+                                crewWithdrawAmount: downLine.withdrawalDetail.withdrawalAmount
+                            })
+                        }
+                    });
+                    returnObj.withdrawCrewDetail = withdrawCrewDetail;
+                }
+
+                if (totalWithdrawal) {
+                    let bonusCrewDetail = [];
+                    downLinesRawData.forEach(downLine => {
+                        if (downLine.rewardDetail.total) {
+                            bonusCrewDetail.push({
+                                crewAccount: downLine.name,
+                                crewBonusAmount: downLine.rewardDetail.total
+                            })
+                        }
+                    });
+                    returnObj.bonusCrewDetail = bonusCrewDetail;
+                }
+
+                return returnObj;
             }
         );
     },
@@ -8403,7 +8445,7 @@ let dbPartner = {
         );
     },
 
-    preditCommission: (platformId, partnerId) => {
+    preditCommission: (platformId, partnerId, searchPreviousPeriod = 0) => {
         let platform = {};
         let partner = {};
 
@@ -8433,6 +8475,11 @@ let dbPartner = {
 
                 partner = partnerData;
                 let period = getCurrentCommissionPeriod(partner.commissionType);
+                if (searchPreviousPeriod && !isNaN(Number(searchPreviousPeriod))) {
+                    for (let i = 0; i < Number(searchPreviousPeriod); i++) {
+                        period = getPreviousCommissionPeriod(partner.commissionType, period);
+                    }
+                }
 
                 return dbPartner.calculatePartnerCommissionDetail(partner._id, partner.commissionType, new Date(period.startTime), new Date(period.endTime));
             }
@@ -8446,12 +8493,21 @@ let dbPartner = {
 
                 output.activeCrewNumbers = commissionDetail.activeDownLines;
                 output.totalDepositAmount = commissionDetail.totalTopUp;
+                if (commissionDetail.depositCrewDetail) {
+                    output.depositCrewDetail = commissionDetail.depositCrewDetail;
+                }
                 output.depositFeeRate = commissionDetail.topUpFeeRate;
                 output.totalDepositFee = commissionDetail.totalTopUpFee;
                 output.totalWithdrawAmount = commissionDetail.totalWithdrawal;
+                if (commissionDetail.withdrawCrewDetail) {
+                    output.withdrawCrewDetail = commissionDetail.withdrawCrewDetail;
+                }
                 output.withdrawFeeRate = commissionDetail.withdrawFeeRate;
                 output.totalWithdrawalFee = commissionDetail.totalWithdrawalFee;
                 output.totalBonusAmount = commissionDetail.totalReward;
+                if (commissionDetail.bonusCrewDetail) {
+                    output.bonusCrewDetail = commissionDetail.bonusCrewDetail;
+                }
                 output.bonusFeeRate = commissionDetail.rewardFeeRate;
                 output.totalBonusFee = commissionDetail.totalRewardFee;
                 output.totalProviderFee = commissionDetail.totalPlatformFee;
@@ -8467,6 +8523,7 @@ let dbPartner = {
                             providerGroupCommission: providerCommission.amount,
                             providerGroupFee: providerCommission.platformFee,
                             crewProfit: providerCommission.crewProfit,
+                            crewProfitDetail: providerCommission.crewProfitDetail,
                             commissionRate: providerCommission.commissionRate ? providerCommission.commissionRate : 0,
                             providerGroupFeeRate: providerCommission.platformFeeRate ? providerCommission.platformFeeRate / 100 : 0
                         })
@@ -9503,6 +9560,7 @@ function getTotalPlayerConsumptionByProviderGroupName (downLineRawDetail, provid
                 validAmount: 0,
                 bonusAmount: 0,
                 consumptionTimes: 0,
+                crewProfitDetail: [],
             };
         });
 
@@ -9512,6 +9570,12 @@ function getTotalPlayerConsumptionByProviderGroupName (downLineRawDetail, provid
                     total[group.name].validAmount += downLine.consumptionDetail.consumptionProviderDetail[group.name].validAmount;
                     total[group.name].bonusAmount += downLine.consumptionDetail.consumptionProviderDetail[group.name].bonusAmount;
                     total[group.name].consumptionTimes += downLine.consumptionDetail.consumptionProviderDetail[group.name].consumptionTimes;
+                    if (downLine.consumptionDetail.consumptionProviderDetail[group.name].consumptionTimes) {
+                        total[group.name].crewProfitDetail.push({
+                            crewAccount: downLine.name,
+                            singleCrewProfit: downLine.consumptionDetail.consumptionProviderDetail[group.name].bonusAmount
+                        });
+                    }
                 }
             });
         });
