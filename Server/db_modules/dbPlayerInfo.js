@@ -14919,6 +14919,7 @@ let dbPlayerInfo = {
                             ]).read("secondaryPreferred").then(
                                 data => {
                                     if (data && data.length > 0) {
+                                        console.log('data11===', data);
                                         promoCodeType1Prom.push(data[0]);
                                     }
                                     return data;
@@ -14948,6 +14949,7 @@ let dbPlayerInfo = {
                             ]).read("secondaryPreferred").then(
                                 data => {
                                     if (data && data.length > 0) {
+                                        console.log('data22===', data);
                                         promoCodeType2Prom.push(data[0]);
                                     }
                                     return data;
@@ -14977,6 +14979,7 @@ let dbPlayerInfo = {
                             ]).read("secondaryPreferred").then(
                                 data => {
                                     if (data && data.length > 0) {
+                                        console.log('data33===', data);
                                         promoCodeType3Prom.push(data[0]);
                                     }
                                     return data;
@@ -14996,6 +14999,9 @@ let dbPlayerInfo = {
                     let promoCodeType11 = data[4];
                     let promoCodeType22 = data[5];
                     let promoCodeType33 = data[6];
+                    console.log('promoCodeType11===', promoCodeType11);
+                    console.log('promoCodeType22===', promoCodeType22);
+                    console.log('promoCodeType33===', promoCodeType33);
 
                     // assign last record date
                     playerData.forEach(player => {
