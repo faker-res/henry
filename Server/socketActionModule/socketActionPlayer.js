@@ -1239,6 +1239,14 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDepositTrackingMonthlyDetails, [platform, playerId], actionName, isValidData);
         },
 
+        getPlayerDepositTrackingDailyDetails: function getPlayerDepositTrackingDailyDetails(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform && data.playerId && data.date);
+            let platform = ObjectId(data.platform);
+            let playerId = ObjectId(data.playerId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDepositTrackingDailyDetails, [platform, playerId, data.date], actionName, isValidData);
+        },
+
         convertRewardPointsToCredit: function convertRewardPointsToCredit(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.convertRewardPointsAmount);

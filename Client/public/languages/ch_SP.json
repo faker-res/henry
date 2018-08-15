@@ -1607,6 +1607,7 @@
   "DEPOSIT_TOPUP_BONUS": "存-提",
   "DEPOSIT_VALID_CONSUMPTION": "有效投注",
   "TRACKING_DETAILS_MONTHLY_REPORT_TITLE": "月存提款详情",
+  "TRACKING_DETAILS_DAILY_REPORT_TITLE": "日存提款详情",
   "Month": "月份",
   "DAILY_TOPUP": "日存款",
   "attachRolesToUsersById": "添加用户角色",
