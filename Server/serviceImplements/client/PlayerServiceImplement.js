@@ -306,7 +306,7 @@ let PlayerServiceImplement = function () {
     this.update.expectsData = 'playerId: String, nickName: String, birthday: Date, gender: String';
     this.update.onRequest = function (wsFunc, conn, data) {
         // data.nickName && (!data.realName || data.realName.match(/\d+/g) == null)
-        var isValidData = Boolean(data && data.playerId && ( data.playerId === conn.playerId) && (!data.realName || data.realName.match(/\d+/g) == null) && (new Date(data.DOB).getTime() <= new Date().getTime()));
+        var isValidData = Boolean(data && conn.playerId && (data.gender || (new Date(data.DOB).getTime() <= new Date().getTime() )));
         if (data.phoneNumber) {
             var queryRes = queryPhoneLocation(data.phoneNumber);
             if (queryRes) {
@@ -315,7 +315,7 @@ let PlayerServiceImplement = function () {
                 data.phoneType = queryRes.type;
             }
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerInfo, [{playerId: conn.playerId}, data], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerInfoClient, [{playerId: conn.playerId}, data], isValidData, false, false, true);
     };
 
     //update player QQ
