@@ -306,7 +306,7 @@ let PlayerServiceImplement = function () {
     this.update.expectsData = 'playerId: String, nickName: String, birthday: Date, gender: String';
     this.update.onRequest = function (wsFunc, conn, data) {
         // data.nickName && (!data.realName || data.realName.match(/\d+/g) == null)
-        var isValidData = Boolean(data && data.playerId && ( data.playerId === conn.playerId) && data.nickName && (!data.realName || data.realName.match(/\d+/g) == null) && data.gender && (new Date(data.DOB).getTime() <= new Date().getTime() ));
+        var isValidData = Boolean(data && conn.playerId && (data.gender || (new Date(data.DOB).getTime() <= new Date().getTime() )));
         if (data.phoneNumber) {
             var queryRes = queryPhoneLocation(data.phoneNumber);
             if (queryRes) {
@@ -315,7 +315,7 @@ let PlayerServiceImplement = function () {
                 data.phoneType = queryRes.type;
             }
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerInfo, [{playerId: conn.playerId}, data], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerInfoClient, [{playerId: conn.playerId}, data], isValidData, false, false, true);
     };
 
     //update player QQ
@@ -928,13 +928,11 @@ let PlayerServiceImplement = function () {
         conn.captchaCode = null;
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
-        data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
-        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
-        if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            if(forwardedIp[0].trim() != "undefined"){
-                data.lastLoginIp = forwardedIp[0].trim();
-            }
-        }
+        data.lastLoginIp = dbUtility.getIpAddress(conn);
+
+        // Spam check temporary log
+        console.log('getSMSCode IP: ', data.lastLoginIp);
+
         data.loginIps = [data.lastLoginIp];
         data.ipArea = {'province':'', 'city':''};
         if (conn.isAuth && conn.playerId && !data.name) {
@@ -970,6 +968,11 @@ let PlayerServiceImplement = function () {
         let captchaValidation = conn.captchaCode && data.captcha && conn.captchaCode.toString() === data.captcha.toString();
         conn.captchaCode = null;
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        let requestIp = dbUtility.getIpAddress(conn);
+
+        // Spam check temporary log
+        console.log('sendSMSCodeToPlayer IP: ', requestIp);
+
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId, captchaValidation, data.purpose, inputDevice], isValidData);
     };
 

@@ -36,7 +36,16 @@
                         i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
             .inlineBlk
                 label.control-label {{'topUpTimes' | translate}}
-                input.form-control(type='number', ng-model='vm.feedbackAdminQuery.topupTimes')
+                div
+                    select.form-control(ng-model="vm.feedbackAdminQuery.topUpTimesOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.feedbackAdminQuery.topUpTimesValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.feedbackAdminQuery.topUpTimesOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.feedbackAdminQuery.topUpTimesValueTwo" style="width:80px;display:inline-block" ng-if="vm.feedbackAdminQuery.topUpTimesOperator === 'range'")
 
             button.btn.btn-primary(ng-if="checkViewPermission('Platform', 'FeedbackQuery', 'Read')",ng-click='vm.submitAdminPlayerFeedbackQuery(true)') {{"SEARCH" | translate}}
             i#loadPlayerFeedbackAdminIcon.fa.fa-refresh.fa-spin.collapse.margin-left-5.text-danger.fa-2x

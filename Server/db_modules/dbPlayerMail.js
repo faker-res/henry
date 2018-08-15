@@ -18,6 +18,8 @@ const constSMSPurpose = require('../const/constSMSPurpose');
 const queryPhoneLocation = require('query-mobile-phone-area');
 const constProposalStatus = require('../const/constProposalStatus');
 const constRegistrationIntentRecordStatus = require('../const/constRegistrationIntentRecordStatus');
+
+const dbPlayerUtil = require('./../db_common/dbPlayerUtility');
 const dbUtility = require('./../modules/dbutility');
 const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
@@ -394,7 +396,7 @@ const dbPlayerMail = {
         let platform;
         let isFailedSms = false;
         let partner = null;
-        let savedNumber;
+        let savedNumber, player;
         let getPlatform = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
         let seletedDb = dbPlayerInfo;
         let sameTelPermission = "allowSamePhoneNumberToRegister";
@@ -434,6 +436,7 @@ const dbPlayerMail = {
                     }
 
                     if (isPartner) {
+                        // Get partner info
                         return dbconfig.collection_partner.findOne({_id: partnerObjId}).lean().then(
                             partnerData => {
                                 if (partnerData && partnerData.phoneNumber) {
@@ -442,11 +445,11 @@ const dbPlayerMail = {
                                     if (!telNum) {
                                         telNum = savedNumber;
                                     }
-
                                 }
                             }
                         )
                     } else {
+                        // Get player info
                         return dbconfig.collection_players.findOne({
                             platform: platformObjId,
                             playerId: inputData.playerId
@@ -454,6 +457,8 @@ const dbPlayerMail = {
                             playerData => {
                                 if (playerData && playerData.phoneNumber) {
                                     savedNumber = rsaCrypto.decrypt(playerData.phoneNumber);
+                                    player = playerData;
+                                    playerName = playerData.name;
 
                                     if (!telNum) {
                                         telNum = savedNumber;
@@ -467,6 +472,18 @@ const dbPlayerMail = {
                         name: "DataError",
                         message: "Platform does not exist"
                     });
+                }
+            }
+        ).then(
+            () => {
+                if (player && player._id) {
+                    return dbPlayerUtil.setPlayerState(player._id, 'GetVerificationCode').then(
+                        playerState => {
+                            if (!playerState) {
+                                return Promise.reject({name: "DataError", errorMessage: "Concurrent issue detected"});
+                            }
+                        }
+                    )
                 }
             }
         ).then(
@@ -549,7 +566,7 @@ const dbPlayerMail = {
                         }
                     }
 
-                    if(pName && !pName.match(letterNumber)) {
+                    if (pName && !pName.match(letterNumber)) {
                         return Q.reject({
                             status: constServerCode.DATA_INVALID,
                             name: "DBError",
@@ -577,12 +594,15 @@ const dbPlayerMail = {
                         }
                     }
 
-                    if(telNum && platform.blackListingPhoneNumbers){
+                    if (telNum && platform.blackListingPhoneNumbers) {
                         let indexNo = platform.blackListingPhoneNumbers.findIndex(p => p == telNum);
 
-                        if(indexNo != -1){
+                        if (indexNo != -1) {
                             isSpam = true;
-                            return Q.reject({name: "DataError", message: localization.localization.translate("This phone number is already used. Please insert other phone number.")});
+                            return Q.reject({
+                                name: "DataError",
+                                message: localization.localization.translate("This phone number is already used. Please insert other phone number.")
+                            });
                         }
                     }
 
@@ -611,7 +631,7 @@ const dbPlayerMail = {
                                 delete query.isRealPlayer;
                             }
                             if (platform[sameTelPermission] === true) {
-                                validPhoneNumberProm =  seletedDb.isExceedPhoneNumberValidToRegister(query, platform[samTelCount]);
+                                validPhoneNumberProm = seletedDb.isExceedPhoneNumberValidToRegister(query, platform[samTelCount]);
                             } else {
                                 validPhoneNumberProm = seletedDb.isPhoneNumberValidToRegister(query);
                             }
@@ -622,7 +642,6 @@ const dbPlayerMail = {
                     if (isPartner && !playerName && partnerObjId) {
                         getPartnerProm = dbconfig.collection_partner.findOne({_id: partnerObjId}).lean();
                     }
-
 
                     return Promise.all([smsChannelProm, smsVerificationLogProm, messageTemplateProm, validPhoneNumberProm, getPartnerProm]);
                 }
@@ -719,7 +738,7 @@ const dbPlayerMail = {
             }
         ).then(
             retData => {
-                console.log('[smsAPI] Sent verification code to: ', telNum);
+                console.log('[smsAPI] Sent verification code 2 to: ', telNum);
                 if (retData) {
                     if (purpose && purpose == constSMSPurpose.REGISTRATION) {
                         if (inputData) {
