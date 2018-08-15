@@ -13328,7 +13328,7 @@ define(['js/app'], function (myApp) {
                         render: function(data, type, row){
                             let bonusAmount = data;
                             if(typeof bonusAmount === 'number'){
-                                bonusAmount = $noRoundTwoDecimalToFix(data);
+                                bonusAmount = $noRoundTwoDecimalToFix(bonusAmount);
                             }
                             return "<div>" + bonusAmount + "</div>";
                         }
