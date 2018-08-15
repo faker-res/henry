@@ -13326,8 +13326,11 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('REWARD_AMOUNT'), data: "bonusAmount",
                         render: function(data, type, row){
-                            let text = $noRoundTwoDecimalToFix(data);
-                            return "<div>" + text + "</div>";
+                            let bonusAmount = data;
+                            if(typeof bonusAmount === 'number'){
+                                bonusAmount = $noRoundTwoDecimalToFix(data);
+                            }
+                            return "<div>" + bonusAmount + "</div>";
                         }
                     },
                     {
