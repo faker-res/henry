@@ -476,15 +476,17 @@ const dbPlayerMail = {
             }
         ).then(
             () => {
-                return dbPlayerUtil.setPlayerState(player._id, 'GetVerificationCode').then(
-                    playerState => {
-                        if (playerState) {
-                            return telNum
-                        } else {
-                            return Promise.reject({name: "DataError", errorMessage: "Concurrent issue detected"});
+                if (player && player._id) {
+                    return dbPlayerUtil.setPlayerState(player._id, 'GetVerificationCode').then(
+                        playerState => {
+                            if (!playerState) {
+                                return Promise.reject({name: "DataError", errorMessage: "Concurrent issue detected"});
+                            }
                         }
-                    }
-                )
+                    )
+                }
+
+                return telNum
             }
         ).then(
             telNum => {
