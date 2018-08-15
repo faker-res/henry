@@ -34,14 +34,17 @@ let dbPlatformAutoFeedback = {
 
     getAutoFeedback: function (query) {
         console.log(query);
-        if(query.missionStartTime) {
-            query.missionStartTime = {$gte: query.missionStartTime};
+        if(query.createTimeStart) {
+            query.createTime = {$gte: query.createTimeStart};
+            delete query.createTimeStart;
         }
-        if(query.missionEndTime) {
-            query.missionEndTime = {$lte: query.missionEndTime};
+        if(query.createTimeEnd) {
+            query.createTime = {$lte: query.createTimeEnd};
+            delete query.createTimeEnd;
         }
         console.log(query);
         return dbconfig.collection_autoFeedback.find(query).lean().then(autoFeedbacks => {
+            console.log(autoFeedbacks);
             return autoFeedbacks;
         });
     }

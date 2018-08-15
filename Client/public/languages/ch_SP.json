@@ -4145,5 +4145,10 @@
   "Ended": "已结束",
   "Manually Cancelled": "被手动暂停",
   "Feedback Mission Overview List": "回访任务总览列表",
-  "Feedback Mission Daily Detail": "回访任务每日详情"
+  "Feedback Mission Daily Detail": "回访任务每日详情",
+  "Mission First Run Total Count": "第一次任务发送总次数",
+  "Mission Second Run Total Count": "第二次任务发送总次数",
+  "Mission Third Run Total Count": "第三次任务发送总次数",
+  "Mission Create Start Time": "任务创建（开始时间）",
+  "Mission Create End Time": "任务创建（结束时间）"
 }

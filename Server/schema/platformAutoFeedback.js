@@ -48,7 +48,8 @@ var platformAutoFeedbackSchema = new Schema({
         feedbackResult: {type: String},
         feedbackTopic: {type: String},
         content: {type: String},
-    }]
+    }],
+    createTime: {type: Date, default: Date.now}
 });
 
 module.exports = platformAutoFeedbackSchema;

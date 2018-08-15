@@ -721,7 +721,7 @@ function socketActionPlatform(socketIO, socket) {
         },
         getAutoFeedback: function getAutoFeedback(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.missionStartTime && data.missionEndTime);
+            let isValidData = Boolean(data && data.platformObjId && data.createTimeStart && data.createTimeEnd);
             socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data], actionName, isValidData);
         },
         getAllAutoFeedback: function getAllAutoFeedback(data) {

@@ -274,14 +274,14 @@
                     select.form-control(style='max-width:300px', ng-model="vm.autoFeedbackMissionSearch.name")
                         option(ng-repeat='(i,v) in vm.autoFeedbackMissions', value='{{v.name}}') {{v.name}}
                 .inlineBlk
-                    label.control-label {{'Feedback Mission Start Time' | translate}}
-                    #autoFeedbackOverviewMissionStartTimePicker.datetimepicker.form-control
+                    label.control-label {{'Mission Create Start Time' | translate}}
+                    #autoFeedbackOverviewCreateTimeStartPicker.datetimepicker.form-control
                         input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                 .inlineBlk
-                    label.control-label {{'Feedback Mission End Time' | translate}}
-                    #autoFeedbackOverviewMissionEndTimePicker.datetimepicker.form-control
+                    label.control-label {{'Mission Create End Time' | translate}}
+                    #autoFeedbackOverviewCreateTimeEndPicker.datetimepicker.form-control
                         input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
@@ -296,7 +296,8 @@
                     button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','overview')" ng-click='vm.autoFeedbackSearchMission()') {{"SEARCH" | translate}}
 
                 br
-                table#autoFeedbackOverviewTable.simple-table(style='min-width:100%')
+                table#autoFeedbackOverviewTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                #autoFeedbackOverviewTablePage
 
         .panel.panel-primary(ng-if='vm.selectedAutoFeedbackTab === "overview"')
             .panel-heading.panel-heading-sm
