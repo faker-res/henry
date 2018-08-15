@@ -4,6 +4,7 @@ define(['js/app'], function (myApp) {
     let playerController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, commonService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants) {
         let $translate = $filter('translate');
         let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
+        let $noRoundTwoDecimalToFix = $filter('noRoundTwoDecimalToFix');
         let vm = this;
 
         // For debugging:
@@ -12886,7 +12887,16 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     //相關存款提案號
-                    {title: $translate('REWARD_AMOUNT'), data: "bonusAmount"},
+                    {
+                        title: $translate('REWARD_AMOUNT'), data: "bonusAmount",
+                        render: function(data, type, row){
+                            let bonusAmount = data;
+                            if(typeof bonusAmount === 'number'){
+                                bonusAmount = $noRoundTwoDecimalToFix(bonusAmount);
+                            }
+                            return "<div>" + bonusAmount + "</div>";
+                        }
+                    },
                     {
                         //解锁进度（投注额）
                         "title": $translate('Unlock Progress(Consumption)'), data: "curConsumption$",
