@@ -5439,9 +5439,9 @@ let dbPlayerInfo = {
                     console.log('debug transfer error E:', err);
                     dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, platformObjId, platformId, "transferIn",
                         "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, err, status);
-                    // Set BState back to false
-                    dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
                 }
+                // Set BState back to false
+                dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
                 deferred.reject(err);
             }
         ).catch(
