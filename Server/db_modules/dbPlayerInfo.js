@@ -2131,6 +2131,23 @@ let dbPlayerInfo = {
         }
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateData, constShardKeys.collection_players);
     },
+    
+    updatePlayerInfoClient: function (query, updateData) {
+        if (updateData) {
+            delete updateData.password;
+        }
+        let upData = {};
+        if(updateData.DOB){
+            upData.DOB = updateData.DOB;
+        }
+        if(updateData.gender){
+            upData.gender = updateData.gender;
+        }
+        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, upData, constShardKeys.collection_players).then(
+            data => true
+        );
+    },
+
 
     updatePlayerPermission: function (query, admin, permission, remark) {
         var updateObj = {};
