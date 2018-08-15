@@ -4,12 +4,7 @@ define(['js/app'], function (myApp) {
     let playerController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, commonService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants) {
         let $translate = $filter('translate');
         let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
-        let $fixTwoDecimalStr = (value) => {
-            if (typeof value != 'number') {
-                return value;
-            }
-            return $filter('noRoundTwoDecimalPlaces')(value).toFixed(2);
-        };
+        let $noRoundTwoDecimalToFix = $filter('noRoundTwoDecimalToFix');
         let vm = this;
 
         // For debugging:
@@ -13328,13 +13323,18 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     //相關存款提案號
-                    {title: $translate('REWARD_AMOUNT'), data: "bonusAmount"},
+                    {
+                        title: $translate('REWARD_AMOUNT'), data: "bonusAmount",
+                        render: function(data, type, row){
+                            let text = $noRoundTwoDecimalToFix(data);
+                            return "<div>" + text + "</div>";
+                        }
+                    },
                     {
                         //解锁进度（投注额）
                         "title": $translate('Unlock Progress(Consumption)'), data: "curConsumption$",
                         render: function (data, type, row, meta) {
                             let text = row.curConsumption$ + "/" + row.maxConsumption$;
-                            text = $fixTwoDecimalStr(text);
                             return "<div>" + text + "</div>";
                         }
                     },
