@@ -3189,6 +3189,7 @@ define(['js/app'], function (myApp) {
                 vm.newGameGroup.orginalName = vm.SelectedGameGroupNode.groupData.name;
                 vm.newGameGroup.displayName = vm.SelectedGameGroupNode.groupData.displayName;
                 vm.newGameGroup.code = vm.SelectedGameGroupNode.groupData.code;
+                vm.newGameGroup.gameGroupIconUrl = vm.SelectedGameGroupNode.groupData.gameGroupIconUrl;
             }
 
             /////////////////// draw game group tree
