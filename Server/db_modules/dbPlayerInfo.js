@@ -2131,6 +2131,23 @@ let dbPlayerInfo = {
         }
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateData, constShardKeys.collection_players);
     },
+    
+    updatePlayerInfoClient: function (query, updateData) {
+        if (updateData) {
+            delete updateData.password;
+        }
+        let upData = {};
+        if(updateData.DOB){
+            upData.DOB = updateData.DOB;
+        }
+        if(updateData.gender){
+            upData.gender = updateData.gender;
+        }
+        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, upData, constShardKeys.collection_players).then(
+            data => true
+        );
+    },
+
 
     updatePlayerPermission: function (query, admin, permission, remark) {
         var updateObj = {};
@@ -5439,9 +5456,9 @@ let dbPlayerInfo = {
                     console.log('debug transfer error E:', err);
                     dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, platformObjId, platformId, "transferIn",
                         "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, err, status);
-                    // Set BState back to false
-                    dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
                 }
+                // Set BState back to false
+                dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
                 deferred.reject(err);
             }
         ).catch(
