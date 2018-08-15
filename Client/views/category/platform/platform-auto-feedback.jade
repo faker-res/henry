@@ -2,7 +2,7 @@
     .col-md-12
         button.btn.btn-primary.common-button(ng-click='vm.selectedAutoFeedbackTab="create";vm.initAutoFeedbackCreate();')
             span {{"Create Feedback Mission" | translate}}
-        button.btn.btn-primary.common-button(ng-click='vm.selectedAutoFeedbackTab="overview"')
+        button.btn.btn-primary.common-button(ng-click='vm.selectedAutoFeedbackTab="overview";vm.initAutoFeedbackSearch();')
             span {{"Feedback Mission Overview" | translate}}
 
     .col-md-12
@@ -10,18 +10,6 @@
             .panel-heading.panel-heading-sm
                 label {{"Create Feedback Mission" | translate}}
             .panel-body(style='margin:5px;')
-                //.full-width-input-block
-                //    label {{"REWARD_NAME" | translate}}
-                //    input.form-control(type='text', ng-model='vm.showReward.name', ng-disabled='vm.platformRewardShowEdit()', required)
-                //.full-width-input-block
-                //    label {{"REWARD_CODE" | translate}}
-                //    input.form-control(type='text', ng-model='vm.showReward.code', ng-disabled='vm.platformRewardShowEdit()', required)
-                //.full-width-input-block(ng-if='vm.rewardAttrConst.canApply.indexOf(vm.showRewardTypeData.name)>-1')
-                //    label {{"REWARD_NEED_APPLY" | translate}}
-                //    input.form-control(type='checkbox', ng-model='vm.showReward.needApply', ng-change='vm.clearCanApplyFromClient()' ng-disabled='vm.platformRewardShowEdit()')
-                //.full-width-input-block(ng-if='(vm.showRewardTypeData && vm.showRewardTypeData.name ==="PlayerConsumptionReturn") ||(vm.showReward.type && vm.showReward.type.name ==="PlayerConsumptionReturn")')
-                //    label {{"Display imageUrl" | translate}}
-
                 .full-width-input-block
                     label {{"Feedback Mission Name"|translate}}
                     div(style="display:inline-block;")
@@ -63,9 +51,6 @@
                     label.control-label {{'CREDIBILITY' | translate}}
                     div(style="display:inline-block;")
                         select.form-control#selectCredibilityRemarkFeedback(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.autoFeedbackMission.credibilityRemarks')
-                //.full-width-input-block(style="width:200px;")
-                    label.control-label {{'CREDIBILITY_FILTER' | translate}}
-                    select.form-control#selectCredibilityRemarkFeedbackFilter(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.playerFeedbackQuery.credibilityRemarksFilter')
                 .full-width-input-block
                     //上次登入（距今）
                     label {{"LAST_ACCESS_TILL_NOW"|translate}}
@@ -202,7 +187,6 @@
                 br
                 table#autoFeedbackMissionTable.simple-table(style='min-width:100%')
                     thead
-                        //th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
                         th {{"Schedule Mission (Total of 3)"|translate}}
                         th {{"Day Since Previous Mission (Continue mission if player is unresponsive)"|translate}}
                         th {{"Auto Promo Code Trigger Time"|translate}}
@@ -281,5 +265,41 @@
                     //    i.fa.fa-spinner.fa-spin
                     //span.margin-left-5
 
+        .panel.panel-primary(ng-if='vm.selectedAutoFeedbackTab === "overview"')
+            .panel-heading.panel-heading-sm
+                label {{"Feedback Mission Overview List" | translate}}
+            .panel-body(style='margin:5px;')
+                .inlineBlk
+                    label {{"Feedback Mission Name"|translate}}
+                    select.form-control(style='max-width:300px', ng-model="vm.autoFeedbackMissionSearch.name")
+                        option(ng-repeat='(i,v) in vm.autoFeedbackMissions', value='{{v.name}}') {{v.name}}
+                .inlineBlk
+                    label.control-label {{'Feedback Mission Start Time' | translate}}
+                    #autoFeedbackOverviewMissionStartTimePicker.datetimepicker.form-control
+                        input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                        span.add-on
+                            i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                .inlineBlk
+                    label.control-label {{'Feedback Mission End Time' | translate}}
+                    #autoFeedbackOverviewMissionEndTimePicker.datetimepicker.form-control
+                        input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                        span.add-on
+                            i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                .inlineBlk
+                    label {{"Mission Status" | translate}}
+                    select.form-control(ng-model='vm.autoFeedbackMissionSearch.status')
+                        option(value='Unbegun') {{'Unbegun' | translate}}
+                        option(value='Ongoing') {{'Ongoing' | translate}}
+                        option(value='Ended') {{'Ended' | translate}}
+                        option(value='Manually Cancelled') {{'Manually Cancelled' | translate}}
+                .inlineBlk
+                    button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','overview')" ng-click='vm.autoFeedbackSearchMission()') {{"SEARCH" | translate}}
 
+                br
+                table#autoFeedbackOverviewTable.simple-table(style='min-width:100%')
 
+        .panel.panel-primary(ng-if='vm.selectedAutoFeedbackTab === "overview"')
+            .panel-heading.panel-heading-sm
+                label {{"Feedback Mission Daily Detail" | translate}}
+            .panel-body(style='margin:5px;')
+                br

@@ -1068,6 +1068,7 @@ define(['js/app'], function (myApp) {
                             vm.phoneNumFilterClicked();
                             vm.rewardPointsTabClicked();
                             loadPromoCodeTemplate();
+                            vm.getAllAutoFeedback();
                             vm.onGoingLoadPlatformData = false;
                         })
                     },
@@ -32805,8 +32806,50 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'createAutoFeedback', vm.autoFeedbackMission, function (data) {
                     console.log("createAutoFeedback ret",data);
                 });
-            }
+            };
 
+            vm.initAutoFeedbackSearch = function() {
+                vm.autoFeedbackMissionSearch = {
+                    missionStartTime: null,
+                    missionEndTime: null
+                };
+                utilService.actionAfterLoaded("#autoFeedbackOverviewTable", function () {
+                    $('#autoFeedbackOverviewMissionStartTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackOverviewMissionEndTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackOverviewMissionStartTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
+                    $('#autoFeedbackOverviewMissionEndTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
+
+                    vm.autoFeedbackMissionSearch.missionStartTime = $('#autoFeedbackOverviewMissionStartTimePicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMissionSearch.missionEndTime = $('#autoFeedbackOverviewMissionEndTimePicker').data('datetimepicker').getDate();
+                });
+            };
+            vm.autoFeedbackSearchMission = function() {
+                vm.autoFeedbackMissionSearch.platformObjId = vm.selectedPlatform.id;
+                vm.autoFeedbackMissionSearch.missionStartTime = $('#autoFeedbackOverviewMissionStartTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMissionSearch.missionEndTime = $('#autoFeedbackOverviewMissionEndTimePicker').data('datetimepicker').getDate();
+                console.log(vm.autoFeedbackMissionSearch);
+
+                socketService.$socket($scope.AppSocket, 'getAutoFeedback', vm.autoFeedbackMissionSearch, function (data) {
+                    console.log("getAutoFeedback ret",data);
+                });
+            };
+
+            vm.getAllAutoFeedback = function() {
+                socketService.$socket($scope.AppSocket, 'getAllAutoFeedback', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                    console.log("getAllAutoFeedbackMissions ret",data);
+                    vm.autoFeedbackMissions = data.data;
+                });
+            }
         };
 
         let injectParams = [
