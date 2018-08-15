@@ -3173,7 +3173,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate("TRANSFER") + " ID", data: 'transferId'},
                     {title: $translate('playerName'), data: 'playerName'},
                     {
-                        title: $translate("CREDIT"),
+                        title: $translate("TotalChangeAmount"),
                         data: 'amount',
                         render: function (data, type, row) {
                             return parseFloat(data).toFixed(2);
@@ -3181,8 +3181,8 @@ define(['js/app'], function (myApp) {
                     },
                     {title: $translate("provider"), data: 'providerText'},
                     {
-                        title: $translate("amount"),
-                        data: 'amount',
+                        title: $translate("LOCAL_CREDIT"),
+                        data: `amount-lockedAmount$`,
                         render: function (data, type, row) {
                             return parseFloat(data).toFixed(2);
                         }
@@ -3201,7 +3201,7 @@ define(['js/app'], function (myApp) {
 
 
             let tableElem = vm.platformCreditTransferLog.isPopup ? '#platformCreditTransferLogPopupTable' : '#platformCreditTransferLogTable';
-            console.log(tableElem);
+
             let table = utilService.createDatatableWithFooter(tableElem, option, {});
             vm.platformCreditTransferLog.pageObj.init({maxCount: size}, newSearch);
 
