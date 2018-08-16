@@ -876,6 +876,10 @@ var dbPlayerTopUpRecord = {
                         proposalData.remark = '优惠名称: ' + limitedOfferTopUp.data.limitedOfferName + ' (' + limitedOfferTopUp.proposalId + ')';
                 }
 
+                if(lastLoginIp){
+                    proposalData.lastLoginIp = lastLoginIp;
+                }
+
                 let newProposal = {
                     creator: proposalData.creator,
                     data: proposalData,
@@ -1001,9 +1005,9 @@ var dbPlayerTopUpRecord = {
                     updateData.data.amount = merchantResponse.result.revisedAmount;
                 }
 
-                if(lastLoginIp){
-                    updateData.data.lastLoginIp = lastLoginIp;
-                }
+                // if(lastLoginIp){
+                //     updateData.data.lastLoginIp = lastLoginIp;
+                // }
 
                 let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
 
@@ -1242,6 +1246,10 @@ var dbPlayerTopUpRecord = {
                         proposalData.limitedOfferName = limitedOfferTopUp.data.limitedOfferName;
                     }
 
+                }
+
+                if(lastLoginIp){
+                    proposalData.lastLoginIp = lastLoginIp;
                 }
 
                 var newProposal = {
@@ -2348,6 +2356,10 @@ var dbPlayerTopUpRecord = {
                             proposalData.remark = '优惠名称: ' + limitedOfferTopUp.data.limitedOfferName + ' (' + limitedOfferTopUp.proposalId + ')';
                     }
 
+                    if(lastLoginIp){
+                        proposalData.lastLoginIp = lastLoginIp;
+                    }
+
                     let newProposal = {
                         creator: proposalData.creator,
                         data: proposalData,
@@ -2869,6 +2881,10 @@ var dbPlayerTopUpRecord = {
                             proposalData.limitedOfferName = limitedOfferTopUp.data.limitedOfferName
                             if (limitedOfferObjId)
                                 proposalData.remark = '优惠名称: ' + limitedOfferTopUp.data.limitedOfferName + ' (' + limitedOfferTopUp.proposalId + ')';
+                        }
+
+                        if(lastLoginIp){
+                            proposalData.lastLoginIp = lastLoginIp;
                         }
 
                         let newProposal = {
