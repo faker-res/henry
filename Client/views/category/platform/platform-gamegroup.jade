@@ -163,8 +163,8 @@
                                 div(ng-if="vm.selectGameGroupGames && vm.selectGameGroupGames.length == 1") {{vm.allGameStatusKeys[vm.curGame.platformGameStatus-1] | translate}}
                             td
                                 div
-                                    .btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'MaintainGame')", ng-click="vm.updateGameGroupStat(vm.allGameStatusString.MAINTENANCE)") {{'Maintenance' || translate}}
-                                    .btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'EnableGame')", ng-click="vm.updateGameGroupStat(vm.allGameStatusString.ENABLE)", ng-disabled='vm.curGame.status!=vm.allGameStatusString.ENABLE') {{'Enable' || translate}}
+                                    .btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'MaintainGame')", ng-click="vm.updateGameGroupStat(vm.allGameStatusString.MAINTENANCE)") {{'Maintenance' | translate}}
+                                    .btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'EnableGame')", ng-click="vm.updateGameGroupStat(vm.allGameStatusString.ENABLE)", ng-disabled='vm.curGame.status!=vm.allGameStatusString.ENABLE') {{'Enable' | translate}}
 
 #modalAddGameGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
@@ -293,10 +293,10 @@
                         span.strong.text-danger {{"selected games" | translate}}
                         span &nbsp;from&nbsp;
                         //{{vm.gameStatus[vm.curGame._id]}}
-                        span.strong(class='{{vm.getGameStatusClass(vm.gameStatus[vm.curGame._id])}}') {{vm.allGameStatusKeys[vm.gameStatus[vm.curGame._id]-1]}}
+                        span.strong(class='{{vm.getGameStatusClass(vm.gameStatus[vm.curGame._id])}}') {{vm.allGameStatusKeys[vm.gameStatus[vm.curGame._id]-1] | translate}}
                         span &nbsp;to&nbsp;
                         //{{vm.newType}}
-                        span.strong(class='{{vm.getGameStatusClass(vm.newType)}}') {{vm.allGameStatusKeys[[vm.newType] -1]}}
+                        span.strong(class='{{vm.getGameStatusClass(vm.newType)}}') {{vm.allGameStatusKeys[[vm.newType] -1] | translate}}
                         span ?
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.updateGameGroupStat(vm.newType,true)") {{"CONFIRM" | translate}}
