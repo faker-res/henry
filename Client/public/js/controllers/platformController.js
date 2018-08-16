@@ -29835,7 +29835,8 @@ define(['js/app'], function (myApp) {
                 vm.initClearMessage();
                 let sendData = {
                     urlId: vm.currentUrlEditSelect._id,
-                    platformId: vm.selectedPlatform.id
+                    platformId: vm.selectedPlatform.id,
+                    ignoreChecking: vm.ignoreIntervalChecking
                 };
                 vm.selectedOfficerUrl = null;
                 socketService.$socket($scope.AppSocket, 'deleteUrl', sendData, function () {
@@ -29863,7 +29864,8 @@ define(['js/app'], function (myApp) {
                     domain: vm.currentUrlEditSelect.domain,
                     officerId: vm.currentUrlEditSelect.admin,
                     way: vm.currentUrlEditSelect.way,
-                    platformId: vm.selectedPlatform.id
+                    platformId: vm.selectedPlatform.id,
+                    ignoreChecking: vm.ignoreIntervalChecking
                 };
                 console.log("sendData", sendData);
                 vm.selectedOfficerUrl = null;

@@ -63,14 +63,14 @@ function socketActionCsOfficer(socketIO, socket) {
 
         deleteUrl: function deleteUrl(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.urlId && data.platformId);
-            socketUtil.emitter(self.socket, dbCsOfficer.deleteUrl, [data.urlId, data.platformId], actionName, isValidData);
+            let isValidData = Boolean(data && data.urlId && data.platformId && typeof data.ignoreChecking == 'boolean');
+            socketUtil.emitter(self.socket, dbCsOfficer.deleteUrl, [data.urlId, data.platformId, data.ignoreChecking], actionName, isValidData);
         },
 
         updateUrl: function updateUrl(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.urlId && data.domain && data.officerId && data.way && data.platformId);
-            socketUtil.emitter(self.socket, dbCsOfficer.updateUrl, [data.urlId, data.domain, data.officerId, data.way, data.platformId], actionName, isValidData);
+            let isValidData = Boolean(data && data.urlId && data.domain && data.officerId && data.way && data.platformId && typeof data.ignoreChecking == 'boolean');
+            socketUtil.emitter(self.socket, dbCsOfficer.updateUrl, [data.urlId, data.domain, data.officerId, data.way, data.platformId, data.ignoreChecking], actionName, isValidData);
         },
 
         searchUrl: function searchUrl(data) {
