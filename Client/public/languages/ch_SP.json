@@ -4142,6 +4142,7 @@
   "winlose X above ratio": "产生报表输赢x上述比例",
   "Represent a player winlose share between 2 levels": "表示一个玩家的报表输赢只会往上分两层",
   "gameGroupIconUrl": "游戏组图标位置",
+  "PAYMENT_CARD_MODE": "派卡逻辑",
   "Mission Status": "任务状态",
   "Unbegun": "尚未开始",
   "Ongoing": "进行中",
