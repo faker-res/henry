@@ -1106,34 +1106,48 @@ var dbPlayerTopUpRecord = {
         ).then(
             eventData => {
                 rewardEvent = eventData;
-                if (player && player.platform && ((player.bankCardGroup && player.bankCardGroup.banks && player.bankCardGroup.banks.length > 0) || bPMSGroup || fromFPMS )) {
-                    // player = playerData;
-
-                    let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
-
-                    let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, inputData.amount, inputData.limitedOfferObjId);
-                    let proms = [firstTopUpProm, limitedOfferProm];
-
-                    if (inputData.bonusCode) {
-                        let bonusCodeCheckProm;
-                        let isOpenPromoCode = inputData.bonusCode.toString().trim().length == 3 ? true : false;
-                        if (isOpenPromoCode){
-                            bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, inputData.bonusCode, inputData.amount, lastLoginIp);
-                        }
-                        else {
-                            bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, inputData.bonusCode, inputData.amount);
-                        }
-                        proms.push(bonusCodeCheckProm)
-                    }
-
-                    return Promise.all(proms);
-                } else {
-                    return Q.reject({
-                        status: constServerCode.INVALID_DATA,
-                        name: "DataError",
-                        errorMessage: "Invalid player bankcard group data"
-                    });
+                if (player){
+                    return dbPlayerUtil.setPlayerState(player._id, "ManualTopUp");
                 }
+                else{
+                    return Promise.reject({name: "DataError", errorMessage: "Invalid player data"});
+                }
+            }
+        ).then(
+            playerState => {
+               if (playerState) {
+                   if (player && player.platform && ((player.bankCardGroup && player.bankCardGroup.banks && player.bankCardGroup.banks.length > 0) || bPMSGroup || fromFPMS )) {
+                       // player = playerData;
+
+                       let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
+
+                       let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, inputData.amount, inputData.limitedOfferObjId);
+                       let proms = [firstTopUpProm, limitedOfferProm];
+
+                       if (inputData.bonusCode) {
+                           let bonusCodeCheckProm;
+                           let isOpenPromoCode = inputData.bonusCode.toString().trim().length == 3 ? true : false;
+                           if (isOpenPromoCode){
+                               bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, inputData.bonusCode, inputData.amount, lastLoginIp);
+                           }
+                           else {
+                               bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, inputData.bonusCode, inputData.amount);
+                           }
+                           proms.push(bonusCodeCheckProm)
+                       }
+
+                       return Promise.all(proms);
+                   } else {
+                       return Q.reject({
+                           status: constServerCode.INVALID_DATA,
+                           name: "DataError",
+                           errorMessage: "Invalid player bankcard group data"
+                       });
+                   }
+               }
+               else{
+                   return Promise.reject({name: "DataError", errorMessage: "Concurrent issue detected"});
+               }
             }
         ).then(
             res => {
