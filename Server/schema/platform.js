@@ -442,7 +442,11 @@ var platformSchema = new Schema({
         // financial settlement minimum point to disable withdrawal switch
         financialPointsDisableWithdrawal: {type: Boolean, default: false}
     },
-    financialPoints: {type: Number, default: 0}
+    financialPoints: {type: Number, default: 0},
+    bankCardGroupIsPMS: {type: Boolean, default: false},
+    merchantGroupIsPMS: {type: Boolean, default: false},
+    aliPayGroupIsPMS: {type: Boolean, default: false},
+    wechatPayGroupIsPMS: {type: Boolean, default: false}
 });
 
 //add platform id before save

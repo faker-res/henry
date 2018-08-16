@@ -23,6 +23,16 @@ style.
                     li.list-group-item(ng-repeat='(i,bankCardGroup) in vm.platformBankCardGroupList', ng-click='vm.bankCardGroupClicked(i,bankCardGroup)', ng-class='{active: vm.SelectedBankCardGroupNode === bankCardGroup}')
                         text {{bankCardGroup.name}}
                         i.fa.fa-star.pull-right.margin-right-5(ng-show='bankCardGroup.bDefault')
+                div
+                        label {{"PAYMENT_CARD_MODE" | translate}}
+                        br
+                        input#bankCardFPMSGroupSetting(type='radio' value='false' ng-model="vm.bankCardGroupPMS")
+                        label(for='bankCardFPMSGroupSetting') {{"FPMS Group" | translate}}
+                        input#bankCardPMSGroupSetting(type='radio' value='true' ng-model="vm.bankCardGroupPMS")
+                        label(for='bankCardPMSGroupSetting') {{"PMS Group" | translate}}
+                        br
+                        button.btn.btn-primary.common-button(ng-click="vm.updateIsPMSGroup(vm.bankCardGroupPMS, 'bankCardGroupIsPMS')") {{"CONFIRMATION" | translate}}
+                br
                 .btn-group.text-center(style="border-radius:9px",role="group")
                     button.btn.btn-primary.common-button(ng-if="vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && checkViewPermission('Payment', 'BankCardGroup', 'CreateBankCard')", data-toggle="modal", ng-click='vm.newBankCardAcc={};', data-target='#modalAddNewBankCard')
                         text {{"CreateBankCard" | translate}}
