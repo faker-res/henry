@@ -14028,7 +14028,7 @@ let dbPlayerInfo = {
 
         return getPlayerProm.then(
             player => {
-                let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}, isRealPlayer: true};
+                let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}};
 
                 if (player) {
                     relevantPlayerQuery.playerId = player._id;
@@ -14083,7 +14083,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
-                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}},{_id: 1});
+                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}, isRealPlayer: true},{_id: 1});
                 let stream = playerProm.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
 
