@@ -263,7 +263,7 @@ var platformSchema = new Schema({
     //if use locked credit
     useLockedCredit: {type: Boolean, default: false},
     // Use new type of provider group lock
-    useProviderGroup: {type: Boolean, default: false},
+    useProviderGroup: {type: Boolean, default: true},
     // if use point system
     usePointSystem: {type: Boolean, default: true},
     // if use phone number 2 steps verification
