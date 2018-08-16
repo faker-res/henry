@@ -11071,9 +11071,9 @@ let dbPlayerInfo = {
                                             }
                                         ).then(transferCreditToProvider, errorUtils.reportError);
                                     }
-                                    //if it's ipm, don't use async here
-                                    if (isFirstTransfer && (providerData && providerData.providerId != "51" && providerData.providerId != "57"
-                                            && providerData.providerId != "70" && providerData.providerId != "82" && providerData.providerId != "83")) {
+                                    //if it's ipm ,ky or some providers, don't use async here
+                                    if (providerData && (providerData.providerId == "51" || providerData.providerId == "57"
+                                            || providerData.providerId == "70" || providerData.providerId == "82" || providerData.providerId == "83")) {
                                         return transferProm;
                                     }
                                     else {
@@ -16080,11 +16080,13 @@ let dbPlayerInfo = {
             ).lean();
 
             // Promise domain CS and promote way
+            let filteredDomain = dbUtility.filterDomainName(domain);
+
             let promoteWayProm = domain ?
                 dbconfig.collection_csOfficerUrl.findOne({
                     platform: platformObjId,
-                    domain: {$regex: domain, $options: "xi"
-                }}).populate({
+                    domain: filteredDomain
+                }).populate({
                     path: 'admin',
                     model: dbconfig.collection_admin
                 }).lean() : Promise.resolve(false);
@@ -16307,8 +16309,6 @@ let dbPlayerInfo = {
                     result.endTime = endTime;
 
                     let csOfficerDetail = data[6];
-                    console.log('csOfficerDetail', csOfficerDetail);
-                    console.log('playerDetail', playerDetail);
 
                     // related admin
                     if (playerDetail.accAdmin) {
