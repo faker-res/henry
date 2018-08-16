@@ -3153,6 +3153,7 @@ define(['js/app'], function (myApp) {
                 item.typeText = $translate(item.type);
                 item.providerText = vm.getProviderText(item.providerId);
                 item.lockedAmount$ = item.lockedAmount.toFixed(2);
+                item.localAmount$ = Number(item.amount) - Number(item.lockedAmount$);
                 return item;
             });
             let option = $.extend({}, vm.generalDataTableOptions, {
@@ -3183,7 +3184,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate("provider"), data: 'providerText'},
                     {
                         title: $translate("LOCAL_CREDIT"),
-                        data: `amount-lockedAmount$`,
+                        data: `localAmount$`,
                         render: function (data, type, row) {
                             return parseFloat(data).toFixed(2);
                         }

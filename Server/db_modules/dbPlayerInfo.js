@@ -5456,9 +5456,9 @@ let dbPlayerInfo = {
                     console.log('debug transfer error E:', err);
                     dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, platformObjId, platformId, "transferIn",
                         "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, err, status);
-                    // Set BState back to false
-                    dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
                 }
+                // Set BState back to false
+                dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
                 deferred.reject(err);
             }
         ).catch(
@@ -14028,7 +14028,7 @@ let dbPlayerInfo = {
 
         return getPlayerProm.then(
             player => {
-                let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}, isRealPlayer: true};
+                let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}};
 
                 if (player) {
                     relevantPlayerQuery.playerId = player._id;
@@ -14083,7 +14083,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
-                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}},{_id: 1});
+                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}, isRealPlayer: true},{_id: 1});
                 let stream = playerProm.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
 
@@ -14681,6 +14681,9 @@ let dbPlayerInfo = {
         let promoCodeType1Prom = [];
         let promoCodeType2Prom = [];
         let promoCodeType3Prom = [];
+        let promoCodeType1ObjIds = [];
+        let promoCodeType2ObjIds = [];
+        let promoCodeType3ObjIds = [];
         let outputResult = [];
 
         if (query && query.name) {
@@ -14700,6 +14703,25 @@ let dbPlayerInfo = {
                 }
             );
         }
+
+        // find id for promo code type 1, 2, 3
+        dbconfig.collection_promoCodeType.find({platformObjId: platformObjId}).lean().then(
+            promoCode => {
+                if (promoCode && promoCode.length > 0) {
+                    promoCode.forEach(promo => {
+                        if (promo.type === 1) {
+                            promoCodeType1ObjIds.push(ObjectId(promo._id));
+                        }
+                        if (promo.type === 2) {
+                            promoCodeType2ObjIds.push(ObjectId(promo._id));
+                        }
+                        if (promo.type === 3) {
+                            promoCodeType3ObjIds.push(ObjectId(promo._id));
+                        }
+                    });
+                }
+            }
+        );
 
         return getPlayerProm.then(
             player => {
@@ -14894,126 +14916,81 @@ let dbPlayerInfo = {
                             }
                         ));
 
-                    dbconfig.collection_promoCodeType.find({platformObjId: platformObjId}).lean().then(
-                        promoCode => {
-                            let promoCodeType1 = [];
-                            let promoCodeType2 = [];
-                            let promoCodeType3 = [];
-
-                            if (promoCode && promoCode.length > 0) {
-                                promoCode.forEach(promo => {
-                                    if (promo.type === 1) {
-                                        promoCodeType1.push( ObjectId(promo._id) );
-                                    }
-                                    if (promo.type === 2) {
-                                        promoCodeType2.push( ObjectId(promo._id) );
-                                    }
-                                    if (promo.type === 3) {
-                                        promoCodeType3.push( ObjectId(promo._id) );
-                                    }
-                                });
+                    promoCodeType1Prom.push(dbconfig.collection_promoCode.aggregate([
+                        {
+                            $match: {
+                                playerObjId: ObjectId(player._id),
+                                promoCodeTypeObjId: {$in: promoCodeType1ObjIds}
                             }
-
-                            dbconfig.collection_promoCode.aggregate([
-                                {
-                                    $match: {
-                                        playerObjId: ObjectId(player._id),
-                                        promoCodeTypeObjId: {$in: promoCodeType1}
-                                    }
-                                },
-                                {
-                                    $project: {
-                                        playerObjId: 1,
-                                        acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
-                                    }
-                                },
-                                {
-                                    $group: {
-                                        _id: "$playerObjId",
-                                        acceptedCount: {$sum: "$acceptedCount"},
-                                        sendCount: {$sum: 1},
-                                    }
-                                }
-                            ]).read("secondaryPreferred").then(
-                                data => {
-                                    if (data && data.length > 0) {
-                                        promoCodeType1Prom.push(data[0]);
-                                    }
-                                    return data;
-                                }
-                            );
-
-                            dbconfig.collection_promoCode.aggregate([
-                                {
-                                    $match: {
-                                        playerObjId: ObjectId(player._id),
-                                        promoCodeTypeObjId: {$in: promoCodeType2}
-                                    }
-                                },
-                                {
-                                    $project: {
-                                        playerObjId: 1,
-                                        acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
-                                    }
-                                },
-                                {
-                                    $group: {
-                                        _id: "$playerObjId",
-                                        acceptedCount: {$sum: "$acceptedCount"},
-                                        sendCount: {$sum: 1},
-                                    }
-                                }
-                            ]).read("secondaryPreferred").then(
-                                data => {
-                                    if (data && data.length > 0) {
-                                        promoCodeType2Prom.push(data[0]);
-                                    }
-                                    return data;
-                                }
-                            );
-
-                            dbconfig.collection_promoCode.aggregate([
-                                {
-                                    $match: {
-                                        playerObjId: ObjectId(player._id),
-                                        promoCodeTypeObjId: {$in: promoCodeType3}
-                                    }
-                                },
-                                {
-                                    $project: {
-                                        playerObjId: 1,
-                                        acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
-                                    }
-                                },
-                                {
-                                    $group: {
-                                        _id: "$playerObjId",
-                                        acceptedCount: {$sum: "$acceptedCount"},
-                                        sendCount: {$sum: 1},
-                                    }
-                                }
-                            ]).read("secondaryPreferred").then(
-                                data => {
-                                    if (data && data.length > 0) {
-                                        promoCodeType3Prom.push(data[0]);
-                                    }
-                                    return data;
-                                }
-                            );
-
-                            return promoCode;
+                        },
+                        {
+                            $project: {
+                                playerObjId: 1,
+                                acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$playerObjId",
+                                acceptedCount: {$sum: "$acceptedCount"},
+                                sendCount: {$sum: 1},
+                            }
                         }
-                    );
+                    ]).read("secondaryPreferred"));
+
+                    promoCodeType2Prom.push(dbconfig.collection_promoCode.aggregate([
+                        {
+                            $match: {
+                                playerObjId: ObjectId(player._id),
+                                promoCodeTypeObjId: {$in: promoCodeType2ObjIds}
+                            }
+                        },
+                        {
+                            $project: {
+                                playerObjId: 1,
+                                acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$playerObjId",
+                                acceptedCount: {$sum: "$acceptedCount"},
+                                sendCount: {$sum: 1},
+                            }
+                        }
+                    ]).read("secondaryPreferred"));
+
+                    promoCodeType3Prom.push(dbconfig.collection_promoCode.aggregate([
+                        {
+                            $match: {
+                                playerObjId: ObjectId(player._id),
+                                promoCodeTypeObjId: {$in: promoCodeType3ObjIds}
+                            }
+                        },
+                        {
+                            $project: {
+                                playerObjId: 1,
+                                acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$playerObjId",
+                                acceptedCount: {$sum: "$acceptedCount"},
+                                sendCount: {$sum: 1},
+                            }
+                        }
+                    ]).read("secondaryPreferred"));
                 });
 
-                return Promise.all([Promise.all(topUpProm), Promise.all(bonusProm), Promise.all(consumptionProm), Promise.all(trackingGroupProm), promoCodeType1Prom, promoCodeType2Prom, promoCodeType3Prom]).then(data => {
+                return Promise.all([Promise.all(topUpProm), Promise.all(bonusProm), Promise.all(consumptionProm), Promise.all(trackingGroupProm), Promise.all(promoCodeType1Prom), Promise.all(promoCodeType2Prom), Promise.all(promoCodeType3Prom)]).then(data => {
                     let topUpRecord = [].concat(...data[0]);
                     let bonusRecord = [].concat(...data[1]);
                     let consumptionRecord = [].concat(...data[2]);
                     let trackingGroupRecord = [].concat(...data[3]);
-                    let promoCodeType11 = data[4];
-                    let promoCodeType22 = data[5];
-                    let promoCodeType33 = data[6];
+                    let promoCodeType11 = [].concat(...data[4]);
+                    let promoCodeType22 = [].concat(...data[5]);
+                    let promoCodeType33 = [].concat(...data[6]);
 
                     // assign last record date
                     playerData.forEach(player => {
