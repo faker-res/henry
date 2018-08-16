@@ -16080,11 +16080,13 @@ let dbPlayerInfo = {
             ).lean();
 
             // Promise domain CS and promote way
+            let filteredDomain = dbUtility.filterDomainName(domain);
+
             let promoteWayProm = domain ?
                 dbconfig.collection_csOfficerUrl.findOne({
                     platform: platformObjId,
-                    domain: {$regex: domain, $options: "xi"
-                }}).populate({
+                    domain: filteredDomain
+                }).populate({
                     path: 'admin',
                     model: dbconfig.collection_admin
                 }).lean() : Promise.resolve(false);
@@ -16307,8 +16309,6 @@ let dbPlayerInfo = {
                     result.endTime = endTime;
 
                     let csOfficerDetail = data[6];
-                    console.log('csOfficerDetail', csOfficerDetail);
-                    console.log('playerDetail', playerDetail);
 
                     // related admin
                     if (playerDetail.accAdmin) {
