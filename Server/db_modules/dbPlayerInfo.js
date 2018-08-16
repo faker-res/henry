@@ -2131,6 +2131,23 @@ let dbPlayerInfo = {
         }
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateData, constShardKeys.collection_players);
     },
+    
+    updatePlayerInfoClient: function (query, updateData) {
+        if (updateData) {
+            delete updateData.password;
+        }
+        let upData = {};
+        if(updateData.DOB){
+            upData.DOB = updateData.DOB;
+        }
+        if(updateData.gender){
+            upData.gender = updateData.gender;
+        }
+        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, upData, constShardKeys.collection_players).then(
+            data => true
+        );
+    },
+
 
     updatePlayerPermission: function (query, admin, permission, remark) {
         var updateObj = {};
@@ -3287,6 +3304,7 @@ let dbPlayerInfo = {
                                     && platform.autoApproveLostThreshold && rtg.totalCredit <= platform.autoApproveLostThreshold) {
                                     console.log('JY check rtg ---', rtg);
 
+                                    console.log('unlock rtg due to consumption clear in other location A', rtg._id);
                                     rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
 
                                     dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then( rewards => {
@@ -5416,6 +5434,7 @@ let dbPlayerInfo = {
                             return Promise.reject({
                                 name: "DBError",
                                 status: constServerCode.CONCURRENT_DETECTED,
+                                dontLogTransfer: true,
                                 message: "Apply Reward Fail, please try again later"
                             })
                         }
@@ -5429,15 +5448,17 @@ let dbPlayerInfo = {
                 deferred.resolve(data);
             },
             function (err) {
-                if (!err || !err.hasLog) {
+                if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer)) {
                     let platformId = playerData.platform ? playerData.platform.platformId : null;
                     let platformObjId = playerData.platform ? playerData.platform._id : null;
+                    let status = (err.error && err.error.errorMessage && err.error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
                     // Second log - failed processing before calling cpmsAPI
+                    console.log('debug transfer error E:', err);
                     dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, platformObjId, platformId, "transferIn",
-                        "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, err, constPlayerCreditTransferStatus.FAIL);
-                    // Set BState back to false
-                    dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
+                        "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, err, status);
                 }
+                // Set BState back to false
+                dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
                 deferred.reject(err);
             }
         ).catch(
@@ -5728,6 +5749,7 @@ let dbPlayerInfo = {
                                     // var lockedAmount = rewardData.currentAmount ? rewardData.currentAmount : 0;
                                     let status = (error && error.errorMessage && error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
                                     // Third log - transfer in failed
+                                    console.log('debug transfer error F:', error);
                                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerData.playerId, playerData.name, platform, platformId, "transferIn",
                                         id, providerShortId, transferAmount, lockedAmount, adminName, error, status);
                                     error.hasLog = true;
@@ -5914,7 +5936,8 @@ let dbPlayerInfo = {
                             } else {
                                 return Promise.reject({
                                     name: "DBError",
-                                    message: "transfer credit fail, please try again later"
+                                    message: "transfer credit fail, please try again later",
+                                    dontLogTransfer: true
                                 })
                             }
                         });
@@ -5932,9 +5955,10 @@ let dbPlayerInfo = {
                 deferred.resolve(data);
             },
             function (err) {
-                if (!err || (!err.hasLog && !err.insufficientAmount)) {
+                if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer)) {
                     var platformId = playerObj.platform ? playerObj.platform.platformId : null;
                     var platformObjId = playerObj.platform ? playerObj.platform._id : null;
+                    console.log('debug transfer error G:', err);
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, platformObjId, platformId, "transferOut", "unknown",
                         providerId, amount, 0, adminName, err, constPlayerCreditTransferStatus.FAIL);
                 }
@@ -6135,8 +6159,10 @@ let dbPlayerInfo = {
                                 res => res,
                                 error => {
                                     // var lockedAmount = rewardTask && rewardTask.currentAmount ? rewardTask.currentAmount : 0;
+                                    console.log('debug transfer error H:', error);
+                                    let status = (error && error.errorMessage && error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
                                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
-                                        providerShortId, amount, lockedAmount, adminName, error, constPlayerCreditTransferStatus.FAIL);
+                                        providerShortId, amount, lockedAmount, adminName, error, status);
                                     error.hasLog = true;
                                     return Q.reject(error);
                                 }
@@ -9984,6 +10010,7 @@ let dbPlayerInfo = {
                         let totalTargetConsumption = targetConsumption + forbidXIMAAmt;
 
                         if(currentConsumption >= totalTargetConsumption) {
+                            console.log('unlock rtg due to consumption clear in other location B', RTG._id);
                             return dbRewardTaskGroup.unlockRewardTaskGroupByObjId(RTG) .then(
                                 () => {
                                     return findStartedRewardTaskGroup(player.platform, player._id);
@@ -11044,8 +11071,9 @@ let dbPlayerInfo = {
                                             }
                                         ).then(transferCreditToProvider, errorUtils.reportError);
                                     }
-                                    //if it's ipm, don't use async here
-                                    if (isFirstTransfer && (providerData && providerData.providerId != "51" && providerData.providerId != "57" && providerData.providerId != "70")) {
+                                    //if it's ipm ,ky or some providers, don't use async here
+                                    if (providerData && (providerData.providerId == "51" || providerData.providerId == "57"
+                                            || providerData.providerId == "70" || providerData.providerId == "82" || providerData.providerId == "83")) {
                                         return transferProm;
                                     }
                                     else {
@@ -14000,7 +14028,7 @@ let dbPlayerInfo = {
 
         return getPlayerProm.then(
             player => {
-                let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}, isRealPlayer: true};
+                let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}};
 
                 if (player) {
                     relevantPlayerQuery.playerId = player._id;
@@ -14055,7 +14083,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
-                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}},{_id: 1});
+                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}, isRealPlayer: true},{_id: 1});
                 let stream = playerProm.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
 
@@ -14650,6 +14678,12 @@ let dbPlayerInfo = {
         let bonusProm = [];
         let consumptionProm = [];
         let trackingGroupProm = [];
+        let promoCodeType1Prom = [];
+        let promoCodeType2Prom = [];
+        let promoCodeType3Prom = [];
+        let promoCodeType1ObjIds = [];
+        let promoCodeType2ObjIds = [];
+        let promoCodeType3ObjIds = [];
         let outputResult = [];
 
         if (query && query.name) {
@@ -14669,6 +14703,25 @@ let dbPlayerInfo = {
                 }
             );
         }
+
+        // find id for promo code type 1, 2, 3
+        dbconfig.collection_promoCodeType.find({platformObjId: platformObjId}).lean().then(
+            promoCode => {
+                if (promoCode && promoCode.length > 0) {
+                    promoCode.forEach(promo => {
+                        if (promo.type === 1) {
+                            promoCodeType1ObjIds.push(ObjectId(promo._id));
+                        }
+                        if (promo.type === 2) {
+                            promoCodeType2ObjIds.push(ObjectId(promo._id));
+                        }
+                        if (promo.type === 3) {
+                            promoCodeType3ObjIds.push(ObjectId(promo._id));
+                        }
+                    });
+                }
+            }
+        );
 
         return getPlayerProm.then(
             player => {
@@ -14862,13 +14915,82 @@ let dbPlayerInfo = {
                                 }
                             }
                         ));
+
+                    promoCodeType1Prom.push(dbconfig.collection_promoCode.aggregate([
+                        {
+                            $match: {
+                                playerObjId: ObjectId(player._id),
+                                promoCodeTypeObjId: {$in: promoCodeType1ObjIds}
+                            }
+                        },
+                        {
+                            $project: {
+                                playerObjId: 1,
+                                acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$playerObjId",
+                                acceptedCount: {$sum: "$acceptedCount"},
+                                sendCount: {$sum: 1},
+                            }
+                        }
+                    ]).read("secondaryPreferred"));
+
+                    promoCodeType2Prom.push(dbconfig.collection_promoCode.aggregate([
+                        {
+                            $match: {
+                                playerObjId: ObjectId(player._id),
+                                promoCodeTypeObjId: {$in: promoCodeType2ObjIds}
+                            }
+                        },
+                        {
+                            $project: {
+                                playerObjId: 1,
+                                acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$playerObjId",
+                                acceptedCount: {$sum: "$acceptedCount"},
+                                sendCount: {$sum: 1},
+                            }
+                        }
+                    ]).read("secondaryPreferred"));
+
+                    promoCodeType3Prom.push(dbconfig.collection_promoCode.aggregate([
+                        {
+                            $match: {
+                                playerObjId: ObjectId(player._id),
+                                promoCodeTypeObjId: {$in: promoCodeType3ObjIds}
+                            }
+                        },
+                        {
+                            $project: {
+                                playerObjId: 1,
+                                acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$playerObjId",
+                                acceptedCount: {$sum: "$acceptedCount"},
+                                sendCount: {$sum: 1},
+                            }
+                        }
+                    ]).read("secondaryPreferred"));
                 });
 
-                return Promise.all([Promise.all(topUpProm), Promise.all(bonusProm), Promise.all(consumptionProm), Promise.all(trackingGroupProm)]).then(data => {
+                return Promise.all([Promise.all(topUpProm), Promise.all(bonusProm), Promise.all(consumptionProm), Promise.all(trackingGroupProm), Promise.all(promoCodeType1Prom), Promise.all(promoCodeType2Prom), Promise.all(promoCodeType3Prom)]).then(data => {
                     let topUpRecord = [].concat(...data[0]);
                     let bonusRecord = [].concat(...data[1]);
                     let consumptionRecord = [].concat(...data[2]);
                     let trackingGroupRecord = [].concat(...data[3]);
+                    let promoCodeType11 = [].concat(...data[4]);
+                    let promoCodeType22 = [].concat(...data[5]);
+                    let promoCodeType33 = [].concat(...data[6]);
 
                     // assign last record date
                     playerData.forEach(player => {
@@ -14894,6 +15016,27 @@ let dbPlayerInfo = {
                         trackingGroupRecord.forEach(trackingGroup => {
                             if (player && trackingGroup && player._id.toString() === trackingGroup.playerId.toString()) {
                                 player.depositTrackingGroupName = trackingGroup.depositTrackingGroupName;
+                            }
+                        });
+
+                        promoCodeType11.forEach(promoCode => {
+                            if (player && promoCode && player._id.toString() === promoCode._id.toString()) {
+                                player.promoCodeType1Total = promoCode.sendCount;
+                                player.promoCodeType1Accepted = promoCode.acceptedCount;
+                            }
+                        });
+
+                        promoCodeType22.forEach(promoCode => {
+                            if (player && promoCode && player._id.toString() === promoCode._id.toString()) {
+                                player.promoCodeType2Total = promoCode.sendCount;
+                                player.promoCodeType2Accepted = promoCode.acceptedCount;
+                            }
+                        });
+
+                        promoCodeType33.forEach(promoCode => {
+                            if (player && promoCode && player._id.toString() === promoCode._id.toString()) {
+                                player.promoCodeType3Total = promoCode.sendCount;
+                                player.promoCodeType3Accepted = promoCode.acceptedCount;
                             }
                         });
 
@@ -15170,6 +15313,246 @@ let dbPlayerInfo = {
                 let outputYear = outputData[z].date.year;
 
                 outputData[z].date = new Date(outputYear, outputMonth);
+            }
+
+            // display data in reverse date order
+            outputData.sort(function (a, b) {
+                return b.date - a.date
+            });
+
+            //handle sum of field here
+            for (let z = 0; z < outputData.length; z++) {
+                outputDataSum.validConsumption += outputData[z].validConsumption;
+                outputDataSum.topUpAmount += outputData[z].topUpAmount;
+                outputDataSum.bonusAmount += outputData[z].bonusAmount;
+            }
+
+            return {total: outputDataSum, outputData: outputData, playerName: playerData.playerName, playerId: playerData.playerId};
+        });
+    },
+
+    getPlayerDepositTrackingDailyDetails: function (platformObjId, playerObjId, date) {
+        let newDate = new Date(date);
+        let startDate = dbUtility.getMonthSGTIme(newDate).startTime;
+        let endDate = dbUtility.getMonthSGTIme(newDate).endTime;
+        let consumptionProm = [];
+        let topUpProm = [];
+        let bonusProm = [];
+        let outputDataSum = {
+            validConsumption: 0,
+            topUpAmount: 0,
+            bonusAmount: 0,
+        };
+
+        // loop for every day
+        while (startDate.getTime() < endDate.getTime()) {
+            let dayEndTime = getNextDateByPeriodAndDate('day', startDate);
+
+            // adjust the timezone
+            let timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000;
+            let positiveTimeOffset = Math.abs(timezoneOffset);
+            let timezoneAdjust = {}; //for topup and bonus
+            let timezoneAdjust2 = {}; //for consumption
+
+            // convert UTC 16h to GMT 24h
+            if (parseInt(timezoneOffset) > 0) {
+                timezoneAdjust = {
+                    year: {$year: {$subtract: ['$settleTime', positiveTimeOffset]}},
+                    month: {$month: {$subtract: ['$settleTime', positiveTimeOffset]}},
+                    day: {$dayOfMonth: {$subtract: ['$settleTime', positiveTimeOffset]}},
+                }
+            } else {
+                timezoneAdjust = {
+                    year: {$year: {$add: ['$settleTime', positiveTimeOffset]}},
+                    month: {$month: {$add: ['$settleTime', positiveTimeOffset]}},
+                    day: {$dayOfMonth: {$add: ['$settleTime', positiveTimeOffset]}},
+                }
+            }
+            if (parseInt(timezoneOffset) > 0) {
+                timezoneAdjust2 = {
+                    year: {$year: {$subtract: ['$createTime', positiveTimeOffset]}},
+                    month: {$month: {$subtract: ['$createTime', positiveTimeOffset]}},
+                    day: {$dayOfMonth: {$subtract: ['$createTime', positiveTimeOffset]}},
+                }
+            } else {
+                timezoneAdjust2 = {
+                    year: {$year: {$add: ['$createTime', positiveTimeOffset]}},
+                    month: {$month: {$add: ['$createTime', positiveTimeOffset]}},
+                    day: {$dayOfMonth: {$add: ['$createTime', positiveTimeOffset]}},
+                }
+            }
+
+            consumptionProm.push(dbconfig.collection_playerConsumptionRecord.aggregate([
+                {
+                    $match: {
+                        playerId: playerObjId,
+                        platformId: platformObjId,
+                        createTime: {
+                            $gte: startDate,
+                            $lte: dayEndTime
+                        },
+                        $or: [
+                            {isDuplicate: {$exists: false}},
+                            {
+                                $and: [
+                                    {isDuplicate: {$exists: true}},
+                                    {isDuplicate: false}
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
+                    $group: {
+                        _id: timezoneAdjust2,
+                        count: {$sum: {$cond: ["$count", "$count", 1]}},
+                        amount: {$sum: "$amount"},
+                        validAmount: {$sum: "$validAmount"},
+                    }
+                }
+            ]).allowDiskUse(true).read("secondaryPreferred"));
+
+            topUpProm.push(dbconfig.collection_proposal.aggregate([
+                {
+                    $match: {
+                        "data.playerObjId": playerObjId,
+                        "data.platformId": platformObjId,
+                        createTime: {
+                            $gte: startDate,
+                            $lte: dayEndTime
+                        },
+                        mainType: "TopUp",
+                        status: constProposalStatus.SUCCESS,
+                    }
+                },
+                {
+                    $group: {
+                        _id: timezoneAdjust,
+                        typeId: {$first: "$type"},
+                        count: {$sum: 1},
+                        amount: {$sum: "$data.amount"},
+                    }
+                }
+            ]).read("secondaryPreferred"));
+
+            bonusProm.push(dbconfig.collection_proposal.aggregate([
+                {
+                    $match: {
+                        "data.playerObjId": playerObjId,
+                        "data.platformId": platformObjId,
+                        createTime: {
+                            $gte: startDate,
+                            $lte: dayEndTime
+                        },
+                        mainType: "PlayerBonus",
+                        status: constProposalStatus.SUCCESS,
+                    }
+                },
+                {
+                    $group: {
+                        _id: timezoneAdjust,
+                        count: {$sum: 1},
+                        amount: {$sum: "$data.amount"},
+                    }
+                }
+            ]).read("secondaryPreferred"));
+
+            startDate = dayEndTime;
+        }
+
+        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).lean().then(
+            playerData => {
+                if (playerData) {
+                    return {playerId: playerData._id, playerName: playerData.name};
+                }
+            }
+        );
+
+        return Promise.all([Promise.all(topUpProm), Promise.all(bonusProm), Promise.all(consumptionProm), playerProm]).then(data => {
+            let topUpRecord = data[0];
+            let bonusRecord = data[1];
+            let consumptionRecord = data[2];
+            let playerData = data[3];
+
+            topUpRecord = [].concat(...topUpRecord);
+            bonusRecord = [].concat(...bonusRecord);
+            consumptionRecord = [].concat(...consumptionRecord);
+
+            let outputData = [];
+            for (let x = 0; x < topUpRecord.length; x++) {
+                outputData.push({
+                    date: topUpRecord[x]._id,
+                    validConsumption: 0,
+                    topUpAmount: topUpRecord[x].amount,
+                    bonusAmount: 0
+                });
+            }
+
+            outputData.forEach(output => {
+                bonusRecord.forEach(bonus => {
+                    if (!bonus.bUsed) {  // only check bonus not used
+                        let outputDate = new Date(output.date.year, output.date.month, output.date.day);
+                        let bonusDate = new Date(bonus._id.year, bonus._id.month, bonus._id.day);
+
+                        if (outputDate.getTime() === bonusDate.getTime()) {
+                            output.bonusAmount = bonus.amount;
+                            bonus.bUsed = true; // to skip this bonus if used
+                        } else {
+                            bonus.bUsed = false;
+                        }
+                    }
+                });
+            });
+
+            // for scenario when that day doesn't have top up record
+            bonusRecord.forEach(bonus => {
+                if (!bonus.bUsed) {
+                    outputData.push({
+                        date: bonus._id,
+                        topUpAmount: 0,
+                        bonusAmount: bonus.amount,
+                        validConsumption: 0
+                    });
+                    bonus.bUsed = true;
+                }
+            });
+
+            outputData.forEach(output => {
+                consumptionRecord.forEach(consumption => {
+                    if (!consumption.bUsed) {  // only check consumption not used
+                        let outputDate = new Date(output.date.year, output.date.month, output.date.day);
+                        let consumptionDate = new Date(consumption._id.year, consumption._id.month, consumption._id.day);
+
+                        if (outputDate.getTime() === consumptionDate.getTime()) {
+                            output.validConsumption = consumption.validAmount;
+                            consumption.bUsed = true; // to skip this consumption if used
+                        } else {
+                            consumption.bUsed = false;
+                        }
+                    }
+                });
+            });
+
+            // for scenario when that day doesn't have top up and bonus record
+            consumptionRecord.forEach(consumption => {
+                if (!consumption.bUsed) {
+                    outputData.push({
+                        date: consumption._id,
+                        topUpAmount: 0,
+                        bonusAmount: 0,
+                        validConsumption: consumption.validAmount
+                    });
+                    consumption.bUsed = true;
+                }
+            });
+
+            // convert date format
+            for (let z = 0; z < outputData.length; z++) {
+                let outputDay = outputData[z].date.day;
+                let outputMonth = outputData[z].date.month - 1; //month start from 0 to 11
+                let outputYear = outputData[z].date.year;
+
+                outputData[z].date = new Date(outputYear, outputMonth, outputDay);
             }
 
             // display data in reverse date order

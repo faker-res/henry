@@ -637,7 +637,6 @@ var dbPlayerConsumptionRecord = {
 
                 }
                 if (record) {
-                    console.log('debug log #0FD400');
                     dbRewardPoints.updateGameRewardPointProgress(record).catch(errorUtils.reportError);
                 }
                 return record

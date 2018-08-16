@@ -1068,6 +1068,7 @@ define(['js/app'], function (myApp) {
                             vm.phoneNumFilterClicked();
                             vm.rewardPointsTabClicked();
                             loadPromoCodeTemplate();
+                            vm.getAllAutoFeedback();
                             vm.onGoingLoadPlatformData = false;
                         })
                     },
@@ -3069,6 +3070,10 @@ define(['js/app'], function (myApp) {
                         }else{
                             vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
                         }
+
+                        if (v.game && v.game.hasOwnProperty('platformGameStatus')) {
+                            vm.gameStatus[v.game._id] = v.game.platformGameStatus;
+                        }
                     })
                     console.log("vm.includedGamesGroup", vm.includedGamesGroup);
                     if (vm.showGameCate == "include") {
@@ -3184,6 +3189,7 @@ define(['js/app'], function (myApp) {
                 vm.newGameGroup.orginalName = vm.SelectedGameGroupNode.groupData.name;
                 vm.newGameGroup.displayName = vm.SelectedGameGroupNode.groupData.displayName;
                 vm.newGameGroup.code = vm.SelectedGameGroupNode.groupData.code;
+                vm.newGameGroup.gameGroupIconUrl = vm.SelectedGameGroupNode.groupData.gameGroupIconUrl;
             }
 
             /////////////////// draw game group tree
@@ -16890,8 +16896,15 @@ define(['js/app'], function (myApp) {
                 if (vm.feedbackAdminQuery.topic && vm.feedbackAdminQuery.topic != 'all') {
                     sendQuery.query.topic = vm.feedbackAdminQuery.topic
                 }
-                if (vm.feedbackAdminQuery.hasOwnProperty("topupTimes")) {
-                    sendQuery.topupTimes = vm.feedbackAdminQuery.topupTimes;
+
+                if (vm.feedbackAdminQuery.topUpTimesOperator) {
+                    sendQuery.topUpTimesOperator = vm.feedbackAdminQuery.topUpTimesOperator;
+                }
+                if (vm.feedbackAdminQuery.hasOwnProperty("topUpTimesValue")) {
+                    sendQuery.topUpTimesValue = vm.feedbackAdminQuery.topUpTimesValue;
+                }
+                if (vm.feedbackAdminQuery.hasOwnProperty("topUpTimesValueTwo")) {
+                    sendQuery.topUpTimesValueTwo = vm.feedbackAdminQuery.topUpTimesValueTwo;
                 }
                 console.log("feedbackQuery", sendQuery);
                 $('#loadPlayerFeedbackAdminIcon').show();
@@ -28567,10 +28580,6 @@ define(['js/app'], function (myApp) {
 
             // right panel required functions
             vm.loadAlldepartment = function (callback) {
-
-                if (!authService.checkViewPermission('Platform', 'Proposal', 'Create') && !authService.checkViewPermission('Platform', 'Proposal', 'Update')) {
-                    return;
-                }
                 socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
 
                 function success(data) {
@@ -29826,6 +29835,7 @@ define(['js/app'], function (myApp) {
                 vm.initClearMessage();
                 let sendData = {
                     urlId: vm.currentUrlEditSelect._id,
+                    platformId: vm.selectedPlatform.id
                 };
                 vm.selectedOfficerUrl = null;
                 socketService.$socket($scope.AppSocket, 'deleteUrl', sendData, function () {
@@ -29853,6 +29863,7 @@ define(['js/app'], function (myApp) {
                     domain: vm.currentUrlEditSelect.domain,
                     officerId: vm.currentUrlEditSelect.admin,
                     way: vm.currentUrlEditSelect.way,
+                    platformId: vm.selectedPlatform.id
                 };
                 console.log("sendData", sendData);
                 vm.selectedOfficerUrl = null;
@@ -32642,7 +32653,8 @@ define(['js/app'], function (myApp) {
 
                 vm.feedbackAdminQuery = {
                     result: 'all',
-                    topic: 'all'
+                    topic: 'all',
+                    topUpTimesOperator: ">="
                 };
                 utilService.actionAfterLoaded("#feedbackAdminTablePage", function () {
                     vm.feedbackAdminQuery.pageObj = utilService.createPageForPagingTable("#feedbackAdminTablePage", {}, $translate, function (curP, pageSize) {
@@ -32793,11 +32805,62 @@ define(['js/app'], function (myApp) {
                     vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
                 });
-            }
+            };
             vm.autoFeedbackCreateMission = function() {
-            //    autofeedbackcreatemission
-            }
+                vm.autoFeedbackMission.platformObjId = vm.selectedPlatform.id;
+                vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
+                console.log(vm.autoFeedbackMission);
 
+                socketService.$socket($scope.AppSocket, 'createAutoFeedback', vm.autoFeedbackMission, function (data) {
+                    console.log("createAutoFeedback ret",data);
+                });
+            };
+
+            vm.initAutoFeedbackSearch = function() {
+                vm.autoFeedbackMissionSearch = {
+                    missionStartTime: null,
+                    missionEndTime: null
+                };
+                utilService.actionAfterLoaded("#autoFeedbackOverviewTable", function () {
+                    $('#autoFeedbackOverviewMissionStartTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackOverviewMissionEndTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackOverviewMissionStartTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
+                    $('#autoFeedbackOverviewMissionEndTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
+
+                    vm.autoFeedbackMissionSearch.missionStartTime = $('#autoFeedbackOverviewMissionStartTimePicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMissionSearch.missionEndTime = $('#autoFeedbackOverviewMissionEndTimePicker').data('datetimepicker').getDate();
+                });
+            };
+            vm.autoFeedbackSearchMission = function() {
+                vm.autoFeedbackMissionSearch.platformObjId = vm.selectedPlatform.id;
+                vm.autoFeedbackMissionSearch.missionStartTime = $('#autoFeedbackOverviewMissionStartTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMissionSearch.missionEndTime = $('#autoFeedbackOverviewMissionEndTimePicker').data('datetimepicker').getDate();
+                console.log(vm.autoFeedbackMissionSearch);
+
+                socketService.$socket($scope.AppSocket, 'getAutoFeedback', vm.autoFeedbackMissionSearch, function (data) {
+                    console.log("getAutoFeedback ret",data);
+                });
+            };
+
+            vm.getAllAutoFeedback = function() {
+                socketService.$socket($scope.AppSocket, 'getAllAutoFeedback', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                    console.log("getAllAutoFeedbackMissions ret",data);
+                    vm.autoFeedbackMissions = data.data;
+                });
+            }
         };
 
         let injectParams = [

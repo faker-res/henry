@@ -15,6 +15,7 @@ const dbRewardEvent = require('./../db_modules/dbRewardEvent');
 const dbRewardTaskGroup = require('./../db_modules/dbRewardTaskGroup');
 const dbPlayerCredibility = require('../db_modules/dbPlayerCredibility');
 const dbPlayerOnlineTime = require('../db_modules/dbPlayerOnlineTime');
+const dbPlatformAutoFeedback = require('../db_modules/dbPlatformAutoFeedback');
 const dbSmsGroup = require('../db_modules/dbSmsGroup');
 const constProposalType = require('./../const/constProposalType');
 const constFinancialPointsType = require('./../const/constFinancialPointsType');
@@ -711,6 +712,22 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime);
             socketUtil.emitter(self.socket, dbPlayerOnlineTime.getOnlineTimeLogByPlatform, [data.platformObjId, data.startTime, data.endTime], actionName, isValidData);
+        },
+
+        createAutoFeedback: function createAutoFeedback(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.createAutoFeedback, [data], actionName, isValidData);
+        },
+        getAutoFeedback: function getAutoFeedback(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.missionStartTime && data.missionEndTime);
+            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data], actionName, isValidData);
+        },
+        getAllAutoFeedback: function getAllAutoFeedback(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data], actionName, isValidData);
         }
     };
     socketActionPlatform.actions = this.actions;
