@@ -11071,9 +11071,9 @@ let dbPlayerInfo = {
                                             }
                                         ).then(transferCreditToProvider, errorUtils.reportError);
                                     }
-                                    //if it's ipm, don't use async here
-                                    if (providerData && providerData.providerId != "51" && providerData.providerId != "57"
-                                            && providerData.providerId != "70" && providerData.providerId != "82" && providerData.providerId != "83") {
+                                    //if it's ipm ,ky or some providers, don't use async here
+                                    if (providerData && (providerData.providerId == "51" || providerData.providerId == "57"
+                                            || providerData.providerId == "70" || providerData.providerId == "82" || providerData.providerId == "83")) {
                                         return transferProm;
                                     }
                                     else {
