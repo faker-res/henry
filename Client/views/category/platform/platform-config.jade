@@ -466,12 +466,17 @@
                     table.common-table.callConfigTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
+                                th {{'LINE_STATUS' | translate}}
                                 th {{'LINE_ID_CUSTOM' | translate}}
                                 th {{'LINE_NAME_CPMS' | translate}}
                                 th {{'MIN_LEVEL_ABOVE' | translate}}
                                 th(ng-if='vm.configTableEdit')
                         tbody
                             tr(ng-repeat='item in vm.callRequestConfig.callRequestLineConfig')
+                                td
+                                    select.form-control(ng-model='item.status', ng-disabled='!vm.configTableEdit')
+                                        option(ng-value="zeroOne.one") {{"Open" | translate}}
+                                        option(ng-value="zeroOne.zero") {{"Closed" | translate}}
                                 td
                                     input.form-control(type='number', ng-model='item.lineId', ng-disabled='!vm.configTableEdit')
                                 td

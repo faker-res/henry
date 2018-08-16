@@ -415,7 +415,8 @@ var platformSchema = new Schema({
     callRequestLineConfig: [{
         lineId: {type: Number},
         lineName: {type: String},
-        minLevel: {type: String}
+        minLevel: {type: String},
+        status: {type: Number, default: 1}
     }],
     //playerLevel display list- displayId, displayTitle, displayTextContent, and btnOrImageList
     display: [{
