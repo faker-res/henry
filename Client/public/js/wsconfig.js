@@ -16,5 +16,8 @@ let WSCONFIG = {
     },
     "dev": {
         "socketURL": "devtest.fpms8.me:9000",
+    },
+    "dev11": {
+        "socketURL": "devtest.wsweb.me:9000",
     }
 };
