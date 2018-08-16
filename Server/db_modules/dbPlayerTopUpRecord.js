@@ -2626,7 +2626,7 @@ var dbPlayerTopUpRecord = {
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup}).then(
                 playerData => {
-                    if (playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) {
+                    if ((playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) || bPMSGroup) {
                         let aliPayProm;
                         let pmsQuery = {
                             platformId: playerData.platform.platformId,
