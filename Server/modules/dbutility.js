@@ -925,6 +925,16 @@ var dbUtility = {
             .replace("m.", "");
     },
 
+    filterDomainName: function (url) {
+        let filteredDomain = dbUtility.getDomainName(url);
+
+        if (filteredDomain.indexOf("/") !== -1) {
+            filteredDomain = filteredDomain.split("/")[0];
+        }
+
+        return filteredDomain;
+    },
+
     encodeEmail: function(email) {
         email = email || '';
         let emailChars = email.split('');

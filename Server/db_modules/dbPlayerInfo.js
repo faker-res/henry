@@ -16080,11 +16080,15 @@ let dbPlayerInfo = {
             ).lean();
 
             // Promise domain CS and promote way
+            console.log('domain-111', domain);
+            let filteredDomain = dbUtility.filterDomainName(domain);
+            console.log('domain-222', filteredDomain);
+
             let promoteWayProm = domain ?
                 dbconfig.collection_csOfficerUrl.findOne({
                     platform: platformObjId,
-                    domain: {$regex: domain, $options: "xi"
-                }}).populate({
+                    domain: filteredDomain
+                }).populate({
                     path: 'admin',
                     model: dbconfig.collection_admin
                 }).lean() : Promise.resolve(false);
