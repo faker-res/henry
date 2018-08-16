@@ -213,6 +213,8 @@ let promoCodeTemplateModel = db_admin.model('promoCodeTemplate', promoCodeTempla
 
 let platformAutoFeedbackSchema = require('./../schema/platformAutoFeedback');
 let platformAutoFeedbackModel = db_admin.model('platformAutoFeedback', platformAutoFeedbackSchema, 'platformAutoFeedback');
+let idcIpSchema = require('./../schema/idcIp');
+let idcIpModel = db_admin.model('idcIp', idcIpSchema, 'idcIp');
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
 var playerFeedbackModel = db_player.model('playerFeedback', playerFeedbackSchema, 'playerFeedback');
@@ -531,6 +533,7 @@ var dbProperties = {
     collection_playerPageAdvertisementInfo: playerPageAdvertisementInfoModel,
     collection_partnerPageAdvertisementInfo: partnerPageAdvertisementInfoModel,
 
+    collection_idcIp: idcIpModel,
     collection_smsGroup: smsGroupModel,
     collection_promoCodeTemplate: promoCodeTemplateModel,
 
