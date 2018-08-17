@@ -3910,6 +3910,8 @@
   "CALL_PERMISSION": "电话回访权限",
   "CALLABLE": "可播电",
   "partnerApiLog": "代理登入记录",
+  "Force Stop Mission": "强制停止FPMS群播任务",
+  "FORCE_STOP_MISSION_WARNING": "此功能只会停止FPMS的群播任务，并不会对CTI造成任何影响。停止后将不能重新使用同一个群播任务，必须重新开启新的群播任务。一般只有当进入回访页面，没点击批量播出却会跳出CTI报错信息时使用。确定强制停止群播任务？",
 
   "Please Enter Task Name": "请输入该任务 名称",
   "Please Enter Task Description": "请输入该任务 备注",
