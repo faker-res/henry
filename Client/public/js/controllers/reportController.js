@@ -4239,7 +4239,7 @@ define(['js/app'], function (myApp) {
                     topUpAmountValueTwo: vm.dxNewPlayerQuery.topUpAmountValueTwo
                 },
                 index: newSearch ? 0 : (vm.dxNewPlayerQuery.index || 0),
-                limit: vm.dxNewPlayerQuery.limit || 5000,
+                limit: vm.dxNewPlayerQuery.limit || null,
                 sortCol: vm.dxNewPlayerQuery.sortCol || {validConsumptionAmount: -1},
             };
             console.log('sendquery', sendquery);
@@ -7877,83 +7877,85 @@ define(['js/app'], function (myApp) {
         }
 
         function drawReportQuery (choice) {
+
+            vm.merchantNoNameObj = {};
+            vm.merchantGroupObj = [];
+            let merGroupName = {};
+            let merGroupList = {};
+            
+            socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
+                $scope.$evalAsync(() => {
+                    if (data && data.data && data.data.data) {
+                        vm.allBankTypeList = {};
+                        data.data.data.forEach(item => {
+                            if (item && item.bankTypeId) {
+                                vm.allBankTypeList[item.id] = item.name;
+                            }
+                        })
+                    }
+                })
+            });
+
+            socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
+                $scope.$evalAsync(() => {
+                    data.data.merchantTypes.forEach(mer => {
+                        merGroupName[mer.merchantTypeId] = mer.name;
+                    })
+                    vm.merchantTypes = data.data.merchantTypes;
+                    vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
+                })
+            }, function (data) {
+                console.log("merchantList", data);
+            });
+
+            socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: vm.selectedPlatform.platformId}, function (data) {
+                $scope.$evalAsync(() => {
+                    if (data.data && data.data.merchants) {
+                        vm.merchantLists = data.data.merchants;
+                        vm.merchantNoList = data.data.merchants.filter(mer => {
+                            vm.merchantNoNameObj[mer.merchantNo] = mer.name;
+                            return mer.status != 'DISABLED';
+                        });
+                        vm.merchantNoList.forEach(item => {
+                            merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
+                            merGroupList[item.merchantTypeId].list.push(item.merchantNo);
+                        }) || [];
+
+                        Object.keys(vm.merchantNoList).forEach(item => {
+                            let merchantTypeId = vm.merchantNoList[item].merchantTypeId;
+                            if (merchantTypeId == "9999") {
+                                vm.merchantNoList[item].merchantTypeName = $translate('BankCardNo');
+                            } else if (merchantTypeId == "9998") {
+                                vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_WECHAT_GROUP');
+                            } else if (merchantTypeId == "9997") {
+                                vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_ALIPAY_GROUP');
+                            } else if (merchantTypeId != "9997" && merchantTypeId != "9998" && merchantTypeId != "9999") {
+                                let merchantInfo = vm.merchantTypes.filter(mitem => {
+                                    return mitem.merchantTypeId == merchantTypeId;
+                                })
+                                vm.merchantNoList[item].merchantTypeName = merchantInfo[0] ? merchantInfo[0].name : "";
+                            } else {
+                                vm.merchantNoList[item].merchantTypeName = '';
+                            }
+                        });
+                        vm.merchantCloneList = angular.copy(vm.merchantNoList);
+                        vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
+                        // vm.merchantGroupCloneList = angular.copy(vm.merchantGroupObj);
+                        vm.merchantGroupCloneList = vm.merchantGroupObj;
+                    }
+                });
+            }, function (data) {
+                console.log("merchantList", data);
+            });
+
             switch (choice) {
                 case "TOPUP_REPORT":
                     vm.queryTopup = {};
-                    vm.merchantNoNameObj = {};
-                    vm.merchantGroupObj = [];
-                    let merGroupName = {};
-                    let merGroupList = {};
                     vm.queryTopup.totalCount = 0;
                     vm.resetTopupRecord();
 
                     endLoadMultipleSelect('.merchantNoList');
                     $('#topupTable').remove();
-
-                    socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
-                        $scope.$evalAsync(() => {
-                            if (data && data.data && data.data.data) {
-                                vm.allBankTypeList = {};
-                                data.data.data.forEach(item => {
-                                    if (item && item.bankTypeId) {
-                                        vm.allBankTypeList[item.id] = item.name;
-                                    }
-                                })
-                            }
-                        })
-                    });
-
-                    socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
-                        $scope.$evalAsync(() => {
-                            data.data.merchantTypes.forEach(mer => {
-                                merGroupName[mer.merchantTypeId] = mer.name;
-                            })
-                            vm.merchantTypes = data.data.merchantTypes;
-                            vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
-                        })
-                    }, function (data) {
-                        console.log("merchantList", data);
-                    });
-
-                    socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: vm.selectedPlatform.platformId}, function (data) {
-                        $scope.$evalAsync(() => {
-                            if (data.data && data.data.merchants) {
-                                vm.merchantLists = data.data.merchants;
-                                vm.merchantNoList = data.data.merchants.filter(mer => {
-                                    vm.merchantNoNameObj[mer.merchantNo] = mer.name;
-                                    return mer.status != 'DISABLED';
-                                });
-                                vm.merchantNoList.forEach(item => {
-                                    merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
-                                    merGroupList[item.merchantTypeId].list.push(item.merchantNo);
-                                }) || [];
-
-                                Object.keys(vm.merchantNoList).forEach(item => {
-                                    let merchantTypeId = vm.merchantNoList[item].merchantTypeId;
-                                    if (merchantTypeId == "9999") {
-                                        vm.merchantNoList[item].merchantTypeName = $translate('BankCardNo');
-                                    } else if (merchantTypeId == "9998") {
-                                        vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_WECHAT_GROUP');
-                                    } else if (merchantTypeId == "9997") {
-                                        vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_ALIPAY_GROUP');
-                                    } else if (merchantTypeId != "9997" && merchantTypeId != "9998" && merchantTypeId != "9999") {
-                                        let merchantInfo = vm.merchantTypes.filter(mitem => {
-                                            return mitem.merchantTypeId == merchantTypeId;
-                                        })
-                                        vm.merchantNoList[item].merchantTypeName = merchantInfo[0] ? merchantInfo[0].name : "";
-                                    } else {
-                                        vm.merchantNoList[item].merchantTypeName = '';
-                                    }
-                                });
-                                vm.merchantCloneList = angular.copy(vm.merchantNoList);
-                                vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
-                                // vm.merchantGroupCloneList = angular.copy(vm.merchantGroupObj);
-                                vm.merchantGroupCloneList = vm.merchantGroupObj;
-                            }
-                        });
-                    }, function (data) {
-                        console.log("merchantList", data);
-                    });
 
                     vm.initAccs();
 

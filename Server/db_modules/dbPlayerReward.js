@@ -2516,7 +2516,7 @@ let dbPlayerReward = {
         let query = {
             platformObjId: searchQuery.platformObjId
         };
-
+        
         return expirePromoCode().then(() => {return expirePromoCode(true)}).then(() => {
             return dbConfig.collection_players.findOne({
                 platform: searchQuery.platformObjId,
@@ -2539,14 +2539,11 @@ let dbPlayerReward = {
                 if (searchQuery.startCreateTime) {
                     query.createTime = {$gte: searchQuery.startCreateTime, $lt: searchQuery.endCreateTime};
                     openQuery.createTime = {$gte: searchQuery.startCreateTime, $lt: searchQuery.endCreateTime};
-                    openQuery.timeFilter = searchQuery.startCreateTime;
-
                 }
 
                 if (searchQuery.startAcceptedTime) {
                     query.acceptedTime = {$gte: searchQuery.startAcceptedTime, $lt: searchQuery.endAcceptedTime};
                     openQuery.createTime = {$gte: searchQuery.startAcceptedTime, $lt: searchQuery.endAcceptedTime};
-                    openQuery.timeFilter = searchQuery.startAcceptedTime;
                 }
 
                 // get the promoCode not from deleted promoCodeType
@@ -2572,13 +2569,18 @@ let dbPlayerReward = {
                     }).lean().then(
                         proposalType => {
                             if(proposalType){
-                                return dbConfig.collection_proposal.find({
+                                let findQuery = {
                                     type: proposalType._id,
                                     'data.eventCode': 'KFSYHDM',
-                                    'data.playerObjId': playerObjId,
                                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                                     createTime: openQuery.createTime
-                                }).populate({
+                                }
+
+                                if (playerObjId){
+                                    findQuery['data.playerObjId'] = playerObjId;
+                                }
+
+                                return dbConfig.collection_proposal.find(findQuery).populate({
                                     path: "data.providerGroup",
                                     model: searchQuery.isProviderGroup ? dbConfig.collection_gameProviderGroup : dbConfig.collection_gameProvider
                                 }).sort(searchQuery.sortCol).lean();
@@ -2637,10 +2639,10 @@ let dbPlayerReward = {
 
                 }
                 else{
-                   return Promise.reject({
-                       name: "DataError",
-                       message: "Cannot find the proposal Data"
-                   })
+                   return {
+                       size: 0,
+                       data: []
+                   }
                 }
             }
         ).catch(errorUtils.reportError);

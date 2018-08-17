@@ -1595,6 +1595,7 @@
   "CALL_PERMISSION": "Call Permission",
   "CALLABLE": "Callable",
   "PAST_COMMISSION_SETTLEMENT": "Settle Previous Period Partner Commission",
+  "FORCE_STOP_MISSION_WARNING": "Are you sure you want to force stop FPMS call out mission?",
 
   "DX_NEWACCOUNT_REPORT": "Telemarketing New Account Report",
   "REAL_TIME_COMMISSION_REPORT": "Real Time Commission Report",
@@ -1630,5 +1631,17 @@
   "TotalRewardAmount": "Total Reward Amount",
   "CountPlayerApplied": "Number of Player Applied",
   "Total_Bonus_Amount": "Total Bonus Amount",
-  "PlayerProfit": "Player Profit Amount"
+  "PlayerProfit": "Player Profit Amount",
+  "CANNOT_EDIT": "* Unable to edit, for display purpose",
+  "EDIT_CHILD_PARTNER_INFO_TITLE": "* Only allow 1 partner can be entered per row, and editable. It will be checked dynamically when enter partner:",
+  "EDIT_CHILD_PARTNER_INFO_DESCRIPTION_A": "a.Partner Name does not exists(cannot be edited).",
+  "EDIT_CHILD_PARTNER_INFO_DESCRIPTION_B": "b.Partner Name already has a parent (cannot be edited, please remove it from the original parent).",
+  "PARTNER_NAME_ALREADY_HAS_A_PARENT": "*此Partner Name already has a parent ",
+  "REMOVE_IT_FROM_THE_ORIGINAL_PARENT": "(cannot be edited, please remove it from the original parent)",
+  "PARTNER_NAME_DOES_NOT_EXISTS": "*Partner Name does not exists(cannot be edited)",
+  "UpdateChildPartner": "编辑下级代理架构",
+  "curChildPartnerHeadCount": "Before Update Children Partner Head Count",
+  "updateChildPartnerHeadCount": "After Update Children Partner Head Count",
+  "curChildPartnerName": "Before Update Children Partner Name",
+  "updateChildPartnerName": "After Update Children Partner Name"
 }

@@ -9900,6 +9900,7 @@ let dbPlayerInfo = {
         let bUpdateCredit = false;
         let platform;
         let isUsingXima = false;
+        let lastBonusRemark = "";
         let resetCredit = function (playerObjId, platformObjId, credit, error) {
             //reset player credit if credit is incorrect
             return dbconfig.collection_players.findOneAndUpdate(
@@ -9979,6 +9980,24 @@ let dbPlayerInfo = {
                             if (amount <= player.ximaWithdraw) {
                                 isUsingXima = true;
                             }
+                        }
+
+                        if (!player.permission.applyBonus) {
+                            dbconfig.collection_playerPermissionLog.find(
+                                {
+                                    player: player._id,
+                                    platform: platform._id,
+                                    "oldData.applyBonus": true,
+                                    "newData.applyBonus": false,
+                                },
+                                {remark: 1}
+                            ).sort({createTime: -1}).limit(1).lean().then(
+                                log => {
+                                    if (log && log.length > 0) {
+                                        lastBonusRemark = log[0].remark;
+                                    }
+                                }
+                            );
                         }
 
                         if (player.platform && player.platform.useProviderGroup) {
@@ -10163,7 +10182,7 @@ let dbPlayerInfo = {
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                             };
                                             if (!player.permission.applyBonus && player.platform.playerForbidApplyBonusNeedCsApproval) {
-                                                proposalData.remark = "禁用提款";
+                                                proposalData.remark = "禁用提款: " + lastBonusRemark;
                                                 proposalData.needCsApproved = true;
                                             }
                                             var newProposal = {
@@ -10442,7 +10461,7 @@ let dbPlayerInfo = {
                     {
                         status: bSuccess ? constProposalStatus.SUCCESS : bCancel ? constProposalStatus.CANCEL : constProposalStatus.FAIL,
                         "data.lastSettleTime": new Date(),
-                        "data.remark": remark
+                        // "data.remark": remark
                     }
                 );
             }
@@ -11297,6 +11316,11 @@ let dbPlayerInfo = {
         ).lean().then(
             data => {
                 if (data && data.platform) {
+                    if (data.platform.merchantGroupIsPMS) {
+                        bPMSGroup = true
+                    } else {
+                        bPMSGroup = false;
+                    }
                     let pmsQuery = {
                         platformId: data.platform.platformId,
                         queryId: serverInstance.getQueryId()
@@ -15572,7 +15596,7 @@ let dbPlayerInfo = {
     },
 
     getDXNewPlayerReport: function (platform, query, index, limit, sortCol) {
-        limit = limit ? limit : 20;
+        limit = limit ? limit : null;
         index = index ? index : 0;
         query = query ? query : {};
 
@@ -15656,7 +15680,7 @@ let dbPlayerInfo = {
                 }
 
                 let outputResult = [];
-                let filteredArr = []
+                let filteredArr = [];
                 if(query.csPromoteWay && query.csPromoteWay.length > 0 && query.admins && query.admins.length > 0){
                     if(query.csPromoteWay.includes("") && query.admins.includes("")){
                         filteredArr = result;
@@ -15685,8 +15709,12 @@ let dbPlayerInfo = {
                         return result.indexOf(e) === -1;
                     }));
 
-                for (let i = 0, len = limit; i < len; i++) {
-                    result[index + i] ? outputResult.push(result[index + i]) : null;
+                if (limit) {
+                    for (let i = 0, len = limit; i < len; i++) {
+                        result[index + i] ? outputResult.push(result[index + i]) : null;
+                    }
+                } else {
+                    outputResult = result;
                 }
 
                 return {size: outputResult.length, data: outputResult};
@@ -16032,7 +16060,7 @@ let dbPlayerInfo = {
             }
 
             // Player Score Query Operator
-            if (query.playerScoreValue || Number(query.playerScoreValue) === 0) {
+            if ((query.playerScoreValue || Number(query.playerScoreValue) === 0) && query.playerScoreValue !== null) {
                 switch (query.valueScoreOperator) {
                     case '>=':
                         playerQuery.valueScore = {$gte: query.playerScoreValue};
@@ -16056,7 +16084,7 @@ let dbPlayerInfo = {
                 let isNoneExist = false;
 
                 query.depositTrackingGroup.forEach(group => {
-                    if (group == "") {
+                    if (group === "") {
                         isNoneExist = true;
                     } else {
                         tempArr.push(group);

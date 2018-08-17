@@ -18,6 +18,16 @@
                     li.list-group-item(ng-repeat='(i,alipayGroup) in vm.platformAlipayGroupList', ng-click='vm.alipayGroupClicked(i,alipayGroup)', ng-class='{active: vm.SelectedAlipayGroupNode === alipayGroup}')
                         text {{alipayGroup.name}}
                         i.fa.fa-star.pull-right.margin-right-5(ng-show='alipayGroup.bDefault')
+                div
+                        label {{"PAYMENT_CARD_MODE" | translate}}
+                        br
+                        input#aliPayFPMSGroupSetting(type='radio' value='false' ng-model="vm.aliPayGroupPMS")
+                        label(for='aliPayFPMSGroupSetting') {{"FPMS Group" | translate}}
+                        input#aliPayPMSGroupSetting(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' type='radio' value='true' ng-model="vm.aliPayGroupPMS")
+                        label(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' for='aliPayPMSGroupSetting') {{"PMS Group" | translate}}
+                        br
+                        button.btn.btn-primary.common-button(ng-click="vm.updateIsPMSGroup(vm.aliPayGroupPMS, 'aliPayGroupIsPMS')") {{"CONFIRMATION" | translate}}
+                br
                 .btn-group.text-center(style="border-radius:9px",role="group")
                     button.btn.btn-primary.common-button(ng-if="vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && checkViewPermission('Payment', 'AlipayGroup', 'CreateAlipay')", data-toggle="modal", ng-click='vm.newAlipayAcc={};', data-target='#modalAddNewAlipay')
                         text {{"CreateAlipay" | translate}}

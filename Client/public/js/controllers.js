@@ -803,6 +803,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         FAILED: 2
     };
 
+    $scope.zeroOne = {
+        zero: 0,
+        one: 1
+    };
+
     // $scope.consumptionRecordProviderName = {
     //     1: "AGOTHS",
     //     2: "PT",
