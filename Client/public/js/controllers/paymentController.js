@@ -711,6 +711,7 @@ define(['js/app'], function (myApp) {
                 provinceName: vm.newBankCardAcc.provinceName,
                 cityName: vm.newBankCardAcc.cityName,
                 openingPoint: vm.newBankCardAcc.openingPoint,
+                maxDepositAmount: vm.newBankCardAcc.maxDepositAmount || 0,
                 quota: vm.newBankCardAcc.quota || 0,
                 isFPMS: true
             }
@@ -795,6 +796,8 @@ define(['js/app'], function (myApp) {
 
             if (vm.selectedBankCard && vm.selectedBankCard.provinceName) {
                 vm.getProvinceByName(vm.selectedBankCard.provinceName);
+            } else {
+                vm.cloneSelectedBankCardBeforeEdit = vm.selectedBankCard ? JSON.parse(JSON.stringify(vm.selectedBankCard)) : {};
             }
         }
 
@@ -887,6 +890,7 @@ define(['js/app'], function (myApp) {
                 provinceName: vm.selectedBankCard.provinceName,
                 cityName: vm.selectedBankCard.cityName,
                 openingPoint: vm.selectedBankCard.openingPoint,
+                maxDepositAmount: vm.selectedBankCard.maxDepositAmount || 0,
                 quota: vm.selectedBankCard.quota || 0
             }
 

@@ -15363,7 +15363,7 @@ define(['js/app'], function (myApp) {
             vm.initEditChildPartner = function () {
                 vm.isChildPartnerEditing = false;
                 vm.disableEditChildPartner = true;
-                vm.totalChildPartner = vm.selectedSinglePartner.childrencount || 1;
+                vm.totalChildPartner = vm.selectedSinglePartner.childrencount || 0;
                 vm.childPartnerList = [];
 
                 let sendData = {
@@ -15387,11 +15387,7 @@ define(['js/app'], function (myApp) {
                                     vm.disableEditChildPartner = true;
                                 }
                             }
-                        } else {
-                            vm.childPartnerList.push({partnerName: ""});
-                            vm.disableEditChildPartner = true;
                         }
-
                     });
                 });
 
@@ -15399,6 +15395,11 @@ define(['js/app'], function (myApp) {
 
             vm.editChildPartner = function () {
                 vm.isChildPartnerEditing = true;
+                if (vm.childPartnerList.length == 0) {
+                    vm.childPartnerList.push({partnerName: ""});
+                    vm.disableEditChildPartner = true;
+                    vm.totalChildPartner = vm.totalChildPartner + 1;
+                }
             };
 
             vm.checkChildPartnerNameValidity = function (name, idx) {
@@ -15471,7 +15472,7 @@ define(['js/app'], function (myApp) {
                     partnerId: vm.selectedSinglePartner.partnerId,
                     partnerName: vm.selectedSinglePartner.partnerName,
                     partnerObjId: vm.selectedSinglePartner._id,
-                    curChildPartnerHeadCount: vm.curChildPartner.length || 0,
+                    curChildPartnerHeadCount: vm.curChildPartner ? vm.curChildPartner.length : 0,
                     updateChildPartnerHeadCount: vm.updateChildPartner.length,
                     curChildPartnerName: vm.curChildPartner,
                     updateChildPartnerName: vm.updateChildPartner

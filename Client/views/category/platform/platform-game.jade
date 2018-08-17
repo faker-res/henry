@@ -12,7 +12,7 @@
                 div(ng-if='!vm.platformProviderList || vm.platformProviderList.length==0', style="height: 430px; overflow-y: auto;")
                     label.text-danger {{"NO_PROVIDER" | translate}}
                 ul.list-group.treeview(ng-if='vm.platformProviderList.length > 0', style="height: 430px; overflow-y: auto;")
-                    li.list-group-item(ng-repeat='(i,provider) in vm.platformProviderList', ng-click='vm.providerClicked(i,provider)', ng-class='{active: vm.SelectedProvider === provider, "processing-transfer-out": provider.batchCreditTransferOut.processedAmount != provider.batchCreditTransferOut.totalAmount && provider.batchCreditTransferOut}', class='{{vm.getGameStatusClass(vm.getProviderStatus(provider))}}')
+                    li.list-group-item(ng-repeat='(i,provider) in vm.platformProviderList', ng-click='vm.providerClicked(i,provider)', ng-class='{active: vm.SelectedProvider === provider, "processing-transfer-out": provider.batchCreditTransferOut.processedAmount != provider.batchCreditTransferOut.totalAmount && provider.batchCreditTransferOut}', class='{{vm.getProviderStatusClass(vm.getProviderStatus(provider))}}')
                         .fa.fa-circle.colorRed(ng-if='vm.getPlatformsProviderEnable(provider)=="ENABLE"')
                         .fa.fa-circle.colorGreen(ng-if='vm.getPlatformsProviderEnable(provider)=="DISABLE"')
                         text {{provider.name}} ({{'PROVIDER_NICKNAME' | translate}} : {{vm.getPlatformsNickNameForProvider(vm.selectedPlatform.data, provider)}} )
@@ -155,7 +155,7 @@
                                 td
                                     div
                                         .btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'MaintainGame')", ng-click="vm.updateGameStat(vm.allGameStatusString.MAINTENANCE)") {{'Maintenance' | translate}}
-                                        .btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'EnableGame')", ng-click="vm.updateGameStat(vm.allGameStatusString.ENABLE)", ng-disabled='vm.curGame.status!=vm.allGameStatusString.ENABLE') {{'Enable' | translate}}
+                                        .btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'EnableGame')", ng-click="vm.updateGameStat(vm.allGameStatusString.ENABLE)") {{'Enable' | translate}}
 
 
                         //table(style='width:100%')
