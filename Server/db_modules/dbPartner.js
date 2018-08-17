@@ -8843,6 +8843,134 @@ let dbPartner = {
             }
         );
     },
+
+    getChildPartnerRecords: (platformId, partnerObjId) => {
+        let childPartnerData = [];
+        let childPartnerNameArr = [];
+        let query = {
+            platform: mongoose.Types.ObjectId(platformId),
+            _id: mongoose.Types.ObjectId(partnerObjId)
+        }
+
+        return dbconfig.collection_partner.aggregate([
+            {$match: query},
+            {
+                $project: {
+                    "_id": 1,
+                    "children": 1
+                }
+            },
+        ]).then(aggr => {
+            let retData = [];
+            if (aggr && aggr[0] && aggr[0].children && aggr[0].children.length > 0) {
+                let childrenList = aggr[0].children || [];
+                for (let index in childrenList) {
+                    if (childrenList[index]) {
+                        let prom = dbconfig.collection_partner.findOne({_id: mongoose.Types.ObjectId(childrenList[index])}, {partnerName:1, _id: 1, partnerId: 1}).lean();
+                        retData.push(prom);
+                    }
+                }
+            }
+            return Promise.all(retData);
+        }).then(childPartner => {
+            if (childPartner && childPartner.length > 0) {
+                for (let i = 0, len = childPartner.length; i < len; i++) {
+                    if (childPartner[i] && childPartner[i].partnerName) {
+                        childPartnerNameArr.push(childPartner[i].partnerName);
+                    }
+                }
+            }
+
+            return dbconfig.collection_proposalType.findOne({
+                platformId: platformId,
+                name: constProposalType.UPDATE_CHILD_PARTNER
+            }).lean();
+        }).then(proposalTypeData => {
+            if (proposalTypeData) {
+                let proms = [];
+
+                if (childPartnerNameArr && childPartnerNameArr.length > 0) {
+                    for (let i = 0, len = childPartnerNameArr.length; i < len; i++) {
+                        if (childPartnerNameArr[i]) {
+                            let matchQuery = {
+                                'data.platformId': mongoose.Types.ObjectId(platformId),
+                                'data.updateChildPartnerName': {$in: [childPartnerNameArr[i]]},
+                                'data.curChildPartnerName': {$nin: [childPartnerNameArr[i]]},
+                                'data.partnerObjId': partnerObjId,
+                                type: proposalTypeData._id,
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                            }
+
+                            proms.push(dbconfig.collection_proposal.aggregate([
+                                {
+                                    $match: matchQuery
+                                },
+                                {
+                                    $sort: { createTime: -1 }
+                                },
+                                {
+                                    $group: {
+                                        _id: childPartnerNameArr[i],
+                                        proposalId: {$first: "$proposalId"},
+                                        updateDateTime: {$first: "$createTime"},
+                                    }
+                                }
+                            ]));
+                        }
+                    }
+
+                    return Promise.all(proms);
+                }
+            } else {
+                return Promise.reject({name: "DataError", message: "Failed to find proposal type data"});
+            }
+        }).then(data => {
+            if (data && data.length > 0) {
+                for (let i = 0, len = data.length; i < len; i++) {
+                    let childPartnerProposal = data[i];
+                    if (childPartnerProposal && childPartnerProposal.length > 0) {
+                        for (let j = 0, jLen = childPartnerProposal.length; j < jLen; j++) {
+                            if (childPartnerProposal[j] && Object.keys(childPartnerProposal[j]).length
+                                && childPartnerProposal[j]._id && childPartnerProposal[j].proposalId && childPartnerProposal[j].updateDateTime) {
+                                childPartnerData.push({partnerName: childPartnerProposal[j]._id, proposalId: childPartnerProposal[j].proposalId, createTime: childPartnerProposal[j].updateDateTime});
+                            }
+                        }
+                    }
+                }
+            }
+
+            let sortChildPartner = [];
+            if (childPartnerData && childPartnerData.length > 0) {
+                sortChildPartner = childPartnerData.sort(function(a, b) { return a.createTime - b.createTime});
+            }
+
+            return sortChildPartner;
+        });
+    },
+
+    checkChildPartnerNameValidity: (platformId, partnerName) => {
+        let isPartnerExist = null;
+        let parentPartnerName = null;
+
+        return dbconfig.collection_partner.findOne({platform: mongoose.Types.ObjectId(platformId), partnerName: partnerName.trim()}, {_id: 1}).lean().then(
+            partnerData => {
+            if (!partnerData) {
+                isPartnerExist = false;
+                return {isExist: isPartnerExist};
+            } else {
+                if (partnerData._id) {
+                    return dbconfig.collection_partner.findOne({children: {$in: [partnerData._id]}}, {partnerName: 1}).lean().then(data => {
+                        if (data) {
+                            isPartnerExist = true;
+                            parentPartnerName = data && data.partnerName ? data.partnerName : '';
+                            return {isExist: isPartnerExist, parent: parentPartnerName};
+                        }
+                    });
+                }
+            }
+
+        })
+    }
 };
 
 function getPreviousNCommissionPeriod (commissionType, n) {
