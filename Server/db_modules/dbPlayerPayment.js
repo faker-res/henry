@@ -193,7 +193,6 @@ const dbPlayerPayment = {
     requestBankTypeByUserName: function (playerId, clientType, userIp, supportMode) {
         let playerObj;
         let returnData;
-        let bPMSGroup = false;
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbconfig.collection_platform}
         ).populate(
@@ -251,7 +250,6 @@ const dbPlayerPayment = {
                     } else {
                         if (playerData.permission.topupManual) {
                             if (playerData && playerData.platform && playerData.platform.bankCardGroupIsPMS) {
-                                bPMSGroup = true;
                                 return pmsAPI.foundation_requestBankTypeByUsername(
                                     {
                                         queryId: serverInstance.getQueryId(),
@@ -262,7 +260,6 @@ const dbPlayerPayment = {
                                     }
                                 );
                             } else {
-                                bPMSGroup = false;
                                 return pmsAPI.bankcard_getBankcardList(
                                     {
                                         platformId: platformData.platformId,
