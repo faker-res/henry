@@ -456,7 +456,7 @@ function getCtiUrls (platformId) {
     platformId = platformId ? String(platformId) : "10";
 
     // todo :: THIS ONE HAVE TO BE COMMENTED WHEN MERGE TO DEVELOP-1.1
-    platformId = 10; // debug param, use this when testing on local
+    // platformId = 10; // debug param, use this when testing on local
 
     let urls = [
         "http://jsh.tel400.me/cti/",
