@@ -155,7 +155,7 @@
                                 td
                                     div
                                         .btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'MaintainGame')", ng-click="vm.updateGameStat(vm.allGameStatusString.MAINTENANCE)") {{'Maintenance' | translate}}
-                                        .btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'EnableGame')", ng-click="vm.updateGameStat(vm.allGameStatusString.ENABLE)", ng-disabled='vm.curGame.status!=vm.allGameStatusString.ENABLE') {{'Enable' | translate}}
+                                        .btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'EnableGame')", ng-click="vm.updateGameStat(vm.allGameStatusString.ENABLE)") {{'Enable' | translate}}
 
 
                         //table(style='width:100%')
