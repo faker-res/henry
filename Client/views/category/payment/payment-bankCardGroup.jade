@@ -291,6 +291,9 @@ style.
                             .control-label {{"BANK_ACCOUNT_BRANCH" | translate}}
                             input.form-control(type='text', ng-model='vm.newBankCardAcc.openingPoint')
                         .form-group.col-md-6
+                            .control-label {{"SINGLE_LIMIT" | translate}}
+                            input.form-control(type='Number', ng-model='vm.newBankCardAcc.maxDepositAmount', style='text-align:left!important')
+                        .form-group.col-md-6
                             .control-label {{"DAY_LIMIT" | translate}}
                             input.form-control(type='Number', ng-model='vm.newBankCardAcc.quota', style='text-align:left!important')
             .modal-footer
@@ -331,6 +334,9 @@ style.
                         .form-group.col-md-6
                             .control-label {{"BANK_ACCOUNT_BRANCH" | translate}}
                             input.form-control(type='text', ng-model='vm.selectedBankCard.openingPoint')
+                        .form-group.col-md-6
+                            .control-label {{"SINGLE_LIMIT" | translate}}
+                            input.form-control(type='Number', ng-model='vm.selectedBankCard.maxDepositAmount', style='text-align:left!important')
                         .form-group.col-md-6
                             .control-label {{"DAY_LIMIT" | translate}}
                             input.form-control(type='Number', ng-model='vm.selectedBankCard.quota', style='text-align:left!important')
