@@ -339,6 +339,7 @@ var roleChecker = {
                 Edit: ['updatePartner', 'checkPartnerFieldValidity', 'checkOwnDomainValidity', 'createUpdatePartnerInfoProposal'],
                 EditContact: ['createUpdatePartnerPhoneProposal', 'createUpdatePartnerEmailProposal', 'createUpdatePartnerQQProposal','createUpdatePartnerWeChatProposal','verifyPartnerPhoneNumber'],
                 BankDetail: ['createUpdatePartnerBankInfoProposal', 'verifyPartnerBankAccount'],
+                EditChildPartner: ['updateChildPartner', 'checkChildPartnerNameValidity', 'getChildPartnerRecords'],
                 EditCommission: ['updatePartner', 'checkPartnerFieldValidity', 'createUpdatePartnerCommissionTypeProposal', 'customizePartnerCommission'],
                 ResetPassword: ['resetPartnerPassword'],
                 ApplyBonus: ['applyPartnerBonusRequest'],
@@ -464,7 +465,8 @@ var roleChecker = {
                 Read: ['getAllOfficer', 'getAllPromoteWay', 'getAllUrl', 'getAdminNameByDepartment'],
                 Create: ['createOfficer', 'addPromoteWay', 'addUrl'],
                 Delete: ['deletePromoteWay', 'deleteOfficer', 'deleteUrl'],
-                Update: ['updateUrl']
+                Update: ['updateUrl'],
+                ignore90DaysEditingRestriction: []
             },
             "devFunc": {
                 Read: ['triggerSavePlayersCredit']

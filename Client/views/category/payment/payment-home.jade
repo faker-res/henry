@@ -46,11 +46,11 @@
                                 .fa.fa-money.margin-right-5
                                 text.span {{"Merchant Group" | translate}}
                         li
-                            a.common-tab(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Read')",data-toggle="tab", href="#alipayGroup", ng-click="vm.paymentPageName='alipayGroup';vm.updatePageTile();")
+                            a.common-tab(ng-if="checkViewPermission('Payment', 'AlipayGroup', 'Read')",data-toggle="tab", href="#alipayGroup", ng-click="vm.alipayGroupTabClicked();vm.paymentPageName='alipayGroup';vm.updatePageTile();")
                                 img.margin-right-5(src='images/icon/aliPayBlue.png')
                                 text.span {{"PlayerAlipayTopUp" | translate}}
                         li
-                            a.common-tab(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Read')", data-toggle="tab", href="#wechatPayGroup", ng-click="vm.paymentPageName='wechatPayGroup';vm.updatePageTile();")
+                            a.common-tab(ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'Read')", data-toggle="tab", href="#wechatPayGroup", ng-click="vm.wechatPayGroupTabClicked();vm.paymentPageName='wechatPayGroup';vm.updatePageTile();")
                                 img.margin-right-5(src='images/icon/wechatPayBlue.png')
                                 text.span {{"WechatPay" | translate}}
                         //li

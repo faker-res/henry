@@ -15360,6 +15360,135 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.initEditChildPartner = function () {
+                vm.isChildPartnerEditing = false;
+                vm.disableEditChildPartner = true;
+                vm.totalChildPartner = vm.selectedSinglePartner.childrencount || 0;
+                vm.childPartnerList = [];
+
+                let sendData = {
+                    platform: vm.selectedPlatform.id,
+                    _id: vm.selectedSinglePartner._id
+                }
+
+                socketService.$socket($scope.AppSocket, 'getChildPartnerRecords', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('child partner records',data);
+                        if (data && data.data && data.data.length > 0) {
+                            vm.childPartnerList = data.data;
+                            vm.curChildPartner = [];
+                            vm.updateChildPartner = [];
+                            if (vm.childPartnerList && vm.childPartnerList.length > 0) {
+                                for (let i = 0, len = vm.childPartnerList.length; i<len; i++) {
+                                    vm.curChildPartner.push(vm.childPartnerList[i].partnerName);
+                                }
+                                vm.updateChildPartner = JSON.parse(JSON.stringify(vm.curChildPartner));
+                                if (vm.curChildPartner == vm.updateChildPartner) {
+                                    vm.disableEditChildPartner = true;
+                                }
+                            }
+                        }
+                    });
+                });
+
+            };
+
+            vm.editChildPartner = function () {
+                vm.isChildPartnerEditing = true;
+                if (vm.childPartnerList.length == 0) {
+                    vm.childPartnerList.push({partnerName: ""});
+                    vm.disableEditChildPartner = true;
+                    vm.totalChildPartner = vm.totalChildPartner + 1;
+                }
+            };
+
+            vm.checkChildPartnerNameValidity = function (name, idx) {
+                vm.childPartnerErrorMessage = null;
+                if (!name) return;
+
+                if (name == vm.selectedSinglePartner.partnerName) {
+                    vm.disableEditChildPartner = true;
+                    if (vm.childPartnerList[idx] && vm.childPartnerList[idx].errorMessage) {
+                        delete vm.childPartnerList[idx].errorMessage;
+                    }
+                    return;
+                }
+
+                socketService.$socket($scope.AppSocket, 'checkChildPartnerNameValidity', {
+                    platform: vm.selectedPlatform.id,
+                    partnerName: name
+                }, function (data) {
+                    $scope.$evalAsync(() => {
+                        if (data && data.data && !data.data.isExist) {
+                            vm.disableEditChildPartner = true;
+                            vm.childPartnerList[idx].errorMessage = $translate('PARTNER_NAME_DOES_NOT_EXISTS');
+                        } else if (data && data.data && data.data.isExist) {
+                            vm.disableEditChildPartner = true;
+                            vm.childPartnerList[idx].errorMessage = $translate('PARTNER_NAME_ALREADY_HAS_A_PARENT') + data.data.parent + $translate('REMOVE_IT_FROM_THE_ORIGINAL_PARENT');
+                        } else {
+                            vm.disableEditChildPartner = false;
+                            delete vm.childPartnerList[idx].errorMessage;
+                        }
+                    });
+                });
+            }
+
+            vm.childPartnerNewRow = function (valueCollection, idx) {
+                valueCollection.push({partnerName: ""});
+                vm.totalChildPartner = vm.totalChildPartner + 1;
+            };
+
+            vm.childPartnerDeleteRow = function (idx, valueCollection) {
+                valueCollection.splice(idx, 1);
+
+                if (valueCollection.length == 0) {
+                    valueCollection.push({partnerName: ""});
+                    vm.totalChildPartner = 1;
+                } else {
+                    vm.totalChildPartner = vm.totalChildPartner - 1;
+                }
+
+                vm.disableEditChildPartner = false;
+            };
+
+            vm.getUpdateChildPartnerName = function () {
+                vm.updateChildPartner = [];
+                if (vm.childPartnerList && vm.childPartnerList.length > 0) {
+                    for (let i = 0, len = vm.childPartnerList.length; i<len; i++) {
+                        vm.updateChildPartner.push(vm.childPartnerList[i].partnerName);
+                    }
+                }
+            };
+
+            vm.submitChildPartner = function () {
+                vm.getUpdateChildPartnerName();
+                console.log('updateData', vm.updateChildPartner);
+                var sendData = {
+                    creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                    platformId: vm.selectedPlatform.id,
+                };
+
+                sendData.data = {
+                    partnerId: vm.selectedSinglePartner.partnerId,
+                    partnerName: vm.selectedSinglePartner.partnerName,
+                    partnerObjId: vm.selectedSinglePartner._id,
+                    curChildPartnerHeadCount: vm.curChildPartner ? vm.curChildPartner.length : 0,
+                    updateChildPartnerHeadCount: vm.updateChildPartner.length,
+                    curChildPartnerName: vm.curChildPartner,
+                    updateChildPartnerName: vm.updateChildPartner
+                }
+
+                console.log('sendData',sendData);
+                socketService.$socket($scope.AppSocket, 'updateChildPartner', sendData, function (data) {
+                    console.log('sent', data);
+                    if (data.data && data.data.stepInfo) {
+                        socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                    }
+                    vm.getPlatformPartnersData();
+                }, function (err) {
+                    console.log('err',err);
+                });
+            };
 
         };
 

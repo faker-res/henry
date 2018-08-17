@@ -3039,6 +3039,7 @@ define(['js/app'], function (myApp) {
                 vm.excludedGamesGroup = [];
                 vm.selectGameGroupGames = [];
                 vm.selectGameGroupGamesName = [];
+                vm.highlightGame = [];
 
                 //get included games list
                 var query = {
@@ -3048,56 +3049,58 @@ define(['js/app'], function (myApp) {
                 }
                 console.log('query', query);
                 socketService.$socket($scope.AppSocket, 'getGamesByPlatformAndGameGroup', query, function (data2) {
-                    console.log("attached", data2.data);
-                    $.each(vm.filterGames(data2.data.games, true), function (i, v) {
-                        if (!v || !v.game) {
-                            return true;
-                        }
-                        var newObj = v.game;
-                        newObj.index = (v && v.index) ? v.index : 1;
-                        if(newObj.changedName && newObj.changedName.hasOwnProperty(vm.selectedPlatform.data.platformId)){
-                            newObj.name$ = newObj.changedName[vm.selectedPlatform.data.platformId] || newObj.name;
-                            newObj.isDefaultName = newObj.changedName[vm.selectedPlatform.data.platformId] && newObj.changedName[vm.selectedPlatform.data.platformId] != ''
-                                ? false : true;
-                        }else{
-                            newObj.name$ = newObj.name;
-                            newObj.isDefaultName = true;
-                        }
-                        vm.includedGamesGroup.push(newObj);
-                        if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
-                            let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
-                            vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, platformCustomImage);
-                        }else{
-                            vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
-                        }
+                    $scope.$evalAsync(() => {
+                        console.log("attached", data2.data);
+                        $.each(vm.filterGames(data2.data.games, true), function (i, v) {
+                            if (!v || !v.game) {
+                                return true;
+                            }
+                            var newObj = v.game;
+                            newObj.index = (v && v.index) ? v.index : 1;
+                            if(newObj.changedName && newObj.changedName.hasOwnProperty(vm.selectedPlatform.data.platformId)){
+                                newObj.name$ = newObj.changedName[vm.selectedPlatform.data.platformId] || newObj.name;
+                                newObj.isDefaultName = newObj.changedName[vm.selectedPlatform.data.platformId] && newObj.changedName[vm.selectedPlatform.data.platformId] != ''
+                                    ? false : true;
+                            }else{
+                                newObj.name$ = newObj.name;
+                                newObj.isDefaultName = true;
+                            }
+                            vm.includedGamesGroup.push(newObj);
+                            if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
+                                let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
+                                vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, platformCustomImage);
+                            }else{
+                                vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
+                            }
 
-                        if (v.game && v.game.hasOwnProperty('platformGameStatus')) {
-                            vm.gameStatus[v.game._id] = v.game.platformGameStatus;
+                            if (v.game && v.game.hasOwnProperty('platformGameStatus')) {
+                                vm.gameStatus[v.game._id] = v.game.platformGameStatus;
+                            }
+                        })
+                        console.log("vm.includedGamesGroup", vm.includedGamesGroup);
+                        if (vm.showGameCate == "include") {
+                            vm.gameInGroupClicked(0, vm.includedGamesGroup[0], "in");
                         }
-                    })
-                    console.log("vm.includedGamesGroup", vm.includedGamesGroup);
-                    if (vm.showGameCate == "include") {
-                        vm.gameInGroupClicked(0, vm.includedGamesGroup[0], "in");
-                    }
-                    vm.gameGroupClickable.inGameLoaded = true;
-                    $scope.safeApply();
+                        vm.gameGroupClickable.inGameLoaded = true;
+                  });
                 })
                 socketService.$socket($scope.AppSocket, 'getGamesNotInGameGroup', query, function (data2) {
                     //console.log("not attached", data2.data);
-                    $.each(vm.filterGames(data2.data, true), function (i, v) {
-                        if (!v || !v.game) {
-                            return true;
-                        }
-                        vm.excludedGamesGroup.push(v.game);
-                        vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, v.game.smallShow);
+                    $scope.$evalAsync(() => {
+                        $.each(vm.filterGames(data2.data, true), function (i, v) {
+                            if (!v || !v.game) {
+                                return true;
+                            }
+                            vm.excludedGamesGroup.push(v.game);
+                            vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, v.game.smallShow);
 
-                    })
-                    console.log('vm.excludedGamesGroup', vm.excludedGamesGroup);
-                    if (vm.showGameCate == "exclude") {
-                        vm.gameInGroupClicked(0, vm.excludedGamesGroup[0], "ex");
-                    }
-                    vm.gameGroupClickable.outGameLoaded = true;
-                    $scope.safeApply();
+                        })
+                        console.log('vm.excludedGamesGroup', vm.excludedGamesGroup);
+                        if (vm.showGameCate == "exclude") {
+                            vm.gameInGroupClicked(0, vm.excludedGamesGroup[0], "ex");
+                        }
+                        vm.gameGroupClickable.outGameLoaded = true;
+                  })
                 })
             }
 
@@ -3292,26 +3295,27 @@ define(['js/app'], function (myApp) {
             };
 
             vm.gameInGroupClicked = function (i, v, type) {
-                if (!v) {
-                    vm.selectGameGroupGames = [];
-                    $scope.safeApply();
-                    return;
-                }
-                console.log('game clicked', v);
-                var index = vm.selectGameGroupGames.indexOf(v._id);
-                if (index == -1) {
-                    vm.selectGameGroupGames.push(v._id);
-                    vm.selectGameGroupGamesName.push(v.name);
-                    vm.highlightGame[v._id] = 'bg-pale';
-                    vm.curGame = v;
-                } else if (index != -1) {
-                    vm.selectGameGroupGames.splice(index, 1);
-                    vm.selectGameGroupGamesName.splice(index, 1);
-                    delete vm.highlightGame[v._id];
-                }
+                $scope.$evalAsync(() => {
+                    if (!v) {
+                        vm.selectGameGroupGames = [];
+                        return;
+                    }
+                    console.log('game clicked', v);
+                    var index = vm.selectGameGroupGames.indexOf(v._id);
+                    if (index == -1) {
+                        vm.selectGameGroupGames.push(v._id);
+                        vm.selectGameGroupGamesName.push(v.name);
+                        vm.highlightGame[v._id] = 'bg-pale';
+                        vm.curGame = v;
+                    } else if (index != -1) {
+                        vm.selectGameGroupGames.splice(index, 1);
+                        vm.selectGameGroupGamesName.splice(index, 1);
+                        delete vm.highlightGame[v._id];
+                    }
 
-                // console.log('vm.selectGameGroupGames', vm.selectGameGroupGames, index);
-                console.log('vm.curGame', vm.curGame);
+                    // console.log('vm.selectGameGroupGames', vm.selectGameGroupGames, index);
+                    console.log('vm.curGame', vm.curGame);
+              });
             }
             vm.groupGameListCollapseIn = function () {
                 $('#includedGroupGames').collapse('show');
@@ -3541,18 +3545,35 @@ define(['js/app'], function (myApp) {
                 return provider.status;
             };
 
-            vm.getGameStatusClass = function (str) {
-                if (!str) return;
-                if (str == vm.allGameStatusString.ENABLE) {
+
+
+            vm.getProviderStatusClass = function (str) {
+                 if (!str) return;
+                 if (str == vm.allGameStatusString.ENABLE) {
+                     return 'colorGreen';
+                 } else if (str == vm.allGameStatusString.DISABLE) {
+                     return 'colorRed';
+                 } else if (str == vm.allGameStatusString.MAINTENANCE) {
+                     return 'colorOrangeImportant text-bold';
+                 } else {
+                     return 'colorRed';
+                 }
+             }
+
+            vm.getGameStatusClass = function (v) {
+                if (!v) return;
+                if (v.status == vm.allGameStatusString.ENABLE && v.platformGameStatus == vm.allGameStatusString.ENABLE) {
                     return 'colorGreen';
-                } else if (str == vm.allGameStatusString.DISABLE) {
+                } else if (v.status == vm.allGameStatusString.DISABLE && v.platformGameStatus ==  vm.allGameStatusString.DISABLE) {
                     return 'colorRed';
-                } else if (str == vm.allGameStatusString.MAINTENANCE) {
+                } else if (v.status == vm.allGameStatusString.MAINTENANCE || v.platformGameStatus == vm.allGameStatusString.MAINTENANCE) {
                     return 'colorOrangeImportant text-bold';
                 } else {
                     return 'colorRed';
                 }
             }
+
+
             vm.filterGames = function (data, filterProvider) {
                 data = data || [];
                 return data.filter(item1 => {
@@ -3592,6 +3613,7 @@ define(['js/app'], function (myApp) {
                     vm.includedGames = [];
                     $.each(vm.filterGames(data2.data, false), function (i, v) {
                         var newObj = v.game;
+                        newObj.platformGameStatus = v.status;
                         // if (v.maintenanceHour == 0) {
                         //     newObj.maintenanceHour = 0;
                         // } else {
@@ -3624,7 +3646,6 @@ define(['js/app'], function (myApp) {
                         }
                     })
                     console.log("vm.includedGames", vm.includedGames);
-                    $scope.safeApply();
                 })
                 vm.excludedGames = '';
                 socketService.$socket($scope.AppSocket, 'getGamesNotAttachedToPlatform', query, function (data2) {
@@ -3677,7 +3698,6 @@ define(['js/app'], function (myApp) {
                     vm.highlightGame[v._id] = 'bg-pale';
                 }
                 vm.curGame = vm.selectedGamesInGameGroup.length ? vm.selectedGamesInGameGroup[vm.selectedGamesInGameGroup.length - 1] : null;
-                $scope.safeApply();
             }
 
             vm.allGametoPlatform = function (type, which) {
@@ -3705,36 +3725,72 @@ define(['js/app'], function (myApp) {
             }
 
             vm.updateGameStat = function (type, bool) {
-                if (!bool) {
-                    vm.newType = type;
-                    $("#modalConfirmUpdateGame").modal();
-                } else {
-                    let sendGameId = [];
-                    vm.selectedGamesInGameGroup.forEach((game) => {
-                        if (game._id) {
-                            sendGameId.push(game._id);
-                        }
-                    })
+                $scope.$evalAsync(() => {
+                    if (!bool) {
+                        vm.newType = type;
+                        $("#modalConfirmUpdateGame").modal();
+                    } else {
+                        let sendGameId = [];
+                        vm.selectedGamesInGameGroup.forEach((game) => {
+                            if (game._id) {
+                                sendGameId.push(game._id);
+                            }
+                        })
 
-                    var sendData = {
-                        query: {
-                            game: sendGameId, platform: vm.selectedPlatform.id
-                        },
-                        updateData: {
-                            status: type
+                        var sendData = {
+                            query: {
+                                game: sendGameId, platform: vm.selectedPlatform.id
+                            },
+                            updateData: {
+                                status: type
+                            }
                         }
+                        console.log("send", sendData);
+                        socketService.$socket($scope.AppSocket, 'updateGameStatusToPlatform', sendData, success);
+                        vm.newType = '';
                     }
-                    console.log("send", sendData);
-                    socketService.$socket($scope.AppSocket, 'updateGameStatusToPlatform', sendData, success);
-                    vm.newType = '';
-                    $scope.safeApply();
-                }
 
-                function success(data) {
-                    console.log(data);
-                    vm.providerClicked('refresh', vm.SelectedProvider);
-                }
+                    function success(data) {
+                        console.log(data);
+                        vm.providerClicked('refresh', vm.SelectedProvider);
+                    }
+                });
             }
+            vm.updateGameGroupStat = function (type, bool) {
+                $scope.$evalAsync(() => {
+                    if (!bool) {
+                        vm.newType = type;
+                        $("#modalConfirmUpdateGame2").modal();
+                    } else {
+                        let sendGameId = [];
+                        vm.selectGameGroupGames.forEach((game) => {
+                            if (game) {
+                                sendGameId.push(game);
+                            }
+                        })
+
+                        var sendData = {
+                            query: {
+                                game: sendGameId, platform: vm.selectedPlatform.id
+                            },
+                            updateData: {
+                                status: type
+                            }
+                        }
+                        console.log("send", sendData);
+                        socketService.$socket($scope.AppSocket, 'updateGameStatusToPlatform', sendData, success);
+                        vm.newType = '';
+                    }
+
+                    function success(data) {
+                        console.log(data);
+                        vm.gameGroupClicked(0, vm.SelectedGameGroupNode)
+                    }
+                });
+            }
+
+
+
             vm.preparePlatformGameEdit = function () {
                 vm.hourListArray = utilService.$createArray(24);
                 vm.minuteListArray = utilService.$createArray(60);
@@ -16336,6 +16392,26 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.forceStopFPMSCallOutMissions = function(isConfirm) {
+                if (!isConfirm) {
+                    vm.modalYesNo.modalTitle = $translate("Force Stop Mission");
+                    vm.modalYesNo.modalText = $translate("FORCE_STOP_MISSION_WARNING");
+                    vm.modalYesNo.actionYes = () => vm.forceStopFPMSCallOutMissions(true);
+                    $('#modalYesNo').modal();
+                }
+                else {
+                    $('#platformFeedbackSpin').show();
+                    socketService.$socket($scope.AppSocket, 'forceStopFPMSMission', {
+                        platformObjId: vm.selectedPlatform.id
+                    }, function (data) {
+                        console.log("forceStopFPMSMission ret", data);
+                        $scope.$evalAsync(function () {
+                            vm.submitPlayerFeedbackQuery();
+                        });
+                    });
+                }
+            };
+
             vm.endCallOutMission = function() {
                 socketService.$socket($scope.AppSocket, 'endCallOutMission', {
                     platformObjId: vm.selectedPlatform.id,
@@ -27985,6 +28061,13 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (!(vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) && srcData.financialSettlementToggle) {
+                    sendData.updateData.bankCardGroupIsPMS = false;
+                    sendData.updateData.merchantGroupIsPMS = false;
+                    sendData.updateData.aliPayGroupIsPMS = false;
+                    sendData.updateData.wechatPayGroupIsPMS = false;
+                }
+
                 if (vm.selectedPlatform.data.financialSettlement && (vm.selectedPlatform.data.financialSettlement.minFinancialPointsNotification != srcData.minFinancialPointsNotification)
                     || (financialPointsNotification == true && vm.selectedPlatform.data.financialSettlement.financialPointsNotification != financialPointsNotification)) {
                     let sendDataAdmin = {
@@ -29835,7 +29918,8 @@ define(['js/app'], function (myApp) {
                 vm.initClearMessage();
                 let sendData = {
                     urlId: vm.currentUrlEditSelect._id,
-                    platformId: vm.selectedPlatform.id
+                    platformId: vm.selectedPlatform.id,
+                    ignoreChecking: vm.ignoreIntervalChecking
                 };
                 vm.selectedOfficerUrl = null;
                 socketService.$socket($scope.AppSocket, 'deleteUrl', sendData, function () {
@@ -29863,7 +29947,8 @@ define(['js/app'], function (myApp) {
                     domain: vm.currentUrlEditSelect.domain,
                     officerId: vm.currentUrlEditSelect.admin,
                     way: vm.currentUrlEditSelect.way,
-                    platformId: vm.selectedPlatform.id
+                    platformId: vm.selectedPlatform.id,
+                    ignoreChecking: vm.ignoreIntervalChecking
                 };
                 console.log("sendData", sendData);
                 vm.selectedOfficerUrl = null;

@@ -895,66 +895,91 @@ let dbPartner = {
 
         if (sortObj){
             //if there is sorting parameter
-            partnerInfo = dbconfig.collection_partner.aggregate([
-                {$match:query},
-                {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
-                        "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
-                        "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "totalSettledCommission":1, "_id":1, }},
-                {$sort:sortObj},
-                {$skip:index},
-                {$limit:limit}
-            ]).then(
-                aggr => {
-                    var retData = [];
-                    for (var index in aggr) {
-                        var prom = dbPartner.getPartnerItem(aggr[index]._id , aggr[index].childrencount);
-                        retData.push(prom);
-                    }
-                    return Q.all(retData);
-            }).then(
-                partners => {
-                    for (let i = 0; i < partners.length; i++) {
-                        if (partners[i].phoneNumber) {
-                            partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
-                        }
-                    }
-                    return partners;
-                },
-                error => {
-                    Q.reject({name: "DBError", message: "Error finding partners.", error: error});
+            partnerInfo = dbconfig.collection_partner.findOne({partnerName: query.partnerName}, {_id:1}).lean().then(data => {
+                let aggrOperation;
+                if (data && data._id) {
+                    query.$or = [{partnerName: query.partnerName},{parent: data._id}];
+                    delete query.partnerName;
+
+                    aggrOperation =[
+                        {$match:query},
+                        {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
+                                "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
+                                "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "totalSettledCommission":1, "_id":1, }},
+                        {$skip:index},
+                        {$limit:limit}
+                    ]
+                } else {
+                    aggrOperation =[
+                        {$match:query},
+                        {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
+                                "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
+                                "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "totalSettledCommission":1, "_id":1, }},
+                        {$sort:sortObj},
+                        {$skip:index},
+                        {$limit:limit}
+                    ]
                 }
-            );
+                return dbconfig.collection_partner.aggregate(aggrOperation).then(
+                    aggr => {
+                        var retData = [];
+                        for (var index in aggr) {
+                            var prom = dbPartner.getPartnerItem(aggr[index]._id , aggr[index].childrencount);
+                            retData.push(prom);
+                        }
+                        return Q.all(retData);
+                }).then(
+                    partners => {
+                        for (let i = 0; i < partners.length; i++) {
+                            if (partners[i].phoneNumber) {
+                                partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
+                            }
+                        }
+                        return partners;
+                    },
+                    error => {
+                        Q.reject({name: "DBError", message: "Error finding partners.", error: error});
+                    }
+                );
+            });
         } else {
             //if there is no sorting parameter
-            partnerInfo = dbconfig.collection_partner.aggregate([
-                {$match:query},
-                {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
-                        "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
-                        "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "totalSettledCommission":1, "_id":1, }},
-                {$skip:index},
-                {$limit:limit}
-            ]).then(
-                aggr => {
-                    var retData = [];
-                    for (var index in aggr) {
-                        var prom = dbPartner.getPartnerItem(aggr[index]._id , aggr[index].childrencount);
-                        retData.push(prom);
-                    }
-                    return Q.all(retData);
-            }).then(
-                partners => {
-                    for (let i = 0; i < partners.length; i++) {
-                        if (partners[i].phoneNumber) {
-                            partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
-                        }
-                    }
-
-                    return partners;
-                },
-                error => {
-                    Q.reject({name: "DBError", message: "Error finding partners.", error: error});
+            partnerInfo = dbconfig.collection_partner.findOne({partnerName: query.partnerName}, {_id:1}).lean().then(data => {
+                if (data && data._id) {
+                    query.$or = [{partnerName: query.partnerName},{parent: data._id}];
+                    delete query.partnerName;
                 }
-            );
+
+                return dbconfig.collection_partner.aggregate([
+                    {$match:query},
+                    {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
+                            "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
+                            "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "totalSettledCommission":1, "_id":1, }},
+                    {$skip:index},
+                    {$limit:limit}
+                ]).then(
+                    aggr => {
+                        var retData = [];
+                        for (var index in aggr) {
+                            var prom = dbPartner.getPartnerItem(aggr[index]._id , aggr[index].childrencount);
+                            retData.push(prom);
+                        }
+                        return Q.all(retData);
+                    }).then(
+                    partners => {
+                        for (let i = 0; i < partners.length; i++) {
+                            if (partners[i].phoneNumber) {
+                                partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
+                            }
+                        }
+
+                        return partners;
+                    },
+                    error => {
+                        Q.reject({name: "DBError", message: "Error finding partners.", error: error});
+                    }
+                );
+            });
         }
 
         return Q.all([count, partnerInfo]).then( function(data){
@@ -8843,6 +8868,134 @@ let dbPartner = {
             }
         );
     },
+
+    getChildPartnerRecords: (platformId, partnerObjId) => {
+        let childPartnerData = [];
+        let childPartnerNameArr = [];
+        let query = {
+            platform: mongoose.Types.ObjectId(platformId),
+            _id: mongoose.Types.ObjectId(partnerObjId)
+        }
+
+        return dbconfig.collection_partner.aggregate([
+            {$match: query},
+            {
+                $project: {
+                    "_id": 1,
+                    "children": 1
+                }
+            },
+        ]).then(aggr => {
+            let retData = [];
+            if (aggr && aggr[0] && aggr[0].children && aggr[0].children.length > 0) {
+                let childrenList = aggr[0].children || [];
+                for (let index in childrenList) {
+                    if (childrenList[index]) {
+                        let prom = dbconfig.collection_partner.findOne({_id: mongoose.Types.ObjectId(childrenList[index])}, {partnerName:1, _id: 1, partnerId: 1}).lean();
+                        retData.push(prom);
+                    }
+                }
+            }
+            return Promise.all(retData);
+        }).then(childPartner => {
+            if (childPartner && childPartner.length > 0) {
+                for (let i = 0, len = childPartner.length; i < len; i++) {
+                    if (childPartner[i] && childPartner[i].partnerName) {
+                        childPartnerNameArr.push(childPartner[i].partnerName);
+                    }
+                }
+            }
+
+            return dbconfig.collection_proposalType.findOne({
+                platformId: platformId,
+                name: constProposalType.UPDATE_CHILD_PARTNER
+            }).lean();
+        }).then(proposalTypeData => {
+            if (proposalTypeData) {
+                let proms = [];
+
+                if (childPartnerNameArr && childPartnerNameArr.length > 0) {
+                    for (let i = 0, len = childPartnerNameArr.length; i < len; i++) {
+                        if (childPartnerNameArr[i]) {
+                            let matchQuery = {
+                                'data.platformId': mongoose.Types.ObjectId(platformId),
+                                'data.updateChildPartnerName': {$in: [childPartnerNameArr[i]]},
+                                'data.curChildPartnerName': {$nin: [childPartnerNameArr[i]]},
+                                'data.partnerObjId': partnerObjId,
+                                type: proposalTypeData._id,
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                            }
+
+                            proms.push(dbconfig.collection_proposal.aggregate([
+                                {
+                                    $match: matchQuery
+                                },
+                                {
+                                    $sort: { createTime: -1 }
+                                },
+                                {
+                                    $group: {
+                                        _id: childPartnerNameArr[i],
+                                        proposalId: {$first: "$proposalId"},
+                                        updateDateTime: {$first: "$createTime"},
+                                    }
+                                }
+                            ]));
+                        }
+                    }
+
+                    return Promise.all(proms);
+                }
+            } else {
+                return Promise.reject({name: "DataError", message: "Failed to find proposal type data"});
+            }
+        }).then(data => {
+            if (data && data.length > 0) {
+                for (let i = 0, len = data.length; i < len; i++) {
+                    let childPartnerProposal = data[i];
+                    if (childPartnerProposal && childPartnerProposal.length > 0) {
+                        for (let j = 0, jLen = childPartnerProposal.length; j < jLen; j++) {
+                            if (childPartnerProposal[j] && Object.keys(childPartnerProposal[j]).length
+                                && childPartnerProposal[j]._id && childPartnerProposal[j].proposalId && childPartnerProposal[j].updateDateTime) {
+                                childPartnerData.push({partnerName: childPartnerProposal[j]._id, proposalId: childPartnerProposal[j].proposalId, createTime: childPartnerProposal[j].updateDateTime});
+                            }
+                        }
+                    }
+                }
+            }
+
+            let sortChildPartner = [];
+            if (childPartnerData && childPartnerData.length > 0) {
+                sortChildPartner = childPartnerData.sort(function(a, b) { return a.createTime - b.createTime});
+            }
+
+            return sortChildPartner;
+        });
+    },
+
+    checkChildPartnerNameValidity: (platformId, partnerName) => {
+        let isPartnerExist = null;
+        let parentPartnerName = null;
+
+        return dbconfig.collection_partner.findOne({platform: mongoose.Types.ObjectId(platformId), partnerName: partnerName.trim()}, {_id: 1}).lean().then(
+            partnerData => {
+            if (!partnerData) {
+                isPartnerExist = false;
+                return {isExist: isPartnerExist};
+            } else {
+                if (partnerData._id) {
+                    return dbconfig.collection_partner.findOne({children: {$in: [partnerData._id]}}, {partnerName: 1}).lean().then(data => {
+                        if (data) {
+                            isPartnerExist = true;
+                            parentPartnerName = data && data.partnerName ? data.partnerName : '';
+                            return {isExist: isPartnerExist, parent: parentPartnerName};
+                        }
+                    });
+                }
+            }
+
+        })
+    }
 };
 
 function getPreviousNCommissionPeriod (commissionType, n) {

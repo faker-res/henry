@@ -140,6 +140,25 @@ define(['js/app'], function (myApp) {
                     break;
             }
 
+            vm.bankCardGroupPMS = "false";
+            vm.merchantGroupPMS = "false";
+            vm.wechatPayGroupPMS = "false";
+            vm.aliPayGroupPMS = "false";
+            if (vm.selectedPlatform && vm.selectedPlatform.data) {
+                if (vm.selectedPlatform.data.bankCardGroupIsPMS) {
+                    vm.bankCardGroupPMS = "true";
+                }
+                if (vm.selectedPlatform.data.merchantGroupIsPMS) {
+                    vm.merchantGroupPMS = "true";
+                }
+                if (vm.selectedPlatform.data.wechatPayGroupIsPMS) {
+                    vm.wechatPayGroupPMS = "true";
+                }
+                if (vm.selectedPlatform.data.aliPayGroupIsPMS) {
+                    vm.aliPayGroupPMS = "true";
+                }
+            }
+
             // Initial Loading
             $scope.$evalAsync(() => {
                 vm.loadBankCardGroupData();
@@ -237,7 +256,10 @@ define(['js/app'], function (myApp) {
         vm.bankCardFilterOptions = {};
 
         vm.bankCardGroupTabClicked = function () {
-
+            vm.bankCardGroupPMS = "false";
+            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.bankCardGroupIsPMS) {
+                vm.bankCardGroupPMS = "true";
+            }
         };
 
         vm.getAllBankCard = function () {
@@ -689,6 +711,7 @@ define(['js/app'], function (myApp) {
                 provinceName: vm.newBankCardAcc.provinceName,
                 cityName: vm.newBankCardAcc.cityName,
                 openingPoint: vm.newBankCardAcc.openingPoint,
+                maxDepositAmount: vm.newBankCardAcc.maxDepositAmount || 0,
                 quota: vm.newBankCardAcc.quota || 0,
                 isFPMS: true
             }
@@ -773,6 +796,8 @@ define(['js/app'], function (myApp) {
 
             if (vm.selectedBankCard && vm.selectedBankCard.provinceName) {
                 vm.getProvinceByName(vm.selectedBankCard.provinceName);
+            } else {
+                vm.cloneSelectedBankCardBeforeEdit = vm.selectedBankCard ? JSON.parse(JSON.stringify(vm.selectedBankCard)) : {};
             }
         }
 
@@ -865,6 +890,7 @@ define(['js/app'], function (myApp) {
                 provinceName: vm.selectedBankCard.provinceName,
                 cityName: vm.selectedBankCard.cityName,
                 openingPoint: vm.selectedBankCard.openingPoint,
+                maxDepositAmount: vm.selectedBankCard.maxDepositAmount || 0,
                 quota: vm.selectedBankCard.quota || 0
             }
 
@@ -1405,6 +1431,11 @@ define(['js/app'], function (myApp) {
         /////////////////////////////////////// Merchant Group start  /////////////////////////////////////////////////
 
         vm.merchantGroupTabClicked = function () {
+            vm.merchantGroupPMS = "false";
+            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.merchantGroupIsPMS) {
+                vm.merchantGroupPMS = "true";
+            }
+
             vm.merchantGroupUsed = "FPMS"
             socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
                 $scope.$evalAsync(() => {
@@ -1850,6 +1881,11 @@ define(['js/app'], function (myApp) {
 
         vm.alipayGroupTabClicked = function () {
             vm.alipayGroupUsed = "FPMS";
+
+            vm.aliPayGroupPMS = "false";
+            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.aliPayGroupIsPMS) {
+                vm.aliPayGroupPMS = "true";
+            }
         }
         vm.loadAlipayGroupData = function () {
             //init gametab start===============================
@@ -2501,6 +2537,13 @@ define(['js/app'], function (myApp) {
         /////////////////////////////////////// QuickPay Group end  /////////////////////////////////////////////////
 
         /////////////////////////////////////// WechatPay Group start  /////////////////////////////////////////////////
+        vm.wechatPayGroupTabClicked = function () {
+            vm.wechatPayGroupPMS = "false";
+            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.wechatPayGroupIsPMS) {
+                vm.wechatPayGroupPMS = "true";
+            }
+        }
+
         vm.loadWechatPayGroupData = function () {
             //init gametab start===============================
             vm.showWechatPayCate = "include";
@@ -2985,6 +3028,29 @@ define(['js/app'], function (myApp) {
         /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
 
         ///////////////////////////////// common functions
+        vm.updateIsPMSGroup = function (srcData, type) {
+            if (type) {
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {}
+                }
+                let isPMSGroup = false;
+                if (srcData == 'true') {
+                    isPMSGroup = true;
+                }
+
+                sendData.updateData[type] = isPMSGroup;
+
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        if (data.data && data.data.hasOwnProperty(type)) {
+                            vm.selectedPlatform.data[type] = data.data[type];
+                        }
+                    })
+                })
+            }
+        }
+
         vm.dateReformat = function (data) {
             if (!data) return '';
             return utilService.getFormatTime(data);

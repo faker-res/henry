@@ -523,9 +523,9 @@ define([], function () {
                             totalWinLoss = pageValue;
                         }
                         //special handling for player report
-                        if (i == 15) {
+                        if (i == 16) {
                             validConsumptionAmount = pageValue;
-                        } else if (i == 16) {
+                        } else if (i == 17) {
                             consumptionBonusAmount = pageValue;
                         }
                         // Special handling for reportController.js drawFeedbackReport()
