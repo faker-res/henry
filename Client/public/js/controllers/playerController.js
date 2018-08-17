@@ -8743,10 +8743,10 @@ define(['js/app'], function (myApp) {
                 if (!a) return;
                 var checkForObjIdRegExp = new RegExp(/^[a-f\d]{24}$/i);
                 var newStr = [];
-                a.amount = a.amount != null ? a.amount.toFixed(2) : new Number(0).toFixed(2);
-                a.curAmount = a.curAmount != null ? a.curAmount.toFixed(2) : new Number(0).toFixed(2);
-                a.lockedAmount = a.lockedAmount != null ? a.lockedAmount.toFixed(2) : new Number(0).toFixed(2);
-                a.changedLockedAmount = a.changedLockedAmount != null ? a.changedLockedAmount.toFixed(2) : new Number(0).toFixed(2);
+                a.amount = a.amount != null ? $noRoundTwoDecimalToFix(a.amount) : new Number(0).toFixed(2);
+                a.curAmount = a.curAmount != null ? $noRoundTwoDecimalToFix(a.curAmount) : new Number(0).toFixed(2);
+                a.lockedAmount = a.lockedAmount != null ? $noRoundTwoDecimalToFix(a.lockedAmount) : new Number(0).toFixed(2);
+                a.changedLockedAmount = a.changedLockedAmount != null ? $noRoundTwoDecimalToFix(a.changedLockedAmount) : new Number(0).toFixed(2);
                 var newObj = $.extend({}, a.data);
                 delete newObj.creator;
                 // switch (a.operationType) {

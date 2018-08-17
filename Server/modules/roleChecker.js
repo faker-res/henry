@@ -463,7 +463,8 @@ var roleChecker = {
                 Read: ['getAllOfficer', 'getAllPromoteWay', 'getAllUrl', 'getAdminNameByDepartment'],
                 Create: ['createOfficer', 'addPromoteWay', 'addUrl'],
                 Delete: ['deletePromoteWay', 'deleteOfficer', 'deleteUrl'],
-                Update: ['updateUrl']
+                Update: ['updateUrl'],
+                ignore90DaysEditingRestriction: []
             },
             "devFunc": {
                 Read: ['triggerSavePlayersCredit']

@@ -91,7 +91,7 @@ let dbCsOfficer = {
                     let startTime = moment(endTime).subtract(90, 'days').toDate();
 
                     return dbconfig.collection_players.find({
-                        domain: filteredDomain,
+                        domain: {$regex: filteredDomain, $options: "xi"},
                         platform: ObjectId(platformId),
                         registrationTime: {$gte: startTime, $lt: endTime}
                     }).lean().count();
@@ -112,34 +112,45 @@ let dbCsOfficer = {
         }
     },
 
-    updateUrl: (urlId, domain, admin, way, platformId) => {
-        // check if the url is valid to edit/delete
-        return dbCsOfficer.domainValidityChecking(urlId, platformId).then( count => {
-            if (count && count > 0){
-                return Promise.reject({
-                    name: "DataError",
-                    message: "This domain is not allowed to delete nor edit as there is new registration within 90 days."
-                })
-            }
-            else{
-                return dbconfig.collection_csOfficerUrl.findOneAndUpdate({_id: urlId}, {domain, admin, way}).lean();
-            }
-        })
+    updateUrl: (urlId, domain, admin, way, platformId, ignoreChecking) => {
+
+        if (ignoreChecking){
+            return dbconfig.collection_csOfficerUrl.findOneAndUpdate({_id: urlId}, {domain, admin, way}).lean();
+        }
+        else{
+            return dbCsOfficer.domainValidityChecking(urlId, platformId).then( count => {
+                if (count && count > 0){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "This domain is not allowed to delete nor edit as there is new registration within 90 days."
+                    })
+                }
+                else{
+                    return dbconfig.collection_csOfficerUrl.findOneAndUpdate({_id: urlId}, {domain, admin, way}).lean();
+                }
+            })
+        }
+
     },
 
-    deleteUrl: (urlId, platformId) => {
+    deleteUrl: (urlId, platformId, ignoreChecking) => {
 
-        return dbCsOfficer.domainValidityChecking(urlId, platformId).then( count => {
-            if (count && count > 0){
-                return Promise.reject({
-                    name: "DataError",
-                    message: "This domain is not allowed to delete nor edit as there is new registration within 90 days."
-                })
-            }
-            else{
-                return dbconfig.collection_csOfficerUrl.remove({_id: urlId});
-            }
-        })
+        if (ignoreChecking){
+            return dbconfig.collection_csOfficerUrl.remove({_id: urlId});
+        }
+        else{
+            return dbCsOfficer.domainValidityChecking(urlId, platformId).then( count => {
+                if (count && count > 0){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "This domain is not allowed to delete nor edit as there is new registration within 90 days."
+                    })
+                }
+                else{
+                    return dbconfig.collection_csOfficerUrl.remove({_id: urlId});
+                }
+            })
+        }
     },
 
 
