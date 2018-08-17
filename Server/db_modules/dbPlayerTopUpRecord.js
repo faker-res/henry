@@ -2603,6 +2603,7 @@ var dbPlayerTopUpRecord = {
                                 let bValid = false;
                                 let maxDeposit = 0;
                                 if (String(bPMSGroup) == "true") {
+                                    console.log('ricco - true', wechats);
                                     if (wechats.data) {
                                         if (!playerData.permission.disableWechatPay && wechats.data.valid) {
                                             bValid = true;
@@ -2613,6 +2614,7 @@ var dbPlayerTopUpRecord = {
                                     }
                                 } else {
                                     if (wechats.data && wechats.data.length > 0) {
+                                        console.log('ricco - false', bPMSGroup);
                                         wechats.data.forEach(
                                             wechat => {
                                                 playerData.wechatPayGroup.wechats.forEach(
