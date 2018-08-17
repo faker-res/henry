@@ -4143,6 +4143,7 @@
   "winlose X above ratio": "产生报表输赢x上述比例",
   "Represent a player winlose share between 2 levels": "表示一个玩家的报表输赢只会往上分两层",
   "gameGroupIconUrl": "游戏组图标位置",
+  "PAYMENT_CARD_MODE": "派卡逻辑",
   "Mission Status": "任务状态",
   "Unbegun": "尚未开始",
   "Ongoing": "进行中",
@@ -4150,5 +4151,10 @@
   "Manually Cancelled": "被手动暂停",
   "Feedback Mission Overview List": "回访任务总览列表",
   "Feedback Mission Daily Detail": "回访任务每日详情",
-  "TotalChangeAmount": "总变化额度"
+  "TotalChangeAmount": "总变化额度",
+  "Source": "状态来源",
+  "Current Game Status": "目前游戏状态",
+  "Actions":"状态操作",
+  "FPMS System": "客服系统",
+  "Cannot modify , please contact game provider": "不可操作，请询问供应商"
 }
