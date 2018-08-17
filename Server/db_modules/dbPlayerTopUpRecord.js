@@ -2554,7 +2554,7 @@ var dbPlayerTopUpRecord = {
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).lean().then(
                 playerData => {
-                    if (playerData && playerData.platform && (bPMSGroup || (playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0))) {
+                    if (playerData && playerData.platform && (String(bPMSGroup) === 'true' || (playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0))) {
                         let prom;
                         let pmsQuery = {
                             platformId: playerData.platform.platformId,
