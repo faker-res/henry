@@ -442,6 +442,25 @@ p
 
                                     td.text-left
                                         button.btn.btn-primary.common-button-sm(ng-click='vm.showPartnerIPHistory()') {{"View Details" | translate}}
+
+                                tr
+                                    td
+                                        div {{'Partner Architecture' | translate}}
+                                    td
+                                        .row
+                                            .col-md-4
+                                                div
+                                                    label {{"Parent Partner Name" | translate}}
+                                                    span.margin-left-5 {{vm.selectedSinglePartner.parent.partnerName || 'NONE' | translate}}
+                                        .row
+                                            .col-md-4
+                                                div
+                                                    label {{'Child Partner Headcount' | translate}}
+                                                    span.margin-left-5 ({{vm.selectedSinglePartner.childrencount || 0}})
+
+                                    td.text-left
+                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Partner', 'EditChildPartner')", data-toggle="modal", ng-click='vm.initEditChildPartner()', data-target='#modalEditChildPartner') {{"EDIT" | translate}}
+
                 div(ng-if="vm.selectedPartnerCommissionPreview")
                     table.simple-table
                         thead
@@ -1368,6 +1387,78 @@ p
                                 td {{v.consumptionCount}}
                                 td {{v.consumptionAmount}}
                                 td {{v.valueScore}}
+
+#modalEditChildPartner.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:85%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Partner Architecture" | translate}}: {{vm.selectedSinglePartner.partnerName}}
+            .modal-body
+                div
+                    table.simple-table
+                        thead
+                            tr
+                                th(colspan=2 style="width:200px")
+                                th(style="width:250px") {{'PARTNER_NAME' | translate}}
+                                th(style="width:260px") {{'Created/Edited DateTime' | translate}}
+                                th(style="width:180px") {{'Reference Proposal No.' | translate}}
+                                th {{'Remark description' | translate}}
+                        tbody
+                            tr
+                                td(colspan=2) {{'Parent Partner(Unique)' | translate}}
+                                td {{vm.selectedSinglePartner.parent.partnerName || 'NONE' | translate}}
+                                td(rowspan=5, colspan=2)
+                                td(style='text-align:left') {{'CANNOT_EDIT' | translate}}
+                            tr
+                                td(colspan=2)
+                                td ↓
+                                td
+                            tr
+                                td(colspan=2) {{"Partner(Self)" | translate}}
+                                td {{vm.selectedSinglePartner.partnerName}}
+                                td(style='text-align:left') {{'CANNOT_EDIT' | translate}}
+                            tr
+                                td(colspan=2)
+                                td ↓
+                                td
+                            tr
+                                td(colspan=2)
+                                    div
+                                        span {{'Child Partner' | translate}}
+                                        br
+                                        span ( {{'Total Child Partner' | translate}} {{vm.totalChildPartner || 0}} )
+                                td ↓
+                                td
+                                    div(style='text-align:left')
+                                        span {{'EDIT_CHILD_PARTNER_INFO_TITLE' | translate}}
+                                        br
+                                        span {{'EDIT_CHILD_PARTNER_INFO_DESCRIPTION_A' | translate}}
+                                        br
+                                        span {{'EDIT_CHILD_PARTNER_INFO_DESCRIPTION_B' | translate}}
+
+
+                            tr(ng-repeat="(idx, val) in vm.childPartnerList")
+                                td
+                                    div
+                                        label(ng-show='vm.isChildPartnerEditing') (
+                                        i.fa.fa-plus(ng-click='vm.childPartnerNewRow(vm.childPartnerList, idx)', ng-show='vm.isChildPartnerEditing')
+                                        label(ng-show='vm.isChildPartnerEditing') )
+                                        label(ng-show='vm.isChildPartnerEditing') (
+                                        i.fa.fa-minus(ng-click='vm.childPartnerDeleteRow(idx, vm.childPartnerList)', ng-show='vm.isChildPartnerEditing')
+                                        label(ng-show='vm.isChildPartnerEditing') )
+                                td  {{idx + 1}}
+                                td
+                                    input(type='text' style='text-align:center' ng-model='val.partnerName' ng-change='vm.checkChildPartnerNameValidity(vm.childPartnerList[idx].partnerName, idx)' ng-disabled='!vm.isChildPartnerEditing')
+                                td  {{val.createTime ? timeReformat(val.createTime) : ''}}
+                                td  {{val.proposalId}}
+                                td
+                                    span(style='color:red') {{val.errorMessage}}
+
+            .modal-footer
+                button.btn.btn-danger.common-button(data-dismiss="modal") {{"CLOSE/CANCEL" | translate}}
+                button.btn.btn-success.common-button(ng-click="vm.editChildPartner()"  ng-if="!vm.isChildPartnerEditing && checkViewPermission('Platform', 'Partner', 'EditChildPartner')") {{"EDIT" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss="modal" ng-if="vm.isChildPartnerEditing && checkViewPermission('Platform', 'Partner', 'EditChildPartner')" ng-click="vm.submitChildPartner()" ng-disabled='vm.disableEditChildPartner') {{"CONFIRM" | translate}}
 
 include partner-feedback-popup
 include ../common-widget/telephone-popover
