@@ -2565,6 +2565,7 @@ var dbPlayerTopUpRecord = {
     },
 
     getPlayerWechatPayStatus: (playerId, bPMSGroup, userIp) => {
+        console.log('ricco - 111', bPMSGroup);
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).lean().then(
