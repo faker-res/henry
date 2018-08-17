@@ -282,6 +282,11 @@
             .inlineBlk
                 label {{'Page' | translate}}
 
+.row(ng-show='vm.selectedPlatform')
+    .col-md-12
+        .pull-left
+            button.btn.btn-danger.btn-xs(ng-click='vm.forceStopFPMSCallOutMissions()') {{"Force Stop Mission" | translate}}
+
 #modalExportSetting.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content

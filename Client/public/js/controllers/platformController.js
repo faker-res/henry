@@ -16377,6 +16377,26 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.forceStopFPMSCallOutMissions = function(isConfirm) {
+                if (!isConfirm) {
+                    vm.modalYesNo.modalTitle = $translate("Force Stop Mission");
+                    vm.modalYesNo.modalText = $translate("FORCE_STOP_MISSION_WARNING");
+                    vm.modalYesNo.actionYes = () => vm.forceStopFPMSCallOutMissions(true);
+                    $('#modalYesNo').modal();
+                }
+                else {
+                    $('#platformFeedbackSpin').show();
+                    socketService.$socket($scope.AppSocket, 'forceStopFPMSMission', {
+                        platformObjId: vm.selectedPlatform.id
+                    }, function (data) {
+                        console.log("forceStopFPMSMission ret", data);
+                        $scope.$evalAsync(function () {
+                            vm.submitPlayerFeedbackQuery();
+                        });
+                    });
+                }
+            };
+
             vm.endCallOutMission = function() {
                 socketService.$socket($scope.AppSocket, 'endCallOutMission', {
                     platformObjId: vm.selectedPlatform.id,

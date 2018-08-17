@@ -230,6 +230,33 @@ let dbCallOutMission = {
             }
         );
     },
+
+    forceStopFPMSMission: (platformObjId, adminObjId) => {
+        let platform, admin;
+
+        let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
+        let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
+
+        return Promise.all([platformProm, adminProm]).then(
+            data => {
+                ([platform, admin] = data);
+
+                if (!platform ) {
+                    return Promise.reject({name: "DataError", message: "Platform not found."});
+                }
+
+                if (!admin) {
+                    return Promise.reject({name: "DataError", message: "No admin acc"});
+                }
+
+                return dbconfig.collection_callOutMission.update({
+                    platform: platform._id,
+                    admin: admin._id,
+                    isUsing: true
+                }, {isUsing: false}).lean();
+            }
+        );
+    },
 };
 
 module.exports = dbCallOutMission;
@@ -429,7 +456,7 @@ function getCtiUrls (platformId) {
     platformId = platformId ? String(platformId) : "10";
 
     // todo :: THIS ONE HAVE TO BE COMMENTED WHEN MERGE TO DEVELOP-1.1
-    // platformId = 10; // debug param, use this when testing on local
+    platformId = 10; // debug param, use this when testing on local
 
     let urls = [
         "http://jsh.tel400.me/cti/",
