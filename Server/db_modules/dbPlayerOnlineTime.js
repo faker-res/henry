@@ -47,17 +47,69 @@ let dbPlayerOnlineTime = {
         )
     },
 
-    getOnlineTimeLogByPlatform: function (platformObjId, startTime, endTime) {
-        return dbConfig.collection_playerOnlineTime.find({
-            platform: platformObjId,
-            lastLoginTime: {$gte: startTime, $lt: endTime}
-        }, 'totalOnlineSeconds').lean().then(
-            timeLogs => {
-                if (timeLogs && timeLogs.length) {
-                    return timeLogResultGenerator(timeLogs);
+    getOnlineTimeLogByPlatform: function (platformObjId, startTime, endTime, period) {
+
+        let arrProm = [];
+        var dayStartTime = new Date(startTime);
+        var getNextDate;
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+
+        for ( ; dayStartTime.getTime() < new Date(endTime).getTime(); dayStartTime = dayEndTime) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+
+            arrProm.push(dbConfig.collection_playerOnlineTime.find({platform: platformObjId, lastLoginTime: {$gte: dayStartTime, $lt: dayEndTime}}, 'totalOnlineSeconds').lean().then(
+                timeLogs => {
+                    if (timeLogs) {
+                        return timeLogResultGenerator(timeLogs);
+                    }
+                }
+            ));
+        }
+
+        return Promise.all(arrProm).then(
+            retData => {
+                if (retData && retData.length > 0){
+
+                    let result = [];
+                    let tempDate = startTime;
+
+                    retData.forEach(data => {
+                        if(data){
+                            result.push({date: tempDate, result: data});
+                        }
+                        tempDate = getNextDate(tempDate);
+                    });
+
+                    return result
+                }
+                else{
+                    return Promise.reject({
+                        name: "DataError",
+                        errorMessage: "Cannot find the playerOnlineTime record"
+                    });
                 }
             }
-        );
+        )
 
         function timeLogResultGenerator (logs) {
             let retData = {
@@ -73,24 +125,26 @@ let dbPlayerOnlineTime = {
                 count9: 0
             };
 
-            logs.forEach(log => {
-                retData.totalCount++;
-                retData.count1 += !log.totalOnlineSeconds || checkSecondsGroup(log.totalOnlineSeconds, 0, 60) ? 1 : 0;
-                retData.count2 += checkSecondsGroup(log.totalOnlineSeconds, 60, 180) ? 1 : 0;
-                retData.count3 += checkSecondsGroup(log.totalOnlineSeconds, 180, 300) ? 1 : 0;
-                retData.count4 += checkSecondsGroup(log.totalOnlineSeconds, 300, 600) ? 1 : 0;
-                retData.count5 += checkSecondsGroup(log.totalOnlineSeconds, 600, 1200) ? 1 : 0;
-                retData.count6 += checkSecondsGroup(log.totalOnlineSeconds, 1200, 1800) ? 1 : 0;
-                retData.count7 += checkSecondsGroup(log.totalOnlineSeconds, 1800, 2700) ? 1 : 0;
-                retData.count8 += checkSecondsGroup(log.totalOnlineSeconds, 2700, 3600) ? 1 : 0;
-                retData.count9 += log.totalOnlineSeconds > 3600 ? 1 : 0;
-            });
+            if(logs && logs.length > 0) {
+                logs.forEach(log => {
+                    retData.totalCount++;
+                    retData.count1 += !log.totalOnlineSeconds || checkSecondsGroup(log.totalOnlineSeconds, 0, 10) ? 1 : 0;
+                    retData.count2 += checkSecondsGroup(log.totalOnlineSeconds, 11, 30) ? 1 : 0;
+                    retData.count3 += checkSecondsGroup(log.totalOnlineSeconds, 31, 60) ? 1 : 0;
+                    retData.count4 += checkSecondsGroup(log.totalOnlineSeconds, 61, 300) ? 1 : 0;
+                    retData.count5 += checkSecondsGroup(log.totalOnlineSeconds, 301, 600) ? 1 : 0;
+                    retData.count6 += checkSecondsGroup(log.totalOnlineSeconds, 601, 900) ? 1 : 0;
+                    retData.count7 += checkSecondsGroup(log.totalOnlineSeconds, 901, 1800) ? 1 : 0;
+                    retData.count8 += checkSecondsGroup(log.totalOnlineSeconds, 1801, 3600) ? 1 : 0;
+                    retData.count9 += log.totalOnlineSeconds >= 3601 ? 1 : 0;
+                });
+            }
 
             return retData;
         }
 
         function checkSecondsGroup (value, min, max) {
-            return value >= min && value < max;
+            return value >= min && value <= max;
         }
     }
 };
