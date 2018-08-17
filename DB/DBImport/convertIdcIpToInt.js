@@ -3,8 +3,8 @@ var db = db.getSiblingDB("admindb");
 var idcIps = db.idcIp.find().toArray();
 
 for (var i = 0; i < idcIps.length; i++) {
-    let thisObj = idcIps[i];
-    let thisObjId = thisObj._id;
+    var thisObj = idcIps[i];
+    var thisObjId = thisObj._id;
     thisObj.ip_start_num = ip2int(thisObj.ip_start);
     thisObj.ip_end_num = ip2int(thisObj.ip_end);
     delete thisObj._id;
