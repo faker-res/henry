@@ -9900,6 +9900,7 @@ let dbPlayerInfo = {
         let bUpdateCredit = false;
         let platform;
         let isUsingXima = false;
+        let lastBonusRemark = "";
         let resetCredit = function (playerObjId, platformObjId, credit, error) {
             //reset player credit if credit is incorrect
             return dbconfig.collection_players.findOneAndUpdate(
@@ -9979,6 +9980,24 @@ let dbPlayerInfo = {
                             if (amount <= player.ximaWithdraw) {
                                 isUsingXima = true;
                             }
+                        }
+
+                        if (!player.permission.applyBonus) {
+                            dbconfig.collection_playerPermissionLog.find(
+                                {
+                                    player: player._id,
+                                    platform: platform._id,
+                                    "oldData.applyBonus": true,
+                                    "newData.applyBonus": false,
+                                },
+                                {remark: 1}
+                            ).sort({createTime: -1}).limit(1).lean().then(
+                                log => {
+                                    if (log && log.length > 0) {
+                                        lastBonusRemark = log[0].remark;
+                                    }
+                                }
+                            );
                         }
 
                         if (player.platform && player.platform.useProviderGroup) {
@@ -10163,7 +10182,7 @@ let dbPlayerInfo = {
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                             };
                                             if (!player.permission.applyBonus && player.platform.playerForbidApplyBonusNeedCsApproval) {
-                                                proposalData.remark = "禁用提款";
+                                                proposalData.remark = "禁用提款: " + lastBonusRemark;
                                                 proposalData.needCsApproved = true;
                                             }
                                             var newProposal = {
@@ -11297,6 +11316,11 @@ let dbPlayerInfo = {
         ).lean().then(
             data => {
                 if (data && data.platform) {
+                    if (data.platform.merchantGroupIsPMS) {
+                        bPMSGroup = true
+                    } else {
+                        bPMSGroup = false;
+                    }
                     let pmsQuery = {
                         platformId: data.platform.platformId,
                         queryId: serverInstance.getQueryId()
