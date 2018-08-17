@@ -3545,6 +3545,21 @@ define(['js/app'], function (myApp) {
                 return provider.status;
             };
 
+
+
+            vm.getProviderStatusClass = function (str) {
+                 if (!str) return;
+                 if (str == vm.allGameStatusString.ENABLE) {
+                     return 'colorGreen';
+                 } else if (str == vm.allGameStatusString.DISABLE) {
+                     return 'colorRed';
+                 } else if (str == vm.allGameStatusString.MAINTENANCE) {
+                     return 'colorOrangeImportant text-bold';
+                 } else {
+                     return 'colorRed';
+                 }
+             }
+
             vm.getGameStatusClass = function (v) {
                 if (!v) return;
                 if (v.status == vm.allGameStatusString.ENABLE && v.platformGameStatus == vm.allGameStatusString.ENABLE) {
