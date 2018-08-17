@@ -15596,7 +15596,7 @@ let dbPlayerInfo = {
     },
 
     getDXNewPlayerReport: function (platform, query, index, limit, sortCol) {
-        limit = limit ? limit : 20;
+        limit = limit ? limit : null;
         index = index ? index : 0;
         query = query ? query : {};
 
@@ -15680,7 +15680,7 @@ let dbPlayerInfo = {
                 }
 
                 let outputResult = [];
-                let filteredArr = []
+                let filteredArr = [];
                 if(query.csPromoteWay && query.csPromoteWay.length > 0 && query.admins && query.admins.length > 0){
                     if(query.csPromoteWay.includes("") && query.admins.includes("")){
                         filteredArr = result;
@@ -15709,8 +15709,12 @@ let dbPlayerInfo = {
                         return result.indexOf(e) === -1;
                     }));
 
-                for (let i = 0, len = limit; i < len; i++) {
-                    result[index + i] ? outputResult.push(result[index + i]) : null;
+                if (limit) {
+                    for (let i = 0, len = limit; i < len; i++) {
+                        result[index + i] ? outputResult.push(result[index + i]) : null;
+                    }
+                } else {
+                    outputResult = result;
                 }
 
                 return {size: outputResult.length, data: outputResult};
