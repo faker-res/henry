@@ -3545,6 +3545,21 @@ define(['js/app'], function (myApp) {
                 return provider.status;
             };
 
+
+
+            vm.getProviderStatusClass = function (str) {
+                 if (!str) return;
+                 if (str == vm.allGameStatusString.ENABLE) {
+                     return 'colorGreen';
+                 } else if (str == vm.allGameStatusString.DISABLE) {
+                     return 'colorRed';
+                 } else if (str == vm.allGameStatusString.MAINTENANCE) {
+                     return 'colorOrangeImportant text-bold';
+                 } else {
+                     return 'colorRed';
+                 }
+             }
+
             vm.getGameStatusClass = function (v) {
                 if (!v) return;
                 if (v.status == vm.allGameStatusString.ENABLE && v.platformGameStatus == vm.allGameStatusString.ENABLE) {
@@ -16377,6 +16392,26 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.forceStopFPMSCallOutMissions = function(isConfirm) {
+                if (!isConfirm) {
+                    vm.modalYesNo.modalTitle = $translate("Force Stop Mission");
+                    vm.modalYesNo.modalText = $translate("FORCE_STOP_MISSION_WARNING");
+                    vm.modalYesNo.actionYes = () => vm.forceStopFPMSCallOutMissions(true);
+                    $('#modalYesNo').modal();
+                }
+                else {
+                    $('#platformFeedbackSpin').show();
+                    socketService.$socket($scope.AppSocket, 'forceStopFPMSMission', {
+                        platformObjId: vm.selectedPlatform.id
+                    }, function (data) {
+                        console.log("forceStopFPMSMission ret", data);
+                        $scope.$evalAsync(function () {
+                            vm.submitPlayerFeedbackQuery();
+                        });
+                    });
+                }
+            };
+
             vm.endCallOutMission = function() {
                 socketService.$socket($scope.AppSocket, 'endCallOutMission', {
                     platformObjId: vm.selectedPlatform.id,
@@ -28024,6 +28059,13 @@ define(['js/app'], function (myApp) {
                         "financialSettlement.minFinancialPointsDisableWithdrawal": srcData.minFinancialPointsDisableWithdrawal,
                         "financialSettlement.financialPointsDisableWithdrawal": financialPointsDisableWithdrawal,
                     }
+                }
+
+                if (!(vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) && srcData.financialSettlementToggle) {
+                    sendData.updateData.bankCardGroupIsPMS = false;
+                    sendData.updateData.merchantGroupIsPMS = false;
+                    sendData.updateData.aliPayGroupIsPMS = false;
+                    sendData.updateData.wechatPayGroupIsPMS = false;
                 }
 
                 if (vm.selectedPlatform.data.financialSettlement && (vm.selectedPlatform.data.financialSettlement.minFinancialPointsNotification != srcData.minFinancialPointsNotification)
