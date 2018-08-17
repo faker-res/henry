@@ -3,6 +3,7 @@ const pmsAPI = require("../externalAPI/pmsAPI.js");
 const serverInstance = require("../modules/serverInstance");
 const constPlayerTopUpTypes = require("../const/constPlayerTopUpType.js");
 const constProposalType = require('./../const/constProposalType');
+const constDepositMethod = require('./../const/constDepositMethod');
 const Q = require("q");
 const errorUtils = require('./../modules/errorUtils');
 const ObjectId = require('mongoose').Types.ObjectId;
@@ -192,47 +193,123 @@ const dbPlayerPayment = {
     requestBankTypeByUserName: function (playerId, clientType, userIp, supportMode) {
         let playerObj;
         let returnData;
+        let bPMSGroup = false;
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbconfig.collection_platform}
+        ).populate(
+            {path: "bankCardGroup", model: dbconfig.collection_platformBankCardGroup}
         ).lean().then(
             playerData => {
                 if( playerData ){
                     playerObj = playerData;
                     let platformData = playerData.platform;
                     if (platformData.financialSettlement && platformData.financialSettlement.financialSettlementToggle) {
-                        return dbconfig.collection_platformBankCardList.find({platformId: platformData.platformId, isFPMS: true, status: "NORMAL"}).lean().then(
+                        let accountArr = playerObj.bankCardGroup && playerObj.bankCardGroup.banks && playerObj.bankCardGroup.banks.length? playerObj.bankCardGroup.banks: [];
+                        return dbconfig.collection_platformBankCardList.find(
+                            {
+                                platformId: platformData.platformId,
+                                accountNumber: {$in: accountArr},
+                                isFPMS: true,
+                                status: "NORMAL"
+                            }
+                            ).lean().then(
                             bankCardListData => {
-                                let bankListArr = [];
-                                for (let j = 0; j < bankCardListData.length; j++) {
-                                    let bankCardObj = {
-                                        id: bankCardListData[j].bankTypeId,
-                                        bankTypeId: bankCardListData[j].bankTypeId,
-                                        name: bankCardListData[j].name,
-                                        status: 1
+                                let bankCardFilterList = [];
+                                let maxDeposit = 0;
+                                let compareObj = {};
+
+                                if (bankCardListData && bankCardListData.length) {
+                                    for (let j = 0; j < bankCardListData.length; j++) {
+                                        if (!compareObj.hasOwnProperty(bankCardListData[j].bankTypeId)) {
+                                            compareObj[bankCardListData[j].bankTypeId] = {
+                                                id: bankCardListData[j].bankTypeId,
+                                                bankTypeId: bankCardListData[j].bankTypeId,
+                                                maxDepositAmount: bankCardListData[j].maxDepositAmount ? bankCardListData[j].maxDepositAmount : 0,
+                                                status: 1
+                                            }
+                                        } else {
+                                            if (compareObj[bankCardListData[j].bankTypeId] && bankCardListData[j].maxDepositAmount && bankCardListData[j].maxDepositAmount > compareObj[bankCardListData[j].bankTypeId].maxDepositAmount) {
+                                                compareObj[bankCardListData[j].bankTypeId].maxDepositAmount = bankCardListData[j].maxDepositAmount ? bankCardListData[j].maxDepositAmount : 0;
+                                            }
+                                        }
                                     }
-                                    bankCardListData.splice(j, 1, bankCardObj);
-                                }
-                                for (let i = 1; i < 4; i++) {
-                                    let returnObj = {
-                                        depositMethod: String(i),
-                                        data: bankCardListData
+
+                                    for (let key in compareObj) {
+                                        if (compareObj[key].maxDepositAmount > maxDeposit) {
+                                            maxDeposit = compareObj[key].maxDepositAmount;
+                                        }
+                                        bankCardFilterList.push(compareObj[key])
                                     }
-                                    bankListArr.push(returnObj);
+
+                                    return getBankTypeNameArr(bankCardFilterList, maxDeposit);
+
+                                } else {
+                                    return {data: []}
                                 }
-                                return {data: bankListArr}
                             }
                         )
                     } else {
                         if (playerData.permission.topupManual) {
-                            return pmsAPI.foundation_requestBankTypeByUsername(
-                                {
-                                    queryId: serverInstance.getQueryId(),
-                                    platformId: playerData.platform.platformId,
-                                    username: playerData.name,
-                                    ip: userIp,
-                                    supportMode: supportMode
-                                }
-                            );
+                            if (playerData && playerData.platform && playerData.platform.bankCardGroupIsPMS) {
+                                bPMSGroup = true;
+                                return pmsAPI.foundation_requestBankTypeByUsername(
+                                    {
+                                        queryId: serverInstance.getQueryId(),
+                                        platformId: playerData.platform.platformId,
+                                        username: playerData.name,
+                                        ip: userIp,
+                                        supportMode: supportMode
+                                    }
+                                );
+                            } else {
+                                bPMSGroup = false;
+                                return pmsAPI.bankcard_getBankcardList(
+                                    {
+                                        platformId: platformData.platformId,
+                                        queryId: serverInstance.getQueryId()
+                                    }
+                                ).then(
+                                    bankCardListData => {
+                                        if (bankCardListData && bankCardListData.data && bankCardListData.data.length
+                                            && playerObj.bankCardGroup && playerObj.bankCardGroup.banks && playerObj.bankCardGroup.banks.length) {
+                                            let bankCardFilterList = [];
+                                            let maxDeposit = 0;
+                                            let compareObj = {};
+                                            for (let j = 0; j < bankCardListData.data.length; j++) {
+                                                if (bankCardListData.data[j].status == "NORMAL" && playerObj.bankCardGroup.banks.indexOf(bankCardListData.data[j].accountNumber) >= 0) {
+                                                    if (!compareObj.hasOwnProperty(bankCardListData.data[j].bankTypeId)) {
+                                                        compareObj[bankCardListData.data[j].bankTypeId] = {
+                                                            id: bankCardListData.data[j].bankTypeId,
+                                                            bankTypeId: bankCardListData.data[j].bankTypeId,
+                                                            maxDepositAmount: bankCardListData.data[j].maxDepositAmount ? bankCardListData.data[j].maxDepositAmount : 0,
+                                                            status: 1
+                                                        }
+                                                    } else {
+                                                        if (compareObj[bankCardListData.data[j].bankTypeId] && bankCardListData.data[j].maxDepositAmount && bankCardListData.data[j].maxDepositAmount > compareObj[bankCardListData.data[j].bankTypeId].maxDepositAmount) {
+                                                            compareObj[bankCardListData.data[j].bankTypeId].maxDepositAmount = bankCardListData.data[j].maxDepositAmount ? bankCardListData.data[j].maxDepositAmount : 0;
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            for (let key in compareObj) {
+                                                if (compareObj[key].maxDepositAmount > maxDeposit) {
+                                                    maxDeposit = compareObj[key].maxDepositAmount;
+                                                }
+                                                bankCardFilterList.push(compareObj[key])
+                                            }
+                                            if (bankCardFilterList.length) {
+                                                return getBankTypeNameArr(bankCardFilterList, maxDeposit);
+                                            } else {
+                                                return {data: []};
+                                            }
+                                        }
+
+                                        return {data: []};
+                                    }
+                                );
+                            }
+
                         }
                         else {
                             return [];
@@ -302,5 +379,34 @@ const dbPlayerPayment = {
     }
 
 };
+function getBankTypeNameArr (bankCardFilterList, maxDeposit) {
+    let bankListArr = [];
+    return pmsAPI.bankcard_getBankTypeList({}).then(
+        bankTypeList => {
+            if (!(bankTypeList && bankTypeList.data && bankTypeList.data.length)) {
+                return Q.reject({
+                    name: "DataError",
+                    message: "Can not find bank type list"
+                });
+            }
+
+            bankCardFilterList.forEach(item => {
+                let matchObj = bankTypeList.data.find(bankType => bankType.bankTypeId == item.bankTypeId);
+                if (matchObj && matchObj.name) {
+                    item.name = matchObj.name;
+                }
+            })
+            for (let i = 1; i <= Object.keys(constDepositMethod).length; i++) {
+                let returnObj = {
+                    depositMethod: String(i),
+                    maxDepositAmount: maxDeposit,
+                    data: bankCardFilterList
+                }
+                bankListArr.push(returnObj);
+            }
+
+            return {data: bankListArr};
+        })
+}
 
 module.exports = dbPlayerPayment;

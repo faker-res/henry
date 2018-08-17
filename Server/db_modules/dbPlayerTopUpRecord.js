@@ -743,6 +743,11 @@ var dbPlayerTopUpRecord = {
             ).then(
             playerData => {
                 player = playerData;
+                if (player && player.platform && player.platform.merchantGroupIsPMS) {
+                    bPMSGroup = true
+                } else {
+                    bPMSGroup = false;
+                }
                 if (player && player._id) {
                     if (!topUpReturnCode) {
                         return Promise.resolve();
@@ -1089,6 +1094,11 @@ var dbPlayerTopUpRecord = {
         ).then(
             playerData => {
                 player = playerData;
+                if (player && player.platform && player.platform.bankCardGroupIsPMS) {
+                    bPMSGroup = true
+                } else {
+                    bPMSGroup = false;
+                }
                 if (player && player._id) {
                     if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
                         isFPMS = true;
@@ -2226,6 +2236,11 @@ var dbPlayerTopUpRecord = {
             .populate({path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup}).then(
                 playerData => {
                     player = playerData;
+                    if (player && player.platform && player.platform.aliPayGroupIsPMS) {
+                        bPMSGroup = true
+                    } else {
+                        bPMSGroup = false;
+                    }
                     if (player && player._id) {
                         if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
                             isFPMS = true;
@@ -2553,6 +2568,12 @@ var dbPlayerTopUpRecord = {
             .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).lean().then(
                 playerData => {
                     if (playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) {
+                        if (playerData.platform.wechatPayGroupIsPMS) {
+                            bPMSGroup = true
+                        } else {
+                            bPMSGroup = false;
+                        }
+
                         let prom;
                         let pmsQuery = {
                             platformId: playerData.platform.platformId,
@@ -2625,6 +2646,11 @@ var dbPlayerTopUpRecord = {
             .populate({path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup}).then(
                 playerData => {
                     if (playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) {
+                        if (playerData.platform.aliPayGroupIsPMS) {
+                            bPMSGroup = true
+                        } else {
+                            bPMSGroup = false;
+                        }
                         let aliPayProm;
                         let pmsQuery = {
                             platformId: playerData.platform.platformId,
@@ -2756,6 +2782,11 @@ var dbPlayerTopUpRecord = {
             ).lean().then(
                 playerData => {
                     player = playerData;
+                    if (player && player.platform && player.platform.wechatPayGroupIsPMS) {
+                        bPMSGroup = true
+                    } else {
+                        bPMSGroup = false;
+                    }
                     if (player && player._id) {
                         if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
                             isFPMS = true;

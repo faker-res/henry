@@ -11297,6 +11297,11 @@ let dbPlayerInfo = {
         ).lean().then(
             data => {
                 if (data && data.platform) {
+                    if (data.platform.merchantGroupIsPMS) {
+                        bPMSGroup = true
+                    } else {
+                        bPMSGroup = false;
+                    }
                     let pmsQuery = {
                         platformId: data.platform.platformId,
                         queryId: serverInstance.getQueryId()
