@@ -16032,7 +16032,7 @@ let dbPlayerInfo = {
             }
 
             // Player Score Query Operator
-            if (query.playerScoreValue || Number(query.playerScoreValue) === 0) {
+            if ((query.playerScoreValue || Number(query.playerScoreValue) === 0) && query.playerScoreValue !== null) {
                 switch (query.valueScoreOperator) {
                     case '>=':
                         playerQuery.valueScore = {$gte: query.playerScoreValue};
@@ -16056,7 +16056,7 @@ let dbPlayerInfo = {
                 let isNoneExist = false;
 
                 query.depositTrackingGroup.forEach(group => {
-                    if (group == "") {
+                    if (group === "") {
                         isNoneExist = true;
                     } else {
                         tempArr.push(group);
