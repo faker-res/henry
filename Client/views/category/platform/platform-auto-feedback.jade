@@ -246,9 +246,11 @@
                 br
                 .pull-right
                     .inlineBlk
-                        button.btn.btn-warning(ng-if="checkViewPermission('Platform','AutoFeedback','create')" ng-click='') {{"CANCEL" | translate}}
+                        button.btn.btn-warning(ng-if="checkViewPermission('Platform','AutoFeedback','create')" ng-click='vm.autoFeedbackCancel()') {{"CANCEL" | translate}}
                     .inlineBlk
-                        button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','create')" ng-click='vm.autoFeedbackCreateMission()') {{"Create Mission" | translate}}
+                        button.btn.btn-primary(ng-hide="vm.autoFeedbackEditStatus" ng-if="checkViewPermission('Platform','AutoFeedback','create')" ng-click='vm.autoFeedbackCreateMission()') {{"Create Mission" | translate}}
+                    .inlineBlk
+                        button.btn.btn-primary(ng-show="vm.autoFeedbackEditStatus" ng-if="checkViewPermission('Platform','AutoFeedback','edit')" ng-click='vm.autoFeedbackUpdateMission()') {{"Update Mission" | translate}}
                     //.inlineBlk
                     //    button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="many";vm.submitPlayerFeedbackQuery(true, false);') {{"SEARCH_LIST" | translate}}
                     //.inlineBlk

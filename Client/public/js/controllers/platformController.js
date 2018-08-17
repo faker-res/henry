@@ -32760,7 +32760,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initAutoFeedbackCreate = function() {
-                // vm.selectedAutoFeedbackTab = "create";
+                vm.autoFeedbackEditStatus = false;
                 vm.autoFeedbackMission = {
                     registerStartTime: null,
                     registerEndTime: null,
@@ -32819,6 +32819,77 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.initAutoFeedbackEdit = function(data) {
+                console.log('initAutoFeedbackEdit',data);
+                vm.selectedAutoFeedbackTab = "create";
+                vm.autoFeedbackEditStatus = true;
+
+                utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
+                    vm.setupRemarksMultiInputFeedback();
+                    vm.setupGameProviderMultiInputFeedback();
+                    $('#autoFeedbackMissionStartTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackMissionEndTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackMissionRegisterStartTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackMissionRegisterEndTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+
+                    // $('select#selectCredibilityRemarkFeedback').multipleSelect("setSelects", vm.autoFeedbackMission.credibilityRemarks);
+                    // $('select#selectCredibilityRemarkFeedback').multipleSelect("setSelects", ["5b56abc62a55c12478a996fc"]);
+
+                    vm.autoFeedbackMission = data;
+                    $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').setDate(new Date(vm.autoFeedbackMission.missionStartTime));
+                    $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').setDate(new Date(vm.autoFeedbackMission.missionEndTime));
+                    $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').setDate(new Date(vm.autoFeedbackMission.registerStartTime));
+                    $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').setDate(new Date(vm.autoFeedbackMission.registerEndTime));
+
+                    vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
+
+                    $('select#selectCredibilityRemarkFeedback').multipleSelect('refresh');
+                    $('select#selectGameProvider').multipleSelect('refresh');
+                });
+            };
+            vm.autoFeedbackUpdateMission = function() {
+                vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
+                console.log(vm.autoFeedbackMission);
+
+                socketService.$socket($scope.AppSocket, 'updateAutoFeedback', vm.autoFeedbackMission, function (data) {
+                    console.log("updateAutoFeedback ret",data);
+                });
+            };
+            vm.autoFeedbackCancel = function() {
+                if(vm.autoFeedbackEditStatus) {
+                    vm.selectedAutoFeedbackTab = "overview";
+                    vm.initAutoFeedbackSearch();
+                } else {
+                    vm.initAutoFeedbackCreate();
+                }
+            };
+
             vm.initAutoFeedbackSearch = function() {
                 vm.autoFeedbackMissionSearch = {
                     createTimeStart: null,
@@ -32838,11 +32909,11 @@ define(['js/app'], function (myApp) {
                         pickTime: true,
                     });
                     $('#autoFeedbackOverviewCreateTimeStartPicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(30)));
-                    $('#autoFeedbackOverviewCreateTimeEndPicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
+                    $('#autoFeedbackOverviewCreateTimeEndPicker').data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
 
                     vm.autoFeedbackMissionSearch.createTimeStart = $('#autoFeedbackOverviewCreateTimeStartPicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMissionSearch.createTimeEnd = $('#autoFeedbackOverviewCreateTimeEndPicker').data('datetimepicker').getDate();
-                    vm.autoFeedbackMissionSearch.pageObj = utilService.createPageForPagingTable("#autoFeedbackOverviewTable", {}, $translate, function (curP, pageSize) {
+                    vm.autoFeedbackMissionSearch.pageObj = utilService.createPageForPagingTable("#autoFeedbackOverviewTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "autoFeedbackMissionSearch", vm.drawAutoFeedbackOverviewTable)
                     });
                 });
@@ -32868,11 +32939,11 @@ define(['js/app'], function (myApp) {
                     console.log("getAutoFeedback ret",data);
                     vm.autoFeedbackSearchResult = data.data;
                     vm.drawAutoFeedbackOverviewTable(vm.autoFeedbackSearchResult, true);
-                    $scope.safeApply();
                 });
             };
             vm.drawAutoFeedbackOverviewTable = function (data, newSearch) {
                 console.log('data', data);
+                let index = 0;
                 data = data || [];
                 let tableOptions = {
                     data: data,
@@ -32884,16 +32955,37 @@ define(['js/app'], function (myApp) {
                             title: $translate('ORDER'),
                             data: null,
                             render: function (data, type, row) {
-                                console.log(row);
-                                return row;
+                                return ++index;
                             }
                         },
-                        {title: $translate('TASK_NAME'), data: "name"},
+                        {
+                            title: $translate('TASK_NAME'),
+                            data: "name",
+                            render: function(data, type, row) {
+                                // return '<a ng-click="'+vm.initAutoFeedbackEdit(row)+'">'+row.name+'</a>';
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.initAutoFeedbackEdit(' + JSON.stringify(row) + ')'
+                                }).text(row.name);
+                                return link.prop('outerHTML');
+                            }
+                        },
                         {title: $translate('TASK_REMARK'), data: "remarks"},
                         {title: $translate('TASK_CREATE_TIME'), data: "createTime"},
                         {title: $translate('Mission Status'), data: "$missionStatus"},
                         {
-                            title: $translate('ACTION_BUTTON')
+                            title: $translate('ACTION_BUTTON'),
+                            render: function(data, type, row) {
+                                let actionHtmlToggle = '<button class="btn btn-primary common-button" onclick="">' +
+                                    '<i class="fa fa-pencil-square-o"></i>' +
+                                    '<text>'+$translate('ENABLE')+'/'+$translate('SUSPEND')+'</text>' +
+                                    '</button>';
+
+                                let actionHtmlDelete = '<button class="btn btn-danger common-button" onclick="">' +
+                                    '<i class="fa fa-trash"></i>' +
+                                    '<text>'+$translate('Delete Mission')+'</text>' +
+                                    '</button>';
+                                return actionHtmlToggle + actionHtmlDelete;
+                            }
                         },
                         {
                             title: $translate('Mission First Run Total Count'),
@@ -32912,6 +33004,12 @@ define(['js/app'], function (myApp) {
                         }
                     ],
                     "paging": false,
+                    createdRow: function (row, data, dataIndex) {
+                        $compile(angular.element(row).contents())($scope);
+                    },
+                    // fnDrawCallback: function () {
+                    //     $scope.safeApply();
+                    // },
                     "language": {
                         "info": "Display _MAX_ provider records",
                         "emptyTable": $translate("No data available in table"),

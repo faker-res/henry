@@ -32,6 +32,27 @@ let dbPlatformAutoFeedback = {
         );
     },
 
+    updateAutoFeedback: function (autoFeedbackData) {
+        console.log(autoFeedbackData);
+        return dbconfig.collection_autoFeedback.update(
+            {
+                _id: autoFeedbackData._id,
+            },
+            autoFeedbackData,
+            {multi: true}
+        ).then(
+            data => {
+                console.log(data);
+                if(data) {
+                    return JSON.parse(JSON.stringify(data));
+                }
+            },
+            error => {
+                return Promise.reject({name: "DBError", message: "Error updating auto feedback.", error: error});
+            }
+        );
+    },
+
     getAutoFeedback: function (query) {
         console.log(query);
         if(query.createTimeStart) {

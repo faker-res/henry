@@ -9,6 +9,7 @@ var platformAutoFeedbackSchema = new Schema({
     missionStartTime: {type: Date, required: true},
     missionEndTime: {type: Date, required: true},
     defaultStatus: {type: String},
+    status: {type: String},
     playerType: {type: String},
     playerLevel: {type: String},
     credibilityRemarks: [{type: String}],
