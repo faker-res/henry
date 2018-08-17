@@ -28026,6 +28026,13 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (!(vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) && srcData.financialSettlementToggle) {
+                    sendData.updateData.bankCardGroupIsPMS = false;
+                    sendData.updateData.merchantGroupIsPMS = false;
+                    sendData.updateData.aliPayGroupIsPMS = false;
+                    sendData.updateData.wechatPayGroupIsPMS = false;
+                }
+
                 if (vm.selectedPlatform.data.financialSettlement && (vm.selectedPlatform.data.financialSettlement.minFinancialPointsNotification != srcData.minFinancialPointsNotification)
                     || (financialPointsNotification == true && vm.selectedPlatform.data.financialSettlement.financialPointsNotification != financialPointsNotification)) {
                     let sendDataAdmin = {
