@@ -28,8 +28,8 @@ style.
                         br
                         input#merchantFPMSGroupSetting(type='radio' value='false' ng-model="vm.merchantGroupPMS")
                         label(for='merchantFPMSGroupSetting') {{"FPMS Group" | translate}}
-                        input#merchantPMSGroupSetting(type='radio' value='true' ng-model="vm.merchantGroupPMS")
-                        label(for='merchantPMSGroupSetting') {{"PMS Group" | translate}}
+                        input#merchantPMSGroupSetting(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' type='radio' value='true' ng-model="vm.merchantGroupPMS")
+                        label(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' for='merchantPMSGroupSetting') {{"PMS Group" | translate}}
                         br
                         button.btn.btn-primary.common-button(ng-click="vm.updateIsPMSGroup(vm.merchantGroupPMS, 'merchantGroupIsPMS')") {{"CONFIRMATION" | translate}}
                 br
