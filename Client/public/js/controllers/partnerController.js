@@ -15472,7 +15472,7 @@ define(['js/app'], function (myApp) {
                     partnerId: vm.selectedSinglePartner.partnerId,
                     partnerName: vm.selectedSinglePartner.partnerName,
                     partnerObjId: vm.selectedSinglePartner._id,
-                    curChildPartnerHeadCount: vm.curChildPartner.length || 0,
+                    curChildPartnerHeadCount: vm.curChildPartner ? vm.curChildPartner.length : 0,
                     updateChildPartnerHeadCount: vm.updateChildPartner.length,
                     curChildPartnerName: vm.curChildPartner,
                     updateChildPartnerName: vm.updateChildPartner
