@@ -2574,6 +2574,7 @@ var dbPlatform = {
             let returnedObj;
             let listName;
             let platformData;
+            let playerLevels = [];
 
             if (subject == 'player') {
                 returnedObj = {
@@ -2633,76 +2634,106 @@ var dbPlatform = {
                 return Q.reject({name: "DBError", message: "Missing of default param: 'partner' or 'player'."});
             }
 
-            return dbconfig.collection_platform.findOne({platformId: platformId}).then(
+            return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
                 data => {
                     if (data) {
 
                         platformData = data;
-                        listName.forEach(list => {
-                            if (data[list[0]]) {
 
-                                returnedObj[list[1]] = dbPlatform.appendRouteSetting(data, list[0], subject);
-
-                            }
-                        });
-
-                        if (subject === 'player') {
-                            returnedObj.accountMaxLength = platformData.playerNameMaxLength ? platformData.playerNameMaxLength : 0;
-                            returnedObj.accountMinLength = platformData.playerNameMinLength ? platformData.playerNameMinLength : 0;
-                            returnedObj.passwordMaxLength = platformData.playerPasswordMaxLength ? platformData.playerPasswordMaxLength : 0;
-                            returnedObj.passwordMinLength = platformData.playerPasswordMinLength ? platformData.playerPasswordMinLength : 0;
-                            returnedObj.accountPrefix = platformData.prefix ? platformData.prefix : "";
-                            returnedObj.minDepositAmount = platformData.minTopUpAmount ? platformData.minTopUpAmount : 0;
-                            returnedObj.needSMSForTrailAccount = platformData.requireSMSVerificationForDemoPlayer ? 1 : 0;
-                            returnedObj.needSMSForRegister = platformData.requireSMSVerification ? 1 : 0;
-                            returnedObj.needSMSForModifyPassword = platformData.requireSMSVerificationForPasswordUpdate ? 1 : 0;
-                            returnedObj.needSMSForModifyBankInfo = platformData.requireSMSVerificationForPaymentUpdate ? 1 : 0;
-                            returnedObj.needImageCodeForLogin = platformData.requireLogInCaptcha ? 1 : 0;
-                            returnedObj.needImageCodeForSendSMSCode = platformData.requireCaptchaInSMS ? 1 : 0;
-                            returnedObj.twoStepsForModifyPhoneNumber = platformData.usePhoneNumberTwoStepsVerification ? 1 : 0;
-                            returnedObj.cdnOrFtpLink = platformData.playerRouteSetting ? platformData.playerRouteSetting : "";
-                        }
-
-                        if (subject === 'partner') {
-                            returnedObj.accountMaxLength = platformData.partnerNameMaxLength ? platformData.partnerNameMaxLength : 0;
-                            returnedObj.accountMinLength = platformData.partnerNameMinLength ? platformData.partnerNameMinLength : 0;
-                            returnedObj.passwordMaxLength = platformData.partnerPasswordMaxLength ? platformData.partnerPasswordMaxLength : 0;
-                            returnedObj.passwordMinLength = platformData.partnerPasswordMinLength ? platformData.partnerPasswordMinLength : 0;
-                            returnedObj.accountPrefix = platformData.partnerPrefix ? platformData.partnerPrefix : "";
-                            returnedObj.prefixForPartnerCreatePlayer = platformData.partnerCreatePlayerPrefix ? platformData.partnerCreatePlayerPrefix : "";
-                            returnedObj.needSMSForRegister = platformData.partnerRequireSMSVerification ? 1 : 0;
-                            returnedObj.needSMSForModifyPassword = platformData.partnerRequireSMSVerificationForPasswordUpdate ? 1 : 0;
-                            returnedObj.needSMSForModifyBankInfo = platformData.partnerRequireSMSVerificationForPaymentUpdate ? 1 : 0;
-                            returnedObj.needImageCodeForLogin = platformData.partnerRequireLogInCaptcha ? 1 : 0;
-                            returnedObj.needImageCodeForSendSMSCode = platformData.partnerRequireCaptchaInSMS ? 1 : 0;
-                            returnedObj.twoStepsForModifyPhoneNumber = platformData.partnerUsePhoneNumberTwoStepsVerification ? 1 : 0;
-                            returnedObj.defaultCommissionType = platformData.partnerDefaultCommissionGroup ? platformData.partnerDefaultCommissionGroup : 0;
-                            returnedObj.cndOrFtpLink = platformData.partnerRouteSetting ? platformData.partnerRouteSetting : "";
-                        }
-
-                        if (data.platformId) {
-                            if (subject == 'player') {
-                                return dbconfig.collection_playerPageAdvertisementInfo.find({
-                                    platformId: data._id,
-                                    inputDevice: inputDevice
-                                }).sort({orderNo: 1}).lean();
-                            }
-                            else if (subject == 'partner') {
-                                return dbconfig.collection_partnerPageAdvertisementInfo.find({
-                                    platformId: data._id,
-                                    inputDevice: inputDevice
-                                }).sort({orderNo: 1}).lean();
-                            }
-                            else {
-                                return Q.reject({
-                                    name: "DBError",
-                                    message: "No advertisement Information exists with id: " + platformId
-                                });
-                            }
-                        }
+                        return dbconfig.collection_playerLevel.find({platform: platformData._id}).lean();
                     } else {
                         return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                     }
+                }
+            ).then(
+                playerLevelData => {
+                    if (playerLevelData && playerLevelData.length) {
+                        playerLevels = playerLevelData;
+                    }
+
+                    listName.forEach(list => {
+                        if (platformData[list[0]]) {
+
+                            returnedObj[list[1]] = dbPlatform.appendRouteSetting(platformData, list[0], subject);
+
+                        }
+                    });
+
+                    if (subject === 'player') {
+                        returnedObj.accountMaxLength = platformData.playerNameMaxLength ? platformData.playerNameMaxLength : 0;
+                        returnedObj.accountMinLength = platformData.playerNameMinLength ? platformData.playerNameMinLength : 0;
+                        returnedObj.passwordMaxLength = platformData.playerPasswordMaxLength ? platformData.playerPasswordMaxLength : 0;
+                        returnedObj.passwordMinLength = platformData.playerPasswordMinLength ? platformData.playerPasswordMinLength : 0;
+                        returnedObj.accountPrefix = platformData.prefix ? platformData.prefix : "";
+                        returnedObj.minDepositAmount = platformData.minTopUpAmount ? platformData.minTopUpAmount : 0;
+                        returnedObj.needSMSForTrailAccount = platformData.requireSMSVerificationForDemoPlayer ? 1 : 0;
+                        returnedObj.needSMSForRegister = platformData.requireSMSVerification ? 1 : 0;
+                        returnedObj.needSMSForModifyPassword = platformData.requireSMSVerificationForPasswordUpdate ? 1 : 0;
+                        returnedObj.needSMSForModifyBankInfo = platformData.requireSMSVerificationForPaymentUpdate ? 1 : 0;
+                        returnedObj.needImageCodeForLogin = platformData.requireLogInCaptcha ? 1 : 0;
+                        returnedObj.needImageCodeForSendSMSCode = platformData.requireCaptchaInSMS ? 1 : 0;
+                        returnedObj.twoStepsForModifyPhoneNumber = platformData.usePhoneNumberTwoStepsVerification ? 1 : 0;
+                        returnedObj.cdnOrFtpLink = platformData.playerRouteSetting ? platformData.playerRouteSetting : "";
+                    }
+
+                    if (subject === 'partner') {
+                        returnedObj.accountMaxLength = platformData.partnerNameMaxLength ? platformData.partnerNameMaxLength : 0;
+                        returnedObj.accountMinLength = platformData.partnerNameMinLength ? platformData.partnerNameMinLength : 0;
+                        returnedObj.passwordMaxLength = platformData.partnerPasswordMaxLength ? platformData.partnerPasswordMaxLength : 0;
+                        returnedObj.passwordMinLength = platformData.partnerPasswordMinLength ? platformData.partnerPasswordMinLength : 0;
+                        returnedObj.accountPrefix = platformData.partnerPrefix ? platformData.partnerPrefix : "";
+                        returnedObj.prefixForPartnerCreatePlayer = platformData.partnerCreatePlayerPrefix ? platformData.partnerCreatePlayerPrefix : "";
+                        returnedObj.needSMSForRegister = platformData.partnerRequireSMSVerification ? 1 : 0;
+                        returnedObj.needSMSForModifyPassword = platformData.partnerRequireSMSVerificationForPasswordUpdate ? 1 : 0;
+                        returnedObj.needSMSForModifyBankInfo = platformData.partnerRequireSMSVerificationForPaymentUpdate ? 1 : 0;
+                        returnedObj.needImageCodeForLogin = platformData.partnerRequireLogInCaptcha ? 1 : 0;
+                        returnedObj.needImageCodeForSendSMSCode = platformData.partnerRequireCaptchaInSMS ? 1 : 0;
+                        returnedObj.twoStepsForModifyPhoneNumber = platformData.partnerUsePhoneNumberTwoStepsVerification ? 1 : 0;
+                        returnedObj.defaultCommissionType = platformData.partnerDefaultCommissionGroup ? platformData.partnerDefaultCommissionGroup : 0;
+                        returnedObj.cndOrFtpLink = platformData.partnerRouteSetting ? platformData.partnerRouteSetting : "";
+                    }
+
+                    returnedObj.callBackToUserLines = [];
+                    if (platformData.callRequestLineConfig && platformData.callRequestLineConfig.length) {
+                        platformData.callRequestLineConfig.map(line => {
+
+                            let lineDetail = {
+                                lineId: line.lineId,
+                                status: line.status,
+                                levelLimit: null
+                            };
+
+                            playerLevels.map(playerLevel => {
+                                if (String(playerLevel._id) == line.minLevel) {
+                                    lineDetail.levelLimit = playerLevel.value
+                                }
+                            });
+
+                            returnedObj.callBackToUserLines.push(lineDetail);
+                        });
+                    }
+
+                    if (platformData.platformId) {
+                        if (subject == 'player') {
+                            return dbconfig.collection_playerPageAdvertisementInfo.find({
+                                platformId: platformData._id,
+                                inputDevice: inputDevice
+                            }).sort({orderNo: 1}).lean();
+                        }
+                        else if (subject == 'partner') {
+                            return dbconfig.collection_partnerPageAdvertisementInfo.find({
+                                platformId: platformData._id,
+                                inputDevice: inputDevice
+                            }).sort({orderNo: 1}).lean();
+                        }
+                        else {
+                            return Q.reject({
+                                name: "DBError",
+                                message: "No advertisement Information exists with id: " + platformId
+                            });
+                        }
+                    }
+
                 }
             ).then(
                 advertisementInfo => {

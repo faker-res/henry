@@ -7,6 +7,7 @@ var platformBankCardListSchema = new Schema({
     name: {type: String},
     platformId: {type: String},
     quota: {type: Number},
+    maxDepositAmount: {type: Number},
     status: {type: String},
     provinceName: {type: String},
     cityName: {type: String},

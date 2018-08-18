@@ -586,6 +586,7 @@ db.rewardParam.update({
                     detail: "REWARD_RECLAIM_MISSED_DAY_DETAIL"
                 },
             },
+            dynamicCond: dynamicCond,
         },
         param: {
             tblOptFixed: {
@@ -604,7 +605,25 @@ db.rewardParam.update({
                     remark: {type: "text", des: "Remark"},
                 }
             },
-            tblOptDynamic: {} // will never reach here
+            tblOptDynamic: {
+                isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
+                requiredTopUpAmount: {type: "number", des: "Required top up amount daily"},
+                requiredConsumptionAmount: {type: "number", des: "Required consumption amount daily"},
+                dailyMaxRewardAmount: {type: "number", des: "Daily Reward Limit"},
+                operatorOption: {type: "checkbox", des: "Required both"},
+                rewardParam: {
+                    totalConsumptionInInterval: {type: "number", des: "Total Consumption In Interval"},
+                    rewardPercentage: {type: "percentage", des: "Reward percentage"},
+                    maxRewardInSingleTopUp: {type: "number", des: "Max reward in single top up"},
+                    spendingTimes: {type: "number", des: "Spending times"},
+                    forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
+                    forbidWithdrawIfBalanceAfterUnlock: {
+                        type: "number",
+                        des: "Forbid withdraw if there is balance after unlock"
+                    },
+                    remark: {type: "text", des: "Remark"},
+                }
+            }
         }
     }
 }, {

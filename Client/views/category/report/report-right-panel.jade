@@ -233,6 +233,17 @@
                     label(style='min-width:130px') {{"CREDIBILITY"|translate}}
                     select.form-control#selectCredibilityRemarks(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model="vm.playerQuery.credibilityRemarks")
                 div
+                    label {{"PlayerValue" | translate}}
+                    select.form-control(ng-model="vm.playerQuery.valueScoreOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.playerQuery.playerScoreValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerQuery.valueScoreOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.playerQuery.playerScoreValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerQuery.valueScoreOperator === 'range'")
+                div
                     label {{'LEVEL' | translate}}
                     select.form-control(ng-model="vm.playerQuery.level", ng-options='a as b.name for (a,b) in vm.playerLvlData')
                         option(value='') {{'any' | translate}}
@@ -468,9 +479,12 @@
                             th {{'DEPOSIT_BONUS' | translate}}
                             th {{'DEPOSIT_TOPUP_BONUS' | translate}}
                             th {{'DEPOSIT_VALID_CONSUMPTION' | translate}}
-                            th {{'T1' | translate}}
-                            th {{'T2' | translate}}
-                            th {{'T3' | translate}}
+                            th.headerTooltip {{'T1' | translate}}
+                                span.tooltiptext {{'PROMO_CODE_TYPE_1' | translate}}
+                            th.headerTooltip {{'T2' | translate}}
+                                span.tooltiptext {{'PROMO_CODE_TYPE_2' | translate}}
+                            th.headerTooltip {{'T3' | translate}}
+                                span.tooltiptext {{'PROMO_CODE_TYPE_3' | translate}}
                             th {{'MONTHLY_TOTAL_DEPOSIT_AMOUNT' | translate}}
                             th {{'ACTION_BUTTON' | translate}}
                     tbody
@@ -2287,13 +2301,42 @@
                                 td {{v.topUpAmount | noRoundTwoDecimalPlaces}}
                                 td {{v.bonusAmount | noRoundTwoDecimalPlaces}}
                                 td
-                                    a(data-toggle="modal", data-target='#modalPlayerDepositTrackingDailyDetailsTable', ng-click="vm.getPlayerDepositTrackingDailyDetails()") {{'DETAILS' | translate}}
+                                    a(data-toggle="modal", data-target='#modalPlayerDepositTrackingDailyDetailsTable', ng-click="vm.getPlayerDepositTrackingDailyDetails(v.date)") {{'DETAILS' | translate}}
                             tr(ng-if="vm.depositTrackingMonthlyDetails.outputData.length > 0")
                                 td(style="font-weight:bold") {{"Totalsum" | translate}}
                                 td(style="font-weight:bold") {{vm.depositTrackingMonthlyDetails.total.validConsumption | noRoundTwoDecimalPlaces}}
                                 td(style="font-weight:bold") {{vm.depositTrackingMonthlyDetails.total.topUpAmount | noRoundTwoDecimalPlaces}}
                                 td(style="font-weight:bold") {{vm.depositTrackingMonthlyDetails.total.bonusAmount | noRoundTwoDecimalPlaces}}
                                 td
+
+#modalPlayerDepositTrackingDailyDetailsTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:40%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title.text-center ({{vm.depositTrackingDailyDetails.playerName}}) {{"TRACKING_DETAILS_DAILY_REPORT_TITLE" | translate}}
+            .modal-body
+                div
+                    table.simple-table
+                        thead
+                            tr
+                                th {{'Day' | translate}}
+                                th {{'DEPOSIT_VALID_CONSUMPTION' | translate}}
+                                th {{'DEPOSIT_TOPUP' | translate}}
+                                th {{'DEPOSIT_BONUS' | translate}}
+                        tbody
+                            tr(ng-if="vm.depositTrackingDailyDetails.outputData.length === 0")
+                                td(colspan = 3) {{ 'No data available in table' | translate }}
+                            tr(ng-if="vm.depositTrackingDailyDetails.outputData.length > 0", ng-repeat="v in vm.depositTrackingDailyDetails.outputData")
+                                td {{v.date}}
+                                td {{v.validConsumption | noRoundTwoDecimalPlaces}}
+                                td {{v.topUpAmount | noRoundTwoDecimalPlaces}}
+                                td {{v.bonusAmount | noRoundTwoDecimalPlaces}}
+                            tr(ng-if="vm.depositTrackingDailyDetails.outputData.length > 0")
+                                td(style="font-weight:bold") {{"Totalsum" | translate}}
+                                td(style="font-weight:bold") {{vm.depositTrackingDailyDetails.total.validConsumption | noRoundTwoDecimalPlaces}}
+                                td(style="font-weight:bold") {{vm.depositTrackingDailyDetails.total.topUpAmount | noRoundTwoDecimalPlaces}}
+                                td(style="font-weight:bold") {{vm.depositTrackingDailyDetails.total.bonusAmount | noRoundTwoDecimalPlaces}}
 
 include ../common-widget/telephone-popover
 script(src='js/lib/flot/jquery.flot.min.js')

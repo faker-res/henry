@@ -338,6 +338,7 @@ var roleChecker = {
                 Edit: ['updatePartner', 'checkPartnerFieldValidity', 'checkOwnDomainValidity', 'createUpdatePartnerInfoProposal'],
                 EditContact: ['createUpdatePartnerPhoneProposal', 'createUpdatePartnerEmailProposal', 'createUpdatePartnerQQProposal','createUpdatePartnerWeChatProposal','verifyPartnerPhoneNumber'],
                 BankDetail: ['createUpdatePartnerBankInfoProposal', 'verifyPartnerBankAccount'],
+                EditChildPartner: ['updateChildPartner', 'checkChildPartnerNameValidity', 'getChildPartnerRecords'],
                 EditCommission: ['updatePartner', 'checkPartnerFieldValidity', 'createUpdatePartnerCommissionTypeProposal', 'customizePartnerCommission'],
                 ResetPassword: ['resetPartnerPassword'],
                 ApplyBonus: ['applyPartnerBonusRequest'],
@@ -463,7 +464,8 @@ var roleChecker = {
                 Read: ['getAllOfficer', 'getAllPromoteWay', 'getAllUrl', 'getAdminNameByDepartment'],
                 Create: ['createOfficer', 'addPromoteWay', 'addUrl'],
                 Delete: ['deletePromoteWay', 'deleteOfficer', 'deleteUrl'],
-                Update: ['updateUrl']
+                Update: ['updateUrl'],
+                ignore90DaysEditingRestriction: []
             },
             "devFunc": {
                 Read: ['triggerSavePlayersCredit']
@@ -627,7 +629,7 @@ var roleChecker = {
                 PLAYER_EXPENSE_REPORT: ['getPlayerProviderReport', 'getProviderGamePlayerReport', 'getProviderGameReport', 'getPlayerProviderByGameReport', 'manualDailyProviderSettlement'],
                 PLAYER_REPORT: ['getPlayerReport', 'manualDailyProviderSettlement', 'getGames'],
                 PLAYER_DEPOSIT_ANALYSIS_REPORT: ['getPlayerDepositAnalysisReport', 'getPlayerDepositAnalysisDetails', 'addPlayerToDepositTrackingReport'],
-                PLAYER_DEPOSIT_TRACKING_REPORT: ['getPlayerDepositTrackingReport', 'getDepositTrackingGroup', 'addDepositTrackingGroup', 'deleteDepositTrackingGroup', 'modifyPlayerDepositTrackingGroup', 'removePlayerFromDepositTrackingReport'],
+                PLAYER_DEPOSIT_TRACKING_REPORT: ['getPlayerDepositTrackingReport', 'getDepositTrackingGroup', 'addDepositTrackingGroup', 'deleteDepositTrackingGroup', 'modifyPlayerDepositTrackingGroup', 'removePlayerFromDepositTrackingReport', 'getPlayerDepositTrackingMonthlyDetails', 'getPlayerDepositTrackingDailyDetails'],
                 NEWACCOUNT_REPORT: ['getPlayerDomainAnalysisData', 'getNewAccountReportData', 'getAllAdminInfo', 'getAllPromoteWay', 'getPartnerLevelConfig', 'getAllUrl'],
                 DX_NEWACCOUNT_REPORT: ['getDXNewPlayerReport', 'getAllPromoteWay', 'getDepartmentDetailsByPlatformObjId'],
                 PLAYERPARTNER_REPORT: ['getPartnerPlayers', 'getPartnerSummaryReport', 'getPartnerPlayerBonusReport'],

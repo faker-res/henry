@@ -3438,6 +3438,9 @@ define(['js/app'], function (myApp) {
                     start: vm.playerQuery.start.data('datetimepicker').getLocalDate(),
                     end: vm.playerQuery.end.data('datetimepicker').getLocalDate(),
                     name: vm.playerQuery.name,
+                    valueScoreOperator: vm.playerQuery.valueScoreOperator,
+                    playerScoreValue: vm.playerQuery.playerScoreValue,
+                    playerScoreValueTwo: vm.playerQuery.playerScoreValueTwo,
                     consumptionTimesOperator: vm.playerQuery.consumptionTimesOperator,
                     consumptionTimesValue: vm.playerQuery.consumptionTimesValue,
                     consumptionTimesValueTwo: vm.playerQuery.consumptionTimesValueTwo,
@@ -3541,30 +3544,32 @@ define(['js/app'], function (myApp) {
         vm.drawPlayerReport = function (data, total, size, newSearch) {
             var tableOptions = {
                 data: data,
-                "order": vm.playerQuery.aaSorting || [[15, 'desc']],
+                "order": vm.playerQuery.aaSorting || [[16, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'name', 'aTargets': [0], bSortable: true},
-                    {'sortCol': 'playerLevel', 'aTargets': [1], bSortable: true},
+                    {'sortCol': 'valueScore', 'aTargets': [1], bSortable: true},
+                    {'sortCol': 'playerLevel', 'aTargets': [2], bSortable: true},
                     // {'sortCol': 'credibilityRemarks', 'aTargets': [2], bSortable: true},
                     // {'sortCol': 'provider', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'manualTopUpAmount', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [6], bSortable: true},
-                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [7], bSortable: true},
-                    {'sortCol': 'topUpTimes', 'aTargets': [8], bSortable: true},
-                    {'sortCol': 'topUpAmount', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'bonusTimes', 'aTargets': [10], bSortable: true},
-                    {'sortCol': 'bonusAmount', 'aTargets': [11], bSortable: true},
-                    {'sortCol': 'rewardAmount', 'aTargets': [12], bSortable: true},
-                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [13], bSortable: true},
-                    {'sortCol': 'consumptionTimes', 'aTargets': [14], bSortable: true},
-                    {'sortCol': 'validConsumptionAmount', 'aTargets': [15], bSortable: true},
-                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [16], bSortable: true},
-                    {'sortCol': 'consumptionAmount', 'aTargets': [18], bSortable: true},
+                    {'sortCol': 'manualTopUpAmount', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'topUpAmount', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'bonusTimes', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'bonusAmount', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'rewardAmount', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'consumptionTimes', 'aTargets': [15], bSortable: true},
+                    {'sortCol': 'validConsumptionAmount', 'aTargets': [16], bSortable: true},
+                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [17], bSortable: true},
+                    {'sortCol': 'consumptionAmount', 'aTargets': [19], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
                     {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
+                    {title: $translate('PlayerValue'), data: "valueScore"},
                     {title: $translate('LEVEL'), data: "playerLevel$"},
                     {title: $translate('CREDIBILITY'), data: "credibility$"},
                     {
@@ -3614,21 +3619,21 @@ define(['js/app'], function (myApp) {
                 playerTbl.clear();
             }
             var playerTbl = utilService.createDatatableWithFooter('#playerReportTable', tableOptions, {
-                4: total.manualTopUpAmount,
-                5: total.weChatTopUpAmount,
-                6: total.aliPayTopUpAmount,
-                7: total.onlineTopUpAmount,
-                8: total.topUpTimes,
-                9: total.topUpAmount,
-                10: total.bonusTimes,
-                11: total.bonusAmount,
-                12: total.rewardAmount,
-                13: total.consumptionReturnAmount,
-                14: total.consumptionTimes,
-                15: total.validConsumptionAmount,
-                16: total.consumptionBonusAmount,
-                17: total.profit,
-                18: total.consumptionAmount
+                5: total.manualTopUpAmount,
+                6: total.weChatTopUpAmount,
+                7: total.aliPayTopUpAmount,
+                8: total.onlineTopUpAmount,
+                9: total.topUpTimes,
+                10: total.topUpAmount,
+                11: total.bonusTimes,
+                12: total.bonusAmount,
+                13: total.rewardAmount,
+                14: total.consumptionReturnAmount,
+                15: total.consumptionTimes,
+                16: total.validConsumptionAmount,
+                17: total.consumptionBonusAmount,
+                18: total.profit,
+                19: total.consumptionAmount
             });
             utilService.setDataTablePageInput('playerReportTable', playerTbl, $translate);
 
@@ -4174,6 +4179,23 @@ define(['js/app'], function (myApp) {
                 });
             });
         };
+
+        vm.getPlayerDepositTrackingDailyDetails = function(date) {
+            let sendData = {
+                platform: vm.curPlatformId,
+                playerId: vm.depositTrackingMonthlyDetails.playerId,
+                date: date
+            };
+
+            socketService.$socket($scope.AppSocket, 'getPlayerDepositTrackingDailyDetails', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.depositTrackingDailyDetails = data.data;
+                    vm.depositTrackingDailyDetails.outputData.map(dailyData => {
+                        dailyData.date = String(utilService.$getTimeFromStdTimeFormat(new Date(dailyData.date))).substring(0, 10);
+                    });
+                });
+            });
+        };
         ///////////////// END player deposit tracking report /////////////////////////////
 
         /////////////////telemarketing new account report/////////////////////////////
@@ -4217,7 +4239,7 @@ define(['js/app'], function (myApp) {
                     topUpAmountValueTwo: vm.dxNewPlayerQuery.topUpAmountValueTwo
                 },
                 index: newSearch ? 0 : (vm.dxNewPlayerQuery.index || 0),
-                limit: vm.dxNewPlayerQuery.limit || 5000,
+                limit: vm.dxNewPlayerQuery.limit || null,
                 sortCol: vm.dxNewPlayerQuery.sortCol || {validConsumptionAmount: -1},
             };
             console.log('sendquery', sendquery);
@@ -7556,7 +7578,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
                     proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
                     proposalDetail["OnlineTopUpType"] = $translate($scope.merchantTopupTypeJson[vm.selectedProposal.data.topupType]) || " ";
-                    proposalDetail["3rdPartyPlatform"] = vm.selectedProposal.data.merchantUseName || " ";
+                    proposalDetail["3rdPartyPlatform"] = vm.getMerchantName(vm.selectedProposal.data.merchantNo) || " ";
                     proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                     proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                     proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
@@ -7855,83 +7877,85 @@ define(['js/app'], function (myApp) {
         }
 
         function drawReportQuery (choice) {
+
+            vm.merchantNoNameObj = {};
+            vm.merchantGroupObj = [];
+            let merGroupName = {};
+            let merGroupList = {};
+            
+            socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
+                $scope.$evalAsync(() => {
+                    if (data && data.data && data.data.data) {
+                        vm.allBankTypeList = {};
+                        data.data.data.forEach(item => {
+                            if (item && item.bankTypeId) {
+                                vm.allBankTypeList[item.id] = item.name;
+                            }
+                        })
+                    }
+                })
+            });
+
+            socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
+                $scope.$evalAsync(() => {
+                    data.data.merchantTypes.forEach(mer => {
+                        merGroupName[mer.merchantTypeId] = mer.name;
+                    })
+                    vm.merchantTypes = data.data.merchantTypes;
+                    vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
+                })
+            }, function (data) {
+                console.log("merchantList", data);
+            });
+
+            socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: vm.selectedPlatform.platformId}, function (data) {
+                $scope.$evalAsync(() => {
+                    if (data.data && data.data.merchants) {
+                        vm.merchantLists = data.data.merchants;
+                        vm.merchantNoList = data.data.merchants.filter(mer => {
+                            vm.merchantNoNameObj[mer.merchantNo] = mer.name;
+                            return mer.status != 'DISABLED';
+                        });
+                        vm.merchantNoList.forEach(item => {
+                            merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
+                            merGroupList[item.merchantTypeId].list.push(item.merchantNo);
+                        }) || [];
+
+                        Object.keys(vm.merchantNoList).forEach(item => {
+                            let merchantTypeId = vm.merchantNoList[item].merchantTypeId;
+                            if (merchantTypeId == "9999") {
+                                vm.merchantNoList[item].merchantTypeName = $translate('BankCardNo');
+                            } else if (merchantTypeId == "9998") {
+                                vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_WECHAT_GROUP');
+                            } else if (merchantTypeId == "9997") {
+                                vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_ALIPAY_GROUP');
+                            } else if (merchantTypeId != "9997" && merchantTypeId != "9998" && merchantTypeId != "9999") {
+                                let merchantInfo = vm.merchantTypes.filter(mitem => {
+                                    return mitem.merchantTypeId == merchantTypeId;
+                                })
+                                vm.merchantNoList[item].merchantTypeName = merchantInfo[0] ? merchantInfo[0].name : "";
+                            } else {
+                                vm.merchantNoList[item].merchantTypeName = '';
+                            }
+                        });
+                        vm.merchantCloneList = angular.copy(vm.merchantNoList);
+                        vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
+                        // vm.merchantGroupCloneList = angular.copy(vm.merchantGroupObj);
+                        vm.merchantGroupCloneList = vm.merchantGroupObj;
+                    }
+                });
+            }, function (data) {
+                console.log("merchantList", data);
+            });
+
             switch (choice) {
                 case "TOPUP_REPORT":
                     vm.queryTopup = {};
-                    vm.merchantNoNameObj = {};
-                    vm.merchantGroupObj = [];
-                    let merGroupName = {};
-                    let merGroupList = {};
                     vm.queryTopup.totalCount = 0;
                     vm.resetTopupRecord();
 
                     endLoadMultipleSelect('.merchantNoList');
                     $('#topupTable').remove();
-
-                    socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
-                        $scope.$evalAsync(() => {
-                            if (data && data.data && data.data.data) {
-                                vm.allBankTypeList = {};
-                                data.data.data.forEach(item => {
-                                    if (item && item.bankTypeId) {
-                                        vm.allBankTypeList[item.id] = item.name;
-                                    }
-                                })
-                            }
-                        })
-                    });
-
-                    socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
-                        $scope.$evalAsync(() => {
-                            data.data.merchantTypes.forEach(mer => {
-                                merGroupName[mer.merchantTypeId] = mer.name;
-                            })
-                            vm.merchantTypes = data.data.merchantTypes;
-                            vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
-                        })
-                    }, function (data) {
-                        console.log("merchantList", data);
-                    });
-
-                    socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: vm.selectedPlatform.platformId}, function (data) {
-                        $scope.$evalAsync(() => {
-                            if (data.data && data.data.merchants) {
-                                vm.merchantLists = data.data.merchants;
-                                vm.merchantNoList = data.data.merchants.filter(mer => {
-                                    vm.merchantNoNameObj[mer.merchantNo] = mer.name;
-                                    return mer.status != 'DISABLED';
-                                });
-                                vm.merchantNoList.forEach(item => {
-                                    merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
-                                    merGroupList[item.merchantTypeId].list.push(item.merchantNo);
-                                }) || [];
-
-                                Object.keys(vm.merchantNoList).forEach(item => {
-                                    let merchantTypeId = vm.merchantNoList[item].merchantTypeId;
-                                    if (merchantTypeId == "9999") {
-                                        vm.merchantNoList[item].merchantTypeName = $translate('BankCardNo');
-                                    } else if (merchantTypeId == "9998") {
-                                        vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_WECHAT_GROUP');
-                                    } else if (merchantTypeId == "9997") {
-                                        vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_ALIPAY_GROUP');
-                                    } else if (merchantTypeId != "9997" && merchantTypeId != "9998" && merchantTypeId != "9999") {
-                                        let merchantInfo = vm.merchantTypes.filter(mitem => {
-                                            return mitem.merchantTypeId == merchantTypeId;
-                                        })
-                                        vm.merchantNoList[item].merchantTypeName = merchantInfo[0] ? merchantInfo[0].name : "";
-                                    } else {
-                                        vm.merchantNoList[item].merchantTypeName = '';
-                                    }
-                                });
-                                vm.merchantCloneList = angular.copy(vm.merchantNoList);
-                                vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
-                                // vm.merchantGroupCloneList = angular.copy(vm.merchantGroupObj);
-                                vm.merchantGroupCloneList = vm.merchantGroupObj;
-                            }
-                        });
-                    }, function (data) {
-                        console.log("merchantList", data);
-                    });
 
                     vm.initAccs();
 
@@ -8352,6 +8376,7 @@ define(['js/app'], function (myApp) {
                     vm.playerQuery.topUpTimesOperator = ">=";
                     vm.playerQuery.bonusTimesOperator = ">=";
                     vm.playerQuery.topUpAmountOperator = ">=";
+                    vm.playerQuery.valueScoreOperator = ">=";
                     vm.playerQuery.start = utilService.createDatePicker('#startingDateTimePicker');
                     vm.playerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                     vm.playerQuery.end = utilService.createDatePicker('#endingEndDateTimePicker');
