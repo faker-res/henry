@@ -9,6 +9,7 @@ var platformAutoFeedbackSchema = new Schema({
     missionStartTime: {type: Date, required: true},
     missionEndTime: {type: Date, required: true},
     defaultStatus: {type: String},
+    status: {type: String},
     playerType: {type: String},
     playerLevel: {type: String},
     credibilityRemarks: [{type: String}],
@@ -48,7 +49,8 @@ var platformAutoFeedbackSchema = new Schema({
         feedbackResult: {type: String},
         feedbackTopic: {type: String},
         content: {type: String},
-    }]
+    }],
+    createTime: {type: Date, default: Date.now}
 });
 
 module.exports = platformAutoFeedbackSchema;

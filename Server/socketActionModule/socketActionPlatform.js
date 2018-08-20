@@ -710,8 +710,8 @@ function socketActionPlatform(socketIO, socket) {
 
         getOnlineTimeLogByPlatform: function getOnlineTimeLogByPlatform(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime);
-            socketUtil.emitter(self.socket, dbPlayerOnlineTime.getOnlineTimeLogByPlatform, [data.platformObjId, data.startTime, data.endTime], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime && data.period);
+            socketUtil.emitter(self.socket, dbPlayerOnlineTime.getOnlineTimeLogByPlatform, [data.platformObjId, data.startTime, data.endTime, data.period], actionName, isValidData);
         },
 
         createAutoFeedback: function createAutoFeedback(data) {
@@ -719,9 +719,14 @@ function socketActionPlatform(socketIO, socket) {
             let isValidData = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbPlatformAutoFeedback.createAutoFeedback, [data], actionName, isValidData);
         },
+        updateAutoFeedback: function updateAutoFeedback(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data._id);
+            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.updateAutoFeedback, [data], actionName, isValidData);
+        },
         getAutoFeedback: function getAutoFeedback(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.missionStartTime && data.missionEndTime);
+            let isValidData = Boolean(data && data.platformObjId && data.createTimeStart && data.createTimeEnd);
             socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data], actionName, isValidData);
         },
         getAllAutoFeedback: function getAllAutoFeedback(data) {

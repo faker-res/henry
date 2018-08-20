@@ -1720,6 +1720,7 @@ let dbPartner = {
                             if (decoded && decoded.name == partnerData.name) {
                                 conn.isAuth = true;
                                 conn.partnerId = partnerId;
+                                conn.partnerObjId = partnerData._id;
                                 deferred.resolve(true);
                             }
                             else {
@@ -10013,7 +10014,7 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
                     endTime: commissionLog.endTime,
                     commissionType: commissionLog.commissionType,
                     partnerCommissionRateConfig: commissionLog.partnerCommissionRateConfig,
-                    // rawCommissions: commissionLog.rawCommissions,
+                    rawCommissions: commissionLog.rawCommissions,
                     activeCount: commissionLog.activeDownLines,
                     totalRewardFee: commissionLog.totalRewardFee,
                     totalReward: commissionLog.totalReward,
