@@ -3040,7 +3040,8 @@ define(['js/app'], function (myApp) {
                 vm.selectGameGroupGames = [];
                 vm.selectGameGroupGamesName = [];
                 vm.highlightGame = [];
-
+                let playerRouteSetting = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.playerRouteSetting ?
+                    vm.selectedPlatform.data.playerRouteSetting : "";
                 //get included games list
                 var query = {
                     platform: vm.selectedPlatform.id,
@@ -3065,9 +3066,23 @@ define(['js/app'], function (myApp) {
                                 newObj.name$ = newObj.name;
                                 newObj.isDefaultName = true;
                             }
+
                             vm.includedGamesGroup.push(newObj);
+
+                            if(newObj.bigShow && !newObj.bigShow.includes("http")){
+                                newObj.bigShow = playerRouteSetting + newObj.bigShow;
+                            }
+
+                            if(newObj.smallShow && !newObj.smallShow.includes("http")){
+                                newObj.smallShow = playerRouteSetting + newObj.smallShow;
+                            }
+
                             if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
                                 let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
+                                if(platformCustomImage && !platformCustomImage.includes("http")){
+                                    platformCustomImage = playerRouteSetting + platformCustomImage
+                                }
+
                                 vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, platformCustomImage);
                             }else{
                                 vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
@@ -3607,6 +3622,8 @@ define(['js/app'], function (myApp) {
                     provider: data._id
                 }
                 vm.includedGames = '';
+                let playerRouteSetting = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.playerRouteSetting ?
+                    vm.selectedPlatform.data.playerRouteSetting : "";
                 vm.getBatchCreditTransferOutStatus(vm.SelectedProvider._id);
                 socketService.$socket($scope.AppSocket, 'getGamesByPlatformAndProvider', query, function (data2) {
                     console.log("attached", data2.data);
@@ -3638,8 +3655,20 @@ define(['js/app'], function (myApp) {
                             vm.gameStatus[v.game._id] = v.status;
                         }
 
+                        if(newObj.bigShow && !newObj.bigShow.includes("http")){
+                            newObj.bigShow = playerRouteSetting + newObj.bigShow;
+                        }
+
+                        if(newObj.smallShow && !newObj.smallShow.includes("http")){
+                            newObj.smallShow = playerRouteSetting + newObj.smallShow;
+                        }
+
                         if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
                             let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
+                            if(platformCustomImage && !platformCustomImage.includes("http")){
+                                platformCustomImage = playerRouteSetting + platformCustomImage
+                            }
+
                             vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, platformCustomImage);
                         }else{
                             vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);

@@ -710,8 +710,8 @@ function socketActionPlatform(socketIO, socket) {
 
         getOnlineTimeLogByPlatform: function getOnlineTimeLogByPlatform(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime);
-            socketUtil.emitter(self.socket, dbPlayerOnlineTime.getOnlineTimeLogByPlatform, [data.platformObjId, data.startTime, data.endTime], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime && data.period);
+            socketUtil.emitter(self.socket, dbPlayerOnlineTime.getOnlineTimeLogByPlatform, [data.platformObjId, data.startTime, data.endTime, data.period], actionName, isValidData);
         },
 
         createAutoFeedback: function createAutoFeedback(data) {

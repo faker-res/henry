@@ -2221,30 +2221,26 @@ let dbPlayerReward = {
             )
         });
     },
-    getPromoCode: (playerId, platformId, status) => {
+    getPromoCode: (playerId, platformId, status, emptyBonusList) => {
         let platformData = null;
         var playerData = null;
         var promoListData = null;
 
-        if (!playerId) {
-            return Q.reject({
-                status: constServerCode.INVALID_API_USER,
-                name: "DataError",
-                message: "用户未登录!"
-            })
-        }
         return expirePromoCode()
             .then(() => dbConfig.collection_platform.findOne({platformId: platformId}).lean())
             .then(
                 platformRecord => {
                     if (platformRecord) {
                         platformData = platformRecord;
-                        return dbConfig.collection_players.findOne({
-                            playerId: playerId,
-                            platform: ObjectId(platformRecord._id)
-                        })
+                        if (playerId) {
+                            return dbConfig.collection_players.findOne({
+                                playerId: playerId,
+                                platform: ObjectId(platformRecord._id)
+                            });
+                        }
+                        return Promise.resolve();
                     } else {
-                        return Q.reject({name: "DataError", message: "Player Not Found"});
+                        return Promise.reject({name: "DataError", message: "Platform does not exist"});
                     }
                 })
             .then(
@@ -2376,7 +2372,13 @@ let dbPlayerReward = {
                                     };
                                 });
                     } else {
-                        return Q.reject({name: "DataError", message: "Platform Not Found"});
+                        return {
+                            "showInfo": 1,
+                            "usedList": [],
+                            "noUseList": [],
+                            "expiredList": [],
+                            "bonusList": []
+                        }
                     }
                 }
             )
@@ -2452,6 +2454,11 @@ let dbPlayerReward = {
                     }
                     let result = promoListData;
                     result.bonusList = data;
+
+                    if (emptyBonusList) {
+                        result.bonusList = [];
+                    }
+
                     return result;
                 }
             )

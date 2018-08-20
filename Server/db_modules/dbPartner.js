@@ -895,9 +895,9 @@ let dbPartner = {
 
         if (sortObj){
             //if there is sorting parameter
+            let aggrOperation = [];
             partnerInfo = dbconfig.collection_partner.findOne({partnerName: query.partnerName}, {_id:1}).lean().then(data => {
-                let aggrOperation;
-                if (data && data._id) {
+                if (data && data._id && query && query.partnerName) {
                     query.$or = [{partnerName: query.partnerName},{parent: data._id}];
                     delete query.partnerName;
 
@@ -920,6 +920,7 @@ let dbPartner = {
                         {$limit:limit}
                     ]
                 }
+            }).then(() => {
                 return dbconfig.collection_partner.aggregate(aggrOperation).then(
                     aggr => {
                         var retData = [];
@@ -928,7 +929,7 @@ let dbPartner = {
                             retData.push(prom);
                         }
                         return Q.all(retData);
-                }).then(
+                    }).then(
                     partners => {
                         for (let i = 0; i < partners.length; i++) {
                             if (partners[i].phoneNumber) {
@@ -945,11 +946,11 @@ let dbPartner = {
         } else {
             //if there is no sorting parameter
             partnerInfo = dbconfig.collection_partner.findOne({partnerName: query.partnerName}, {_id:1}).lean().then(data => {
-                if (data && data._id) {
+                if (data && data._id && query && query.partnerName) {
                     query.$or = [{partnerName: query.partnerName},{parent: data._id}];
                     delete query.partnerName;
                 }
-
+            }).then(() => {
                 return dbconfig.collection_partner.aggregate([
                     {$match:query},
                     {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
@@ -1720,6 +1721,7 @@ let dbPartner = {
                             if (decoded && decoded.name == partnerData.name) {
                                 conn.isAuth = true;
                                 conn.partnerId = partnerId;
+                                conn.partnerObjId = partnerData._id;
                                 deferred.resolve(true);
                             }
                             else {
@@ -6432,6 +6434,8 @@ let dbPartner = {
         let totalWithdrawal = 0;
         let totalWithdrawalFee = 0;
         let nettCommission = 0;
+        let parentPartnerCommissionDetail;
+        let remarks;
 
         let commissionPeriod = getCommissionPeriod(commissionType);
         if (startTime && endTime) {
@@ -6442,7 +6446,8 @@ let dbPartner = {
         }
 
         let partnerProm = dbconfig.collection_partner.findOne({_id: partnerObjId})
-            .populate({path: "platform", model: dbconfig.collection_platform}).lean();
+            .populate({path: "platform", model: dbconfig.collection_platform})
+            .populate({path: "parent", model: dbconfig.collection_partner}).lean();
 
         return partnerProm.then(
             data => {
@@ -6572,6 +6577,21 @@ let dbPartner = {
 
                 nettCommission = grossCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
 
+                if (partner && partner.parent && Object.keys(partner.parent) && Object.keys(partner.parent).length > 0) {
+                    parentPartnerCommissionDetail = {};
+                    let totalWinLose = getTotalWinLose(downLinesRawData);
+                    let rate = partnerCommissionRateConfig && partnerCommissionRateConfig.parentCommissionRate ? partnerCommissionRateConfig.parentCommissionRate : 0;
+
+                    parentPartnerCommissionDetail.parentPartnerObjId = partner.parent._id;
+                    parentPartnerCommissionDetail.parentPartnerName = partner.parent.partnerName;
+                    parentPartnerCommissionDetail.parentPartnerId = partner.parent.partnerId;
+                    parentPartnerCommissionDetail.totalWinLose = totalWinLose;
+                    parentPartnerCommissionDetail.parentCommissionRate = rate;
+                    parentPartnerCommissionDetail.totalParentCommissionFee = totalWinLose < 0 ? -totalWinLose * rate / 100 : 0;
+
+                    remarks = translate("Parent Partner") + "：" + partner.parent.partnerName + "（"+ rate + "％）";
+                }
+
                 let returnObj = {
                     partner: partner._id,
                     platform: platform._id,
@@ -6599,6 +6619,8 @@ let dbPartner = {
                     status: constPartnerCommissionLogStatus.PREVIEW,
                     nettCommission: nettCommission,
                     disableCommissionSettlement: Boolean(partner.permission && partner.permission.disableCommSettlement),
+                    parentPartnerCommissionDetail: parentPartnerCommissionDetail,
+                    remarks: remarks,
                 };
 
                 if (totalTopUp) {
@@ -9839,6 +9861,7 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
                 rateAfterRebateGameProviderGroup: rateData.rateAfterRebateGameProviderGroup,
                 rateAfterRebateTotalDeposit: rateData.rateAfterRebateTotalDeposit,
                 rateAfterRebateTotalWithdrawal: rateData.rateAfterRebateTotalWithdrawal,
+                parentCommissionRate: rateData.parentCommissionRate,
             };
 
             if (data[1]) {
@@ -9916,6 +9939,15 @@ function getTotalWithdrawal (downLineRawDetail) {
     let total = 0;
     downLineRawDetail.map(downLine => {
         total += downLine.withdrawalDetail.withdrawalAmount || 0;
+    });
+
+    return total;
+}
+
+function getTotalWinLose (downLineRawDetail) {
+    let total = 0;
+    downLineRawDetail.map(downLine => {
+        total += downLine.consumptionDetail.bonusAmount || 0;
     });
 
     return total;
@@ -10013,7 +10045,7 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
                     endTime: commissionLog.endTime,
                     commissionType: commissionLog.commissionType,
                     partnerCommissionRateConfig: commissionLog.partnerCommissionRateConfig,
-                    // rawCommissions: commissionLog.rawCommissions,
+                    rawCommissions: commissionLog.rawCommissions,
                     activeCount: commissionLog.activeDownLines,
                     totalRewardFee: commissionLog.totalRewardFee,
                     totalReward: commissionLog.totalReward,

@@ -1374,10 +1374,12 @@
                         th {{'TOTAL_TOPUP_FEE' | translate}}
                         th {{'TOTAL_WITHDRAWAL_FEE' | translate}}
                         th {{'REAL_TIME_COMMISSION_FORCAST' | translate}}
+                        th {{'parentPartnerCommissionEstimation' | translate}}
                         th {{'PARTNER_ACCOUNT_BALANCE' | translate}}
                         th {{'ACTIVE_DOWNLINES' | translate}}
                         th {{'PREVIOUS_THREE_INTERVAL_ACTIVE_DOWNLINES' | translate}}
                         th {{'PREVIOUS_THREE_INTERVAL_NET_COMMISSSION' | translate}}
+                        th {{'REMARKS' | translate}}
                 tbody
                     tr(ng-repeat="(i,v) in vm.realTimeCommissionData")
                         td {{v.partnerName}}
@@ -1393,6 +1395,7 @@
                         td
                             a(data-toggle="modal", data-target='#modalWithdrawalFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'withdrawalDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{v.totalWithdrawalFee | number : 2}}
                         td {{v.nettCommission | number : 2}}
+                        td {{v.parentPartnerCommissionDetail.totalParentCommissionFee || 0 | number : 2}}
                         td {{v.partnerCredit | number : 2}}
                         td
                             a(data-toggle="modal", data-target='#modalActivePlayerTable', ng-click="vm.partnerCommVar.partner=i") {{v.activeDownLines}}
@@ -1400,6 +1403,7 @@
                             text.span {{v.pastActiveDownLines[0]? v.pastActiveDownLines[0] : "-" | translate}} {{","}} {{v.pastActiveDownLines[1]? v.pastActiveDownLines[1] : "-" | translate}} {{","}} {{v.pastActiveDownLines[2]? v.pastActiveDownLines[2] : "-" | translate}}
                         td
                             text.span {{calculateTotalSum(v.pastNettCommission, "", "")}} {{" ("}} {{v.pastNettCommission[0]? v.pastNettCommission[0] : "-" | translate}} {{","}} {{v.pastNettCommission[1]? v.pastNettCommission[1] : "-" | translate}} {{","}} {{v.pastNettCommission[2]? v.pastNettCommission[2] : "-" | translate}} {{")"}}
+                        td {{v.remarks ? v.remarks : ""}}
             .clearfix
             div
                 br
