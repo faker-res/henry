@@ -4239,7 +4239,7 @@ define(['js/app'], function (myApp) {
                     topUpAmountValueTwo: vm.dxNewPlayerQuery.topUpAmountValueTwo
                 },
                 index: newSearch ? 0 : (vm.dxNewPlayerQuery.index || 0),
-                limit: vm.dxNewPlayerQuery.limit || 5000,
+                limit: vm.dxNewPlayerQuery.limit || null,
                 sortCol: vm.dxNewPlayerQuery.sortCol || {validConsumptionAmount: -1},
             };
             console.log('sendquery', sendquery);

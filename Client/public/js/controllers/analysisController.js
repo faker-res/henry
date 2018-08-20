@@ -1669,8 +1669,10 @@ define(['js/app'], function (myApp) {
         };
 
         vm.drawPlayerOnlineTime = function () {
-            vm.withdrawSuccessAvg = {};
-            vm.withdrawFailedAvg = {};
+            // vm.withdrawSuccessAvg = {};
+            // vm.withdrawFailedAvg = {};
+
+            vm.playerOnlineTimeTotal = {};
             vm.isShowLoadingSpinner('#playerOnlineTimeAnalysis', true);
 
             let sendData = {
@@ -1683,37 +1685,54 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getOnlineTimeLogByPlatform', sendData, function (data) {
                 $scope.$evalAsync(() => {
                     console.log('getOnlineTimeLogByPlatform', data);
-                    if (!data && !data[0] && !data[1]) {
+                    if (!data && !data.data) {
                         return Promise.reject({name: 'DataError', message: 'Can not find the proposal data'})
                     }
 
                     vm.isShowLoadingSpinner('#playerOnlineTimeAnalysis', false);
 
                     vm.playerOnlineTimeData = data.data;
-                    vm.playerOnlineTimeAvg = {};
-                    vm.playerOnlineTimeAvg.totalCount = vm.playerOnlineTimeData.totalCount;
-                    vm.playerOnlineTimeAvg.count1 = vm.playerOnlineTimeData.count1;
-                    vm.playerOnlineTimeAvg.count2 = vm.playerOnlineTimeData.count2;
-                    vm.playerOnlineTimeAvg.count3 = vm.playerOnlineTimeData.count3;
-                    vm.playerOnlineTimeAvg.count4 = vm.playerOnlineTimeData.count4;
-                    vm.playerOnlineTimeAvg.count5 = vm.playerOnlineTimeData.count5;
-                    vm.playerOnlineTimeAvg.count6 = vm.playerOnlineTimeData.count6;
-                    vm.playerOnlineTimeAvg.count7 = vm.playerOnlineTimeData.count7;
-                    vm.playerOnlineTimeAvg.count8 = vm.playerOnlineTimeData.count8;
-                    vm.playerOnlineTimeAvg.count9 = vm.playerOnlineTimeData.count9;
+                    vm.playerOnlineTimeData.forEach( item => {
+                        if (item && item.date){
+                            item.date = new Date(item.date);
+                        }
+                    });
+
+                    data.data.forEach( item => {
+                        if (item && item.date && item.result){
+                            vm.playerOnlineTimeTotal.totalCount = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.totalCount, 0);
+                            vm.playerOnlineTimeTotal.count1 = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.count1, 0);
+                            vm.playerOnlineTimeTotal.count2 = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.count2, 0);
+                            vm.playerOnlineTimeTotal.count3 = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.count3, 0);
+                            vm.playerOnlineTimeTotal.count4 = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.count4, 0);
+                            vm.playerOnlineTimeTotal.count5 = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.count5, 0);
+                            vm.playerOnlineTimeTotal.count6 = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.count6, 0);
+                            vm.playerOnlineTimeTotal.count7 = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.count7, 0);
+                            vm.playerOnlineTimeTotal.count8 = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.count8, 0);
+                            vm.playerOnlineTimeTotal.count9 = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.count9, 0);
+                        }
+                    })
 
                     let onlineTimePieArr = [];
-                    let pieLabel = ["WITHDRAWAL_SUCCESS_TOTAL_TIMES", "0~1", "1~3", "3~5", "5~10", "10~20", "20~30", "30~45", "45~60", "60"];
-                    for (let i = 0; i < Object.keys(vm.playerOnlineTimeAvg).length; i++) {
+                    let pieLabel = ["PLAYER_ONLINE_TIME", "10", "11~30", "31~60", "1~5", "5~10", "10~15", "15~30", "30~60", "60"];
+                    for (let i = 0; i < Object.keys(vm.playerOnlineTimeTotal).length; i++) {
                         if (i == 0) {
                             continue;
                         }
                         let pieObj = {
-                            count: vm.playerOnlineTimeAvg[Object.keys(vm.playerOnlineTimeAvg)[i]]
+                            count: vm.playerOnlineTimeTotal[Object.keys(vm.playerOnlineTimeTotal)[i]]
                         };
-                        pieObj.label = pieLabel[i] + $translate("mins");
-                        if (i == 9) {
-                            pieObj.label = pieObj.label + $translate("above");
+                        if (i == 1) {
+                            pieObj.label = pieLabel[i] + $translate("Seconds (Within)");
+                        }
+                        else if ( i == 2 || i == 3){
+                            pieObj.label = pieLabel[i] + $translate("Seconds");
+                        }
+                        else if (i > 3 && i <= 8){
+                            pieObj.label = pieLabel[i] + $translate("Minutes");
+                        }
+                        else if (i == 9) {
+                            pieObj.label = pieLabel[i] + $translate("Minutes (Above)");
                         }
                         onlineTimePieArr.push(pieObj)
                     }

@@ -382,13 +382,13 @@ var PartnerServiceImplement = function () {
     this.getSMSCode.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.platformId && (data.purpose !== constSMSPurpose.NEW_PHONE_NUMBER));
         conn.smsCode = parseInt(Math.random() * 9000 + 1000);
-        // conn.phoneNumber = data.phoneNumber;
+        conn.phoneNumber = data.phoneNumber;
         let captchaValidation = conn.captchaCode && data.captcha && conn.captchaCode.toString() === data.captcha.toString();
         conn.captchaCode = null;
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent'], true);
 
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [null, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, null, true, conn.partnerObjId], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, null, true, conn.partnerObjId], isValidData, false, false, true);
     };
 
     this.updatePhoneNumberWithSMS.expectsData = 'partnerId: String, phoneNumber: Number';

@@ -150,8 +150,10 @@ let RewardServiceImplement = function () {
     this.getPromoCode.expectsData = 'platformId: String';
     this.getPromoCode.onRequest = function(wsFunc, conn, data){
         let isValidData = Boolean(data && data.platformId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getPromoCode, [conn.playerId, data.platformId, data.status], isValidData, false, false, true);
+        let emptyBonusList = Boolean(!data.noLogin && !conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getPromoCode, [conn.playerId, data.platformId, data.status, emptyBonusList], isValidData, false, false, true);
     };
+
     this.applyPromoCode.expectsData = 'promoCode: Number|String';
     this.applyPromoCode.onRequest = function(wsFunc, conn, data){
         let userAgent = conn['upgradeReq']['headers']['user-agent'];

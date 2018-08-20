@@ -5448,7 +5448,7 @@ let dbPlayerInfo = {
                 deferred.resolve(data);
             },
             function (err) {
-                if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer)) {
+                if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer && err.code !== constServerCode.PLAYER_NOT_ENOUGH_CREDIT)) {
                     let platformId = playerData.platform ? playerData.platform.platformId : null;
                     let platformObjId = playerData.platform ? playerData.platform._id : null;
                     let status = (err.error && err.error.errorMessage && err.error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
@@ -5955,7 +5955,7 @@ let dbPlayerInfo = {
                 deferred.resolve(data);
             },
             function (err) {
-                if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer)) {
+                if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer && err.code !== constServerCode.PLAYER_NOT_ENOUGH_CREDIT)) {
                     var platformId = playerObj.platform ? playerObj.platform.platformId : null;
                     var platformObjId = playerObj.platform ? playerObj.platform._id : null;
                     console.log('debug transfer error G:', err);
@@ -15596,7 +15596,7 @@ let dbPlayerInfo = {
     },
 
     getDXNewPlayerReport: function (platform, query, index, limit, sortCol) {
-        limit = limit ? limit : 20;
+        limit = limit ? limit : null;
         index = index ? index : 0;
         query = query ? query : {};
 
@@ -15680,7 +15680,7 @@ let dbPlayerInfo = {
                 }
 
                 let outputResult = [];
-                let filteredArr = []
+                let filteredArr = [];
                 if(query.csPromoteWay && query.csPromoteWay.length > 0 && query.admins && query.admins.length > 0){
                     if(query.csPromoteWay.includes("") && query.admins.includes("")){
                         filteredArr = result;
@@ -15709,8 +15709,12 @@ let dbPlayerInfo = {
                         return result.indexOf(e) === -1;
                     }));
 
-                for (let i = 0, len = limit; i < len; i++) {
-                    result[index + i] ? outputResult.push(result[index + i]) : null;
+                if (limit) {
+                    for (let i = 0, len = limit; i < len; i++) {
+                        result[index + i] ? outputResult.push(result[index + i]) : null;
+                    }
+                } else {
+                    outputResult = result;
                 }
 
                 return {size: outputResult.length, data: outputResult};
