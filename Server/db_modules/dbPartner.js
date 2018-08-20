@@ -1720,6 +1720,7 @@ let dbPartner = {
                             if (decoded && decoded.name == partnerData.name) {
                                 conn.isAuth = true;
                                 conn.partnerId = partnerId;
+                                conn.partnerObjId = partnerData._id;
                                 deferred.resolve(true);
                             }
                             else {
