@@ -236,7 +236,7 @@ var dbPlatformGameStatus = {
                         return [];
                     }
                     else {
-                        return dbconfig.collection_platformGameStatus.find(queryObj).lean().limit(constSystemParam.MAX_RECORD_NUM);
+                        return dbconfig.collection_platformGameStatus.find(queryObj).lean();
                     }
                 }
                 else {
