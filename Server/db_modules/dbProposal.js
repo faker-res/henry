@@ -2763,6 +2763,10 @@ var proposal = {
         var summary = {};
         let isApprove = false;
 
+        if (reqData.inputDevice) {
+            reqData.inputDevice = Number(reqData.inputDevice);
+        }
+
         if (reqData.status) {
             if (reqData.status == constProposalStatus.SUCCESS) {
                 reqData.status = {
@@ -4698,7 +4702,7 @@ var proposal = {
             query['data.playerName'] = data.playerName;
         }
         if (data.proposalNo) {
-            query['data.proposalId'] = data.proposalNo;
+            query['proposalId'] = data.proposalNo;
         }
         if (data.bankTypeId && data.bankTypeId.length > 0) {
             query['data.bankTypeId'] = {$in: convertStringNumber(data.bankTypeId)};

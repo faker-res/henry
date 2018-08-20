@@ -349,8 +349,16 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getGamesByProviderId', {_id: id}, function (data) {
                 vm.allGames = data.data;
                 let platformId = null;
-                if(vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.platformId){
-                    platformId = vm.selectedPlatform.data.platformId
+                let playerRouteSetting = "";
+                if(vm.selectedPlatform && vm.selectedPlatform.data){
+                    if(vm.selectedPlatform.data.platformId){
+                        platformId = vm.selectedPlatform.data.platformId;
+                    }
+
+                    if(vm.selectedPlatform.data.playerRouteSetting){
+                        let playerRouteSetting = vm.selectedPlatform.data.playerRouteSetting;
+                    }
+
                 }else if(vm.platformList && vm.platformList.length > 0){
                     vm.platformList.forEach(platform => {
                         if(platform && platform._id && platform._id == vm.selectedPlatformID){
@@ -369,8 +377,23 @@ define(['js/app'], function (myApp) {
                             game.isDefaultName = true;
                         }
 
+                        playerRouteSetting = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.playerRouteSetting ?
+                            vm.selectedPlatform.data.playerRouteSetting : "";
+
+                        if(game.bigShow && !game.bigShow.includes("http")){
+                            game.bigShow = playerRouteSetting + game.bigShow;
+                        }
+
+                        if(game.smallShow && !game.smallShow.includes("http")){
+                            game.smallShow = playerRouteSetting + game.smallShow;
+                        }
+
                         if(game.images && game.images.hasOwnProperty(platformId)){
                             let platformCustomImage = game.images[platformId] || game.bigShow;
+                            if(platformCustomImage && !platformCustomImage.includes("http")){
+                                platformCustomImage = playerRouteSetting + platformCustomImage
+                            }
+
                             game.bigShow$ = processImgAddr(platformCustomImage);
                         }else{
                             game.bigShow$ = processImgAddr(game.bigShow);
