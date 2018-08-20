@@ -263,7 +263,7 @@ let dbCallOutMission = {
                     platform: platform._id,
                     admin: admin._id,
                     isUsing: true
-                }, {isUsing: false}).lean();
+                }, {isUsing: false}, {multi: true}).lean();
             }
         );
     },
