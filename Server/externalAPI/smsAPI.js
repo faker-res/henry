@@ -7,18 +7,19 @@ const request = require('request');
 const dbLogger = require("../modules/dbLogger")
 const clientAPIInstance = require("../modules/clientApiInstances");
 
-// function callSMSAPI(service, functionName, data){
-//     if( !data ){
-//         return Q.reject(new Error("Invalid data!"));
-//     }
-//     var wsClient = serverInstance.getSMSAPIClient();
-//     if( !wsClient || !wsClient.isOpen() ){
-//         return Q.reject({ status: 400, message: "SMS is not available"});
-//     }
-//     return wsClient.callAPIOnce(service, functionName, data);
-// };
+function callSMSAPI(service, functionName, data){
+    if( !data ){
+        return Q.reject(new Error("Invalid data!"));
+    }
+    var wsClient = serverInstance.getSMSAPIClient();
+    if( !wsClient || !wsClient.isOpen() ){
+        // return Q.reject({ status: 400, message: "SMS is not available"});
+        return callSMSNewAPI(service, functionName, data);
+    }
+    return wsClient.callAPIOnce(service, functionName, data);
+};
 
-function callSMSAPI(service, functionName, data) {
+function callSMSNewAPI(service, functionName, data) {
     if (!data) {
         return Q.reject(new Error("Invalid data!"));
     }
