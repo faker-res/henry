@@ -237,6 +237,14 @@ let dbPlayerCredibility = {
         );
     },
 
+    getFixedNeutralCredibilityRemarks: platformObjId => {
+        let query = {
+            platform: platformObjId,
+            name: {$in: ['电话重复', '注册IP重复']}
+        };
+        return dbconfig.collection_playerCredibilityRemark.find(query).lean().exec();
+    },
+
     getCredibilityRemarks: platformObjId => {
         dbPlayerCredibility.setFixedCredibilityRemarks(platformObjId);
 
