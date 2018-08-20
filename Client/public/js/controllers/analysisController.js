@@ -1068,18 +1068,18 @@ define(['js/app'], function (myApp) {
 
                 if (vm.queryPara.onlineTopupSuccessRate.timeOperator != 'range'){
                     if (typeof vm.queryPara.onlineTopupSuccessRate.timesValue == 'number'){
-                        vm.titleTag = $translate("successCount") + "(" + $translate("Preset-Processing Time") + ") " + vm.queryPara.onlineTopupSuccessRate.timeOperator + " " +vm.queryPara.onlineTopupSuccessRate.timesValue + $translate("Minutes");
+                        vm.titleTag = $translate("successCount") + " (" + $translate("Preset-Processing Time") + " " + vm.queryPara.onlineTopupSuccessRate.timeOperator + " " + vm.queryPara.onlineTopupSuccessRate.timesValue + $translate("Minutes") + ") ";
                     }
                     else{
-                        vm.titleTag = $translate("successCount") + "( " + $translate("Preset-Processing Time") + ") " ;
+                        vm.titleTag = $translate("successCount") + " (" + $translate("Preset-Processing Time") + ") " ;
                     }
                 }
                 else{
                     if (typeof vm.queryPara.onlineTopupSuccessRate.timesValue == 'number' && typeof vm.queryPara.onlineTopupSuccessRate.timesValueTwo == 'number') {
-                        vm.titleTag = vm.queryPara.onlineTopupSuccessRate.timesValue  + $translate("Minutes") + " <= " + $translate("successCount") + "(" + $translate("Preset-Processing Time") + ")  >= " + vm.queryPara.onlineTopupSuccessRate.timesValueTwo  + $translate("Minutes");
+                        vm.titleTag = $translate("successCount") + " (" + vm.queryPara.onlineTopupSuccessRate.timesValue  + $translate("Minutes") + " <= " + $translate("Preset-Processing Time") + " >= " + vm.queryPara.onlineTopupSuccessRate.timesValueTwo  + $translate("Minutes") + ") ";
                     }
                     else{
-                        vm.titleTag = $translate("successCount") + "( " + $translate("Preset-Processing Time") + ") " ;
+                        vm.titleTag = $translate("successCount") + " (" + $translate("Preset-Processing Time") + ") " ;
                     }
                 }
                 vm.onlineTopUpSuccessProposal =proposalArr.map(item => {
