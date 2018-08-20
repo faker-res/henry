@@ -189,7 +189,57 @@ let dbPlayerCredibility = {
         return dbconfig.collection_platform.findOneAndUpdate({_id: ObjectId(platformObjId)}, {playerValueConfig: config}).lean();
     },
 
+    setFixedCredibilityRemarks: platformObjId => {
+        let query = {
+            platform: platformObjId,
+            name: {$in: ['电话重复', '注册IP重复']}
+        };
+
+        return dbconfig.collection_playerCredibilityRemark.find(query).lean().exec().then(
+            remark => {
+                if (remark && remark.length === 0) {
+                    dbconfig.collection_playerCredibilityRemark({
+                        platform: platformObjId,
+                        name: '电话重复',
+                        score: 0
+                    }).save();
+
+                    dbconfig.collection_playerCredibilityRemark({
+                        platform: platformObjId,
+                        name: '注册IP重复',
+                        score: 0
+                    }).save();
+                }
+
+                let remarkExist = [];
+                if (remark && remark.length > 0) {
+                    remark.forEach(data => {
+                        remarkExist.push(data.name);
+                    });
+
+                    if (!remarkExist.includes('电话重复')) {
+                        dbconfig.collection_playerCredibilityRemark({
+                            platform: platformObjId,
+                            name: '电话重复',
+                            score: 0
+                        }).save();
+                    }
+                    if (!remarkExist.includes('注册IP重复')) {
+                        dbconfig.collection_playerCredibilityRemark({
+                            platform: platformObjId,
+                            name: '注册IP重复',
+                            score: 0
+                        }).save();
+                    }
+                }
+                return remark;
+            }
+        );
+    },
+
     getCredibilityRemarks: platformObjId => {
+        dbPlayerCredibility.setFixedCredibilityRemarks(platformObjId);
+
         return dbconfig.collection_playerCredibilityRemark.find({platform: platformObjId}).lean().exec();
     },
 
