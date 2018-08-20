@@ -1071,7 +1071,7 @@ define(['js/app'], function (myApp) {
                         vm.titleTag = $translate("successCount") + "(" + $translate("Preset-Processing Time") + ") " + vm.queryPara.onlineTopupSuccessRate.timeOperator + " " +vm.queryPara.onlineTopupSuccessRate.timesValue + $translate("Minutes");
                     }
                     else{
-                        vm.titleTag = $translate("successCount") + $translate("Preset-Processing Time");
+                        vm.titleTag = $translate("successCount") + "( " + $translate("Preset-Processing Time") + ") " ;
                     }
                 }
                 else{
@@ -1079,7 +1079,7 @@ define(['js/app'], function (myApp) {
                         vm.titleTag = vm.queryPara.onlineTopupSuccessRate.timesValue  + $translate("Minutes") + " <= " + $translate("successCount") + "(" + $translate("Preset-Processing Time") + ")  >= " + vm.queryPara.onlineTopupSuccessRate.timesValueTwo  + $translate("Minutes");
                     }
                     else{
-                        vm.titleTag = $translate("successCount") + $translate("Preset-Processing Time");
+                        vm.titleTag = $translate("successCount") + "( " + $translate("Preset-Processing Time") + ") " ;
                     }
                 }
                 vm.onlineTopUpSuccessProposal =proposalArr.map(item => {
