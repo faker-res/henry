@@ -2763,6 +2763,10 @@ var proposal = {
         var summary = {};
         let isApprove = false;
 
+        if (reqData.inputDevice) {
+            reqData.inputDevice = Number(reqData.inputDevice);
+        }
+
         if (reqData.status) {
             if (reqData.status == constProposalStatus.SUCCESS) {
                 reqData.status = {
