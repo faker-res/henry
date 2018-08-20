@@ -4201,5 +4201,6 @@
   "updateChildPartnerName": "变更后下级代理帐号",
   "EditChildPartner": "编辑下级代理架构",
   "parentPartnerCommission": "一级代理佣金",
-  "parentPartnerCommissionEstimation": "一级代理佣金估算"
+  "parentPartnerCommissionEstimation": "一级代理佣金估算",
+  "UpdateParentPartnerCommission": "一级代理佣金"
 }
