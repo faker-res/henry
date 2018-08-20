@@ -524,7 +524,7 @@ const dbPlayerMail = {
                         }
                     }
                     */
-                    if (inputData.oldPhoneNumber) {
+                    if (inputData && inputData.oldPhoneNumber) {
                         if (savedNumber.toString() !== inputData.oldPhoneNumber.toString()) {
                             return Promise.reject({
                                 status: constServerCode.INVALID_OLD_PHONENUMBER,
