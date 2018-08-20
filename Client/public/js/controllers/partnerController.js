@@ -15365,6 +15365,8 @@ define(['js/app'], function (myApp) {
                 vm.disableEditChildPartner = true;
                 vm.totalChildPartner = vm.selectedSinglePartner.childrencount || 0;
                 vm.childPartnerList = [];
+                vm.curChildPartner = [];
+                vm.updateChildPartner = [];
 
                 let sendData = {
                     platform: vm.selectedPlatform.id,
@@ -15376,8 +15378,6 @@ define(['js/app'], function (myApp) {
                         console.log('child partner records',data);
                         if (data && data.data && data.data.length > 0) {
                             vm.childPartnerList = data.data;
-                            vm.curChildPartner = [];
-                            vm.updateChildPartner = [];
                             if (vm.childPartnerList && vm.childPartnerList.length > 0) {
                                 for (let i = 0, len = vm.childPartnerList.length; i<len; i++) {
                                     vm.curChildPartner.push(vm.childPartnerList[i].partnerName);
@@ -15472,7 +15472,7 @@ define(['js/app'], function (myApp) {
                     partnerId: vm.selectedSinglePartner.partnerId,
                     partnerName: vm.selectedSinglePartner.partnerName,
                     partnerObjId: vm.selectedSinglePartner._id,
-                    curChildPartnerHeadCount: vm.curChildPartner.length || 0,
+                    curChildPartnerHeadCount: vm.curChildPartner ? vm.curChildPartner.length : 0,
                     updateChildPartnerHeadCount: vm.updateChildPartner.length,
                     curChildPartnerName: vm.curChildPartner,
                     updateChildPartnerName: vm.updateChildPartner

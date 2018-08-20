@@ -895,66 +895,91 @@ let dbPartner = {
 
         if (sortObj){
             //if there is sorting parameter
-            partnerInfo = dbconfig.collection_partner.aggregate([
-                {$match:query},
-                {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
-                        "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
-                        "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "totalSettledCommission":1, "_id":1, }},
-                {$sort:sortObj},
-                {$skip:index},
-                {$limit:limit}
-            ]).then(
-                aggr => {
-                    var retData = [];
-                    for (var index in aggr) {
-                        var prom = dbPartner.getPartnerItem(aggr[index]._id , aggr[index].childrencount);
-                        retData.push(prom);
-                    }
-                    return Q.all(retData);
-            }).then(
-                partners => {
-                    for (let i = 0; i < partners.length; i++) {
-                        if (partners[i].phoneNumber) {
-                            partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
-                        }
-                    }
-                    return partners;
-                },
-                error => {
-                    Q.reject({name: "DBError", message: "Error finding partners.", error: error});
+            partnerInfo = dbconfig.collection_partner.findOne({partnerName: query.partnerName}, {_id:1}).lean().then(data => {
+                let aggrOperation;
+                if (data && data._id) {
+                    query.$or = [{partnerName: query.partnerName},{parent: data._id}];
+                    delete query.partnerName;
+
+                    aggrOperation =[
+                        {$match:query},
+                        {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
+                                "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
+                                "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "totalSettledCommission":1, "_id":1, }},
+                        {$skip:index},
+                        {$limit:limit}
+                    ]
+                } else {
+                    aggrOperation =[
+                        {$match:query},
+                        {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
+                                "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
+                                "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "totalSettledCommission":1, "_id":1, }},
+                        {$sort:sortObj},
+                        {$skip:index},
+                        {$limit:limit}
+                    ]
                 }
-            );
+                return dbconfig.collection_partner.aggregate(aggrOperation).then(
+                    aggr => {
+                        var retData = [];
+                        for (var index in aggr) {
+                            var prom = dbPartner.getPartnerItem(aggr[index]._id , aggr[index].childrencount);
+                            retData.push(prom);
+                        }
+                        return Q.all(retData);
+                }).then(
+                    partners => {
+                        for (let i = 0; i < partners.length; i++) {
+                            if (partners[i].phoneNumber) {
+                                partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
+                            }
+                        }
+                        return partners;
+                    },
+                    error => {
+                        Q.reject({name: "DBError", message: "Error finding partners.", error: error});
+                    }
+                );
+            });
         } else {
             //if there is no sorting parameter
-            partnerInfo = dbconfig.collection_partner.aggregate([
-                {$match:query},
-                {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
-                        "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
-                        "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "totalSettledCommission":1, "_id":1, }},
-                {$skip:index},
-                {$limit:limit}
-            ]).then(
-                aggr => {
-                    var retData = [];
-                    for (var index in aggr) {
-                        var prom = dbPartner.getPartnerItem(aggr[index]._id , aggr[index].childrencount);
-                        retData.push(prom);
-                    }
-                    return Q.all(retData);
-            }).then(
-                partners => {
-                    for (let i = 0; i < partners.length; i++) {
-                        if (partners[i].phoneNumber) {
-                            partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
-                        }
-                    }
-
-                    return partners;
-                },
-                error => {
-                    Q.reject({name: "DBError", message: "Error finding partners.", error: error});
+            partnerInfo = dbconfig.collection_partner.findOne({partnerName: query.partnerName}, {_id:1}).lean().then(data => {
+                if (data && data._id) {
+                    query.$or = [{partnerName: query.partnerName},{parent: data._id}];
+                    delete query.partnerName;
                 }
-            );
+
+                return dbconfig.collection_partner.aggregate([
+                    {$match:query},
+                    {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
+                            "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
+                            "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "totalSettledCommission":1, "_id":1, }},
+                    {$skip:index},
+                    {$limit:limit}
+                ]).then(
+                    aggr => {
+                        var retData = [];
+                        for (var index in aggr) {
+                            var prom = dbPartner.getPartnerItem(aggr[index]._id , aggr[index].childrencount);
+                            retData.push(prom);
+                        }
+                        return Q.all(retData);
+                    }).then(
+                    partners => {
+                        for (let i = 0; i < partners.length; i++) {
+                            if (partners[i].phoneNumber) {
+                                partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
+                            }
+                        }
+
+                        return partners;
+                    },
+                    error => {
+                        Q.reject({name: "DBError", message: "Error finding partners.", error: error});
+                    }
+                );
+            });
         }
 
         return Q.all([count, partnerInfo]).then( function(data){
@@ -9989,7 +10014,7 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
                     endTime: commissionLog.endTime,
                     commissionType: commissionLog.commissionType,
                     partnerCommissionRateConfig: commissionLog.partnerCommissionRateConfig,
-                    // rawCommissions: commissionLog.rawCommissions,
+                    rawCommissions: commissionLog.rawCommissions,
                     activeCount: commissionLog.activeDownLines,
                     totalRewardFee: commissionLog.totalRewardFee,
                     totalReward: commissionLog.totalReward,
