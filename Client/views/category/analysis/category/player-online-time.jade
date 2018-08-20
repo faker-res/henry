@@ -36,64 +36,87 @@
                         thead
                             tr
                                 th(ng-click="vm.dataArraySort('playerOnlineTime', 'date')") {{ vm.queryPara.playerOnlineTime.periodText | translate}}
-                                th(ng-click="vm.dataArraySort('playerOnlineTime','totalCount')") {{"Total"| translate}}
-                                th(ng-click="vm.dataArraySort('playerOnlineTime','count1')") 0~1{{'mins' | translate}}
-                                th(ng-click="vm.dataArraySort('playerOnlineTime','count2')") 1~3{{'mins' | translate}}
-                                th(ng-click="vm.dataArraySort('playerOnlineTime','count3')") 3~5{{'mins' | translate}}
-                                th(ng-click="vm.dataArraySort('playerOnlineTime','count4')") 5~10{{'mins' | translate}}
-                                th(ng-click="vm.dataArraySort('playerOnlineTime','count5')") 10~20{{'mins' | translate}}
-                                th(ng-click="vm.dataArraySort('playerOnlineTime','count6')") 20~30{{'mins' | translate}}
-                                th(ng-click="vm.dataArraySort('playerOnlineTime','count7')") 30~45{{'mins' | translate}}
-                                th(ng-click="vm.dataArraySort('playerOnlineTime','count8')") 45~60{{'mins' | translate}}
-                                th(ng-click="vm.dataArraySort('playerOnlineTime','count9')") 60{{'mins' | translate}}{{'above' | translate}}
+                                th(ng-click="vm.dataArraySort('playerOnlineTime','totalCount')") {{"Total Login Times"| translate}}
+                                th(ng-click="vm.dataArraySort('playerOnlineTime','count1')") 10 {{'Seconds (Within)' | translate}}
+                                th(ng-click="vm.dataArraySort('playerOnlineTime','count2')") 11~30 {{'Seconds' | translate}}
+                                th(ng-click="vm.dataArraySort('playerOnlineTime','count3')") 31~60{{'Seconds' | translate}}
+                                th(ng-click="vm.dataArraySort('playerOnlineTime','count4')") 1~5 {{'Minutes' | translate}}
+                                th(ng-click="vm.dataArraySort('playerOnlineTime','count5')") 5~10 {{'Minutes' | translate}}
+                                th(ng-click="vm.dataArraySort('playerOnlineTime','count6')") 10~15 {{'Minutes' | translate}}
+                                th(ng-click="vm.dataArraySort('playerOnlineTime','count7')") 15~30 {{'Minutes' | translate}}
+                                th(ng-click="vm.dataArraySort('playerOnlineTime','count8')") 30~60{{'Minutes' | translate}}
+                                th(ng-click="vm.dataArraySort('playerOnlineTime','count9')") 60 {{'Minutes (Above)' | translate}}
 
                         tbody
                             tr
                                 td
-                                    span {{ "average value" | translate }}
+                                    span {{ "Total Count" | translate }}
                                 td
-                                    span {{ vm.playerOnlineTimeAvg.totalCount }}
+                                    span {{ vm.playerOnlineTimeTotal.totalCount }}
                                 td
-                                    span {{ vm.playerOnlineTimeAvg.count1 }}
+                                    span {{ vm.playerOnlineTimeTotal.count1 }}
                                 td
-                                    span {{ vm.playerOnlineTimeAvg.count2 }}
+                                    span {{ vm.playerOnlineTimeTotal.count2 }}
                                 td
-                                    span {{ vm.playerOnlineTimeAvg.count3 }}
+                                    span {{ vm.playerOnlineTimeTotal.count3 }}
                                 td
-                                    span {{ vm.playerOnlineTimeAvg.count4 }}
+                                    span {{ vm.playerOnlineTimeTotal.count4 }}
                                 td
-                                    span {{ vm.playerOnlineTimeAvg.count5 }}
+                                    span {{ vm.playerOnlineTimeTotal.count5 }}
                                 td
-                                    span {{ vm.playerOnlineTimeAvg.count6 }}
+                                    span {{ vm.playerOnlineTimeTotal.count6 }}
                                 td
-                                    span {{ vm.playerOnlineTimeAvg.count7 }}
+                                    span {{ vm.playerOnlineTimeTotal.count7 }}
                                 td
-                                    span {{ vm.playerOnlineTimeAvg.count8 }}
+                                    span {{ vm.playerOnlineTimeTotal.count8 }}
                                 td
-                                    span {{ vm.playerOnlineTimeAvg.count9 }}
-                            tr(ng-repeat='(i, v) in vm.withdrawSuccessData | orderBy: vm.dataSort.withdrawSuccess')
+                                    span {{ vm.playerOnlineTimeTotal.count9 }}
+                            tr(ng-repeat='item in vm.playerOnlineTimeData')
                                 td
-                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                    span {{ item.date | date:"yyyy-MM-dd"}}
                                 td
-                                    span {{ v.totalCount }}
-                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal1); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
-                                    a {{ v.count1 }}
-                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal2); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
-                                    a {{ v.count2 }}
-                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal3); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
-                                    a {{ v.count3 }}
-                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal4); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
-                                    a {{ v.count4 }}
-                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal5); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
-                                    a {{ v.count5 }}
-                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal6); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
-                                    a {{ v.count6 }}
-                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal7); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
-                                    a {{ v.count7 }}
-                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal8); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
-                                    a {{ v.count8 }}
-                                td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal9); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
-                                    a {{ v.count9 }}
+                                    span {{ item.result.totalCount }}
+                                td
+                                    span {{ item.result.count1 }}
+                                td
+                                    span {{ item.result.count2 }}
+                                td
+                                    span {{ item.result.count3 }}
+                                td
+                                    span {{ item.result.count4 }}
+                                td
+                                    span {{ item.result.count5 }}
+                                td
+                                    span {{ item.result.count6 }}
+                                td
+                                    span {{ item.result.count7 }}
+                                td
+                                    span {{ item.result.count8 }}
+                                td
+                                    span {{ item.result.count9 }}
+                            //tr(ng-repeat='(i, v) in vm.withdrawSuccessData | orderBy: vm.dataSort.withdrawSuccess')
+                            //    td
+                            //        span {{ v.date | date:"yyyy-MM-dd" }}
+                            //    td
+                            //        span {{ v.totalCount }}
+                            //    td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal1); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
+                            //        a {{ v.count1 }}
+                            //    td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal2); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
+                            //        a {{ v.count2 }}
+                            //    td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal3); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
+                            //        a {{ v.count3 }}
+                            //    td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal4); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
+                            //        a {{ v.count4 }}
+                            //    td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal5); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
+                            //        a {{ v.count5 }}
+                            //    td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal6); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
+                            //        a {{ v.count6 }}
+                            //    td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal7); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
+                            //        a {{ v.count7 }}
+                            //    td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal8); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
+                            //        a {{ v.count8 }}
+                            //    td(ng-click="vm.setAnchor('withdrawSuccessDetailTable'); vm.clickWithdrawDetail(v.proposal9); vm.withdrawSuccessDetailTableIsHide = false; vm.withdrawFailedDetailTableIsHide = true;")
+                            //        a {{ v.count9 }}
 
         //#withdrawSuccessDetailTable
         //.row(ng-if='vm.withdrawDataToDraw.length > 0 && !vm.withdrawSuccessDetailTableIsHide')

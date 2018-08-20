@@ -44,6 +44,8 @@ var partnerCommissionLog = new Schema({
     totalWithdrawalFee: {type: Number},
     // nett commission
     nettCommission: {type: Number},
+    // parent partner commission
+    parentPartnerCommissionDetail: {},
     // activeDownLines of last 3 period
     pastActiveDownLines: [],
     // nett commission of last 3 period
