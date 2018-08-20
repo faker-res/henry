@@ -4702,7 +4702,7 @@ var proposal = {
             query['data.playerName'] = data.playerName;
         }
         if (data.proposalNo) {
-            query['data.proposalId'] = data.proposalNo;
+            query['proposalId'] = data.proposalNo;
         }
         if (data.bankTypeId && data.bankTypeId.length > 0) {
             query['data.bankTypeId'] = {$in: convertStringNumber(data.bankTypeId)};
