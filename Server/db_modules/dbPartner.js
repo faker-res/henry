@@ -6434,6 +6434,7 @@ let dbPartner = {
         let totalWithdrawal = 0;
         let totalWithdrawalFee = 0;
         let nettCommission = 0;
+        let totaldownLines = 0;
         let parentPartnerCommissionDetail;
         let remarks;
 
@@ -6494,6 +6495,8 @@ let dbPartner = {
                 rewardProposalTypes = data[3];
 
                 partnerCommissionRateConfig = data[4];
+
+                totaldownLines = downLines.length;
 
                 let downLinesRawDetailProms = [];
 
@@ -6588,6 +6591,7 @@ let dbPartner = {
                     parentPartnerCommissionDetail.totalWinLose = totalWinLose;
                     parentPartnerCommissionDetail.parentCommissionRate = rate;
                     parentPartnerCommissionDetail.totalParentCommissionFee = totalWinLose < 0 ? -totalWinLose * rate / 100 : 0;
+                    parentPartnerCommissionDetail.totaldownLines = totaldownLines;
 
                     remarks = translate("Parent Partner") + "：" + partner.parent.partnerName + "（"+ rate + "％）";
                 }
@@ -10090,7 +10094,13 @@ function updateParentPartnerCommission(commissionLog, adminInfo, proposalId) {
                     platformObjId: commissionLog.platform,
                     partnerId: commissionLog.parentPartnerCommissionDetail.parentPartnerId,
                     partnerName: commissionLog.parentPartnerCommissionDetail.parentPartnerName,
+                    parentCommissionRate: commissionLog.parentPartnerCommissionDetail.parentCommissionRate,
                     amount: commissionLog.parentPartnerCommissionDetail.totalParentCommissionFee,
+                    childPartnerName: commissionLog.partnerName,
+                    childPartnerTotalDownLines: commissionLog.parentPartnerCommissionDetail.totaldownLines,
+                    childPartnerCommissionType: commissionLog.commissionType,
+                    childPlayerTotalWinLose: commissionLog.parentPartnerCommissionDetail.totalWinLose,
+                    relatedProposalId: proposalId,
                     remark: proposalRemark
                 },
                 entryType: constProposalEntryType.ADMIN,

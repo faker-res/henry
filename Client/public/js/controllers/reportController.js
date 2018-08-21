@@ -7531,10 +7531,15 @@ define(['js/app'], function (myApp) {
                         vm.selectedProposal.data = {};
                     }
 
-                    proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
-                    proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
-                    proposalDetail["parentPartnerCommission"] = vm.selectedProposal.data.amount;
-                    proposalDetail["REMARKS"] = vm.selectedProposal.data.remark;
+                    proposalDetail["PARENT_PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
+                    proposalDetail["PARENT_PARTNER_ID"] = vm.selectedProposal.data.partnerId;
+                    proposalDetail["PARENT_PARTNER_COMMISSION_RATE"] = vm.selectedProposal.data.parentCommissionRate + "%";
+                    proposalDetail["PARENT_PARTNER_COMMISSION_FEE"] = vm.selectedProposal.data.amount;
+                    proposalDetail["CHILD_PARTNER_NAME"] = vm.selectedProposal.data.childPartnerName;
+                    proposalDetail["CHILD_PARTNER_DOWNLINES"] = vm.selectedProposal.data.childPartnerTotalDownLines;
+                    proposalDetail["CHILD_PARTNER_COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.childPartnerCommissionType]);
+                    proposalDetail["CHILD_PARTNER_TOTAL_WINLOSE"] = vm.selectedProposal.data.childPlayerTotalWinLose;
+                    proposalDetail["CHILD_PARTNER_RELATED_PROPOSAL_NO"] = vm.selectedProposal.data.relatedProposalId;
 
                     vm.selectedProposal.data = proposalDetail;
                 }
