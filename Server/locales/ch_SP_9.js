@@ -438,6 +438,8 @@ var simplifiedChinese = {
     "Proposal No.": "提案号：",
     "New phone number is already used. Please insert other phone number.": "新号码已绑定账号，不支持重复绑定。",
     "Parent Partner": "一级代理",
+    "1.Partner Commission Proposal No.: ": "1.代理佣金提案号：",
+    "2.Parent Partner Commission Rate：": "2.一级代理佣金比例：",
 
     //todo::add missing messages here
 

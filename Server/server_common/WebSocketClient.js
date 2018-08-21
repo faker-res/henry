@@ -51,26 +51,26 @@
         );
     },
 
-    proto.smsHeartBeat = function () {
-        if (this._smsHeartBeatInterval) {
-            clearInterval(this._smsHeartBeatInterval);
-        }
-        var self = this;
-        // console.log('sms Heart Beating start! ');
-        this._smsHeartBeatInterval = setInterval(
-            function () {
-                if (self.isOpen()) {
-                    var beat = {
-                        service: "heartBeat",
-                        functionName: "heartBeat",
-                        data: {currentTime: new Date().getTime()}
-                    };
-                    //console.log(beat);
-                    self._connection.send(JSON.stringify(beat));
-                }
-            }, 10 * 1000
-        );
-    },
+    // proto.smsHeartBeat = function () {
+    //     if (this._smsHeartBeatInterval) {
+    //         clearInterval(this._smsHeartBeatInterval);
+    //     }
+    //     var self = this;
+    //     // console.log('sms Heart Beating start! ');
+    //     this._smsHeartBeatInterval = setInterval(
+    //         function () {
+    //             if (self.isOpen()) {
+    //                 var beat = {
+    //                     service: "heartBeat",
+    //                     functionName: "heartBeat",
+    //                     data: {currentTime: new Date().getTime()}
+    //                 };
+    //                 console.log(beat);
+    //                 self._connection.send(JSON.stringify(beat));
+    //             }
+    //         }, 10 * 1000
+    //     );
+    // },
 
 
     proto.connect = function () {

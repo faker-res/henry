@@ -193,11 +193,7 @@ var dbPlatformGameGroup = {
                             if(game.images && platformId){
                                 Object.keys(game.images).forEach(function(key) {
                                     if(key == platformId){
-                                        if(game.images[key].includes("http")){
-                                            gameChangedImage[key] = game.images[key];
-                                        }else{
-                                            gameChangedImage[key] = playerRouteSetting + game.images[key];
-                                        }
+                                        gameChangedImage[key] = playerRouteSetting ? playerRouteSetting + game.images[key] : (game.sourceURL ? game.sourceURL + game.images[key] : game.images[key]);
 
                                         return;
                                     }
@@ -206,11 +202,11 @@ var dbPlatformGameGroup = {
                             }
 
                             if(game.bigShow && !game.bigShow.includes("http")){
-                                game.bigShow = playerRouteSetting + game.bigShow;
+                                game.bigShow = playerRouteSetting ? playerRouteSetting + game.bigShow : (game.sourceURL ? game.sourceURL + game.bigShow : game.bigShow);
                             }
 
                             if(game.smallShow && !game.smallShow.includes("http")){
-                                game.smallShow = playerRouteSetting + game.smallShow;
+                                game.smallShow = playerRouteSetting ? playerRouteSetting + game.smallShow : (game.sourceURL ? game.sourceURL + game.smallShow : game.smallShow);
                             }
                         }
                     }
