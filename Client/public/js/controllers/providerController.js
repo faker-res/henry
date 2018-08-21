@@ -373,40 +373,41 @@ define(['js/app'], function (myApp) {
                 _id: id
             }
             socketService.$socket($scope.AppSocket, 'getGamesByProviderAndFPMS', query, function (data) {
-                vm.allGames = data.data;
-                let platformId = null;
-                if(vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.platformId){
-                    platformId = vm.selectedPlatform.data.platformId
-                }else if(vm.platformList && vm.platformList.length > 0){
-                    vm.platformList.forEach(platform => {
-                        if(platform && platform._id && platform._id == vm.selectedPlatformID){
-                            platformId = platform.platformId || null;
+                $scope.$evalAsync(() => {
+                    vm.allGames = data.data;
+                    let platformId = null;
+                    if(vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.platformId){
+                        platformId = vm.selectedPlatform.data.platformId
+                    }else if(vm.platformList && vm.platformList.length > 0){
+                        vm.platformList.forEach(platform => {
+                            if(platform && platform._id && platform._id == vm.selectedPlatformID){
+                                platformId = platform.platformId || null;
+                            }
+                        })
+                    }
+                    vm.allGames.forEach(game => {
+                        if(game){
+                            if(game.changedName && game.changedName.hasOwnProperty(platformId)){
+                                game.name$ = game.changedName[platformId] || game.name;
+                                game.isDefaultName = game.changedName[platformId] && game.changedName[platformId] != ''
+                                    ? false : true;
+                            }else{
+                                game.name$ = game.name;
+                                game.isDefaultName = true;
+                            }
+
+                            if(game.images && game.images.hasOwnProperty(platformId)){
+                                let platformCustomImage = game.images[platformId] || game.bigShow;
+                                game.bigShow$ = processImgAddr(platformCustomImage);
+                            }else{
+                                game.bigShow$ = processImgAddr(game.bigShow);
+                            }
                         }
                     })
-                }
-                vm.allGames.forEach(game => {
-                    if(game){
-                        if(game.changedName && game.changedName.hasOwnProperty(platformId)){
-                            game.name$ = game.changedName[platformId] || game.name;
-                            game.isDefaultName = game.changedName[platformId] && game.changedName[platformId] != ''
-                                ? false : true;
-                        }else{
-                            game.name$ = game.name;
-                            game.isDefaultName = true;
-                        }
-
-                        if(game.images && game.images.hasOwnProperty(platformId)){
-                            let platformCustomImage = game.images[platformId] || game.bigShow;
-                            game.bigShow$ = processImgAddr(platformCustomImage);
-                        }else{
-                            game.bigShow$ = processImgAddr(game.bigShow);
-                        }
-                    }
-                })
-                vm.filterAllGames = $.extend([], vm.allGames);
-                console.log('vm.allGames', vm.allGames);
-                $('#loadingProviderGames').addClass('hidden');
-                $scope.safeApply();
+                    vm.filterAllGames = $.extend([], vm.allGames);
+                    console.log('vm.allGames', vm.allGames);
+                    $('#loadingProviderGames').addClass('hidden');
+                });
             }, function (data) {
                 console.log("create not", data);
             });
