@@ -9987,7 +9987,7 @@ let dbPlayerInfo = {
                                 {
                                     player: player._id,
                                     platform: platform._id,
-                                    "oldData.applyBonus": true,
+                                    // "oldData.applyBonus": true,
                                     "newData.applyBonus": false,
                                 },
                                 {remark: 1}
