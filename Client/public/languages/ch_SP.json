@@ -4147,8 +4147,8 @@
   "Update Mission": "编辑任务",
   "Partner Level Commission Rate Setting": "二级代理佣金比例设置(预设值）",
   "Hierarchical Architecture": "层级架构",
-  "First Level Partner": "一级代理",
-  "Second Level Partner": "二级代理",
+  "Parent Partner": "一级代理",
+  "Child_Partner": "二级代理",
   "Follow partner commission config": "按照代理提成设置阶梯",
   "winlose X above ratio": "产生报表输赢x上述比例",
   "Represent a player winlose share between 2 levels": "表示一个玩家的报表输赢只会往上分两层",
@@ -4199,5 +4199,7 @@
   "updateChildPartnerHeadCount": "变更后下级代理人数",
   "curChildPartnerName": "变更前下级代理帐号",
   "updateChildPartnerName": "变更后下级代理帐号",
-  "EditChildPartner": "编辑下级代理架构"
+  "EditChildPartner": "编辑下级代理架构",
+  "parentPartnerCommission": "一级代理佣金",
+  "parentPartnerCommissionEstimation": "一级代理佣金估算"
 }

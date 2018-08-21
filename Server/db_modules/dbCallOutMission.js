@@ -13,15 +13,16 @@ const ObjectId = mongoose.Types.ObjectId;
 
 let dbCallOutMission = {
     createCallOutMission: (platformObjId, adminObjId, searchFilter, searchQuery, sortCol, selectedPlayers) => {
-        let platform, admin, calleeList, callOutMission;
+        let platform, admin, calleeList, callOutMission, availableCallOutMission;
         searchQuery = typeof searchQuery == "string" ? JSON.parse(searchQuery) : searchQuery;
 
         let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
         let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
+        let availableCallOutMissionProm = dbconfig.collection_callOutMission.find({admin: adminObjId, isUsing: true}).lean();
 
-        return Promise.all([platformProm, adminProm]).then(
+        return Promise.all([platformProm, adminProm, availableCallOutMissionProm]).then(
             data => {
-                ([platform, admin] = data);
+                ([platform, admin, availableCallOutMission] = data);
 
                 if (!platform ) {
                     return Promise.reject({name: "DataError", message: "Platform not found."});
@@ -29,6 +30,15 @@ let dbCallOutMission = {
 
                 if (!admin) {
                     return Promise.reject({name: "DataError", message: "No admin acc"});
+                }
+
+                if (availableCallOutMission && availableCallOutMission.length) {
+                    availableCallOutMission.map(mission => {
+                        dbconfig.collection_callOutMission.update({missionName: mission.missionName}, {isUsing: false}).exec().catch(err => {
+                            console.log('unuse mission fail', mission.missionName, err);
+                            return errorUtils.reportError(err);
+                        });
+                    });
                 }
 
                 return getCalleeList(searchQuery, sortCol, selectedPlayers);
@@ -253,7 +263,7 @@ let dbCallOutMission = {
                     platform: platform._id,
                     admin: admin._id,
                     isUsing: true
-                }, {isUsing: false}).lean();
+                }, {isUsing: false}, {multi: true}).lean();
             }
         );
     },

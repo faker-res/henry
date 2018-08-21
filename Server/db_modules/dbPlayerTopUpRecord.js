@@ -2214,7 +2214,7 @@ var dbPlayerTopUpRecord = {
      * @param adminName
      */
 
-    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime, realName, limitedOfferObjId, topUpReturnCode, bPMSGroup = false, lastLoginIp) {
+    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime, realName, limitedOfferObjId, topUpReturnCode, bPMSGroup = false, lastLoginIp, fromFPMS) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -2237,10 +2237,14 @@ var dbPlayerTopUpRecord = {
             .populate({path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup}).then(
                 playerData => {
                     player = playerData;
-                    if (player && player.platform && player.platform.aliPayGroupIsPMS) {
+                    if (fromFPMS) {
                         bPMSGroup = true
                     } else {
-                        bPMSGroup = false;
+                        if (player && player.platform && player.platform.aliPayGroupIsPMS) {
+                            bPMSGroup = true
+                        } else {
+                            bPMSGroup = false;
+                        }
                     }
                     if (player && player._id) {
                         if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
@@ -2763,7 +2767,7 @@ var dbPlayerTopUpRecord = {
      * @param limitedOfferObjId
      */
 
-    requestWechatTopup: function (useQR, userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime, limitedOfferObjId, topUpReturnCode, bPMSGroup = false, lastLoginIp) {
+    requestWechatTopup: function (useQR, userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime, limitedOfferObjId, topUpReturnCode, bPMSGroup = false, lastLoginIp, fromFPMS) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -2787,10 +2791,14 @@ var dbPlayerTopUpRecord = {
             ).lean().then(
                 playerData => {
                     player = playerData;
-                    if (player && player.platform && player.platform.wechatPayGroupIsPMS) {
+                    if (fromFPMS) {
                         bPMSGroup = true
                     } else {
-                        bPMSGroup = false;
+                        if (player && player.platform && player.platform.wechatPayGroupIsPMS) {
+                            bPMSGroup = true
+                        } else {
+                            bPMSGroup = false;
+                        }
                     }
                     if (player && player._id) {
                         if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
