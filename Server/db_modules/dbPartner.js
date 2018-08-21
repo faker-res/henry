@@ -6288,6 +6288,13 @@ let dbPartner = {
                 downLinesRawCommissionDetails = commissionDetail.downLinesRawCommissionDetail || [];
 
                 delete commissionDetail.downLinesRawCommissionDetail;
+                if (commissionDetail.rawCommissions && commissionDetail.rawCommissions.length) {
+                    commissionDetail.rawCommissions.map(rawCommission => {
+                        if (rawCommission && rawCommission.crewProfitDetail) {
+                            delete rawCommission.crewProfitDetail;
+                        }
+                    });
+                }
 
                 return dbconfig.collection_partnerCommissionLog.findOneAndUpdate({
                     partner: commissionDetail.partner,
