@@ -7468,7 +7468,7 @@ define(['js/app'], function (myApp) {
                         if (rawCommission.isCustomCommissionRate) {
                             vm.proposalDetailStyle[rawCommission.groupName + " " + $translate("Commission")] = customizedStyle;
                             isCustomized = true;
-                        }sd
+                        }
                     });
 
                     proposalDetail["REQUIRED_PROMO_DEDUCTION"] = $fixTwoDecimalStr(vm.selectedProposal.data.totalRewardFee) + $translate("YEN")
