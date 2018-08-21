@@ -7456,6 +7456,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.status);
                     proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
+                    vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
                     vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                         grossCommission += rawCommission.amount;
                         let str = $fixTwoDecimalStr(rawCommission.amount) + $translate("YEN") + " "
@@ -7524,6 +7525,24 @@ define(['js/app'], function (myApp) {
                     vm.selectedProposal.data = proposalDetail;
                 }
 
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdateParentPartnerCommission") {
+                    let proposalDetail = {};
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+
+                    proposalDetail["PARENT_PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
+                    proposalDetail["PARENT_PARTNER_ID"] = vm.selectedProposal.data.partnerId;
+                    proposalDetail["PARENT_PARTNER_COMMISSION_RATE"] = vm.selectedProposal.data.parentCommissionRate + "%";
+                    proposalDetail["PARENT_PARTNER_COMMISSION_FEE"] = vm.selectedProposal.data.amount;
+                    proposalDetail["CHILD_PARTNER_NAME"] = vm.selectedProposal.data.childPartnerName;
+                    proposalDetail["CHILD_PARTNER_DOWNLINES"] = vm.selectedProposal.data.childPartnerTotalDownLines;
+                    proposalDetail["CHILD_PARTNER_COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.childPartnerCommissionType]);
+                    proposalDetail["CHILD_PARTNER_TOTAL_WINLOSE"] = vm.selectedProposal.data.childPlayerTotalWinLose;
+                    proposalDetail["CHILD_PARTNER_RELATED_PROPOSAL_NO"] = vm.selectedProposal.data.relatedProposalId;
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
 
                 if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
                     let proposalDetail = {};

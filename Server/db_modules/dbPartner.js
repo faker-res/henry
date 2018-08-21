@@ -896,8 +896,8 @@ let dbPartner = {
         if (sortObj){
             //if there is sorting parameter
             let aggrOperation = [];
-            partnerInfo = dbconfig.collection_partner.findOne({partnerName: query.partnerName}, {_id:1}).lean().then(data => {
-                if (data && data._id && query && query.partnerName) {
+            partnerInfo = dbconfig.collection_partner.findOne({partnerName: query.partnerName}, {_id:1, children: 1}).lean().then(data => {
+                if (data && data._id && data.children && data.children.length > 0 && query && query.partnerName) {
                     query.$or = [{partnerName: query.partnerName},{parent: data._id}];
                     delete query.partnerName;
 
@@ -945,8 +945,8 @@ let dbPartner = {
             });
         } else {
             //if there is no sorting parameter
-            partnerInfo = dbconfig.collection_partner.findOne({partnerName: query.partnerName}, {_id:1}).lean().then(data => {
-                if (data && data._id && query && query.partnerName) {
+            partnerInfo = dbconfig.collection_partner.findOne({partnerName: query.partnerName}, {_id:1, children: 1}).lean().then(data => {
+                if (data && data._id && data.children && data.children.length > 0 && query && query.partnerName) {
                     query.$or = [{partnerName: query.partnerName},{parent: data._id}];
                     delete query.partnerName;
                 }
@@ -6434,6 +6434,7 @@ let dbPartner = {
         let totalWithdrawal = 0;
         let totalWithdrawalFee = 0;
         let nettCommission = 0;
+        let totaldownLines = 0;
         let parentPartnerCommissionDetail;
         let remarks;
 
@@ -6494,6 +6495,8 @@ let dbPartner = {
                 rewardProposalTypes = data[3];
 
                 partnerCommissionRateConfig = data[4];
+
+                totaldownLines = downLines.length;
 
                 let downLinesRawDetailProms = [];
 
@@ -6588,6 +6591,7 @@ let dbPartner = {
                     parentPartnerCommissionDetail.totalWinLose = totalWinLose;
                     parentPartnerCommissionDetail.parentCommissionRate = rate;
                     parentPartnerCommissionDetail.totalParentCommissionFee = totalWinLose < 0 ? -totalWinLose * rate / 100 : 0;
+                    parentPartnerCommissionDetail.totaldownLines = totaldownLines;
 
                     remarks = translate("Parent Partner") + "：" + partner.parent.partnerName + "（"+ rate + "％）";
                 }
@@ -10069,6 +10073,45 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
     );
 }
 
+function updateParentPartnerCommission(commissionLog, adminInfo, proposalId) {
+    // find proposal type
+    return dbconfig.collection_proposalType.findOne({name: constProposalType.UPDATE_PARENT_PARTNER_COMMISSION, platformId: commissionLog.platform}).lean().then(
+        proposalType => {
+            if (!proposalType) {
+                return Promise.reject({
+                    message: "Error in getting proposal type"
+                });
+            }
+
+            let proposalRemark = translate("1.Partner Commission Proposal No.: ") + proposalId + '<br>' + translate("2.Parent Partner Commission Rate：") + commissionLog.parentPartnerCommissionDetail.parentCommissionRate + "%";
+
+            // create proposal data
+            let proposalData = {
+                type: proposalType._id,
+                creator: adminInfo,
+                data: {
+                    partnerObjId: commissionLog.parentPartnerCommissionDetail.parentPartnerObjId,
+                    platformObjId: commissionLog.platform,
+                    partnerId: commissionLog.parentPartnerCommissionDetail.parentPartnerId,
+                    partnerName: commissionLog.parentPartnerCommissionDetail.parentPartnerName,
+                    parentCommissionRate: commissionLog.parentPartnerCommissionDetail.parentCommissionRate,
+                    amount: commissionLog.parentPartnerCommissionDetail.totalParentCommissionFee,
+                    childPartnerName: commissionLog.partnerName,
+                    childPartnerTotalDownLines: commissionLog.parentPartnerCommissionDetail.totaldownLines,
+                    childPartnerCommissionType: commissionLog.commissionType,
+                    childPlayerTotalWinLose: commissionLog.parentPartnerCommissionDetail.totalWinLose,
+                    relatedProposalId: proposalId,
+                    remark: proposalRemark
+                },
+                entryType: constProposalEntryType.ADMIN,
+                userType: constProposalUserType.PARTNERS
+            };
+
+            return dbProposal.createProposalWithTypeId(proposalType._id, proposalData);
+        }
+    );
+}
+
 function updateCommSettLog(platformObjId, commissionType, startTime, endTime) {
     return dbconfig.collection_partnerCommSettLog.findOneAndUpdate({
         platform: platformObjId,
@@ -10795,6 +10838,19 @@ function applyCommissionToPartner (logObjId, settleType, remark, adminInfo) {
                 remark = "结算后清空馀额：" + remark;
             }
             return applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
+        }
+    ).then(
+        proposal => {
+
+            if (log && log.parentPartnerCommissionDetail && Object.keys(log.parentPartnerCommissionDetail) && Object.keys(log.parentPartnerCommissionDetail).length > 0
+                && proposal && proposal.proposalId) {
+                updateParentPartnerCommission(log, adminInfo, proposal.proposalId).catch(error => {
+                    console.trace("Update parent partner commission");
+                    return errorUtils.reportError(error);
+                })
+            }
+
+            return proposal;
         }
     );
 }

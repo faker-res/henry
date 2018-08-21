@@ -2110,6 +2110,7 @@ define(['js/app'], function (myApp) {
                 proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.status);
                 proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
+                vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
                 vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                     grossCommission += rawCommission.amount;
                     let str = $fixTwoDecimalStr(rawCommission.amount)+ $translate("YEN") + " "
@@ -2434,6 +2435,24 @@ define(['js/app'], function (myApp) {
                     vm.selectedProposalDetailForDisplay['bankAccountDistrict'] = text;
                     $scope.safeApply();
                 });
+            }
+
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdateParentPartnerCommission") {
+                let proposalDetail = {};
+                if (!vm.selectedProposalDetailForDisplay) {
+                    vm.selectedProposalDetailForDisplay = {};
+                }
+
+                proposalDetail['PARENT_PARTNER_NAME'] = vm.selectedProposalDetailForDisplay.partnerName;
+                proposalDetail['PARENT_PARTNER_ID'] = vm.selectedProposalDetailForDisplay.partnerId;
+                proposalDetail['PARENT_PARTNER_COMMISSION_RATE'] = vm.selectedProposalDetailForDisplay.parentCommissionRate + "%";
+                proposalDetail['PARENT_PARTNER_COMMISSION_FEE'] = vm.selectedProposalDetailForDisplay.amount;
+                proposalDetail['CHILD_PARTNER_NAME'] = vm.selectedProposalDetailForDisplay.childPartnerName;
+                proposalDetail['CHILD_PARTNER_DOWNLINES'] = vm.selectedProposalDetailForDisplay.childPartnerTotalDownLines;
+                proposalDetail['CHILD_PARTNER_COMMISSION_TYPE'] = $translate($scope.commissionTypeList[vm.selectedProposalDetailForDisplay.childPartnerCommissionType]);
+                proposalDetail['CHILD_PARTNER_TOTAL_WINLOSE'] = vm.selectedProposalDetailForDisplay.childPlayerTotalWinLose;
+                proposalDetail['CHILD_PARTNER_RELATED_PROPOSAL_NO'] = vm.selectedProposalDetailForDisplay.relatedProposalId;
+                vm.selectedProposalDetailForDisplay = proposalDetail;
             }
 
             // Remove fields for detail viewing
