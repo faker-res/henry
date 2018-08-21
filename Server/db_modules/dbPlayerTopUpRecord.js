@@ -2238,7 +2238,7 @@ var dbPlayerTopUpRecord = {
                 playerData => {
                     player = playerData;
                     if (fromFPMS) {
-                        bPMSGroup = true
+                        bPMSGroup = false
                     } else {
                         if (player && player.platform && player.platform.aliPayGroupIsPMS) {
                             bPMSGroup = true
@@ -2792,7 +2792,7 @@ var dbPlayerTopUpRecord = {
                 playerData => {
                     player = playerData;
                     if (fromFPMS) {
-                        bPMSGroup = true
+                        bPMSGroup = false
                     } else {
                         if (player && player.platform && player.platform.wechatPayGroupIsPMS) {
                             bPMSGroup = true
