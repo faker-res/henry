@@ -63,7 +63,9 @@ var playerConsumptionRecordSchema = new Schema({
     // Number of comsumption (compressed records)
     count: {type: Number, default: 1},
     // win ratio (bonusAmount / validAmount)
-    winRatio: {type: Number, index: true}
+    winRatio: {type: Number, index: true},
+    // seperate bet type and bet amount for EA and EBET
+    betDetails: {type: []}
 });
 
 //record is unique by playerId platformId and date

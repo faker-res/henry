@@ -766,6 +766,11 @@ var dbPlayerConsumptionRecord = {
                     }
                     delete recordData.name;
 
+                    if (recordData.LIST) {
+                        recordData.betDetails = recordData.LIST;
+                        delete recordData.LIST;
+                    }
+
                     if (isProviderGroup) {
                         return dbPlayerConsumptionRecord.createPlayerConsumptionRecordForProviderGroup(recordData, platformObj);
                     } else {
