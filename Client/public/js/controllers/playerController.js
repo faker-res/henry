@@ -6904,6 +6904,7 @@ define(['js/app'], function (myApp) {
                 limit: newSearch ? vm.similarPhoneForPlayer.limit : (vm.similarPhoneForPlayer.limit || 50),
                 sortCol: {registrationTime: -1},
                 isRealPlayer: true,
+                admin: authService.adminName,
             };
             socketService.$socket($scope.AppSocket, "getPagedSimilarPhoneForPlayers", sendQuery, function (data) {
                 vm.similarPhoneForPlayers = data.data.data;
@@ -6993,6 +6994,7 @@ define(['js/app'], function (myApp) {
                 limit: newSearch ? vm.similarIpForPlayer.limit : (vm.similarIpForPlayer.limit || 50),
                 sortCol: {registrationTime: -1},
                 isRealPlayer: true,
+                admin: authService.adminName,
             };
             socketService.$socket($scope.AppSocket, "getPagedSimilarIpForPlayers", sendQuery, function (data) {
                 vm.similarIpForPlayers = data.data.data;
@@ -7010,7 +7012,7 @@ define(['js/app'], function (myApp) {
                 if (item.credibilityRemarks && item.credibilityRemarks.length > 0) {
                     item.credibilityRemarks = vm.credibilityRemarks.filter(remark => {
                         return item.credibilityRemarks.includes(remark._id);
-                    })
+                    });
                     item.credibilityRemarks.forEach(function (value, index) {
                         remarks += value.name + breakLine;
                     });

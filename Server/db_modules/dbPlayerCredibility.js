@@ -189,7 +189,62 @@ let dbPlayerCredibility = {
         return dbconfig.collection_platform.findOneAndUpdate({_id: ObjectId(platformObjId)}, {playerValueConfig: config}).lean();
     },
 
+    setFixedCredibilityRemarks: platformObjId => {
+        let fixedCredibilityRemarks = ['电话重复', '注册IP重复'];
+        let query = {
+            platform: platformObjId,
+            name: {$in: fixedCredibilityRemarks}
+        };
+
+        return dbconfig.collection_playerCredibilityRemark.find(query).lean().exec().then(
+            remark => {
+                if (remark && remark.length === 0) {
+                    fixedCredibilityRemarks.forEach(
+                        fixedRemark => {
+                            dbconfig.collection_playerCredibilityRemark({
+                                platform: platformObjId,
+                                name: fixedRemark,
+                                score: 0
+                            }).save();
+                        }
+                    );
+                }
+
+                let remarkExist = [];
+                if (remark && remark.length > 0) {
+                    remark.forEach(data => {
+                        remarkExist.push(data.name);
+                    });
+
+                    fixedCredibilityRemarks.forEach(
+                        fixedRemark => {
+                            if (!remarkExist.includes(fixedRemark)) {
+                                dbconfig.collection_playerCredibilityRemark({
+                                    platform: platformObjId,
+                                    name: fixedRemark,
+                                    score: 0
+                                }).save();
+                            }
+                        }
+                    );
+                }
+                return remark;
+            }
+        );
+    },
+
+    getFixedNeutralCredibilityRemarks: platformObjId => {
+        let fixedCredibilityRemarks = ['电话重复', '注册IP重复'];
+        let query = {
+            platform: platformObjId,
+            name: {$in: fixedCredibilityRemarks}
+        };
+        return dbconfig.collection_playerCredibilityRemark.find(query).lean().exec();
+    },
+
     getCredibilityRemarks: platformObjId => {
+        dbPlayerCredibility.setFixedCredibilityRemarks(platformObjId);
+
         return dbconfig.collection_playerCredibilityRemark.find({platform: platformObjId}).lean().exec();
     },
 
