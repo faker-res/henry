@@ -1643,5 +1643,8 @@
   "curChildPartnerHeadCount": "Before Update Children Partner Head Count",
   "updateChildPartnerHeadCount": "After Update Children Partner Head Count",
   "curChildPartnerName": "Before Update Children Partner Name",
-  "updateChildPartnerName": "After Update Children Partner Name"
+  "updateChildPartnerName": "After Update Children Partner Name",
+  "parentPartnerCommission": "Parent Partner Commission",
+  "parentPartnerCommissionEstimation": "Parent Partner Commission Estimation",
+  "UpdateParentPartnerCommission": "Parent Partner Commission"
 }

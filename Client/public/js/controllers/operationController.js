@@ -2436,6 +2436,11 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdateParentPartnerCommission" && vm.selectedProposalDetailForDisplay['amount']) {
+                vm.selectedProposalDetailForDisplay['parentPartnerCommission'] = vm.selectedProposal.data.amount;
+                delete vm.selectedProposalDetailForDisplay.amount;
+            }
+
             // Remove fields for detail viewing
             delete vm.selectedProposalDetailForDisplay.creator;
             delete vm.selectedProposalDetailForDisplay.platform;
