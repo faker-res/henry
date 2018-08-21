@@ -190,25 +190,24 @@ let dbPlayerCredibility = {
     },
 
     setFixedCredibilityRemarks: platformObjId => {
+        let fixedCredibilityRemarks = ['电话重复', '注册IP重复'];
         let query = {
             platform: platformObjId,
-            name: {$in: ['电话重复', '注册IP重复']}
+            name: {$in: fixedCredibilityRemarks}
         };
 
         return dbconfig.collection_playerCredibilityRemark.find(query).lean().exec().then(
             remark => {
                 if (remark && remark.length === 0) {
-                    dbconfig.collection_playerCredibilityRemark({
-                        platform: platformObjId,
-                        name: '电话重复',
-                        score: 0
-                    }).save();
-
-                    dbconfig.collection_playerCredibilityRemark({
-                        platform: platformObjId,
-                        name: '注册IP重复',
-                        score: 0
-                    }).save();
+                    fixedCredibilityRemarks.forEach(
+                        fixedRemark => {
+                            dbconfig.collection_playerCredibilityRemark({
+                                platform: platformObjId,
+                                name: fixedRemark,
+                                score: 0
+                            }).save();
+                        }
+                    );
                 }
 
                 let remarkExist = [];
@@ -217,20 +216,17 @@ let dbPlayerCredibility = {
                         remarkExist.push(data.name);
                     });
 
-                    if (!remarkExist.includes('电话重复')) {
-                        dbconfig.collection_playerCredibilityRemark({
-                            platform: platformObjId,
-                            name: '电话重复',
-                            score: 0
-                        }).save();
-                    }
-                    if (!remarkExist.includes('注册IP重复')) {
-                        dbconfig.collection_playerCredibilityRemark({
-                            platform: platformObjId,
-                            name: '注册IP重复',
-                            score: 0
-                        }).save();
-                    }
+                    fixedCredibilityRemarks.forEach(
+                        fixedRemark => {
+                            if (!remarkExist.includes(fixedRemark)) {
+                                dbconfig.collection_playerCredibilityRemark({
+                                    platform: platformObjId,
+                                    name: fixedRemark,
+                                    score: 0
+                                }).save();
+                            }
+                        }
+                    );
                 }
                 return remark;
             }
@@ -238,9 +234,10 @@ let dbPlayerCredibility = {
     },
 
     getFixedNeutralCredibilityRemarks: platformObjId => {
+        let fixedCredibilityRemarks = ['电话重复', '注册IP重复'];
         let query = {
             platform: platformObjId,
-            name: {$in: ['电话重复', '注册IP重复']}
+            name: {$in: fixedCredibilityRemarks}
         };
         return dbconfig.collection_playerCredibilityRemark.find(query).lean().exec();
     },
