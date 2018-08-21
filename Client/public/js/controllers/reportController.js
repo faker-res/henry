@@ -7533,7 +7533,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
                     proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
                     proposalDetail["parentPartnerCommission"] = vm.selectedProposal.data.amount;
-                    proposalDetail["REMARKS"] = vm.selectedProposal.data.remarks;
+                    proposalDetail["REMARKS"] = vm.selectedProposal.data.remark;
 
                     vm.selectedProposal.data = proposalDetail;
                 }
