@@ -3069,18 +3069,18 @@ define(['js/app'], function (myApp) {
 
                             vm.includedGamesGroup.push(newObj);
 
-                            if(newObj.bigShow && !newObj.bigShow.includes("http")){
-                                newObj.bigShow = playerRouteSetting + newObj.bigShow;
+                            if(newObj.bigShow){
+                                newObj.bigShow = playerRouteSetting ? playerRouteSetting + newObj.bigShow : (newObj.sourceURL ? newObj.sourceURL + newObj.bigShow : newObj.sourceURL);
                             }
 
-                            if(newObj.smallShow && !newObj.smallShow.includes("http")){
-                                newObj.smallShow = playerRouteSetting + newObj.smallShow;
+                            if(newObj.smallShow){
+                                newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.sourceURL);
                             }
 
                             if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
                                 let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
-                                if(platformCustomImage && !platformCustomImage.includes("http")){
-                                    platformCustomImage = playerRouteSetting + platformCustomImage
+                                if(platformCustomImage){
+                                    platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (newObj.sourceURL ? newObj.sourceURL  + platformCustomImage : platformCustomImage);
                                 }
 
                                 vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, platformCustomImage);
@@ -3655,18 +3655,18 @@ define(['js/app'], function (myApp) {
                             vm.gameStatus[v.game._id] = v.status;
                         }
 
-                        if(newObj.bigShow && !newObj.bigShow.includes("http")){
-                            newObj.bigShow = playerRouteSetting + newObj.bigShow;
+                        if(newObj.bigShow){
+                            newObj.bigShow = playerRouteSetting ? playerRouteSetting + newObj.bigShow : (newObj.sourceURL ? newObj.sourceURL + newObj.bigShow : newObj.sourceURL);
                         }
 
-                        if(newObj.smallShow && !newObj.smallShow.includes("http")){
-                            newObj.smallShow = playerRouteSetting + newObj.smallShow;
+                        if(newObj.smallShow){
+                            newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.sourceURL);
                         }
 
                         if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
                             let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
-                            if(platformCustomImage && !platformCustomImage.includes("http")){
-                                platformCustomImage = playerRouteSetting + platformCustomImage
+                            if(platformCustomImage){
+                                platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (newObj.sourceURL ? newObj.sourceURL  + platformCustomImage : platformCustomImage);
                             }
 
                             vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, platformCustomImage);
