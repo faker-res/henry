@@ -1161,6 +1161,8 @@
   "PARTNERPLAYERBOUNS_REPORT": "代理下玩家充值提款报表",
   "Already settled XIMA": "洗码已经结算完成",
   "Are you sure to settle again?": "是否尝试再次洗码?",
+  "Processing Time For Successful Proposals (Additional Function/ No Impact On Success Rate/ In Minutes)": "成功提案耗时（附加功能/不影响成功率过滤/分钟）",
+  "Preset-Processing Time": "指定耗时",
   "lastBonusTime": "最近提款时间",
   "BonusTime": "提款次数",
   "PlayerOnlineTime": "玩家在线时间",
