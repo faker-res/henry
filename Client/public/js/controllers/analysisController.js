@@ -1317,6 +1317,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.status);
                     proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
+                    vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
                     vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                         grossCommission += rawCommission.amount;
                         let str = rawCommission.amount + $translate("YEN") + " "
