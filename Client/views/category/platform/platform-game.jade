@@ -154,8 +154,8 @@
                                     div(ng-if="vm.selectedGamesInGameGroup && vm.selectedGamesInGameGroup.length == 1") {{vm.allGameStatusKeys[vm.curGame.platformGameStatus-1] | translate}}
                                 td
                                     div
-                                        .btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'MaintainGame')", ng-click="vm.updateGameStat(vm.allGameStatusString.MAINTENANCE)") {{'Maintenance' | translate}}
-                                        .btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'EnableGame')", ng-click="vm.updateGameStat(vm.allGameStatusString.ENABLE)") {{'Enable' | translate}}
+                                        .btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'MaintainGame')", ng-click="vm.updatePlatformGameStatus(vm.allGameStatusString.MAINTENANCE)") {{'Maintenance' | translate}}
+                                        .btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'EnableGame')", ng-click="vm.updatePlatformGameStatus(vm.allGameStatusString.ENABLE)") {{'Enable' | translate}}
 
 
                         //table(style='width:100%')

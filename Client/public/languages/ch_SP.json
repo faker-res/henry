@@ -4152,5 +4152,6 @@
   "Current Game Status": "目前游戏状态",
   "Actions":"状态操作",
   "FPMS System": "客服系统",
-  "Cannot modify , please contact game provider": "不可操作，请询问供应商"
+  "Cannot modify , please contact game provider": "不可操作，请询问供应商",
+  "NOT_EXIST": "未建立"
 }

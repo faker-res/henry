@@ -23,9 +23,10 @@ define(['js/app'], function (myApp) {
             ENABLE: 1, // "Enable",
             MAINTENANCE: 2, //"Maintenance" //
             DISABLE: 3, //"Disable", //2
-            DELETED: 4
+            DELETED: 4,
+            NOT_EXIST: 5
         };
-        vm.allGameStatusKeys = ['ENABLE', 'MAINTENANCE', 'DISABLE', 'DELETED'];
+        vm.allGameStatusKeys = ['ENABLE', 'MAINTENANCE', 'DISABLE', 'DELETED', 'NOT_EXIST'];
 
         //vm.getAllGameType = function () {
         //    socketService.$socket($scope.AppSocket, 'getAllGameTypes', {}, function (data) {
@@ -155,13 +156,21 @@ define(['js/app'], function (myApp) {
                     });
                     vm.allGameTypes = allGameTypes;
                     console.log("vm.allGameTypes", vm.allGameTypes);
-
-                    $scope.safeApply();
                 });
         };
         vm.addNewGameType = function (gameType) {
             socketService.$socket($scope.AppSocket, 'addGameType', gameType, function (data) {
                 vm.getAllGameType();
+            })
+        }
+        vm.updatePlatformGameStatus = function(status){
+            var query = {
+                platform: vm.selectedPlatform.data._id,
+                game:vm.showGame,
+                status:status
+            }
+            socketService.$socket($scope.AppSocket, 'updatePlatformGameStatus', query, function (data) {
+                vm.gameProviderClicked({data:vm.SelectedProvider});
             })
         }
         vm.updateGameType = function (oriGameType, update) {
@@ -269,8 +278,6 @@ define(['js/app'], function (myApp) {
                 default:
                     vm.selectedPenalClass = 'panel-danger'
             }
-
-            $scope.safeApply();
         }
         vm.createNewProvider = function () {
             if (!vm.showProvider || !vm.showProvider.name) {
@@ -341,12 +348,31 @@ define(['js/app'], function (myApp) {
                 return 'colorRed';
             }
         }
+        vm.getGameStatusColorClass = function (v) {
+            if (!v) return;
+            if (v.status == vm.allGameStatusString.ENABLE && v.platformGameStatus == vm.allGameStatusString.ENABLE){
+                return 'colorGreen';
+            } else if (v.status == vm.allGameStatusString.ENABLE && v.platformGameStatus == vm.allGameStatusString.NOT_EXIST) {
+                return 'colorGreen';
+            } else if (v.status == vm.allGameStatusString.DISABLE && v.platformGameStatus ==  vm.allGameStatusString.DISABLE) {
+                return 'colorRed';
+            } else if (v.status == vm.allGameStatusString.MAINTENANCE || v.platformGameStatus == vm.allGameStatusString.MAINTENANCE) {
+                return 'colorOrangeImportant text-bold';
+            } else {
+                return 'colorRed';
+            }
+        }
 
         vm.getProviderGames = function (id) {
             if (!id)return;
             console.log(id);
             $('#loadingProviderGames').removeClass('hidden');
-            socketService.$socket($scope.AppSocket, 'getGamesByProviderId', {_id: id}, function (data) {
+
+            var query = {
+                platform: vm.selectedPlatform.data._id,
+                _id: id
+            }
+            socketService.$socket($scope.AppSocket, 'getGamesByProviderAndFPMS', query, function (data) {
                 vm.allGames = data.data;
                 let platformId = null;
                 if(vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.platformId){
