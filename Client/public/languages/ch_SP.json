@@ -1497,6 +1497,7 @@
   "RESET_CSV": "重置",
   "CONTENT_TXT": "TXT文件中的内容",
   "EXPORT_TXT": "导出TXT",
+  "EXPORT_EXCEL": "导出EXCEL",
   "IMPORT_TXT": "导入系统",
   "PLAYER_EXPORT_BATCH": "玩家资料导出（批量）",
   "Export": "导出",
