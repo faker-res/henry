@@ -27106,6 +27106,7 @@ define(['js/app'], function (myApp) {
                         vm.positiveRemarks = [];
                         vm.negativeRemarks = [];
                         vm.neutralRemarks = [];
+                        vm.fixedRemarks = ['电话重复', '注册IP重复'];
 
                         let len = cloneRemarks.length;
 
