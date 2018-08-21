@@ -8089,6 +8089,57 @@ define(['js/app'], function (myApp) {
                         });
                     });
                     break;
+                case "CONSUMPTION_MODE_REPORT":
+                    vm.consumptionModeQuery = {aaSorting: [[9, "desc"]], sortCol: {createTime: -1}};
+                    vm.consumptionModeQuery.totalCount = 0;
+                    vm.providerGameType = [];
+                    vm.gameBetType = [];
+
+                    let gameProviderProm = Promise.resolve();
+                    if (!vm.allGameProviders) {
+                        gameProviderProm = commonService.getAllGameProviders($scope, vm.selectedPlatform._id)
+                    }
+
+                    gameProviderProm.then(
+                        gameProviderData => {
+                            if (gameProviderData && gameProviderData[0]) {
+                                let validGameProviders = []; //game provider with game type
+                                gameProviderData[0].forEach(item => {
+                                    if (item.gameTypes && Object.keys(item.gameTypes).length) {
+                                        validGameProviders.push(item);
+                                    }
+                                })
+
+                                vm.allGameProviders = validGameProviders;
+                            }
+
+                            setTimeout(function () {
+                                vm.commonInitTime(vm.consumptionModeQuery, '#consumptionModeReportQuery')
+
+                                $('select#selectBetType').multipleSelect({
+                                    allSelected: $translate("All Selected"),
+                                    selectAllText: $translate("Select All"),
+                                    displayValues: true,
+                                    countSelected: $translate('# of % selected'),
+                                });
+                                var $multiReward = ($('select#selectBetType').next().find('.ms-choice'))[0];
+
+                                $('select#selectBetType').next().on('click', 'li input[type=checkbox]', function () {
+                                    var upText = $($multiReward).text().split(',').map(item => {
+                                        return $translate(item);
+                                    }).join(',');
+                                    $($multiReward).find('span').text(upText)
+                                });
+
+                                $("select#selectBetType").multipleSelect("checkAll");
+
+                                vm.consumptionModeQuery.pageObj = utilService.createPageForPagingTable("#consumptionModeTablePage", {}, $translate, function (curP, pageSize) {
+                                    vm.commonPageChangeHandler(curP, pageSize, "consumptionModeQuery", vm.searchFinancialPointsRecord)
+                                });
+                            });
+                        }
+                    );
+                    break;
                 case "DX_NEWACCOUNT_REPORT":
                     utilService.actionAfterLoaded('#dxNewPlayerReportTable', function () {
                         let yesterday = utilService.setNDaysAgo(new Date(), 1);
@@ -8282,6 +8333,26 @@ define(['js/app'], function (myApp) {
                         vm.rewardReportAnalysis.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     })
                     break;
+            }
+
+            vm.dynamicGameType = function () {
+                if (vm.consumptionModeQuery.gameProvider) {
+                    vm.providerGameType = [];
+                    let selectedGameProvider = JSON.parse(vm.consumptionModeQuery.gameProvider);
+                    for (let key in selectedGameProvider.gameTypes) {
+                        vm.providerGameType.push({gameType: key, betType: selectedGameProvider.gameTypes[key]})
+                    }
+                }
+            }
+
+            vm.dynamicBetType = function () {
+                if (vm.consumptionModeQuery.gameType) {
+                    let selectedGameType = JSON.parse(vm.consumptionModeQuery.gameType);
+                    vm.gameBetType = selectedGameType.betType;
+                    setTimeout(function () {
+                        $("select#selectBetType").multipleSelect("refresh");
+                    }, 0)
+                }
             }
 
             function createMerGroupList(nameObj, listObj) {

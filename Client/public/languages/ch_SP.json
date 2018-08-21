@@ -4183,5 +4183,6 @@
   "updateChildPartnerHeadCount": "变更后下级代理人数",
   "curChildPartnerName": "变更前下级代理帐号",
   "updateChildPartnerName": "变更后下级代理帐号",
-  "EditChildPartner": "编辑下级代理架构"
+  "EditChildPartner": "编辑下级代理架构",
+  "CONSUMPTION_MODE_REPORT": "投注模式分析"
 }
