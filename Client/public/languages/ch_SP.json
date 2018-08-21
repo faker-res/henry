@@ -4204,5 +4204,14 @@
   "EditChildPartner": "编辑下级代理架构",
   "parentPartnerCommission": "一级代理佣金",
   "parentPartnerCommissionEstimation": "一级代理佣金估算",
-  "UpdateParentPartnerCommission": "一级代理佣金"
+  "UpdateParentPartnerCommission": "一级代理佣金",
+  "PARENT_PARTNER_ID": "一级代理ID",
+  "PARENT_PARTNER_NAME": "一级代理帐号",
+  "PARENT_PARTNER_COMMISSION_RATE": "一级代理佣金比例",
+  "PARENT_PARTNER_COMMISSION_FEE": "一级代理佣金额度",
+  "CHILD_PARTNER_NAME": "二级代理帐号",
+  "CHILD_PARTNER_DOWNLINES": "二级代理下线玩家人数",
+  "CHILD_PARTNER_COMMISSION_TYPE": "二级代理佣金模式",
+  "CHILD_PARTNER_TOTAL_WINLOSE": "二级代理下线玩家总输赢",
+  "CHILD_PARTNER_RELATED_PROPOSAL_NO": "相关二级代理佣金提案号"
 }

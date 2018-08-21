@@ -1646,5 +1646,14 @@
   "updateChildPartnerName": "After Update Children Partner Name",
   "parentPartnerCommission": "Parent Partner Commission",
   "parentPartnerCommissionEstimation": "Parent Partner Commission Estimation",
-  "UpdateParentPartnerCommission": "Parent Partner Commission"
+  "UpdateParentPartnerCommission": "Parent Partner Commission",
+  "PARENT_PARTNER_ID": "Parent Partner ID",
+  "PARENT_PARTNER_NAME": "Parent Partner Name",
+  "PARENT_PARTNER_COMMISSION_RATE": "Parent Partner Commission Rate",
+  "PARENT_PARTNER_COMMISSION_FEE": "Parent Partner Commission Fees",
+  "CHILD_PARTNER_NAME": "Child Partner Name",
+  "CHILD_PARTNER_DOWNLINES": "Child Partner Total Downlines",
+  "CHILD_PARTNER_COMMISSION_TYPE": "Child Partner Commission Type",
+  "CHILD_PARTNER_TOTAL_WINLOSE": "Child Partner Total Win/Lose",
+  "CHILD_PARTNER_RELATED_PROPOSAL_NO": "Related Child Partner Proposal No."
 }
