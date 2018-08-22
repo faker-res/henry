@@ -380,18 +380,18 @@ define(['js/app'], function (myApp) {
                         playerRouteSetting = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.playerRouteSetting ?
                             vm.selectedPlatform.data.playerRouteSetting : "";
 
-                        if(game.bigShow && !game.bigShow.includes("http")){
-                            game.bigShow = playerRouteSetting + game.bigShow;
+                        if(game.bigShow){
+                            game.bigShow = playerRouteSetting ? playerRouteSetting + game.bigShow : (game.sourceURL ? game.sourceURL + game.bigShow : game.sourceURL);
                         }
 
-                        if(game.smallShow && !game.smallShow.includes("http")){
-                            game.smallShow = playerRouteSetting + game.smallShow;
+                        if(game.smallShow){
+                            game.smallShow = playerRouteSetting ? playerRouteSetting + game.smallShow : (game.sourceURL ? game.sourceURL + game.smallShow : game.sourceURL);
                         }
 
                         if(game.images && game.images.hasOwnProperty(platformId)){
                             let platformCustomImage = game.images[platformId] || game.bigShow;
-                            if(platformCustomImage && !platformCustomImage.includes("http")){
-                                platformCustomImage = playerRouteSetting + platformCustomImage
+                            if(platformCustomImage){
+                                platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (game.sourceURL ? game.sourceURL  + platformCustomImage : platformCustomImage);
                             }
 
                             game.bigShow$ = processImgAddr(platformCustomImage);
