@@ -1170,6 +1170,14 @@ var proposalExecutor = {
                                 }
                             }
 
+                            if (!childPartnerData.length && proposalData.data.updateChildPartnerHeadCount == 0) {
+                                proms.push(dbconfig.collection_partner.findOneAndUpdate(
+                                    {_id: proposalData.data.partnerObjId, platform: proposalData.data.platformId},
+                                    {$unset: {children: 1}}
+                                    )
+                                );
+                            }
+
                         }
 
                         if (childPartnerData && childPartnerData.length > 0) {

@@ -19,6 +19,7 @@ let dbPlatformAutoFeedback = {
 
     createAutoFeedback: function (autoFeedbackData) {
         console.log(autoFeedbackData);
+        autoFeedbackData.enabled = autoFeedbackData.defaultStatus.toString().toLowerCase() === "active";
         return dbconfig.collection_autoFeedback(autoFeedbackData).save().then(
             data => {
                 console.log(data);
@@ -64,10 +65,24 @@ let dbPlatformAutoFeedback = {
             delete query.createTimeEnd;
         }
         console.log(query);
-        return dbconfig.collection_autoFeedback.find(query).lean().then(autoFeedbacks => {
+        return dbconfig.collection_autoFeedback.find(query).sort({createTime:-1}).lean().then(autoFeedbacks => {
             console.log(autoFeedbacks);
             return autoFeedbacks;
         });
+    },
+
+    executeAutoFeedback: function () {
+        let query = {
+            missionStartTime: {$lte: new Date()},
+            missionEndTime: {$gte: new Date()},
+            enabled: true,
+        };
+        return dbPlatformAutoFeedback.getAutoFeedback(query).then(autoFeedbacks => {
+            autoFeedbacks.forEach(feedback => {
+                let platformObjId = feedback.platformObjId;
+                // let platformObjId = feedback.platformObjId;
+            })
+        })
     }
 };
 
