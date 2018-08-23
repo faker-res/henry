@@ -52,6 +52,10 @@
                     div(style="display:inline-block;")
                         select.form-control#selectCredibilityRemarkFeedback(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.autoFeedbackMission.credibilityRemarks')
                 .full-width-input-block
+                    label.control-label {{'CREDIBILITY_FILTER' | translate}}
+                    div(style="display:inline-block;")
+                        select.form-control#selectCredibilityRemarkFeedbackFilter(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.autoFeedbackMission.filterCredibilityRemarks')
+                .full-width-input-block
                     //上次登入（距今）
                     label {{"LAST_ACCESS_TILL_NOW"|translate}}
                     div(style="display:inline-block;")
@@ -70,6 +74,10 @@
                     label {{"FILTER_FEEDBACK_DAY"|translate}}
                     div(style="display:inline-block;")
                         input.form-control(type="number" ng-model="vm.autoFeedbackMission.filterFeedback" style="width:100px;display:inline-block")
+                .full-width-input-block
+                    label.control-label {{'FILTER_FEEDBACK_TOPIC' | translate}}
+                    div(style="display:inline-block;")
+                        select.form-control#selectFeedbackTopicFilter(multiple="multiple", style='min-width:100px;height:34px;', ng-options='topic.key as topic.value for topic in vm.playerFeedbackTopic', ng-model='vm.autoFeedbackMission.filterFeedbackTopic')
                 .full-width-input-block
                     label {{"DEPOSIT_COUNT"|translate}}
                     div(style="display:inline-block;")
@@ -196,8 +204,8 @@
                         th {{"Feedback Content Setting"|translate}}
                     tbody
                         tr
-                            td 第一次
-                            td 条件满足任务过滤则发送
+                            td {{"FIRST_TIME"|translate}}
+                            td {{"Execute upon fulfillment of criteria"|translate}}
                             td 14:00:00
                             td
                                 select.form-control(ng-model='vm.autoFeedbackMission.schedule[0].template', required)
@@ -211,7 +219,7 @@
                             td
                                 textarea.form-control(ng-model='vm.autoFeedbackMission.schedule[0].content' style="resize:vertical")
                         tr
-                            td 第二次
+                            td {{"SECOND_TIME"|translate}}
                             td
                                 input.form-control(type="number" ng-model='vm.autoFeedbackMission.schedule[1].dayAfterLastMission', required)
                             td 15:00:00
@@ -227,7 +235,7 @@
                             td
                                 textarea.form-control(ng-model='vm.autoFeedbackMission.schedule[1].content' style="resize:vertical")
                         tr
-                            td 第三次
+                            td {{"THIRD_TIME"|translate}}
                             td
                                 input.form-control(type="number" ng-model='vm.autoFeedbackMission.schedule[2].dayAfterLastMission', required)
                             td 16:00:00
@@ -246,9 +254,11 @@
                 br
                 .pull-right
                     .inlineBlk
-                        button.btn.btn-warning(ng-if="checkViewPermission('Platform','AutoFeedback','create')" ng-click='') {{"CANCEL" | translate}}
+                        button.btn.btn-warning(ng-if="checkViewPermission('Platform','AutoFeedback','create')" ng-click='vm.autoFeedbackCancel()') {{"CANCEL" | translate}}
                     .inlineBlk
-                        button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','create')" ng-click='vm.autoFeedbackCreateMission()') {{"Create Mission" | translate}}
+                        button.btn.btn-primary(ng-hide="vm.autoFeedbackEditStatus" ng-if="checkViewPermission('Platform','AutoFeedback','create')" ng-click='vm.autoFeedbackCreateMission()') {{"Create Mission" | translate}}
+                    .inlineBlk
+                        button.btn.btn-primary(ng-show="vm.autoFeedbackEditStatus" ng-if="checkViewPermission('Platform','AutoFeedback','edit')" ng-click='vm.autoFeedbackUpdateMission()') {{"Update Mission" | translate}}
                     //.inlineBlk
                     //    button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="many";vm.submitPlayerFeedbackQuery(true, false);') {{"SEARCH_LIST" | translate}}
                     //.inlineBlk
@@ -274,14 +284,14 @@
                     select.form-control(style='max-width:300px', ng-model="vm.autoFeedbackMissionSearch.name")
                         option(ng-repeat='(i,v) in vm.autoFeedbackMissions', value='{{v.name}}') {{v.name}}
                 .inlineBlk
-                    label.control-label {{'Feedback Mission Start Time' | translate}}
-                    #autoFeedbackOverviewMissionStartTimePicker.datetimepicker.form-control
+                    label.control-label {{'Mission Create Start Time' | translate}}
+                    #autoFeedbackOverviewCreateTimeStartPicker.datetimepicker.form-control
                         input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                 .inlineBlk
-                    label.control-label {{'Feedback Mission End Time' | translate}}
-                    #autoFeedbackOverviewMissionEndTimePicker.datetimepicker.form-control
+                    label.control-label {{'Mission Create End Time' | translate}}
+                    #autoFeedbackOverviewCreateTimeEndPicker.datetimepicker.form-control
                         input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
@@ -296,7 +306,8 @@
                     button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','overview')" ng-click='vm.autoFeedbackSearchMission()') {{"SEARCH" | translate}}
 
                 br
-                table#autoFeedbackOverviewTable.simple-table(style='min-width:100%')
+                table#autoFeedbackOverviewTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                #autoFeedbackOverviewTablePage
 
         .panel.panel-primary(ng-if='vm.selectedAutoFeedbackTab === "overview"')
             .panel-heading.panel-heading-sm

@@ -338,7 +338,8 @@ define(['js/app'], function (myApp) {
                             WEB: 'totalCount',
                             APP: 'totalCount',
                             H5: 'totalCount'
-                        }
+                        };
+                        vm.queryPara.onlineTopupSuccessRate.timeOperator = '>=';
                         //vm.getOnlineToupSuccessRateData();
                         break;
                     case "TOPUPMANUAL":
@@ -818,7 +819,10 @@ define(['js/app'], function (myApp) {
                 platformId: vm.selectedPlatform._id,
                 startDate: startDate,
                 endDate: endDate,
-                analysisCategory: vm.queryPara.analysisCategory
+                analysisCategory: vm.queryPara.analysisCategory,
+                operator:  vm.queryPara.onlineTopupSuccessRate.timeOperator,
+                timesValue: vm.queryPara.onlineTopupSuccessRate.timesValue,
+                timesValueTwo: vm.queryPara.onlineTopupSuccessRate.timesValueTwo
             };
             vm.platformOnlineTopupAnalysisAnalysisCategory = vm.queryPara.analysisCategory;
             vm.isShowLoadingSpinner('#onlineTopupSuccessRateAnalysis', true);
@@ -854,6 +858,7 @@ define(['js/app'], function (myApp) {
                 let totalSuccessCount = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[0].reduce((b, data1) => b + data1.successCount, 0), 0);
                 let totalUnsuccessCount = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[0].reduce((b, data1) => b + data1.count, 0), 0) - totalSuccessCount;
                 let totalCount = totalSuccessCount + totalUnsuccessCount;
+                let proposalCount = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[0].reduce((b, data1) => b + data1.proposalArr.length, 0),0);
                 vm.platformOnlineTopupAnalysisTotalData = {
                     totalCount: totalCount,
                     successCount: totalSuccessCount,
@@ -862,6 +867,7 @@ define(['js/app'], function (myApp) {
                     amountRatio: 100,
                     userCount: vm.platformOnlineTopupAnalysisDataTotalUserCount,
                     userCountRatio: 100,
+                    proposalCount: proposalCount
                 };
                 vm.platformOnlineTopupAnalysisByType = [];
                 if(vm.queryPara.analysisCategory !== 'onlineTopupType') {
@@ -973,16 +979,19 @@ define(['js/app'], function (myApp) {
         };
 
         vm.calculateOnlineTopupTypeData = (merchantTopupTypeId, userAgent, merchantTypeId, merchantNo) => {
+            let proposalArr = null;
             let typeData = vm.platformOnlineTopupAnalysisData[userAgent][0].filter(data => data._id == merchantTopupTypeId)[0];
             if(merchantTypeId && !merchantNo) {
                 // third party platform analysis
                 typeData = typeData ? typeData.merchantData.filter(data => data.merchantTypeId == merchantTypeId) : typeData;
                 if(typeData && typeData[0]) {
                     let successUserIds = [];
+                    let proposalArrList = [];
                     // remove repeat user among different merchantNo to get merchant platform unique user
                     typeData.forEach(
                         data => {
                             successUserIds = orArrays(successUserIds, data.successUserIds);
+                            proposalArrList = proposalArrList.concat(data.proposalArr);
                         }
                     );
                     // one platform might have multi merchant no, so need sum all data together
@@ -993,7 +1002,8 @@ define(['js/app'], function (myApp) {
                         _id: merchantTopupTypeId,
                         count: typeData.reduce((a, data) => a + data.count, 0),
                         successCount: typeData.reduce((a, data) => a + data.successCount, 0),
-                        merchantTypeName: typeData[0].merchantTypeName
+                        merchantTypeName: typeData[0].merchantTypeName,
+                        proposalArr: proposalArrList
                     };
                 } else {
                     typeData = null; // empty array is not false, so set to null then later will set default object to typeData
@@ -1004,8 +1014,11 @@ define(['js/app'], function (myApp) {
                 typeData = merchantNoData ?  merchantNoData : null;
             }
 
-            typeData = typeData ? typeData : {amount:0, userCount:0, successUserCount:0, _id: merchantTopupTypeId, count:0, successCount: 0};
+            typeData = typeData ? typeData : {amount:0, userCount:0, successUserCount:0, _id: merchantTopupTypeId, count:0, successCount: 0, proposalArr: []};
 
+            if (typeData.proposalArr){
+                proposalArr = typeData.proposalArr;
+            }
             let totalCount = typeData.count;
             let returnObj =  {
                 totalCount: totalCount,
@@ -1021,6 +1034,10 @@ define(['js/app'], function (myApp) {
             if(merchantTypeId) returnObj.merchantTypeId = merchantTypeId;
             if(merchantNo) returnObj.merchantNo = merchantNo;
 
+            if (proposalArr){
+                returnObj.proposalArr = proposalArr;
+            }
+
             returnObj.name = $scope.merchantTopupTypeJson[merchantTopupTypeId];
             returnObj.userAgent = userAgent + 1;
             returnObj.type = $scope.userAgentType[returnObj.userAgent];
@@ -1031,6 +1048,7 @@ define(['js/app'], function (myApp) {
             let dataContainRecord = typeData.filter(data => data.totalCount > 0).length;
             let totalCount = typeData.reduce((a, data) => a + data.totalCount ,0);
             let successCount = typeData.reduce((a, data) => a + data.successCount ,0);
+            let proposalCount = typeData.reduce((a, data) => a + (data.proposalArr ? data.proposalArr.length : 0), 0);
             return {
                 data: typeData,
                 totalCount: totalCount,
@@ -1040,8 +1058,87 @@ define(['js/app'], function (myApp) {
                 amountRatio: $noRoundTwoDecimalPlaces(typeData.reduce((a, data) => a + data.amountRatio ,0)),
                 userCount: vm.platformOnlineTopupAnalysisData[userAgent-1][1].userAgentUserCount,
                 userCountRatio: $noRoundTwoDecimalPlaces(typeData.reduce((a, data) => a + data.userCountRatio ,0)),
-                name: $scope.userAgentType[userAgent]
+                name: $scope.userAgentType[userAgent],
+                proposalCount: proposalCount
             };
+        };
+
+        vm.initProposalDetail = (proposalArr) => {
+            if (proposalArr && proposalArr.length > 0){
+
+                if (vm.queryPara.onlineTopupSuccessRate.timeOperator != 'range'){
+                    if (typeof vm.queryPara.onlineTopupSuccessRate.timesValue == 'number'){
+                        vm.titleTag = $translate("successCount") + " (" + $translate("Preset-Processing Time") + " " + vm.queryPara.onlineTopupSuccessRate.timeOperator + " " + vm.queryPara.onlineTopupSuccessRate.timesValue + $translate("Minutes") + ") ";
+                    }
+                    else{
+                        vm.titleTag = $translate("successCount") + " (" + $translate("Preset-Processing Time") + ") " ;
+                    }
+                }
+                else{
+                    if (typeof vm.queryPara.onlineTopupSuccessRate.timesValue == 'number' && typeof vm.queryPara.onlineTopupSuccessRate.timesValueTwo == 'number') {
+                        vm.titleTag = $translate("successCount") + " (" + vm.queryPara.onlineTopupSuccessRate.timesValue  + $translate("Minutes") + " <= " + $translate("Preset-Processing Time") + " >= " + vm.queryPara.onlineTopupSuccessRate.timesValueTwo  + $translate("Minutes") + ") ";
+                    }
+                    else{
+                        vm.titleTag = $translate("successCount") + " (" + $translate("Preset-Processing Time") + ") " ;
+                    }
+                }
+                vm.onlineTopUpSuccessProposal =proposalArr.map(item => {
+                    item.involveAmount$ = 0;
+                    if (item.data.updateAmount) {
+                        item.involveAmount$ = item.data.updateAmount;
+                    } else if (item.data.amount) {
+                        item.involveAmount$ = item.data.amount;
+                    } else if (item.data.rewardAmount) {
+                        item.involveAmount$ = item.data.rewardAmount;
+                    } else if (item.data.commissionAmount) {
+                        item.involveAmount$ = item.data.commissionAmount;
+                    } else if (item.data.negativeProfitAmount) {
+                        item.involveAmount$ = item.data.negativeProfitAmount;
+                    }
+                    item.involveAmount$ = parseFloat(item.involveAmount$).toFixed(2);
+                    item.typeName$ = $translate(item.type.name || "Unknown");
+                    item.mainType$ = $translate(item.mainType || "Unknown");
+                    if (item.mainType === "PlayerBonus")
+                        item.mainType$ = $translate("Bonus");
+                    item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
+                    if (item.data && item.data.remark) {
+                        item.remark$ = item.data.remark;
+                    }
+                    item.status$ = $translate(item.type.name === "BulkExportPlayerData" || item.mainType === "PlayerBonus" || item.mainType === "PartnerBonus" ? vm.getStatusStrfromRow(item) == "Approved" ? "approved" : vm.getStatusStrfromRow(item) : vm.getStatusStrfromRow(item));
+
+                    if (item.hasOwnProperty('creator')) {
+                        item.creator$ = item.creator.name;
+                    } else {
+                        item.creator$ = $translate('System');
+                        if (item && item.data && item.data.playerName) {
+                            item.creator$ += "(" + item.data.playerName + ")";
+                        }
+                    }
+
+                    if (item.inputDevice){
+                        for (let i = 0; i < Object.keys(vm.inputDevice).length; i++) {
+                            if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == item.inputDevice) {
+                                item.inputDevice$ = $translate(Object.keys(vm.inputDevice)[i]);
+                            }
+                        }
+                    }
+
+                    if (item.hasOwnProperty('creator') && item.data.creator.type == 'player') {
+                        item.$involvedAcc = item.data.creator.name;
+                    }
+                    if (item.data && item.data.playerName) {
+                        item.$involvedAcc = item.data.playerName;
+                    }
+                    else if (item.data && item.data.partnerName) {
+                        item.$involvedAcc = item.data.partnerName;
+                    }
+                    else {
+                        item.$involvedAcc = "";
+                    }
+
+                    return item;
+                })
+            }
         };
 
         vm.platformOnlineTopupAnalysisShowDetail = (merchantTopupTypeId, userAgent, merchantTypeId, merchantNo) => {
@@ -1317,6 +1414,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.status);
                     proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
+                    vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
                     vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                         grossCommission += rawCommission.amount;
                         let str = rawCommission.amount + $translate("YEN") + " "
@@ -1669,8 +1767,10 @@ define(['js/app'], function (myApp) {
         };
 
         vm.drawPlayerOnlineTime = function () {
-            vm.withdrawSuccessAvg = {};
-            vm.withdrawFailedAvg = {};
+            // vm.withdrawSuccessAvg = {};
+            // vm.withdrawFailedAvg = {};
+
+            vm.playerOnlineTimeTotal = {};
             vm.isShowLoadingSpinner('#playerOnlineTimeAnalysis', true);
 
             let sendData = {
@@ -1683,37 +1783,54 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getOnlineTimeLogByPlatform', sendData, function (data) {
                 $scope.$evalAsync(() => {
                     console.log('getOnlineTimeLogByPlatform', data);
-                    if (!data && !data[0] && !data[1]) {
+                    if (!data && !data.data) {
                         return Promise.reject({name: 'DataError', message: 'Can not find the proposal data'})
                     }
 
                     vm.isShowLoadingSpinner('#playerOnlineTimeAnalysis', false);
 
                     vm.playerOnlineTimeData = data.data;
-                    vm.playerOnlineTimeAvg = {};
-                    vm.playerOnlineTimeAvg.totalCount = vm.playerOnlineTimeData.totalCount;
-                    vm.playerOnlineTimeAvg.count1 = vm.playerOnlineTimeData.count1;
-                    vm.playerOnlineTimeAvg.count2 = vm.playerOnlineTimeData.count2;
-                    vm.playerOnlineTimeAvg.count3 = vm.playerOnlineTimeData.count3;
-                    vm.playerOnlineTimeAvg.count4 = vm.playerOnlineTimeData.count4;
-                    vm.playerOnlineTimeAvg.count5 = vm.playerOnlineTimeData.count5;
-                    vm.playerOnlineTimeAvg.count6 = vm.playerOnlineTimeData.count6;
-                    vm.playerOnlineTimeAvg.count7 = vm.playerOnlineTimeData.count7;
-                    vm.playerOnlineTimeAvg.count8 = vm.playerOnlineTimeData.count8;
-                    vm.playerOnlineTimeAvg.count9 = vm.playerOnlineTimeData.count9;
+                    vm.playerOnlineTimeData.forEach( item => {
+                        if (item && item.date){
+                            item.date = new Date(item.date);
+                        }
+                    });
+
+                    data.data.forEach( item => {
+                        if (item && item.date && item.result){
+                            vm.playerOnlineTimeTotal.totalCount = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.totalCount, 0);
+                            vm.playerOnlineTimeTotal.count1 = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.count1, 0);
+                            vm.playerOnlineTimeTotal.count2 = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.count2, 0);
+                            vm.playerOnlineTimeTotal.count3 = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.count3, 0);
+                            vm.playerOnlineTimeTotal.count4 = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.count4, 0);
+                            vm.playerOnlineTimeTotal.count5 = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.count5, 0);
+                            vm.playerOnlineTimeTotal.count6 = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.count6, 0);
+                            vm.playerOnlineTimeTotal.count7 = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.count7, 0);
+                            vm.playerOnlineTimeTotal.count8 = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.count8, 0);
+                            vm.playerOnlineTimeTotal.count9 = vm.playerOnlineTimeData.reduce( (a,b) => a + b.result.count9, 0);
+                        }
+                    })
 
                     let onlineTimePieArr = [];
-                    let pieLabel = ["WITHDRAWAL_SUCCESS_TOTAL_TIMES", "0~1", "1~3", "3~5", "5~10", "10~20", "20~30", "30~45", "45~60", "60"];
-                    for (let i = 0; i < Object.keys(vm.playerOnlineTimeAvg).length; i++) {
+                    let pieLabel = ["PLAYER_ONLINE_TIME", "10", "11~30", "31~60", "1~5", "5~10", "10~15", "15~30", "30~60", "60"];
+                    for (let i = 0; i < Object.keys(vm.playerOnlineTimeTotal).length; i++) {
                         if (i == 0) {
                             continue;
                         }
                         let pieObj = {
-                            count: vm.playerOnlineTimeAvg[Object.keys(vm.playerOnlineTimeAvg)[i]]
+                            count: vm.playerOnlineTimeTotal[Object.keys(vm.playerOnlineTimeTotal)[i]]
                         };
-                        pieObj.label = pieLabel[i] + $translate("mins");
-                        if (i == 9) {
-                            pieObj.label = pieObj.label + $translate("above");
+                        if (i == 1) {
+                            pieObj.label = pieLabel[i] + $translate("Seconds (Within)");
+                        }
+                        else if ( i == 2 || i == 3){
+                            pieObj.label = pieLabel[i] + $translate("Seconds");
+                        }
+                        else if (i > 3 && i <= 8){
+                            pieObj.label = pieLabel[i] + $translate("Minutes");
+                        }
+                        else if (i == 9) {
+                            pieObj.label = pieLabel[i] + $translate("Minutes (Above)");
                         }
                         onlineTimePieArr.push(pieObj)
                     }

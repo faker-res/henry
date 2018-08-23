@@ -314,7 +314,8 @@ var roleChecker = {
             "AutoFeedback": {
                 Read: [],
                 create: [],
-                overview: []
+                overview: [],
+                edit: []
             },
             "Feedback": {
                 Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],
@@ -559,7 +560,8 @@ var roleChecker = {
                 // Create: ['createGameAndAddToProvider', 'createGame'],
                 Update: ['updateGame'],
                 // Delete: ['deleteGameById'],
-                Expense: ['getPagedGameConsumptionRecord']
+                Expense: ['getPagedGameConsumptionRecord'],
+                UploadGamePic: []
             }
         },
         Operation: {

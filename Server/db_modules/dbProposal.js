@@ -2763,6 +2763,10 @@ var proposal = {
         var summary = {};
         let isApprove = false;
 
+        if (reqData.inputDevice) {
+            reqData.inputDevice = Number(reqData.inputDevice);
+        }
+
         if (reqData.status) {
             if (reqData.status == constProposalStatus.SUCCESS) {
                 reqData.status = {
@@ -4854,7 +4858,7 @@ var proposal = {
             query['data.playerName'] = data.playerName;
         }
         if (data.proposalNo) {
-            query['data.proposalId'] = data.proposalNo;
+            query['proposalId'] = data.proposalNo;
         }
         if (data.bankTypeId && data.bankTypeId.length > 0) {
             query['data.bankTypeId'] = {$in: convertStringNumber(data.bankTypeId)};
@@ -5854,11 +5858,12 @@ var proposal = {
     },
 
 
-    getOnlineTopupAnalysisByPlatform: (platformId, startDate, endDate, analysisCategory) => {
+    getOnlineTopupAnalysisByPlatform: (platformId, startDate, endDate, analysisCategory, operator, timesValue, timesValueTwo) => {
         return dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_TOP_UP}).read("secondaryPreferred").lean().then(
             (onlineTopupType) => {
                 if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
                 let proms = [];
+                let merchantData;
                 // loop for userAgent
                 for(let i =1; i<=3; i++) {
                     let matchObj = {
@@ -5886,8 +5891,11 @@ var proposal = {
                         }
                     ).read("secondaryPreferred").then(
                         data => {
+
+                            let searchQ = Object.assign({}, matchObj, {status: "Success"});
+                            let proposalArrProm = dbconfig.collection_proposal.find(searchQ).populate({path: "type", model: dbconfig.collection_proposalType}).sort({createTime:-1}).lean();
                             //get success proposal count group by topupType, filter repeat user
-                            return dbconfig.collection_proposal.aggregate(
+                            let topUpTypeProm =  dbconfig.collection_proposal.aggregate(
                                 {
                                     $match: Object.assign({}, matchObj,{status:{$in: ["Success", "Approved"]}})
                                 }, {
@@ -5896,21 +5904,50 @@ var proposal = {
                                         userIds: { $addToSet: "$data.playerObjId" },
                                     }
                                 }
-                            ).read("secondaryPreferred").then(
-                                data1 => {
-                                    return data.map(a => {
-                                        a.successUserCount = 0;
-                                        a.userCount = a.userIds.length;
-                                        delete a.userIds; // save bandwidth
-                                        data1.forEach(
-                                            b => {
-                                                if(a._id === b._id)
-                                                    a.successUserCount = b.userIds.length;
-                                            }
-                                        );
-                                        return a;
-                                    })
+                            ).read("secondaryPreferred");
 
+                            return Promise.all([proposalArrProm, topUpTypeProm]).then(
+                                data1 => {
+                                    if (data1 && data1.length > 0) {
+                                        let proposalArrData = data1[0];
+                                        let topUpTypeData = data1[1];
+
+                                        data.map(a => {
+                                            a.proposalArr = [];
+                                            a.successUserCount = 0;
+                                            a.userCount = a.userIds.length;
+                                            delete a.userIds; // save bandwidth
+                                            topUpTypeData.forEach(
+                                                b => {
+                                                    if(a._id === b._id)
+                                                        a.successUserCount = b.userIds.length;
+                                                }
+                                            );
+
+                                            // append in the proposal in the interval filter
+                                            proposalArrData.forEach( proposal => {
+                                                if(proposal && proposal.data && proposal.data.topupType && proposal.data.topupType == a._id) {
+
+                                                    proposal.data.timeDifferenceInMins = (new Date(proposal.settleTime).getTime() - new Date(proposal.createTime.getTime()))/(1000*60);
+                                                    a.proposalArr.push(proposal);
+                                                }
+                                            });
+
+                                            if (timesValue){
+                                                a.proposalArr = timeIntervalFiltering( a.proposalArr, operator, timesValue, timesValueTwo);
+                                            }
+
+                                            return a;
+                                        })
+
+                                        return data;
+                                    }
+                                    else{
+                                        Promise.reject({
+                                            name: "DataError",
+                                            message: "Cannot find proposals"
+                                        })
+                                    }
                                 }
                             )
                         }
@@ -5931,8 +5968,13 @@ var proposal = {
                                             }
                                             ).read("secondaryPreferred").then(
                                                 merchantData => {
+
+                                                    let searchQ = Object.assign({}, matchObj, {status: "Success"}, {'data.merchantNo': {$in: merchantData.map(p => { if(p && p._id){return p._id}})}});
+
+                                                    let operatorProm = dbconfig.collection_proposal.find(searchQ).populate({path: "type", model: dbconfig.collection_proposalType}).sort({createTime:-1}).lean();
+
                                                     // get success proposal count group by merchantNo, filter repeat user
-                                                    return dbconfig.collection_proposal.aggregate(
+                                                    let merchantProm = dbconfig.collection_proposal.aggregate(
                                                         {
                                                             $match: Object.assign({}, matchObj,{status:{$in: ["Success", "Approved"]}, 'data.topupType': onlineTopupTypeData._id})
                                                         }, {
@@ -5941,28 +5983,57 @@ var proposal = {
                                                                 userIds: { $addToSet: "$data.playerObjId" },
                                                             }
                                                         }
-                                                    ).read("secondaryPreferred").then(
-                                                        successMerchantData => {
-                                                            merchantData = merchantData.map(merchant => {
-                                                                merchant.successUserCount = 0;
-                                                                merchant.successUserIds = [];
-                                                                merchant.userCount = merchant.userIds.length;
-                                                                delete merchant.userIds; // save bandwidth
-                                                                successMerchantData.forEach(
-                                                                    successMerchant => {
-                                                                        if(merchant._id === successMerchant._id) {
-                                                                            merchant.successUserCount = successMerchant.userIds.length;
-                                                                            merchant.successUserIds =  successMerchant.userIds; // frontend need this to get unique user
+                                                    ).read("secondaryPreferred");
+
+                                                    return Promise.all([operatorProm, merchantProm]).then(
+                                                        retData => {
+
+                                                            if (retData && retData.length == 2){
+                                                                let successMerchantData = retData[1];
+                                                                let proposalInInterval = retData[0];
+
+                                                                merchantData = merchantData.map(merchant => {
+                                                                    merchant.proposalArr = [];
+                                                                    merchant.successUserCount = 0;
+                                                                    merchant.successUserIds = [];
+                                                                    merchant.userCount = merchant.userIds.length;
+                                                                    delete merchant.userIds; // save bandwidth
+                                                                    successMerchantData.forEach(
+                                                                        successMerchant => {
+                                                                            if(merchant._id === successMerchant._id) {
+                                                                                merchant.successUserCount = successMerchant.userIds.length;
+                                                                                merchant.successUserIds =  successMerchant.userIds; // frontend need this to get unique user
+                                                                            }
                                                                         }
+                                                                    );
+
+                                                                    // append in the proposal in the interval filter
+                                                                    proposalInInterval.forEach( proposal => {
+                                                                        if(proposal && proposal.data && proposal.data.merchantNo && proposal.data.merchantNo == merchant._id) {
+
+                                                                            proposal.data.timeDifferenceInMins = (new Date(proposal.settleTime).getTime() - new Date(proposal.createTime.getTime()))/(1000*60);
+                                                                            merchant.proposalArr.push(proposal);
+                                                                        }
+                                                                    });
+
+                                                                    // filter interval
+                                                                    if (timesValue){
+                                                                        merchant.proposalArr = timeIntervalFiltering(merchant.proposalArr, operator, timesValue, timesValueTwo);
                                                                     }
-                                                                );
-                                                                return merchant;
-                                                            });
-                                                            onlineTopupTypeData.merchantData = merchantData;
-                                                            return onlineTopupTypeData;
+
+                                                                    return merchant;
+                                                                });
+                                                                onlineTopupTypeData.merchantData = merchantData;
+                                                                return onlineTopupTypeData;
+                                                            }
+                                                            else{
+                                                                Promise.reject({
+                                                                    name: "DataError",
+                                                                    message: "Cannot find proposals"
+                                                                });
+                                                            }
                                                         }
                                                     )
-
                                                 }
                                             )
                                         );
@@ -6021,6 +6092,43 @@ var proposal = {
                 );
             }
         )
+
+        function timeIntervalFiltering(item, operator, timesValue, timesValueTwo) {
+            switch (operator) {
+                case '<=':
+                    item = item.filter(p => {
+                        if (p && p.data && p.data.timeDifferenceInMins){
+                            return p.data.timeDifferenceInMins <= timesValue
+                        }
+                    });
+                    return item;
+                    break;
+                case '>=':
+                    item = item.filter(p => {
+                        if (p && p.data && p.data.timeDifferenceInMins){
+                            return p.data.timeDifferenceInMins >= timesValue
+                        }
+                    });
+                    return item;
+                    break;
+                case '=':
+                    item = item.filter(p => {
+                        if (p && p.data && p.data.timeDifferenceInMins){
+                            return p.data.timeDifferenceInMins == timesValue
+                        }
+                    });
+                    return item;
+                    break;
+                case 'range':
+                    item = item.filter(p => {
+                        if (p && p.data && p.data.timeDifferenceInMins){
+                            return p.data.timeDifferenceInMins <= timesValueTwo && p.data.timeDifferenceInMins >= timesValue
+                        }
+                    });
+                    return item;
+                    break;
+            }
+        }
     },
 
     getTopupAnalysisByPlatform: (platformId, startDate, endDate, type, period) => {

@@ -71,12 +71,14 @@
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchTopupRecord(true)') {{'SEARCH' | translate}}
                     button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click='vm.exportTopupReportToExcel()') {{'EXPORT_EXCEL' | translate}}
                     span#topupTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
             label {{"Total" | translate}} {{vm.queryTopup.totalCount}} {{"records" | translate}}
             table#topupTable.common-table.display(style="min-width:100% ;overflow: scroll")
             #topupTablePage
+            table#topupExcelTable.common-table.display(style="min-width:100% ;overflow: scroll; display; none !important")
         div(ng-if='vm.showPageName=="PROPOSAL_REPORT"')
             #proposalReportQuery.block-query.col-md-12.well
                 div
@@ -127,12 +129,14 @@
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchProposalRecord(true)') {{'SEARCH' | translate}}
                     button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click='vm.exportProposalRecordToExcel()') {{'EXPORT_EXCEL' | translate}}
                     span#proposalTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
             label {{"Total" | translate}} {{vm.proposalQuery.totalCount}} {{"records" | translate}}
             table.common-table#proposalTable.display(style="width:100%;overflow: scroll;max-height:700px")
             #proposalTablePage
+            table.common-table#proposalExcelTable.display(style="width:100%;overflow: scroll;max-height:700px")
          div(ng-if='vm.showPageName=="FINANCIAL_POINTS_REPORT"')
             #financialPointsReportQuery.block-query.col-md-12.well
                 div
@@ -149,12 +153,14 @@
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchFinancialPointsRecord(true)') {{'SEARCH' | translate}}
                     button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click='vm.exportFinancialPointsRecordToExcel()') {{'EXPORT_EXCEL' | translate}}
                     span#financialPointsTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
             label {{"Total" | translate}} {{vm.financialQuery.totalCount}} {{"records" | translate}}
             table.common-table#financialPointsTable.display(style="width:100%;overflow: scroll;max-height:700px")
             #financialPointsTablePage
+            table.common-table#financialPointsExcelTable.display(style="width:100%;overflow: scroll;max-height:700px")
 
         div(ng-if='vm.showPageName=="CONSUMPTION_MODE_REPORT"')
             #consumptionModeReportQuery.block-query.col-md-12.well
@@ -369,12 +375,14 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchPlayerReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click='vm.exportPlayerReportToExcel()') {{'EXPORT_EXCEL' | translate}}
                     span#loadingPlayerReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
             label {{"Total" | translate}} {{vm.playerQuery.totalCount}} {{"records" | translate}}
             table.common-table#playerReportTable.display(style="width:100% ;overflow-x: scroll")
             #playerReportTablePage
+            table.common-table#playerReportExcelTable.display(style="width:100% ;overflow-x: scroll")
 
         div(ng-if='vm.showPageName=="PLAYER_DEPOSIT_ANALYSIS_REPORT"')
             .block-query.col-md-12.well
@@ -421,6 +429,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchPlayerDepositAnalysisReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click='vm.exportPlayerDepositAnalysisReportToExcel()') {{'EXPORT_EXCEL' | translate}}
                     span#loadingPlayerDepositAnalysisReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -466,6 +475,42 @@
                             td {{playerData.totalPlayerDepositAmount$}}
                             td
                                 a(data-toggle="modal", data-target='#modalPlayerDepositAnalysisDetailsTable', ng-click="vm.getPlayerDepositAnalysisDetails(playerData._id)") {{'DETAILS' | translate}}
+
+                    table.simple-table(id="playerDepositAnalysisExcelReportTable{{$index}}" style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th(colspan=8) {{'FULFIL' | translate}} {{pda.day | translate}}/{{vm.playerDepositAnalysisDays| translate}} {{'DAYS' | translate}}
+                                th(colspan=3) {{'Total' | translate}}
+                                th {{'ACTION_BUTTON' | translate}}
+                            tr
+                                th {{'ORDER' | translate}}
+                                th {{'PLAYERNAME' | translate}}
+                                th {{'realName' | translate}}
+                                th {{'PlayerValue' | translate}}
+                                th {{'CREDIBILITY' | translate}}
+                                th {{'LEVEL' | translate}}
+                                th {{'LOBBY' | translate}}
+                                th {{'LAST_ACCESS_TIME' | translate}}
+                                th {{'DEPOSIT_TOPUP' | translate}}
+                                th {{'DEPOSIT_BONUS' | translate}}
+                                th {{'DEPOSIT_TOPUP_BONUS' | translate}}
+                                th {{'DETAILS' | translate}}
+                        tbody
+                            tr(ng-repeat='playerData in pda.playerData track by $index')
+                                td {{$index+1}}
+                                td(ng-class='playerData.isDepositTracked ? "yellow-background" : ""')
+                                    a(ng-click="vm.addPlayerToDepositTrackingReport(playerData._id)") {{playerData.name}}
+                                td {{playerData.realName}}
+                                td {{playerData.valueScore}}
+                                td {{playerData.credibility$}}
+                                td {{playerData.playerLevel$}}
+                                td {{playerData.provider$}}
+                                td {{playerData.lastAccessTime$}}
+                                td {{playerData.topUpAmount$}}
+                                td {{playerData.bonusAmount$}}
+                                td {{playerData.totalPlayerDepositAmount$}}
+                                td
+                                    a(data-toggle="modal", data-target='#modalPlayerDepositAnalysisDetailsTable', ng-click="vm.getPlayerDepositAnalysisDetails(playerData._id)") {{'DETAILS' | translate}}
                     br
                 br
 
@@ -1406,10 +1451,12 @@
                         th {{'TOTAL_TOPUP_FEE' | translate}}
                         th {{'TOTAL_WITHDRAWAL_FEE' | translate}}
                         th {{'REAL_TIME_COMMISSION_FORCAST' | translate}}
+                        th {{'parentPartnerCommissionEstimation' | translate}}
                         th {{'PARTNER_ACCOUNT_BALANCE' | translate}}
                         th {{'ACTIVE_DOWNLINES' | translate}}
                         th {{'PREVIOUS_THREE_INTERVAL_ACTIVE_DOWNLINES' | translate}}
                         th {{'PREVIOUS_THREE_INTERVAL_NET_COMMISSSION' | translate}}
+                        th {{'REMARKS' | translate}}
                 tbody
                     tr(ng-repeat="(i,v) in vm.realTimeCommissionData")
                         td {{v.partnerName}}
@@ -1425,6 +1472,7 @@
                         td
                             a(data-toggle="modal", data-target='#modalWithdrawalFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'withdrawalDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{v.totalWithdrawalFee | number : 2}}
                         td {{v.nettCommission | number : 2}}
+                        td {{v.parentPartnerCommissionDetail.totalParentCommissionFee || 0 | number : 2}}
                         td {{v.partnerCredit | number : 2}}
                         td
                             a(data-toggle="modal", data-target='#modalActivePlayerTable', ng-click="vm.partnerCommVar.partner=i") {{v.activeDownLines}}
@@ -1432,6 +1480,7 @@
                             text.span {{v.pastActiveDownLines[0]? v.pastActiveDownLines[0] : "-" | translate}} {{","}} {{v.pastActiveDownLines[1]? v.pastActiveDownLines[1] : "-" | translate}} {{","}} {{v.pastActiveDownLines[2]? v.pastActiveDownLines[2] : "-" | translate}}
                         td
                             text.span {{calculateTotalSum(v.pastNettCommission, "", "")}} {{" ("}} {{v.pastNettCommission[0]? v.pastNettCommission[0] : "-" | translate}} {{","}} {{v.pastNettCommission[1]? v.pastNettCommission[1] : "-" | translate}} {{","}} {{v.pastNettCommission[2]? v.pastNettCommission[2] : "-" | translate}} {{")"}}
+                        td {{v.remarks ? v.remarks : ""}}
             .clearfix
             div
                 br

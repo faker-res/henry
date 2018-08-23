@@ -9085,6 +9085,7 @@ define(['js/app'], function (myApp) {
                         proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
                         proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
+                        vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
                         vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                             grossCommission += rawCommission.amount;
                             let str = rawCommission.amount + $translate("YEN") + " "
@@ -9360,6 +9361,7 @@ define(['js/app'], function (myApp) {
                         proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
                         proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
+                        vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
                         vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                             grossCommission += rawCommission.amount;
                             let str = rawCommission.amount + $translate("YEN") + " "
@@ -15365,6 +15367,8 @@ define(['js/app'], function (myApp) {
                 vm.disableEditChildPartner = true;
                 vm.totalChildPartner = vm.selectedSinglePartner.childrencount || 0;
                 vm.childPartnerList = [];
+                vm.curChildPartner = [];
+                vm.updateChildPartner = [];
 
                 let sendData = {
                     platform: vm.selectedPlatform.id,
@@ -15376,8 +15380,6 @@ define(['js/app'], function (myApp) {
                         console.log('child partner records',data);
                         if (data && data.data && data.data.length > 0) {
                             vm.childPartnerList = data.data;
-                            vm.curChildPartner = [];
-                            vm.updateChildPartner = [];
                             if (vm.childPartnerList && vm.childPartnerList.length > 0) {
                                 for (let i = 0, len = vm.childPartnerList.length; i<len; i++) {
                                     vm.curChildPartner.push(vm.childPartnerList[i].partnerName);
@@ -15448,7 +15450,15 @@ define(['js/app'], function (myApp) {
                     vm.totalChildPartner = vm.totalChildPartner - 1;
                 }
 
-                vm.disableEditChildPartner = false;
+                if (!vm.curChildPartner.length && valueCollection.length == 1) {
+                    valueCollection.forEach(el => {
+                        if (el && !el.partnerName) {
+                            vm.disableEditChildPartner = true;
+                        }
+                    });
+                } else {
+                    vm.disableEditChildPartner = false;
+                }
             };
 
             vm.getUpdateChildPartnerName = function () {
@@ -15463,6 +15473,16 @@ define(['js/app'], function (myApp) {
             vm.submitChildPartner = function () {
                 vm.getUpdateChildPartnerName();
                 console.log('updateData', vm.updateChildPartner);
+                let countUpdateChildPartner = vm.updateChildPartner.length;
+
+                if (vm.updateChildPartner && vm.updateChildPartner.length == 1) {
+                    vm.updateChildPartner.forEach(el => {
+                        if (el == "") {
+                            countUpdateChildPartner = 0;
+                        }
+                    });
+                }
+
                 var sendData = {
                     creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                     platformId: vm.selectedPlatform.id,
@@ -15473,7 +15493,7 @@ define(['js/app'], function (myApp) {
                     partnerName: vm.selectedSinglePartner.partnerName,
                     partnerObjId: vm.selectedSinglePartner._id,
                     curChildPartnerHeadCount: vm.curChildPartner ? vm.curChildPartner.length : 0,
-                    updateChildPartnerHeadCount: vm.updateChildPartner.length,
+                    updateChildPartnerHeadCount: countUpdateChildPartner,
                     curChildPartnerName: vm.curChildPartner,
                     updateChildPartnerName: vm.updateChildPartner
                 }

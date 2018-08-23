@@ -24,6 +24,18 @@
                     option(value='thirdPartyPlatform') {{'thirdPartyPlatform' | translate}}
                     option(value='merchantNo') {{'merchantNo' | translate}}
             div
+                label {{"Processing Time For Successful Proposals (Additional Function/ No Impact On Success Rate/ In Minutes)"|translate}}
+                div
+                    select.form-control(ng-model="vm.queryPara.onlineTopupSuccessRate.timeOperator" style="width:75px; display:inline-block;")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.queryPara.onlineTopupSuccessRate.timesValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.queryPara.onlineTopupSuccessRate.timeOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.queryPara.onlineTopupSuccessRate.timesValueTwo" style="width:80px;display:inline-block" ng-if="vm.queryPara.onlineTopupSuccessRate.timeOperator === 'range'")
+            div
                 label &nbsp;
                 button.btn.btn-primary.common-button(ng-click='vm.getOnlineToupSuccessRateData()') {{'SEARCH' | translate}}
         .row
@@ -42,6 +54,7 @@
                                 th(ng-click="vm.onlineTopupTypeDataSort('WEB', 'amountRatio')") {{ "amountRatio" | translate}}
                                 th(ng-click="vm.onlineTopupTypeDataSort('WEB', 'userCount')") {{ "userCount" | translate}}
                                 th(ng-click="vm.onlineTopupTypeDataSort('WEB', 'userCountRatio')") {{ "userCountRatio" | translate}}
+                                th(ng-click="vm.onlineTopupTypeDataSort('WEB', 'successCountInInterval')") {{ "successCount" | translate}} ({{ "Preset-Processing Time" | translate}})
                         tbody
                             tr(ng-repeat="(i, v) in vm.platformOnlineTopupAnalysisByType | orderBy: vm.platformOnlineTopupSuccessTableSort.WEB | filter: {type: 'WEB'}")
                                 td(style='width: 200px;')
@@ -64,6 +77,10 @@
                                     span {{ v.userCount }}
                                 td
                                     span {{ v.userCountRatio }} %
+                                td(ng-if="v.proposalArr.length == 0")
+                                    span {{v.proposalArr.length}}
+                                td(ng-if="v.proposalArr.length != 0")
+                                    a(ng-click='vm.initProposalDetail(v.proposalArr)', data-toggle= 'modal', data-target= '#modalonlineTopupSuccessProposal') {{ v.proposalArr.length}}
                             tr
                                 td
                                     span {{ 'subtotal' | translate }}
@@ -85,6 +102,8 @@
                                     span {{ vm.platformOnlineTopupAnalysisSubTotalData.WEB.userCount }}
                                 td
                                     span {{ vm.platformOnlineTopupAnalysisSubTotalData.WEB.userCountRatio }} %
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.WEB.proposalCount }}
                     table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%;margin-top: 0 !important;margin-bottom: 0 !important;')
                         thead
                             tr
@@ -98,6 +117,8 @@
                                 th(ng-click="vm.onlineTopupTypeDataSort('H5', 'amountRatio')") {{ "amountRatio" | translate}}
                                 th(ng-click="vm.onlineTopupTypeDataSort('H5', 'userCount')") {{ "userCount" | translate}}
                                 th(ng-click="vm.onlineTopupTypeDataSort('H5', 'userCountRatio')") {{ "userCountRatio" | translate}}
+                                th(ng-click="vm.onlineTopupTypeDataSort('H5', 'successCountInInterval')") {{ "successCount" | translate}} ({{ "Preset-Processing Time" | translate}})
+
                         tbody
                             tr(ng-repeat="(i, v) in vm.platformOnlineTopupAnalysisByType | orderBy: vm.platformOnlineTopupSuccessTableSort.H5 | filter: {type: 'H5'}")
                                 td(style='width: 200px;')
@@ -120,6 +141,10 @@
                                     span {{ v.userCount }}
                                 td
                                     span {{ v.userCountRatio }} %
+                                td(ng-if="v.proposalArr.length == 0")
+                                    span {{v.proposalArr.length}}
+                                td(ng-if="v.proposalArr.length != 0")
+                                    a(ng-click='vm.initProposalDetail(v.proposalArr)', data-toggle= 'modal', data-target= '#modalonlineTopupSuccessProposal') {{ v.proposalArr.length}}
                             tr
                                 td
                                     span {{ 'subtotal' | translate }}
@@ -141,6 +166,8 @@
                                     span {{ vm.platformOnlineTopupAnalysisSubTotalData.H5.userCount }}
                                 td
                                     span {{ vm.platformOnlineTopupAnalysisSubTotalData.H5.userCountRatio }} %
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.H5.proposalCount }}
                     table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%;margin-top: 0 !important;margin-bottom: 0 !important;')
                         thead
                             tr
@@ -154,6 +181,7 @@
                                 th(ng-click="vm.onlineTopupTypeDataSort('APP', 'amountRatio')") {{ "amountRatio" | translate}}
                                 th(ng-click="vm.onlineTopupTypeDataSort('APP', 'userCount')") {{ "userCount" | translate}}
                                 th(ng-click="vm.onlineTopupTypeDataSort('APP', 'userCountRatio')") {{ "userCountRatio" | translate}}
+                                th(ng-click="vm.onlineTopupTypeDataSort('APP', 'successCountInInterval')") {{ "successCount" | translate}} ({{ "Preset-Processing Time" | translate}})
                         tbody
                             tr(ng-repeat="(i, v) in vm.platformOnlineTopupAnalysisByType | orderBy: vm.platformOnlineTopupSuccessTableSort.APP | filter: {type: 'APP'}")
                                 td(style='width: 200px;')
@@ -176,6 +204,10 @@
                                     span {{ v.userCount }}
                                 td
                                     span {{ v.userCountRatio }} %
+                                td(ng-if="v.proposalArr.length == 0")
+                                    span {{v.proposalArr.length}}
+                                td(ng-if="v.proposalArr.length != 0")
+                                    a(ng-click='vm.initProposalDetail(v.proposalArr)', data-toggle= 'modal', data-target= '#modalonlineTopupSuccessProposal') {{ v.proposalArr.length}}
                             tr
                                 td
                                     span {{ 'subtotal' | translate }}
@@ -197,7 +229,8 @@
                                     span {{ vm.platformOnlineTopupAnalysisSubTotalData.APP.userCount }}
                                 td
                                     span {{ vm.platformOnlineTopupAnalysisSubTotalData.APP.userCountRatio }} %
-
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.APP.proposalCount }}
                             tr
                                 td(style='background-color: #ffc1c1;')
                                     span {{ 'Total' | translate }}
@@ -219,6 +252,8 @@
                                     span {{ vm.platformOnlineTopupAnalysisTotalData.userCount }}
                                 td(style='background-color: #ffc1c1;')
                                     span {{ vm.platformOnlineTopupAnalysisTotalData.userCountRatio }} %
+                                td(style='background-color: #ffc1c1;')
+                                    span {{ vm.platformOnlineTopupAnalysisTotalData.proposalCount }}
 
     div(ng-if='vm.platformOnlineTopupAnalysisDetailMerchantId')
         .col-md-12.block-query.well(style='margin-bottom:3px;')
@@ -283,5 +318,91 @@
             .graph
                 .panel.panel-default
                     #line-onlineTopupSuccessRate.lineChart.graphDiv(style='height:600px;width:50%;margin:0 auto')
+
+
+#modalonlineTopupSuccessProposal.modal.fade(tabindex='-2', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:90%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{vm.titleTag}}
+            .modal-body
+                div
+                    table.simple-table
+                        thead
+                            tr
+                                th {{'PROPOSAL ID' | translate}}
+                                th {{'CREATOR' | translate}}
+                                th {{'INPUT_DEVICE' | translate}}
+                                th {{'PROPOSAL TYPE' | translate}}
+                                th {{'PROPOSAL_SUB_TYPE' | translate}}
+                                th {{'Proposal Status' | translate}}
+                                th {{'INVOLVED_ACC' | translate}}
+                                th {{'Amount Involved' | translate}}
+                                th {{'START_TIME' | translate}}
+                                th {{'Player Level' | translate}}
+                                th {{'REMARKS' | translate}}
+                        tbody
+                            tr(ng-repeat=" item in vm.onlineTopUpSuccessProposal")
+                                td
+                                    a(ng-click='vm.showProposalModalNew(item.proposalId)') {{item.proposalId}}
+                                td {{item.creator$}}
+                                td {{item.inputDevice$}}
+                                td {{item.mainType$}}
+                                td {{item.typeName$}}
+                                td {{item.status$}}
+                                td {{item.$involvedAcc}}
+                                td {{item.involveAmount$}}
+                                td {{item.createTime$}}
+                                td {{item.data.proposalPlayerLevel}}
+                                td {{item.REMARKS}}
+
+
+#modalProposalDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                span
+                    ul.nav.nav-tabs
+                        li
+                            label {{vm.selectedProposal.type.name | translate}}
+                        li.active
+                            a(data-toggle="tab", href="#ProposalDetail", ng-click="")
+                                .fa.fa-user
+                                | {{ 'DETAIL' | translate }}
+                        li(ng-if='vm.chartData')
+                            a(data-toggle="tab", href="#Workflow", ng-click="")
+                                .fa.fa-user
+                                | {{ 'WORKFLOW' | translate }}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .tab-content
+                            div(ng-if='vm.proposalDialog == "proposalTopUp" || vm.proposalDialog == "proposal"')
+                                #ProposalDetail.tab-pane.fade.in.active
+                                    include ../../report/proposal-detail
+                            #Workflow.tab-pane.fade(mouse-capture, style="max-height:600px;overflow-y:auto")
+                                flow-chart#flowChart(style='width: 100%; height: 550px;overflow:auto;', chart='vm.chartViewModel')
+            .modal-footer
+                .inlineBlk(ng-show='vm.selectedProposal.isLocked && !vm.selectedProposal.showUnlockBtn')
+                    label.form-control {{'Lock Status' | translate}} : {{vm.selectedProposal.isLocked.adminName}}
+                .inlineBlk(ng-show='!vm.selectedProposal.isLocked || vm.selectedProposal.showUnlockBtn')
+                    button.btn.btn-success.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","ApproveProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, true)") {{"APPROVE" | translate}}
+                    button.btn.btn-danger.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","RejectProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, false)") {{"REJECT" | translate}}
+                button.btn.btn-warning.common-button(ng-if='vm.selectedProposal.showCancel', ng-click="vm.submitCancelProposal(vm.selectedProposal)") {{"Cancel Proposal" | translate}}
+                .inlineBlk(ng-if='vm.selectedProposal.cancelling')
+                    label {{'Cancelling Proposal' | translate}}
+                    i.fa.fa-spin.fa-2x.fa-spinner
+                label.inlineBlk(ng-if='vm.selectedProposal.cancelled') {{"Cancel" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
+                button.btn.btn-primary.common-button(ng-if='vm.selectedProposal.status==="AutoAudit" && !vm.changeStatusToPendingFromAutoAuditMessage && !vm.selectedProposal.cancelling && !vm.selectedProposal.cancelled', ng-click='vm.changeStatusToPendingFromAutoAudit()') {{"Manual" | translate}}
+                button.btn.btn-success.common-button(ng-if="vm.showCopyProposal()" ng-click="vm.copyTopUpProposal()") {{"COPY_TO_CLIPBOARD" | translate}}
+                label.inlineBlk.wordWrap(ng-if='vm.changeStatusToPendingFromAutoAuditMessage') {{vm.changeStatusToPendingFromAutoAuditMessage}}
+                .inlineBlk.pull-left(ng-show='vm.rightPanelTitle == "APPROVAL_PROPOSAL"')
+                    label.inlineBlk {{'remark' | translate}}
+                    input#proposalRemark.inlineBlk.proposalRemark.form-control(style='width:400px;')
+
+
 
 p(ng-init="vm.loadPageFunc('ONLINE_TOPUP_SUCCESS_RATE')")
