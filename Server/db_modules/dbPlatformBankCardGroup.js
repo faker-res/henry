@@ -370,6 +370,7 @@ var dbPlatformBankCardGroup = {
                                             name: card.name || '',
                                             platformId: card.platformId || '',
                                             quota: isNaN(quota) ? 0 : quota,
+                                            maxDepositAmount: card.maxDepositAmount ? card.maxDepositAmount : 0,
                                             status: card.status || '',
                                             provinceName: card.provinceName || '',
                                             cityName: card.cityName || '',

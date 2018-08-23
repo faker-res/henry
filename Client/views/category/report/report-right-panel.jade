@@ -71,12 +71,14 @@
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchTopupRecord(true)') {{'SEARCH' | translate}}
                     button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click='vm.exportTopupReportToExcel()') {{'EXPORT_EXCEL' | translate}}
                     span#topupTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
             label {{"Total" | translate}} {{vm.queryTopup.totalCount}} {{"records" | translate}}
             table#topupTable.common-table.display(style="min-width:100% ;overflow: scroll")
             #topupTablePage
+            table#topupExcelTable.common-table.display(style="min-width:100% ;overflow: scroll; display; none !important")
         div(ng-if='vm.showPageName=="PROPOSAL_REPORT"')
             #proposalReportQuery.block-query.col-md-12.well
                 div
@@ -127,12 +129,14 @@
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchProposalRecord(true)') {{'SEARCH' | translate}}
                     button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click='vm.exportProposalRecordToExcel()') {{'EXPORT_EXCEL' | translate}}
                     span#proposalTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
             label {{"Total" | translate}} {{vm.proposalQuery.totalCount}} {{"records" | translate}}
             table.common-table#proposalTable.display(style="width:100%;overflow: scroll;max-height:700px")
             #proposalTablePage
+            table.common-table#proposalExcelTable.display(style="width:100%;overflow: scroll;max-height:700px")
          div(ng-if='vm.showPageName=="FINANCIAL_POINTS_REPORT"')
             #financialPointsReportQuery.block-query.col-md-12.well
                 div
@@ -149,12 +153,14 @@
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchFinancialPointsRecord(true)') {{'SEARCH' | translate}}
                     button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click='vm.exportFinancialPointsRecordToExcel()') {{'EXPORT_EXCEL' | translate}}
                     span#financialPointsTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
             label {{"Total" | translate}} {{vm.financialQuery.totalCount}} {{"records" | translate}}
             table.common-table#financialPointsTable.display(style="width:100%;overflow: scroll;max-height:700px")
             #financialPointsTablePage
+            table.common-table#financialPointsExcelTable.display(style="width:100%;overflow: scroll;max-height:700px")
 
         div(ng-if='vm.showPageName=="PROVIDER_REPORT"')
             //提供商报表
@@ -232,6 +238,17 @@
                 div
                     label(style='min-width:130px') {{"CREDIBILITY"|translate}}
                     select.form-control#selectCredibilityRemarks(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model="vm.playerQuery.credibilityRemarks")
+                div
+                    label {{"PlayerValue" | translate}}
+                    select.form-control(ng-model="vm.playerQuery.valueScoreOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.playerQuery.playerScoreValue" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerQuery.valueScoreOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.playerQuery.playerScoreValueTwo" style="width:80px;display:inline-block" ng-if="vm.playerQuery.valueScoreOperator === 'range'")
                 div
                     label {{'LEVEL' | translate}}
                     select.form-control(ng-model="vm.playerQuery.level", ng-options='a as b.name for (a,b) in vm.playerLvlData')
@@ -1363,10 +1380,12 @@
                         th {{'TOTAL_TOPUP_FEE' | translate}}
                         th {{'TOTAL_WITHDRAWAL_FEE' | translate}}
                         th {{'REAL_TIME_COMMISSION_FORCAST' | translate}}
+                        th {{'parentPartnerCommissionEstimation' | translate}}
                         th {{'PARTNER_ACCOUNT_BALANCE' | translate}}
                         th {{'ACTIVE_DOWNLINES' | translate}}
                         th {{'PREVIOUS_THREE_INTERVAL_ACTIVE_DOWNLINES' | translate}}
                         th {{'PREVIOUS_THREE_INTERVAL_NET_COMMISSSION' | translate}}
+                        th {{'REMARKS' | translate}}
                 tbody
                     tr(ng-repeat="(i,v) in vm.realTimeCommissionData")
                         td {{v.partnerName}}
@@ -1382,6 +1401,7 @@
                         td
                             a(data-toggle="modal", data-target='#modalWithdrawalFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'withdrawalDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{v.totalWithdrawalFee | number : 2}}
                         td {{v.nettCommission | number : 2}}
+                        td {{v.parentPartnerCommissionDetail.totalParentCommissionFee || 0 | number : 2}}
                         td {{v.partnerCredit | number : 2}}
                         td
                             a(data-toggle="modal", data-target='#modalActivePlayerTable', ng-click="vm.partnerCommVar.partner=i") {{v.activeDownLines}}
@@ -1389,6 +1409,7 @@
                             text.span {{v.pastActiveDownLines[0]? v.pastActiveDownLines[0] : "-" | translate}} {{","}} {{v.pastActiveDownLines[1]? v.pastActiveDownLines[1] : "-" | translate}} {{","}} {{v.pastActiveDownLines[2]? v.pastActiveDownLines[2] : "-" | translate}}
                         td
                             text.span {{calculateTotalSum(v.pastNettCommission, "", "")}} {{" ("}} {{v.pastNettCommission[0]? v.pastNettCommission[0] : "-" | translate}} {{","}} {{v.pastNettCommission[1]? v.pastNettCommission[1] : "-" | translate}} {{","}} {{v.pastNettCommission[2]? v.pastNettCommission[2] : "-" | translate}} {{")"}}
+                        td {{v.remarks ? v.remarks : ""}}
             .clearfix
             div
                 br

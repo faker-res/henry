@@ -23,6 +23,16 @@ style.
                     li.list-group-item(ng-repeat='(i,bankCardGroup) in vm.platformBankCardGroupList', ng-click='vm.bankCardGroupClicked(i,bankCardGroup)', ng-class='{active: vm.SelectedBankCardGroupNode === bankCardGroup}')
                         text {{bankCardGroup.name}}
                         i.fa.fa-star.pull-right.margin-right-5(ng-show='bankCardGroup.bDefault')
+                div
+                        label {{"PAYMENT_CARD_MODE" | translate}}
+                        br
+                        input#bankCardFPMSGroupSetting(type='radio' value='false' ng-model="vm.bankCardGroupPMS")
+                        label(for='bankCardFPMSGroupSetting') {{"FPMS Group" | translate}}
+                        input#bankCardPMSGroupSetting(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' type='radio' value='true' ng-model="vm.bankCardGroupPMS")
+                        label(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' for='bankCardPMSGroupSetting') {{"PMS Group" | translate}}
+                        br
+                        button.btn.btn-primary.common-button(ng-click="vm.updateIsPMSGroup(vm.bankCardGroupPMS, 'bankCardGroupIsPMS')") {{"CONFIRMATION" | translate}}
+                br
                 .btn-group.text-center(style="border-radius:9px",role="group")
                     button.btn.btn-primary.common-button(ng-if="vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && checkViewPermission('Payment', 'BankCardGroup', 'CreateBankCard')", data-toggle="modal", ng-click='vm.newBankCardAcc={};', data-target='#modalAddNewBankCard')
                         text {{"CreateBankCard" | translate}}
@@ -86,6 +96,7 @@ style.
                             th {{'BANK_ACCOUNT_PROVINCE' | translate}}
                             th {{'BANK_ACCOUNT_CITY' | translate}}
                             th {{'BANK_ACCOUNT_BRANCH' | translate}}
+                            th {{'SINGLE_LIMIT' | translate}}
                             th {{'DAY_LIMIT' | translate}}
                     tbody
                         tr(ng-repeat="v in vm.allBankCards" ng-class="{'bg-secondary': !v.included}" ng-show="v.show$")
@@ -98,6 +109,7 @@ style.
                             td {{v.provinceName}}
                             td {{v.cityName}}
                             td {{v.openingPoint}}
+                            td {{v.maxDepositAmount}}
                             td {{v.quota}}
 
 
@@ -279,6 +291,9 @@ style.
                             .control-label {{"BANK_ACCOUNT_BRANCH" | translate}}
                             input.form-control(type='text', ng-model='vm.newBankCardAcc.openingPoint')
                         .form-group.col-md-6
+                            .control-label {{"SINGLE_LIMIT" | translate}}
+                            input.form-control(type='Number', ng-model='vm.newBankCardAcc.maxDepositAmount', style='text-align:left!important')
+                        .form-group.col-md-6
                             .control-label {{"DAY_LIMIT" | translate}}
                             input.form-control(type='Number', ng-model='vm.newBankCardAcc.quota', style='text-align:left!important')
             .modal-footer
@@ -319,6 +334,9 @@ style.
                         .form-group.col-md-6
                             .control-label {{"BANK_ACCOUNT_BRANCH" | translate}}
                             input.form-control(type='text', ng-model='vm.selectedBankCard.openingPoint')
+                        .form-group.col-md-6
+                            .control-label {{"SINGLE_LIMIT" | translate}}
+                            input.form-control(type='Number', ng-model='vm.selectedBankCard.maxDepositAmount', style='text-align:left!important')
                         .form-group.col-md-6
                             .control-label {{"DAY_LIMIT" | translate}}
                             input.form-control(type='Number', ng-model='vm.selectedBankCard.quota', style='text-align:left!important')

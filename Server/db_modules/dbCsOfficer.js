@@ -1,6 +1,8 @@
 const dbconfig = require('./../modules/dbproperties');
 let mongoose = require('mongoose');
+var dbUtil = require('./../modules/dbutility');
 let ObjectId = mongoose.Types.ObjectId;
+var moment = require('moment-timezone');
 
 let dbCsOfficer = {
 
@@ -66,13 +68,91 @@ let dbCsOfficer = {
         return dbconfig.collection_csOfficerUrl.find(query).lean();
     },
 
-    updateUrl: (urlId, domain, admin, way) => {
-        return dbconfig.collection_csOfficerUrl.findOneAndUpdate({_id: urlId}, {domain, admin, way}).lean();
+    domainValidityChecking: (urlId, platformId) => {
+
+        if (urlId && platformId) {
+            return dbconfig.collection_csOfficerUrl.findOne({_id: urlId}).then(urlData => {
+                if (urlData && urlData.domain) {
+
+                    let filteredDomain = dbUtil.getDomainName(urlData.domain);
+                    while (filteredDomain.indexOf("/") != -1) {
+                        filteredDomain = filteredDomain.replace("/", "");
+                    }
+
+                    if (filteredDomain.indexOf("?") != -1) {
+                        filteredDomain = filteredDomain.split("?")[0];
+                    }
+
+                    if (filteredDomain.indexOf("#") != -1) {
+                        filteredDomain = filteredDomain.split("#")[0];
+                    }
+
+                    let endTime = dbUtil.getTodaySGTime().endTime;
+                    let startTime = moment(endTime).subtract(90, 'days').toDate();
+
+                    return dbconfig.collection_players.find({
+                        domain: {$regex: filteredDomain, $options: "xi"},
+                        platform: ObjectId(platformId),
+                        registrationTime: {$gte: startTime, $lt: endTime}
+                    }).lean().count();
+                }
+                else {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Can't get the domain."
+                    });
+                }
+            })
+        }
+        else{
+            return Promise.reject({
+                name: "DataError",
+                message: "Can't get the urlId or the platformId."
+            });
+        }
     },
 
-    deleteUrl: (urlId) => {
-        return dbconfig.collection_csOfficerUrl.remove({_id: urlId});
+    updateUrl: (urlId, domain, admin, way, platformId, ignoreChecking) => {
+
+        if (ignoreChecking){
+            return dbconfig.collection_csOfficerUrl.findOneAndUpdate({_id: urlId}, {domain, admin, way}).lean();
+        }
+        else{
+            return dbCsOfficer.domainValidityChecking(urlId, platformId).then( count => {
+                if (count && count > 0){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "This domain is not allowed to delete nor edit as there is new registration within 90 days."
+                    })
+                }
+                else{
+                    return dbconfig.collection_csOfficerUrl.findOneAndUpdate({_id: urlId}, {domain, admin, way}).lean();
+                }
+            })
+        }
+
     },
+
+    deleteUrl: (urlId, platformId, ignoreChecking) => {
+
+        if (ignoreChecking){
+            return dbconfig.collection_csOfficerUrl.remove({_id: urlId});
+        }
+        else{
+            return dbCsOfficer.domainValidityChecking(urlId, platformId).then( count => {
+                if (count && count > 0){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "This domain is not allowed to delete nor edit as there is new registration within 90 days."
+                    })
+                }
+                else{
+                    return dbconfig.collection_csOfficerUrl.remove({_id: urlId});
+                }
+            })
+        }
+    },
+
 
 };
 

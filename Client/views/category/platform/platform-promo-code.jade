@@ -1163,6 +1163,8 @@
                  //Tab - Open Promo Code Template
                 div(ng-if='vm.selectedPromoCodeTab == "openPromoCodeTemplate" && checkViewPermission("Platform", "promoCode", "openPromoCodeTemplate")')
                     table.simple-table(style="margin-top:20px; display:block; white-space:pre-wrap; word-wrap:break-word;")
+                        div(style="margin-bottom: 20px;")
+                            label(style="color: red") *{{ "Promo code name must be unique" | translate }}
                         thead
                             tr
                                 th(style="width:2%", ng-if='vm.openPromoCodeTemplateEdit') {{"ACTION_BUTTON" | translate}}

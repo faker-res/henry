@@ -886,7 +886,7 @@ let dbPlayerReward = {
         let requireBoth = false;
         let isSharedWithXIMA = false;
 
-        function insertOutputList(status, step, bonus, requestedTimes, targetDate, forbidWithdrawAfterApply, remark, isSharedWithXIMA, meetRequirement, requiredConsumptionMet, requiredTopUpMet, usedTopUpRecord) {
+        function insertOutputList(status, step, bonus, requestedTimes, targetDate, forbidWithdrawAfterApply, remark, isSharedWithXIMA, meetRequirement, requiredConsumptionMet, requiredTopUpMet, usedTopUpRecord, spendingAmount) {
             let listItem = {
                 status, // 0 - unavailable, 1 - available, 2 - applied
                 step,
@@ -904,6 +904,9 @@ let dbPlayerReward = {
                 listItem.requiredConsumptionMet = requiredConsumptionMet;
                 listItem.requiredTopUpMet = requiredTopUpMet;
                 listItem.usedTopUpRecord = usedTopUpRecord;
+                if (spendingAmount){
+                    listItem.spendingAmount = spendingAmount;
+                }
             }
 
             outputList.push(listItem);
@@ -1002,7 +1005,8 @@ let dbPlayerReward = {
 
             selectedParam = paramOfLevel[Math.min(consecutiveNumber - 1, paramOfLevel.length - 1)];
 
-            if (consecutiveNumber !== 1) {
+            if (consecutiveNumber !== 1 && !event.condition.isDynamicRewardAmount) {
+            // if (consecutiveNumber !== 1) {
                 for (let i = 0; i < consecutiveNumber - 1; i++) {
                     let bonus = paramOfLevel[i].rewardAmount;
                     let requestedTimes = paramOfLevel[i].spendingTimes || 1;
@@ -1015,8 +1019,10 @@ let dbPlayerReward = {
 
             // let today = dbUtility.getTodaySGTime();
             let currentDay = dbUtility.getTargetSGTime(startCheckTime);
+            let intervalStartTime = currentDay.startTime; // for dynamic case
+
             while (currentDay.startTime <= today.startTime && player) {
-                checkRequirementMeetProms.push(isDayMeetRequirement(event, player, currentDay, requiredBet, requiredDeposit, requireBoth, isCheckToday));
+                checkRequirementMeetProms.push(isDayMeetRequirement(event, player, currentDay, requiredBet, requiredDeposit, requireBoth, isCheckToday, intervalStartTime, paramOfLevel));
                 currentDay = dbUtility.getTargetSGTime(currentDay.endTime);
             }
 
@@ -1026,12 +1032,28 @@ let dbPlayerReward = {
                 if (checkResults.length === 1) {
                     let result = checkResults[0];
                     if (result.meetRequirement) {
-                        let bonus = selectedParam.rewardAmount;
-                        let requestedTimes = selectedParam.spendingTimes || 1;
 
-                        insertOutputList(1, consecutiveNumber, bonus, requestedTimes, result.targetDate,
-                            selectedParam.forbidWithdrawAfterApply, selectedParam.remark, isSharedWithXIMA,
-                            result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
+                        if (event.condition.isDynamicRewardAmount){
+                            let bonus = result.topUpDayAmount * result.selectedRewardParam.rewardPercentage;
+                            let requestedTimes =  result.selectedRewardParam.spendingTimes || 1;
+
+                            bonus = checkRewardBonusLimit(bonus, event, result.selectedRewardParam);
+
+                            let spendingAmount = (bonus + result.topUpDayAmount) * requestedTimes;
+                            insertOutputList(1, consecutiveNumber, bonus, requestedTimes, result.targetDate,
+                                result.selectedRewardParam.forbidWithdrawAfterApply, result.selectedRewardParam.remark, isSharedWithXIMA,
+                                result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, spendingAmount);
+                        }
+                        else {
+
+                            let bonus = selectedParam.rewardAmount;
+                            let requestedTimes = selectedParam.spendingTimes || 1;
+
+                            insertOutputList(1, consecutiveNumber, bonus, requestedTimes, result.targetDate,
+                                selectedParam.forbidWithdrawAfterApply, selectedParam.remark, isSharedWithXIMA,
+                                result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
+
+                        }
                     }
                 } else if (checkResults.length > 1) {
                     if (event.condition.requireNonBreakingCombo && event.condition.allowReclaimMissedRewardDay) {
@@ -1058,18 +1080,35 @@ let dbPlayerReward = {
                             }
                         }
 
-                        for (let i = consecutiveNumber - 1; i < currentMaxStreak; i++) {
-                            let currentParamNo = Math.min(i, numberOfParam - 1);
-                            let step = i + 1;
-                            let currentParam = paramOfLevel[currentParamNo];
-                            let bonus = currentParam.rewardAmount;
-                            let result = maxStreakDetail[i - (consecutiveNumber - 1)];
-                            let targetDate = result.targetDate;
-                            let requestedTimes = currentParam.spendingTimes || 1;
+                        if (event.condition.isDynamicRewardAmount){
+                            for (let i = consecutiveNumber - 1; i < currentMaxStreak; i++) {
 
-                            insertOutputList(1, step, bonus, requestedTimes, targetDate,
-                                currentParam.forbidWithdrawAfterApply, currentParam.remark, isSharedWithXIMA,
-                                result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
+                                let step = i + 1;
+                                let result = maxStreakDetail[i - (consecutiveNumber - 1)];
+                                let targetDate = result.targetDate;
+                                let bonus = result.topUpDayAmount * result.selectedRewardParam.rewardPercentage;
+                                bonus = checkRewardBonusLimit(bonus, event, result.selectedRewardParam);
+                                let requestedTimes = result.selectedRewardParam.spendingTimes || 1 ;
+                                let spendingAmount = (bonus + result.topUpDayAmount) * requestedTimes;
+
+                                insertOutputList(1, step, bonus, requestedTimes, targetDate,
+                                    result.selectedRewardParam.forbidWithdrawAfterApply, result.selectedRewardParam.remark, isSharedWithXIMA,
+                                    result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, spendingAmount);
+                            }
+                        }else {
+                            for (let i = consecutiveNumber - 1; i < currentMaxStreak; i++) {
+                                let currentParamNo = Math.min(i, numberOfParam - 1);
+                                let step = i + 1;
+                                let currentParam = paramOfLevel[currentParamNo];
+                                let bonus = currentParam.rewardAmount;
+                                let result = maxStreakDetail[i - (consecutiveNumber - 1)];
+                                let targetDate = result.targetDate;
+                                let requestedTimes = currentParam.spendingTimes || 1;
+
+                                insertOutputList(1, step, bonus, requestedTimes, targetDate,
+                                    currentParam.forbidWithdrawAfterApply, currentParam.remark, isSharedWithXIMA,
+                                    result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
+                            }
                         }
                     } else if (event.condition.requireNonBreakingCombo) {
                         // restart combo check trace back from today, if today's combo check is higher than consecutiveNumber, allow apply for today only
@@ -1077,7 +1116,6 @@ let dbPlayerReward = {
                         let streakFromPastApplied = true;
                         let result = checkResults[checkResults.length - 1]
                         let targetDate = result.targetDate;
-                        let requestedTimes = selectedParam.spendingTimes || 1;
 
                         for (let i = checkResults.length - 1; i >= 0; i--) {
                             let result = checkResults[i];
@@ -1090,51 +1128,104 @@ let dbPlayerReward = {
                             }
                         }
 
-                        if (streakFromPastApplied || currentStreak >= consecutiveNumber) {
-                            let bonus = selectedParam.rewardAmount;
+                        if (event.condition.isDynamicRewardAmount){
 
-                            insertOutputList(1, consecutiveNumber, bonus, requestedTimes, targetDate,
-                                selectedParam.forbidWithdrawAfterApply, selectedParam.remark, isSharedWithXIMA,
-                                result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
+                           if (streakFromPastApplied || currentStreak >= consecutiveNumber) {
+                               let bonus = result.topUpDayAmount * result.selectedRewardParam.rewardPercentage;
+                               bonus = checkRewardBonusLimit(bonus, event, result.selectedRewardParam);
+                               let requestedTimes = result.selectedRewardParam.spendingTimes || 1 ;
+                               let spendingAmount = (bonus + result.topUpDayAmount) * requestedTimes;
+                               insertOutputList(1, consecutiveNumber, bonus, requestedTimes, targetDate,
+                                   result.selectedRewardParam.forbidWithdrawAfterApply, result.selectedRewardParam.remark, isSharedWithXIMA,
+                                   result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, spendingAmount);
+                           }
                         }
+                        else{                    
+                           let requestedTimes = selectedParam.spendingTimes || 1;
+                           if (streakFromPastApplied || currentStreak >= consecutiveNumber) {
+                               let bonus = selectedParam.rewardAmount;
+
+                               insertOutputList(1, consecutiveNumber, bonus, requestedTimes, targetDate,
+                                   selectedParam.forbidWithdrawAfterApply, selectedParam.remark, isSharedWithXIMA,
+                                   result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
+                           }
+                        }
+
                     } else if (event.condition.allowReclaimMissedRewardDay) {
                         // trace back toward start check date and see how many can be apply, assign accordingly
                         let currentStreak = consecutiveNumber - 1;
 
-                        for (let i = 0; i < checkResults.length; i++) {
-                            let result = checkResults[i];
-                            if (result.meetRequirement) {
-                                let currentParamNo = Math.min(currentStreak, numberOfParam - 1);
-                                let currentParam = paramOfLevel[currentParamNo];
-                                let bonus = currentParam.rewardAmount;
-                                let requestedTimes = currentParam.spendingTimes || 1;
+                        if (event.condition.isDynamicRewardAmount){
+                            for (let i = 0; i < checkResults.length; i++) {
+                                let result = checkResults[i];
+                                if (result.meetRequirement) {
 
-                                insertOutputList(1, currentStreak + 1, bonus, requestedTimes, result.targetDate,
-                                    currentParam.forbidWithdrawAfterApply, currentParam.remark, isSharedWithXIMA,
-                                    result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
-                                currentStreak++;
+                                    let bonus = result.topUpDayAmount * result.selectedRewardParam.rewardPercentage;
+                                    bonus = checkRewardBonusLimit(bonus, event, result.selectedRewardParam);
+                                    let requestedTimes = result.selectedRewardParam.spendingTimes || 1 ;
+                                    let spendingAmount = (bonus + result.topUpDayAmount) * requestedTimes;
+
+                                    insertOutputList(1, currentStreak + 1, bonus, requestedTimes, result.targetDate,
+                                        result.selectedRewardParam.forbidWithdrawAfterApply, result.selectedRewardParam.remark, isSharedWithXIMA,
+                                        result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, spendingAmount);
+                                    currentStreak++;
+                                }
                             }
                         }
+                        else{
+                            for (let i = 0; i < checkResults.length; i++) {
+                                let result = checkResults[i];
+                                if (result.meetRequirement) {
+                                    let currentParamNo = Math.min(currentStreak, numberOfParam - 1);
+                                    let currentParam = paramOfLevel[currentParamNo];
+                                    let bonus = currentParam.rewardAmount;
+                                    let requestedTimes = currentParam.spendingTimes || 1;
+
+                                    insertOutputList(1, currentStreak + 1, bonus, requestedTimes, result.targetDate,
+                                        currentParam.forbidWithdrawAfterApply, currentParam.remark, isSharedWithXIMA,
+                                        result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
+                                    currentStreak++;
+                                }
+                            }
+                        }
+
                     } else {
                         // check today only, if requirement met, allow apply for today
                         let result = checkResults[checkResults.length - 1];
                         if (result.meetRequirement) {
-                            let bonus = selectedParam.rewardAmount;
-                            let requestedTimes = selectedParam.spendingTimes || 1;
+                            if (event.condition.isDynamicRewardAmount){
+                                let bonus = result.topUpDayAmount * result.selectedRewardParam.rewardPercentage;
+                                bonus = checkRewardBonusLimit(bonus, event, result.selectedRewardParam);
+                                let requestedTimes = result.selectedRewardParam.spendingTimes || 1 ;
+                                let spendingAmount = (bonus + result.topUpDayAmount) * requestedTimes;
 
-                            insertOutputList(1, consecutiveNumber, bonus, requestedTimes, result.targetDate,
-                                selectedParam.forbidWithdrawAfterApply, selectedParam.remark, isSharedWithXIMA,
-                                result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
+                                insertOutputList(1, consecutiveNumber, bonus, requestedTimes, result.targetDate,
+                                    result.selectedRewardParam.forbidWithdrawAfterApply, result.selectedRewardParam.remark, isSharedWithXIMA,
+                                    result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, spendingAmount);
+
+                            }
+                            else{
+                                let bonus = selectedParam.rewardAmount;
+                                let requestedTimes = selectedParam.spendingTimes || 1;
+
+                                insertOutputList(1, consecutiveNumber, bonus, requestedTimes, result.targetDate,
+                                    selectedParam.forbidWithdrawAfterApply, selectedParam.remark, isSharedWithXIMA,
+                                    result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
+                            }
+
                         }
                     }
                 }
             }
 
-            for (let i = outputList.length; i < paramOfLevel.length; i++) {
-                let bonus = paramOfLevel[i].rewardAmount;
-                let requestedTimes = paramOfLevel[i].spendingTimes || 1;
+            // for not dynamic case
+            if (!event.condition.isDynamicRewardAmount) {
+                for (let i = outputList.length; i < paramOfLevel.length; i++) {
+                    let bonus = paramOfLevel[i].rewardAmount;
+                    let requestedTimes = paramOfLevel[i].spendingTimes || 1;
 
-                insertOutputList(0, i + 1, bonus, requestedTimes);
+                    insertOutputList(0, i + 1, bonus, requestedTimes);
+                }
             }
 
             if (isCheckToday) {
@@ -1157,10 +1248,24 @@ let dbPlayerReward = {
             }
         });
 
-        function isDayMeetRequirement(event, playerData, targetDate, requiredConsumptionAmount, requiredTopUpAmount, operatorOption, isCheckToday) {
+        function checkRewardBonusLimit(bonus, event, selectedRewardParam){
+            if ( bonus && event && event.param && event.param.dailyMaxRewardAmount && selectedRewardParam && selectedRewardParam.maxRewardInSingleTopUp) {
+                if (bonus > selectedRewardParam.maxRewardInSingleTopUp) {
+                    bonus = selectedRewardParam.maxRewardInSingleTopUp;
+                }
+
+                if (bonus > event.param.dailyMaxRewardAmount) {
+                    bonus = event.param.dailyMaxRewardAmount;
+                }
+            }
+            return bonus
+        }
+
+        function isDayMeetRequirement(event, playerData, targetDate, requiredConsumptionAmount, requiredTopUpAmount, operatorOption, isCheckToday, intervalStartTime, paramOfLevel) {
             let playerObjId = ObjectId(playerData._id);
             let startTime = new Date(targetDate.startTime);
             let endTime = new Date(targetDate.endTime);
+            let consumptionIntervalProm;
 
             let topUpSumQuery = {
                 playerId: playerObjId,
@@ -1196,9 +1301,55 @@ let dbPlayerReward = {
                 }
             ]);
 
-            return Promise.all([topUpProm, consumptionProm]).then(data => {
+            // add in for dynamic case
+            if (event.condition.isDynamicRewardAmount){
+                consumptionIntervalProm = dbConfig.collection_playerConsumptionRecord.aggregate([
+                    {$match:
+                        {
+                            playerId: playerObjId,
+                            createTime: {$gte: intervalStartTime, $lt: endTime},
+                            providerId: consumptionSumQuery.providerId
+
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            total: {$sum: "$validAmount"}
+                        }
+                    }
+                ]);
+
+            }
+            else{
+                consumptionIntervalProm = Promise.resolve([]);
+            }
+
+            return Promise.all([topUpProm, consumptionProm, consumptionIntervalProm]).then(data => {
                 let topUpRecords = data[0];
                 let consumptionData = data[1];
+                let consumptionIntervalData = data[2];
+
+                // Set reward param step
+                let selectedRewardParam = null;
+                if (event.condition.isDynamicRewardAmount) {
+                    if (event.param.isMultiStepReward) {
+
+                        if (consumptionIntervalData.length > 0) {
+                            // let firstRewardParam = paramOfLevel[0];
+                            selectedRewardParam = paramOfLevel.filter(e => consumptionIntervalData[0].total >= e.totalConsumptionInInterval).sort((a, b) => b.totalConsumptionInInterval - a.totalConsumptionInInterval);
+                            // selectedRewardParam = selectedRewardParam[0] || firstRewardParam || {};
+                            selectedRewardParam = selectedRewardParam[0] || {}
+                        }
+                        else{
+                            selectedRewardParam = {};
+                        }
+
+                    } else {
+                        selectedRewardParam = paramOfLevel[0];
+                    }
+                }
+
                 let consumptionAmount = (consumptionData && consumptionData[0] && consumptionData[0].total) ? consumptionData[0].total : 0;
                 let requiredConsumptionMet = false;
                 let requiredTopUpMet = false;
@@ -1239,7 +1390,6 @@ let dbPlayerReward = {
                 }
 
                 let meetRequirement = false;
-
                 if (operatorOption) {
                     // AND
                     meetRequirement = requiredConsumptionMet && requiredTopUpMet;
@@ -1248,7 +1398,12 @@ let dbPlayerReward = {
                     meetRequirement = requiredConsumptionMet || requiredTopUpMet;
                 }
 
-                let response = {targetDate, meetRequirement, requiredConsumptionMet, requiredTopUpMet};
+                // special check for dynamic case
+                if ( event.condition.isDynamicRewardAmount && (selectedRewardParam == null || selectedRewardParam == {}) ){
+                    meetRequirement = false;
+                }
+
+                let response = {targetDate, meetRequirement, requiredConsumptionMet, requiredTopUpMet, selectedRewardParam, topUpDayAmount: totalTopUpAmount};
                 if (isApply && meetRequirement && requiredTopUpMet) {
                     response.usedTopUpRecord = usedTopUpRecord;
                 }
@@ -2066,30 +2221,26 @@ let dbPlayerReward = {
             )
         });
     },
-    getPromoCode: (playerId, platformId, status) => {
+    getPromoCode: (playerId, platformId, status, emptyBonusList) => {
         let platformData = null;
         var playerData = null;
         var promoListData = null;
 
-        if (!playerId) {
-            return Q.reject({
-                status: constServerCode.INVALID_API_USER,
-                name: "DataError",
-                message: "用户未登录!"
-            })
-        }
         return expirePromoCode()
             .then(() => dbConfig.collection_platform.findOne({platformId: platformId}).lean())
             .then(
                 platformRecord => {
                     if (platformRecord) {
                         platformData = platformRecord;
-                        return dbConfig.collection_players.findOne({
-                            playerId: playerId,
-                            platform: ObjectId(platformRecord._id)
-                        })
+                        if (playerId) {
+                            return dbConfig.collection_players.findOne({
+                                playerId: playerId,
+                                platform: ObjectId(platformRecord._id)
+                            });
+                        }
+                        return Promise.resolve();
                     } else {
-                        return Q.reject({name: "DataError", message: "Player Not Found"});
+                        return Promise.reject({name: "DataError", message: "Platform does not exist"});
                     }
                 })
             .then(
@@ -2221,7 +2372,13 @@ let dbPlayerReward = {
                                     };
                                 });
                     } else {
-                        return Q.reject({name: "DataError", message: "Platform Not Found"});
+                        return {
+                            "showInfo": 1,
+                            "usedList": [],
+                            "noUseList": [],
+                            "expiredList": [],
+                            "bonusList": []
+                        }
                     }
                 }
             )
@@ -2297,6 +2454,11 @@ let dbPlayerReward = {
                     }
                     let result = promoListData;
                     result.bonusList = data;
+
+                    if (emptyBonusList) {
+                        result.bonusList = [];
+                    }
+
                     return result;
                 }
             )
@@ -2361,7 +2523,7 @@ let dbPlayerReward = {
         let query = {
             platformObjId: searchQuery.platformObjId
         };
-
+        
         return expirePromoCode().then(() => {return expirePromoCode(true)}).then(() => {
             return dbConfig.collection_players.findOne({
                 platform: searchQuery.platformObjId,
@@ -2384,14 +2546,11 @@ let dbPlayerReward = {
                 if (searchQuery.startCreateTime) {
                     query.createTime = {$gte: searchQuery.startCreateTime, $lt: searchQuery.endCreateTime};
                     openQuery.createTime = {$gte: searchQuery.startCreateTime, $lt: searchQuery.endCreateTime};
-                    openQuery.timeFilter = searchQuery.startCreateTime;
-
                 }
 
                 if (searchQuery.startAcceptedTime) {
                     query.acceptedTime = {$gte: searchQuery.startAcceptedTime, $lt: searchQuery.endAcceptedTime};
                     openQuery.createTime = {$gte: searchQuery.startAcceptedTime, $lt: searchQuery.endAcceptedTime};
-                    openQuery.timeFilter = searchQuery.startAcceptedTime;
                 }
 
                 // get the promoCode not from deleted promoCodeType
@@ -2417,13 +2576,18 @@ let dbPlayerReward = {
                     }).lean().then(
                         proposalType => {
                             if(proposalType){
-                                return dbConfig.collection_proposal.find({
+                                let findQuery = {
                                     type: proposalType._id,
                                     'data.eventCode': 'KFSYHDM',
-                                    'data.playerObjId': playerObjId,
                                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                                     createTime: openQuery.createTime
-                                }).populate({
+                                }
+
+                                if (playerObjId){
+                                    findQuery['data.playerObjId'] = playerObjId;
+                                }
+
+                                return dbConfig.collection_proposal.find(findQuery).populate({
                                     path: "data.providerGroup",
                                     model: searchQuery.isProviderGroup ? dbConfig.collection_gameProviderGroup : dbConfig.collection_gameProvider
                                 }).sort(searchQuery.sortCol).lean();
@@ -2482,10 +2646,10 @@ let dbPlayerReward = {
 
                 }
                 else{
-                   return Promise.reject({
-                       name: "DataError",
-                       message: "Cannot find the proposal Data"
-                   })
+                   return {
+                       size: 0,
+                       data: []
+                   }
                 }
             }
         ).catch(errorUtils.reportError);
@@ -5327,7 +5491,7 @@ let dbPlayerReward = {
 
                             if (listItem.status == 1) {
                                 let rewardAmount = listItem.bonus;
-                                let spendingAmount = listItem.requestedTimes * rewardAmount;
+                                let spendingAmount = listItem.spendingAmount ? listItem.spendingAmount : listItem.requestedTimes * rewardAmount;
                                 let consecutiveNumber = listItem.step;
                                 let targetDate = listItem.targetDate;
                                 let forbidWithdrawAfterApply = listItem.forbidWithdrawAfterApply;

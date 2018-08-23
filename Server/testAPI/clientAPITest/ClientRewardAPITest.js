@@ -180,6 +180,13 @@
 
     proto.getPromoCode = function (callback, requestData) {
         let data = requestData || {};
+
+        if (data.noLogin === "false") {
+            data.noLogin = false;
+        } else {
+            data.noLogin = Boolean(data.noLogin)
+        }
+
         this.rewardService.getPromoCode.request(data);
         this.rewardService.getPromoCode.once(callback);
     };

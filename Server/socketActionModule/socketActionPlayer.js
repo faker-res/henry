@@ -944,7 +944,7 @@ function socketActionPlayer(socketIO, socket) {
             let isValidData = Boolean(data && data.playerId && data.amount && data.alipayName && data.alipayAccount);
             let userAgent = '';
             socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestAlipayTopup, [userAgent, data.playerId, data.amount, data.alipayName, data.alipayAccount, data.bonusCode, 'ADMIN',
-                getAdminId(), getAdminName(), data.remark, data.createTime, data.realName, null, data.topUpReturnCode], actionName, isValidData);
+                getAdminId(), getAdminName(), data.remark, data.createTime, data.realName, null, data.topUpReturnCode, false, null, true], actionName, isValidData);
         },
 
         cancelAlipayTopup: function cancelAlipayTopup(data) {
@@ -964,7 +964,7 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.amount && data.wechatPayAccount);
             let userAgent = '';
-            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestWechatTopup, [!Boolean(data.notUseQR), userAgent, data.playerId, data.amount, data.wechatPayName, data.wechatPayAccount, data.bonusCode, 'ADMIN', getAdminId(), getAdminName(), data.remark, data.createTime,null, data.topUpReturnCode], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestWechatTopup, [!Boolean(data.notUseQR), userAgent, data.playerId, data.amount, data.wechatPayName, data.wechatPayAccount, data.bonusCode, 'ADMIN', getAdminId(), getAdminName(), data.remark, data.createTime,null, data.topUpReturnCode, false, null, true], actionName, isValidData);
         },
 
         cancelWechatPayTopup: function cancelWechatPayTopup(data) {
@@ -1291,13 +1291,13 @@ function socketActionPlayer(socketIO, socket) {
         getPagedSimilarPhoneForPlayers: function getPagedSimilarPhoneForPlayers(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.platformId && data.phoneNumber && data.isRealPlayer);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPagedSimilarPhoneForPlayers, [data.playerId, data.platformId, data.phoneNumber, data.isRealPlayer, data.index, data.limit, data.sortCol], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPagedSimilarPhoneForPlayers, [data.playerId, data.platformId, data.phoneNumber, data.isRealPlayer, data.index, data.limit, data.sortCol, data.admin], actionName, isValidData);
         },
 
         getPagedSimilarIpForPlayers: function getPagedSimilarIpForPlayers(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.platformId && data.isRealPlayer);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPagedSimilarIpForPlayers, [data.playerId, data.platformId, data.lastLoginIp, data.isRealPlayer, data.index, data.limit, data.sortCol], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPagedSimilarIpForPlayers, [data.playerId, data.platformId, data.lastLoginIp, data.isRealPlayer, data.index, data.limit, data.sortCol, data.admin], actionName, isValidData);
         },
 
         checkIPArea: function checkIPArea(data) {

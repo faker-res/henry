@@ -88,6 +88,7 @@ function connectToServer (serverURL, services, loginData, options) {
 
             client.addEventListener("error", (err) => {
                 console.log(Date(), "Error connect from " + serverURL + ": " + err);
+                console.log(err);
                 if (options.autoReconnect) {
                     startCheckingTimer(1000);
                 }

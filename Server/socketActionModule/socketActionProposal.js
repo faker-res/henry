@@ -152,6 +152,13 @@ function socketActionProposal(socketIO, socket) {
             var isValidData = Boolean(data && data.platformId && data.data);
             socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PARTNER_COMMISSION_TYPE, data], actionName, isValidData);
         },
+
+        updateChildPartner: function updateChildPartner(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.data);
+            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_CHILD_PARTNER, data], actionName, isValidData);
+        },
+
         /**
          * Create new Proposal to update player info
          * @param {json} data - proposal type name
@@ -606,7 +613,7 @@ function socketActionProposal(socketIO, socket) {
             var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate);
             var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
             var endTime = data.endDate ? new Date(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbProposal.getOnlineTopupAnalysisByPlatform, [ObjectId(data.platformId), startTime, endTime, data.analysisCategory], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getOnlineTopupAnalysisByPlatform, [ObjectId(data.platformId), startTime, endTime, data.analysisCategory, data.operator, data.timesValue, data.timesValueTwo], actionName, isValidData);
         },
         getTopupAnalysisByPlatform: function getTopupAnalysisByPlatform(data) {
             var actionName = arguments.callee.name;

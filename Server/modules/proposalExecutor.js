@@ -203,6 +203,7 @@ var proposalExecutor = {
             this.executions.executeUpdatePartnerPhone.des = "Update partner phone number";
             this.executions.executeUpdatePartnerInfo.des = "Update partner information";
             this.executions.executeUpdatePartnerCommissionType.des = "Update partner commission type";
+            this.executions.executeUpdateChildPartner.des = "Update child partner",
             this.executions.executePlayerTopUp.des = "Help player top up";
             this.executions.executeFullAttendance.des = "Player full attendance reward";
             this.executions.executeGameProviderReward.des = "Player top up for Game Provider reward";
@@ -250,6 +251,7 @@ var proposalExecutor = {
             this.executions.executePlayerAutoConvertRewardPoints.des = "Player Auto Convert Reward Points";
             this.executions.executeCustomizePartnerCommRate.des = "Customize Partner Commmission Rate";
             this.executions.executeSettlePartnerCommission.des = "Settle Partner Commission";
+            this.executions.executeUpdateParentPartnerCommission.des = "Update Parent Partner Commission";
             this.executions.executeBulkExportPlayerData.des = "Bulk Export Player Data";
             this.executions.executeFinancialPointsAdd.des = "Add Platform Financial Points";
             this.executions.executeFinancialPointsDeduct.des = "Deduct Platform Financial Points";
@@ -271,6 +273,7 @@ var proposalExecutor = {
             this.rejections.rejectUpdatePartnerWeChat.des = "Reject partner update weChat";
             this.rejections.rejectUpdatePartnerInfo.des = "Reject partner update information";
             this.rejections.rejectUpdatePartnerCommissionType.des = "Reject partner update commission type";
+            this.rejections.rejectUpdateChildPartner.des = "Reject update child partner";
             this.rejections.rejectFullAttendance.des = "Reject player full attendance reward";
             this.rejections.rejectGameProviderReward.des = "Reject player for Game Provider Reward";
             this.rejections.rejectFirstTopUp.des = "Reject First Top up reward";
@@ -317,6 +320,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerAutoConvertRewardPoints.des = "Reject Player Auto Convert Reward Points";
             this.rejections.rejectCustomizePartnerCommRate.des = "Reject Customize Partner Commmission Rate";
             this.rejections.rejectSettlePartnerCommission.des = "Reject Settle Partner Commission";
+            this.rejections.rejectUpdateParentPartnerCommission.des = "Reject Update Parent Partner Commission";
             this.rejections.rejectBulkExportPlayerData.des = "Reject Bulk Export Player Data";
             this.rejections.rejectFinancialPointsAdd.des = "Reject Add Platform Financial Points";
             this.rejections.rejectFinancialPointsDeduct.des = " Reject Deduct Platform Financial Points";
@@ -1126,6 +1130,94 @@ var proposalExecutor = {
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect update partner commission type proposal data"});
+                }
+            },
+
+            executeUpdateChildPartner: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.platformId && proposalData.data.partnerObjId && proposalData.data.updateChildPartnerName) {
+                    let childPartnerData = [];
+                    let removedChildPartnerArr = [];
+                    let proms = [];
+
+                    let query = {
+                        partnerName: {$in: proposalData.data.updateChildPartnerName},
+                        platform: proposalData.data.platformId
+                    };
+
+                    dbconfig.collection_partner.find(query, {_id: 1}).lean().then(childPartner => {
+                        childPartnerData = childPartner ? childPartner : [];
+
+                        if (proposalData.data.curChildPartnerName && proposalData.data.curChildPartnerName.length > 0) {
+                            removedChildPartnerArr = proposalData.data.curChildPartnerName.filter((x) => proposalData.data.updateChildPartnerName.indexOf(x) === -1);
+
+                            let removedQuery = {
+                                partnerName: {$in: removedChildPartnerArr},
+                                platform: proposalData.data.platformId
+                            };
+
+                            return dbconfig.collection_partner.find(removedQuery, {_id: 1}).lean();
+                        }
+                    }).then(removedChildPartner => {
+                        if (removedChildPartner && removedChildPartner.length > 0) {
+                            for (let i = 0, len = removedChildPartner.length; i < len; i++) {
+                                if (removedChildPartner[i] && removedChildPartner[i]._id) {
+
+                                    proms.push(dbconfig.collection_partner.findOneAndUpdate(
+                                        {_id: removedChildPartner[i]._id, platform: proposalData.data.platformId},
+                                        {$unset: {parent: 1}}
+                                        )
+                                    );
+                                }
+                            }
+
+                            if (!childPartnerData.length && proposalData.data.updateChildPartnerHeadCount == 0) {
+                                proms.push(dbconfig.collection_partner.findOneAndUpdate(
+                                    {_id: proposalData.data.partnerObjId, platform: proposalData.data.platformId},
+                                    {$unset: {children: 1}}
+                                    )
+                                );
+                            }
+
+                        }
+
+                        if (childPartnerData && childPartnerData.length > 0) {
+                            let childPartnerObjIdArr = [];
+                            for (let i = 0, len = childPartnerData.length; i < len; i++) {
+                                if (childPartnerData[i] && childPartnerData[i]._id) {
+                                    childPartnerObjIdArr.push(childPartnerData[i]._id);
+
+                                    proms.push(dbconfig.collection_partner.findOneAndUpdate(
+                                        {_id: childPartnerData[i]._id, platform: proposalData.data.platformId},
+                                        {parent: proposalData.data.partnerObjId}
+                                        )
+                                    );
+                                }
+                            }
+
+                            if (childPartnerObjIdArr && childPartnerObjIdArr.length > 0) {
+                                proms.push(dbconfig.collection_partner.findOneAndUpdate(
+                                    {_id: proposalData.data.partnerObjId, platform: proposalData.data.platformId},
+                                    {children: childPartnerObjIdArr}
+                                    )
+                                );
+                            }
+                        }
+
+                        if (proms && proms.length > 0) {
+                            return Q.all(proms);
+                        } else {
+                            deferred.reject({name: "DBError", message: "Failed to update child partner", error: error});
+                        }
+                    }).then(
+                        function (data) {
+                            deferred.resolve(data);
+                        },
+                        function (error) {
+                            deferred.reject({name: "DBError", message: "Failed to update child partner", error: error});
+                        }
+                    );
+                } else {
+                    deferred.reject({name: "DBError", message: "Incorrect update child partner proposal data", error: error});
                 }
             },
 
@@ -2774,6 +2866,16 @@ var proposalExecutor = {
                 }
             },
 
+            executeUpdateParentPartnerCommission: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.partnerObjId) {
+                    proposalData.data.proposalId = proposalData.proposalId;
+                    return dbPartner.changePartnerCredit(proposalData.data.partnerObjId, proposalData.data.platformObjId, proposalData.data.amount, constProposalType.UPDATE_PARENT_PARTNER_COMMISSION, proposalData).then(
+                        data => deferred.resolve(data),
+                        error => deferred.reject(error)
+                    );
+                }
+            },
+
             executeBulkExportPlayerData: function (proposalData, deferred) {
                 if (proposalData && proposalData.data) {
                     // do nothing
@@ -2934,6 +3036,13 @@ var proposalExecutor = {
              * reject function for UpdatePartnerCommissionType proposal
              */
             rejectUpdatePartnerCommissionType: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            /**
+             * reject function for UpdateChildPartner proposal
+             */
+            rejectUpdateChildPartner: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
 
@@ -3584,6 +3693,10 @@ var proposalExecutor = {
             },
 
             rejectSettlePartnerCommission: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectUpdateParentPartnerCommission: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
 

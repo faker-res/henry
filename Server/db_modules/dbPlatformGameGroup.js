@@ -94,11 +94,13 @@ var dbPlatformGameGroup = {
         var gameGroup = [];
         var providerObjId = null;
         var platformId = null;
+        var playerRouteSetting = null;
         return dbconfig.collection_platform.findOne({platformId: query.platformId}).lean().then(
             platformData => {
                 if (platformData) {
                     platformObjId = platformData._id;
                     platformId = platformData.platformId;
+                    playerRouteSetting = platformData.playerRouteSetting;
                     var providerProm = Q.resolve(null);
                     if (providerId != null) {
                         providerProm = dbconfig.collection_gameProvider.findOne({providerId}).lean();
@@ -191,11 +193,20 @@ var dbPlatformGameGroup = {
                             if(game.images && platformId){
                                 Object.keys(game.images).forEach(function(key) {
                                     if(key == platformId){
-                                        gameChangedImage[key] = game.images[key];
+                                        gameChangedImage[key] = playerRouteSetting ? playerRouteSetting + game.images[key] : (game.sourceURL ? game.sourceURL + game.images[key] : game.images[key]);
+
                                         return;
                                     }
                                 });
                                 game.images = gameChangedImage;
+                            }
+
+                            if(game.bigShow && !game.bigShow.includes("http")){
+                                game.bigShow = playerRouteSetting ? playerRouteSetting + game.bigShow : (game.sourceURL ? game.sourceURL + game.bigShow : game.bigShow);
+                            }
+
+                            if(game.smallShow && !game.smallShow.includes("http")){
+                                game.smallShow = playerRouteSetting ? playerRouteSetting + game.smallShow : (game.sourceURL ? game.sourceURL + game.smallShow : game.smallShow);
                             }
                         }
                     }

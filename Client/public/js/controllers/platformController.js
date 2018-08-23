@@ -3040,7 +3040,8 @@ define(['js/app'], function (myApp) {
                 vm.selectGameGroupGames = [];
                 vm.selectGameGroupGamesName = [];
                 vm.highlightGame = [];
-
+                let playerRouteSetting = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.playerRouteSetting ?
+                    vm.selectedPlatform.data.playerRouteSetting : "";
                 //get included games list
                 var query = {
                     platform: vm.selectedPlatform.id,
@@ -3065,9 +3066,23 @@ define(['js/app'], function (myApp) {
                                 newObj.name$ = newObj.name;
                                 newObj.isDefaultName = true;
                             }
+
                             vm.includedGamesGroup.push(newObj);
+
+                            if(newObj.bigShow){
+                                newObj.bigShow = playerRouteSetting ? playerRouteSetting + newObj.bigShow : (newObj.sourceURL ? newObj.sourceURL + newObj.bigShow : newObj.sourceURL);
+                            }
+
+                            if(newObj.smallShow){
+                                newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.sourceURL);
+                            }
+
                             if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
                                 let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
+                                if(platformCustomImage){
+                                    platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (newObj.sourceURL ? newObj.sourceURL  + platformCustomImage : platformCustomImage);
+                                }
+
                                 vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, platformCustomImage);
                             }else{
                                 vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
@@ -3607,6 +3622,8 @@ define(['js/app'], function (myApp) {
                     provider: data._id
                 }
                 vm.includedGames = '';
+                let playerRouteSetting = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.playerRouteSetting ?
+                    vm.selectedPlatform.data.playerRouteSetting : "";
                 vm.getBatchCreditTransferOutStatus(vm.SelectedProvider._id);
                 socketService.$socket($scope.AppSocket, 'getGamesByPlatformAndProvider', query, function (data2) {
                     console.log("attached", data2.data);
@@ -3638,8 +3655,20 @@ define(['js/app'], function (myApp) {
                             vm.gameStatus[v.game._id] = v.status;
                         }
 
+                        if(newObj.bigShow){
+                            newObj.bigShow = playerRouteSetting ? playerRouteSetting + newObj.bigShow : (newObj.sourceURL ? newObj.sourceURL + newObj.bigShow : newObj.sourceURL);
+                        }
+
+                        if(newObj.smallShow){
+                            newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.sourceURL);
+                        }
+
                         if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
                             let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
+                            if(platformCustomImage){
+                                platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (newObj.sourceURL ? newObj.sourceURL  + platformCustomImage : platformCustomImage);
+                            }
+
                             vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, platformCustomImage);
                         }else{
                             vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
@@ -16392,6 +16421,26 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.forceStopFPMSCallOutMissions = function(isConfirm) {
+                if (!isConfirm) {
+                    vm.modalYesNo.modalTitle = $translate("Force Stop Mission");
+                    vm.modalYesNo.modalText = $translate("FORCE_STOP_MISSION_WARNING");
+                    vm.modalYesNo.actionYes = () => vm.forceStopFPMSCallOutMissions(true);
+                    $('#modalYesNo').modal();
+                }
+                else {
+                    $('#platformFeedbackSpin').show();
+                    socketService.$socket($scope.AppSocket, 'forceStopFPMSMission', {
+                        platformObjId: vm.selectedPlatform.id
+                    }, function (data) {
+                        console.log("forceStopFPMSMission ret", data);
+                        $scope.$evalAsync(function () {
+                            vm.submitPlayerFeedbackQuery();
+                        });
+                    });
+                }
+            };
+
             vm.endCallOutMission = function() {
                 socketService.$socket($scope.AppSocket, 'endCallOutMission', {
                     platformObjId: vm.selectedPlatform.id,
@@ -16952,8 +17001,15 @@ define(['js/app'], function (myApp) {
                 if (vm.feedbackAdminQuery.topic && vm.feedbackAdminQuery.topic != 'all') {
                     sendQuery.query.topic = vm.feedbackAdminQuery.topic
                 }
-                if (vm.feedbackAdminQuery.hasOwnProperty("topupTimes")) {
-                    sendQuery.topupTimes = vm.feedbackAdminQuery.topupTimes;
+
+                if (vm.feedbackAdminQuery.topUpTimesOperator) {
+                    sendQuery.topUpTimesOperator = vm.feedbackAdminQuery.topUpTimesOperator;
+                }
+                if (vm.feedbackAdminQuery.hasOwnProperty("topUpTimesValue")) {
+                    sendQuery.topUpTimesValue = vm.feedbackAdminQuery.topUpTimesValue;
+                }
+                if (vm.feedbackAdminQuery.hasOwnProperty("topUpTimesValueTwo")) {
+                    sendQuery.topUpTimesValueTwo = vm.feedbackAdminQuery.topUpTimesValueTwo;
                 }
                 console.log("feedbackQuery", sendQuery);
                 $('#loadPlayerFeedbackAdminIcon').show();
@@ -23605,6 +23661,7 @@ define(['js/app'], function (myApp) {
                         proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
                         proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
+                        vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
                         vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                             grossCommission += rawCommission.amount;
                             let str = rawCommission.amount + $translate("YEN") + " "
@@ -23880,6 +23937,7 @@ define(['js/app'], function (myApp) {
                         proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
                         proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
+                        vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
                         vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                             grossCommission += rawCommission.amount;
                             let str = rawCommission.amount + $translate("YEN") + " "
@@ -28034,6 +28092,13 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (!(vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle) && srcData.financialSettlementToggle) {
+                    sendData.updateData.bankCardGroupIsPMS = false;
+                    sendData.updateData.merchantGroupIsPMS = false;
+                    sendData.updateData.aliPayGroupIsPMS = false;
+                    sendData.updateData.wechatPayGroupIsPMS = false;
+                }
+
                 if (vm.selectedPlatform.data.financialSettlement && (vm.selectedPlatform.data.financialSettlement.minFinancialPointsNotification != srcData.minFinancialPointsNotification)
                     || (financialPointsNotification == true && vm.selectedPlatform.data.financialSettlement.financialPointsNotification != financialPointsNotification)) {
                     let sendDataAdmin = {
@@ -29884,6 +29949,8 @@ define(['js/app'], function (myApp) {
                 vm.initClearMessage();
                 let sendData = {
                     urlId: vm.currentUrlEditSelect._id,
+                    platformId: vm.selectedPlatform.id,
+                    ignoreChecking: vm.ignoreIntervalChecking
                 };
                 vm.selectedOfficerUrl = null;
                 socketService.$socket($scope.AppSocket, 'deleteUrl', sendData, function () {
@@ -29911,6 +29978,8 @@ define(['js/app'], function (myApp) {
                     domain: vm.currentUrlEditSelect.domain,
                     officerId: vm.currentUrlEditSelect.admin,
                     way: vm.currentUrlEditSelect.way,
+                    platformId: vm.selectedPlatform.id,
+                    ignoreChecking: vm.ignoreIntervalChecking
                 };
                 console.log("sendData", sendData);
                 vm.selectedOfficerUrl = null;
@@ -30127,6 +30196,17 @@ define(['js/app'], function (myApp) {
             };
             vm.setupRemarksMultiInputFeedbackFilter = function () {
                 let remarkSelect = $('select#selectCredibilityRemarkFeedbackFilter');
+                remarkSelect.multipleSelect({
+                    showCheckbox: true,
+                    allSelected: $translate("All Selected"),
+                    selectAllText: $translate("Select All"),
+                    displayValues: false,
+                    countSelected: $translate('# of % selected')
+                });
+                remarkSelect.multipleSelect("uncheckAll");
+            };
+            vm.setupMultiInputFeedbackTopicFilter = function () {
+                let remarkSelect = $('select#selectFeedbackTopicFilter');
                 remarkSelect.multipleSelect({
                     showCheckbox: true,
                     allSelected: $translate("All Selected"),
@@ -32700,7 +32780,8 @@ define(['js/app'], function (myApp) {
 
                 vm.feedbackAdminQuery = {
                     result: 'all',
-                    topic: 'all'
+                    topic: 'all',
+                    topUpTimesOperator: ">="
                 };
                 utilService.actionAfterLoaded("#feedbackAdminTablePage", function () {
                     vm.feedbackAdminQuery.pageObj = utilService.createPageForPagingTable("#feedbackAdminTablePage", {}, $translate, function (curP, pageSize) {
@@ -32806,7 +32887,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initAutoFeedbackCreate = function() {
-                // vm.selectedAutoFeedbackTab = "create";
+                vm.autoFeedbackEditStatus = false;
                 vm.autoFeedbackMission = {
                     registerStartTime: null,
                     registerEndTime: null,
@@ -32815,6 +32896,8 @@ define(['js/app'], function (myApp) {
                 };
                 utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
                     vm.setupRemarksMultiInputFeedback();
+                    vm.setupRemarksMultiInputFeedbackFilter();
+                    vm.setupMultiInputFeedbackTopicFilter();
                     vm.setupGameProviderMultiInputFeedback();
 
                     $('#autoFeedbackMissionStartTimePicker').datetimepicker({
@@ -32841,10 +32924,10 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true,
                         pickTime: true,
                     });
-                    $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
-                    $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
-                    $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
-                    $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
+                    $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
+                    $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
+                    $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
+                    $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
 
                     vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
@@ -32865,40 +32948,243 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.initAutoFeedbackEdit = function(data) {
+                console.log('initAutoFeedbackEdit',data);
+                vm.selectedAutoFeedbackTab = "create";
+                vm.autoFeedbackEditStatus = true;
+
+                utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
+                    vm.setupRemarksMultiInputFeedback();
+                    vm.setupRemarksMultiInputFeedbackFilter();
+                    vm.setupMultiInputFeedbackTopicFilter();
+                    vm.setupGameProviderMultiInputFeedback();
+                    $('#autoFeedbackMissionStartTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackMissionEndTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackMissionRegisterStartTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackMissionRegisterEndTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+
+                    vm.autoFeedbackMission = data;
+                    $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').setDate(new Date(vm.autoFeedbackMission.missionStartTime));
+                    $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').setDate(new Date(vm.autoFeedbackMission.missionEndTime));
+                    $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').setDate(new Date(vm.autoFeedbackMission.registerStartTime));
+                    $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').setDate(new Date(vm.autoFeedbackMission.registerEndTime));
+
+                    vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
+
+                    $('select#selectCredibilityRemarkFeedback').multipleSelect('refresh');
+                    $('select#selectCredibilityRemarkFeedbackFilter').multipleSelect('refresh');
+                    $('select#selectFeedbackTopicFilter').multipleSelect('refresh');
+                    $('select#selectGameProvider').multipleSelect('refresh');
+                });
+            };
+            vm.autoFeedbackUpdateMission = function() {
+                vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
+                console.log(vm.autoFeedbackMission);
+
+                socketService.$socket($scope.AppSocket, 'updateAutoFeedback', vm.autoFeedbackMission, function (data) {
+                    console.log("updateAutoFeedback ret",data);
+                });
+            };
+            vm.autoFeedbackCancel = function() {
+                if(vm.autoFeedbackEditStatus) {
+                    vm.selectedAutoFeedbackTab = "overview";
+                    vm.initAutoFeedbackSearch();
+                } else {
+                    vm.initAutoFeedbackCreate();
+                }
+            };
+
             vm.initAutoFeedbackSearch = function() {
                 vm.autoFeedbackMissionSearch = {
-                    missionStartTime: null,
-                    missionEndTime: null
+                    createTimeStart: null,
+                    createTimeEnd: null
                 };
-                utilService.actionAfterLoaded("#autoFeedbackOverviewTable", function () {
-                    $('#autoFeedbackOverviewMissionStartTimePicker').datetimepicker({
+                utilService.actionAfterLoaded("#autoFeedbackOverviewTablePage", function () {
+                    $('#autoFeedbackOverviewCreateTimeStartPicker').datetimepicker({
                         language: 'en',
                         format: 'dd/MM/yyyy hh:mm:ss',
                         pick12HourFormat: true,
                         pickTime: true,
                     });
-                    $('#autoFeedbackOverviewMissionEndTimePicker').datetimepicker({
+                    $('#autoFeedbackOverviewCreateTimeEndPicker').datetimepicker({
                         language: 'en',
                         format: 'dd/MM/yyyy hh:mm:ss',
                         pick12HourFormat: true,
                         pickTime: true,
                     });
-                    $('#autoFeedbackOverviewMissionStartTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
-                    $('#autoFeedbackOverviewMissionEndTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
+                    $('#autoFeedbackOverviewCreateTimeStartPicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(30)));
+                    $('#autoFeedbackOverviewCreateTimeEndPicker').data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
 
-                    vm.autoFeedbackMissionSearch.missionStartTime = $('#autoFeedbackOverviewMissionStartTimePicker').data('datetimepicker').getDate();
-                    vm.autoFeedbackMissionSearch.missionEndTime = $('#autoFeedbackOverviewMissionEndTimePicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMissionSearch.createTimeStart = $('#autoFeedbackOverviewCreateTimeStartPicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMissionSearch.createTimeEnd = $('#autoFeedbackOverviewCreateTimeEndPicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMissionSearch.pageObj = utilService.createPageForPagingTable("#autoFeedbackOverviewTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "autoFeedbackMissionSearch", vm.drawAutoFeedbackOverviewTable)
+                    });
                 });
             };
             vm.autoFeedbackSearchMission = function() {
                 vm.autoFeedbackMissionSearch.platformObjId = vm.selectedPlatform.id;
-                vm.autoFeedbackMissionSearch.missionStartTime = $('#autoFeedbackOverviewMissionStartTimePicker').data('datetimepicker').getDate();
-                vm.autoFeedbackMissionSearch.missionEndTime = $('#autoFeedbackOverviewMissionEndTimePicker').data('datetimepicker').getDate();
-                console.log(vm.autoFeedbackMissionSearch);
+                vm.autoFeedbackMissionSearch.createTimeStart = $('#autoFeedbackOverviewCreateTimeStartPicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMissionSearch.createTimeEnd = $('#autoFeedbackOverviewCreateTimeEndPicker').data('datetimepicker').getDate();
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    createTimeStart: vm.autoFeedbackMissionSearch.createTimeStart,
+                    createTimeEnd: vm.autoFeedbackMissionSearch.createTimeEnd
+                };
+                if(vm.autoFeedbackMissionSearch.name) {
+                    sendData.name = vm.autoFeedbackMissionSearch.name;
+                }
+                if(vm.autoFeedbackMissionSearch.status) {
+                    sendData.status = vm.autoFeedbackMissionSearch.status;
+                }
+                console.log(sendData);
 
-                socketService.$socket($scope.AppSocket, 'getAutoFeedback', vm.autoFeedbackMissionSearch, function (data) {
+                socketService.$socket($scope.AppSocket, 'getAutoFeedback', sendData, function (data) {
                     console.log("getAutoFeedback ret",data);
+                    vm.autoFeedbackSearchResult = data.data;
+                    vm.drawAutoFeedbackOverviewTable(vm.autoFeedbackSearchResult, true);
                 });
+            };
+            vm.drawAutoFeedbackOverviewTable = function (data, newSearch) {
+                console.log('data', data);
+                let index = 0;
+                data = data || [];
+                let tableOptions = {
+                    data: data,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('ORDER'),
+                            data: null,
+                            render: function (data, type, row) {
+                                return ++index;
+                            }
+                        },
+                        {
+                            title: $translate('TASK_NAME'),
+                            data: "name",
+                            render: function(data, type, row) {
+                                // return '<a ng-click="'+vm.initAutoFeedbackEdit(row)+'">'+row.name+'</a>';
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.initAutoFeedbackEdit(' + JSON.stringify(row) + ')'
+                                }).text(row.name);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {title: $translate('TASK_REMARK'), data: "remarks"},
+                        {title: $translate('TASK_CREATE_TIME'), data: "createTime"},
+                        {title: $translate('Mission Status'), data: "$missionStatus"},
+                        {
+                            title: $translate('ACTION_BUTTON'),
+                            render: function(data, type, row) {
+                                let actionHtmlToggle = '<button class="btn btn-primary common-button" onclick="">' +
+                                    '<i class="fa fa-pencil-square-o"></i>' +
+                                    '<text>'+$translate('ENABLE')+'/'+$translate('SUSPEND')+'</text>' +
+                                    '</button>';
+
+                                let actionHtmlDelete = '<button class="btn btn-danger common-button" onclick="">' +
+                                    '<i class="fa fa-trash"></i>' +
+                                    '<text>'+$translate('Delete Mission')+'</text>' +
+                                    '</button>';
+                                return actionHtmlToggle + actionHtmlDelete;
+                            }
+                        },
+                        {
+                            title: $translate('Mission First Run Total Count'),
+                            data: "firstRunCount",
+                            sClass: "sumInt alignRight",
+                        },
+                        {
+                            title: $translate('Mission Second Run Total Count'),
+                            data: "secondRunCount",
+                            sClass: "sumInt alignRight",
+                        },
+                        {
+                            title: $translate('Mission Third Run Total Count'),
+                            data: "thirdRunCount",
+                            sClass: "sumInt alignRight",
+                        }
+                    ],
+                    "paging": false,
+                    createdRow: function (row, data, dataIndex) {
+                        $compile(angular.element(row).contents())($scope);
+                    },
+                    // fnDrawCallback: function () {
+                    //     $scope.safeApply();
+                    // },
+                    "language": {
+                        "info": "Display _MAX_ provider records",
+                        "emptyTable": $translate("No data available in table"),
+                    }
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                // $.each(tableOptions.columns, function (i, v) {
+                //     v.defaultContent = v.defaultContent || "";
+                // });
+                // if (vm.autoFeedbackOverviewTable) {
+                //     vm.autoFeedbackOverviewTable.clear();
+                // }
+                vm.autoFeedbackOverviewTable = $('#autoFeedbackOverviewTable').DataTable(tableOptions);
+                // vm.autoFeedbackOverviewTable = utilService.createDatatableWithFooter('#autoFeedbackOverviewTable', tableOptions);
+                vm.autoFeedbackMissionSearch.pageObj.init({maxCount: 10}, newSearch);
+                utilService.setDataTablePageInput('autoFeedbackOverviewTable', vm.autoFeedbackOverviewTable, $translate);
+
+                $('#autoFeedbackOverviewTable').resize();
+                // $('#operationTable tbody').off('click', 'td.expandProvider');
+                // $('#operationTable tbody').on('click', 'td.expandProvider', function () {
+                //     var tr = $(this).closest('tr');
+                //     var row = vm.operationTable.row(tr);
+                //
+                //     if (row.child.isShown()) {
+                //         // This row is already open - close it
+                //         row.child.hide();
+                //         tr.removeClass('shown');
+                //     }
+                //     else {
+                //         // Open this row
+                //         var data = row.data();
+                //         console.log('content', data);
+                //         var id = 'gametable' + data._id;
+                //         row.child(vm.createInnerTable(id)).show();
+                //         vm[id] = {};
+                //         utilService.actionAfterLoaded("#" + id + 'Page', function () {
+                //             vm[id].pageObj = utilService.createPageForPagingTable("#" + id + 'Page', {}, $translate, function (curP, pageSize) {
+                //                 vm.searchGameReportInProvider(data, id, false, (curP - 1) * pageSize, pageSize);
+                //             });
+                //
+                //         })
+                //         vm.searchGameReportInProvider(data, id, true);
+                //         tr.addClass('shown');
+                //     }
+                // });
             };
 
             vm.getAllAutoFeedback = function() {

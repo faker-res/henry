@@ -101,6 +101,8 @@ const constProposalMainType = {
     "BulkExportPlayerData": constMainType.OTHERS,
     "FinancialPointsAdd": constMainType.OTHERS,
     "FinancialPointsDeduct": constMainType.OTHERS,
+    "UpdateChildPartner": constMainType.OTHERS,
+    "UpdateParentPartnerCommission": constMainType.OTHERS,
 
 };
 

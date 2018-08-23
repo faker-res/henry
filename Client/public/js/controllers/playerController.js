@@ -3153,6 +3153,7 @@ define(['js/app'], function (myApp) {
                 item.typeText = $translate(item.type);
                 item.providerText = vm.getProviderText(item.providerId);
                 item.lockedAmount$ = item.lockedAmount.toFixed(2);
+                item.localAmount$ = Number(item.amount) - Number(item.lockedAmount$);
                 return item;
             });
             let option = $.extend({}, vm.generalDataTableOptions, {
@@ -3183,7 +3184,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate("provider"), data: 'providerText'},
                     {
                         title: $translate("LOCAL_CREDIT"),
-                        data: `amount-lockedAmount$`,
+                        data: `localAmount$`,
                         render: function (data, type, row) {
                             return parseFloat(data).toFixed(2);
                         }
@@ -6903,6 +6904,7 @@ define(['js/app'], function (myApp) {
                 limit: newSearch ? vm.similarPhoneForPlayer.limit : (vm.similarPhoneForPlayer.limit || 50),
                 sortCol: {registrationTime: -1},
                 isRealPlayer: true,
+                admin: authService.adminName,
             };
             socketService.$socket($scope.AppSocket, "getPagedSimilarPhoneForPlayers", sendQuery, function (data) {
                 vm.similarPhoneForPlayers = data.data.data;
@@ -6992,6 +6994,7 @@ define(['js/app'], function (myApp) {
                 limit: newSearch ? vm.similarIpForPlayer.limit : (vm.similarIpForPlayer.limit || 50),
                 sortCol: {registrationTime: -1},
                 isRealPlayer: true,
+                admin: authService.adminName,
             };
             socketService.$socket($scope.AppSocket, "getPagedSimilarIpForPlayers", sendQuery, function (data) {
                 vm.similarIpForPlayers = data.data.data;
@@ -7009,7 +7012,7 @@ define(['js/app'], function (myApp) {
                 if (item.credibilityRemarks && item.credibilityRemarks.length > 0) {
                     item.credibilityRemarks = vm.credibilityRemarks.filter(remark => {
                         return item.credibilityRemarks.includes(remark._id);
-                    })
+                    });
                     item.credibilityRemarks.forEach(function (value, index) {
                         remarks += value.name + breakLine;
                     });
@@ -8742,10 +8745,10 @@ define(['js/app'], function (myApp) {
                 if (!a) return;
                 var checkForObjIdRegExp = new RegExp(/^[a-f\d]{24}$/i);
                 var newStr = [];
-                a.amount = a.amount != null ? a.amount.toFixed(2) : new Number(0).toFixed(2);
-                a.curAmount = a.curAmount != null ? a.curAmount.toFixed(2) : new Number(0).toFixed(2);
-                a.lockedAmount = a.lockedAmount != null ? a.lockedAmount.toFixed(2) : new Number(0).toFixed(2);
-                a.changedLockedAmount = a.changedLockedAmount != null ? a.changedLockedAmount.toFixed(2) : new Number(0).toFixed(2);
+                a.amount = a.amount != null ? $noRoundTwoDecimalToFix(a.amount) : new Number(0).toFixed(2);
+                a.curAmount = a.curAmount != null ? $noRoundTwoDecimalToFix(a.curAmount) : new Number(0).toFixed(2);
+                a.lockedAmount = a.lockedAmount != null ? $noRoundTwoDecimalToFix(a.lockedAmount) : new Number(0).toFixed(2);
+                a.changedLockedAmount = a.changedLockedAmount != null ? $noRoundTwoDecimalToFix(a.changedLockedAmount) : new Number(0).toFixed(2);
                 var newObj = $.extend({}, a.data);
                 delete newObj.creator;
                 // switch (a.operationType) {
@@ -17883,6 +17886,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
                     proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
+                    vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
                     vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                         grossCommission += rawCommission.amount;
                         let str = rawCommission.amount + $translate("YEN") + " "
@@ -18182,6 +18186,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
                     proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
+                    vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
                     vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                         grossCommission += rawCommission.amount;
                         let str = rawCommission.amount + $translate("YEN") + " "
