@@ -6,8 +6,9 @@ const constServerCode = require("../const/constServerCode");
 const request = require('request');
 const dbLogger = require("../modules/dbLogger");
 const clientAPIInstance = require("../modules/clientApiInstances");
+let wsConn;
 
-function callCPMSAPI(service, functionName, data) {
+function callCPMSAPI(service, functionName, data, fileData) {
     if (!data) {
         return Q.reject(new Error("Invalid data!"));
     }
@@ -40,13 +41,74 @@ function callCPMSAPI(service, functionName, data) {
             return wsClient.callAPIOnce(service, functionName, data).then(
                 res => {
                     // resFunction(res);
+
+                    let callbackProm = Promise.all(res);
+
+                    if (fileData) {
+                        console.log('a',wsClient)
+                        console.log('b', wsClient.send)
+                    }
+                    return callbackProm;
+                },
+                error => {
+                    // resFunction(error);
+                    if (wsClient && typeof wsClient.disconnect == "function") {
+                        wsClient.disconnect();
+                    }
+                    if (error.status) {
+                        return Q.reject(error);
+                    }
+                    else {
+                        return Q.reject({
+                            status: constServerCode.CP_NOT_AVAILABLE,
+                            message: "Game is not available",
+                            error: error
+                        });
+                    }
+                }
+            ).then(
+                res => {
+                    if (wsClient && typeof wsClient.disconnect == "function") {
+                        wsClient.disconnect();
+                    }
+                    return res;
+                }
+            );
+        },
+        error => {
+            return Q.reject({status: constServerCode.CP_NOT_AVAILABLE, message: "Game is not available", error: error});
+        }
+    ).then(deferred.resolve, deferred.reject);
+    return deferred.promise;
+};
+
+function callCPMSAPIWithFileData(service, functionName, data, fileData) {
+    if (!data) {
+        return Q.reject(new Error("Invalid data!"));
+    }
+
+    let bOpen = false;
+    //if can't connect in 30 seconds, treat as timeout
+    setTimeout(function () {
+        if (!bOpen) {
+            return deferred.reject({
+                status: constServerCode.CP_NOT_AVAILABLE,
+                message: "Game is not available"
+            });
+        }
+    }, 60 * 1000);
+    return clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
+        wsClient => {
+            bOpen = true;
+            console.log("*****************************",wsClient.callAPIOnceWithFileData(service, functionName, data, fileData))
+            return wsClient.callAPIOnceWithFileData(service, functionName, data, fileData).then(
+                res => {
                     if (wsClient && typeof wsClient.disconnect == "function") {
                         wsClient.disconnect();
                     }
                     return res;
                 },
                 error => {
-                    // resFunction(error);
                     if (wsClient && typeof wsClient.disconnect == "function") {
                         wsClient.disconnect();
                     }
@@ -66,8 +128,7 @@ function callCPMSAPI(service, functionName, data) {
         error => {
             return Q.reject({status: constServerCode.CP_NOT_AVAILABLE, message: "Game is not available", error: error});
         }
-    ).then(deferred.resolve, deferred.reject);
-    return deferred.promise;
+    );
 };
 
 function httpGet(url) {
@@ -152,6 +213,10 @@ const cpmsAPI = {
 
     player_getGamePassword: function (data) {
         return callCPMSAPI("player", "getGamePassword", data);
+    },
+
+    game_updateImageUrl: function (data, fileData) {
+        return callCPMSAPI("game", "updateImageUrl", data, fileData);
     }
 
 };

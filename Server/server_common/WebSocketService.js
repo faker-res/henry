@@ -72,6 +72,8 @@ var rootObj = {};
      * @private
      */
     proto._sendResponse = function (conn, funcName, data, requestData) {
+        console.log("PPPPPPPPPPPPPPPPPPPp")
+
         if (!funcName || !conn)
             return;
         var packageData = {service: this.name, functionName: funcName, data: data};
@@ -327,6 +329,7 @@ var rootObj = {};
     proto.dispatchResponse = function (data) {
         if (!data)
             return;
+        console.log("ZZZZZZZZZZZZZZZZZZZZZZZZZ",data);
         var listeners = this._requestListeners, listenersOnce = this._requestListenersOnce, i, len; //是否分前后顺序
         for (i = 0, len = listeners.length; i < len; i++) {
             if (listeners[i] && typeof listeners[i] === "function")
@@ -350,7 +353,11 @@ var rootObj = {};
         if (!this._service)
             return this;         //invalid service
 
+        console.log("1111111111111111111",conn);
+        console.log("2222222222222222222",data);
+        console.log("3333333333333333333",requestData);
         this._service._sendResponse(conn, this.name, data, requestData);
+        console.log("4444444444444444444",this);;
         return this;
     };
 
@@ -510,6 +517,7 @@ var rootObj = {};
             this._requestListenersOnceSync[key] = [];
         }
         this._requestListenersOnceSync[key].push(listener);
+        return;
     };
 
     proto.dispatchResponse = function (data) {
@@ -521,6 +529,7 @@ var rootObj = {};
                 listeners[i](data);
         }
 
+        console.log("111111111111",data)
         var key = this.generateSyncKey(data);
         if( key ){
             if( this._requestListenersOnceSync[key] ) {
@@ -545,6 +554,7 @@ var rootObj = {};
         if (!this._service)
             return this;         //invalid service
 
+        console.log("RRRRrRRRRRRRRRRRRRRRRR", data);
         this._service._sendResponse(conn, this.name, data);
         return this;
     };
