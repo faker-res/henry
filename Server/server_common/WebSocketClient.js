@@ -230,7 +230,9 @@
                     // console.log("callAPIOnce:", data);
                     wsFunc.request(data);
                     var key = wsFunc.generateSyncKey(data);
+                    console.log("AAAAAAAAAAAAAAAAAA",key);
                     wsFunc.onceSync(key, function (res) {
+                        console.log("BBBBBBBBBBBBBBBB",res + "key");
                         if (res && res.status == 200) {
                             var resObj = Object.assign({}, res);
                             delete resObj.status;
@@ -283,6 +285,79 @@
             deferred.reject({name: "APIError", message: "Invalid service name: " + serviceName});
         }
         return deferred.promise;
+    };
+
+    proto.callAPIOnceWithFileData = function (serviceName, funcName, data, fileData) {
+        var service = this.getService(serviceName, true);
+        let fs = require('fs')
+        if (service) {
+            var wsFunc = service[funcName];
+            if (wsFunc) {
+                if (wsFunc.isSync) {
+                    //append request id if needed
+                    data = wsFunc.appendSyncKey(data, this.getRequestId());
+                    wsFunc.request(data);
+
+                    wsFunc.binaryype = "arraybuffer";
+                    let buf = new Uint8Array(fileData).buffer;
+                    buf = wsFunc.appendSyncKey(buf, this.getRequestId());
+                    wsFunc.requestWithImage(buf);
+                    var key = wsFunc.generateSyncKey(data);
+
+                    return wsFunc.onceSync(key, function (res) {
+                        console.log("AAAAAAAAAAAAAAAAAAAAaa", res);
+                        if (res && res.status == 200) {
+                            var resObj = Object.assign({}, res);
+                            delete resObj.status;
+                            delete resObj.errorMsg;
+                            return resObj;
+                        }
+                        else {
+                            res.errorMessage = res.errorMessage || res.errorMsg;
+                            return Q.reject(res);
+                        }
+                    });
+                }
+                else {
+                    // console.log("callAPIOnce:", data);
+                    wsFunc.request(data);
+
+                    wsFunc.binaryype = "arraybuffer";
+                    let buf = new Uint8Array(fileData).buffer;
+
+                    wsFunc.requestWithImage(buffer);
+
+                    return wsFunc.once(function (res) {
+                        if (res && res.status == 200) {
+                            var resObj = Object.assign({}, res);
+                            delete resObj.status;
+                            delete resObj.errorMsg;
+                            return resObj;
+                        }
+                        else {
+                            //delete res.status;
+                            res.errorMessage = res.errorMessage || res.errorMsg;
+                            return Q.reject(res);
+                        }
+                    });
+                }
+                //if there is no response after 30 seconds, consider request time out
+                setTimeout(
+                    function () {
+                        return Q.reject({
+                            status: 430,
+                            errorMessage: "Service:" + serviceName + " functionName:" + funcName + " Request timeout!"
+                        });
+                    }, 60*1000//1 minute timeout
+                );
+            }
+            else {
+                return Q.reject({name: "APIError", message: "Invalid func name: " + funcName + " in service " + serviceName});
+            }
+        }
+        else {
+            return Q.reject({name: "APIError", message: "Invalid service name: " + serviceName});
+        }
     };
 
     if (isNode) {
