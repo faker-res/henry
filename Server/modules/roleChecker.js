@@ -560,7 +560,8 @@ var roleChecker = {
                 // Create: ['createGameAndAddToProvider', 'createGame'],
                 Update: ['updateGame'],
                 // Delete: ['deleteGameById'],
-                Expense: ['getPagedGameConsumptionRecord']
+                Expense: ['getPagedGameConsumptionRecord'],
+                UploadGamePic: []
             }
         },
         Operation: {
