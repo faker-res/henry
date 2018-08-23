@@ -219,13 +219,14 @@ define(['js/app'], function (myApp) {
                 vm.SelectedDepartmentNode = finalNodeTree[0];
                 vm.departmentNodes["root"] = finalNodeTree[0];
 
+                let count = 0;
                 buildSubTreeForNode(finalNodeTree[0]);
 
                 //construct trees for all root node
                 //for (var i = 0; i < finalNodeTree[0].nodes.length; i++) {
                 //    buildSubTreeForNode(finalNodeTree[0].nodes[i]);
                 //}
-                let count = 0;
+
                 //build tree for passed in node
                 function buildSubTreeForNode(rootNode) {
                     console.log("rootNode", rootNode);
