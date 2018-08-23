@@ -15500,13 +15500,14 @@ define(['js/app'], function (myApp) {
 
                 console.log('sendData',sendData);
                 socketService.$socket($scope.AppSocket, 'updateChildPartner', sendData, function (data) {
-                    $scope.$evalAsync(() => {
-                        console.log('sent', data);
-                        if (data.data && data.data.stepInfo) {
-                            socketService.showProposalStepInfo(data.data.stepInfo, $translate);
-                        }
-                        vm.getPlatformPartnersData();
-                    });
+                    console.log('sent', data);
+                    if (data.data && data.data.stepInfo) {
+                        socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                    }
+                    if (vm.selectedSinglePartner && data && data.data && data.data.data && data.data.data.updateChildPartnerHeadCount) {
+                        vm.selectedSinglePartner.childrencount = data.data.data.updateChildPartnerHeadCount;
+                    }
+                    vm.getPlatformPartnersData();
                 }, function (err) {
                     console.log('err',err);
                 });
