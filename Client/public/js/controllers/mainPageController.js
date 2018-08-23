@@ -219,6 +219,7 @@ define(['js/app'], function (myApp) {
                 vm.SelectedDepartmentNode = finalNodeTree[0];
                 vm.departmentNodes["root"] = finalNodeTree[0];
 
+                let count = 0;
                 buildSubTreeForNode(finalNodeTree[0]);
 
                 //construct trees for all root node
@@ -228,8 +229,8 @@ define(['js/app'], function (myApp) {
 
                 //build tree for passed in node
                 function buildSubTreeForNode(rootNode) {
-                    // console.log("rootNode", rootNode);
-                    if (rootNode) {
+                    console.log("rootNode", rootNode);
+                    if (rootNode && count < 100) {
                         var counter = (rootNode.departData && rootNode.departData.users) ? rootNode.departData.users.length : 0;
                         vm.userCountArray[rootNode.id] = counter;
                         if (rootNode.children) {
@@ -242,6 +243,7 @@ define(['js/app'], function (myApp) {
                         vm.userCountArray[rootNode.id] = counter;
                         rootNode.tags.push('<i class="fa fa-user"></i>' + counter);
                     }
+                    count++;
                 }
 
                 vm.departmentTree = finalNodeTree;

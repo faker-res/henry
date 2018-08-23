@@ -30242,6 +30242,17 @@ define(['js/app'], function (myApp) {
                 });
                 remarkSelect.multipleSelect("uncheckAll");
             };
+            vm.setupMultiInputFeedbackTopicFilter = function () {
+                let remarkSelect = $('select#selectFeedbackTopicFilter');
+                remarkSelect.multipleSelect({
+                    showCheckbox: true,
+                    allSelected: $translate("All Selected"),
+                    selectAllText: $translate("Select All"),
+                    displayValues: false,
+                    countSelected: $translate('# of % selected')
+                });
+                remarkSelect.multipleSelect("uncheckAll");
+            };
             vm.setupGameProviderMultiInputFeedback = function () {
                 let gameProviderSelect = $('select#selectGameProvider');
                 gameProviderSelect.multipleSelect({
@@ -32922,6 +32933,8 @@ define(['js/app'], function (myApp) {
                 };
                 utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
                     vm.setupRemarksMultiInputFeedback();
+                    vm.setupRemarksMultiInputFeedbackFilter();
+                    vm.setupMultiInputFeedbackTopicFilter();
                     vm.setupGameProviderMultiInputFeedback();
 
                     $('#autoFeedbackMissionStartTimePicker').datetimepicker({
@@ -32979,6 +32992,8 @@ define(['js/app'], function (myApp) {
 
                 utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
                     vm.setupRemarksMultiInputFeedback();
+                    vm.setupRemarksMultiInputFeedbackFilter();
+                    vm.setupMultiInputFeedbackTopicFilter();
                     vm.setupGameProviderMultiInputFeedback();
                     $('#autoFeedbackMissionStartTimePicker').datetimepicker({
                         language: 'en',
@@ -33005,9 +33020,6 @@ define(['js/app'], function (myApp) {
                         pickTime: true,
                     });
 
-                    // $('select#selectCredibilityRemarkFeedback').multipleSelect("setSelects", vm.autoFeedbackMission.credibilityRemarks);
-                    // $('select#selectCredibilityRemarkFeedback').multipleSelect("setSelects", ["5b56abc62a55c12478a996fc"]);
-
                     vm.autoFeedbackMission = data;
                     $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').setDate(new Date(vm.autoFeedbackMission.missionStartTime));
                     $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').setDate(new Date(vm.autoFeedbackMission.missionEndTime));
@@ -33020,6 +33032,8 @@ define(['js/app'], function (myApp) {
                     vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
 
                     $('select#selectCredibilityRemarkFeedback').multipleSelect('refresh');
+                    $('select#selectCredibilityRemarkFeedbackFilter').multipleSelect('refresh');
+                    $('select#selectFeedbackTopicFilter').multipleSelect('refresh');
                     $('select#selectGameProvider').multipleSelect('refresh');
                 });
             };

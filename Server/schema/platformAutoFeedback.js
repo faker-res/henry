@@ -8,15 +8,17 @@ var platformAutoFeedbackSchema = new Schema({
     remarks: {type: String},
     missionStartTime: {type: Date, required: true},
     missionEndTime: {type: Date, required: true},
-    defaultStatus: {type: String},
-    status: {type: String},
+    defaultStatus: {type: String},  //任务初始状态
+    enabled: {type: Boolean, required: true},
     playerType: {type: String},
     playerLevel: {type: String},
     credibilityRemarks: [{type: String}],
+    filterCredibilityRemarks: [{type: String}],
     lastAccessOperator: {type: String},
     lastAccessFormal: {type: Number},
     lastAccessLatter: {type: Number},
     filterFeedback: {type: Number},
+    filterFeedbackTopic: [{type: String}],
     depositCountOperator: {type: String},
     depositCountFormal: {type: Number},
     depositCountLatter: {type: Number},
@@ -52,5 +54,7 @@ var platformAutoFeedbackSchema = new Schema({
     }],
     createTime: {type: Date, default: Date.now}
 });
+
+platformAutoFeedbackSchema.index({platformObjId: 1, name: 1}, {unique: true});
 
 module.exports = platformAutoFeedbackSchema;
