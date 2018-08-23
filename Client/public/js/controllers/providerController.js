@@ -344,7 +344,13 @@ define(['js/app'], function (myApp) {
 
         vm.getProviderGames = function (id) {
             if (!id)return;
-            console.log(id);
+            vm.selectedProviderId = id;
+            vm.uploadImageMsg = "";
+            let imageFile = document.getElementById('gameProviderImageUploader');
+            if(imageFile && imageFile.value){
+                imageFile.value = "";
+            }
+            console.log('selectedProviderId', id);
             $('#loadingProviderGames').removeClass('hidden');
             socketService.$socket($scope.AppSocket, 'getGamesByProviderId', {_id: id}, function (data) {
                 vm.allGames = data.data;
@@ -429,8 +435,37 @@ define(['js/app'], function (myApp) {
             vm.selectedGameBlock = {};
             vm.selectedGameBlock[i] = true;
             vm.showGame = v;
+            vm.uploadImageMsg = "";
+            let imageFile = document.getElementById('gameProviderImageUploader');
+            if(imageFile && imageFile.value){
+                imageFile.value = "";
+            }
             console.log(i, v);
-        }
+        };
+
+        vm.updateImageUrl = function(uploaderName){
+            let imageFile = document.getElementById(uploaderName);
+            if(imageFile.files.length > 0){
+                let platformId = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.platformId
+                    ? vm.selectedPlatform.data.platformId : null;
+                let fileName = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0].name || null;
+                let fileData = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0] || null;
+                let sendQuery = {
+                    query: {
+                        platformId: platformId,
+                        gameId: vm.showGame.gameId || null,
+                        gameName: fileName || null
+                    },
+                    fileData: fileData
+                };
+                $scope.$socketPromise("updateImageUrl", sendQuery);
+                alert($translate('Upload Successful'));
+                vm.getProviderGames(vm.selectedProviderId);
+            }else{
+                vm.uploadImageMsg = "Please choose an image first";
+            }
+        };
+
         vm.changeGameStatus = function (which, value) {
             vm.curStatusGame = which;
             vm.curStatusGame.targetStatus = value;

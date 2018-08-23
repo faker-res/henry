@@ -84,14 +84,13 @@ function callCPMSAPI(service, functionName, data, fileData) {
 
 function callCPMSAPIWithFileData(service, functionName, data, fileData) {
     if (!data) {
-        return Q.reject(new Error("Invalid data!"));
+        return Promise.reject(new Error("Invalid data!"));
     }
-
     let bOpen = false;
     //if can't connect in 30 seconds, treat as timeout
     setTimeout(function () {
         if (!bOpen) {
-            return deferred.reject({
+            return Promise.reject({
                 status: constServerCode.CP_NOT_AVAILABLE,
                 message: "Game is not available"
             });
@@ -100,23 +99,22 @@ function callCPMSAPIWithFileData(service, functionName, data, fileData) {
     return clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
         wsClient => {
             bOpen = true;
-            console.log("*****************************",wsClient.callAPIOnceWithFileData(service, functionName, data, fileData))
             return wsClient.callAPIOnceWithFileData(service, functionName, data, fileData).then(
                 res => {
-                    if (wsClient && typeof wsClient.disconnect == "function") {
+                    if (wsClient && typeof wsClient.disconnect === "function") {
                         wsClient.disconnect();
                     }
                     return res;
                 },
                 error => {
-                    if (wsClient && typeof wsClient.disconnect == "function") {
+                    if (wsClient && typeof wsClient.disconnect === "function") {
                         wsClient.disconnect();
                     }
                     if (error.status) {
-                        return Q.reject(error);
+                        return Promise.reject(error);
                     }
                     else {
-                        return Q.reject({
+                        return Promise.reject({
                             status: constServerCode.CP_NOT_AVAILABLE,
                             message: "Game is not available",
                             error: error
@@ -128,8 +126,8 @@ function callCPMSAPIWithFileData(service, functionName, data, fileData) {
         error => {
             return Q.reject({status: constServerCode.CP_NOT_AVAILABLE, message: "Game is not available", error: error});
         }
-    );
-};
+    )
+}
 
 function httpGet(url) {
     var deferred = Q.defer();
@@ -216,9 +214,8 @@ const cpmsAPI = {
     },
 
     game_updateImageUrl: function (data, fileData) {
-        return callCPMSAPI("game", "updateImageUrl", data, fileData);
+        return callCPMSAPIWithFileData("game", "updateImageUrl", data, fileData);
     }
-
 };
 
 module.exports = cpmsAPI;

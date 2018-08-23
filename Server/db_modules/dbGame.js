@@ -703,8 +703,11 @@ var dbGame = {
                 }
             }
         )
-    }
+    },
 
+    updateImageUrl: (data, fileData) => {
+        return cpmsAPI.game_updateImageUrl(data, fileData);
+    },
 };
 
 var proto = dbGameFunc.prototype;
