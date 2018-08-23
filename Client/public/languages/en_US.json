@@ -1640,7 +1640,7 @@
   "PARTNER_NAME_ALREADY_HAS_A_PARENT": "* This Partner Name already has a parent ",
   "REMOVE_IT_FROM_THE_ORIGINAL_PARENT": "(cannot be edited, please remove it from the original parent)",
   "PARTNER_NAME_DOES_NOT_EXISTS": "* Partner Name does not exists(cannot be edited)",
-  "UpdateChildPartner": "Update Child Parent",
+  "UpdateChildPartner": "Update Child Partner",
   "curChildPartnerHeadCount": "Before Update Children Partner Head Count",
   "updateChildPartnerHeadCount": "After Update Children Partner Head Count",
   "curChildPartnerName": "Before Update Children Partner Name",
