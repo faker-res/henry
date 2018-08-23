@@ -230,44 +230,6 @@ let dbPlayerCredibility = {
                }
            }
         });
-
-        // return dbconfig.collection_playerCredibilityRemark.find(query2).lean().exec().then(
-        //     remark => {
-        //         if (remark && remark.length === 0) {
-        //             fixedRemarks.forEach(
-        //                 fixedRemark => {
-        //                     dbconfig.collection_playerCredibilityRemark({
-        //                         platform: platformObjId,
-        //                         name: fixedRemark.name,
-        //                         score: fixedRemark.score,
-        //                         isFixed: true
-        //                     }).save();
-        //                 }
-        //             );
-        //         }
-        //
-        //         let remarkExist = [];
-        //         if (remark && remark.length > 0) {
-        //             remark.forEach(data => {
-        //                 remarkExist.push(data.name);
-        //             });
-        //
-        //             fixedRemarks.forEach(
-        //                 fixedRemark => {
-        //                     if (!remarkExist.includes(fixedRemark)) {
-        //                         dbconfig.collection_playerCredibilityRemark({
-        //                             platform: platformObjId,
-        //                             name: fixedRemark.name,
-        //                             score: fixedRemark.score,
-        //                             isFixed: true
-        //                         }).save();
-        //                     }
-        //                 }
-        //             );
-        //         }
-        //         return remark;
-        //     }
-        // );
     },
 
     getFixedCredibilityRemarks: platformObjId => {
