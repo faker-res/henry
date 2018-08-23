@@ -27100,13 +27100,14 @@ define(['js/app'], function (myApp) {
 
             vm.prepareCredibilityConfig = () => {
                 vm.removedRemarkId = [];
+                vm.setFixedCredibilityRemarks();
+
                 return vm.getCredibilityRemarks().then(
                     () => {
                         let cloneRemarks = vm.credibilityRemarks.slice(0);
                         vm.positiveRemarks = [];
                         vm.negativeRemarks = [];
                         vm.neutralRemarks = [];
-                        vm.fixedRemarks = ['电话重复', '注册IP重复'];
 
                         let len = cloneRemarks.length;
 
@@ -27134,6 +27135,41 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }
                 );
+            };
+
+            vm.setFixedCredibilityRemarks = () => {
+                let fixedRemarks = [
+                    {
+                        name: '电话重复',
+                        score: 0
+                    },
+                    {
+                        name: '注册IP重复',
+                        score: 0
+                    }
+                ];
+
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.data._id,
+                    fixedRemarks: fixedRemarks
+                };
+
+                socketService.$socket($scope.AppSocket, 'setFixedCredibilityRemarks', sendData, function (data) {
+                    console.log('setFixedCredibilityRemarks', data);
+                    vm.getFixedCredibilityRemarks();
+                });
+            };
+
+            vm.getFixedCredibilityRemarks = () => {
+                socketService.$socket($scope.AppSocket, 'getFixedCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
+                    console.log('getFixedCredibilityRemarks', data);
+                    vm.fixedRemarks = [];
+                    if (data && data.data && data.data.length > 0) {
+                        data.data.forEach(remark => {
+                            vm.fixedRemarks.push(remark._id);
+                        });
+                    }
+                });
             };
 
             vm.updateRemarkInEdit = (type, action, data) => {

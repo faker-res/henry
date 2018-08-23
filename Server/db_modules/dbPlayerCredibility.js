@@ -189,62 +189,96 @@ let dbPlayerCredibility = {
         return dbconfig.collection_platform.findOneAndUpdate({_id: ObjectId(platformObjId)}, {playerValueConfig: config}).lean();
     },
 
-    setFixedCredibilityRemarks: platformObjId => {
-        let fixedCredibilityRemarks = ['电话重复', '注册IP重复'];
-        let query = {
-            platform: platformObjId,
-            name: {$in: fixedCredibilityRemarks}
-        };
-
-        return dbconfig.collection_playerCredibilityRemark.find(query).lean().exec().then(
-            remark => {
-                if (remark && remark.length === 0) {
-                    fixedCredibilityRemarks.forEach(
-                        fixedRemark => {
-                            dbconfig.collection_playerCredibilityRemark({
-                                platform: platformObjId,
-                                name: fixedRemark,
-                                score: 0
-                            }).save();
-                        }
-                    );
+    setFixedCredibilityRemarks: (platformObjId, fixedRemarks) => {
+        let proms = [];
+        if (fixedRemarks && fixedRemarks.length > 0) {
+            fixedRemarks.forEach(remark => {
+                if (remark && remark.name) {
+                    let query = {
+                        platform: platformObjId,
+                        name: remark.name,
+                        score: remark.score || 0,
+                        isFixed: true
+                    };
+                    proms.push(dbconfig.collection_playerCredibilityRemark.find(query).lean().exec());
                 }
+            });
+        }
 
-                let remarkExist = [];
-                if (remark && remark.length > 0) {
-                    remark.forEach(data => {
-                        remarkExist.push(data.name);
-                    });
+        return Promise.all(proms).then(data => {
+           if (data) {
+               let remarkExist = [].concat(...data);
+               let remarkName = [];
 
-                    fixedCredibilityRemarks.forEach(
-                        fixedRemark => {
-                            if (!remarkExist.includes(fixedRemark)) {
-                                dbconfig.collection_playerCredibilityRemark({
-                                    platform: platformObjId,
-                                    name: fixedRemark,
-                                    score: 0
-                                }).save();
-                            }
-                        }
-                    );
-                }
-                return remark;
-            }
-        );
+               if (remarkExist && remarkExist.length > 0) {
+                   remarkExist.forEach(existingRemark => {
+                       remarkName.push(existingRemark.name);
+                   });
+               }
+
+               if (fixedRemarks && fixedRemarks.length > 0) {
+                   fixedRemarks.forEach(fixedRemark => {
+                       if (!remarkName.includes(fixedRemark.name)) {
+                           return dbconfig.collection_playerCredibilityRemark({
+                               platform: platformObjId,
+                               name: fixedRemark.name,
+                               score: fixedRemark.score,
+                               isFixed: true
+                           }).save();
+                       }
+                   });
+               }
+           }
+        });
+
+        // return dbconfig.collection_playerCredibilityRemark.find(query2).lean().exec().then(
+        //     remark => {
+        //         if (remark && remark.length === 0) {
+        //             fixedRemarks.forEach(
+        //                 fixedRemark => {
+        //                     dbconfig.collection_playerCredibilityRemark({
+        //                         platform: platformObjId,
+        //                         name: fixedRemark.name,
+        //                         score: fixedRemark.score,
+        //                         isFixed: true
+        //                     }).save();
+        //                 }
+        //             );
+        //         }
+        //
+        //         let remarkExist = [];
+        //         if (remark && remark.length > 0) {
+        //             remark.forEach(data => {
+        //                 remarkExist.push(data.name);
+        //             });
+        //
+        //             fixedRemarks.forEach(
+        //                 fixedRemark => {
+        //                     if (!remarkExist.includes(fixedRemark)) {
+        //                         dbconfig.collection_playerCredibilityRemark({
+        //                             platform: platformObjId,
+        //                             name: fixedRemark.name,
+        //                             score: fixedRemark.score,
+        //                             isFixed: true
+        //                         }).save();
+        //                     }
+        //                 }
+        //             );
+        //         }
+        //         return remark;
+        //     }
+        // );
     },
 
-    getFixedNeutralCredibilityRemarks: platformObjId => {
-        let fixedCredibilityRemarks = ['电话重复', '注册IP重复'];
+    getFixedCredibilityRemarks: platformObjId => {
         let query = {
             platform: platformObjId,
-            name: {$in: fixedCredibilityRemarks}
+            isFixed: true
         };
         return dbconfig.collection_playerCredibilityRemark.find(query).lean().exec();
     },
 
     getCredibilityRemarks: platformObjId => {
-        dbPlayerCredibility.setFixedCredibilityRemarks(platformObjId);
-
         return dbconfig.collection_playerCredibilityRemark.find({platform: platformObjId}).lean().exec();
     },
 
