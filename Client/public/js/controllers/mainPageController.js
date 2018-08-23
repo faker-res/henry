@@ -228,8 +228,8 @@ define(['js/app'], function (myApp) {
                 let count = 0;
                 //build tree for passed in node
                 function buildSubTreeForNode(rootNode) {
-                    // console.log("rootNode", rootNode);
-                    if (rootNode && count < 500) {
+                    console.log("rootNode", rootNode);
+                    if (rootNode && count < 100) {
                         var counter = (rootNode.departData && rootNode.departData.users) ? rootNode.departData.users.length : 0;
                         vm.userCountArray[rootNode.id] = counter;
                         if (rootNode.children) {
