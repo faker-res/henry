@@ -31,7 +31,7 @@ var gameProviderSchema = new Schema({
     lastDailySettlementTime : {type: Date},
     //store based on platformObjId eg.: {platformObjId: {processedAmount: number, totalAmount: number}}
     batchCreditTransferOutStatus: {type: JSON, default: {}},
-    //game types
+    //game types, (CPMS save object to this type, beware)
     gameTypes: [],
     //player types
     playTypes: [{type: String}],
