@@ -464,35 +464,35 @@ var dbGame = {
     },
     getGamesByProviderAndFPMS: function (platformObjId, providerObjId) {
         let proms = [];
-        let allGames = [];
         let gameList = [];
 
         return dbconfig.collection_game.find({
             provider: providerObjId,
             status: {$ne: constGameStatus.DELETED}
         }).sort({showPriority: -1}).lean()
-        .then(data=>{
-            if(data){
-                allGames = data;
-                allGames.forEach(gameData=>{
-                    let pData = gameData;
-                    let prom = dbconfig.collection_platformGameStatus.find({
-                        game: {$in: pData._id},
-                        platform: platformObjId
-                    }).populate({path: "game", model: dbconfig.collection_game}).lean()
-                    .then(platformGameStatus=>{
-                        if(platformGameStatus && platformGameStatus.length > 0){
-                            pData.platformGameStatus = platformGameStatus[0].status
-                        }else{
-                            pData.platformGameStatus = 5;
-                        }
-                        return pData;
-                    })
-                    proms.push(prom);
-                });
-            }
-            return Q.all(proms)
-        })
+            .then(data => {
+                if (data && data.length > 0) {
+                    data.forEach(gameData => {
+
+                        let game = gameData;
+                        let prom = dbconfig.collection_platformGameStatus.find({
+                            game: {$in: game._id},
+                            platform: platformObjId
+                        }).populate({path: "game", model: dbconfig.collection_game})
+                            .then(platformGameStatus => {
+
+                                if (platformGameStatus && platformGameStatus.length > 0) {
+                                    game.platformGameStatus = platformGameStatus[0].status
+                                } else {
+                                    game.platformGameStatus = 5;
+                                }
+                                return pData;
+                            })
+                        proms.push(prom);
+                    });
+                }
+                return Q.all(proms)
+            })
     },
     updatePlatformGameStatus: function(platformObjId, game, status){
         // update fpms game status
@@ -555,7 +555,7 @@ var dbGame = {
                     game: {$in: gamesUnderProvider},
                     platform: platformObjId,
                     status: {$ne: constGameStatus.DELETED}
-                }).populate({path: "game", model: dbconfig.collection_game}).exec();
+                }).populate({path: "game", model: dbconfig.collection_game});
             },
             function (error) {
                 deferred.reject({name: "DBError", message: "Error finding game for provider.", error: error});

@@ -12,6 +12,7 @@ var Q = require('q');
 var constSystemParam = require('../const/constSystemParam');
 var dbPlatformGameGroup = require("../db_modules/dbPlatformGameGroup");
 var dbGame = require("../db_modules/dbGame");
+var constGameStatus = require("./../const/constGameStatus");
 
 var dbPlatformGameStatus = {
 
@@ -24,6 +25,8 @@ var dbPlatformGameStatus = {
         return platformGameStatus.save();
     },
 
+    // purpose : we want to avoid generate duplicate fpms game status
+    // if dont exist , then we create it, if exist , then we update it.
     createIFNotPlatformGameStatus: function (gameData) {
         let query = {};
         let updateData = {
@@ -38,11 +41,19 @@ var dbPlatformGameStatus = {
         if(gameData.platform){
             query.platform = gameData.platform;
         }
+
         return dbconfig.collection_platformGameStatus.findOneAndUpdate(
             gameData,
-            updateData,
+            {
+                $set:updateData,
+                $setOnInsert : {
+                    status: constGameStatus.ENABLE,
+                    maintenanceHour: null,
+                    maintenanceMinute: null
+                }
+            },
             {new: true, upsert: true}
-        ).exec();
+        ).lean();
     },
     createPlatformGamesStatus: function (platform, games) {
         var arr = [];
