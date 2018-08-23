@@ -16113,7 +16113,7 @@ let dbPlayerInfo = {
             let promoteWayProm = domain ?
                 dbconfig.collection_csOfficerUrl.findOne({
                     platform: platformObjId,
-                    domain: filteredDomain
+                    domain: {$regex: filteredDomain, $options: "xi"}
                 }).populate({
                     path: 'admin',
                     model: dbconfig.collection_admin
