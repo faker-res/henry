@@ -27,8 +27,8 @@ var dbPlatformGameStatus = {
     createIFNotPlatformGameStatus: function (gameData) {
         let query = {};
         let updateData = {
-            name: game.name,
-            visible: game.visible
+            name: gameData.name,
+            visible: gameData.visible
         };
 
         if(gameData.game){
@@ -38,7 +38,6 @@ var dbPlatformGameStatus = {
         if(gameData.platform){
             query.platform = gameData.platform;
         }
-
         return dbconfig.collection_platformGameStatus.findOneAndUpdate(
             gameData,
             updateData,
