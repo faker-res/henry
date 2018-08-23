@@ -7456,6 +7456,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.status);
                     proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
+                    vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
                     vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                         grossCommission += rawCommission.amount;
                         let str = $fixTwoDecimalStr(rawCommission.amount) + $translate("YEN") + " "
@@ -7524,6 +7525,24 @@ define(['js/app'], function (myApp) {
                     vm.selectedProposal.data = proposalDetail;
                 }
 
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdateParentPartnerCommission") {
+                    let proposalDetail = {};
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+
+                    proposalDetail["PARENT_PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
+                    proposalDetail["PARENT_PARTNER_ID"] = vm.selectedProposal.data.partnerId;
+                    proposalDetail["PARENT_PARTNER_COMMISSION_RATE"] = vm.selectedProposal.data.parentCommissionRate + "%";
+                    proposalDetail["PARENT_PARTNER_COMMISSION_FEE"] = vm.selectedProposal.data.amount;
+                    proposalDetail["CHILD_PARTNER_NAME"] = vm.selectedProposal.data.childPartnerName;
+                    proposalDetail["CHILD_PARTNER_DOWNLINES"] = vm.selectedProposal.data.childPartnerTotalDownLines;
+                    proposalDetail["CHILD_PARTNER_COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.childPartnerCommissionType]);
+                    proposalDetail["CHILD_PARTNER_TOTAL_WINLOSE"] = vm.selectedProposal.data.childPlayerTotalWinLose;
+                    proposalDetail["CHILD_PARTNER_RELATED_PROPOSAL_NO"] = vm.selectedProposal.data.relatedProposalId;
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
 
                 if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
                     let proposalDetail = {};
@@ -7874,6 +7893,973 @@ define(['js/app'], function (myApp) {
                 "PlayerTopUpReward": "PLAYER_TOP_UP_REWARD_REPORT",
                 "PlayerReferralReward": "PLAYER_REFERRAL_REWARD_REPORT"
             };
+
+            /************************************************ Export TOPUP_REPORT to excel **********************************************/
+            vm.exportTopupReportToExcel = function () {
+                console.log('vm.queryTopup', vm.queryTopup);
+                vm.queryTopup.platformId = vm.curPlatformId;
+                $('#topupTableSpin').show();
+
+                var staArr = vm.queryTopup.status ? vm.queryTopup.status : [];
+
+                if (staArr.length > 0) {
+                    staArr.forEach(item => {
+                        if (item == "Success") {
+                            staArr.push("Approved");
+                        }
+                        if (item == "Fail") {
+                            staArr.push("Rejected");
+                        }
+                    })
+                }
+
+                var sendObj = {
+                    playerName: vm.queryTopup.playerName,
+                    proposalNo: vm.queryTopup.proposalID,
+                    mainTopupType: vm.queryTopup.mainTopupType,
+                    userAgent: vm.queryTopup.userAgent,
+                    topupType: vm.queryTopup.topupType,
+                    merchantGroup: angular.fromJson(angular.toJson(vm.queryTopup.merchantGroup)),
+                    depositMethod: vm.queryTopup.depositMethod,
+                    bankTypeId: vm.queryTopup.bankTypeId,
+                    merchantNo: vm.queryTopup.merchantNo,
+                    status: staArr,
+                    startTime: vm.queryTopup.startTime.data('datetimepicker').getLocalDate(),
+                    endTime: vm.queryTopup.endTime.data('datetimepicker').getLocalDate(),
+                    platformId: vm.curPlatformId,
+                    sortCol: vm.queryTopup.sortCol || {proposalId: -1},
+                    limit: 5000
+                }
+
+                vm.queryTopup.merchantNo ? sendObj.merchantNo = vm.queryTopup.merchantNo : '';
+                socketService.$socket($scope.AppSocket, 'topupReport', sendObj, function (data) {
+                    $('#topupTableSpin').hide();
+                    console.log('topup', data);
+                    vm.queryTopup.totalCount = data.data.size;
+                    vm.drawTopupExcelReport(
+                        data.data.data.map(item => {
+                            item.amount$ = parseFloat(item.data.amount).toFixed(2);
+                            item.status$ = $translate(item.status);
+                            item.merchantName = vm.getMerchantName(item.data.merchantNo);
+                            item.merchantNoDisplay = item.data.merchantNo != null ? item.data.merchantNo
+                                : item.data.bankCardNo != null ? item.data.bankCardNo
+                                    : item.data.wechatAccount != null ? item.data.wechatAccount
+                                        : item.data.weChatAccount != null ? item.data.weChatAccount
+                                            : item.data.alipayAccount != null ? item.data.alipayAccount
+                                                : item.data.accountNo != null ? item.data.accountNo
+                                                    : null;
+                            item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
+                            item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
+                            if (item.type.name == 'PlayerTopUp') {
+                                //show detail topup type info for online topup.
+                                let typeID = item.data.topUpType || item.data.topupType
+                                item.topupTypeStr = typeID
+                                    ? $translate($scope.merchantTopupTypeJson[typeID])
+                                    : $translate("Unknown")
+                                item.merchantNo$ = vm.getOnlineMerchantId(item.data.merchantNo, item.inputDevice);
+                            } else {
+                                //show topup type for other types
+                                item.topupTypeStr = $translate(item.type.name)
+                            }
+                            item.startTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
+                            item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime) : "";
+
+
+                            return item;
+                        }), data.data.size, {amount: data.data.total}
+                    );
+                }, function (err) {
+                    console.log(err);
+                }, true);
+            };
+
+            vm.drawTopupExcelReport = function (data, size, summary) {
+                console.log('data', data);
+                var tableOptions = {
+                    id: "topupExcelTable",
+                    data: data,
+                    "order": vm.queryTopup.aaSorting || [[0, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                        {'sortCol': 'data.amount', bSortable: true, 'aTargets': [13]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [14]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            "title": $translate('proposalId'),
+                            data: "proposalId",
+                            render: function (data, type, row) {
+                                data = String(data);
+                                return '<a ng-click="vm.showProposalModal2(\'' + data + '\')">' + data + '</a>';
+                            }
+                        },
+                        {
+                            "title": $translate('topupType'), "data": "type",
+                            render: function (data, type, row) {
+                                var text = $translate(row.type ? row.type.name : "");
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+                        {
+                            title: $translate('DEVICE'), data: "data.userAgent",
+                            render: function (data, type, row) {
+                                var text = $translate(data ? $scope.userAgentType[data] : $scope.userAgentType['0']);
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+                        {
+                            "title": $translate('Online Topup Type'), "data": "data.topupType",
+                            render: function (data, type, row) {
+                                var text = $translate(data ? $scope.merchantTopupTypeJson[data] : "");
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+                        {"title": $translate('3rd Party Platform'), "data": 'merchantName'},
+                        {
+                            "title": $translate('DEPOSIT_METHOD'), "data": 'data.depositMethod',
+                            render: function (data, type, row) {
+                                var text = $translate(data ? vm.getDepositMethodbyId[data]: "");
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+                        {
+                            title: $translate('From Bank Type'), data: "data.bankTypeId",
+                            render: function (data, type, row) {
+                                if (data) {
+                                    // var text = $translate(vm.allBankTypeList[data] ? vm.allBankTypeList[data]: "");
+                                    var text = vm.allBankTypeList ? vm.allBankTypeList[data] : "";
+                                    return "<div>" + $translate(text) + "</div>";
+                                } else {
+                                    return "<div>" + '' + "</div>";
+                                }
+                            }
+                        },
+                        {title: $translate('Business Acc/ Bank Acc'), data: "merchantNoDisplay"},
+                        {title: $translate('Total Business Acc'), data: "merchantCount$"},
+                        {title: $translate('STATUS'), data: "status$"},
+                        {title: $translate('PLAYER_NAME'), data: "data.playerName"},
+                        {title: $translate('Real Name'), data: "data.playerObjId.realName", sClass: "sumText"},
+                        {title: $translate('Total Members'), data: "playerCount$", sClass: "sumText"},
+                        // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
+                        {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight"},
+
+                        {title: $translate('START_TIME'), data: "startTime$"},
+                        {
+                            title: $translate('Approved Time'), data: "endTime$",
+                            render: function (data, type, row) {
+                                var text = '';
+                                if (row.status == 'Success' || row.status == 'Approved') {
+                                    text = data ? data : '';
+                                }
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+                    ],
+                    "paging": false,
+                    createdRow: function (row, data, dataIndex) {
+                        $compile(angular.element(row).contents())($scope);
+                    },
+                    fnDrawCallback: function () {
+                        $scope.$evalAsync(() => {});
+                    }
+
+                }
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+                vm.topupTable = utilService.createDatatableWithFooter('#topupExcelTable', tableOptions, {13: summary.amount});
+
+                $('#topupExcelTable_wrapper').hide();
+                vm.exportToExcel("topupExcelTable", "TOPUP_REPORT");
+
+            };
+
+            /************************************************ Export PROPOSAL_REPORT to excel **********************************************/
+            vm.exportProposalRecordToExcel = function () {
+                vm.curPlatformId = vm.selectedPlatform._id;
+
+                let newproposalQuery = $.extend(true, {}, vm.proposalQuery);
+                newproposalQuery.proposalTypeId = [];
+                newproposalQuery.rewardTypeName = [];
+                newproposalQuery.promoTypeName = [];
+
+                let proposalNames = $('select#selectProposalType').multipleSelect("getSelects");
+                let rewardTypes = $('select#selectRewardType').multipleSelect("getSelects");
+                let promoType = $('select#selectPromoType').multipleSelect("getSelects");
+
+                if (vm.allProposalType.length != proposalNames.length) {
+                    vm.allProposalType.filter(item => {
+                        if (proposalNames.indexOf(item.name) > -1) {
+                            newproposalQuery.proposalTypeId.push(item._id);
+                        }
+                    });
+                }
+
+                if (vm.rewardList.length != rewardTypes.length) {
+                    vm.rewardList.filter(item => {
+                        if (rewardTypes.indexOf(item.name) > -1) {
+                            newproposalQuery.rewardTypeName.push(item.name);
+                        }
+                    });
+                }
+
+                if (vm.promoTypeList.length != promoType.length) {
+                    vm.promoTypeList.filter(item => {
+                        if (promoType.indexOf(item.name) > -1) {
+                            newproposalQuery.promoTypeName.push(item.name);
+                        }
+                    });
+                }
+
+                if (newproposalQuery.status == "all") {
+                    newproposalQuery.status = null;
+                }
+                if (newproposalQuery.relatedAccount) {
+                    newproposalQuery.relatedAccount = newproposalQuery.relatedAccount.toLowerCase();
+                }
+                else {
+                    newproposalQuery.relatedAccount = null;
+                }
+
+                $('#proposalTableSpin').show();
+                newproposalQuery.limit = 5000;
+                var sendData = newproposalQuery.proposalId ? {
+                    platformId: vm.curPlatformId,
+                    proposalId: newproposalQuery.proposalId,
+                    index: 0,
+                    limit: 5000,
+                } : {
+                    startTime: newproposalQuery.startTime.data('datetimepicker').getLocalDate(),
+                    endTime: newproposalQuery.endTime.data('datetimepicker').getLocalDate(),
+                    proposalTypeId: newproposalQuery.proposalTypeId,
+                    inputDevice: newproposalQuery.inputDevice,
+                    rewardTypeName: newproposalQuery.rewardTypeName,
+                    promoTypeName: newproposalQuery.promoTypeName,
+                    platformId: vm.curPlatformId,
+                    status: newproposalQuery.status,
+                    relatedAccount: newproposalQuery.relatedAccount,
+                    index: 0,
+                    limit: 5000,
+                    sortCol: newproposalQuery.sortCol
+                };
+
+                socketService.$socket($scope.AppSocket, 'getProposalStaticsReport', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        $('#proposalTable').show();
+                        console.log('proposal data', data);
+                        var datatoDraw = data.data.data.map(item => {
+                            item.involveAmount$ = 0;
+                            if (item.data.updateAmount) {
+                                item.involveAmount$ = item.data.updateAmount;
+                            } else if (item.data.amount) {
+                                item.involveAmount$ = item.data.amount;
+                            } else if (item.data.rewardAmount) {
+                                item.involveAmount$ = item.data.rewardAmount;
+                            } else if (item.data.commissionAmount) {
+                                item.involveAmount$ = item.data.commissionAmount;
+                            } else if (item.data.negativeProfitAmount) {
+                                item.involveAmount$ = item.data.negativeProfitAmount;
+                            }
+                            item.involveAmount$ = parseFloat(item.involveAmount$).toFixed(2);
+                            item.typeName = $translate(item.type.name || "Unknown");
+                            item.mainType$ = $translate(item.mainType || "Unknown");
+                            if (item.mainType === "PlayerBonus")
+                                item.mainType$ = $translate("Bonus");
+                            item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
+                            if (item.data && item.data.remark) {
+                                item.remark$ = item.data.remark;
+                            }
+                            item.status$ = $translate(item.type.name === "BulkExportPlayerData" || item.mainType === "PlayerBonus" || item.mainType === "PartnerBonus" ? vm.getStatusStrfromRow(item) == "Approved" ? "approved" : vm.getStatusStrfromRow(item) : vm.getStatusStrfromRow(item));
+
+                            return item;
+                        })
+                        $('#proposalTableSpin').hide();
+                        vm.proposalQuery.totalCount = data.data.size;
+                        vm.drawProposalExcelReportNew(datatoDraw, vm.proposalQuery.totalCount, data.data.summary);
+                    })
+
+                }, function (err) {
+                    $('#proposalTableSpin').hide();
+
+                }, true);
+            }
+            vm.drawProposalExcelReportNew = function (data, size, summary) {
+                console.log('data', data, size);
+                var tableOptions = {
+                    id: "proposalExcelTable",
+                    data: data,
+                    "order": vm.proposalQuery.aaSorting,
+                    aoColumnDefs: [
+                        {'sortCol': 'proposalId', 'aTargets': [0]},
+                        {'sortCol': 'createTime', 'aTargets': [8]}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('PROPOSAL ID'), data: "proposalId",
+                            render: function (data, type, row) {
+                                data = String(data);
+                                return '<a ng-click="vm.showProposalModalNew(\'' + data + '\')">' + data + '</a>';
+                            }
+                        },
+                        {
+                            title: $translate('CREATOR'),
+                            data: null,
+                            render: function (data, type, row) {
+                                if (data.hasOwnProperty('creator')) {
+                                    return data.creator.name;
+                                } else {
+                                    var creator = $translate('System');
+                                    if (data && data.data && data.data.playerName) {
+                                        creator += "(" + data.data.playerName + ")";
+                                    }
+                                    return creator;
+                                }
+                            }
+                        },
+                        {
+                            title: $translate('INPUT_DEVICE'),
+                            data: "inputDevice",
+                            render: function (data, type, row) {
+                                for (let i = 0; i < Object.keys(vm.inputDevice).length; i++) {
+                                    if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == data) {
+                                        return $translate(Object.keys(vm.inputDevice)[i]);
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            title: $translate('PROPOSAL TYPE'), data: ("mainType$"),
+                            orderable: false,
+                        },
+                        {
+                            title: $translate('PROPOSAL_SUB_TYPE'), data: null,
+                            orderable: false,
+                            render: function (data, type, row) {
+                                if (data && data.data && data.data.PROMO_CODE_TYPE) {
+                                    return data.data.PROMO_CODE_TYPE;
+                                } else if (data && data.data && data.data.eventName) {
+                                    return data.data.eventName;
+                                } else {
+                                    return data.typeName;
+                                }
+                            }
+                        },
+                        {
+                            title: "<div>" + $translate('Proposal Status'), data: "status$",
+                            orderable: false,
+                        },
+                        {
+                            title: "<div>" + $translate('INVOLVED_ACC'),
+                            "data": null,
+                            render: function (data, type, row) {
+                                if (data.hasOwnProperty('creator') && data.creator.type == 'player') {
+                                    return data.creator.name;
+                                }
+                                if (data && data.data && data.data.playerName) {
+                                    return data.data.playerName;
+                                }
+                                else if (data && data.data && data.data.partnerName) {
+                                    return data.data.partnerName;
+                                }
+                                else {
+                                    return "";
+                                }
+                            },
+                            orderable: false,
+                            sClass: "sumText"
+                        },
+                        {
+                            title: $translate('Amount Involved'), data: "involveAmount$", defaultContent: 0,
+                            orderable: false,
+                            sClass: "sumFloat alignRight",
+                        },
+                        {
+                            title: "<div>" + $translate('START_TIME'), data: "createTime$",
+                            defaultContent: 0
+                        },
+                        {
+                            title: "<div>" + $translate('Player Level'), data: "data.proposalPlayerLevel",
+                            orderable: false,
+                        },
+                        {
+                            title: "<div>" + $translate('REMARKS'),
+                            data: "remark$",
+                            orderable: false,
+                        }
+                    ],
+                    "bSortClasses": false,
+                    "paging": false,
+                    "language": {
+                        "info": "Total _MAX_ records",
+                        "emptyTable": $translate("No data available in table"),
+                    },
+                    fnRowCallback: vm.proposalTableRow
+                }
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                $.each(tableOptions.columns, function (i, v) {
+                    v.defaultContent = v.defaultContent || "";
+                });
+                var proposalTbl = utilService.createDatatableWithFooter('#proposalExcelTable', tableOptions, {7: summary.amount});
+
+                $('#proposalExcelTable_wrapper').hide();
+
+                vm.exportToExcel("proposalExcelTable", "PROPOSAL_REPORT");
+            }
+
+            /************************************************ Export FINANCIAL_POINTS_REPORT to excel **********************************************/
+            vm.exportFinancialPointsRecordToExcel = function () {
+                vm.curPlatformId = vm.selectedPlatform._id;
+
+                let newproposalQuery = $.extend(true, {}, vm.financialQuery);
+
+                let financialPointsType = $('select#selectFinancialPointsType').multipleSelect("getSelects");
+
+                $('#financialPointsTableSpin').show();
+                var sendData = {
+                    startTime: newproposalQuery.startTime.data('datetimepicker').getLocalDate(),
+                    endTime: newproposalQuery.endTime.data('datetimepicker').getLocalDate(),
+                    financialPointsType: financialPointsType,
+                    platformId: vm.curPlatformId,
+                    index: 0,
+                    limit: 5000,
+                    sortCol: newproposalQuery.sortCol
+                };
+
+                socketService.$socket($scope.AppSocket, 'getFinancialPointsReport', sendData, function (data) {
+                    $('#financialPointsTable').show();
+                    console.log('financial points data', data);
+                    var datatoDraw = data.data.data.map(item => {
+                        item.involveAmount$ = 0;
+                        if (item.data.updateAmount) {
+                            item.involveAmount$ = item.data.updateAmount;
+                        } else if (item.data.amount) {
+                            item.involveAmount$ = item.data.amount;
+                        } else if (item.data.rewardAmount) {
+                            item.involveAmount$ = item.data.rewardAmount;
+                        } else if (item.data.commissionAmount) {
+                            item.involveAmount$ = item.data.commissionAmount;
+                        } else if (item.data.negativeProfitAmount) {
+                            item.involveAmount$ = item.data.negativeProfitAmount;
+                        }
+                        item.involveAmount$ = parseFloat(item.involveAmount$).toFixed(2);
+                        item.typeName = $translate(item.type.name || "Unknown");
+                        item.mainType$ = $translate(item.mainType || "Unknown");
+
+                        item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
+                        if (item.data && item.data.remark) {
+                            item.remark$ = item.data.remark;
+                        }
+
+                        return item;
+                    })
+                    $('#financialPointsTableSpin').hide();
+                    $scope.$evalAsync(() => {
+                        vm.financialQuery.totalCount = data.data.size;
+                        vm.drawFinancialPointsExcelReport(datatoDraw, vm.financialQuery.totalCount, data.data.summary);
+                    });
+                }, function (err) {
+                    $('#financialPointsTableSpin').hide();
+
+                }, true);
+            }
+            vm.drawFinancialPointsExcelReport = function (data, size, summary) {
+                console.log('data', data, size);
+                var tableOptions = {
+                    id: "financialPointsExcelTable",
+                    data: data,
+                    "order": vm.financialQuery.aaSorting,
+                    aoColumnDefs: [
+                        {'sortCol': 'proposalId', 'aTargets': [0]},
+                        {'sortCol': 'createTime', 'aTargets': [9]}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('PROPOSAL ID'), data: "proposalId",
+                            render: function (data, type, row) {
+                                data = String(data);
+                                return '<a ng-click="vm.showProposalModalNew(\'' + data + '\')">' + data + '</a>';
+                            }
+                        },
+                        {
+                            title: $translate('CREATOR'),
+                            data: null,
+                            render: function (data, type, row) {
+                                if (data.hasOwnProperty('creator')) {
+                                    return data.creator.name;
+                                } else {
+                                    var creator = $translate('System');
+                                    if (data && data.data && data.data.playerName) {
+                                        creator += "(" + data.data.playerName + ")";
+                                    }
+                                    return creator;
+                                }
+                            }
+                        },
+                        {
+                            title: $translate('INPUT_DEVICE'),
+                            data: "inputDevice",
+                            render: function (data, type, row) {
+                                for (let i = 0; i < Object.keys(vm.inputDevice).length; i++) {
+                                    if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == data) {
+                                        return $translate(Object.keys(vm.inputDevice)[i]);
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            title: $translate('PROPOSAL TYPE'), data: ("mainType$"),
+                            orderable: false
+                        },
+                        {
+                            title: $translate('PROPOSAL_SUB_TYPE'), data: null,
+                            orderable: false,
+                            render: function (data, type, row) {
+                                if (data && data.data && data.data.PROMO_CODE_TYPE) {
+                                    return data.data.PROMO_CODE_TYPE;
+                                } else if (data && data.data && data.data.eventName) {
+                                    return data.data.eventName;
+                                } else {
+                                    return data.typeName;
+                                }
+                            }
+                        },
+                        {
+                            title: "<div>" + $translate('INVOLVED_ACC'),
+                            "data": null,
+                            render: function (data, type, row) {
+                                if (data.hasOwnProperty('creator') && data.creator.type == 'player') {
+                                    return data.creator.name;
+                                }
+                                if (data && data.data && data.data.playerName) {
+                                    return data.data.playerName;
+                                }
+                                else if (data && data.data && data.data.partnerName) {
+                                    return data.data.partnerName;
+                                }
+                                else {
+                                    return "";
+                                }
+                            },
+                            orderable: false
+                        },
+                        {'title': $translate('pointsBefore'), data: 'data.pointsBefore'},
+                        {'title': $translate('pointsAfter'), data: 'data.pointsAfter', sClass: "sumText"},
+                        {
+                            title: $translate('Amount Involved'), data: "involveAmount$", defaultContent: 0,
+                            orderable: false,
+                            sClass: "sumFloat alignRight"
+                        },
+                        {
+                            title: "<div>" + $translate('START_TIME'), data: "createTime$",
+                            defaultContent: 0
+                        },
+                        {
+                            title: "<div>" + $translate('REMARKS'),
+                            data: "remark$",
+                            orderable: false,
+                        }
+                    ],
+                    "bSortClasses": false,
+                    "paging": false,
+                    "language": {
+                        "info": "Total _MAX_ records",
+                        "emptyTable": $translate("No data available in table"),
+                    },
+                    fnRowCallback: vm.proposalTableRow
+                }
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                $.each(tableOptions.columns, function (i, v) {
+                    v.defaultContent = v.defaultContent || "";
+                });
+                var proposalTbl = utilService.createDatatableWithFooter('#financialPointsExcelTable', tableOptions, {8: summary.amount});
+
+                $('#financialPointsExcelTable_wrapper').hide();
+
+                vm.exportToExcel('financialPointsExcelTable', "FINANCIAL_POINTS_REPORT")
+            };
+
+            /************************************************ Export PLAYER_REPORT to excel **********************************************/
+            vm.exportPlayerReportToExcel = function () {
+                $('#loadingPlayerReportTableSpin').show();
+
+                let admins = [];
+
+                if (vm.playerQuery.departments) {
+                    if (vm.playerQuery.roles) {
+                        vm.queryRoles.map(e => {
+                            if (e._id && (vm.playerQuery.roles.indexOf(e._id) >= 0)) {
+                                e.users.map(f => admins.push(f.adminName))
+                            }
+                        })
+                    } else {
+                        vm.queryRoles.map(e => e.users.map(f => admins.push(f.adminName)))
+                    }
+                }
+
+                console.log(vm.playerQuery);
+                var sendquery = {
+                    platformId: vm.curPlatformId,
+                    query: {
+                        credibilityRemarks: vm.playerQuery.credibilityRemarks,
+                        playerLevel: vm.playerQuery.level,
+                        providerId: vm.playerQuery.providerId,
+                        start: vm.playerQuery.start.data('datetimepicker').getLocalDate(),
+                        end: vm.playerQuery.end.data('datetimepicker').getLocalDate(),
+                        name: vm.playerQuery.name,
+                        valueScoreOperator: vm.playerQuery.valueScoreOperator,
+                        playerScoreValue: vm.playerQuery.playerScoreValue,
+                        playerScoreValueTwo: vm.playerQuery.playerScoreValueTwo,
+                        consumptionTimesOperator: vm.playerQuery.consumptionTimesOperator,
+                        consumptionTimesValue: vm.playerQuery.consumptionTimesValue,
+                        consumptionTimesValueTwo: vm.playerQuery.consumptionTimesValueTwo,
+                        profitAmountOperator: vm.playerQuery.profitAmountOperator,
+                        profitAmountValue: vm.playerQuery.profitAmountValue,
+                        profitAmountValueTwo: vm.playerQuery.profitAmountValueTwo,
+                        topUpTimesOperator: vm.playerQuery.topUpTimesOperator,
+                        topUpTimesValue: vm.playerQuery.topUpTimesValue,
+                        topUpTimesValueTwo: vm.playerQuery.topUpTimesValueTwo,
+                        bonusTimesOperator: vm.playerQuery.bonusTimesOperator,
+                        bonusTimesValue: vm.playerQuery.bonusTimesValue,
+                        bonusTimesValueTwo: vm.playerQuery.bonusTimesValueTwo,
+                        topUpAmountOperator: vm.playerQuery.topUpAmountOperator,
+                        topUpAmountValue: vm.playerQuery.topUpAmountValue,
+                        topUpAmountValueTwo: vm.playerQuery.topUpAmountValueTwo,
+                        csPromoteWay: vm.playerQuery.csPromoteWay,
+                        admins: vm.playerQuery.admins && vm.playerQuery.admins.length > 0 ? vm.playerQuery.admins : admins,
+                    },
+                    index: 0,
+                    limit: 5000,
+                    sortCol: vm.playerQuery.sortCol || {validConsumptionAmount: -1},
+                };
+                console.log('sendquery', sendquery);
+                socketService.$socket($scope.AppSocket, 'getPlayerReport', sendquery, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('retData', data);
+                        vm.playerQuery.totalCount = data.data.size;
+                        $('#loadingPlayerReportTableSpin').hide();
+
+                        vm.drawPlayerExcelReport(data.data.data.map(item => {
+                            item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
+                            item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
+                            item.manualTopUpAmount$ = parseFloat(item.manualTopUpAmount).toFixed(2);
+                            item.onlineTopUpAmount$ = parseFloat(item.onlineTopUpAmount).toFixed(2);
+                            item.weChatTopUpAmount$ = parseFloat(item.weChatTopUpAmount).toFixed(2);
+                            item.aliPayTopUpAmount$ = parseFloat(item.aliPayTopUpAmount).toFixed(2);
+                            item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
+                            item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                            item.rewardAmount$ = parseFloat(item.rewardAmount).toFixed(2);
+                            item.consumptionReturnAmount$ = parseFloat(item.consumptionReturnAmount).toFixed(2);
+                            item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
+                            item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
+                            item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
+                            item.registrationAgent$ = item.csOfficer || null;
+
+                            item.playerLevel$ = "";
+                            if (vm.playerLvlData[item.playerLevel]) {
+                                item.playerLevel$ = vm.playerLvlData[item.playerLevel].name;
+                            }
+                            else {
+                                item.playerLevel$ = "";
+                            }
+
+                            item.credibility$ = "";
+                            if (item.credibilityRemarks) {
+                                for (let i = 0; i < item.credibilityRemarks.length; i++) {
+                                    for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                        if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                            item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                                        }
+                                    }
+                                }
+                            }
+
+                            item.providerArr = [];
+                            for (var key in item.providerDetail) {
+                                if (item.providerDetail.hasOwnProperty(key)) {
+                                    item.providerDetail[key].providerId = key;
+                                    item.providerArr.push(item.providerDetail[key]);
+                                }
+                            }
+
+                            item.provider$ = "";
+                            if (item.providerDetail) {
+                                for (let i = 0; i < item.providerArr.length; i++) {
+                                    item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
+                                    item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
+                                    item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
+                                    item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                                    for (let j = 0; j < vm.allProviders.length; j++) {
+                                        if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                            item.providerArr[i].name = vm.allProviders[j].name;
+                                            item.provider$ += vm.allProviders[j].name + "<br>";
+                                        }
+                                    }
+                                }
+                            }
+
+                            item.profit$ = 0;
+                            if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0) {
+                                item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
+                            }
+
+                            return item;
+                        }), data.data.total, data.data.size);
+                    });
+                });
+            };
+
+            vm.drawPlayerExcelReport = function (data, total, size) {
+                var tableOptions = {
+                    id: "playerReportExcelTable",
+                    data: data,
+                    "order": vm.playerQuery.aaSorting || [[16, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'name', 'aTargets': [0], bSortable: true},
+                        {'sortCol': 'valueScore', 'aTargets': [1], bSortable: true},
+                        {'sortCol': 'playerLevel', 'aTargets': [2], bSortable: true},
+                        {'sortCol': 'manualTopUpAmount', 'aTargets': [5], bSortable: true},
+                        {'sortCol': 'weChatTopUpAmount', 'aTargets': [6], bSortable: true},
+                        {'sortCol': 'aliPayTopUpAmount', 'aTargets': [7], bSortable: true},
+                        {'sortCol': 'onlineTopUpAmount', 'aTargets': [8], bSortable: true},
+                        {'sortCol': 'topUpTimes', 'aTargets': [9], bSortable: true},
+                        {'sortCol': 'topUpAmount', 'aTargets': [10], bSortable: true},
+                        {'sortCol': 'bonusTimes', 'aTargets': [11], bSortable: true},
+                        {'sortCol': 'bonusAmount', 'aTargets': [12], bSortable: true},
+                        {'sortCol': 'rewardAmount', 'aTargets': [13], bSortable: true},
+                        {'sortCol': 'consumptionReturnAmount', 'aTargets': [14], bSortable: true},
+                        {'sortCol': 'consumptionTimes', 'aTargets': [15], bSortable: true},
+                        {'sortCol': 'validConsumptionAmount', 'aTargets': [16], bSortable: true},
+                        {'sortCol': 'consumptionBonusAmount', 'aTargets': [17], bSortable: true},
+                        {'sortCol': 'consumptionAmount', 'aTargets': [19], bSortable: true},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
+                        {title: $translate('PlayerValue'), data: "valueScore"},
+                        {title: $translate('LEVEL'), data: "playerLevel$"},
+                        {title: $translate('CREDIBILITY'), data: "credibility$"},
+                        {
+                            title: $translate('LOBBY'), data: "provider$", sClass: "expandPlayerReport sumText",
+                            render: function (data) {
+                                return "<a>" + data + "</a>";
+                            }
+                        },
+                        {title: $translate('TOPUPMANUAL'), data: "manualTopUpAmount$", sClass: 'sumFloat alignRight'},
+                        {title: $translate('TOPUP_WECHAT'), data: "weChatTopUpAmount$", sClass: 'sumFloat alignRight'},
+                        {title: $translate('PlayerAlipayTopUp'), data: "aliPayTopUpAmount$", sClass: 'sumFloat alignRight'},
+                        {title: $translate('TOPUPONLINE'), data: "onlineTopUpAmount$", sClass: 'sumFloat alignRight'},
+                        {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes", sClass: 'sumInt alignRight'},
+                        {title: $translate('TOTAL_DEPOSIT'), data: "topUpAmount$", sClass: 'sumFloat alignRight'},
+                        {title: $translate('WITHDRAW_COUNT'), data: "bonusTimes", sClass: 'sumInt alignRight'},
+                        {title: $translate('WITHDRAW_AMOUNT'), data: "bonusAmount$", sClass: 'sumFloat alignRight'},
+                        {title: $translate('PROMOTION'), data: "rewardAmount$", sClass: 'sumFloat alignRight'},
+                        {
+                            title: $translate('CONSUMPTION_RETURN_AMOUNT'),
+                            data: "consumptionReturnAmount$",
+                            sClass: 'sumFloat alignRight'
+                        },
+                        {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: 'sumInt alignRight'},
+                        {
+                            title: $translate('VALID_CONSUMPTION'),
+                            data: "validConsumptionAmount$",
+                            sClass: 'sumFloat alignRight'
+                        },
+                        {
+                            title: $translate('PLAYER_PROFIT_AMOUNT'),
+                            data: "consumptionBonusAmount$",
+                            sClass: 'sumFloat alignRight'
+                        },
+                        {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: 'playerReportProfit alignRight'},
+                        {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: 'sumFloat alignRight'},
+                        {title: $translate('Registration Agent'), data: "registrationAgent$"}
+                    ],
+                    "paging": false,
+                    "language": {
+                        "info": "Total _MAX_ records",
+                        "emptyTable": $translate("No data available in table"),
+                    }
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                if (playerTbl) {
+                    playerTbl.clear();
+                }
+                var playerTbl = utilService.createDatatableWithFooter('#playerReportExcelTable', tableOptions, {
+                    5: total.manualTopUpAmount,
+                    6: total.weChatTopUpAmount,
+                    7: total.aliPayTopUpAmount,
+                    8: total.onlineTopUpAmount,
+                    9: total.topUpTimes,
+                    10: total.topUpAmount,
+                    11: total.bonusTimes,
+                    12: total.bonusAmount,
+                    13: total.rewardAmount,
+                    14: total.consumptionReturnAmount,
+                    15: total.consumptionTimes,
+                    16: total.validConsumptionAmount,
+                    17: total.consumptionBonusAmount,
+                    18: total.profit,
+                    19: total.consumptionAmount
+                });
+
+                $('#playerReportExcelTable_wrapper').hide();
+                vm.exportToExcel('playerReportExcelTable', 'PLAYER_REPORT')
+            };
+
+            /************************************************ Export PLAYER_DEPOSIT_ANALYSIS_REPORT to excel **********************************************/
+            vm.exportPlayerDepositAnalysisReportToExcel = function (newSearch) {
+                $('#loadingPlayerDepositAnalysisReportTableSpin').show();
+                let sendQuery = {
+                    platformId: vm.curPlatformId,
+                    query: {
+                        name: vm.depositAnalysisQuery.name,
+                        credibilityRemarks: vm.depositAnalysisQuery.credibilityRemarks,
+                        valueScoreOperator: vm.depositAnalysisQuery.valueScoreOperator,
+                        playerScoreValue: vm.depositAnalysisQuery.playerScoreValue,
+                        playerScoreValueTwo: vm.depositAnalysisQuery.playerScoreValueTwo,
+                        playerLevel: vm.depositAnalysisQuery.level,
+                        providerId: vm.depositAnalysisQuery.providerId,
+                        start: vm.depositAnalysisQuery.start.data('datetimepicker').getLocalDate(),
+                        end: vm.depositAnalysisQuery.end.data('datetimepicker').getLocalDate(),
+                        dailyTotalDeposit: vm.depositAnalysisQuery.dailyTotalDeposit,
+                        numberOfDays: vm.depositAnalysisQuery.numberOfDays,
+                    },
+                    index: newSearch ? 0 : (vm.depositAnalysisQuery.index || 0),
+                    limit: vm.depositAnalysisQuery.limit || 5000,
+                    sortCol: vm.depositAnalysisQuery.sortCol || {},
+                };
+                console.log('sendQuery', sendQuery);
+                socketService.$socket($scope.AppSocket, 'getPlayerDepositAnalysisReport', sendQuery, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('retData', data);
+                        vm.playerDepositAnalysis = data.data.outputData;
+                        vm.playerDepositAnalysisDays = data.data.days;
+                        vm.depositAnalysisQuery.totalCount = data.data.size;
+                        $('#loadingPlayerDepositAnalysisReportTableSpin').hide();
+
+                        let drawData = data.data.data.map(item => {
+                            let breakLine = ", ";
+                            item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
+                            item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
+                            item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                            item.totalPlayerDepositAmount$ = parseFloat(item.totalPlayerDepositAmount).toFixed(2);
+
+                            item.playerLevel$ = "";
+                            if (vm.playerLvlData[item.playerLevel]) {
+                                item.playerLevel$ = vm.playerLvlData[item.playerLevel].name;
+                            }
+                            else {
+                                item.playerLevel$ = "";
+                            }
+
+                            item.credibility$ = "";
+                            if (item.credibilityRemarks) {
+                                for (let i = 0; i < item.credibilityRemarks.length; i++) {
+                                    for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                        if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                            item.credibility$ += vm.credibilityRemarks[j].name + breakLine;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // remove the last comma and any whitespace after it
+                            item.credibility$ = item.credibility$ ? item.credibility$.replace(/,\s*$/, "") : "--";
+
+                            item.providerArr = [];
+                            for (let key in item.providerDetail) {
+                                if (item.providerDetail.hasOwnProperty(key)) {
+                                    item.providerDetail[key].providerId = key;
+                                    item.providerArr.push(item.providerDetail[key]);
+                                }
+                            }
+
+                            item.provider$ = "";
+                            if (item.providerDetail) {
+                                for (let i = 0; i < item.providerArr.length; i++) {
+                                    item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
+                                    item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
+                                    item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
+                                    item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                                    for (let j = 0; j < vm.allProviders.length; j++) {
+                                        if (item.providerArr[i].providerId.toString() === vm.allProviders[j]._id.toString()) {
+                                            item.providerArr[i].name = vm.allProviders[j].name;
+                                            item.provider$ += vm.allProviders[j].name + breakLine;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // remove the last comma and any whitespace after it
+                            item.provider$ = item.provider$ ? item.provider$.replace(/,\s*$/, "") : "--";
+
+                            return item;
+                        });
+
+                        vm.playerDepositAnalysis.forEach(day => {
+                            day.playerData.forEach(player => {
+                                drawData.forEach(data => {
+                                    if (player._id.toString() === data._id.toString()) {
+                                        player.credibility$ = data.credibility$;
+                                        player.playerLevel$ = data.playerLevel$;
+                                        player.provider$ = data.provider$;
+                                        player.lastAccessTime$ = data.lastAccessTime$;
+                                        player.topUpAmount$ = data.topUpAmount$;
+                                        player.bonusAmount$ = data.bonusAmount$;
+                                        player.totalPlayerDepositAmount$ = data.totalPlayerDepositAmount$;
+                                    }
+                                });
+                                return player;
+                            });
+                            return day;
+                        });
+
+                        // filter out days without player data, will not show empty table
+                        let tempFilter = vm.playerDepositAnalysis.filter(day => {
+                            return day.size !== 0;
+                        });
+                        vm.playerDepositAnalysis = tempFilter;
+
+                        // vm.drawPlayerDepositAnalysisReport(drawData, data.data.total, data.data.size, newSearch);
+                    });
+
+                    for(let i = 0; i <= vm.playerDepositAnalysis.length; i ++){
+                        vm.exportToExcel('playerDepositAnalysisExcelReportTable' + i, 'PLAYER_DEPOSIT_ANALYSIS_REPORT');
+                    }
+
+                    vm.exportToExcel('playerDepositAnalysisExcelReportTable', 'PLAYER_DEPOSIT_ANALYSIS_REPORT');
+                });
+            };
+
+
+            // generate a download for xls
+            vm.exportToExcel = function(tableId, reportName) {
+                var htmls = "";
+                var uri = 'data:application/vnd.ms-excel;base64,';
+                var template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>{table}</table></body></html>';
+                var base64 = function(s) {
+                    return window.btoa(unescape(encodeURIComponent(s)))
+                };
+
+                var format = function(s, c) {
+                    return s.replace(/{(\w+)}/g, function(m, p) {
+                        return c[p];
+                    })
+                };
+
+                let tab = document.getElementById(tableId);
+                let test = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML
+
+                var ctx = {
+                    worksheet : 'Worksheet',
+                    table : test
+                }
+
+
+                var link = document.createElement("a");
+                link.download = reportName ? $translate(reportName)+ ".xls": "FPMS report.xls";
+                link.href = uri + base64(format(template, ctx));
+                link.click();
+            }
         }
 
         function drawReportQuery (choice) {

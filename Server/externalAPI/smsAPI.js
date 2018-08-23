@@ -13,8 +13,8 @@ function callSMSAPI(service, functionName, data){
     }
     var wsClient = serverInstance.getSMSAPIClient();
     if( !wsClient || !wsClient.isOpen() ){
-        // return Q.reject({ status: 400, message: "SMS is not available"});
-        return callSMSNewAPI(service, functionName, data);
+        return Q.reject({ status: 400, message: "SMS is not available"});
+        // return callSMSNewAPI(service, functionName, data);
     }
     return wsClient.callAPIOnce(service, functionName, data);
 };

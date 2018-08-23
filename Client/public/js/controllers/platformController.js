@@ -3069,18 +3069,18 @@ define(['js/app'], function (myApp) {
 
                             vm.includedGamesGroup.push(newObj);
 
-                            if(newObj.bigShow && !newObj.bigShow.includes("http")){
-                                newObj.bigShow = playerRouteSetting + newObj.bigShow;
+                            if(newObj.bigShow){
+                                newObj.bigShow = playerRouteSetting ? playerRouteSetting + newObj.bigShow : (newObj.sourceURL ? newObj.sourceURL + newObj.bigShow : newObj.sourceURL);
                             }
 
-                            if(newObj.smallShow && !newObj.smallShow.includes("http")){
-                                newObj.smallShow = playerRouteSetting + newObj.smallShow;
+                            if(newObj.smallShow){
+                                newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.sourceURL);
                             }
 
                             if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
                                 let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
-                                if(platformCustomImage && !platformCustomImage.includes("http")){
-                                    platformCustomImage = playerRouteSetting + platformCustomImage
+                                if(platformCustomImage){
+                                    platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (newObj.sourceURL ? newObj.sourceURL  + platformCustomImage : platformCustomImage);
                                 }
 
                                 vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, platformCustomImage);
@@ -3655,18 +3655,18 @@ define(['js/app'], function (myApp) {
                             vm.gameStatus[v.game._id] = v.status;
                         }
 
-                        if(newObj.bigShow && !newObj.bigShow.includes("http")){
-                            newObj.bigShow = playerRouteSetting + newObj.bigShow;
+                        if(newObj.bigShow){
+                            newObj.bigShow = playerRouteSetting ? playerRouteSetting + newObj.bigShow : (newObj.sourceURL ? newObj.sourceURL + newObj.bigShow : newObj.sourceURL);
                         }
 
-                        if(newObj.smallShow && !newObj.smallShow.includes("http")){
-                            newObj.smallShow = playerRouteSetting + newObj.smallShow;
+                        if(newObj.smallShow){
+                            newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.sourceURL);
                         }
 
                         if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
                             let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
-                            if(platformCustomImage && !platformCustomImage.includes("http")){
-                                platformCustomImage = playerRouteSetting + platformCustomImage
+                            if(platformCustomImage){
+                                platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (newObj.sourceURL ? newObj.sourceURL  + platformCustomImage : platformCustomImage);
                             }
 
                             vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, platformCustomImage);
@@ -23661,6 +23661,7 @@ define(['js/app'], function (myApp) {
                         proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
                         proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
+                        vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
                         vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                             grossCommission += rawCommission.amount;
                             let str = rawCommission.amount + $translate("YEN") + " "
@@ -23936,6 +23937,7 @@ define(['js/app'], function (myApp) {
                         proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
                         proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
+                        vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
                         vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                             grossCommission += rawCommission.amount;
                             let str = rawCommission.amount + $translate("YEN") + " "
@@ -27098,6 +27100,8 @@ define(['js/app'], function (myApp) {
 
             vm.prepareCredibilityConfig = () => {
                 vm.removedRemarkId = [];
+                vm.setFixedCredibilityRemarks();
+
                 return vm.getCredibilityRemarks().then(
                     () => {
                         let cloneRemarks = vm.credibilityRemarks.slice(0);
@@ -27131,6 +27135,41 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }
                 );
+            };
+
+            vm.setFixedCredibilityRemarks = () => {
+                let fixedRemarks = [
+                    {
+                        name: '电话重复',
+                        score: 0
+                    },
+                    {
+                        name: '注册IP重复',
+                        score: 0
+                    }
+                ];
+
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.data._id,
+                    fixedRemarks: fixedRemarks
+                };
+
+                socketService.$socket($scope.AppSocket, 'setFixedCredibilityRemarks', sendData, function (data) {
+                    console.log('setFixedCredibilityRemarks', data);
+                    vm.getFixedCredibilityRemarks();
+                });
+            };
+
+            vm.getFixedCredibilityRemarks = () => {
+                socketService.$socket($scope.AppSocket, 'getFixedCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
+                    console.log('getFixedCredibilityRemarks', data);
+                    vm.fixedRemarks = [];
+                    if (data && data.data && data.data.length > 0) {
+                        data.data.forEach(remark => {
+                            vm.fixedRemarks.push(remark._id);
+                        });
+                    }
+                });
             };
 
             vm.updateRemarkInEdit = (type, action, data) => {
@@ -30203,6 +30242,17 @@ define(['js/app'], function (myApp) {
                 });
                 remarkSelect.multipleSelect("uncheckAll");
             };
+            vm.setupMultiInputFeedbackTopicFilter = function () {
+                let remarkSelect = $('select#selectFeedbackTopicFilter');
+                remarkSelect.multipleSelect({
+                    showCheckbox: true,
+                    allSelected: $translate("All Selected"),
+                    selectAllText: $translate("Select All"),
+                    displayValues: false,
+                    countSelected: $translate('# of % selected')
+                });
+                remarkSelect.multipleSelect("uncheckAll");
+            };
             vm.setupGameProviderMultiInputFeedback = function () {
                 let gameProviderSelect = $('select#selectGameProvider');
                 gameProviderSelect.multipleSelect({
@@ -32883,6 +32933,8 @@ define(['js/app'], function (myApp) {
                 };
                 utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
                     vm.setupRemarksMultiInputFeedback();
+                    vm.setupRemarksMultiInputFeedbackFilter();
+                    vm.setupMultiInputFeedbackTopicFilter();
                     vm.setupGameProviderMultiInputFeedback();
 
                     $('#autoFeedbackMissionStartTimePicker').datetimepicker({
@@ -32940,6 +32992,8 @@ define(['js/app'], function (myApp) {
 
                 utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
                     vm.setupRemarksMultiInputFeedback();
+                    vm.setupRemarksMultiInputFeedbackFilter();
+                    vm.setupMultiInputFeedbackTopicFilter();
                     vm.setupGameProviderMultiInputFeedback();
                     $('#autoFeedbackMissionStartTimePicker').datetimepicker({
                         language: 'en',
@@ -32966,9 +33020,6 @@ define(['js/app'], function (myApp) {
                         pickTime: true,
                     });
 
-                    // $('select#selectCredibilityRemarkFeedback').multipleSelect("setSelects", vm.autoFeedbackMission.credibilityRemarks);
-                    // $('select#selectCredibilityRemarkFeedback').multipleSelect("setSelects", ["5b56abc62a55c12478a996fc"]);
-
                     vm.autoFeedbackMission = data;
                     $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').setDate(new Date(vm.autoFeedbackMission.missionStartTime));
                     $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').setDate(new Date(vm.autoFeedbackMission.missionEndTime));
@@ -32981,6 +33032,8 @@ define(['js/app'], function (myApp) {
                     vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
 
                     $('select#selectCredibilityRemarkFeedback').multipleSelect('refresh');
+                    $('select#selectCredibilityRemarkFeedbackFilter').multipleSelect('refresh');
+                    $('select#selectFeedbackTopicFilter').multipleSelect('refresh');
                     $('select#selectGameProvider').multipleSelect('refresh');
                 });
             };
