@@ -309,6 +309,7 @@
   "GAME_LOBBY": "Game Lobby",
   "LAST_ACCESS_TILL_NOW": "Last Login (Till Today)",
   "FILTER_FEEDBACK_DAY": "Filter Feedback (day)",
+  "FILTER_FEEDBACK_TOPIC": "Filter Feedback Topic",
   "SEARCH_SINGLE": "Search (Single)",
   "SEARCH_LIST": "Search (List)",
 
@@ -1636,10 +1637,10 @@
   "EDIT_CHILD_PARTNER_INFO_TITLE": "* Only allow 1 partner can be entered per row, and editable. It will be checked dynamically when enter partner:",
   "EDIT_CHILD_PARTNER_INFO_DESCRIPTION_A": "a.Partner Name does not exists(cannot be edited).",
   "EDIT_CHILD_PARTNER_INFO_DESCRIPTION_B": "b.Partner Name already has a parent (cannot be edited, please remove it from the original parent).",
-  "PARTNER_NAME_ALREADY_HAS_A_PARENT": "*此Partner Name already has a parent ",
+  "PARTNER_NAME_ALREADY_HAS_A_PARENT": "* This Partner Name already has a parent ",
   "REMOVE_IT_FROM_THE_ORIGINAL_PARENT": "(cannot be edited, please remove it from the original parent)",
-  "PARTNER_NAME_DOES_NOT_EXISTS": "*Partner Name does not exists(cannot be edited)",
-  "UpdateChildPartner": "编辑下级代理架构",
+  "PARTNER_NAME_DOES_NOT_EXISTS": "* Partner Name does not exists(cannot be edited)",
+  "UpdateChildPartner": "Update Child Partner",
   "curChildPartnerHeadCount": "Before Update Children Partner Head Count",
   "updateChildPartnerHeadCount": "After Update Children Partner Head Count",
   "curChildPartnerName": "Before Update Children Partner Name",
@@ -1655,5 +1656,8 @@
   "CHILD_PARTNER_DOWNLINES": "Child Partner Total Downlines",
   "CHILD_PARTNER_COMMISSION_TYPE": "Child Partner Commission Type",
   "CHILD_PARTNER_TOTAL_WINLOSE": "Child Partner Total Win/Lose",
-  "CHILD_PARTNER_RELATED_PROPOSAL_NO": "Related Child Partner Proposal No."
+  "CHILD_PARTNER_RELATED_PROPOSAL_NO": "Related Child Partner Proposal No.",
+  "FIRST_TIME": "First Time",
+  "SECOND_TIME": "Second Time",
+  "THIRD_TIME": "Third Time"
 }
