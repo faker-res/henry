@@ -972,6 +972,8 @@ let dbPlayerReward = {
 
             return similarRewardProposalProm;
         }).then(rewardProposalData => {
+
+            console.log("checking---YH--rewardProposalData", rewardProposalData)
             requiredDeposit = event.param.requiredTopUpAmount;
             requiredBet = event.param.requiredConsumptionAmount;
             requireBoth = event.param.operatorOption;
@@ -1019,8 +1021,10 @@ let dbPlayerReward = {
 
             // let today = dbUtility.getTodaySGTime();
             let currentDay = dbUtility.getTargetSGTime(startCheckTime);
-            let intervalStartTime = currentDay.startTime; // for dynamic case
-
+            let intervalStartTime = intervalTime.startTime; // for dynamic case
+            console.log("checking---YH--currentDay", currentDay);
+            console.log("checking---YH--today.startTime", today.startTime);
+            
             while (currentDay.startTime <= today.startTime && player) {
                 checkRequirementMeetProms.push(isDayMeetRequirement(event, player, currentDay, requiredBet, requiredDeposit, requireBoth, isCheckToday, intervalStartTime, paramOfLevel));
                 currentDay = dbUtility.getTargetSGTime(currentDay.endTime);
@@ -1029,6 +1033,8 @@ let dbPlayerReward = {
             return Promise.all(checkRequirementMeetProms);
         }).then(checkResults => {
             if (checkResults) {
+
+                console.log("checking---yH --checkResults", checkResults);
                 if (checkResults.length === 1) {
                     let result = checkResults[0];
                     if (result.meetRequirement) {
@@ -1219,6 +1225,7 @@ let dbPlayerReward = {
             }
 
             // for not dynamic case
+            console.log("checking---YH--outputList", outputList)
             if (!event.condition.isDynamicRewardAmount) {
                 for (let i = outputList.length; i < paramOfLevel.length; i++) {
                     let bonus = paramOfLevel[i].rewardAmount;
@@ -5474,6 +5481,8 @@ let dbPlayerReward = {
                         isMultiApplication = true;
                         applyAmount = 0;
 
+                        console.log("checking---YH--rewardSpecificData[0]",rewardSpecificData[0])
+
                         if (!rewardSpecificData || !rewardSpecificData[0]) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
@@ -5513,6 +5522,8 @@ let dbPlayerReward = {
                                 });
                             }
                         }
+
+                        console.log("checking---YH--applicationDetails", applicationDetails)
                         if (applicationDetails && applicationDetails.length < 1) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
