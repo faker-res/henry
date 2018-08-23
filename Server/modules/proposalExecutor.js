@@ -1204,18 +1204,18 @@ var proposalExecutor = {
                         }
 
                         if (proms && proms.length > 0) {
-                            return Q.all(proms);
+                            Q.all(proms).then(
+                                function (data) {
+                                    deferred.resolve(data);
+                                },
+                                function (error) {
+                                    deferred.reject({name: "DBError", message: "Failed to update child partner", error: error});
+                                }
+                            );
                         } else {
                             deferred.reject({name: "DBError", message: "Failed to update child partner", error: error});
                         }
-                    }).then(
-                        function (data) {
-                            deferred.resolve(data);
-                        },
-                        function (error) {
-                            deferred.reject({name: "DBError", message: "Failed to update child partner", error: error});
-                        }
-                    );
+                    });
                 } else {
                     deferred.reject({name: "DBError", message: "Incorrect update child partner proposal data", error: error});
                 }
