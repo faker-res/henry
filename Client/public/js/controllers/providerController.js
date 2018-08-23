@@ -365,7 +365,13 @@ define(['js/app'], function (myApp) {
 
         vm.getProviderGames = function (id) {
             if (!id)return;
-            console.log(id);
+            vm.selectedProviderId = id;
+            vm.uploadImageMsg = "";
+            let imageFile = document.getElementById('gameProviderImageUploader');
+            if(imageFile && imageFile.value){
+                imageFile.value = "";
+            }
+            console.log('selectedProviderId', id);
             $('#loadingProviderGames').removeClass('hidden');
 
             var query = {
@@ -407,14 +413,14 @@ define(['js/app'], function (myApp) {
                             }
 
                             playerRouteSetting = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.playerRouteSetting ?
-                                vm.selectedPlatform.data.playerRouteSetting : "";
+                            vm.selectedPlatform.data.playerRouteSetting : "";
 
                             if(game.bigShow){
-                                game.bigShow = playerRouteSetting ? playerRouteSetting + game.bigShow : (game.sourceURL ? game.sourceURL + game.bigShow : game.sourceURL);
+                                game.bigShow = playerRouteSetting ? playerRouteSetting + game.bigShow : (game.sourceURL ? game.sourceURL + game.bigShow : game.bigShow);
                             }
 
                             if(game.smallShow){
-                                game.smallShow = playerRouteSetting ? playerRouteSetting + game.smallShow : (game.sourceURL ? game.sourceURL + game.smallShow : game.sourceURL);
+                                game.smallShow = playerRouteSetting ? playerRouteSetting + game.smallShow : (game.sourceURL ? game.sourceURL + game.smallShow : game.smallShow);
                             }
 
                             if(game.images && game.images.hasOwnProperty(platformId)){
@@ -428,25 +434,6 @@ define(['js/app'], function (myApp) {
                                 game.bigShow$ = processImgAddr(game.bigShow);
                             }
                         }
-                        vm.allGames.forEach(game => {
-                            if(game){
-                                if(game.changedName && game.changedName.hasOwnProperty(platformId)){
-                                    game.name$ = game.changedName[platformId] || game.name;
-                                    game.isDefaultName = game.changedName[platformId] && game.changedName[platformId] != ''
-                                        ? false : true;
-                                }else{
-                                    game.name$ = game.name;
-                                    game.isDefaultName = true;
-                                }
-
-                                if(game.images && game.images.hasOwnProperty(platformId)){
-                                    let platformCustomImage = game.images[platformId] || game.bigShow;
-                                    game.bigShow$ = processImgAddr(platformCustomImage);
-                                }else{
-                                    game.bigShow$ = processImgAddr(game.bigShow);
-                                }
-                            }
-                        })
                     });
                     vm.filterAllGames = $.extend([], vm.allGames);
                     console.log('vm.allGames', vm.allGames);
@@ -477,8 +464,37 @@ define(['js/app'], function (myApp) {
             vm.selectedGameBlock = {};
             vm.selectedGameBlock[i] = true;
             vm.showGame = v;
+            vm.uploadImageMsg = "";
+            let imageFile = document.getElementById('gameProviderImageUploader');
+            if(imageFile && imageFile.value){
+                imageFile.value = "";
+            }
             console.log(i, v);
-        }
+        };
+
+        vm.updateImageUrl = function(uploaderName){
+            let imageFile = document.getElementById(uploaderName);
+            if(imageFile.files.length > 0){
+                let platformId = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.platformId
+                    ? vm.selectedPlatform.data.platformId : null;
+                let fileName = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0].name || null;
+                let fileData = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0] || null;
+                let sendQuery = {
+                    query: {
+                        platformId: platformId,
+                        gameId: vm.showGame.gameId || null,
+                        gameName: fileName || null
+                    },
+                    fileData: fileData
+                };
+                $scope.$socketPromise("updateImageUrl", sendQuery);
+                alert($translate('Upload Successful'));
+                vm.getProviderGames(vm.selectedProviderId);
+            }else{
+                vm.uploadImageMsg = "Please choose an image first";
+            }
+        };
+
         vm.changeGameStatus = function (which, value) {
             vm.curStatusGame = which;
             vm.curStatusGame.targetStatus = value;

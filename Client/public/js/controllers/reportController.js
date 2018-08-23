@@ -8476,7 +8476,360 @@ define(['js/app'], function (myApp) {
                 $('#financialPointsExcelTable_wrapper').hide();
 
                 vm.exportToExcel('financialPointsExcelTable', "FINANCIAL_POINTS_REPORT")
-            }
+            };
+
+            /************************************************ Export PLAYER_REPORT to excel **********************************************/
+            vm.exportPlayerReportToExcel = function () {
+                $('#loadingPlayerReportTableSpin').show();
+
+                let admins = [];
+
+                if (vm.playerQuery.departments) {
+                    if (vm.playerQuery.roles) {
+                        vm.queryRoles.map(e => {
+                            if (e._id && (vm.playerQuery.roles.indexOf(e._id) >= 0)) {
+                                e.users.map(f => admins.push(f.adminName))
+                            }
+                        })
+                    } else {
+                        vm.queryRoles.map(e => e.users.map(f => admins.push(f.adminName)))
+                    }
+                }
+
+                console.log(vm.playerQuery);
+                var sendquery = {
+                    platformId: vm.curPlatformId,
+                    query: {
+                        credibilityRemarks: vm.playerQuery.credibilityRemarks,
+                        playerLevel: vm.playerQuery.level,
+                        providerId: vm.playerQuery.providerId,
+                        start: vm.playerQuery.start.data('datetimepicker').getLocalDate(),
+                        end: vm.playerQuery.end.data('datetimepicker').getLocalDate(),
+                        name: vm.playerQuery.name,
+                        valueScoreOperator: vm.playerQuery.valueScoreOperator,
+                        playerScoreValue: vm.playerQuery.playerScoreValue,
+                        playerScoreValueTwo: vm.playerQuery.playerScoreValueTwo,
+                        consumptionTimesOperator: vm.playerQuery.consumptionTimesOperator,
+                        consumptionTimesValue: vm.playerQuery.consumptionTimesValue,
+                        consumptionTimesValueTwo: vm.playerQuery.consumptionTimesValueTwo,
+                        profitAmountOperator: vm.playerQuery.profitAmountOperator,
+                        profitAmountValue: vm.playerQuery.profitAmountValue,
+                        profitAmountValueTwo: vm.playerQuery.profitAmountValueTwo,
+                        topUpTimesOperator: vm.playerQuery.topUpTimesOperator,
+                        topUpTimesValue: vm.playerQuery.topUpTimesValue,
+                        topUpTimesValueTwo: vm.playerQuery.topUpTimesValueTwo,
+                        bonusTimesOperator: vm.playerQuery.bonusTimesOperator,
+                        bonusTimesValue: vm.playerQuery.bonusTimesValue,
+                        bonusTimesValueTwo: vm.playerQuery.bonusTimesValueTwo,
+                        topUpAmountOperator: vm.playerQuery.topUpAmountOperator,
+                        topUpAmountValue: vm.playerQuery.topUpAmountValue,
+                        topUpAmountValueTwo: vm.playerQuery.topUpAmountValueTwo,
+                        csPromoteWay: vm.playerQuery.csPromoteWay,
+                        admins: vm.playerQuery.admins && vm.playerQuery.admins.length > 0 ? vm.playerQuery.admins : admins,
+                    },
+                    index: 0,
+                    limit: 5000,
+                    sortCol: vm.playerQuery.sortCol || {validConsumptionAmount: -1},
+                };
+                console.log('sendquery', sendquery);
+                socketService.$socket($scope.AppSocket, 'getPlayerReport', sendquery, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('retData', data);
+                        vm.playerQuery.totalCount = data.data.size;
+                        $('#loadingPlayerReportTableSpin').hide();
+
+                        vm.drawPlayerExcelReport(data.data.data.map(item => {
+                            item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
+                            item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
+                            item.manualTopUpAmount$ = parseFloat(item.manualTopUpAmount).toFixed(2);
+                            item.onlineTopUpAmount$ = parseFloat(item.onlineTopUpAmount).toFixed(2);
+                            item.weChatTopUpAmount$ = parseFloat(item.weChatTopUpAmount).toFixed(2);
+                            item.aliPayTopUpAmount$ = parseFloat(item.aliPayTopUpAmount).toFixed(2);
+                            item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
+                            item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                            item.rewardAmount$ = parseFloat(item.rewardAmount).toFixed(2);
+                            item.consumptionReturnAmount$ = parseFloat(item.consumptionReturnAmount).toFixed(2);
+                            item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
+                            item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
+                            item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
+                            item.registrationAgent$ = item.csOfficer || null;
+
+                            item.playerLevel$ = "";
+                            if (vm.playerLvlData[item.playerLevel]) {
+                                item.playerLevel$ = vm.playerLvlData[item.playerLevel].name;
+                            }
+                            else {
+                                item.playerLevel$ = "";
+                            }
+
+                            item.credibility$ = "";
+                            if (item.credibilityRemarks) {
+                                for (let i = 0; i < item.credibilityRemarks.length; i++) {
+                                    for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                        if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                            item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                                        }
+                                    }
+                                }
+                            }
+
+                            item.providerArr = [];
+                            for (var key in item.providerDetail) {
+                                if (item.providerDetail.hasOwnProperty(key)) {
+                                    item.providerDetail[key].providerId = key;
+                                    item.providerArr.push(item.providerDetail[key]);
+                                }
+                            }
+
+                            item.provider$ = "";
+                            if (item.providerDetail) {
+                                for (let i = 0; i < item.providerArr.length; i++) {
+                                    item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
+                                    item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
+                                    item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
+                                    item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                                    for (let j = 0; j < vm.allProviders.length; j++) {
+                                        if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                            item.providerArr[i].name = vm.allProviders[j].name;
+                                            item.provider$ += vm.allProviders[j].name + "<br>";
+                                        }
+                                    }
+                                }
+                            }
+
+                            item.profit$ = 0;
+                            if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0) {
+                                item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
+                            }
+
+                            return item;
+                        }), data.data.total, data.data.size);
+                    });
+                });
+            };
+
+            vm.drawPlayerExcelReport = function (data, total, size) {
+                var tableOptions = {
+                    id: "playerReportExcelTable",
+                    data: data,
+                    "order": vm.playerQuery.aaSorting || [[16, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'name', 'aTargets': [0], bSortable: true},
+                        {'sortCol': 'valueScore', 'aTargets': [1], bSortable: true},
+                        {'sortCol': 'playerLevel', 'aTargets': [2], bSortable: true},
+                        {'sortCol': 'manualTopUpAmount', 'aTargets': [5], bSortable: true},
+                        {'sortCol': 'weChatTopUpAmount', 'aTargets': [6], bSortable: true},
+                        {'sortCol': 'aliPayTopUpAmount', 'aTargets': [7], bSortable: true},
+                        {'sortCol': 'onlineTopUpAmount', 'aTargets': [8], bSortable: true},
+                        {'sortCol': 'topUpTimes', 'aTargets': [9], bSortable: true},
+                        {'sortCol': 'topUpAmount', 'aTargets': [10], bSortable: true},
+                        {'sortCol': 'bonusTimes', 'aTargets': [11], bSortable: true},
+                        {'sortCol': 'bonusAmount', 'aTargets': [12], bSortable: true},
+                        {'sortCol': 'rewardAmount', 'aTargets': [13], bSortable: true},
+                        {'sortCol': 'consumptionReturnAmount', 'aTargets': [14], bSortable: true},
+                        {'sortCol': 'consumptionTimes', 'aTargets': [15], bSortable: true},
+                        {'sortCol': 'validConsumptionAmount', 'aTargets': [16], bSortable: true},
+                        {'sortCol': 'consumptionBonusAmount', 'aTargets': [17], bSortable: true},
+                        {'sortCol': 'consumptionAmount', 'aTargets': [19], bSortable: true},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
+                        {title: $translate('PlayerValue'), data: "valueScore"},
+                        {title: $translate('LEVEL'), data: "playerLevel$"},
+                        {title: $translate('CREDIBILITY'), data: "credibility$"},
+                        {
+                            title: $translate('LOBBY'), data: "provider$", sClass: "expandPlayerReport sumText",
+                            render: function (data) {
+                                return "<a>" + data + "</a>";
+                            }
+                        },
+                        {title: $translate('TOPUPMANUAL'), data: "manualTopUpAmount$", sClass: 'sumFloat alignRight'},
+                        {title: $translate('TOPUP_WECHAT'), data: "weChatTopUpAmount$", sClass: 'sumFloat alignRight'},
+                        {title: $translate('PlayerAlipayTopUp'), data: "aliPayTopUpAmount$", sClass: 'sumFloat alignRight'},
+                        {title: $translate('TOPUPONLINE'), data: "onlineTopUpAmount$", sClass: 'sumFloat alignRight'},
+                        {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes", sClass: 'sumInt alignRight'},
+                        {title: $translate('TOTAL_DEPOSIT'), data: "topUpAmount$", sClass: 'sumFloat alignRight'},
+                        {title: $translate('WITHDRAW_COUNT'), data: "bonusTimes", sClass: 'sumInt alignRight'},
+                        {title: $translate('WITHDRAW_AMOUNT'), data: "bonusAmount$", sClass: 'sumFloat alignRight'},
+                        {title: $translate('PROMOTION'), data: "rewardAmount$", sClass: 'sumFloat alignRight'},
+                        {
+                            title: $translate('CONSUMPTION_RETURN_AMOUNT'),
+                            data: "consumptionReturnAmount$",
+                            sClass: 'sumFloat alignRight'
+                        },
+                        {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: 'sumInt alignRight'},
+                        {
+                            title: $translate('VALID_CONSUMPTION'),
+                            data: "validConsumptionAmount$",
+                            sClass: 'sumFloat alignRight'
+                        },
+                        {
+                            title: $translate('PLAYER_PROFIT_AMOUNT'),
+                            data: "consumptionBonusAmount$",
+                            sClass: 'sumFloat alignRight'
+                        },
+                        {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: 'playerReportProfit alignRight'},
+                        {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: 'sumFloat alignRight'},
+                        {title: $translate('Registration Agent'), data: "registrationAgent$"}
+                    ],
+                    "paging": false,
+                    "language": {
+                        "info": "Total _MAX_ records",
+                        "emptyTable": $translate("No data available in table"),
+                    }
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                if (playerTbl) {
+                    playerTbl.clear();
+                }
+                var playerTbl = utilService.createDatatableWithFooter('#playerReportExcelTable', tableOptions, {
+                    5: total.manualTopUpAmount,
+                    6: total.weChatTopUpAmount,
+                    7: total.aliPayTopUpAmount,
+                    8: total.onlineTopUpAmount,
+                    9: total.topUpTimes,
+                    10: total.topUpAmount,
+                    11: total.bonusTimes,
+                    12: total.bonusAmount,
+                    13: total.rewardAmount,
+                    14: total.consumptionReturnAmount,
+                    15: total.consumptionTimes,
+                    16: total.validConsumptionAmount,
+                    17: total.consumptionBonusAmount,
+                    18: total.profit,
+                    19: total.consumptionAmount
+                });
+
+                $('#playerReportExcelTable_wrapper').hide();
+                vm.exportToExcel('playerReportExcelTable', 'PLAYER_REPORT')
+            };
+
+            /************************************************ Export PLAYER_DEPOSIT_ANALYSIS_REPORT to excel **********************************************/
+            vm.exportPlayerDepositAnalysisReportToExcel = function (newSearch) {
+                $('#loadingPlayerDepositAnalysisReportTableSpin').show();
+                let sendQuery = {
+                    platformId: vm.curPlatformId,
+                    query: {
+                        name: vm.depositAnalysisQuery.name,
+                        credibilityRemarks: vm.depositAnalysisQuery.credibilityRemarks,
+                        valueScoreOperator: vm.depositAnalysisQuery.valueScoreOperator,
+                        playerScoreValue: vm.depositAnalysisQuery.playerScoreValue,
+                        playerScoreValueTwo: vm.depositAnalysisQuery.playerScoreValueTwo,
+                        playerLevel: vm.depositAnalysisQuery.level,
+                        providerId: vm.depositAnalysisQuery.providerId,
+                        start: vm.depositAnalysisQuery.start.data('datetimepicker').getLocalDate(),
+                        end: vm.depositAnalysisQuery.end.data('datetimepicker').getLocalDate(),
+                        dailyTotalDeposit: vm.depositAnalysisQuery.dailyTotalDeposit,
+                        numberOfDays: vm.depositAnalysisQuery.numberOfDays,
+                    },
+                    index: newSearch ? 0 : (vm.depositAnalysisQuery.index || 0),
+                    limit: vm.depositAnalysisQuery.limit || 5000,
+                    sortCol: vm.depositAnalysisQuery.sortCol || {},
+                };
+                console.log('sendQuery', sendQuery);
+                socketService.$socket($scope.AppSocket, 'getPlayerDepositAnalysisReport', sendQuery, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('retData', data);
+                        vm.playerDepositAnalysis = data.data.outputData;
+                        vm.playerDepositAnalysisDays = data.data.days;
+                        vm.depositAnalysisQuery.totalCount = data.data.size;
+                        $('#loadingPlayerDepositAnalysisReportTableSpin').hide();
+
+                        let drawData = data.data.data.map(item => {
+                            let breakLine = ", ";
+                            item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
+                            item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
+                            item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                            item.totalPlayerDepositAmount$ = parseFloat(item.totalPlayerDepositAmount).toFixed(2);
+
+                            item.playerLevel$ = "";
+                            if (vm.playerLvlData[item.playerLevel]) {
+                                item.playerLevel$ = vm.playerLvlData[item.playerLevel].name;
+                            }
+                            else {
+                                item.playerLevel$ = "";
+                            }
+
+                            item.credibility$ = "";
+                            if (item.credibilityRemarks) {
+                                for (let i = 0; i < item.credibilityRemarks.length; i++) {
+                                    for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                        if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                            item.credibility$ += vm.credibilityRemarks[j].name + breakLine;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // remove the last comma and any whitespace after it
+                            item.credibility$ = item.credibility$ ? item.credibility$.replace(/,\s*$/, "") : "--";
+
+                            item.providerArr = [];
+                            for (let key in item.providerDetail) {
+                                if (item.providerDetail.hasOwnProperty(key)) {
+                                    item.providerDetail[key].providerId = key;
+                                    item.providerArr.push(item.providerDetail[key]);
+                                }
+                            }
+
+                            item.provider$ = "";
+                            if (item.providerDetail) {
+                                for (let i = 0; i < item.providerArr.length; i++) {
+                                    item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
+                                    item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
+                                    item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
+                                    item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                                    for (let j = 0; j < vm.allProviders.length; j++) {
+                                        if (item.providerArr[i].providerId.toString() === vm.allProviders[j]._id.toString()) {
+                                            item.providerArr[i].name = vm.allProviders[j].name;
+                                            item.provider$ += vm.allProviders[j].name + breakLine;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // remove the last comma and any whitespace after it
+                            item.provider$ = item.provider$ ? item.provider$.replace(/,\s*$/, "") : "--";
+
+                            return item;
+                        });
+
+                        vm.playerDepositAnalysis.forEach(day => {
+                            day.playerData.forEach(player => {
+                                drawData.forEach(data => {
+                                    if (player._id.toString() === data._id.toString()) {
+                                        player.credibility$ = data.credibility$;
+                                        player.playerLevel$ = data.playerLevel$;
+                                        player.provider$ = data.provider$;
+                                        player.lastAccessTime$ = data.lastAccessTime$;
+                                        player.topUpAmount$ = data.topUpAmount$;
+                                        player.bonusAmount$ = data.bonusAmount$;
+                                        player.totalPlayerDepositAmount$ = data.totalPlayerDepositAmount$;
+                                    }
+                                });
+                                return player;
+                            });
+                            return day;
+                        });
+
+                        // filter out days without player data, will not show empty table
+                        let tempFilter = vm.playerDepositAnalysis.filter(day => {
+                            return day.size !== 0;
+                        });
+                        vm.playerDepositAnalysis = tempFilter;
+
+                        // vm.drawPlayerDepositAnalysisReport(drawData, data.data.total, data.data.size, newSearch);
+                    });
+
+                    for(let i = 0; i <= vm.playerDepositAnalysis.length; i ++){
+                        vm.exportToExcel('playerDepositAnalysisExcelReportTable' + i, 'PLAYER_DEPOSIT_ANALYSIS_REPORT');
+                    }
+
+                    vm.exportToExcel('playerDepositAnalysisExcelReportTable', 'PLAYER_DEPOSIT_ANALYSIS_REPORT');
+                });
+            };
+
 
             // generate a download for xls
             vm.exportToExcel = function(tableId, reportName) {

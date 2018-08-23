@@ -15500,11 +15500,13 @@ define(['js/app'], function (myApp) {
 
                 console.log('sendData',sendData);
                 socketService.$socket($scope.AppSocket, 'updateChildPartner', sendData, function (data) {
-                    console.log('sent', data);
-                    if (data.data && data.data.stepInfo) {
-                        socketService.showProposalStepInfo(data.data.stepInfo, $translate);
-                    }
-                    vm.getPlatformPartnersData();
+                    $scope.$evalAsync(() => {
+                        console.log('sent', data);
+                        if (data.data && data.data.stepInfo) {
+                            socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                        }
+                        vm.getPlatformPartnersData();
+                    });
                 }, function (err) {
                     console.log('err',err);
                 });

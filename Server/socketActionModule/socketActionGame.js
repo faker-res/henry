@@ -181,6 +181,12 @@ function socketActionGame(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.gameObjId && data.platformObjId);
             socketUtil.emitter(self.socket, dbGame.renameGame, [data.platformObjId, data.gameObjId, data.customName], actionName, isValidData);
+        },
+
+        updateImageUrl: function updateImageUrl(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.fileData && data.query.platformId && data.query.gameId && data.query.gameName);
+            socketUtil.emitter(self.socket, dbGame.updateImageUrl, [data.query, data.fileData], actionName, isValidData);
         }
     };
     socketActionGame.actions = this.actions;
