@@ -2713,6 +2713,8 @@ var dbPlayerTopUpRecord = {
                                 let aliProposal = res[1];
                                 let bValid = false;
                                 let maxDeposit = 0;
+                                let minDeposit = 0;
+
                                 if (String(bPMSGroup) == "true") {
                                     if (alipays.data) {
                                         if (playerData.permission.alipayTransaction && alipays.data.valid) {
@@ -2720,6 +2722,9 @@ var dbPlayerTopUpRecord = {
                                         }
                                         if (alipays.data.hasOwnProperty("maxDepositAmount")) {
                                             maxDeposit = alipays.data.maxDepositAmount;
+                                        }
+                                        if (alipays.data.hasOwnProperty("minDepositAmount")) {
+                                            minDeposit = alipays.data.minDepositAmount;
                                         }
                                     }
                                 } else {
@@ -2733,6 +2738,7 @@ var dbPlayerTopUpRecord = {
                                                                 bValid = true;
                                                             }
                                                             maxDeposit = alipay.singleLimit > maxDeposit ? alipay.singleLimit : maxDeposit;
+                                                            minDeposit = alipay.minDepositAmount > minDeposit ? alipay.minDepositAmount : minDeposit;
                                                         }
                                                     }
                                                 );
@@ -2744,6 +2750,7 @@ var dbPlayerTopUpRecord = {
                                     bValid = {
                                         valid: bValid,
                                         maxDepositAmount: maxDeposit,
+                                        minDepositAmount: minDeposit,
                                         lastNicknameOrAccount: aliProposal && aliProposal.data && aliProposal.data.userAlipayName? aliProposal.data.userAlipayName: ""
                                     };
                                 }
