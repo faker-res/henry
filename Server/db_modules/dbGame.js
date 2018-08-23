@@ -486,7 +486,7 @@ var dbGame = {
                                 } else {
                                     game.platformGameStatus = 5;
                                 }
-                                return pData;
+                                return game;
                             })
                         proms.push(prom);
                     });
