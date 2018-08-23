@@ -225,11 +225,11 @@ define(['js/app'], function (myApp) {
                 //for (var i = 0; i < finalNodeTree[0].nodes.length; i++) {
                 //    buildSubTreeForNode(finalNodeTree[0].nodes[i]);
                 //}
-
+                let count = 0;
                 //build tree for passed in node
                 function buildSubTreeForNode(rootNode) {
                     // console.log("rootNode", rootNode);
-                    if (rootNode) {
+                    if (rootNode && count < 500) {
                         var counter = (rootNode.departData && rootNode.departData.users) ? rootNode.departData.users.length : 0;
                         vm.userCountArray[rootNode.id] = counter;
                         if (rootNode.children) {
@@ -242,6 +242,7 @@ define(['js/app'], function (myApp) {
                         vm.userCountArray[rootNode.id] = counter;
                         rootNode.tags.push('<i class="fa fa-user"></i>' + counter);
                     }
+                    count++;
                 }
 
                 vm.departmentTree = finalNodeTree;
