@@ -496,6 +496,11 @@ define([], function () {
                 // Special variable for promo code
                 let totalPromoCode = 0;
                 let totalAcceptedPromoCode = 0;
+                //special variable for consumptionModeReport
+                let totalBetTypeConsumption = 0;
+                let selectedBetTypeConsumption = 0;
+                let totalBetTypeCount = 0;
+                let selectedBetTypeCount = 0;
 
                 api.columns().every(function (i, v) {
                     var classes = (this.nodes() && this.nodes()[0]) ? this.nodes()[0].className : '';
@@ -516,6 +521,12 @@ define([], function () {
                         pageValue = getFloat(pageValue).toFixed(2);
                         htmlStr = gethtmlStr(pageValue, totalValue);
 
+                        //special handling for consumptionModeReport
+                        if (i == 2) {
+                            selectedBetTypeConsumption = pageValue;
+                        } else if (i == 3) {
+                            totalBetTypeConsumption = pageValue;
+                        }
                         // Special handling for dxNewPlayerReport
                         if (i == 16) {
                             totalConsumption = pageValue;
@@ -536,6 +547,32 @@ define([], function () {
                             totalWinLoss = totalValue;
                             consumptionBonusAmount = pageValue;
                         }
+                    } else if (classes.indexOf('betAmtPercent') > -1) {
+                        //consumptionModeReport
+                        if (sumData && sumData[i]) {
+                            totalValue = sumData[i]
+                        } else {
+                            totalValue = api.column(i).data().reduce(function (a, b) {
+                                return getFloat(a) + getFloat(b);
+                            })
+                        }
+                        pageValue = selectedBetTypeConsumption / totalBetTypeConsumption * 100;
+                        totalValue = getFloat(totalValue).toFixed(2);
+                        pageValue = getFloat(pageValue).toFixed(2);
+                        htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
+                    } else if (classes.indexOf('betCountPercent') > -1) {
+                        //consumptionModeReport
+                        if (sumData && sumData[i]) {
+                            totalValue = sumData[i]
+                        } else {
+                            totalValue = api.column(i).data().reduce(function (a, b) {
+                                return getFloat(a) + getFloat(b);
+                            })
+                        }
+                        pageValue = selectedBetTypeCount / totalBetTypeCount * 100;
+                        totalValue = getFloat(totalValue).toFixed(2);
+                        pageValue = getFloat(pageValue).toFixed(2);
+                        htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
                     } else if (classes.indexOf('playerReportProfit') > -1) {
                         if (sumData && sumData[i]) {
                             totalValue = sumData[i]
@@ -605,6 +642,12 @@ define([], function () {
                             totalPromoCode = pageValue;
                         } else if (i == 2) {
                             totalAcceptedPromoCode = pageValue;
+                        }
+                        //special handling for consumptionModeReport
+                        if (i == 6) {
+                            selectedBetTypeCount = pageValue;
+                        } else if (i == 7) {
+                            totalBetTypeCount = pageValue;
                         }
                     } else if (classes.indexOf('sumText') > -1) {
                         htmlStr = gethtmlStr($trans('Page Total'), $trans('All Pages'));

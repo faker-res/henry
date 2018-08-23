@@ -162,6 +162,38 @@
             #financialPointsTablePage
             table.common-table#financialPointsExcelTable.display(style="width:100%;overflow: scroll;max-height:700px")
 
+        div(ng-if='vm.showPageName=="CONSUMPTION_MODE_REPORT"')
+            #consumptionModeReportQuery.block-query.col-md-12.well
+                div
+                    label(style='width:150px;') {{"Game Type"|translate}}
+                    select.form-control(ng-model="vm.consumptionModeQuery.gameProvider" ng-change="vm.dynamicGameType()")
+                        option(ng-repeat="(i,v) in vm.allGameProviders" value="{{v}}") {{v.name}}
+
+                div
+                    label(style='width:150px;') {{"GAME_TYPE"|translate}}
+                    select.form-control(ng-model="vm.consumptionModeQuery.gameType" ng-change="vm.dynamicBetType()")
+                        option(ng-repeat="(i,v) in vm.providerGameType" value="{{v}}") {{v.gameType}}
+                div
+                    label(style='width:150px;') {{"betType"|translate}}
+                    select.form-control#selectBetType(multiple="multiple", ng-model='cbc')
+                        option(ng-repeat="(i,v) in vm.gameBetType" value="{{v}}") {{v}}
+                div
+                    label {{"Start date"|translate}}
+                    .startTime
+                div
+                    label {{"End date"|translate}}
+                    .endTime
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchConsumptionModeRecord(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
+                    span#consumptionModeTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+            label {{"Total" | translate}} {{vm.consumptionModeQuery.totalCount}} {{"records" | translate}}
+            table.common-table#consumptionModeTable.display(style="width:100%;overflow: scroll;max-height:700px")
+            #consumptionModeTablePage
+
         div(ng-if='vm.showPageName=="PROVIDER_REPORT"')
             //提供商报表
             #operationReportQuery.block-query.col-md-12.well

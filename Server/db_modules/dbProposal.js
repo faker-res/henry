@@ -3305,6 +3305,162 @@ var proposal = {
         )
     },
 
+    getConsumptionModeReport: function (reqData, index, count, sortObj) {
+        sortObj = sortObj || {};
+
+        let consumpQuery = {
+            platformId: reqData.platformId,
+            createTime: {
+                $gte: reqData.startTime,
+                $lt: reqData.endTime
+            }
+        }
+
+        if (reqData.providerId) {
+            consumpQuery.providerId = reqData.providerId
+        }
+        if (reqData.cpGameType) {
+            consumpQuery.cpGameType = reqData.cpGameType
+        }
+        // if (reqData.betType && reqData.betType.length) {
+        //     consumpQuery.$or = [{betType: {$in: reqData.betType}}, {"betDetails.separatedBetType": {$in: reqData.betType}}]
+        // }
+
+        let recordSizeQuery = JSON.parse(JSON.stringify(consumpQuery));
+        recordSizeQuery["betDetails.separatedBetType"] = {$in: reqData.betType};
+        let recordSize = dbconfig.collection_playerConsumptionRecord.distinct("playerId", recordSizeQuery)
+        let recordData = dbconfig.collection_playerConsumptionRecord.aggregate([
+            {$match: consumpQuery},
+            {
+                $project: {
+                    _id: 1,
+                    playerId: 1,
+                    bonusAmount: 1,
+                    amount: 1,
+                    betDetails: 1,
+                    totalBetCount: {$size:"$betDetails"}
+                }
+            },
+            {
+                $unwind: "$betDetails"
+            },
+            {$match: {
+                    "betDetails.separatedBetType": {$in: reqData.betType}
+                }},
+            {
+                $group: {
+                    _id: {"_id":"$_id","playerId":"$playerId"},
+                    selectedBetTypeCount: {$sum: 1},
+                    selectedBetTypeAmt: {$sum: "$betDetails.separatedBetAmount"},
+                    totalBetCount: {$first: "$totalBetCount"},
+                    totalBetAmt: {$first: "$amount"},
+                    bonusAmount: {$first: "$bonusAmount"},
+                }
+            },
+            {
+                $group: {
+                    _id: "$_id.playerId",
+                    selectedBetTypeCount: {$sum: "$selectedBetTypeCount"},
+                    selectedBetTypeAmt: {$sum: "$selectedBetTypeAmt"},
+                    totalBetCount: {$sum: "$totalBetCount"},
+                    totalBetAmt: {$sum: "$totalBetAmt"},
+                    bonusAmount: {$sum: "$bonusAmount"},
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    selectedBetTypeCount: 1,
+                    selectedBetTypeAmt: 1,
+                    totalBetCount: 1,
+                    totalBetAmt: 1,
+                    bonusAmount: 1,
+                    betCountPercent: {$divide:["$selectedBetTypeCount","$totalBetCount"]},
+                    betAmtPercent: {$divide:["$selectedBetTypeAmt","$totalBetAmt"]}
+                }
+            },
+            { $sort : sortObj},
+            {$skip: index},
+            { $limit : count}
+        ]).read("secondaryPreferred").then(
+            consumptionData => {
+                return dbconfig.collection_players.populate(consumptionData, {
+                    path: '_id',
+                    model: dbconfig.collection_players,
+                    select: "name"
+                })
+            }
+        )
+
+        let recordSummary = dbconfig.collection_playerConsumptionRecord.aggregate([
+            {
+                $match: consumpQuery
+            },
+            {
+                $project: {
+                    _id: 1,
+                    playerId: 1,
+                    bonusAmount: 1,
+                    amount: 1,
+                    betDetails: 1,
+                    totalBetCount: {$size:"$betDetails"}
+                }
+            },
+            {
+                $unwind: "$betDetails"
+            },
+            {$match: {
+                    "betDetails.separatedBetType": {$in: reqData.betType}
+                }},
+            {
+                $group: {
+                    _id: {"_id":"$_id","playerId":"$playerId"},
+                    selectedBetTypeCount: {$sum: 1},
+                    selectedBetTypeAmt: {$sum: "$betDetails.separatedBetAmount"},
+                    totalBetCount: {$first: "$totalBetCount"},
+                    totalBetAmt: {$first: "$amount"},
+                    bonusAmount: {$first: "$bonusAmount"},
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    selectedBetTypeCount: {$sum: "$selectedBetTypeCount"},
+                    selectedBetTypeAmt: {$sum: "$selectedBetTypeAmt"},
+                    totalBetCount: {$sum: "$totalBetCount"},
+                    totalBetAmt: {$sum: "$totalBetAmt"},
+                    bonusAmount: {$sum: "$bonusAmount"},
+                }
+            },
+            {
+                $project: {
+                    selectedBetTypeCount: 1,
+                    selectedBetTypeAmt: 1,
+                    totalBetCount: 1,
+                    totalBetAmt: 1,
+                    bonusAmount: 1,
+                    betCountPercent: {$divide:["$selectedBetTypeCount","$totalBetCount"]},
+                    betAmtPercent: {$divide:["$selectedBetTypeAmt","$totalBetAmt"]}
+                }
+            },
+        ]).read("secondaryPreferred");
+
+        return Promise.all([recordSize, recordData, recordSummary]).then(
+            data => {
+                if (!(data && data[1] && data[2])) {
+                    return Promise.reject({name: "DataError", message: "Error in finding consumption record"});
+                }
+
+                let res = {
+                    size: data[0].length || 0,
+                    data: data[1],
+                    summary: data[2][0] || {}
+                }
+                return res;
+            }
+        )
+    },
+
     /**
      * For report purpose - player reward returns by reward events such as "FirstTopUp", "PlayerConsumptionReturn"
      * @param platformId - ObjectId of the platform
