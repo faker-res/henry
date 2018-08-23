@@ -5481,7 +5481,7 @@ let dbPlayerReward = {
                         isMultiApplication = true;
                         applyAmount = 0;
 
-                        console.log("checking---YH--rewardSpecificData[0]",rewardSpecificData[0])
+                        console.log("checking---YH--rewardSpecificData[0]", rewardSpecificData && rewardSpecificData[0] ? rewardSpecificData[0] : rewardSpecificData)
 
                         if (!rewardSpecificData || !rewardSpecificData[0]) {
                             return Q.reject({
