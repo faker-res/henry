@@ -2440,6 +2440,7 @@ var dbPlayerTopUpRecord = {
             ).then(
                 pmsResult => {
                     pmsData = pmsResult;
+                    console.log("walaoeheheheheh",pmsResult)
                     var queryObj = {};
                     let start = new Date();
                     start.setHours(0, 0, 0, 0);
@@ -2502,6 +2503,14 @@ var dbPlayerTopUpRecord = {
                         }
                         if (isFPMS && proposal.noSteps) {
                             updateData.status = constProposalStatus.APPROVED;
+                        }
+
+                        if (pmsData.result.line && pmsData.result.line == 2) {
+                            if (updateData && updateData.data && updateData.data.remark) {
+                                updateData.data.remark += ", 线路二：不匹配昵称、支付宝帐号";
+                            } else {
+                                updateData.data.remark = "线路二：不匹配昵称、支付宝帐号";
+                            }
                         }
 
                         let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
