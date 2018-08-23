@@ -2738,7 +2738,7 @@ var dbPlayerTopUpRecord = {
                                                                 bValid = true;
                                                             }
                                                             maxDeposit = alipay.singleLimit > maxDeposit ? alipay.singleLimit : maxDeposit;
-                                                            minDeposit = alipay.minDepositAmount > minDeposit ? alipay.minDepositAmount : minDeposit;
+                                                            minDeposit = alipay.minDepositAmount < minDeposit ? alipay.minDepositAmount : minDeposit;
                                                         }
                                                     }
                                                 );
