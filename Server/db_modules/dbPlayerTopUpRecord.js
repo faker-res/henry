@@ -2440,7 +2440,6 @@ var dbPlayerTopUpRecord = {
             ).then(
                 pmsResult => {
                     pmsData = pmsResult;
-                    console.log("walaoeheheheheh",pmsResult)
                     var queryObj = {};
                     let start = new Date();
                     start.setHours(0, 0, 0, 0);
