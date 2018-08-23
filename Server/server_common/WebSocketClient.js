@@ -288,10 +288,10 @@
     };
 
     proto.callAPIOnceWithFileData = function (serviceName, funcName, data, fileData) {
-        var service = this.getService(serviceName, true);
-        let fs = require('fs')
+        let service = this.getService(serviceName, true);
+        let fs = require('fs');
         if (service) {
-            var wsFunc = service[funcName];
+            let wsFunc = service[funcName];
             if (wsFunc) {
                 if (wsFunc.isSync) {
                     //append request id if needed
@@ -319,17 +319,17 @@
                     });
                 }
                 else {
-                    // console.log("callAPIOnce:", data);
+                    console.log("callAPIOnceWithFileData else", data);
                     wsFunc.request(data);
 
                     wsFunc.binaryype = "arraybuffer";
                     let buf = new Uint8Array(fileData).buffer;
 
-                    wsFunc.requestWithImage(buffer);
+                    wsFunc.requestWithImage(buf);
 
                     return wsFunc.once(function (res) {
-                        if (res && res.status == 200) {
-                            var resObj = Object.assign({}, res);
+                        if (res && res.status === 200) {
+                            let resObj = Object.assign({}, res);
                             delete resObj.status;
                             delete resObj.errorMsg;
                             return resObj;
