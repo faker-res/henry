@@ -381,11 +381,11 @@ define(['js/app'], function (myApp) {
                             vm.selectedPlatform.data.playerRouteSetting : "";
 
                         if(game.bigShow){
-                            game.bigShow = playerRouteSetting ? playerRouteSetting + game.bigShow : (game.sourceURL ? game.sourceURL + game.bigShow : game.sourceURL);
+                            game.bigShow = playerRouteSetting ? playerRouteSetting + game.bigShow : (game.sourceURL ? game.sourceURL + game.bigShow : game.bigShow);
                         }
 
                         if(game.smallShow){
-                            game.smallShow = playerRouteSetting ? playerRouteSetting + game.smallShow : (game.sourceURL ? game.sourceURL + game.smallShow : game.sourceURL);
+                            game.smallShow = playerRouteSetting ? playerRouteSetting + game.smallShow : (game.sourceURL ? game.sourceURL + game.smallShow : game.smallShow);
                         }
 
                         if(game.images && game.images.hasOwnProperty(platformId)){
