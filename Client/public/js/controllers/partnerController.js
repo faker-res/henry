@@ -15450,7 +15450,15 @@ define(['js/app'], function (myApp) {
                     vm.totalChildPartner = vm.totalChildPartner - 1;
                 }
 
-                vm.disableEditChildPartner = false;
+                if (!vm.curChildPartner.length && valueCollection.length == 1) {
+                    valueCollection.forEach(el => {
+                        if (el && !el.partnerName) {
+                            vm.disableEditChildPartner = true;
+                        }
+                    });
+                } else {
+                    vm.disableEditChildPartner = false;
+                }
             };
 
             vm.getUpdateChildPartnerName = function () {
