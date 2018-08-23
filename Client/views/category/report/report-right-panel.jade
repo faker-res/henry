@@ -163,8 +163,6 @@
                     select.form-control(ng-model="vm.consumptionModeQuery.gameProvider" ng-change="vm.dynamicGameType()")
                         option(ng-repeat="(i,v) in vm.allGameProviders" value="{{v}}") {{v.name}}
 
-                    //select.form-control#selectGameProviderReport(multiple="multiple", ng-model='bbca')
-                        option(ng-repeat='(i,v) in vm.financialPointsType', value='{{v}}') {{i | translate}}
                 div
                     label(style='width:150px;') {{"GAME_TYPE"|translate}}
                     select.form-control(ng-model="vm.consumptionModeQuery.gameType" ng-change="vm.dynamicBetType()")
@@ -181,7 +179,7 @@
                     .endTime
                 div
                     label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchFinancialPointsRecord(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-success(ng-click='vm.searchConsumptionModeRecord(true)') {{'SEARCH' | translate}}
                     button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
                     span#consumptionModeTableSpin.collapse
                         i.fa.fa-spinner.fa-spin

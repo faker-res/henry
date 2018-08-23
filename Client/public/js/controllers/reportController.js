@@ -4914,6 +4914,114 @@ define(['js/app'], function (myApp) {
         }
         //endregion financial points report
 
+        //region consumption mode report
+        vm.searchConsumptionModeRecord = function (newSearch) {
+            vm.curPlatformId = vm.selectedPlatform._id;
+
+            let newConsumptionQuery = $.extend(true, {}, vm.consumptionModeQuery);
+
+            let consumptiionBetType = $('select#selectBetType').multipleSelect("getSelects");
+
+            $('#consumptionModeTableSpin').show();
+            newConsumptionQuery.limit = newConsumptionQuery.limit || 10;
+            var sendData = {
+                startTime: newConsumptionQuery.startTime.data('datetimepicker').getLocalDate(),
+                endTime: newConsumptionQuery.endTime.data('datetimepicker').getLocalDate(),
+                platformId: vm.curPlatformId,
+                providerId: vm.consumptionModeQuery.gameProvider? JSON.parse(vm.consumptionModeQuery.gameProvider)._id: null,
+                cpGameType: vm.consumptionModeQuery.gameType? JSON.parse(vm.consumptionModeQuery.gameType).gameType: null,
+                betType: consumptiionBetType,
+                index: newSearch ? 0 : (newConsumptionQuery.index || 0),
+                limit: newConsumptionQuery.limit,
+                sortCol: newConsumptionQuery.sortCol
+            };
+
+            socketService.$socket($scope.AppSocket, 'getConsumptionModeReport', sendData, function (data) {
+                $('#consumptionModeTable').show();
+                console.log('consumption mode data', data);
+                let dataIndex = 1;
+                var datatoDraw = data.data.data.map(item => {
+                    item.selectedBetTypeAmt = $noRoundTwoDecimalPlaces(item.selectedBetTypeAmt);
+                    item.totalBetAmt = $noRoundTwoDecimalPlaces(item.totalBetAmt);
+                    item.betAmtPercent = $noRoundTwoDecimalPlaces(item.betAmtPercent * 100);
+                    item.bonusAmount = $noRoundTwoDecimalPlaces(item.bonusAmount);
+                    item.betCountPercent = $noRoundTwoDecimalPlaces(item.betCountPercent * 100);
+
+                    item.indexNo$ = dataIndex;
+                    dataIndex++;
+                    return item;
+                })
+                $('#consumptionModeTableSpin').hide();
+                $scope.$evalAsync(() => {
+                    vm.consumptionModeQuery.totalCount = data.data.size;
+                    vm.drawConsumptionModeReport(datatoDraw, vm.consumptionModeQuery.totalCount, data.data.summary, newSearch);
+                });
+            }, function (err) {
+                $('#consumptionModeTableSpin').hide();
+
+            }, true);
+        }
+        vm.drawConsumptionModeReport = function (data, size, summary, newSearch) {
+            console.log('data', data, size);
+            var tableOptions = {
+                data: data,
+                "order": vm.consumptionModeQuery.aaSorting,
+                aoColumnDefs: [
+                    {'sortCol': 'playerId', 'aTargets': [1]},
+                    {'sortCol': 'selectedBetTypeAmt', 'aTargets': [2]},
+                    {'sortCol': 'totalBetAmt', 'aTargets': [3]},
+                    {'sortCol': 'betAmtPercent', 'aTargets': [4]},
+                    {'sortCol': 'bonusAmount', 'aTargets': [5]},
+                    {'sortCol': 'selectedBetTypeCount', 'aTargets': [6]},
+                    {'sortCol': 'totalBetCount', 'aTargets': [7]},
+                    {'sortCol': 'betCountPercent', 'aTargets': [8]}
+                ],
+                columns: [
+                    {title: $translate('order'), data: 'indexNo$'},
+                    {title: $translate('PLAYER_NAME'), data: "_id.name", sClass: "sumText"},
+                    {title: $translate('BET_TYPE_CONSUMPTION'), data: "selectedBetTypeAmt", sClass: 'sumFloat alignRight'},
+                    {title: $translate('GAME_TYPE_CONSUMPTION'), data: "totalBetAmt", sClass: 'sumFloat alignRight'},
+                    {title: $translate('GAME_TYPE_CONSUMPTION') + "/ <br>" + $translate('BET_TYPE_CONSUMPTION') + "(%)", data: "betAmtPercent", sClass: 'betAmtPercent alignRight'},
+                    {title: $translate('BET_TYPE_BONUS'), data: "bonusAmount", sClass: 'sumFloat alignRight'},
+                    {title: $translate('BET_TYPE_COUNT'), data: "selectedBetTypeCount", sClass: 'sumInt alignRight'},
+                    {title: $translate('GAME_TYPE_COUNT'), data: "totalBetCount", sClass: 'sumInt alignRight'},
+                    {title: $translate('BET_TYPE_COUNT') + "/ <br>" + $translate('TYPE_TOTAL_COUNT') + "(%)", data: "betCountPercent", sClass: 'betCountPercent alignRight'},
+
+                ],
+                "bSortClasses": false,
+                "paging": false,
+                // "dom": '<"top">rt<"bottom"il><"clear">',
+                "language": {
+                    "info": "Total _MAX_ records",
+                    "emptyTable": $translate("No data available in table"),
+                },
+                fnRowCallback: vm.proposalTableRow
+            }
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            $.each(tableOptions.columns, function (i, v) {
+                v.defaultContent = v.defaultContent || "";
+            });
+
+            var proposalTbl = utilService.createDatatableWithFooter('#consumptionModeTable', tableOptions, {
+                2: $noRoundTwoDecimalPlaces(summary.selectedBetTypeAmt),
+                3: $noRoundTwoDecimalPlaces(summary.totalBetAmt),
+                4: $noRoundTwoDecimalPlaces(summary.betAmtPercent * 100),
+                5: $noRoundTwoDecimalPlaces(summary.bonusAmount),
+                6: summary.selectedBetTypeCount,
+                7: summary.totalBetCount,
+                8: $noRoundTwoDecimalPlaces(summary.betCountPercent * 100)
+            });
+
+            vm.consumptionModeQuery.pageObj.init({maxCount: size}, newSearch);
+
+            $('#consumptionModeTable').off('order.dt');
+            $('#consumptionModeTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'consumptionModeQuery', vm.searchConsumptionModeRecord);
+            });
+
+        }
+        //endregion
+
 
         //Start proposal report
         vm.hideOtherConditions = function (id, thisVal, preservID) {
@@ -8090,7 +8198,7 @@ define(['js/app'], function (myApp) {
                     });
                     break;
                 case "CONSUMPTION_MODE_REPORT":
-                    vm.consumptionModeQuery = {aaSorting: [[9, "desc"]], sortCol: {createTime: -1}};
+                    vm.consumptionModeQuery = {aaSorting: [[0, "asc"]], sortCol: {playerId: -1}};
                     vm.consumptionModeQuery.totalCount = 0;
                     vm.providerGameType = [];
                     vm.gameBetType = [];
@@ -8134,7 +8242,7 @@ define(['js/app'], function (myApp) {
                                 $("select#selectBetType").multipleSelect("checkAll");
 
                                 vm.consumptionModeQuery.pageObj = utilService.createPageForPagingTable("#consumptionModeTablePage", {}, $translate, function (curP, pageSize) {
-                                    vm.commonPageChangeHandler(curP, pageSize, "consumptionModeQuery", vm.searchFinancialPointsRecord)
+                                    vm.commonPageChangeHandler(curP, pageSize, "consumptionModeQuery", vm.searchConsumptionModeRecord)
                                 });
                             });
                         }
@@ -8351,6 +8459,7 @@ define(['js/app'], function (myApp) {
                     vm.gameBetType = selectedGameType.betType;
                     setTimeout(function () {
                         $("select#selectBetType").multipleSelect("refresh");
+                        $("select#selectBetType").multipleSelect("checkAll");
                     }, 0)
                 }
             }
