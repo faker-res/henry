@@ -130,7 +130,8 @@
                 "getPlatformSetting",
                 "turnUrlToQr",
                 "getTemplateSetting",
-                "addIpDomainLog"
+                "addIpDomainLog",
+                "getIDCIpDetail"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
