@@ -42,7 +42,7 @@ function callCPMSAPI(service, functionName, data, fileData) {
                 res => {
                     // resFunction(res);
 
-                    let callbackProm = Promise.all(res);
+                    let callbackProm = res ? Promise.all(res) : null;
 
                     if (fileData) {
                         console.log('a',wsClient)
