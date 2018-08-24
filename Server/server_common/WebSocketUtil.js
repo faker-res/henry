@@ -348,36 +348,40 @@ var WebSocketUtility = {
      * @param {Object} data
      */
     notifyMessageClient: function (service, functionName, data) {
-        if (service._wss && service._wss._wss && service._wss._wss.clients.length > 0) {
+        if (service._wss && service._wss._wss && service._wss._wss.clients) {
             var wss = service._wss._wss;
-            for (let client of wss.clients) {
-                if ((client.playerId && String(client.playerId) == String(data.playerId)) ||
-                    (client.playerId && String(client.playerId) == String(data.recipientId)) ||
-                    (client.playerObjId && String(client.playerObjId) == String(data.playerId)) ||
-                    (client.playerObjId && String(client.playerObjId) == String(data.recipientId))
-                ) {
-                    if (service[functionName]) {
-                        service[functionName].response(client, {status: 200, data: data});
+            wss.clients.forEach(
+                client => {
+                    if (client && ((client.playerId && String(client.playerId) == String(data.playerId)) ||
+                        (client.playerId && String(client.playerId) == String(data.recipientId)) ||
+                        (client.playerObjId && String(client.playerObjId) == String(data.playerId)) ||
+                        (client.playerObjId && String(client.playerObjId) == String(data.recipientId)))
+                    ) {
+                        if (service[functionName]) {
+                            service[functionName].response(client, {status: 200, data: data});
+                        }
                     }
                 }
-            }
+            );
         }
     },
 
     notifyMessagePartner: function (service, functionName, data) {
-        if (service._wss && service._wss._wss && service._wss._wss.clients.length > 0) {
+        if (service._wss && service._wss._wss && service._wss._wss.clients) {
             var wss = service._wss._wss;
-            for (let client of wss.clients) {
-                if ((client.partnerId && String(client.partnerId) == String(data.partnerId)) ||
-                    (client.partnerId && String(client.partnerId) == String(data.recipientId)) ||
-                    (client.partnerObjId && String(client.partnerObjId) == String(data.partnerId)) ||
-                    (client.partnerObjId && String(client.partnerObjId) == String(data.recipientId))
-                ) {
-                    if (service[functionName]) {
-                        service[functionName].response(client, {status: 200, data: data});
+            wss.clients.forEach(
+                client => {
+                    if (client && ((client.playerId && String(client.playerId) == String(data.playerId)) ||
+                            (client.playerId && String(client.playerId) == String(data.recipientId)) ||
+                            (client.playerObjId && String(client.playerObjId) == String(data.playerId)) ||
+                            (client.playerObjId && String(client.playerObjId) == String(data.recipientId)))
+                    ) {
+                        if (service[functionName]) {
+                            service[functionName].response(client, {status: 200, data: data});
+                        }
                     }
                 }
-            }
+            );
         }
     }
 
