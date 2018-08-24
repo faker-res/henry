@@ -12,6 +12,7 @@ var Q = require('q');
 var constSystemParam = require('../const/constSystemParam');
 var dbPlatformGameGroup = require("../db_modules/dbPlatformGameGroup");
 var dbGame = require("../db_modules/dbGame");
+var constGameStatus = require("./../const/constGameStatus");
 
 var dbPlatformGameStatus = {
 
@@ -24,6 +25,36 @@ var dbPlatformGameStatus = {
         return platformGameStatus.save();
     },
 
+    // purpose : we want to avoid generate duplicate fpms game status
+    // if dont exist , then we create it, if exist , then we update it.
+    createIFNotPlatformGameStatus: function (gameData) {
+        let query = {};
+        let updateData = {
+            name: gameData.name,
+            visible: gameData.visible
+        };
+
+        if(gameData.game){
+            query.game = gameData.game;
+        }
+
+        if(gameData.platform){
+            query.platform = gameData.platform;
+        }
+
+        return dbconfig.collection_platformGameStatus.findOneAndUpdate(
+            gameData,
+            {
+                $set:updateData,
+                $setOnInsert : {
+                    status: constGameStatus.ENABLE,
+                    maintenanceHour: null,
+                    maintenanceMinute: null
+                }
+            },
+            {new: true, upsert: true}
+        ).lean();
+    },
     createPlatformGamesStatus: function (platform, games) {
         var arr = [];
         var result = {success: [], fail: []};
@@ -35,7 +66,7 @@ var dbPlatformGameStatus = {
                     name: game.name,
                     visible: game.visible
                 };
-                arr.push(dbPlatformGameStatus.createPlatformGameStatus(newRecord).then(
+                arr.push(dbPlatformGameStatus.createIFNotPlatformGameStatus(newRecord).then(
                     data => {
                         result.success.push(data);
                         return true;
@@ -89,7 +120,7 @@ var dbPlatformGameStatus = {
         game.forEach((element)=> {
             element = mongoose.Types.ObjectId(element)
         });
-        
+
         return dbconfig.collection_platformGameStatus.update(
             {game: {$in: game}, platform: platform},
             data,
@@ -111,7 +142,7 @@ var dbPlatformGameStatus = {
                                 name: game.name,
                                 visible: game.visible
                             };
-                            proms.push(dbPlatformGameStatus.createPlatformGameStatus(newRecord));
+                            proms.push(dbPlatformGameStatus.createIFNotPlatformGameStatus(newRecord));
                         }
                     );
                     return Q.all(proms);
@@ -262,7 +293,7 @@ var dbPlatformGameStatus = {
             games => {
                 if (games && games.length > 0) {
                     games = games.filter(game => game.status != 4);
-                    
+
                     // display the status of collection_game with the status in collection_dbPlatformGameStatus
                     games.map( game => {
                         let filteredPlatformGame = platformGames.find( platformGame => {
@@ -368,5 +399,3 @@ proto = Object.assign(proto, dbPlatformGameStatus);
 
 // This make WebStorm navigation work
 module.exports = dbPlatformGameStatus;
-
-
