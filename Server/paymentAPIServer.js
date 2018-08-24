@@ -46,11 +46,11 @@ clientApiInstances.createPaymentAPI().then(
     }
 );
 
-var dbPlatform = require("./db_modules/dbPlatform");
-clientApiInstances.createSMSAPI().then(
-    res => {
-        // dbPlatform.syncSMSPlatform();
-    }
-);
+// var dbPlatform = require("./db_modules/dbPlatform");
+// clientApiInstances.createSMSAPI().then(
+//     res => {
+//         // dbPlatform.syncSMSPlatform();
+//     }
+// );
 
 module.exports = server;
