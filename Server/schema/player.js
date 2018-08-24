@@ -415,6 +415,7 @@ var playerPostFindUpdate = function (result, bOne) {
             // var startIndex = Math.max(Math.floor((result.phoneNumber.length - 4) / 2), 0);
             // result.phoneNumber = result.phoneNumber.substr(0, startIndex) + "****" + result.phoneNumber.substr(startIndex + 4);
             // result.phoneNumber = result.phoneNumber.substr(0, 3) + "****" + result.phoneNumber.substr(-4);
+            result.fullPhoneNumber = result.phoneNumber;
             result.phoneNumber = dbUtil.encodePhoneNum(result.phoneNumber);
         }
     }
