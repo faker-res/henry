@@ -1588,6 +1588,8 @@
   "CURRENT_PERIOD": "Current Period",
   "PREVIOUS_X_PERIOD": "Previous X Period",
 
+  "DOMAIN_VISIT_AMOUNT": "Domain Visit Rate",
+
   "CALL_PERMISSION": "Call Permission",
   "CALLABLE": "Callable",
   "PAST_COMMISSION_SETTLEMENT": "Settle Previous Period Partner Commission",

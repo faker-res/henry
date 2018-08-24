@@ -1356,7 +1356,40 @@ var dbUtility = {
         tempNum = tempNum.replace(/,/g,"");
 
         return parseFloat(tempNum);
-    }
+    },
+
+    sliceTimeFrameToDaily: (startTime, endTime, fullDayOnly) => {
+        let timeFrames = [];
+
+        if (!startTime || !endTime) {
+            return Promise.reject({errorMessage:"Invalid time frame"});
+        }
+
+        if (startTime > endTime) {
+            return timeFrames;
+        }
+
+        let firstDay = dbUtility.getTargetSGTime(startTime);
+        if (!fullDayOnly) {
+            firstDay.startTime = startTime;
+        }
+
+        let nextDay = firstDay;
+        let dayNo = 1;
+
+        while (dayNo <= 100 && nextDay.endTime < endTime) {
+            dayNo++;
+            timeFrames.push(nextDay);
+            nextDay = dbUtility.getTargetSGTime(nextDay.endTime);
+        }
+
+        if (!fullDayOnly) {
+            nextDay.endTime = endTime;
+        }
+        timeFrames.push(nextDay);
+
+        return timeFrames;
+    },
 };
 
 var proto = dbUtilityFunc.prototype;

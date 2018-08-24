@@ -74,6 +74,8 @@ div(ng-if="checkViewPermission('Analysis')")
                     a  {{'WITHDRAWAL_SPEED' | translate}}
                 li(ng-if="checkViewPermission('Analysis','Analysis','PlayerOnlineTime')", ng-click='vm.loadPage("PLAYER_ONLINE_TIME")')
                     a  {{'PLAYER_ONLINE_TIME' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','IpDomain')", ng-click='vm.loadPage("DOMAIN_VISIT_AMOUNT")')
+                    a  {{'DOMAIN_VISIT_AMOUNT' | translate}}
 
                 //li(ng-click='vm.loadPage("GAME_ANALYSIS")')
                     a  {{'GAME_ANALYSIS' | translate}}

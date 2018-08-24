@@ -456,6 +456,7 @@ define(['js/app'], function (myApp) {
                     case "PLAYER_ONLINE_TIME":
                         vm.initSearchParameter('playerOnlineTime', 'day', 3, function () {});
                         break;
+                    case ""
                 }
                 // $(".flot-tick-label.tickLabel").addClass("rotate330");
                 //
