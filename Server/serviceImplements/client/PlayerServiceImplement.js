@@ -1088,6 +1088,7 @@ let PlayerServiceImplement = function () {
 
     this.notifyNewMail.addListener(
         function (data) {
+            // console.log("notifyNewMail:", data);
             WebSocketUtil.notifyMessageClient(self, "notifyNewMail", data);
         }
     );

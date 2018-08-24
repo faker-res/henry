@@ -46,6 +46,9 @@
                     .full-width-input-block
                         label {{"REWARD_CLIENT_APPLY" | translate}}
                         input.form-control(type='checkbox', ng-model='vm.showReward.canApplyFromClient', ng-disabled='vm.platformRewardShowEdit() || !vm.showReward.needApply')
+                    .full-width-input-block
+                        label(ng-if='vm.showReward.canApplyFromClient') {{"Is show in production server" | translate}}
+                        input.form-control(type='checkbox', ng-if='vm.showReward.canApplyFromClient', ng-model='vm.showReward.showInRealServer')
                     .full-width-input-block(ng-if='vm.rewardAttrConst.canSettle.indexOf(vm.showRewardTypeData.name)>-1')
                         label(ng-if='(vm.showRewardTypeData && vm.showRewardTypeData.name !=="PlayerConsumptionReturn") ||(vm.showReward.type && vm.showReward.type.name !=="PlayerConsumptionReturn")') {{"REWARD_NEED_SETTLEMENT" | translate}}
                         label(ng-if='(vm.showRewardTypeData && vm.showRewardTypeData.name ==="PlayerConsumptionReturn") ||(vm.showReward.type && vm.showReward.type.name ==="PlayerConsumptionReturn")') {{"below X amount auto execute reward" | translate}}

@@ -4429,7 +4429,8 @@ let dbPlayerInfo = {
                 return {error: err};
             })
     },
-    getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
+
+    getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj, adminName) {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortObj = sortObj || {registrationTime: -1};
 
@@ -4551,6 +4552,16 @@ let dbPlayerInfo = {
                                     }
 
                                     players.push(Q.resolve(newInfo));
+
+                                    let playerId = playerData[ind]._id;
+                                    let platformId = playerData[ind].platform;
+                                    let fullPhoneNumber = playerData[ind].fullPhoneNumber;
+                                    let lastLoginIp = playerData[ind].lastLoginIp;
+                                    delete playerData[ind].fullPhoneNumber;
+
+                                    // add fixed credibility remarks
+                                    dbPlayerInfo.getPagedSimilarPhoneForPlayers(playerId, platformId, fullPhoneNumber, true, index, limit, sortObj, adminName);
+                                    dbPlayerInfo.getPagedSimilarIpForPlayers(playerId, platformId, lastLoginIp, true, index, limit, sortObj, adminName);
                                 }
                             }
                             return Q.all(players)
@@ -18711,35 +18722,12 @@ let dbPlayerInfo = {
                 let totalCount = data[0];
                 let playerData = data[1];
                 let selectedPlayer = data[2];
-                
-                if (playerData && playerData.length > 0) {
-                    playerData.forEach(player => {
-                        let playerId = player._id ? ObjectId(player._id) : null;
-                        let credibilityRemarks = [];
 
-                        if (player.credibilityRemarks && player.credibilityRemarks.length > 0) {
-                            if (player.credibilityRemarks.some(e => e.toString() === similarPhoneCredibilityRemarkObjId.toString())) {
-                                // if similarPhoneCredibilityRemarkObjId already exist
-                                credibilityRemarks = player.credibilityRemarks;
-                            } else {
-                                // if similarPhoneCredibilityRemarkObjId didn't exist
-                                player.credibilityRemarks.push(similarPhoneCredibilityRemarkObjId);
-                                credibilityRemarks = player.credibilityRemarks;
-                                dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, playerId, credibilityRemarks, '电话重复');
-                            }
-                        }
+                if (!selectedPlayer) return Q.reject({name: "DataError", message: localization.localization.translate("Invalid player data")});
 
-                        // if credibilityRemarks didn't exist or empty
-                        if (!player.credibilityRemarks || player.credibilityRemarks.length === 0) {
-                            player.credibilityRemarks = player.credibilityRemarks ? player.credibilityRemarks : [];
-                            player.credibilityRemarks.push(similarPhoneCredibilityRemarkObjId);
-                            credibilityRemarks = player.credibilityRemarks;
-                            dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, playerId, credibilityRemarks, '电话重复');
-                        }
-                    });
-
-                    let credibilityRemarks = [];
-                    // if got other player with similar phone in playerData, selected player need to add this credibility remark too
+                let credibilityRemarks = [];
+                // if there is other player with similar phone in playerData, selected player need to add this credibility remark
+                if (totalCount > 0) {
                     if (selectedPlayer.credibilityRemarks && selectedPlayer.credibilityRemarks.length > 0) {
                         if (selectedPlayer.credibilityRemarks.some(e => e.toString() === similarPhoneCredibilityRemarkObjId.toString())) {
                             // if similarPhoneCredibilityRemarkObjId already exist
@@ -18750,16 +18738,61 @@ let dbPlayerInfo = {
                             credibilityRemarks = selectedPlayer.credibilityRemarks;
                             dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, selectedPlayer._id, credibilityRemarks, '电话重复');
                         }
-                    }
-
-                    // if credibilityRemarks didn't exist or empty
-                    if (!selectedPlayer.credibilityRemarks || selectedPlayer.credibilityRemarks.length === 0) {
-                        selectedPlayer.credibilityRemarks = selectedPlayer.credibilityRemarks ? selectedPlayer.credibilityRemarks : [];
-                        selectedPlayer.credibilityRemarks.push(similarPhoneCredibilityRemarkObjId);
-                        credibilityRemarks = selectedPlayer.credibilityRemarks;
+                    } else {
+                        // player didn't have any credibility remarks, auto add
+                        credibilityRemarks.push(similarPhoneCredibilityRemarkObjId);
                         dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, selectedPlayer._id, credibilityRemarks, '电话重复');
                     }
                 }
+
+                // if (playerData && playerData.length > 0) {
+                //     playerData.forEach(player => {
+                //         let playerId = player._id ? ObjectId(player._id) : null;
+                //         let credibilityRemarks = [];
+                //
+                //         if (player.credibilityRemarks && player.credibilityRemarks.length > 0) {
+                //             if (player.credibilityRemarks.some(e => e.toString() === similarPhoneCredibilityRemarkObjId.toString())) {
+                //                 // if similarPhoneCredibilityRemarkObjId already exist
+                //                 credibilityRemarks = player.credibilityRemarks;
+                //             } else {
+                //                 // if similarPhoneCredibilityRemarkObjId didn't exist
+                //                 player.credibilityRemarks.push(similarPhoneCredibilityRemarkObjId);
+                //                 credibilityRemarks = player.credibilityRemarks;
+                //                 dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, playerId, credibilityRemarks, '电话重复');
+                //             }
+                //         }
+                //
+                //         // if credibilityRemarks didn't exist or empty
+                //         if (!player.credibilityRemarks || player.credibilityRemarks.length === 0) {
+                //             player.credibilityRemarks = player.credibilityRemarks ? player.credibilityRemarks : [];
+                //             player.credibilityRemarks.push(similarPhoneCredibilityRemarkObjId);
+                //             credibilityRemarks = player.credibilityRemarks;
+                //             dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, playerId, credibilityRemarks, '电话重复');
+                //         }
+                //     });
+                //
+                //     let credibilityRemarks = [];
+                //     // if got other player with similar phone in playerData, selected player need to add this credibility remark too
+                //     if (selectedPlayer.credibilityRemarks && selectedPlayer.credibilityRemarks.length > 0) {
+                //         if (selectedPlayer.credibilityRemarks.some(e => e.toString() === similarPhoneCredibilityRemarkObjId.toString())) {
+                //             // if similarPhoneCredibilityRemarkObjId already exist
+                //             credibilityRemarks = selectedPlayer.credibilityRemarks;
+                //         } else {
+                //             // if similarPhoneCredibilityRemarkObjId didn't exist
+                //             selectedPlayer.credibilityRemarks.push(similarPhoneCredibilityRemarkObjId);
+                //             credibilityRemarks = selectedPlayer.credibilityRemarks;
+                //             dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, selectedPlayer._id, credibilityRemarks, '电话重复');
+                //         }
+                //     }
+                //
+                //     // if credibilityRemarks didn't exist or empty
+                //     if (!selectedPlayer.credibilityRemarks || selectedPlayer.credibilityRemarks.length === 0) {
+                //         selectedPlayer.credibilityRemarks = selectedPlayer.credibilityRemarks ? selectedPlayer.credibilityRemarks : [];
+                //         selectedPlayer.credibilityRemarks.push(similarPhoneCredibilityRemarkObjId);
+                //         credibilityRemarks = selectedPlayer.credibilityRemarks;
+                //         dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, selectedPlayer._id, credibilityRemarks, '电话重复');
+                //     }
+                // }
 
                 return {total: totalCount, data: playerData};
             }
@@ -18817,34 +18850,9 @@ let dbPlayerInfo = {
 
                 if (!selectedPlayer) return Q.reject({name: "DataError", message: localization.localization.translate("Invalid player data")});
 
-                if (playerData && playerData.length > 0) {
-                    playerData.forEach(player => {
-                        let playerId = player._id ? ObjectId(player._id) : null;
-                        let credibilityRemarks = [];
-
-                        if (player.credibilityRemarks && player.credibilityRemarks.length > 0) {
-                            if (player.credibilityRemarks.some(e => e.toString() === similarIpCredibilityRemarkObjId.toString())) {
-                                // if similarIpCredibilityRemarkObjId already exist
-                                credibilityRemarks = player.credibilityRemarks;
-                            } else {
-                                // if similarIpCredibilityRemarkObjId didn't exist
-                                player.credibilityRemarks.push(similarIpCredibilityRemarkObjId);
-                                credibilityRemarks = player.credibilityRemarks;
-                                dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, playerId, credibilityRemarks, '注册IP重复');
-                            }
-                        }
-
-                        // if credibilityRemarks didn't exist or empty
-                        if (!player.credibilityRemarks || player.credibilityRemarks.length === 0) {
-                            player.credibilityRemarks = player.credibilityRemarks ? player.credibilityRemarks : [];
-                            player.credibilityRemarks.push(similarIpCredibilityRemarkObjId);
-                            credibilityRemarks = player.credibilityRemarks;
-                            dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, playerId, credibilityRemarks, '注册IP重复');
-                        }
-                    });
-
-                    let credibilityRemarks = [];
-                    // if got other player with similar ip in playerData, selected player need to add this credibility remark too
+                let credibilityRemarks = [];
+                // if there is other player with similar ip in playerData, selected player need to add this credibility remark
+                if (totalCount > 0) {
                     if (selectedPlayer.credibilityRemarks && selectedPlayer.credibilityRemarks.length > 0) {
                         if (selectedPlayer.credibilityRemarks.some(e => e.toString() === similarIpCredibilityRemarkObjId.toString())) {
                             // if similarIpCredibilityRemarkObjId already exist
@@ -18855,16 +18863,61 @@ let dbPlayerInfo = {
                             credibilityRemarks = selectedPlayer.credibilityRemarks;
                             dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, selectedPlayer._id, credibilityRemarks, '注册IP重复');
                         }
-                    }
-
-                    // if credibilityRemarks didn't exist or empty
-                    if (!selectedPlayer.credibilityRemarks || selectedPlayer.credibilityRemarks.length === 0) {
-                        selectedPlayer.credibilityRemarks = selectedPlayer.credibilityRemarks ? selectedPlayer.credibilityRemarks : [];
-                        selectedPlayer.credibilityRemarks.push(similarIpCredibilityRemarkObjId);
-                        credibilityRemarks = selectedPlayer.credibilityRemarks;
+                    } else {
+                        // player didn't have any credibility remarks, auto add
+                        credibilityRemarks.push(similarIpCredibilityRemarkObjId);
                         dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, selectedPlayer._id, credibilityRemarks, '注册IP重复');
                     }
                 }
+
+                // if (playerData && playerData.length > 0) {
+                //     playerData.forEach(player => {
+                //         let playerId = player._id ? ObjectId(player._id) : null;
+                //         let credibilityRemarks = [];
+                //
+                //         if (player.credibilityRemarks && player.credibilityRemarks.length > 0) {
+                //             if (player.credibilityRemarks.some(e => e.toString() === similarIpCredibilityRemarkObjId.toString())) {
+                //                 // if similarIpCredibilityRemarkObjId already exist
+                //                 credibilityRemarks = player.credibilityRemarks;
+                //             } else {
+                //                 // if similarIpCredibilityRemarkObjId didn't exist
+                //                 player.credibilityRemarks.push(similarIpCredibilityRemarkObjId);
+                //                 credibilityRemarks = player.credibilityRemarks;
+                //                 dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, playerId, credibilityRemarks, '注册IP重复');
+                //             }
+                //         }
+                //
+                //         // if credibilityRemarks didn't exist or empty
+                //         if (!player.credibilityRemarks || player.credibilityRemarks.length === 0) {
+                //             player.credibilityRemarks = player.credibilityRemarks ? player.credibilityRemarks : [];
+                //             player.credibilityRemarks.push(similarIpCredibilityRemarkObjId);
+                //             credibilityRemarks = player.credibilityRemarks;
+                //             dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, playerId, credibilityRemarks, '注册IP重复');
+                //         }
+                //     });
+                //
+                //     let credibilityRemarks = [];
+                //     // if got other player with similar ip in playerData, selected player need to add this credibility remark too
+                //     if (selectedPlayer.credibilityRemarks && selectedPlayer.credibilityRemarks.length > 0) {
+                //         if (selectedPlayer.credibilityRemarks.some(e => e.toString() === similarIpCredibilityRemarkObjId.toString())) {
+                //             // if similarIpCredibilityRemarkObjId already exist
+                //             credibilityRemarks = selectedPlayer.credibilityRemarks;
+                //         } else {
+                //             // if similarIpCredibilityRemarkObjId didn't exist
+                //             selectedPlayer.credibilityRemarks.push(similarIpCredibilityRemarkObjId);
+                //             credibilityRemarks = selectedPlayer.credibilityRemarks;
+                //             dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, selectedPlayer._id, credibilityRemarks, '注册IP重复');
+                //         }
+                //     }
+                //
+                //     // if credibilityRemarks didn't exist or empty
+                //     if (!selectedPlayer.credibilityRemarks || selectedPlayer.credibilityRemarks.length === 0) {
+                //         selectedPlayer.credibilityRemarks = selectedPlayer.credibilityRemarks ? selectedPlayer.credibilityRemarks : [];
+                //         selectedPlayer.credibilityRemarks.push(similarIpCredibilityRemarkObjId);
+                //         credibilityRemarks = selectedPlayer.credibilityRemarks;
+                //         dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, selectedPlayer._id, credibilityRemarks, '注册IP重复');
+                //     }
+                // }
 
                 return {total: totalCount, data: playerData};
             }

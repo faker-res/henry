@@ -287,6 +287,13 @@
         return deferred.promise;
     };
 
+    /**
+     * Experimental, use for upload image to cpms only
+     * @param serviceName
+     * @param funcName
+     * @param data
+     * @param fileData
+     */
     proto.callAPIOnceWithFileData = function (serviceName, funcName, data, fileData) {
         let deferred = Q.defer();
         let service = this.getService(serviceName, true);
@@ -303,6 +310,9 @@
                     buf = wsFunc.appendSyncKey(buf, this.getRequestId());
                     wsFunc.requestWithImage(buf);
                     let key = wsFunc.generateSyncKey(buf);
+
+                    // Resolve without waiting for response
+                    deferred.resolve(true);
 
                     wsFunc.onceSync(key, function (res) {
                         console.log("AAAAAAAAAAAAAAAAAAAAaa", res);
@@ -341,15 +351,6 @@
                         }
                     });
                 }
-                //if there is no response after 30 seconds, consider request time out
-                setTimeout(
-                    function () {
-                        deferred.reject({
-                            status: 430,
-                            errorMessage: "Service:" + serviceName + " functionName:" + funcName + " Request timeout!"
-                        });
-                    }, 60*1000//1 minute timeout
-                );
             }
             else {
                 deferred.reject({name: "APIError", message: "Invalid func name: " + funcName + " in service " + serviceName});
