@@ -8140,7 +8140,11 @@ let dbPartner = {
                     endTime = new Date(endTime);
                 }
 
-                return dbconfig.collection_players.find({platform: platformObj._id, partner: partnerData._id},{_id: 1, name: 1, playerId: 1}).lean();
+                // Find crews
+                return dbconfig.collection_players.find({
+                    platform: platformObj._id,
+                    partner: partnerData._id
+                }, {_id: 1, name: 1, playerId: 1, registrationTime: 1, lastAccessTime: 1}).lean();
             }
         ).then(
             allDownLinesData => {
@@ -10717,6 +10721,8 @@ function getCrewDetail (player, startTime, endTime) {
             returnData = {
                 playerId: player.playerId,
                 crewAccount: player.name,
+                crewRegisterTime: player.registrationTime,
+                crewLastLoginTime: player.lastAccessTime,
                 depositAmount: topUpDetail.length && topUpDetail[0].topUpAmount? topUpDetail[0].topUpAmount: 0,
                 depositCount: topUpDetail.length && topUpDetail[0].topUpTimes? topUpDetail[0].topUpTimes: 0,
                 validBet: consumptionDetail.validAmount,
