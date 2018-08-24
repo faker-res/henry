@@ -4226,5 +4226,6 @@
   "CHILD_PARTNER_DOWNLINES": "二级代理下线玩家人数",
   "CHILD_PARTNER_COMMISSION_TYPE": "二级代理佣金模式",
   "CHILD_PARTNER_TOTAL_WINLOSE": "二级代理下线玩家总输赢",
-  "CHILD_PARTNER_RELATED_PROPOSAL_NO": "相关二级代理佣金提案号"
+  "CHILD_PARTNER_RELATED_PROPOSAL_NO": "相关二级代理佣金提案号",
+  "NOT_EXIST": "未建立"
 }

@@ -455,10 +455,61 @@ var dbGame = {
      * @param {String} - _id of gameProvider
      */
     getGamesByProvider: function (providerObjId) {
+
         return dbconfig.collection_game.find({
             provider: providerObjId,
             status: {$ne: constGameStatus.DELETED}
         }).sort({showPriority: -1}).exec()
+
+    },
+    getGamesByProviderAndFPMS: function (platformObjId, providerObjId) {
+        let proms = [];
+        let gameList = [];
+
+        return dbconfig.collection_game.find({
+            provider: providerObjId,
+            status: {$ne: constGameStatus.DELETED}
+        }).sort({showPriority: -1}).lean()
+            .then(data => {
+                if (data && data.length > 0) {
+                    data.forEach(gameData => {
+
+                        let game = gameData;
+                        let prom = dbconfig.collection_platformGameStatus.find({
+                            game: {$in: game._id},
+                            platform: platformObjId
+                        }).populate({path: "game", model: dbconfig.collection_game})
+                            .then(platformGameStatus => {
+
+                                if (platformGameStatus && platformGameStatus.length > 0) {
+                                    game.platformGameStatus = platformGameStatus[0].status
+                                } else {
+                                    game.platformGameStatus = 5;
+                                }
+                                return game;
+                            })
+                        proms.push(prom);
+                    });
+                }
+                return Q.all(proms)
+            })
+    },
+    updatePlatformGameStatus: function(platformObjId, game, status){
+        // update fpms game status
+        let gameData = { platform: platformObjId };
+        let updateData=  { status:status};
+
+        if(game._id){
+            gameData.game = game._id;
+        }
+        if(game.name){
+            updateData.name = game.name
+        }
+        return dbconfig.collection_platformGameStatus.findOneAndUpdate(
+            gameData,
+            updateData,
+            {new: true, upsert: true}
+        ).exec();
     },
     getGamesByProviders: function (ids) {
         var returnData = [];
@@ -504,7 +555,7 @@ var dbGame = {
                     game: {$in: gamesUnderProvider},
                     platform: platformObjId,
                     status: {$ne: constGameStatus.DELETED}
-                }).populate({path: "game", model: dbconfig.collection_game}).exec();
+                }).populate({path: "game", model: dbconfig.collection_game});
             },
             function (error) {
                 deferred.reject({name: "DBError", message: "Error finding game for provider.", error: error});
@@ -715,5 +766,3 @@ proto = Object.assign(proto, dbGame);
 
 // This make WebStorm navigation work
 module.exports = dbGame;
-
-

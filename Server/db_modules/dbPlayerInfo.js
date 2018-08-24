@@ -18698,7 +18698,7 @@ let dbPlayerInfo = {
             remark => {
                 if (remark && remark.length > 0) {
                     remark.forEach(data => {
-                        if (data && data.name && data.score && data.name === '电话重复' && data.score === 0) {
+                        if (data && data.name && data.name === '电话重复' && (data.score || data.score === 0)) {
                             similarPhoneCredibilityRemarkObjId = ObjectId(data._id);
                         }
                     })
@@ -18801,7 +18801,7 @@ let dbPlayerInfo = {
             remark => {
                 if (remark && remark.length > 0) {
                     remark.forEach(data => {
-                        if (data && data.name && data.score && data.name === '注册IP重复' && data.score === 0) {
+                        if (data && data.name && data.name === '注册IP重复' && (data.score || data.score === 0)) {
                             similarIpCredibilityRemarkObjId = ObjectId(data._id);
                         }
                     })

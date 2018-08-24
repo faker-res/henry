@@ -81,6 +81,11 @@ function socketActionGame(socketIO, socket) {
             var isValidData = Boolean(data && data._id);
             socketUtil.emitter(self.socket, dbGame.getGamesByProvider, [data._id], actionName, isValidData);
         },
+        getGamesByProviderAndFPMS: function getGamesByProviderAndFPMS(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data._id);
+            socketUtil.emitter(self.socket, dbGame.getGamesByProviderAndFPMS, [data.platform, data._id], actionName, isValidData);
+        },
         getGamesByProviders: function getGamesByProviders(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.providers);
@@ -149,6 +154,11 @@ function socketActionGame(socketIO, socket) {
             self.socket.emit("_" + actionName, {success: true, data: constGameStatus});
         },
 
+        updatePlatformGameStatus: function updatePlatformGameStatus(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.game && data.platform);
+            socketUtil.emitter(self.socket, dbGame.updatePlatformGameStatus, [data.platform, data.game, data.status], actionName, isValidData);
+        },
         /**
          * Get game consumption record
          * @param {json} data - Query data. It has to contain providerObjId

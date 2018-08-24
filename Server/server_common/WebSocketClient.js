@@ -288,6 +288,7 @@
     };
 
     proto.callAPIOnceWithFileData = function (serviceName, funcName, data, fileData) {
+        let deferred = Q.defer();
         let service = this.getService(serviceName, true);
         let fs = require('fs');
         if (service) {
@@ -295,26 +296,25 @@
             if (wsFunc) {
                 if (wsFunc.isSync) {
                     //append request id if needed
-                    data = wsFunc.appendSyncKey(data, this.getRequestId());
+                    // data = wsFunc.appendSyncKey(data, this.getRequestId());
                     wsFunc.request(data);
-
-                    wsFunc.binaryype = "arraybuffer";
+                    wsFunc.binaryType = "arraybuffer";
                     let buf = new Uint8Array(fileData).buffer;
                     buf = wsFunc.appendSyncKey(buf, this.getRequestId());
                     wsFunc.requestWithImage(buf);
-                    var key = wsFunc.generateSyncKey(data);
+                    let key = wsFunc.generateSyncKey(buf);
 
-                    return wsFunc.onceSync(key, function (res) {
+                    wsFunc.onceSync(key, function (res) {
                         console.log("AAAAAAAAAAAAAAAAAAAAaa", res);
                         if (res && res.status == 200) {
                             var resObj = Object.assign({}, res);
                             delete resObj.status;
                             delete resObj.errorMsg;
-                            return resObj;
+                            deferred.resolve(resObj);
                         }
                         else {
                             res.errorMessage = res.errorMessage || res.errorMsg;
-                            return Q.reject(res);
+                            deferred.reject(res);
                         }
                     });
                 }
@@ -327,24 +327,24 @@
 
                     wsFunc.requestWithImage(buf);
 
-                    return wsFunc.once(function (res) {
+                    wsFunc.once(function (res) {
                         if (res && res.status === 200) {
                             let resObj = Object.assign({}, res);
                             delete resObj.status;
                             delete resObj.errorMsg;
-                            return resObj;
+                            deferred.resolve(resObj);
                         }
                         else {
                             //delete res.status;
                             res.errorMessage = res.errorMessage || res.errorMsg;
-                            return Q.reject(res);
+                            deferred.reject(res);
                         }
                     });
                 }
                 //if there is no response after 30 seconds, consider request time out
                 setTimeout(
                     function () {
-                        return Q.reject({
+                        deferred.reject({
                             status: 430,
                             errorMessage: "Service:" + serviceName + " functionName:" + funcName + " Request timeout!"
                         });
@@ -352,12 +352,14 @@
                 );
             }
             else {
-                return Q.reject({name: "APIError", message: "Invalid func name: " + funcName + " in service " + serviceName});
+                deferred.reject({name: "APIError", message: "Invalid func name: " + funcName + " in service " + serviceName});
             }
         }
         else {
-            return Q.reject({name: "APIError", message: "Invalid service name: " + serviceName});
+            deferred.reject({name: "APIError", message: "Invalid service name: " + serviceName});
         }
+
+        return deferred.promise;
     };
 
     if (isNode) {
