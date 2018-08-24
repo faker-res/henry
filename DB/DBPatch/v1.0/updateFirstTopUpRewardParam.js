@@ -400,14 +400,16 @@ var generalCond = {
     },
     // Is player manually applicable
     canApplyFromClient: {index: 4, type: "checkbox", des: "Is player manually applicable", detail: "REWARD_CLIENT_APPLY_DETAIL"},
+    // Is show in production server
+    showInRealServer: {index: 5, type: "checkbox", des: "Is show in production server", detail: "REWARD_SERVER_SHOW_DETAIL", default: true},
     // Is ignore audit
-    isIgnoreAudit: {index: 5, type: "number", des: "below X amount auto execute reward", detail: "REWARD_IGNORE_AUDIT_DETAIL"},
+    isIgnoreAudit: {index: 6, type: "number", des: "below X amount auto execute reward", detail: "REWARD_IGNORE_AUDIT_DETAIL"},
     // Reward start time
-    validStartTime: {index: 6, type: "date", des: "Reward start time"},
+    validStartTime: {index: 7, type: "date", des: "Reward start time"},
     // Reward end time
-    validEndTime: {index: 7, type: "date", des: "Reward end time"},
+    validEndTime: {index: 8, type: "date", des: "Reward end time"},
     // Is differentiate reward by player level
-    isPlayerLevelDiff: {index: 8, type: "checkbox", des: "Reward differentiate by player level", default: false}
+    isPlayerLevelDiff: {index: 9, type: "checkbox", des: "Reward differentiate by player level", default: false}
 };
 
 var topUpCond = {

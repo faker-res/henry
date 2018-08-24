@@ -17,6 +17,8 @@ var rewardEventSchema = new Schema({
     needApply: {type: Boolean, default: false},
     //if this reward can be applied from client
     canApplyFromClient: {type: Boolean, default: false},
+    //if this reward show in production server
+    showInRealServer: {type: Boolean, default: true},
     //provider ID
     //providers: [{type:Schema.Types.ObjectId, ref:'gameProvider'}],
     //platform id
