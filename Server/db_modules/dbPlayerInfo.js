@@ -8413,6 +8413,7 @@ let dbPlayerInfo = {
         return Q.all([count, detail]).then(
             data => {
                 let players = data[1];
+                console.log("checking---yH--players", players)
                 for (let i = 0, len = players.length; i < len; i++) {
                     dbPlayerCredibility.calculatePlayerValue(players[i]._id);
                 }
@@ -16119,12 +16120,15 @@ let dbPlayerInfo = {
             ).lean();
 
             // Promise domain CS and promote way
+            console.log("checking---yH---domain", domain)
             let filteredDomain = dbUtility.filterDomainName(domain);
+            console.log("checking---yH---filteredDomain", filteredDomain)
 
             let promoteWayProm = domain ?
                 dbconfig.collection_csOfficerUrl.findOne({
                     platform: platformObjId,
-                    domain: filteredDomain
+                    // domain: {$regex: filteredDomain, $options: "xi"}
+                    domain: new RegExp("^" + filteredDomain, "i")
                 }).populate({
                     path: 'admin',
                     model: dbconfig.collection_admin
@@ -16348,6 +16352,8 @@ let dbPlayerInfo = {
                     result.endTime = endTime;
 
                     let csOfficerDetail = data[6];
+                    console.log("checking---yH--csOfficerDetail", csOfficerDetail)
+                    console.log("checking---yH--playerDetail.accAdmin", playerDetail && playerDetail.accAdmin ? playerDetail.accAdmin : "NONE")
 
                     // related admin
                     if (playerDetail.accAdmin) {

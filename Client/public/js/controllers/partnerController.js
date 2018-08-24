@@ -15504,6 +15504,9 @@ define(['js/app'], function (myApp) {
                     if (data.data && data.data.stepInfo) {
                         socketService.showProposalStepInfo(data.data.stepInfo, $translate);
                     }
+                    if (vm.selectedSinglePartner && data && data.data && data.data.data && data.data.data.updateChildPartnerHeadCount) {
+                        vm.selectedSinglePartner.childrencount = data.data.data.updateChildPartnerHeadCount;
+                    }
                     vm.getPlatformPartnersData();
                 }, function (err) {
                     console.log('err',err);

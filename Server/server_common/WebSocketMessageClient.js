@@ -72,6 +72,7 @@ class WebSocketMessageClient {
      * connect client to server
      */
     messageHandler(message, flags){
+        // console.log("client message handler:", message);
         if(!message || !message.data)
             return;
         var data = JSON.parse(message.data);

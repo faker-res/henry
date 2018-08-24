@@ -126,6 +126,12 @@
                             textarea(ng-model='vm.curGame.description', disabled, readonly, rows="2" style="border:none")
                 div(ng-if='vm.curGame')
                     div(ng-if='vm.showGameCate=="include"')
+                        div
+                            buton.btn.btn-success.common-button-sm(ng-if="checkViewPermission('Platform', 'Game', 'UploadImage')", ng-click='vm.updateImageUrl("gameImageUploader");')
+                                i.fa.fa-upload
+                                text {{"Upload Image" | translate}}
+                            input(type='file', name='file' id='gameImageUploader' style="display: inline !important")
+                            label(ng-if="vm.uploadImageMsg" style="color: red;") {{vm.uploadImageMsg | translate}}
                         div(style='float:right')
                             button.btn.btn-danger.common-button-sm(ng-if="checkViewPermission('Platform', 'Game', 'DetachGame')", ng-click='vm.gametoPlatform("detach")')
                                 i.fa.fa-minus-square

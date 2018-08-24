@@ -2504,6 +2504,14 @@ var dbPlayerTopUpRecord = {
                             updateData.status = constProposalStatus.APPROVED;
                         }
 
+                        if (pmsData.result.line && pmsData.result.line == 2) {
+                            if (updateData && updateData.data && updateData.data.remark) {
+                                updateData.data.remark += ", 线路二：不匹配昵称、支付宝帐号";
+                            } else {
+                                updateData.data.remark = "线路二：不匹配昵称、支付宝帐号";
+                            }
+                        }
+
                         let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
 
                         updateAliPayTopUpProposalDailyLimit(proposalQuery, request.result.alipayAccount, isFPMS, player.platform.platformId).catch(errorUtils.reportError);
@@ -2705,6 +2713,8 @@ var dbPlayerTopUpRecord = {
                                 let aliProposal = res[1];
                                 let bValid = false;
                                 let maxDeposit = 0;
+                                let minDeposit = 0;
+
                                 if (String(bPMSGroup) == "true") {
                                     if (alipays.data) {
                                         if (playerData.permission.alipayTransaction && alipays.data.valid) {
@@ -2712,6 +2722,9 @@ var dbPlayerTopUpRecord = {
                                         }
                                         if (alipays.data.hasOwnProperty("maxDepositAmount")) {
                                             maxDeposit = alipays.data.maxDepositAmount;
+                                        }
+                                        if (alipays.data.hasOwnProperty("minDepositAmount")) {
+                                            minDeposit = alipays.data.minDepositAmount;
                                         }
                                     }
                                 } else {
@@ -2725,6 +2738,7 @@ var dbPlayerTopUpRecord = {
                                                                 bValid = true;
                                                             }
                                                             maxDeposit = alipay.singleLimit > maxDeposit ? alipay.singleLimit : maxDeposit;
+                                                            minDeposit = alipay.minDepositAmount < minDeposit ? alipay.minDepositAmount : minDeposit;
                                                         }
                                                     }
                                                 );
@@ -2736,6 +2750,7 @@ var dbPlayerTopUpRecord = {
                                     bValid = {
                                         valid: bValid,
                                         maxDepositAmount: maxDeposit,
+                                        minDepositAmount: minDeposit,
                                         lastNicknameOrAccount: aliProposal && aliProposal.data && aliProposal.data.userAlipayName? aliProposal.data.userAlipayName: ""
                                     };
                                 }

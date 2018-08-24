@@ -365,6 +365,7 @@ var roleChecker = {
                 EnableGame: [],
                 MaintainGame: ['updateGameStatusToPlatform'],
                 DisableGame: ['updateGameStatusToPlatform'],
+                UploadImage: [],
                 // MaintenanceTime: ['updateGameStatusToPlatform']
             },
             "GameGroup": {
@@ -627,6 +628,7 @@ var roleChecker = {
                 TOPUP_REPORT: ['topupReport', "getMerchantTypeList"],
                 PROPOSAL_REPORT: ['getProposalStaticsReport'],
                 FINANCIAL_POINTS_REPORT: ['getFinancialPointsReport'],
+                CONSUMPTION_MODE_REPORT: ['getConsumptionModeReport'],
                 PROVIDER_REPORT: ['operationReport', 'operationSummaryReport'],
                 PLAYER_EXPENSE_REPORT: ['getPlayerProviderReport', 'getProviderGamePlayerReport', 'getProviderGameReport', 'getPlayerProviderByGameReport', 'manualDailyProviderSettlement'],
                 PLAYER_REPORT: ['getPlayerReport', 'manualDailyProviderSettlement', 'getGames'],
