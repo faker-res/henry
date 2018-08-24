@@ -1379,7 +1379,7 @@ var dbUtility = {
     getIDCIpDetail: function (ipAdd) {
         let ipInInt = dbUtility.convertIpToInt(ipAdd);
 
-        return dbconfig.collection_idcIp.find({
+        return dbconfig.collection_idcIp.findOne({
             ip_start_num: {$lte: ipInInt},
             ip_end_num: {$gte: ipInInt}
         }).lean();
