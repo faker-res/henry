@@ -16113,7 +16113,7 @@ let dbPlayerInfo = {
             let promoteWayProm = domain ?
                 dbconfig.collection_csOfficerUrl.findOne({
                     platform: platformObjId,
-                    domain: filteredDomain
+                    domain: {$regex: filteredDomain, $options: "xi"}
                 }).populate({
                     path: 'admin',
                     model: dbconfig.collection_admin
@@ -18688,11 +18688,11 @@ let dbPlayerInfo = {
             model: dbconfig.collection_playerLevel
         }).lean();
 
-        dbPlayerCredibility.getFixedNeutralCredibilityRemarks(platformObjId).then(
+        dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId).then(
             remark => {
                 if (remark && remark.length > 0) {
                     remark.forEach(data => {
-                        if (data && data.name && data.name === '电话重复') {
+                        if (data && data.name && data.name === '电话重复' && (data.score || data.score === 0)) {
                             similarPhoneCredibilityRemarkObjId = ObjectId(data._id);
                         }
                     })
@@ -18791,11 +18791,11 @@ let dbPlayerInfo = {
             model: dbconfig.collection_playerLevel
         }).lean();
 
-        dbPlayerCredibility.getFixedNeutralCredibilityRemarks(platformObjId).then(
+        dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId).then(
             remark => {
                 if (remark && remark.length > 0) {
                     remark.forEach(data => {
-                        if (data && data.name && data.name === '注册IP重复') {
+                        if (data && data.name && data.name === '注册IP重复' && (data.score || data.score === 0)) {
                             similarIpCredibilityRemarkObjId = ObjectId(data._id);
                         }
                     })

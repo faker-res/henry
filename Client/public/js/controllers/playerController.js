@@ -7060,6 +7060,7 @@ define(['js/app'], function (myApp) {
             $("#similarIpForPlayerTable").resize();
             $scope.safeApply();
         };
+        /**** Similar Player END ****/
 
         vm.showPlayerInfoModal = function (playerName) {
             vm.showSimilarPlayersTable = false;

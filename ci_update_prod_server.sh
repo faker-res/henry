@@ -22,7 +22,7 @@ killall node
 # start all node servers...
 NODE_ENV=${env} forever start Client/app.js
 
-NODE_ENV=${env} forever start Server/messageServer.js
+NODE_ENV=${env} forever start -a -l message.log -o messageOut.log -e messageErr.log Server/messageServer.js
 
 NODE_ENV=${env} PORT=9000 forever start -a -l app.log -o appOut.log -e appErr.log Server/app.js
 

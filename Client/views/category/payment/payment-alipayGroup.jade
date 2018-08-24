@@ -87,7 +87,8 @@
                         th(data-toggle="modal", data-target="#modalFilterAlipayStatus", style="cursor: pointer") {{ 'STATUS' | translate }}
                         th {{ 'alipayAccount' | translate }}
                         th {{ 'alipayName' | translate }}
-                        th {{ 'SINGLE_LIMIT' | translate }}
+                        th {{ 'SINGLE_MINIMUM' | translate }}
+                        th {{ 'SINGLELIMIT' | translate }}
                         th {{ 'DAY_LIMIT' | translate }}
                     tbody
                         tr(ng-repeat="(idx,val) in vm.allAlipayList | filter: vm.filterAlipay as filteredAlipayList" style='{{ !val.isInGroup ? "background-color: grey;": "" }}')
@@ -96,6 +97,7 @@
                             td {{ val.state === 'DISABLED' ? 'DISABLE' : val.state | translate}}
                             td {{ val.accountNumber | translate}}
                             td {{ val.name | translate}}
+                            td {{ val.minDepositAmount | translate}}
                             td {{ val.singleLimit | translate}}
                             td {{ val.quota | translate}}
                 br

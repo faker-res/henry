@@ -560,7 +560,8 @@ var roleChecker = {
                 // Create: ['createGameAndAddToProvider', 'createGame'],
                 Update: ['updateGame'],
                 // Delete: ['deleteGameById'],
-                Expense: ['getPagedGameConsumptionRecord']
+                Expense: ['getPagedGameConsumptionRecord'],
+                UploadGamePic: []
             }
         },
         Operation: {
@@ -626,6 +627,7 @@ var roleChecker = {
                 TOPUP_REPORT: ['topupReport', "getMerchantTypeList"],
                 PROPOSAL_REPORT: ['getProposalStaticsReport'],
                 FINANCIAL_POINTS_REPORT: ['getFinancialPointsReport'],
+                CONSUMPTION_MODE_REPORT: ['getConsumptionModeReport'],
                 PROVIDER_REPORT: ['operationReport', 'operationSummaryReport'],
                 PLAYER_EXPENSE_REPORT: ['getPlayerProviderReport', 'getProviderGamePlayerReport', 'getProviderGameReport', 'getPlayerProviderByGameReport', 'manualDailyProviderSettlement'],
                 PLAYER_REPORT: ['getPlayerReport', 'manualDailyProviderSettlement', 'getGames'],
