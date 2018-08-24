@@ -1366,6 +1366,23 @@ var dbUtility = {
         tempNum = tempNum.replace(/,/g,"");
 
         return parseFloat(tempNum);
+    },
+
+    convertIpToInt: function (ipAdd) {
+        return ipAdd.split('.').reduce(function(ipInt, octet) { return (ipInt<<8) + parseInt(octet, 10)}, 0) >>> 0;
+    },
+
+    convertIntToIp: function (ipAdd) {
+        return ( (ipAdd>>>24) +'.' + (ipAdd>>16 & 255) +'.' + (ipAdd>>8 & 255) +'.' + (ipAdd & 255) );
+    },
+
+    getIDCIpDetail: function (ipAdd) {
+        let ipInInt = dbUtility.convertIpToInt(ipAdd);
+
+        return dbconfig.collection_idcIp.find({
+            ip_start_num: {$lte: ipInInt},
+            ip_end_num: {$gte: ipInInt}
+        }).lean();
     }
 };
 
