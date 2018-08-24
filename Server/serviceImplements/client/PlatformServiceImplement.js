@@ -151,6 +151,11 @@ var PlatformServiceImplement = function () {
         let ipAddress = dbUtility.getIpAddress(conn);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.addIpDomainLog, [data.platformId, data.domain, ipAddress], isValidData, null, null, true);
     };
+
+    this.getIDCIpDetail.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.ipAddress);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbUtility.getIDCIpDetail, [data.ipAddress], isValidData, null, null, true);
+    };
 };
 
 var proto = PlatformServiceImplement.prototype = Object.create(PlatformService.prototype);

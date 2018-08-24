@@ -171,7 +171,7 @@ function getSMSAPIClient (options) {
         throw Error("You may not create this client: SMSAPI is disabled.");
     }
     //var loginData =  { name: 'testApiUser', password: '123' };
-    options = options || {autoReconnect: true};
+    // options = options || {autoReconnect: true};
     return connectToServer(env.smsAPIUrl, allServicesIn(smsServices), null, options);
 }
 
