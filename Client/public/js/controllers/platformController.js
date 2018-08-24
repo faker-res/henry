@@ -11646,7 +11646,7 @@ define(['js/app'], function (myApp) {
                             orderable: false,
                         },
                         {
-                            title: "<div>" + $translate('REMARKS'), data: " ",
+                            title: "<div>" + $translate('REMARKS'), data: "data.remark",
                             orderable: false,
                         }
 
