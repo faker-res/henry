@@ -23,9 +23,10 @@ define(['js/app'], function (myApp) {
             ENABLE: 1, // "Enable",
             MAINTENANCE: 2, //"Maintenance" //
             DISABLE: 3, //"Disable", //2
-            DELETED: 4
+            DELETED: 4,
+            NOT_EXIST: 5
         };
-        vm.allGameStatusKeys = ['ENABLE', 'MAINTENANCE', 'DISABLE', 'DELETED'];
+        vm.allGameStatusKeys = ['ENABLE', 'MAINTENANCE', 'DISABLE', 'DELETED', 'NOT_EXIST'];
 
         //vm.getAllGameType = function () {
         //    socketService.$socket($scope.AppSocket, 'getAllGameTypes', {}, function (data) {
@@ -155,13 +156,21 @@ define(['js/app'], function (myApp) {
                     });
                     vm.allGameTypes = allGameTypes;
                     console.log("vm.allGameTypes", vm.allGameTypes);
-
-                    $scope.safeApply();
                 });
         };
         vm.addNewGameType = function (gameType) {
             socketService.$socket($scope.AppSocket, 'addGameType', gameType, function (data) {
                 vm.getAllGameType();
+            })
+        }
+        vm.updatePlatformGameStatus = function(status){
+            var query = {
+                platform: vm.selectedPlatform.data._id,
+                game:vm.showGame,
+                status:status
+            }
+            socketService.$socket($scope.AppSocket, 'updatePlatformGameStatus', query, function (data) {
+                vm.gameProviderClicked({data:vm.SelectedProvider});
             })
         }
         vm.updateGameType = function (oriGameType, update) {
@@ -269,8 +278,6 @@ define(['js/app'], function (myApp) {
                 default:
                     vm.selectedPenalClass = 'panel-danger'
             }
-
-            $scope.safeApply();
         }
         vm.createNewProvider = function () {
             if (!vm.showProvider || !vm.showProvider.name) {
@@ -341,69 +348,97 @@ define(['js/app'], function (myApp) {
                 return 'colorRed';
             }
         }
+        vm.getGameStatusColorClass = function (v) {
+            if (!v) return;
+            if (v.status == vm.allGameStatusString.ENABLE && v.platformGameStatus == vm.allGameStatusString.ENABLE){
+                return 'colorGreen';
+            } else if (v.status == vm.allGameStatusString.ENABLE && v.platformGameStatus == vm.allGameStatusString.NOT_EXIST) {
+                return 'colorGreen';
+            } else if (v.status == vm.allGameStatusString.DISABLE && v.platformGameStatus ==  vm.allGameStatusString.DISABLE) {
+                return 'colorRed';
+            } else if (v.status == vm.allGameStatusString.MAINTENANCE || v.platformGameStatus == vm.allGameStatusString.MAINTENANCE) {
+                return 'colorOrangeImportant text-bold';
+            } else {
+                return 'colorRed';
+            }
+        }
 
         vm.getProviderGames = function (id) {
             if (!id)return;
-            console.log(id);
+            vm.selectedProviderId = id;
+            vm.uploadImageMsg = "";
+            let imageFile = document.getElementById('gameProviderImageUploader');
+            if(imageFile && imageFile.value){
+                imageFile.value = "";
+            }
+            console.log('selectedProviderId', id);
             $('#loadingProviderGames').removeClass('hidden');
-            socketService.$socket($scope.AppSocket, 'getGamesByProviderId', {_id: id}, function (data) {
-                vm.allGames = data.data;
-                let platformId = null;
-                let playerRouteSetting = "";
-                if(vm.selectedPlatform && vm.selectedPlatform.data){
-                    if(vm.selectedPlatform.data.platformId){
-                        platformId = vm.selectedPlatform.data.platformId;
+
+            var query = {
+                platform: vm.selectedPlatform.data._id,
+                _id: id
+            }
+
+            socketService.$socket($scope.AppSocket, 'getGamesByProviderAndFPMS', query, function (data) {
+
+                $scope.$evalAsync(() => {
+                    vm.allGames = data.data;
+                    let platformId = null;
+                    let playerRouteSetting = "";
+                    if(vm.selectedPlatform && vm.selectedPlatform.data){
+                        if(vm.selectedPlatform.data.platformId){
+                            platformId = vm.selectedPlatform.data.platformId;
+                        }
+
+                        if(vm.selectedPlatform.data.playerRouteSetting){
+                            let playerRouteSetting = vm.selectedPlatform.data.playerRouteSetting;
+                        }
+
+                    }else if(vm.platformList && vm.platformList.length > 0){
+                        vm.platformList.forEach(platform => {
+                            if(platform && platform._id && platform._id == vm.selectedPlatformID){
+                                platformId = platform.platformId || null;
+                            }
+                        })
                     }
-
-                    if(vm.selectedPlatform.data.playerRouteSetting){
-                        let playerRouteSetting = vm.selectedPlatform.data.playerRouteSetting;
-                    }
-
-                }else if(vm.platformList && vm.platformList.length > 0){
-                    vm.platformList.forEach(platform => {
-                        if(platform && platform._id && platform._id == vm.selectedPlatformID){
-                            platformId = platform.platformId || null;
-                        }
-                    })
-                }
-                vm.allGames.forEach(game => {
-                    if(game){
-                        if(game.changedName && game.changedName.hasOwnProperty(platformId)){
-                            game.name$ = game.changedName[platformId] || game.name;
-                            game.isDefaultName = game.changedName[platformId] && game.changedName[platformId] != ''
-                                ? false : true;
-                        }else{
-                            game.name$ = game.name;
-                            game.isDefaultName = true;
-                        }
-
-                        playerRouteSetting = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.playerRouteSetting ?
-                            vm.selectedPlatform.data.playerRouteSetting : "";
-
-                        if(game.bigShow){
-                            game.bigShow = playerRouteSetting ? playerRouteSetting + game.bigShow : (game.sourceURL ? game.sourceURL + game.bigShow : game.sourceURL);
-                        }
-
-                        if(game.smallShow){
-                            game.smallShow = playerRouteSetting ? playerRouteSetting + game.smallShow : (game.sourceURL ? game.sourceURL + game.smallShow : game.sourceURL);
-                        }
-
-                        if(game.images && game.images.hasOwnProperty(platformId)){
-                            let platformCustomImage = game.images[platformId] || game.bigShow;
-                            if(platformCustomImage){
-                                platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (game.sourceURL ? game.sourceURL  + platformCustomImage : platformCustomImage);
+                    vm.allGames.forEach(game => {
+                        if(game){
+                            if(game.changedName && game.changedName.hasOwnProperty(platformId)){
+                                game.name$ = game.changedName[platformId] || game.name;
+                                game.isDefaultName = game.changedName[platformId] && game.changedName[platformId] != ''
+                                    ? false : true;
+                            }else{
+                                game.name$ = game.name;
+                                game.isDefaultName = true;
                             }
 
-                            game.bigShow$ = processImgAddr(platformCustomImage);
-                        }else{
-                            game.bigShow$ = processImgAddr(game.bigShow);
+                            playerRouteSetting = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.playerRouteSetting ?
+                            vm.selectedPlatform.data.playerRouteSetting : "";
+
+                            if(game.bigShow){
+                                game.bigShow = playerRouteSetting ? playerRouteSetting + game.bigShow : (game.sourceURL ? game.sourceURL + game.bigShow : game.bigShow);
+                            }
+
+                            if(game.smallShow){
+                                game.smallShow = playerRouteSetting ? playerRouteSetting + game.smallShow : (game.sourceURL ? game.sourceURL + game.smallShow : game.smallShow);
+                            }
+
+                            if(game.images && game.images.hasOwnProperty(platformId)){
+                                let platformCustomImage = game.images[platformId] || game.bigShow;
+                                if(platformCustomImage){
+                                    platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (game.sourceURL ? game.sourceURL  + platformCustomImage : platformCustomImage);
+                                }
+
+                                game.bigShow$ = processImgAddr(platformCustomImage);
+                            }else{
+                                game.bigShow$ = processImgAddr(game.bigShow);
+                            }
                         }
-                    }
-                })
-                vm.filterAllGames = $.extend([], vm.allGames);
-                console.log('vm.allGames', vm.allGames);
-                $('#loadingProviderGames').addClass('hidden');
-                $scope.safeApply();
+                    });
+                    vm.filterAllGames = $.extend([], vm.allGames);
+                    console.log('vm.allGames', vm.allGames);
+                    $('#loadingProviderGames').addClass('hidden');
+                });
             }, function (data) {
                 console.log("create not", data);
             });
@@ -429,8 +464,37 @@ define(['js/app'], function (myApp) {
             vm.selectedGameBlock = {};
             vm.selectedGameBlock[i] = true;
             vm.showGame = v;
+            vm.uploadImageMsg = "";
+            let imageFile = document.getElementById('gameProviderImageUploader');
+            if(imageFile && imageFile.value){
+                imageFile.value = "";
+            }
             console.log(i, v);
-        }
+        };
+
+        vm.updateImageUrl = function(uploaderName){
+            let imageFile = document.getElementById(uploaderName);
+            if(imageFile.files.length > 0){
+                let platformId = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.platformId
+                    ? vm.selectedPlatform.data.platformId : null;
+                let fileName = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0].name || null;
+                let fileData = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0] || null;
+                let sendQuery = {
+                    query: {
+                        platformId: platformId,
+                        gameId: vm.showGame.gameId || null,
+                        gameName: fileName || null
+                    },
+                    fileData: fileData
+                };
+                $scope.$socketPromise("updateImageUrl", sendQuery);
+                alert($translate('Upload Successful'));
+                vm.getProviderGames(vm.selectedProviderId);
+            }else{
+                vm.uploadImageMsg = "Please choose an image first";
+            }
+        };
+
         vm.changeGameStatus = function (which, value) {
             vm.curStatusGame = which;
             vm.curStatusGame.targetStatus = value;

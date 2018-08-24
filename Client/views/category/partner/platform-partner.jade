@@ -451,12 +451,12 @@ p
                                             .col-md-4
                                                 div
                                                     label {{"Parent Partner Name" | translate}}
-                                                    span.margin-left-5 {{vm.selectedSinglePartner.parent.partnerName || 'NONE' | translate}}
+                                                    text.margin-left-5 {{vm.selectedSinglePartner.parent.partnerName || 'NONE' | translate}}
                                         .row
                                             .col-md-4
                                                 div
                                                     label {{'Child Partner Headcount' | translate}}
-                                                    span.margin-left-5 ({{vm.selectedSinglePartner.childrencount || 0}})
+                                                    text.margin-left-5 ({{vm.selectedSinglePartner.childrencount || 0}})
 
                                     td.text-left
                                         button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Partner', 'EditChildPartner')", data-toggle="modal", ng-click='vm.initEditChildPartner()', data-target='#modalEditChildPartner') {{"EDIT" | translate}}

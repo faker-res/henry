@@ -1616,15 +1616,16 @@
                                             th(style="width:65px;") {{"score" | translate}}
                                             th {{"ACTION" | translate}}
                                     tbody
+                                        // fixed credibility remarks will not be able to edit
                                         tr(ng-repeat='(i, data) in vm.neutralRemarks')
                                             td
-                                                text(ng-if="!vm.configTableEdit") {{data.name}}
-                                                input.form-control(ng-show='vm.configTableEdit', ng-model='data.name', ng-change='vm.updateRemarkInEdit("neutral", "update", data._id)')
+                                                text(ng-if="!vm.configTableEdit || vm.fixedRemarks.includes(data._id)") {{data.name}}
+                                                input.form-control(ng-show='vm.configTableEdit && !vm.fixedRemarks.includes(data._id)', ng-model='data.name', ng-change='vm.updateRemarkInEdit("neutral", "update", data._id)')
                                             td
-                                                text(ng-if="!vm.configTableEdit") {{data.score}}
-                                                input.form-control(ng-show='vm.configTableEdit', ng-model='data.score', ng-change='vm.updateRemarkInEdit("neutral", "update", data._id)')
+                                                text(ng-if="!vm.configTableEdit || vm.fixedRemarks.includes(data._id)") {{data.score}}
+                                                input.form-control(ng-show='vm.configTableEdit && !vm.fixedRemarks.includes(data._id)', ng-model='data.score', ng-change='vm.updateRemarkInEdit("neutral", "update", data._id)')
                                             td.text-center
-                                                i.fa.fa-minus.text-danger(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("neutral", "remove", data._id)')
+                                                i.fa.fa-minus.text-danger(ng-show='vm.configTableEdit && !vm.fixedRemarks.includes(data._id)', ng-click='vm.updateRemarkInEdit("neutral", "remove", data._id)')
                                         tr.text-center
                                             td.text-center(colspan=3)
                                                 i.fa.fa-plus.text-success(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("neutral", "add", {})')

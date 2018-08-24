@@ -64,6 +64,12 @@ var rootObj = {};
         this._connection.send(JSON.stringify(packageData));
     };
 
+    proto._sendRequestWithImage = function (data) {
+        var packageData = data;
+        console.log('_sendRequestWithImage:', packageData);
+        this._connection.send(packageData);
+    };
+
     /**
      * 向客户端发送响应
      * @param {WebSocket} conn
@@ -276,6 +282,18 @@ var rootObj = {};
     };
 
     /**
+     * 向服务端发送消息
+     * @param {*} data
+     * @returns {proto}
+     */
+    proto.requestWithImage = function(data){
+        if (!this._service)
+            return this;         //invalid service
+        this._service._sendRequestWithImage(data);
+        return this;
+    };
+
+    /**
      * 添加function的response监听器
      * @param {function} listener
      */
@@ -385,6 +403,18 @@ var rootObj = {};
         return this;
     };
 
+    /**
+     * 向服务端发送消息
+     * @param {*} data
+     * @returns {proto}
+     */
+    proto.requestWithImage = function(data){
+        if (!this._service)
+            return this;         //invalid service
+        this._service._sendRequestWithImage(data);
+        return this;
+    };
+
     rootObj.WebSocketOneWayFunction = WebSocketOneWayFunction;
     ///------------------------WebSocketOneWayFunction End -------------------------------
 
@@ -470,6 +500,18 @@ var rootObj = {};
     };
 
     /**
+     * 向服务端发送请求
+     * @param {String} data
+     * @returns {proto}
+     */
+    proto.requestWithImage = function (data) {
+        if (!this._service)
+            return this;         //invalid service
+        this._service._sendRequestWithImage(data);
+        return this;
+    };
+
+    /**
      * 添加function的response监听器
      * @param {function} listener
      */
@@ -510,6 +552,7 @@ var rootObj = {};
             this._requestListenersOnceSync[key] = [];
         }
         this._requestListenersOnceSync[key].push(listener);
+        return;
     };
 
     proto.dispatchResponse = function (data) {

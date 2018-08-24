@@ -7060,6 +7060,7 @@ define(['js/app'], function (myApp) {
             $("#similarIpForPlayerTable").resize();
             $scope.safeApply();
         };
+        /**** Similar Player END ****/
 
         vm.showPlayerInfoModal = function (playerName) {
             vm.showSimilarPlayersTable = false;
@@ -12180,7 +12181,7 @@ define(['js/app'], function (myApp) {
                             let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
                             let forbidXIMAAmt = Number(row.forbidXIMAAmt ? row.forbidXIMAAmt : 0);
                             let targetConsumption = Number(row.targetConsumption);
-                            var text = row.curConsumption + '/' + (targetConsumption + forbidXIMAAmt);
+                            var text = $noRoundTwoDecimalToFix(row.curConsumption) + '/' + $noRoundTwoDecimalToFix(targetConsumption + forbidXIMAAmt);
                             var result = '<div id="' + "pgConsumpt" + providerGroupId + '">' + text + '</div>';
                             return result;
                         }
@@ -12196,7 +12197,7 @@ define(['js/app'], function (myApp) {
                                 providerGroupId = row.providerGroup._id;
                             }
 
-                            let text = row.currentAmount$ + '/' + row.bonusAmount$;
+                            let text = $noRoundTwoDecimalToFix(row.currentAmount$) + '/' + $noRoundTwoDecimalToFix(row.bonusAmount$);
                             vm.rtgBonusAmt[providerGroupId] = row.currentAmount$;
                             vm.rewardTaskGroupCurrentAmt = row.currentAmount$;
                             var result = '<div id="' + "pgReward" + providerGroupId + '">' + text + '</div>';
@@ -12878,7 +12879,18 @@ define(['js/app'], function (myApp) {
                     },
                     {title: $translate('CREATETIME'), data: "createTime$"},
                     //相關存款金額
-                    {title: $translate('Deposit Amount'), data: "topUpAmount"},
+                    {
+                        title: $translate('Deposit Amount'),
+                        data: "topUpAmount",
+                        render: function(data, type, row){
+
+                            let topUpAmount = '';
+                            if(data && typeof data === 'number'){
+                               topUpAmount = $noRoundTwoDecimalToFix(data);
+                            }
+                            return "<div align='right'>" + topUpAmount + "</div>";
+                        }
+                    },
                     {
                         title: $translate('Deposit ProposalId'),
                         data: "data.topUpProposal",
@@ -12893,18 +12905,18 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('REWARD_AMOUNT'), data: "bonusAmount",
                         render: function(data, type, row){
-                            let bonusAmount = data;
-                            if(typeof bonusAmount === 'number'){
-                                bonusAmount = $noRoundTwoDecimalToFix(bonusAmount);
+                            let bonusAmount = '';
+                            if(data && typeof data === 'number'){
+                               bonusAmount = $noRoundTwoDecimalToFix(data);
                             }
-                            return "<div>" + bonusAmount + "</div>";
+                            return "<div align='right'>" + bonusAmount + "</div>";
                         }
                     },
                     {
                         //解锁进度（投注额）
                         "title": $translate('Unlock Progress(Consumption)'), data: "curConsumption$",
                         render: function (data, type, row, meta) {
-                            let text = row.curConsumption$ + "/" + row.maxConsumption$;
+                            let text = $noRoundTwoDecimalToFix(row.curConsumption$) + "/" + $noRoundTwoDecimalToFix(row.maxConsumption$);
                             return "<div>" + text + "</div>";
                         }
                     },
@@ -12917,7 +12929,7 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row, meta) {
                             // let spendingAmt = vm.calSpendingAmt(meta.row);
                             // let isSubmit = vm.isSubmitProposal(meta.row);
-                            let text = -row.archivedAmt$ + "/-" + row.availableAmt$;
+                            let text = $noRoundTwoDecimalToFix(-row.archivedAmt$) + "/-" + $noRoundTwoDecimalToFix(row.availableAmt$);
                             //
                             // if (vm.isUnlockTaskGroup && vm.chosenProviderGroupId) {
                             //     let curRewardAmount = isSubmit.curRewardAmount;
