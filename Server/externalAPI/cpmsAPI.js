@@ -40,15 +40,10 @@ function callCPMSAPI(service, functionName, data, fileData) {
             // };
             return wsClient.callAPIOnce(service, functionName, data).then(
                 res => {
-                    // resFunction(res);
-
-                    let callbackProm = Promise.all(res);
-
-                    if (fileData) {
-                        console.log('a',wsClient)
-                        console.log('b', wsClient.send)
+                    if (wsClient && typeof wsClient.disconnect == "function") {
+                        wsClient.disconnect();
                     }
-                    return callbackProm;
+                    return res;
                 },
                 error => {
                     // resFunction(error);
@@ -65,13 +60,6 @@ function callCPMSAPI(service, functionName, data, fileData) {
                             error: error
                         });
                     }
-                }
-            ).then(
-                res => {
-                    if (wsClient && typeof wsClient.disconnect == "function") {
-                        wsClient.disconnect();
-                    }
-                    return res;
                 }
             );
         },

@@ -3712,6 +3712,11 @@ define(['js/app'], function (myApp) {
             vm.gameClicked = function (i, v) {
                 if (!v) return;
                 console.log('game clicked', v);
+                vm.uploadImageMsg = "";
+                let imageFile = document.getElementById('gameImageUploader');
+                if(imageFile && imageFile.value){
+                    imageFile.value = "";
+                }
                 var exists = false;
                 vm.selectedGamesInGameGroup = vm.selectedGamesInGameGroup.filter(item => {
                     if (item && item._id) {
@@ -33222,6 +33227,29 @@ define(['js/app'], function (myApp) {
                 //         tr.addClass('shown');
                 //     }
                 // });
+            };
+
+            vm.updateImageUrl = function(uploaderName){
+                let imageFile = document.getElementById(uploaderName);
+                if(imageFile.files.length > 0){
+                    let platformId = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.platformId
+                        ? vm.selectedPlatform.data.platformId : null;
+                    let fileName = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0].name || null;
+                    let fileData = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0] || null;
+                    let sendQuery = {
+                        query: {
+                            platformId: platformId,
+                            gameId: vm.curGame.gameId || null,
+                            gameName: fileName || null
+                        },
+                        fileData: fileData
+                    };
+                    $scope.$socketPromise("updateImageUrl", sendQuery);
+                    alert($translate('Upload Successful'));
+                    vm.providerClicked(1, vm.SelectedProvider);
+                } else {
+                    vm.uploadImageMsg = "Please choose an image first";
+                }
             };
 
             vm.getAllAutoFeedback = function() {

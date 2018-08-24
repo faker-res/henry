@@ -365,6 +365,7 @@ var roleChecker = {
                 EnableGame: [],
                 MaintainGame: ['updateGameStatusToPlatform'],
                 DisableGame: ['updateGameStatusToPlatform'],
+                UploadImage: [],
                 // MaintenanceTime: ['updateGameStatusToPlatform']
             },
             "GameGroup": {
