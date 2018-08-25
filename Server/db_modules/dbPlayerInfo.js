@@ -13934,6 +13934,11 @@ let dbPlayerInfo = {
     },
 
     updatePlayerCredibilityRemark: (adminName, platformObjId, playerObjId, remarks, comment) => {
+        // Avoid assigning empty remarks
+        if (!remarks) {
+            return;
+        }
+
         return dbconfig.collection_players.findOneAndUpdate(
             {
                 _id: playerObjId,
