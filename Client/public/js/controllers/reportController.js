@@ -3497,9 +3497,11 @@ define(['js/app'], function (myApp) {
                     item.credibility$ = "";
                     if (item.credibilityRemarks) {
                         for (let i = 0; i < item.credibilityRemarks.length; i++) {
-                            for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                                if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
-                                    item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                            if (item.credibilityRemarks[i]) {
+                                for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                    if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                        item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                                    }
                                 }
                             }
                         }
@@ -4274,14 +4276,16 @@ define(['js/app'], function (myApp) {
                     }
 
                     item.credibility$ = "";
-                    if (item.credibilityRemarks) {
-                        for (let i = 0; i < item.credibilityRemarks.length; i++) {
-                            for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                                if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
-                                    item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                    if (item.credibilityRemarks && item.credibilityRemarks.length) {
+                        item.credibilityRemarks.forEach(remark => {
+                            if (remark) {
+                                for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                    if (remark.toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                        item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                                    }
                                 }
                             }
-                        }
+                        })
                     }
 
                     item.providerArr = [];
