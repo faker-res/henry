@@ -2713,7 +2713,7 @@ var dbPlayerTopUpRecord = {
                                 let aliProposal = res[1];
                                 let bValid = false;
                                 let maxDeposit = 0;
-                                let minDeposit = 0;
+                                let minDeposit;
 
                                 if (String(bPMSGroup) == "true") {
                                     if (alipays.data) {
@@ -2738,6 +2738,9 @@ var dbPlayerTopUpRecord = {
                                                                 bValid = true;
                                                             }
                                                             maxDeposit = alipay.singleLimit > maxDeposit ? alipay.singleLimit : maxDeposit;
+                                                            if (minDeposit == undefined) {
+                                                                minDeposit = alipay.minDepositAmount;
+                                                            }
                                                             minDeposit = alipay.minDepositAmount < minDeposit ? alipay.minDepositAmount : minDeposit;
                                                         }
                                                     }

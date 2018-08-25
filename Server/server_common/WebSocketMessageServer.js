@@ -116,7 +116,7 @@ class WebSocketMessageServer {
 
         for( let client of this.clients ){
             if( client.type == type ){
-                console.log("Relaying a message to clients of type:", type, message);
+                // console.log("Relaying a message to clients of type:", type, message);
                 var sendMsg = JSON.stringify(message);
                 client.socket.send(sendMsg);
             }
