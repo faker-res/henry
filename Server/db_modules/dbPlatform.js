@@ -2109,7 +2109,7 @@ var dbPlatform = {
 
     },
 
-    createNewPlayerAdvertisementRecord: function (platformId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice) {
+    createNewPlayerAdvertisementRecord: function (platformId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice, showInRealServer) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj => {
                 if (platformObj) {
@@ -2139,6 +2139,7 @@ var dbPlatform = {
                         backgroundBannerImage: backgroundBannerImage,
                         imageButton: imageButton,
                         inputDevice: inputDevice,
+                        showInRealServer: showInRealServer,
                         status: 1
                     }
                     let advertistmentRecord = new dbconfig.collection_playerPageAdvertisementInfo(newRecordData);
@@ -2152,7 +2153,7 @@ var dbPlatform = {
         return dbconfig.collection_playerPageAdvertisementInfo.remove({_id: advertisementId, platformId: platformId});
     },
 
-    savePlayerAdvertisementRecordChanges: function (platformId, advertisementId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice) {
+    savePlayerAdvertisementRecordChanges: function (platformId, advertisementId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice, showInRealServer) {
 
         let query = {
             platformId: platformId,
@@ -2165,7 +2166,8 @@ var dbPlatform = {
             title: title,
             backgroundBannerImage: backgroundBannerImage,
             imageButton: imageButton,
-            inputDevice: inputDevice
+            inputDevice: inputDevice,
+            showInRealServer: showInRealServer
         }
         return dbconfig.collection_playerPageAdvertisementInfo.findOneAndUpdate(query, updateData).then(
             platformObj => {
@@ -2367,7 +2369,7 @@ var dbPlatform = {
         );
 
     },
-    createNewPartnerAdvertisementRecord: function (platformId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice) {
+    createNewPartnerAdvertisementRecord: function (platformId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice, showInRealServer) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj => {
                 if (platformObj) {
@@ -2379,6 +2381,7 @@ var dbPlatform = {
                         backgroundBannerImage: backgroundBannerImage,
                         imageButton: imageButton,
                         inputDevice: inputDevice,
+                        showInRealServer: showInRealServer,
                         status: 1
                     }
                     let advertistmentRecord = new dbconfig.collection_partnerPageAdvertisementInfo(newRecordData);
@@ -2395,7 +2398,7 @@ var dbPlatform = {
         return dbconfig.collection_partnerPageAdvertisementInfo.remove({_id: advertisementId, platformId: platformId});
     },
 
-    savePartnerAdvertisementRecordChanges: function (platformId, advertisementId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice) {
+    savePartnerAdvertisementRecordChanges: function (platformId, advertisementId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice, showInRealServer) {
 
         let query = {
             platformId: platformId,
@@ -2408,7 +2411,8 @@ var dbPlatform = {
             title: title,
             backgroundBannerImage: backgroundBannerImage,
             imageButton: imageButton,
-            inputDevice: inputDevice
+            inputDevice: inputDevice,
+            showInRealServer: showInRealServer
         }
         return dbconfig.collection_partnerPageAdvertisementInfo.findOneAndUpdate(query, updateData).then(
             platformObj => {

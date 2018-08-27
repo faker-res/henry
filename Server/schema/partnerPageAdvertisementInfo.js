@@ -20,6 +20,8 @@ var partnerPageAdvertisementInfoSchema = new Schema({
     // input device that using this advertisement
     inputDevice: Number,
     status: {type: Number, default: 0, required: true},
+    //if this ads show in production server
+    showInRealServer: {type: Boolean, default: false},
 });
 
 module.exports = partnerPageAdvertisementInfoSchema;
