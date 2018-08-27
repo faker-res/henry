@@ -4,6 +4,7 @@ define(['js/app'], function (myApp) {
     let playerController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, commonService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants) {
         let $translate = $filter('translate');
         let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
+        let $noRoundTwoDecimalToFix = $filter('noRoundTwoDecimalToFix');
         let vm = this;
 
         // For debugging:
@@ -2568,442 +2569,6 @@ define(['js/app'], function (myApp) {
             });
         }
 
-        ////////////////Mark::Game Group functions//////////////////
-
-        vm.loadGameGroupData = function () {
-            //init gametab start===============================
-            vm.showGameCate = "include";
-            vm.toggleGameType();
-            //init gameTab end==================================
-            if (!vm.selectedPlatform) {
-                return
-            }
-            vm.loadingGameGroup = true;
-            vm.SelectedGameGroupNode = null;
-            console.log("getGames", vm.selectedPlatform.id);
-            socketService.$socket($scope.AppSocket, 'getPlatformGameGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                console.log('gamegroup', data);
-                //provider list init
-                vm.loadingGameGroup = false;
-                vm.platformGameGroupList = data.data;
-                vm.drawGameGroupTree();
-                $scope.safeApply();
-            })
-        }
-
-        vm.addGameGroup = function (str) {
-            console.log(str, vm.SelectedGameGroupNode, vm.newGameGroup);
-            //vm.selectGameGroupParent
-            var sendData = {
-                platform: vm.selectedPlatform.id,
-                name: vm.newGameGroup.name,
-                parent: vm.newGameGroup.parent,
-                code: vm.newGameGroup.code,
-                displayName: vm.newGameGroup.displayName
-            }
-            socketService.$socket($scope.AppSocket, 'addPlatformGameGroup', sendData, function (data) {
-                console.log(data.data);
-                vm.loadGameGroupData();
-                $scope.safeApply();
-            })
-        }
-        vm.removeGameGroup = function () {
-            socketService.$socket($scope.AppSocket, 'deleteGameGroup', {_id: vm.SelectedGameGroupNode.id}, function (data) {
-                console.log(data.data);
-                // vm.loadGameGroupData();
-                for (var i = 0; i < vm.platformGameGroupList.length; i++) {
-                    if (vm.platformGameGroupList[i]._id == vm.SelectedGameGroupNode.id) {
-                        vm.platformGameGroupList.splice(i, 1);
-                        break;
-                    }
-                }
-                vm.drawGameGroupTree();
-
-                $scope.safeApply();
-            })
-        }
-        vm.renameGameGroup = function () {
-            var sendData = {
-                query: {
-                    platform: vm.selectedPlatform.id,
-                    // name: vm.SelectedGameGroupNode.groupData.name,
-                    _id: vm.SelectedGameGroupNode.id,
-                },
-                update: {
-                    name: vm.newGameGroup.name,
-                    displayName: vm.newGameGroup.displayName,
-                    code: vm.newGameGroup.code
-                }
-            }
-            socketService.$socket($scope.AppSocket, 'renamePlatformGameGroup', sendData, function (data) {
-                console.log(data.data);
-                vm.loadGameGroupData();
-            })
-        }
-
-        vm.gameGroupClicked = function (index, obj) {
-            vm.SelectedGameGroupNode = obj;
-
-            vm.includedGamesGroup = [];
-            vm.excludedGamesGroup = [];
-            vm.selectGameGroupGames = [];
-            vm.selectGameGroupGamesName = [];
-
-            //get included games list
-            var query = {
-                platform: vm.selectedPlatform.id,
-                // groupId: obj.groupData.groupId,
-                _id: vm.SelectedGameGroupNode.id,
-            }
-            console.log('query', query);
-            socketService.$socket($scope.AppSocket, 'getGamesByPlatformAndGameGroup', query, function (data2) {
-                console.log("attached", data2.data);
-                $.each(vm.filterGames(data2.data.games, true), function (i, v) {
-                    if (!v || !v.game) {
-                        return true;
-                    }
-                    var newObj = v.game;
-                    newObj.index = (v && v.index) ? v.index : 1;
-                    vm.includedGamesGroup.push(newObj);
-                    vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
-                })
-                console.log("vm.includedGamesGroup", vm.includedGamesGroup);
-                if (vm.showGameCate == "include") {
-                    vm.gameInGroupClicked(0, vm.includedGamesGroup[0], "in");
-                }
-                vm.gameGroupClickable.inGameLoaded = true;
-                $scope.safeApply();
-            })
-            socketService.$socket($scope.AppSocket, 'getGamesNotInGameGroup', query, function (data2) {
-                //console.log("not attached", data2.data);
-                $.each(vm.filterGames(data2.data, true), function (i, v) {
-                    if (!v || !v.game) {
-                        return true;
-                    }
-                    vm.excludedGamesGroup.push(v.game);
-                    vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, v.game.smallShow);
-
-                })
-                console.log('vm.excludedGamesGroup', vm.excludedGamesGroup);
-                if (vm.showGameCate == "exclude") {
-                    vm.gameInGroupClicked(0, vm.excludedGamesGroup[0], "ex");
-                }
-                vm.gameGroupClickable.outGameLoaded = true;
-                $scope.safeApply();
-            })
-        }
-
-        vm.gametoGameGroup = function (type) {
-            var sendData = {
-                query: {
-                    platform: vm.selectedPlatform.id,
-                    groupId: vm.SelectedGameGroupNode.groupData.groupId
-                }
-            }
-            if (type === 'attach') {
-                var gameArr = [];
-                vm.selectGameGroupGames.forEach(a => {
-                    gameArr.push({
-                        index: 1,
-                        game: a
-                    })
-                })
-                sendData.update = {
-                    "$addToSet": {
-                        games: {"$each": gameArr}
-                    }
-                }
-            } else if (type === 'detach') {
-                sendData.update = {
-                    "$pull": {
-                        "games": {
-                            "game": {
-                                "$in": vm.selectGameGroupGames
-                            }
-                        }
-                    }
-                }
-            }
-            GeneralModal.confirm({
-                title: $translate(type.toUpperCase()),
-                text: $translate('Are you sure to') + $translate(type.toUpperCase()) + vm.selectGameGroupGamesName + "?"
-            }).then(function () {
-                console.log(sendData);
-                socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, success);
-
-                function success(data) {
-                    vm.curGame = null;
-                    console.log(data);
-                    vm.selectGameGroupGames = [];
-                    vm.selectGameGroupGamesName = [];
-                    vm.gameGroupClicked(0, vm.SelectedGameGroupNode);
-                    $scope.safeApply();
-                }
-            });
-        }
-
-        vm.updateGameIndexGameGroup = function (newIndex) {
-            var gameId = vm.curGame._id;
-            var sendData = {
-                query: {
-                    platform: vm.selectedPlatform.id,
-                    groupId: vm.SelectedGameGroupNode.groupData.groupId
-                },
-                update: {
-                    "$pull": {
-                        'games': {game: gameId}
-                    }
-                }
-            }
-            socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, success);
-
-            function success(data) {
-                sendData.update = {
-                    "$addToSet": {
-                        games: {
-                            index: newIndex,
-                            game: gameId,
-                        }
-                    }
-                }
-                socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, function (newData) {
-                    vm.curGame = null;
-                    vm.gameGroupClicked(0, vm.SelectedGameGroupNode);
-                });
-            }
-        }
-
-        vm.initRenameGameGroup = function () {
-            vm.newGameGroup = {};
-            vm.newGameGroup.name = vm.SelectedGameGroupNode.groupData.name;
-            vm.newGameGroup.displayName = vm.SelectedGameGroupNode.groupData.displayName;
-            vm.newGameGroup.code = vm.SelectedGameGroupNode.groupData.code;
-        }
-
-        /////////////////// draw game group tree
-
-        vm.drawGameGroupTree = function () {
-            getGameGroupTree();
-            vm.refreshGameGroupTree();
-            $('#gameGroupTree').treeview('expandAll', {levels: 3, silent: true});
-        };
-
-        function getGameGroupTree() {
-            vm.gameGroupTree = null;
-            vm.gameGroupNodes = {};
-            vm.userCountArray = [];
-            var finalNodeTree = [];
-
-            var rawNodeList = {};
-            $.each(vm.platformGameGroupList, function (i, v) {
-                var newNode = createGameGroupNode(v);
-                //store all sub tree nodes to map list
-                if (v.parent) {
-                    //if there is only one gameGroup add it to the tree
-
-                    rawNodeList[v._id] = newNode;
-                }
-                //if root node, add it to the first level
-                else {
-                    finalNodeTree.push(newNode);
-                }
-                vm.gameGroupNodes[v._id] = newNode;
-            });
-
-            // vm.SelectedGameGroupNode = finalNodeTree[0];
-            // vm.gameGroupClicked(0, vm.SelectedGameGroupNode);
-            vm.gameGroupNodes["root"] = finalNodeTree[0];
-
-            for (var h in finalNodeTree) {
-                buildSubTreeForNode(finalNodeTree[h]);
-            }
-
-            //build tree for passed in node
-            function buildSubTreeForNode(rootNode) {
-                if (rootNode && rootNode.children) {
-                    for (var j = 0; j < rootNode.children.length; j++) {
-                        rootNode.nodes.push(rawNodeList[rootNode.children[j]]);
-                        buildSubTreeForNode(rawNodeList[rootNode.children[j]]);
-                    }
-                }
-            }
-
-            vm.gameGroupTree = finalNodeTree;
-            console.log("vm.gameGroupTree", vm.gameGroupTree);
-        }
-
-        function createGameGroupNode(v) {
-            var obj = {
-                text: v.name + " (" + $translate("Code") + ": " + v.code + ")",
-                id: v._id,
-                nodeId: v._id,
-                parent: v.parent ? v.parent : null,
-                children: v.children || [],
-                // icon: v.icon,
-                selectable: true,
-                groupData: v,
-                tags: [],
-            }
-            if (obj.children.length > 0) {
-                obj.nodes = [];
-            }
-            return obj;
-        }
-
-        vm.refreshGameGroupTree = function () {
-            $('#gameGroupTree').treeview(
-                {
-                    data: vm.gameGroupTree,
-                    showTags: true,
-                    expandIcon: 'fa fa-plus-square-o',
-                    collapseIcon: 'fa fa-minus-square-o',
-                    toggleSelected: false,
-                    selectedBackColor: '#3676AD',
-                }
-            );
-            $('#gameGroupTree').on('nodeSelected', function (event, data) {
-                vm.highlightGame = {};
-                vm.selectGameGroupGames = [];
-                if (!vm.gameGroupClickable.inGameLoaded || !vm.gameGroupClickable.outGameLoaded) {
-                    return;
-                } else {
-                    vm.gameGroupClickable.inGameLoaded = false;
-                    vm.gameGroupClickable.outGameLoaded = false;
-                    vm.SelectedGameGroupNode = data;
-                    vm.gameGroupID = data.groupData._id;
-                    // vm.SelectedGameGroupText = data.text;
-                    console.log("SelectedGameGroupNode", data);
-                    vm.pageActionStatus = "null";
-                    vm.gameGroupClicked(1, data);
-                }
-            });
-        };
-
-        vm.gameInGroupClicked = function (i, v, type) {
-            if (!v) {
-                vm.selectGameGroupGames = [];
-                $scope.safeApply();
-                return;
-            }
-            console.log('game clicked', v);
-            var index = vm.selectGameGroupGames.indexOf(v._id);
-            if (index == -1) {
-                vm.selectGameGroupGames.push(v._id);
-                vm.selectGameGroupGamesName.push(v.name);
-                vm.highlightGame[v._id] = 'bg-pale';
-                vm.curGame = v;
-            } else if (index != -1) {
-                vm.selectGameGroupGames.splice(index, 1);
-                vm.selectGameGroupGamesName.splice(index, 1);
-                delete vm.highlightGame[v._id];
-            }
-
-            // console.log('vm.selectGameGroupGames', vm.selectGameGroupGames, index);
-            console.log('vm.curGame', vm.curGame);
-        }
-        vm.groupGameListCollapseIn = function () {
-            $('#includedGroupGames').collapse('show');
-            $('#excludedGroupGames').collapse('hide');
-
-        }
-        vm.groupGameListCollapseOut = function () {
-            $('#includedGroupGames').collapse('hide');
-            $('#excludedGroupGames').collapse('show');
-        }
-
-        vm.gameListCollapseIn = function () {
-            $('#includedGames').collapse('show');
-            $('#excludedGames').collapse('hide');
-        }
-        vm.gameListCollapseOut = function () {
-            $('#includedGames').collapse('hide');
-            $('#excludedGames').collapse('show');
-        }
-        vm.allGametoGameGroup = function (type, which) {
-            vm.selectGameGroupGames = [];
-            vm.selectGameGroupGamesName = [];
-            vm.highlightGame = {};
-            vm.curGame = null;
-            if (type == "add") {
-                var src = [];
-                if (which == "in") {
-                    vm.showGameCate = "include";
-                    src = vm.includedGamesGroup;
-                    vm.groupGameListCollapseIn();
-
-                } else if (which === "ex") {
-                    vm.showGameCate = "exclude";
-                    src = vm.excludedGamesGroup;
-                    vm.groupGameListCollapseOut();
-
-                }
-                src.map(item => {
-                    vm.selectGameGroupGames.push(item._id);
-                    vm.selectGameGroupGamesName.push(item.name);
-                    vm.highlightGame[item._id] = 'bg-pale';
-                })
-                vm.curGame = src.length ? src[src.length - 1] : null;
-            }
-            $scope.safeApply();
-        }
-
-        //////////////////////////////////////////// draw game group tree
-
-        vm.moveGameGroupDialog = function () {
-            console.log('treedata', vm.gameGroupTree);
-            $scope.gameGroupMove = {
-                isRoot: '1'
-            };
-            $('#gameGroupTreeForMoving').treeview(
-                {
-                    data: vm.gameGroupTree,
-                    levels: 3,
-                    highlightSearchResults: false
-                }
-            );
-            // var nodes = $('#gameGroupTreeForMoving').treeview('search', [vm.SelectedGameGroupNode.text, {exactMatch: true}]);
-            // var node = (nodes.length == 1) ? nodes[0] : null;
-            // $('#gameGroupTreeForMoving').treeview('disableNode', [node, {silent: true}]);
-            vm.gameGroupAllowMove = false;
-            $('#gameGroupTreeForMoving').on('nodeSelected', function (event, data) {
-                console.log("SelectedGameGroupNode", data);
-                if (data.id == vm.SelectedGameGroupNode.id ||
-                    data.parent == vm.SelectedGameGroupNode.id ||
-                    data.children.indexOf(vm.SelectedGameGroupNode.id) > -1 ||
-                    isAncestor(data.id, vm.SelectedGameGroupNode.id)) {
-                    vm.gameGroupAllowMove = false;
-                } else {
-                    vm.gameGroupAllowMove = true;
-                }
-                vm.newGroupParent = data;
-                $scope.safeApply();
-            });
-
-            function isAncestor(curId, targetId) {
-                if (vm.gameGroupNodes[curId].parent != targetId) {
-                    if (vm.gameGroupNodes[curId].parent) {
-                        return isAncestor(vm.gameGroupNodes[curId].parent, targetId);
-                    } else return false;
-                } else return true;
-            }
-        }
-        vm.confirmMoveGameGroup = function () {
-            var sendData = {
-                groupId: vm.SelectedGameGroupNode.id,
-                curParentGroupId: vm.SelectedGameGroupNode.parent,
-                newParentGroupId: $scope.gameGroupMove.isRoot ? vm.newGroupParent.id : null
-            }
-            socketService.$socket($scope.AppSocket, 'updateGameGroupParent', sendData, success);
-
-            function success(data) {
-                vm.loadGameGroupData();
-
-                $scope.safeApply();
-            }
-        }
-
-        ////////////////Mark::Game functions//////////////////
-
         vm.platformGameTabClicked = function () {
             //reset to unselected state
             vm.SelectedProvider = null;
@@ -3588,6 +3153,7 @@ define(['js/app'], function (myApp) {
                 item.typeText = $translate(item.type);
                 item.providerText = vm.getProviderText(item.providerId);
                 item.lockedAmount$ = item.lockedAmount.toFixed(2);
+                item.localAmount$ = Number(item.amount) - Number(item.lockedAmount$);
                 return item;
             });
             let option = $.extend({}, vm.generalDataTableOptions, {
@@ -3609,7 +3175,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate("TRANSFER") + " ID", data: 'transferId'},
                     {title: $translate('playerName'), data: 'playerName'},
                     {
-                        title: $translate("CREDIT"),
+                        title: $translate("TotalChangeAmount"),
                         data: 'amount',
                         render: function (data, type, row) {
                             return parseFloat(data).toFixed(2);
@@ -3617,8 +3183,8 @@ define(['js/app'], function (myApp) {
                     },
                     {title: $translate("provider"), data: 'providerText'},
                     {
-                        title: $translate("amount"),
-                        data: 'amount',
+                        title: $translate("LOCAL_CREDIT"),
+                        data: `localAmount$`,
                         render: function (data, type, row) {
                             return parseFloat(data).toFixed(2);
                         }
@@ -3637,7 +3203,7 @@ define(['js/app'], function (myApp) {
 
 
             let tableElem = vm.platformCreditTransferLog.isPopup ? '#platformCreditTransferLogPopupTable' : '#platformCreditTransferLogTable';
-            console.log(tableElem);
+
             let table = utilService.createDatatableWithFooter(tableElem, option, {});
             vm.platformCreditTransferLog.pageObj.init({maxCount: size}, newSearch);
 
@@ -7338,6 +6904,7 @@ define(['js/app'], function (myApp) {
                 limit: newSearch ? vm.similarPhoneForPlayer.limit : (vm.similarPhoneForPlayer.limit || 50),
                 sortCol: {registrationTime: -1},
                 isRealPlayer: true,
+                admin: authService.adminName,
             };
             socketService.$socket($scope.AppSocket, "getPagedSimilarPhoneForPlayers", sendQuery, function (data) {
                 vm.similarPhoneForPlayers = data.data.data;
@@ -7427,6 +6994,7 @@ define(['js/app'], function (myApp) {
                 limit: newSearch ? vm.similarIpForPlayer.limit : (vm.similarIpForPlayer.limit || 50),
                 sortCol: {registrationTime: -1},
                 isRealPlayer: true,
+                admin: authService.adminName,
             };
             socketService.$socket($scope.AppSocket, "getPagedSimilarIpForPlayers", sendQuery, function (data) {
                 vm.similarIpForPlayers = data.data.data;
@@ -7444,7 +7012,7 @@ define(['js/app'], function (myApp) {
                 if (item.credibilityRemarks && item.credibilityRemarks.length > 0) {
                     item.credibilityRemarks = vm.credibilityRemarks.filter(remark => {
                         return item.credibilityRemarks.includes(remark._id);
-                    })
+                    });
                     item.credibilityRemarks.forEach(function (value, index) {
                         remarks += value.name + breakLine;
                     });
@@ -7492,6 +7060,7 @@ define(['js/app'], function (myApp) {
             $("#similarIpForPlayerTable").resize();
             $scope.safeApply();
         };
+        /**** Similar Player END ****/
 
         vm.showPlayerInfoModal = function (playerName) {
             vm.showSimilarPlayersTable = false;
@@ -9177,10 +8746,10 @@ define(['js/app'], function (myApp) {
                 if (!a) return;
                 var checkForObjIdRegExp = new RegExp(/^[a-f\d]{24}$/i);
                 var newStr = [];
-                a.amount = a.amount != null ? a.amount.toFixed(2) : new Number(0).toFixed(2);
-                a.curAmount = a.curAmount != null ? a.curAmount.toFixed(2) : new Number(0).toFixed(2);
-                a.lockedAmount = a.lockedAmount != null ? a.lockedAmount.toFixed(2) : new Number(0).toFixed(2);
-                a.changedLockedAmount = a.changedLockedAmount != null ? a.changedLockedAmount.toFixed(2) : new Number(0).toFixed(2);
+                a.amount = a.amount != null ? $noRoundTwoDecimalToFix(a.amount) : new Number(0).toFixed(2);
+                a.curAmount = a.curAmount != null ? $noRoundTwoDecimalToFix(a.curAmount) : new Number(0).toFixed(2);
+                a.lockedAmount = a.lockedAmount != null ? $noRoundTwoDecimalToFix(a.lockedAmount) : new Number(0).toFixed(2);
+                a.changedLockedAmount = a.changedLockedAmount != null ? $noRoundTwoDecimalToFix(a.changedLockedAmount) : new Number(0).toFixed(2);
                 var newObj = $.extend({}, a.data);
                 delete newObj.creator;
                 // switch (a.operationType) {
@@ -11051,7 +10620,7 @@ define(['js/app'], function (myApp) {
                         orderable: false,
                     },
                     {
-                        title: "<div>" + $translate('REMARKS'), data: " ",
+                        title: "<div>" + $translate('REMARKS'), data: "data.remark",
                         orderable: false,
                     }
 
@@ -12612,7 +12181,7 @@ define(['js/app'], function (myApp) {
                             let providerGroupId = row.providerGroup ? row.providerGroup._id : '';
                             let forbidXIMAAmt = Number(row.forbidXIMAAmt ? row.forbidXIMAAmt : 0);
                             let targetConsumption = Number(row.targetConsumption);
-                            var text = row.curConsumption + '/' + (targetConsumption + forbidXIMAAmt);
+                            var text = $noRoundTwoDecimalToFix(row.curConsumption) + '/' + $noRoundTwoDecimalToFix(targetConsumption + forbidXIMAAmt);
                             var result = '<div id="' + "pgConsumpt" + providerGroupId + '">' + text + '</div>';
                             return result;
                         }
@@ -12628,7 +12197,7 @@ define(['js/app'], function (myApp) {
                                 providerGroupId = row.providerGroup._id;
                             }
 
-                            let text = row.currentAmount$ + '/' + row.bonusAmount$;
+                            let text = $noRoundTwoDecimalToFix(row.currentAmount$) + '/' + $noRoundTwoDecimalToFix(row.bonusAmount$);
                             vm.rtgBonusAmt[providerGroupId] = row.currentAmount$;
                             vm.rewardTaskGroupCurrentAmt = row.currentAmount$;
                             var result = '<div id="' + "pgReward" + providerGroupId + '">' + text + '</div>';
@@ -13310,7 +12879,18 @@ define(['js/app'], function (myApp) {
                     },
                     {title: $translate('CREATETIME'), data: "createTime$"},
                     //相關存款金額
-                    {title: $translate('Deposit Amount'), data: "topUpAmount"},
+                    {
+                        title: $translate('Deposit Amount'),
+                        data: "topUpAmount",
+                        render: function(data, type, row){
+
+                            let topUpAmount = '';
+                            if(data && typeof data === 'number'){
+                               topUpAmount = $noRoundTwoDecimalToFix(data);
+                            }
+                            return "<div align='right'>" + topUpAmount + "</div>";
+                        }
+                    },
                     {
                         title: $translate('Deposit ProposalId'),
                         data: "data.topUpProposal",
@@ -13322,12 +12902,21 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     //相關存款提案號
-                    {title: $translate('REWARD_AMOUNT'), data: "bonusAmount"},
+                    {
+                        title: $translate('REWARD_AMOUNT'), data: "bonusAmount",
+                        render: function(data, type, row){
+                            let bonusAmount = '';
+                            if(data && typeof data === 'number'){
+                               bonusAmount = $noRoundTwoDecimalToFix(data);
+                            }
+                            return "<div align='right'>" + bonusAmount + "</div>";
+                        }
+                    },
                     {
                         //解锁进度（投注额）
                         "title": $translate('Unlock Progress(Consumption)'), data: "curConsumption$",
                         render: function (data, type, row, meta) {
-                            let text = row.curConsumption$ + "/" + row.maxConsumption$;
+                            let text = $noRoundTwoDecimalToFix(row.curConsumption$) + "/" + $noRoundTwoDecimalToFix(row.maxConsumption$);
                             return "<div>" + text + "</div>";
                         }
                     },
@@ -13340,7 +12929,7 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row, meta) {
                             // let spendingAmt = vm.calSpendingAmt(meta.row);
                             // let isSubmit = vm.isSubmitProposal(meta.row);
-                            let text = -row.archivedAmt$ + "/-" + row.availableAmt$;
+                            let text = $noRoundTwoDecimalToFix(-row.archivedAmt$) + "/-" + $noRoundTwoDecimalToFix(row.availableAmt$);
                             //
                             // if (vm.isUnlockTaskGroup && vm.chosenProviderGroupId) {
                             //     let curRewardAmount = isSubmit.curRewardAmount;
@@ -18309,6 +17898,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
                     proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
+                    vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
                     vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                         grossCommission += rawCommission.amount;
                         let str = rawCommission.amount + $translate("YEN") + " "
@@ -18608,6 +18198,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
                     proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
+                    vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
                     vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                         grossCommission += rawCommission.amount;
                         let str = rawCommission.amount + $translate("YEN") + " "

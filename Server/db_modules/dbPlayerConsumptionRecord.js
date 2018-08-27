@@ -637,7 +637,6 @@ var dbPlayerConsumptionRecord = {
 
                 }
                 if (record) {
-                    console.log('debug log #0FD400');
                     dbRewardPoints.updateGameRewardPointProgress(record).catch(errorUtils.reportError);
                 }
                 return record
@@ -766,6 +765,11 @@ var dbPlayerConsumptionRecord = {
                         recordData.winRatio = recordData.bonusAmount / recordData.validAmount;
                     }
                     delete recordData.name;
+
+                    if (recordData.LIST) {
+                        recordData.betDetails = recordData.LIST;
+                        delete recordData.LIST;
+                    }
 
                     if (isProviderGroup) {
                         return dbPlayerConsumptionRecord.createPlayerConsumptionRecordForProviderGroup(recordData, platformObj);

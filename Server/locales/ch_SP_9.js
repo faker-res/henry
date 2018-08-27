@@ -36,6 +36,7 @@ var simplifiedChinese = {
     "Currently no available bank card": "目前无可用银行卡",
     "Currently no available alipay": "目前无可用支付宝",
     "Currently no available wechatpay": "目前无可用微信支付",
+    "Old phone number doesn't match": "旧的电话号码匹配失败，请重新输入。",
 
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",
@@ -353,6 +354,7 @@ var simplifiedChinese = {
     "Top up does not meet Promo Code minimum required amount": "您的存款金额低于该优惠代码限制，请调整存款金额。",
     "Exceed the total application limit": "优惠已全数发送完毕， 谢谢。",
     "Exceed the total application limit of the player": "已达个人领取数量上限。",
+    "Exceed the total application limit from the same IP": "已达同IP领取数量上限",
     "SMS failure, please retry": "短信验证码发送失败，请重新点击获取",
     "SMS failure for more than 5 times, please contact customer service": "短信验证码连续发送失败5次，请联系客服人员",
     "Connection failed": "连接失败",
@@ -435,6 +437,9 @@ var simplifiedChinese = {
     "The partner commission for this period is already settled.": "此代理该周期已经结算。",
     "Proposal No.": "提案号：",
     "New phone number is already used. Please insert other phone number.": "新号码已绑定账号，不支持重复绑定。",
+    "Parent Partner": "一级代理",
+    "1.Partner Commission Proposal No.: ": "1.代理佣金提案号：",
+    "2.Parent Partner Commission Rate：": "2.一级代理佣金比例：",
 
     //todo::add missing messages here
 

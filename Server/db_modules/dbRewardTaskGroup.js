@@ -125,9 +125,9 @@ let dbRewardTaskGroup = {
 
     deletePlatformProviderGroup: (gameProviderGroupObjId) => {
         return dbconfig.collection_rewardTaskGroup.find({
-            providerGroup: {$in: gameProviderGroupObjId},
+            providerGroup: {$in: gameProviderGroupObjId, $ne: null},
             status: constRewardTaskStatus.STARTED
-        }).then(
+        }).lean().then(
             rewardTaskGroups => {
                 let proms = [];
 
@@ -137,6 +137,8 @@ let dbRewardTaskGroup = {
                             status: constRewardTaskStatus.SYSTEM_UNLOCK,
                             unlockTime: new Date()
                         };
+
+                        console.log('RTG unlock due to provider group delete', grp._id);
 
                         proms.push(
                             dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
@@ -311,6 +313,8 @@ let dbRewardTaskGroup = {
             status: constRewardTaskStatus.SYSTEM_UNLOCK,
             unlockTime: new Date()
         };
+
+        console.log('system unlock rtg', rewardTaskGroup._id)
 
         return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
             _id: rewardTaskGroup._id

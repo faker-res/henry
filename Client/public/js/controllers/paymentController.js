@@ -140,6 +140,25 @@ define(['js/app'], function (myApp) {
                     break;
             }
 
+            vm.bankCardGroupPMS = "false";
+            vm.merchantGroupPMS = "false";
+            vm.wechatPayGroupPMS = "false";
+            vm.aliPayGroupPMS = "false";
+            if (vm.selectedPlatform && vm.selectedPlatform.data) {
+                if (vm.selectedPlatform.data.bankCardGroupIsPMS) {
+                    vm.bankCardGroupPMS = "true";
+                }
+                if (vm.selectedPlatform.data.merchantGroupIsPMS) {
+                    vm.merchantGroupPMS = "true";
+                }
+                if (vm.selectedPlatform.data.wechatPayGroupIsPMS) {
+                    vm.wechatPayGroupPMS = "true";
+                }
+                if (vm.selectedPlatform.data.aliPayGroupIsPMS) {
+                    vm.aliPayGroupPMS = "true";
+                }
+            }
+
             // Initial Loading
             $scope.$evalAsync(() => {
                 vm.loadBankCardGroupData();
@@ -237,7 +256,10 @@ define(['js/app'], function (myApp) {
         vm.bankCardFilterOptions = {};
 
         vm.bankCardGroupTabClicked = function () {
-
+            vm.bankCardGroupPMS = "false";
+            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.bankCardGroupIsPMS) {
+                vm.bankCardGroupPMS = "true";
+            }
         };
 
         vm.getAllBankCard = function () {
@@ -367,6 +389,26 @@ define(['js/app'], function (myApp) {
         }
 
         vm.bankCardGroupClicked = function (i, bankCardGroup) {
+            if (vm.bankCardFilterOptions && !vm.bankCardFilterOptions.status) {
+                vm.bankCardFilterOptions.status = {
+                    "NORMAL": true,
+                    "LOCK": true,
+                    "DISABLED": true,
+                    "CLOSE": true,
+                    "TOBEFOLLOWEDUP": true,
+                    "SUSPEND": true
+                }
+            }
+
+            if (vm.allBankTypeList && vm.bankCardFilterOptions && !vm.bankCardFilterOptions.bankTypes) {
+                vm.bankCardFilterOptions.bankTypes = {};
+                for (let key in vm.allBankTypeList) {
+                    if (vm.allBankTypeList.hasOwnProperty(key)) {
+                        vm.bankCardFilterOptions.bankTypes[key] = true;
+                    }
+                }
+            }
+
             vm.bankCardTableLoading = true;
             if (vm.groupUsed == "PMS") {
                 vm.SelectedBankCardGroupNode = bankCardGroup;
@@ -380,26 +422,6 @@ define(['js/app'], function (myApp) {
                         if (vm.platformBankCardGroupList[i]._id.toString() === bankCardGroup._id.toString()) {
                             bankCardGroup = vm.platformBankCardGroupList[i];
                         }
-                    }
-                }
-
-                if (vm.allBankTypeList && vm.bankCardFilterOptions && !vm.bankCardFilterOptions.bankTypes) {
-                    vm.bankCardFilterOptions.bankTypes = {};
-                    for (let key in vm.allBankTypeList) {
-                        if (vm.allBankTypeList.hasOwnProperty(key)) {
-                            vm.bankCardFilterOptions.bankTypes[key] = true;
-                        }
-                    }
-                }
-
-                if (vm.bankCardFilterOptions && !vm.bankCardFilterOptions.status) {
-                    vm.bankCardFilterOptions.status = {
-                        "NORMAL": true,
-                        "LOCK": true,
-                        "DISABLED": true,
-                        "CLOSE": true,
-                        "TOBEFOLLOWEDUP": true,
-                        "SUSPEND": true
                     }
                 }
 
@@ -689,6 +711,7 @@ define(['js/app'], function (myApp) {
                 provinceName: vm.newBankCardAcc.provinceName,
                 cityName: vm.newBankCardAcc.cityName,
                 openingPoint: vm.newBankCardAcc.openingPoint,
+                maxDepositAmount: vm.newBankCardAcc.maxDepositAmount || 0,
                 quota: vm.newBankCardAcc.quota || 0,
                 isFPMS: true
             }
@@ -773,6 +796,8 @@ define(['js/app'], function (myApp) {
 
             if (vm.selectedBankCard && vm.selectedBankCard.provinceName) {
                 vm.getProvinceByName(vm.selectedBankCard.provinceName);
+            } else {
+                vm.cloneSelectedBankCardBeforeEdit = vm.selectedBankCard ? JSON.parse(JSON.stringify(vm.selectedBankCard)) : {};
             }
         }
 
@@ -865,6 +890,7 @@ define(['js/app'], function (myApp) {
                 provinceName: vm.selectedBankCard.provinceName,
                 cityName: vm.selectedBankCard.cityName,
                 openingPoint: vm.selectedBankCard.openingPoint,
+                maxDepositAmount: vm.selectedBankCard.maxDepositAmount || 0,
                 quota: vm.selectedBankCard.quota || 0
             }
 
@@ -1405,6 +1431,11 @@ define(['js/app'], function (myApp) {
         /////////////////////////////////////// Merchant Group start  /////////////////////////////////////////////////
 
         vm.merchantGroupTabClicked = function () {
+            vm.merchantGroupPMS = "false";
+            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.merchantGroupIsPMS) {
+                vm.merchantGroupPMS = "true";
+            }
+
             vm.merchantGroupUsed = "FPMS"
             socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
                 $scope.$evalAsync(() => {
@@ -1498,6 +1529,41 @@ define(['js/app'], function (myApp) {
 
         vm.merchantGroupClicked = function (i, merchantGroup) {
             vm.SelectedMerchantGroupNode = merchantGroup;
+            if (vm.merchantFilterOptions && !vm.merchantFilterOptions.status) {
+                vm.merchantFilterOptions.status = {
+                    "ENABLED": true,
+                    "DISABLED": true,
+                    "CLOSE": true
+                }
+            }
+
+            if ($scope.merchantTargetDeviceJson && vm.merchantFilterOptions && !vm.merchantFilterOptions.targetDevices) {
+                vm.merchantFilterOptions.targetDevices = {};
+                for (let key in $scope.merchantTargetDeviceJson) {
+                    if ($scope.merchantTargetDeviceJson.hasOwnProperty(key)) {
+                        vm.merchantFilterOptions.targetDevices[key] = true;
+                    }
+                }
+            }
+
+            if ($scope.merchantTopupTypeJson && vm.merchantFilterOptions && !vm.merchantFilterOptions.topupType) {
+                vm.merchantFilterOptions.topupType = {};
+                for (let key in $scope.merchantTopupTypeJson) {
+                    if ($scope.merchantTopupTypeJson.hasOwnProperty(key)) {
+                        vm.merchantFilterOptions.topupType[key] = true;
+                    }
+                }
+            }
+
+            if (vm.allMerchantTypeList && vm.merchantFilterOptions && !vm.merchantFilterOptions.merchantTypeId) {
+                vm.merchantFilterOptions.merchantTypeId = {};
+                for (let key in vm.allMerchantTypeList) {
+                    if (vm.allMerchantTypeList.hasOwnProperty(key)) {
+                        vm.merchantFilterOptions.merchantTypeId[key] = true;
+                    }
+                }
+            }
+
             if (vm.merchantGroupUsed == "PMS") {
                 vm.allMerchantList = merchantGroup.merchants;
                 $scope.$evalAsync();
@@ -1506,41 +1572,6 @@ define(['js/app'], function (myApp) {
                 vm.includedMerchants = null;
                 vm.excludedMerchants = null;
                 console.log('merchantGroup clicked', merchantGroup);
-
-                if (vm.merchantFilterOptions && !vm.merchantFilterOptions.status) {
-                    vm.merchantFilterOptions.status = {
-                        "ENABLED": true,
-                        "DISABLED": true,
-                        "CLOSE": true
-                    }
-                }
-
-                if ($scope.merchantTargetDeviceJson && vm.merchantFilterOptions && !vm.merchantFilterOptions.targetDevices) {
-                    vm.merchantFilterOptions.targetDevices = {};
-                    for (let key in $scope.merchantTargetDeviceJson) {
-                        if ($scope.merchantTargetDeviceJson.hasOwnProperty(key)) {
-                            vm.merchantFilterOptions.targetDevices[key] = true;
-                        }
-                    }
-                }
-
-                if ($scope.merchantTopupTypeJson && vm.merchantFilterOptions && !vm.merchantFilterOptions.topupType) {
-                    vm.merchantFilterOptions.topupType = {};
-                    for (let key in $scope.merchantTopupTypeJson) {
-                        if ($scope.merchantTopupTypeJson.hasOwnProperty(key)) {
-                            vm.merchantFilterOptions.topupType[key] = true;
-                        }
-                    }
-                }
-
-                if (vm.allMerchantTypeList && vm.merchantFilterOptions && !vm.merchantFilterOptions.merchantTypeId) {
-                    vm.merchantFilterOptions.merchantTypeId = {};
-                    for (let key in vm.allMerchantTypeList) {
-                        if (vm.allMerchantTypeList.hasOwnProperty(key)) {
-                            vm.merchantFilterOptions.merchantTypeId[key] = true;
-                        }
-                    }
-                }
 
                 var query = {
                     platform: vm.selectedPlatform.data.platformId,
@@ -1850,6 +1881,11 @@ define(['js/app'], function (myApp) {
 
         vm.alipayGroupTabClicked = function () {
             vm.alipayGroupUsed = "FPMS";
+
+            vm.aliPayGroupPMS = "false";
+            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.aliPayGroupIsPMS) {
+                vm.aliPayGroupPMS = "true";
+            }
         }
         vm.loadAlipayGroupData = function () {
             //init gametab start===============================
@@ -1883,6 +1919,7 @@ define(['js/app'], function (myApp) {
                                     data.accountNumber = alipay.bankCard;
                                     data.name = alipay.cardName;
                                     data.singleLimit = alipay.singleLimit;
+                                    data.minDepositAmount = alipay.minDepositAmount;
                                     data.state = alipay.flag ? alipay.flag.split(" ")[0] : "DISABLED";
 
                                     groupData.alipays.push(data);
@@ -1976,6 +2013,14 @@ define(['js/app'], function (myApp) {
         }
         vm.alipayGroupClicked = function (i, alipayGroup) {
             vm.SelectedAlipayGroupNode = alipayGroup;
+            vm.alipayStatusFilterOptions = {
+                "NORMAL": true,
+                "LOCK": true,
+                "DISABLED": true,
+                "CLOSE": true,
+                "TOBEFOLLOWEDUP": true,
+                "SUSPEND": true
+            };
             if (vm.alipayGroupUsed == "PMS") {
                 vm.allAlipayList = alipayGroup.alipays;
                 $scope.$evalAsync();
@@ -1988,14 +2033,6 @@ define(['js/app'], function (myApp) {
                     platform: vm.selectedPlatform.data.platformId,
                     alipayGroup: alipayGroup._id
                 }
-                vm.alipayStatusFilterOptions = {
-                    "NORMAL": true,
-                    "LOCK": true,
-                    "DISABLED": true,
-                    "CLOSE": true,
-                    "TOBEFOLLOWEDUP": true,
-                    "SUSPEND": true
-                };
                 socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroupWithIsInGroup', query, function (data) {
                     $scope.$evalAsync(() => {
                         //provider list init
@@ -2501,6 +2538,13 @@ define(['js/app'], function (myApp) {
         /////////////////////////////////////// QuickPay Group end  /////////////////////////////////////////////////
 
         /////////////////////////////////////// WechatPay Group start  /////////////////////////////////////////////////
+        vm.wechatPayGroupTabClicked = function () {
+            vm.wechatPayGroupPMS = "false";
+            if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.wechatPayGroupIsPMS) {
+                vm.wechatPayGroupPMS = "true";
+            }
+        }
+
         vm.loadWechatPayGroupData = function () {
             //init gametab start===============================
             vm.showWechatPayCate = "include";
@@ -2622,6 +2666,16 @@ define(['js/app'], function (myApp) {
 
         vm.wechatPayGroupClicked = function (i, wechatPayGroup) {
             vm.SelectedWechatPayGroupNode = wechatPayGroup;
+
+            vm.wechatStatusFilterOptions = {
+                "NORMAL": true,
+                "LOCK": true,
+                "DISABLED": true,
+                "CLOSE": true,
+                "TOBEFOLLOWEDUP": true,
+                "SUSPEND": true
+            };
+
             if (vm.wechatGroupUsed == "PMS") {
                 vm.allWechatList = wechatPayGroup.wechats;
                 $scope.$evalAsync();
@@ -2632,14 +2686,6 @@ define(['js/app'], function (myApp) {
                 let query = {
                     platform: vm.selectedPlatform.data.platformId,
                     wechatGroup: wechatPayGroup._id
-                };
-                vm.wechatStatusFilterOptions = {
-                    "NORMAL": true,
-                    "LOCK": true,
-                    "DISABLED": true,
-                    "CLOSE": true,
-                    "TOBEFOLLOWEDUP": true,
-                    "SUSPEND": true
                 };
                 socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroupWithIsInGroup', query, function (data) {
 
@@ -2985,6 +3031,29 @@ define(['js/app'], function (myApp) {
         /////////////////////////////////////// Alipay Group end  /////////////////////////////////////////////////
 
         ///////////////////////////////// common functions
+        vm.updateIsPMSGroup = function (srcData, type) {
+            if (type) {
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {}
+                }
+                let isPMSGroup = false;
+                if (srcData == 'true') {
+                    isPMSGroup = true;
+                }
+
+                sendData.updateData[type] = isPMSGroup;
+
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        if (data.data && data.data.hasOwnProperty(type)) {
+                            vm.selectedPlatform.data[type] = data.data[type];
+                        }
+                    })
+                })
+            }
+        }
+
         vm.dateReformat = function (data) {
             if (!data) return '';
             return utilService.getFormatTime(data);

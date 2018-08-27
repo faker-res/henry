@@ -87,10 +87,12 @@
                                         img(async=on ng-if="vm.gameSmallShow[v._id]",src='{{vm.gameSmallShow[v._id]}}')
                                         div(ng-if="!vm.gameSmallShow[v._id]")
                                             .fa.fa-square-o.divfa
-                                    .text-center(style="margin-left: 10px;" ng-if="vm.selectedGameName != vm.includedGamesGroup[i].name$")
+                                        .fa.fa-circle.masterStatusIcon(class='{{vm.getGameStatusClass(v)}}')
+                                        .fa.fa-circle.statusIcon(class='{{vm.getGameStatusClass(v)}}')
+                                    .text-center(style="margin-left: 10px; margin-top: -17px;" ng-if="vm.selectedGameName != vm.includedGamesGroup[i].name$")
                                         label(ng-click="vm.selectedGameName = vm.includedGamesGroup[i].name$" ng-style='v.isDefaultName ? {color:"blue"} : {color:"red"}')  {{v.name$}}
                                     form(ng-submit="vm.submitGroupGameNameChange(i);")
-                                        .text-center(style="margin-left: 10px; margin-top: 4px;" ng-if="vm.selectedGameName == vm.includedGamesGroup[i].name$")
+                                        .text-center(style="margin-left: 10px; margin-top: -17px;" ng-if="vm.selectedGameName == vm.includedGamesGroup[i].name$")
                                             input(ng-model="vm.editingGameName" ng-init="vm.editingGameName = vm.includedGamesGroup[i].name$" style="color: black")
                     .panel.panel-default
                         .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#groupGameList", href='#excludedGroupGames', ng-click='vm.showGameCate="exclude";vm.toggleGameType();vm.groupGameListCollapseOut();')
@@ -132,10 +134,43 @@
                         button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Platform', 'GameGroup', 'RemoveGameFromGroup')", ng-click='vm.gametoGameGroup("detach")')
                             i.fa.fa-minus-square
                             text {{"EXCLUDE" | translate}}
+                        div(style="inline-flex;")
+                            buton.btn.btn-success.common-button-sm(ng-if="checkViewPermission('Platform', 'Game', 'UploadImage')", ng-click='vm.updateImageUrl("gameGroupImageUploader");')
+                                i.fa.fa-upload
+                                text {{"Upload Image" | translate}}
+                            input(type='file', name='file' id='gameGroupImageUploader' style="display: inline !important")
+                            label(ng-if="vm.uploadImageMsg" style="color: red;") {{vm.uploadImageMsg | translate}}
                     div(ng-if='vm.showGameCate=="exclude"')
                         button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Platform', 'GameGroup', 'AddGameToGroup')", ng-click='vm.gametoGameGroup("attach")')
                             i.fa.fa-plus-square
                             text {{"INCLUDE" | translate}}
+
+                    table.table-bordered(style='width:100%;text-align:center')
+                        thead.thPadding5
+                            th
+                                div {{'Source' | translate}}
+                            th
+                                div {{'Current Game Status' | translate}}
+                            th
+                                div {{'Actions' | translate}}
+                        tr
+                            td
+                                div {{'provider' | translate}} (CPMS)
+                            td
+                                div(ng-if="vm.selectGameGroupGames && vm.selectGameGroupGames.length > 1") -
+                                div(ng-if="vm.selectGameGroupGames && vm.selectGameGroupGames.length == 1") {{vm.allGameStatusKeys[vm.curGame.status-1] | translate}}
+                            td
+                                div ({{'Cannot modify , please contact game provider' | translate }})
+                        tr
+                            td
+                                div {{'FPMS System' | translate}} (FPMS)
+                            td
+                                div(ng-if="vm.selectGameGroupGames && vm.selectGameGroupGames.length > 1") -
+                                div(ng-if="vm.selectGameGroupGames && vm.selectGameGroupGames.length == 1") {{vm.allGameStatusKeys[vm.curGame.platformGameStatus-1] | translate}}
+                            td
+                                div
+                                    .btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'MaintainGame')", ng-click="vm.updateGameGroupStat(vm.allGameStatusString.MAINTENANCE)") {{'Maintenance' | translate}}
+                                    .btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'EnableGame')", ng-click="vm.updateGameGroupStat(vm.allGameStatusString.ENABLE)") {{'Enable' | translate}}
 
 #modalAddGameGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
@@ -201,6 +236,9 @@
                             .form-group
                                 .control-label {{"Game Group Code" | translate}}
                                 input.form-control(type='text', ng-model='vm.newGameGroup.code')
+                            .form-group
+                                .control-label {{"gameGroupIconUrl" | translate}}
+                                input.form-control(type='text', ng-model='vm.newGameGroup.gameGroupIconUrl')
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.renameGameGroup()") {{"CONFIRM" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
@@ -248,6 +286,24 @@
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.gameGroupClicked(1,vm.SelectedGameGroupNode)") {{"CONFIRM" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
 
-
-
-
+#modalConfirmUpdateGame2.modal.fade(tabindex='-1', role='dialog', aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{vm.linkProviderType | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        Label {{"Are you sure to update"|translate}}&nbsp;
+                        span.strong.text-danger {{"selected games" | translate}}
+                        span &nbsp;from&nbsp;
+                        //{{vm.gameStatus[vm.curGame._id]}}
+                        span.strong(class='{{vm.getGameStatusClass(vm.gameStatus[vm.curGame._id])}}') {{vm.allGameStatusKeys[vm.gameStatus[vm.curGame._id]-1] | translate}}
+                        span &nbsp;to&nbsp;
+                        //{{vm.newType}}
+                        span.strong(class='{{vm.getGameStatusClass(vm.newType)}}') {{vm.allGameStatusKeys[[vm.newType] -1] | translate}}
+                        span ?
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.updateGameGroupStat(vm.newType,true)") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}

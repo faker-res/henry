@@ -2,12 +2,15 @@
 
 define(['js/app'], function (myApp) {
 
-    var injectParams = ['$scope', '$filter', '$location', '$log', '$timeout', 'authService', 'utilService', 'socketService', 'CONFIG'];
+    var injectParams = ['$scope', '$filter', '$location', '$log', '$timeout', 'authService', 'utilService', 'socketService', 'CONFIG', "$cookies"];
 
-    var providerController = function ($scope, $filter, $location, $log, $timeout, authService, utilService, socketService, CONFIG) {
+    var providerController = function ($scope, $filter, $location, $log, $timeout, authService, utilService, socketService, CONFIG, $cookies) {
         var Upload = {};
         var $translate = $filter('translate');
         var vm = this;
+
+        // For debugging:
+        window.VM = vm;
 
         // declare constants
         vm.allProviderStatusString = {
@@ -20,9 +23,10 @@ define(['js/app'], function (myApp) {
             ENABLE: 1, // "Enable",
             MAINTENANCE: 2, //"Maintenance" //
             DISABLE: 3, //"Disable", //2
-            DELETED: 4
+            DELETED: 4,
+            NOT_EXIST: 5
         };
-        vm.allGameStatusKeys = ['ENABLE', 'MAINTENANCE', 'DISABLE', 'DELETED'];
+        vm.allGameStatusKeys = ['ENABLE', 'MAINTENANCE', 'DISABLE', 'DELETED', 'NOT_EXIST'];
 
         //vm.getAllGameType = function () {
         //    socketService.$socket($scope.AppSocket, 'getAllGameTypes', {}, function (data) {
@@ -33,6 +37,110 @@ define(['js/app'], function (myApp) {
         //        console.log("create not", data);
         //    });
         //}
+
+/*********************************************Start of Platform functions ******************************************************/
+
+//set selected platform node
+        async function selectPlatformNode (node, option)  {
+            vm.selectedPlatform = node;
+            $cookies.put("platform", node.text);
+        }
+
+        function searchAndSelectPlatform (text, option) {
+            var findNodes = $('#platformTree').treeview('search', [text, {
+                ignoreCase: false,
+                exactMatch: true
+            }]);
+            if (findNodes && findNodes.length > 0) {
+                selectPlatformNode(findNodes[0], option);
+                $('#platformTree').treeview('selectNode', [findNodes[0], {silent: true}]);
+            }
+        }
+
+        //build platform list based on platform data from server
+        function buildPlatformList (data) {
+            vm.platformList = [];
+            for (var i = 0; i < data.length; i++) {
+                vm.platformList.push(vm.createPlatformNode(data[i]));
+            }
+            //var platformsToDisplay = vm.platformList;
+            var searchText = (vm.platformSearchText || '').toLowerCase();
+            var platformsToDisplay = vm.platformList.filter(platformData => platformData.data.name.toLowerCase().includes(searchText));
+            $('#platformTree').treeview(
+                {
+                    data: platformsToDisplay,
+                    highlightSearchResults: false,
+                    showImage: true,
+                    showIcon: false,
+                }
+            );
+            $('#platformTree').on('nodeSelected', function (event, data) {
+                selectPlatformNode(data);
+                vm.showPlatformDropDownList = false;
+            });
+        }
+
+        //get all platform data from server
+        function loadPlatformData (option) {
+            if (vm.onGoingLoadPlatformData) {
+                return;
+            }
+
+            if (option && option.noParallelTrigger) {
+                vm.onGoingLoadPlatformData = true;
+            }
+
+            if ($('#platformRefresh').hasClass('fa-spin')) {
+                return
+            }
+            $('#platformRefresh').addClass('fa-spin');
+
+            socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
+                vm.allPlatformData = data.data;
+                if (data.data) {
+                    buildPlatformList(data.data);
+                }
+                $('#platformRefresh').removeClass('fa-spin');
+
+                $('#platformRefresh').addClass('fa-check');
+                $('#platformRefresh').removeClass('fa-refresh');
+                setTimeout(function () {
+                    $('#platformRefresh').removeClass('fa-check');
+                    $('#platformRefresh').addClass('fa-refresh').fadeIn(100);
+                    vm.onGoingLoadPlatformData = false;
+                }, 1000);
+
+                //select platform from cookies data
+                let storedPlatform = $cookies.get("platform");
+                if (storedPlatform) {
+                    searchAndSelectPlatform(storedPlatform, option);
+                }
+            }, function (err) {
+                $('#platformRefresh').removeClass('fa-spin');
+            });
+        }
+
+        $scope.$on('switchPlatform', () => {
+            loadPlatformData({loadAll: true, noParallelTrigger: true});
+        });
+
+        //create platform node for platform list
+        vm.createPlatformNode = function (v) {
+            var obj = {
+                text: v.name,
+                id: v._id,
+                selectable: true,
+                data: v,
+                image: {
+                    url: v.icon,
+                    width: 30,
+                    height: 30,
+                }
+            };
+            return obj;
+        };
+
+/*********************************************End of Platform functions ******************************************************/
 
         vm.getAllGameType = function () {
             return $scope.$socketPromise('getGameTypeList', {})
@@ -48,13 +156,21 @@ define(['js/app'], function (myApp) {
                     });
                     vm.allGameTypes = allGameTypes;
                     console.log("vm.allGameTypes", vm.allGameTypes);
-
-                    $scope.safeApply();
                 });
         };
         vm.addNewGameType = function (gameType) {
             socketService.$socket($scope.AppSocket, 'addGameType', gameType, function (data) {
                 vm.getAllGameType();
+            })
+        }
+        vm.updatePlatformGameStatus = function(status){
+            var query = {
+                platform: vm.selectedPlatform.data._id,
+                game:vm.showGame,
+                status:status
+            }
+            socketService.$socket($scope.AppSocket, 'updatePlatformGameStatus', query, function (data) {
+                vm.gameProviderClicked({data:vm.SelectedProvider});
             })
         }
         vm.updateGameType = function (oriGameType, update) {
@@ -162,8 +278,6 @@ define(['js/app'], function (myApp) {
                 default:
                     vm.selectedPenalClass = 'panel-danger'
             }
-
-            $scope.safeApply();
         }
         vm.createNewProvider = function () {
             if (!vm.showProvider || !vm.showProvider.name) {
@@ -234,42 +348,108 @@ define(['js/app'], function (myApp) {
                 return 'colorRed';
             }
         }
+        vm.getGameStatusColorClass = function (v) {
+            if (!v) return;
+            if (v.status == vm.allGameStatusString.ENABLE && v.platformGameStatus == vm.allGameStatusString.ENABLE){
+                return 'colorGreen';
+            } else if (v.status == vm.allGameStatusString.ENABLE && v.platformGameStatus == vm.allGameStatusString.NOT_EXIST) {
+                return 'colorGreen';
+            } else if (v.status == vm.allGameStatusString.DISABLE && v.platformGameStatus ==  vm.allGameStatusString.DISABLE) {
+                return 'colorRed';
+            } else if (v.status == vm.allGameStatusString.MAINTENANCE || v.platformGameStatus == vm.allGameStatusString.MAINTENANCE) {
+                return 'colorOrangeImportant text-bold';
+            } else {
+                return 'colorRed';
+            }
+        }
 
         vm.getProviderGames = function (id) {
             if (!id)return;
-            console.log(id);
+            vm.selectedProviderId = id;
+            vm.uploadImageMsg = "";
+            let imageFile = document.getElementById('gameProviderImageUploader');
+            if(imageFile && imageFile.value){
+                imageFile.value = "";
+            }
+            console.log('selectedProviderId', id);
             $('#loadingProviderGames').removeClass('hidden');
-            socketService.$socket($scope.AppSocket, 'getGamesByProviderId', {_id: id}, function (data) {
-                vm.allGames = data.data;
-                let platformId = null;
-                if(vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.platformId){
-                    platformId = vm.selectedPlatform.data.platformId
-                }else if(vm.platformList && vm.platformList.length > 0){
-                    vm.platformList.forEach(platform => {
-                        if(platform && platform._id && platform._id == vm.selectedPlatformID){
-                            platformId = platform.platformId || null;
+
+            var query = {
+                platform: vm.selectedPlatform.data._id,
+                _id: id
+            }
+
+            socketService.$socket($scope.AppSocket, 'getGamesByProviderAndFPMS', query, function (data) {
+
+                $scope.$evalAsync(() => {
+                    vm.allGames = data.data;
+                    let platformId = null;
+                    let playerRouteSetting = "";
+                    if(vm.selectedPlatform && vm.selectedPlatform.data){
+                        if(vm.selectedPlatform.data.platformId){
+                            platformId = vm.selectedPlatform.data.platformId;
                         }
-                    })
-                }
-                vm.allGames.forEach(game => {
-                    if(game){
-                        if(game.changedName && game.changedName.hasOwnProperty(platformId)){
-                            game.name$ = game.changedName[platformId] || game.name;
-                            game.isDefaultName = game.changedName[platformId] && game.changedName[platformId] != ''
-                                ? false : true;
-                        }else{
-                            game.name$ = game.name;
-                            game.isDefaultName = true;
+
+                        if(vm.selectedPlatform.data.playerRouteSetting){
+                            let playerRouteSetting = vm.selectedPlatform.data.playerRouteSetting;
                         }
+
+                    }else if(vm.platformList && vm.platformList.length > 0){
+                        vm.platformList.forEach(platform => {
+                            if(platform && platform._id && platform._id == vm.selectedPlatformID){
+                                platformId = platform.platformId || null;
+                            }
+                        })
                     }
-                })
-                vm.filterAllGames = $.extend([], vm.allGames);
-                console.log('vm.allGames', vm.allGames);
-                $('#loadingProviderGames').addClass('hidden');
-                $scope.safeApply();
+                    vm.allGames.forEach(game => {
+                        if(game){
+                            if(game.changedName && game.changedName.hasOwnProperty(platformId)){
+                                game.name$ = game.changedName[platformId] || game.name;
+                                game.isDefaultName = game.changedName[platformId] && game.changedName[platformId] != ''
+                                    ? false : true;
+                            }else{
+                                game.name$ = game.name;
+                                game.isDefaultName = true;
+                            }
+
+                            playerRouteSetting = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.playerRouteSetting ?
+                            vm.selectedPlatform.data.playerRouteSetting : "";
+
+                            if(game.bigShow){
+                                game.bigShow = playerRouteSetting ? playerRouteSetting + game.bigShow : (game.sourceURL ? game.sourceURL + game.bigShow : game.bigShow);
+                            }
+
+                            if(game.smallShow){
+                                game.smallShow = playerRouteSetting ? playerRouteSetting + game.smallShow : (game.sourceURL ? game.sourceURL + game.smallShow : game.smallShow);
+                            }
+
+                            if(game.images && game.images.hasOwnProperty(platformId)){
+                                let platformCustomImage = game.images[platformId] || game.bigShow;
+                                if(platformCustomImage){
+                                    platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (game.sourceURL ? game.sourceURL  + platformCustomImage : platformCustomImage);
+                                }
+
+                                game.bigShow$ = processImgAddr(platformCustomImage);
+                            }else{
+                                game.bigShow$ = processImgAddr(game.bigShow);
+                            }
+                        }
+                    });
+                    vm.filterAllGames = $.extend([], vm.allGames);
+                    console.log('vm.allGames', vm.allGames);
+                    $('#loadingProviderGames').addClass('hidden');
+                });
             }, function (data) {
                 console.log("create not", data);
             });
+        }
+
+        function processImgAddr(addr) {//img in platformGame, and img in game
+            if (/^(f|ht)tps?:\/\//.test(addr)) {
+                return addr;
+            } else {
+                return "http://img99.neweb.me/" + addr;
+            }
         }
         // vm.prepareShowProviderExpense = function () {
         //     socketService.$socket($scope.AppSocket, 'getGameProviderConsumptionRecord', {providerObjId: vm.SelectedProvider._id}, function (data) {
@@ -284,8 +464,37 @@ define(['js/app'], function (myApp) {
             vm.selectedGameBlock = {};
             vm.selectedGameBlock[i] = true;
             vm.showGame = v;
+            vm.uploadImageMsg = "";
+            let imageFile = document.getElementById('gameProviderImageUploader');
+            if(imageFile && imageFile.value){
+                imageFile.value = "";
+            }
             console.log(i, v);
-        }
+        };
+
+        vm.updateImageUrl = function(uploaderName){
+            let imageFile = document.getElementById(uploaderName);
+            if(imageFile.files.length > 0){
+                let platformId = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.platformId
+                    ? vm.selectedPlatform.data.platformId : null;
+                let fileName = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0].name || null;
+                let fileData = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0] || null;
+                let sendQuery = {
+                    query: {
+                        platformId: platformId,
+                        gameId: vm.showGame.gameId || null,
+                        gameName: fileName || null
+                    },
+                    fileData: fileData
+                };
+                $scope.$socketPromise("updateImageUrl", sendQuery);
+                alert($translate('Upload Successful'));
+                vm.getProviderGames(vm.selectedProviderId);
+            }else{
+                vm.uploadImageMsg = "Please choose an image first";
+            }
+        };
+
         vm.changeGameStatus = function (which, value) {
             vm.curStatusGame = which;
             vm.curStatusGame.targetStatus = value;
@@ -984,6 +1193,7 @@ define(['js/app'], function (myApp) {
         $scope.$on(eventName, function (e, d) {
             setTimeout(
                 function () {
+                    loadPlatformData({loadAll: true, noParallelTrigger: true});
                     vm.getAllProvider();
                     vm.queryPara = {};
                     vm.gameStatus = {};

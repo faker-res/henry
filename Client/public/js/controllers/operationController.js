@@ -226,6 +226,63 @@ define(['js/app'], function (myApp) {
         };
 
         vm.proposalTypeClicked = function (i, v) {
+
+            vm.merchantNoNameObj = {};
+            vm.merchantGroupObj = [];
+            let merGroupName = {};
+            let merGroupList = {};
+
+            socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
+                $scope.$evalAsync(() => {
+                    data.data.merchantTypes.forEach(mer => {
+                        merGroupName[mer.merchantTypeId] = mer.name;
+                    })
+                    vm.merchantTypes = data.data.merchantTypes;
+                    vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
+                })
+            }, function (data) {
+                console.log("merchantList", data);
+            });
+
+            socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: vm.selectedPlatform.platformId}, function (data) {
+                $scope.$evalAsync(() => {
+                    if (data.data && data.data.merchants) {
+                        vm.merchantLists = data.data.merchants;
+                        vm.merchantNoList = data.data.merchants.filter(mer => {
+                            vm.merchantNoNameObj[mer.merchantNo] = mer.name;
+                            return mer.status != 'DISABLED';
+                        });
+                        vm.merchantNoList.forEach(item => {
+                            merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
+                            merGroupList[item.merchantTypeId].list.push(item.merchantNo);
+                        }) || [];
+
+                        Object.keys(vm.merchantNoList).forEach(item => {
+                            let merchantTypeId = vm.merchantNoList[item].merchantTypeId;
+                            if (merchantTypeId == "9999") {
+                                vm.merchantNoList[item].merchantTypeName = $translate('BankCardNo');
+                            } else if (merchantTypeId == "9998") {
+                                vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_WECHAT_GROUP');
+                            } else if (merchantTypeId == "9997") {
+                                vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_ALIPAY_GROUP');
+                            } else if (merchantTypeId != "9997" && merchantTypeId != "9998" && merchantTypeId != "9999") {
+                                let merchantInfo = vm.merchantTypes.filter(mitem => {
+                                    return mitem.merchantTypeId == merchantTypeId;
+                                })
+                                vm.merchantNoList[item].merchantTypeName = merchantInfo[0] ? merchantInfo[0].name : "";
+                            } else {
+                                vm.merchantNoList[item].merchantTypeName = '';
+                            }
+                        });
+                        vm.merchantCloneList = angular.copy(vm.merchantNoList);
+                        vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
+                        vm.merchantGroupCloneList = vm.merchantGroupObj;
+                    }
+                });
+            }, function (data) {
+                console.log("merchantList", data);
+            });
+
             //vm.highlightProposalListSelection[i];
             vm.highlightProposalListSelection = {};
             console.log(i, v);
@@ -2053,6 +2110,7 @@ define(['js/app'], function (myApp) {
                 proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.status);
                 proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
+                vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
                 vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                     grossCommission += rawCommission.amount;
                     let str = $fixTwoDecimalStr(rawCommission.amount)+ $translate("YEN") + " "
@@ -2172,7 +2230,7 @@ define(['js/app'], function (myApp) {
                 proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
                 proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
                 proposalDetail["OnlineTopUpType"] = $translate($scope.merchantTopupTypeJson[vm.selectedProposal.data.topupType]) || " ";
-                proposalDetail["3rdPartyPlatform"] = vm.selectedProposal.data.merchantUseName || " ";
+                proposalDetail["3rdPartyPlatform"] = vm.getMerchantName(vm.selectedProposal.data.merchantNo) || " ";
                 proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                 proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
@@ -2379,6 +2437,24 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdateParentPartnerCommission") {
+                let proposalDetail = {};
+                if (!vm.selectedProposalDetailForDisplay) {
+                    vm.selectedProposalDetailForDisplay = {};
+                }
+
+                proposalDetail['PARENT_PARTNER_NAME'] = vm.selectedProposalDetailForDisplay.partnerName;
+                proposalDetail['PARENT_PARTNER_ID'] = vm.selectedProposalDetailForDisplay.partnerId;
+                proposalDetail['PARENT_PARTNER_COMMISSION_RATE'] = vm.selectedProposalDetailForDisplay.parentCommissionRate + "%";
+                proposalDetail['PARENT_PARTNER_COMMISSION_FEE'] = vm.selectedProposalDetailForDisplay.amount;
+                proposalDetail['CHILD_PARTNER_NAME'] = vm.selectedProposalDetailForDisplay.childPartnerName;
+                proposalDetail['CHILD_PARTNER_DOWNLINES'] = vm.selectedProposalDetailForDisplay.childPartnerTotalDownLines;
+                proposalDetail['CHILD_PARTNER_COMMISSION_TYPE'] = $translate($scope.commissionTypeList[vm.selectedProposalDetailForDisplay.childPartnerCommissionType]);
+                proposalDetail['CHILD_PARTNER_TOTAL_WINLOSE'] = vm.selectedProposalDetailForDisplay.childPlayerTotalWinLose;
+                proposalDetail['CHILD_PARTNER_RELATED_PROPOSAL_NO'] = vm.selectedProposalDetailForDisplay.relatedProposalId;
+                vm.selectedProposalDetailForDisplay = proposalDetail;
+            }
+
             // Remove fields for detail viewing
             delete vm.selectedProposalDetailForDisplay.creator;
             delete vm.selectedProposalDetailForDisplay.platform;
@@ -2403,6 +2479,36 @@ define(['js/app'], function (myApp) {
             vm.selectedProposal.showCancel = canCancelProposal(vm.selectedProposal);
             $scope.safeApply();
             //console.log(data);
+        }
+
+        vm.getMerchantName = function (merchantNo) {
+            let result = '';
+            if (merchantNo && vm.merchantNoList) {
+                let merchant = vm.merchantNoList.filter(item => {
+                    return item.merchantNo == merchantNo
+                })
+                if (merchant.length > 0) {
+                    let merchantName = vm.merchantTypes.filter(item => {
+                        return item.merchantTypeId == merchant[0].merchantTypeId;
+                    })
+                    if (merchantName[0]) {
+                        result = merchantName[0].name;
+                    }
+                }
+            }
+            return result;
+        }
+
+        function createMerGroupList(nameObj, listObj) {
+            if (!nameObj || !listObj) return [];
+            let obj = [];
+            $.each(listObj, (name, arr) => {
+                obj.push({
+                    name: nameObj[name],
+                    list: arr.list
+                });
+            });
+            return obj;
         }
 
         vm.copyTopUpProposal = function () {

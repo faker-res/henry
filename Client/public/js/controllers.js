@@ -803,6 +803,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         FAILED: 2
     };
 
+    $scope.zeroOne = {
+        zero: 0,
+        one: 1
+    };
+
     // $scope.consumptionRecordProviderName = {
     //     1: "AGOTHS",
     //     2: "PT",
@@ -1427,7 +1432,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     $scope.isValidPassword = isValidPassword;
 
     $scope.safeApply = function (fn) {
-        console.trace("$scope.safeApply");
+        console.log("$scope.safeApply");
+        // console.trace("$scope.safeApply");
         if ($scope.$root && $scope.$root.$$phase == '$apply' || $scope.$root.$$phase == '$digest') {
             if (fn && (typeof(fn) === 'function')) {
                 fn();

@@ -717,7 +717,7 @@ var dbPlayerTopUpRecord = {
      * @param {Number} topupRequest.topupType
      */
 
-    addOnlineTopupRequest: function (userAgent, playerId, topupRequest, merchantUseType, clientType, topUpReturnCode, bPMSGroup = false) {
+    addOnlineTopupRequest: function (userAgent, playerId, topupRequest, merchantUseType, clientType, topUpReturnCode, bPMSGroup = false, lastLoginIp) {
         var userAgentStr = userAgent;
         var player = null;
         var proposal = null;
@@ -743,6 +743,11 @@ var dbPlayerTopUpRecord = {
             ).then(
             playerData => {
                 player = playerData;
+                if (player && player.platform && player.platform.merchantGroupIsPMS) {
+                    bPMSGroup = true
+                } else {
+                    bPMSGroup = false;
+                }
                 if (player && player._id) {
                     if (!topUpReturnCode) {
                         return Promise.resolve();
@@ -778,7 +783,7 @@ var dbPlayerTopUpRecord = {
                         let bonusCodeCheckProm;
                         let isOpenPromoCode = topupRequest.bonusCode.toString().trim().length == 3 ? true : false;
                         if (isOpenPromoCode){
-                            bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount);
+                            bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount, lastLoginIp);
                         }
                         else {
                             bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount);
@@ -876,6 +881,10 @@ var dbPlayerTopUpRecord = {
                         proposalData.remark = '优惠名称: ' + limitedOfferTopUp.data.limitedOfferName + ' (' + limitedOfferTopUp.proposalId + ')';
                 }
 
+                if(lastLoginIp){
+                    proposalData.lastLoginIp = lastLoginIp;
+                }
+
                 let newProposal = {
                     creator: proposalData.creator,
                     data: proposalData,
@@ -894,7 +903,7 @@ var dbPlayerTopUpRecord = {
                         proposalId: proposalData.proposalId,
                         platformId: player.platform.platformId,
                         userName: player.name,
-                        realName: player.realName || "",
+                        realName: player.realName ? player.realName.replace(/\s/g, '') : "",
                         ip: ip,
                         topupType: topupRequest.topupType,
                         amount: topupRequest.amount,
@@ -1001,6 +1010,10 @@ var dbPlayerTopUpRecord = {
                     updateData.data.amount = merchantResponse.result.revisedAmount;
                 }
 
+                // if(lastLoginIp){
+                //     updateData.data.lastLoginIp = lastLoginIp;
+                // }
+
                 let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
 
                 updateOnlineTopUpProposalDailyLimit(proposalQuery, merchantResponse.result.merchantNo, merchantUseType).catch(errorUtils.reportError);
@@ -1047,7 +1060,7 @@ var dbPlayerTopUpRecord = {
      * @param playerID
      * @param inputData
      */
-    addManualTopupRequest: function (userAgent, playerId, inputData, entryType, adminId, adminName, fromFPMS, bPMSGroup, topUpReturnCode) {
+    addManualTopupRequest: function (userAgent, playerId, inputData, entryType, adminId, adminName, fromFPMS, bPMSGroup, topUpReturnCode, lastLoginIp) {
         var player = null;
         var proposal = null;
         var request = null;
@@ -1081,6 +1094,11 @@ var dbPlayerTopUpRecord = {
         ).then(
             playerData => {
                 player = playerData;
+                if (player && player.platform && player.platform.bankCardGroupIsPMS) {
+                    bPMSGroup = true
+                } else {
+                    bPMSGroup = false;
+                }
                 if (player && player._id) {
                     if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
                         isFPMS = true;
@@ -1102,34 +1120,48 @@ var dbPlayerTopUpRecord = {
         ).then(
             eventData => {
                 rewardEvent = eventData;
-                if (player && player.platform && ((player.bankCardGroup && player.bankCardGroup.banks && player.bankCardGroup.banks.length > 0) || bPMSGroup || fromFPMS )) {
-                    // player = playerData;
-
-                    let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
-
-                    let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, inputData.amount, inputData.limitedOfferObjId);
-                    let proms = [firstTopUpProm, limitedOfferProm];
-
-                    if (inputData.bonusCode) {
-                        let bonusCodeCheckProm;
-                        let isOpenPromoCode = inputData.bonusCode.toString().trim().length == 3 ? true : false;
-                        if (isOpenPromoCode){
-                            bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, inputData.bonusCode, inputData.amount);
-                        }
-                        else {
-                            bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, inputData.bonusCode, inputData.amount);
-                        }
-                        proms.push(bonusCodeCheckProm)
-                    }
-
-                    return Promise.all(proms);
-                } else {
-                    return Q.reject({
-                        status: constServerCode.INVALID_DATA,
-                        name: "DataError",
-                        errorMessage: "Invalid player bankcard group data"
-                    });
+                if (player){
+                    return dbPlayerUtil.setPlayerState(player._id, "ManualTopUp");
                 }
+                else{
+                    return Promise.reject({name: "DataError", errorMessage: "Invalid player data"});
+                }
+            }
+        ).then(
+            playerState => {
+               if (playerState) {
+                   if (player && player.platform && ((player.bankCardGroup && player.bankCardGroup.banks && player.bankCardGroup.banks.length > 0) || bPMSGroup || fromFPMS )) {
+                       // player = playerData;
+
+                       let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
+
+                       let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, inputData.amount, inputData.limitedOfferObjId);
+                       let proms = [firstTopUpProm, limitedOfferProm];
+
+                       if (inputData.bonusCode) {
+                           let bonusCodeCheckProm;
+                           let isOpenPromoCode = inputData.bonusCode.toString().trim().length == 3 ? true : false;
+                           if (isOpenPromoCode){
+                               bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, inputData.bonusCode, inputData.amount, lastLoginIp);
+                           }
+                           else {
+                               bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, inputData.bonusCode, inputData.amount);
+                           }
+                           proms.push(bonusCodeCheckProm)
+                       }
+
+                       return Promise.all(proms);
+                   } else {
+                       return Q.reject({
+                           status: constServerCode.INVALID_DATA,
+                           name: "DataError",
+                           errorMessage: "Invalid player bankcard group data"
+                       });
+                   }
+               }
+               else{
+                   return Promise.reject({name: "DataError", errorMessage: "Concurrent issue detected"});
+               }
             }
         ).then(
             res => {
@@ -1226,6 +1258,10 @@ var dbPlayerTopUpRecord = {
 
                 }
 
+                if(lastLoginIp){
+                    proposalData.lastLoginIp = lastLoginIp;
+                }
+
                 var newProposal = {
                     creator: proposalData.creator,
                     data: proposalData,
@@ -1293,6 +1329,7 @@ var dbPlayerTopUpRecord = {
                         operateType: entryType == "ADMIN" ? 1 : 0,
                         remark: inputData.remark || ''
                     };
+                    requestData.realName = requestData.realName.replace(/\s/g, '');
                     if (!bPMSGroup || isFPMS) {
                         requestData.groupBankcardList = player.bankCardGroup ? player.bankCardGroup.banks : [];
                     }
@@ -2177,7 +2214,7 @@ var dbPlayerTopUpRecord = {
      * @param adminName
      */
 
-    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime, realName, limitedOfferObjId, topUpReturnCode, bPMSGroup = false) {
+    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime, realName, limitedOfferObjId, topUpReturnCode, bPMSGroup = false, lastLoginIp, fromFPMS) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -2200,6 +2237,15 @@ var dbPlayerTopUpRecord = {
             .populate({path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup}).then(
                 playerData => {
                     player = playerData;
+                    if (fromFPMS) {
+                        bPMSGroup = false
+                    } else {
+                        if (player && player.platform && player.platform.aliPayGroupIsPMS) {
+                            bPMSGroup = true
+                        } else {
+                            bPMSGroup = false;
+                        }
+                    }
                     if (player && player._id) {
                         if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
                             isFPMS = true;
@@ -2231,7 +2277,7 @@ var dbPlayerTopUpRecord = {
                             let bonusCodeCheckProm;
                             let isOpenPromoCode = bonusCode.toString().trim().length == 3 ? true : false;
                             if (isOpenPromoCode){
-                                bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, bonusCode, amount);
+                                bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, bonusCode, amount, lastLoginIp);
                             }
                             else {
                                 bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, bonusCode, amount);
@@ -2330,6 +2376,10 @@ var dbPlayerTopUpRecord = {
                             proposalData.remark = '优惠名称: ' + limitedOfferTopUp.data.limitedOfferName + ' (' + limitedOfferTopUp.proposalId + ')';
                     }
 
+                    if(lastLoginIp){
+                        proposalData.lastLoginIp = lastLoginIp;
+                    }
+
                     let newProposal = {
                         creator: proposalData.creator,
                         data: proposalData,
@@ -2367,6 +2417,7 @@ var dbPlayerTopUpRecord = {
                             createTime: cTimeString,
                             operateType: entryType == "ADMIN" ? 1 : 0
                         };
+                        requestData.realName = requestData.realName.replace(/\s/g, '');
                         if(!bPMSGroup || isFPMS){
                             if (alipayAccount) {
                                 requestData.groupAlipayList = [alipayAccount];
@@ -2453,6 +2504,14 @@ var dbPlayerTopUpRecord = {
                             updateData.status = constProposalStatus.APPROVED;
                         }
 
+                        if (pmsData.result.line && pmsData.result.line == 2) {
+                            if (updateData && updateData.data && updateData.data.remark) {
+                                updateData.data.remark += ", 线路二：不匹配昵称、支付宝帐号";
+                            } else {
+                                updateData.data.remark = "线路二：不匹配昵称、支付宝帐号";
+                            }
+                        }
+
                         let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
 
                         updateAliPayTopUpProposalDailyLimit(proposalQuery, request.result.alipayAccount, isFPMS, player.platform.platformId).catch(errorUtils.reportError);
@@ -2518,11 +2577,17 @@ var dbPlayerTopUpRecord = {
     },
 
     getPlayerWechatPayStatus: (playerId, bPMSGroup, userIp) => {
+        console.log('ricco - 111', bPMSGroup);
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).lean().then(
                 playerData => {
-                    if (playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) {
+                    if ((playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) || bPMSGroup) {
+                        if (playerData.platform.wechatPayGroupIsPMS) {
+                            bPMSGroup = true
+                        } else {
+                            bPMSGroup = false;
+                        }
                         let prom;
                         let pmsQuery = {
                             platformId: playerData.platform.platformId,
@@ -2550,6 +2615,7 @@ var dbPlayerTopUpRecord = {
                                 let bValid = false;
                                 let maxDeposit = 0;
                                 if (String(bPMSGroup) == "true") {
+                                    console.log('ricco - true', wechats);
                                     if (wechats.data) {
                                         if (!playerData.permission.disableWechatPay && wechats.data.valid) {
                                             bValid = true;
@@ -2560,6 +2626,7 @@ var dbPlayerTopUpRecord = {
                                     }
                                 } else {
                                     if (wechats.data && wechats.data.length > 0) {
+                                        console.log('ricco - false', bPMSGroup);
                                         wechats.data.forEach(
                                             wechat => {
                                                 playerData.wechatPayGroup.wechats.forEach(
@@ -2594,7 +2661,13 @@ var dbPlayerTopUpRecord = {
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup}).then(
                 playerData => {
-                    if (playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) {
+                    if (playerData && playerData.platform && playerData.platform.aliPayGroupIsPMS) {
+                        bPMSGroup = true
+                    } else {
+                        bPMSGroup = false;
+                    }
+
+                    if ((playerData && playerData.platform && playerData.alipayGroup && playerData.alipayGroup.alipays && playerData.alipayGroup.alipays.length > 0) || bPMSGroup) {
                         let aliPayProm;
                         let pmsQuery = {
                             platformId: playerData.platform.platformId,
@@ -2640,6 +2713,8 @@ var dbPlayerTopUpRecord = {
                                 let aliProposal = res[1];
                                 let bValid = false;
                                 let maxDeposit = 0;
+                                let minDeposit;
+
                                 if (String(bPMSGroup) == "true") {
                                     if (alipays.data) {
                                         if (playerData.permission.alipayTransaction && alipays.data.valid) {
@@ -2647,6 +2722,9 @@ var dbPlayerTopUpRecord = {
                                         }
                                         if (alipays.data.hasOwnProperty("maxDepositAmount")) {
                                             maxDeposit = alipays.data.maxDepositAmount;
+                                        }
+                                        if (alipays.data.hasOwnProperty("minDepositAmount")) {
+                                            minDeposit = alipays.data.minDepositAmount;
                                         }
                                     }
                                 } else {
@@ -2660,6 +2738,10 @@ var dbPlayerTopUpRecord = {
                                                                 bValid = true;
                                                             }
                                                             maxDeposit = alipay.singleLimit > maxDeposit ? alipay.singleLimit : maxDeposit;
+                                                            if (minDeposit == undefined) {
+                                                                minDeposit = alipay.minDepositAmount;
+                                                            }
+                                                            minDeposit = alipay.minDepositAmount < minDeposit ? alipay.minDepositAmount : minDeposit;
                                                         }
                                                     }
                                                 );
@@ -2671,6 +2753,7 @@ var dbPlayerTopUpRecord = {
                                     bValid = {
                                         valid: bValid,
                                         maxDepositAmount: maxDeposit,
+                                        minDepositAmount: minDeposit,
                                         lastNicknameOrAccount: aliProposal && aliProposal.data && aliProposal.data.userAlipayName? aliProposal.data.userAlipayName: ""
                                     };
                                 }
@@ -2702,7 +2785,7 @@ var dbPlayerTopUpRecord = {
      * @param limitedOfferObjId
      */
 
-    requestWechatTopup: function (useQR, userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime, limitedOfferObjId, topUpReturnCode, bPMSGroup = false) {
+    requestWechatTopup: function (useQR, userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime, limitedOfferObjId, topUpReturnCode, bPMSGroup = false, lastLoginIp, fromFPMS) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -2726,6 +2809,15 @@ var dbPlayerTopUpRecord = {
             ).lean().then(
                 playerData => {
                     player = playerData;
+                    if (fromFPMS) {
+                        bPMSGroup = false
+                    } else {
+                        if (player && player.platform && player.platform.wechatPayGroupIsPMS) {
+                            bPMSGroup = true
+                        } else {
+                            bPMSGroup = false;
+                        }
+                    }
                     if (player && player._id) {
                         if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
                             isFPMS = true;
@@ -2763,7 +2855,7 @@ var dbPlayerTopUpRecord = {
                             let bonusCodeCheckProm;
                             let isOpenPromoCode = bonusCode.toString().trim().length == 3 ? true : false;
                             if (isOpenPromoCode){
-                                bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, bonusCode, amount);
+                                bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, bonusCode, amount, lastLoginIp);
                             }
                             else {
                                 bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, bonusCode, amount);
@@ -2853,6 +2945,10 @@ var dbPlayerTopUpRecord = {
                                 proposalData.remark = '优惠名称: ' + limitedOfferTopUp.data.limitedOfferName + ' (' + limitedOfferTopUp.proposalId + ')';
                         }
 
+                        if(lastLoginIp){
+                            proposalData.lastLoginIp = lastLoginIp;
+                        }
+
                         let newProposal = {
                             creator: proposalData.creator,
                             data: proposalData,
@@ -2894,6 +2990,7 @@ var dbPlayerTopUpRecord = {
                             createTime: cTimeString,
                             operateType: entryType == "ADMIN" ? 1 : 0
                         };
+                        requestData.realName = requestData.realName.replace(/\s/g, '');
                         if (remark) {
                             requestData.remark = remark;
                         }

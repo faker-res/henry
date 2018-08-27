@@ -10,6 +10,7 @@ const constPlayerSMSSetting = require('../../const/constPlayerSMSSetting');
 const SMSSender = require('../../modules/SMSSender');
 const dbPlayerPayment = require('../../db_modules/dbPlayerPayment');
 const uaParser = require('ua-parser-js');
+const dbUtility = require('./../../modules/dbutility');
 
 var PaymentServiceImplement = function () {
     PaymentService.call(this);
@@ -24,10 +25,12 @@ var PaymentServiceImplement = function () {
             let userAgent = uaParser(userAgentConn);
             data.userAgent = userAgent;
         }
+
+        let lastLoginIp = dbUtility.getIpAddress(conn);
         var isValidData = Boolean(data && data.hasOwnProperty("topupType") && data.amount && Number.isInteger(data.amount) && data.amount < 10000000);
         var merchantUseType = data.merchantUseType || 1;
         var clientType = data.clientType || 1;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.addOnlineTopupRequest, [data.userAgent, conn.playerId, data, merchantUseType, clientType, data.topUpReturnCode, data.bPMSGroup], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.addOnlineTopupRequest, [data.userAgent, conn.playerId, data, merchantUseType, clientType, data.topUpReturnCode, data.bPMSGroup, lastLoginIp], isValidData);
     };
 
     this.getTopupList.expectsData = '[startIndex]: Number, [requestCount]: Number';
@@ -126,9 +129,11 @@ var PaymentServiceImplement = function () {
             let userAgent = uaParser(userAgentConn);
             data.userAgent = userAgent;
         }
+       
+        let lastLoginIp = dbUtility.getIpAddress(conn);
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && Number.isInteger(data.amount) && data.amount < 10000000);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.addManualTopupRequest, [data.userAgent, conn.playerId, data, "CLIENT", false, false, false,
-            data.bPMSGroup, data.topUpReturnCode], isValidData, true, false, false).then(
+            data.bPMSGroup, data.topUpReturnCode, lastLoginIp], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
@@ -159,9 +164,12 @@ var PaymentServiceImplement = function () {
             let userAgent = uaParser(userAgentConn);
             data.userAgent = userAgent;
         }
+
+       
+        let lastLoginIp = dbUtility.getIpAddress(conn);
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.alipayName && Number.isInteger(data.amount) && data.amount < 10000000);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestAlipayTopup, [data.userAgent, conn.playerId, data.amount, data.alipayName, data.alipayAccount,
-            data.bonusCode, "CLIENT", null, null, null, null, data.realName, data.limitedOfferObjId, data.topUpReturnCode, data.bPMSGroup], isValidData);
+            data.bonusCode, "CLIENT", null, null, null, null, data.realName, data.limitedOfferObjId, data.topUpReturnCode, data.bPMSGroup, lastLoginIp], isValidData);
     };
 
     this.requestWechatTopup.expectsData = 'amount: Number|String';
@@ -172,13 +180,16 @@ var PaymentServiceImplement = function () {
             let userAgent = uaParser(userAgentConn);
             data.userAgent = userAgent;
         }
+
+
+        let lastLoginIp = dbUtility.getIpAddress(conn);
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && Number.isInteger(data.amount) && data.amount < 10000000);
         // if ([10, 20, 50, 100].indexOf(data.amount) < 0) {
         //     isValidData = false;
         // }
 
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestWechatTopup, [!Boolean(data.notUseQR), data.userAgent, conn.playerId, data.amount, data.wechatName,
-            data.wechatAccount, data.bonusCode, "CLIENT", null, null, null, new Date(), data.limitedOfferObjId, data.topUpReturnCode, data.bPMSGroup], isValidData);
+            data.wechatAccount, data.bonusCode, "CLIENT", null, null, null, new Date(), data.limitedOfferObjId, data.topUpReturnCode, data.bPMSGroup, lastLoginIp], isValidData);
 
     };
 

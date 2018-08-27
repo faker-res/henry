@@ -4,6 +4,7 @@ var dbconfig = require('./../modules/dbproperties');
 var dbGame = require('./../db_modules/dbGame');
 var constGameStatus = require('./../const/constGameStatus');
 var Q = require("q");
+var ObjectId = mongoose.Types.ObjectId;
 
 var dbPlatformGameGroup = {
 
@@ -93,11 +94,13 @@ var dbPlatformGameGroup = {
         var gameGroup = [];
         var providerObjId = null;
         var platformId = null;
+        var playerRouteSetting = null;
         return dbconfig.collection_platform.findOne({platformId: query.platformId}).lean().then(
             platformData => {
                 if (platformData) {
                     platformObjId = platformData._id;
                     platformId = platformData.platformId;
+                    playerRouteSetting = platformData.playerRouteSetting;
                     var providerProm = Q.resolve(null);
                     if (providerId != null) {
                         providerProm = dbconfig.collection_gameProvider.findOne({providerId}).lean();
@@ -184,6 +187,26 @@ var dbPlatformGameGroup = {
                                     }
                                 });
                                 game.changedName = gameChangedName;
+                            }
+
+                            let gameChangedImage = {};
+                            if(game.images && platformId){
+                                Object.keys(game.images).forEach(function(key) {
+                                    if(key == platformId){
+                                        gameChangedImage[key] = playerRouteSetting ? playerRouteSetting + game.images[key] : (game.sourceURL ? game.sourceURL + game.images[key] : game.images[key]);
+
+                                        return;
+                                    }
+                                });
+                                game.images = gameChangedImage;
+                            }
+
+                            if(game.bigShow && !game.bigShow.includes("http")){
+                                game.bigShow = playerRouteSetting ? playerRouteSetting + game.bigShow : (game.sourceURL ? game.sourceURL + game.bigShow : game.bigShow);
+                            }
+
+                            if(game.smallShow && !game.smallShow.includes("http")){
+                                game.smallShow = playerRouteSetting ? playerRouteSetting + game.smallShow : (game.sourceURL ? game.sourceURL + game.smallShow : game.smallShow);
                             }
                         }
                     }
@@ -274,9 +297,11 @@ var dbPlatformGameGroup = {
      */
     getGameGroupTree: function (code, platformId, containGames, playerId, startIndex, count) {
         var groupProm = null;
+        let routeSetting;
         if (containGames && containGames !== "false") {
             groupProm = dbconfig.collection_platform.findOne({platformId: platformId}).then(
                 platformData => {
+                    routeSetting = platformData && platformData.playerRouteSetting ? platformData.playerRouteSetting : null;
                     return dbconfig.collection_platformGameGroup.find({platform: platformData._id}).then(
                         groups => {
                             if (groups && groups.length > 0) {
@@ -298,7 +323,11 @@ var dbPlatformGameGroup = {
         }
         else {
             groupProm = dbconfig.collection_platform.findOne({platformId: platformId}).then(
-                platformData => dbconfig.collection_platformGameGroup.find({platform: platformData._id})
+                platformData =>
+                {
+                    routeSetting = platformData && platformData.playerRouteSetting ? platformData.playerRouteSetting : null;
+                    return dbconfig.collection_platformGameGroup.find({platform: platformData._id});
+                }
             );
         }
         return groupProm.then(
@@ -308,6 +337,9 @@ var dbPlatformGameGroup = {
                     groups.forEach(
                         group => {
                             if (group) {
+                                if (group.gameGroupIconUrl) {
+                                    group.gameGroupIconUrl = checkRouteSetting(group.gameGroupIconUrl, routeSetting)
+                                }
                                 groupMap[group._id] = group;
                             }
                         }
@@ -364,12 +396,47 @@ var dbPlatformGameGroup = {
      * @param {Json}  query - platform , groupId
      */
     getGameGroupGamesArr: function (query) {
+        let gameStatusProm = [];
+        let gameGroupData;
         query.status = {$ne: constGameStatus.DELETED};
         return dbconfig.collection_platformGameGroup.findOne(query)
             .populate({
                 path: "games.game",
                 model: dbconfig.collection_game
-            }).exec();
+            }).lean().then(platformGameGroupData => {
+                gameGroupData = platformGameGroupData;
+                if(platformGameGroupData && platformGameGroupData.games && platformGameGroupData.games.length > 0){
+                    platformGameGroupData.games.forEach(game => {
+                        if(game && game._id){
+                            let sendQuery = {
+                                platform: ObjectId(query.platform),
+                                game: ObjectId(game.game._id),
+                                status: {$ne: constGameStatus.DELETED}
+                            };
+
+                            gameStatusProm.push(dbconfig.collection_platformGameStatus.find(sendQuery))
+                        }
+                    })
+
+                    return Promise.all(gameStatusProm);
+                }
+            }).then(
+                gameStatusList => {
+                    if(gameStatusList && gameStatusList.length > 0){
+                        gameStatusList.forEach(gameStatus => {
+                            if(gameStatus && gameStatus.length > 0 && gameStatus[0].game && gameGroupData && gameGroupData.games && gameGroupData.games.length > 0){
+                                gameGroupData.games.map(game => {
+                                    if(game && game.game && game.game._id && game.game._id.toString() == gameStatus[0].game.toString()){
+                                        game.game.platformGameStatus = gameStatus[0].status;
+                                    }
+                                })
+                            }
+                        })
+                    }
+
+                    return gameGroupData;
+                }
+            );
     }
     ,
 
@@ -609,5 +676,13 @@ var dbPlatformGameGroup = {
         return deferred.promise;
     }
 };
+
+function checkRouteSetting(url, setting) {
+    if (url && (url.indexOf("http") == -1 || url.indexOf("https") == -1 || url.indexOf("") == -1) && setting) {
+        url = setting.concat(url.trim());
+    }
+
+    return url;
+}
 
 module.exports = dbPlatformGameGroup;

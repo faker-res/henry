@@ -925,6 +925,16 @@ var dbUtility = {
             .replace("m.", "");
     },
 
+    filterDomainName: function (url) {
+        let filteredDomain = dbUtility.getDomainName(url);
+
+        if (filteredDomain.indexOf("/") !== -1) {
+            filteredDomain = filteredDomain.split("/")[0];
+        }
+
+        return filteredDomain;
+    },
+
     encodeEmail: function(email) {
         email = email || '';
         let emailChars = email.split('');
@@ -1358,6 +1368,7 @@ var dbUtility = {
         return parseFloat(tempNum);
     },
 
+<<<<<<< HEAD
     sliceTimeFrameToDaily: (startTime, endTime, fullDayOnly) => {
         let timeFrames = [];
 
@@ -1390,6 +1401,24 @@ var dbUtility = {
 
         return timeFrames;
     },
+=======
+    convertIpToInt: function (ipAdd) {
+        return ipAdd.split('.').reduce(function(ipInt, octet) { return (ipInt<<8) + parseInt(octet, 10)}, 0) >>> 0;
+    },
+
+    convertIntToIp: function (ipAdd) {
+        return ( (ipAdd>>>24) +'.' + (ipAdd>>16 & 255) +'.' + (ipAdd>>8 & 255) +'.' + (ipAdd & 255) );
+    },
+
+    getIDCIpDetail: function (ipAdd) {
+        let ipInInt = dbUtility.convertIpToInt(ipAdd);
+
+        return dbconfig.collection_idcIp.findOne({
+            ip_start_num: {$lte: ipInInt},
+            ip_end_num: {$gte: ipInInt}
+        }).lean();
+    }
+>>>>>>> upstream/develop-1.1
 };
 
 var proto = dbUtilityFunc.prototype;

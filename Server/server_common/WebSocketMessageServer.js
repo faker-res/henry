@@ -79,7 +79,10 @@ class WebSocketMessageServer {
             return true;
         };
 
-        this.wss.on("connection", function(ws){
+        this.wss.on("connection", function(ws, req){
+            if (req && !ws.upgradeReq) {
+                ws.upgradeReq = req;
+            }
             console.log("A new connection is coming.");
 
             //add ws to client array
@@ -111,9 +114,9 @@ class WebSocketMessageServer {
             return;
         }
 
-        console.log("Relaying a message to clients of type:", type);
         for( let client of this.clients ){
             if( client.type == type ){
+                // console.log("Relaying a message to clients of type:", type, message);
                 var sendMsg = JSON.stringify(message);
                 client.socket.send(sendMsg);
             }

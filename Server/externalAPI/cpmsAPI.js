@@ -6,8 +6,9 @@ const constServerCode = require("../const/constServerCode");
 const request = require('request');
 const dbLogger = require("../modules/dbLogger");
 const clientAPIInstance = require("../modules/clientApiInstances");
+let wsConn;
 
-function callCPMSAPI(service, functionName, data) {
+function callCPMSAPI(service, functionName, data, fileData) {
     if (!data) {
         return Q.reject(new Error("Invalid data!"));
     }
@@ -39,7 +40,6 @@ function callCPMSAPI(service, functionName, data) {
             // };
             return wsClient.callAPIOnce(service, functionName, data).then(
                 res => {
-                    // resFunction(res);
                     if (wsClient && typeof wsClient.disconnect == "function") {
                         wsClient.disconnect();
                     }
@@ -69,6 +69,53 @@ function callCPMSAPI(service, functionName, data) {
     ).then(deferred.resolve, deferred.reject);
     return deferred.promise;
 };
+
+function callCPMSAPIWithFileData(service, functionName, data, fileData) {
+    if (!data) {
+        return Promise.reject(new Error("Invalid data!"));
+    }
+    let bOpen = false;
+    //if can't connect in 30 seconds, treat as timeout
+    setTimeout(function () {
+        if (!bOpen) {
+            return Promise.reject({
+                status: constServerCode.CP_NOT_AVAILABLE,
+                message: "Game is not available"
+            });
+        }
+    }, 60 * 1000);
+    return clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
+        wsClient => {
+            bOpen = true;
+            return wsClient.callAPIOnceWithFileData(service, functionName, data, fileData).then(
+                res => {
+                    if (wsClient && typeof wsClient.disconnect === "function") {
+                        wsClient.disconnect();
+                    }
+                    return res;
+                },
+                error => {
+                    if (wsClient && typeof wsClient.disconnect === "function") {
+                        wsClient.disconnect();
+                    }
+                    if (error.status) {
+                        return Promise.reject(error);
+                    }
+                    else {
+                        return Promise.reject({
+                            status: constServerCode.CP_NOT_AVAILABLE,
+                            message: "Game is not available",
+                            error: error
+                        });
+                    }
+                }
+            );
+        },
+        error => {
+            return Q.reject({status: constServerCode.CP_NOT_AVAILABLE, message: "Game is not available", error: error});
+        }
+    )
+}
 
 function httpGet(url) {
     var deferred = Q.defer();
@@ -152,8 +199,11 @@ const cpmsAPI = {
 
     player_getGamePassword: function (data) {
         return callCPMSAPI("player", "getGamePassword", data);
-    }
+    },
 
+    game_updateImageUrl: function (data, fileData) {
+        return callCPMSAPIWithFileData("game", "updateImageUrl", data, fileData);
+    }
 };
 
 module.exports = cpmsAPI;

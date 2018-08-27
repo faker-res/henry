@@ -67,11 +67,13 @@ server.setMessageClient(messageClient);
 //         }
 //     }
 // );
-var dbPlatform = require("./db_modules/dbPlatform");
-clientApiInstances.createSMSAPI().then(
-    res => {
-        dbPlatform.syncSMSPlatform();
-        serverInstance.getSMSAPIClient().smsHeartBeat();
-    }
-);
+
+// var dbPlatform = require("./db_modules/dbPlatform");
+// clientApiInstances.createSMSAPI().then(
+//     res => {
+//         dbPlatform.syncSMSPlatform();
+//         // serverInstance.getSMSAPIClient().smsHeartBeat();
+//     }
+// );
+
 module.exports = server;

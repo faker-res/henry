@@ -19,7 +19,9 @@ var platformGameGroupSchema = new Schema({
     //child departments
     children: [{type: Schema.ObjectId, ref: 'platformGameGroup'}],
     //parent department
-    parent: {type: Schema.ObjectId, ref: 'platformGameGroup', default: null}
+    parent: {type: Schema.ObjectId, ref: 'platformGameGroup', default: null},
+    //game group icon path
+    gameGroupIconUrl: {type: String}
 });
 
 //game is unique by provider and code

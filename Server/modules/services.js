@@ -88,6 +88,7 @@ function connectToServer (serverURL, services, loginData, options) {
 
             client.addEventListener("error", (err) => {
                 console.log(Date(), "Error connect from " + serverURL + ": " + err);
+                console.log(err);
                 if (options.autoReconnect) {
                     startCheckingTimer(1000);
                 }
@@ -170,7 +171,7 @@ function getSMSAPIClient (options) {
         throw Error("You may not create this client: SMSAPI is disabled.");
     }
     //var loginData =  { name: 'testApiUser', password: '123' };
-    options = options || {autoReconnect: true};
+    // options = options || {autoReconnect: true};
     return connectToServer(env.smsAPIUrl, allServicesIn(smsServices), null, options);
 }
 

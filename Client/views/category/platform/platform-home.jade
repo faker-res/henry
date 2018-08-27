@@ -122,7 +122,7 @@
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"promoCode" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'RegistrationUrlConfig','Read')")
-                            a.common-tab(data-toggle="tab", href="#registrationUrlConfig", ng-click="vm.loadTab('RegistrationUrlConfig');")
+                            a.common-tab(data-toggle="tab", href="#registrationUrlConfig", ng-click="vm.loadTab('RegistrationUrlConfig'); vm.ignoreIntervalChecking = checkViewPermission('Platform', 'RegistrationUrlConfig','ignore90DaysEditingRestriction')")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"RegistrationUrlConfig" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'phoneNumFilter','Read')")

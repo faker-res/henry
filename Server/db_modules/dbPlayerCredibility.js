@@ -189,6 +189,57 @@ let dbPlayerCredibility = {
         return dbconfig.collection_platform.findOneAndUpdate({_id: ObjectId(platformObjId)}, {playerValueConfig: config}).lean();
     },
 
+    setFixedCredibilityRemarks: (platformObjId, fixedRemarks) => {
+        let proms = [];
+        if (fixedRemarks && fixedRemarks.length > 0) {
+            fixedRemarks.forEach(remark => {
+                if (remark && remark.name) {
+                    let query = {
+                        platform: platformObjId,
+                        name: remark.name,
+                        score: remark.score || 0,
+                        isFixed: true
+                    };
+                    proms.push(dbconfig.collection_playerCredibilityRemark.find(query).lean().exec());
+                }
+            });
+        }
+
+        return Promise.all(proms).then(data => {
+           if (data) {
+               let remarkExist = [].concat(...data);
+               let remarkName = [];
+
+               if (remarkExist && remarkExist.length > 0) {
+                   remarkExist.forEach(existingRemark => {
+                       remarkName.push(existingRemark.name);
+                   });
+               }
+
+               if (fixedRemarks && fixedRemarks.length > 0) {
+                   fixedRemarks.forEach(fixedRemark => {
+                       if (!remarkName.includes(fixedRemark.name)) {
+                           return dbconfig.collection_playerCredibilityRemark({
+                               platform: platformObjId,
+                               name: fixedRemark.name,
+                               score: fixedRemark.score,
+                               isFixed: true
+                           }).save();
+                       }
+                   });
+               }
+           }
+        });
+    },
+
+    getFixedCredibilityRemarks: platformObjId => {
+        let query = {
+            platform: platformObjId,
+            isFixed: true
+        };
+        return dbconfig.collection_playerCredibilityRemark.find(query).lean().exec();
+    },
+
     getCredibilityRemarks: platformObjId => {
         return dbconfig.collection_playerCredibilityRemark.find({platform: platformObjId}).lean().exec();
     },

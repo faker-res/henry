@@ -143,13 +143,13 @@ services.getPaymentManagementClient({autoReconnect: true}).then(
     }
 );
 
-var dbPlatform = require("./db_modules/dbPlatform");
-clientApiInstances.createSMSAPI().then(
-    res => {
-        dbPlatform.syncSMSPlatform();
-        serverInstance.getSMSAPIClient().smsHeartBeat();
-    }
-);
+// var dbPlatform = require("./db_modules/dbPlatform");
+// clientApiInstances.createSMSAPI().then(
+//     res => {
+//         dbPlatform.syncSMSPlatform();
+//         // serverInstance.getSMSAPIClient().smsHeartBeat();
+//     }
+// );
 
 //todo::tmp code for testing
 // const imessage = require('osa-imessage');

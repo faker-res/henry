@@ -400,14 +400,16 @@ var generalCond = {
     },
     // Is player manually applicable
     canApplyFromClient: {index: 4, type: "checkbox", des: "Is player manually applicable", detail: "REWARD_CLIENT_APPLY_DETAIL"},
+    // Is show in production server
+    showInRealServer: {index: 5, type: "checkbox", des: "Is show in production server", detail: "REWARD_SERVER_SHOW_DETAIL", default: true},
     // Is ignore audit
-    isIgnoreAudit: {index: 5, type: "number", des: "below X amount auto execute reward", detail: "REWARD_IGNORE_AUDIT_DETAIL"},
+    isIgnoreAudit: {index: 6, type: "number", des: "below X amount auto execute reward", detail: "REWARD_IGNORE_AUDIT_DETAIL"},
     // Reward start time
-    validStartTime: {index: 6, type: "date", des: "Reward start time"},
+    validStartTime: {index: 7, type: "date", des: "Reward start time"},
     // Reward end time
-    validEndTime: {index: 7, type: "date", des: "Reward end time"},
+    validEndTime: {index: 8, type: "date", des: "Reward end time"},
     // Is differentiate reward by player level
-    isPlayerLevelDiff: {index: 8, type: "checkbox", des: "Reward differentiate by player level", default: false}
+    isPlayerLevelDiff: {index: 9, type: "checkbox", des: "Reward differentiate by player level", default: false}
 };
 
 var topUpCond = {
@@ -586,6 +588,7 @@ db.rewardParam.update({
                     detail: "REWARD_RECLAIM_MISSED_DAY_DETAIL"
                 },
             },
+            dynamicCond: dynamicCond,
         },
         param: {
             tblOptFixed: {
@@ -604,7 +607,25 @@ db.rewardParam.update({
                     remark: {type: "text", des: "Remark"},
                 }
             },
-            tblOptDynamic: {} // will never reach here
+            tblOptDynamic: {
+                isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
+                requiredTopUpAmount: {type: "number", des: "Required top up amount daily"},
+                requiredConsumptionAmount: {type: "number", des: "Required consumption amount daily"},
+                dailyMaxRewardAmount: {type: "number", des: "Daily Reward Limit"},
+                operatorOption: {type: "checkbox", des: "Required both"},
+                rewardParam: {
+                    totalConsumptionInInterval: {type: "number", des: "Total Consumption In Interval"},
+                    rewardPercentage: {type: "percentage", des: "Reward percentage"},
+                    maxRewardInSingleTopUp: {type: "number", des: "Max reward in single top up"},
+                    spendingTimes: {type: "number", des: "Spending times"},
+                    forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
+                    forbidWithdrawIfBalanceAfterUnlock: {
+                        type: "number",
+                        des: "Forbid withdraw if there is balance after unlock"
+                    },
+                    remark: {type: "text", des: "Remark"},
+                }
+            }
         }
     }
 }, {

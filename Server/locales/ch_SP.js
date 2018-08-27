@@ -204,6 +204,7 @@ var simplifiedChinese = {
     "Incorrect player data": "玩家数据错误",
     "Error finding player": "无法找到玩家",
     "Error getting platform reward data": "无法找到奖励数据",
+    "Old phone number doesn't match": "旧的电话号码匹配失败，请重新输入。",
     "Error creating proposal": "无法创建提案",
     "The player already has this reward. Not Valid for the reward.": "不符合领取",
     "This top up record has been used": "该充值记录已被使用",
@@ -351,6 +352,7 @@ var simplifiedChinese = {
     "This reward only applicable on platform with provider group": "此优惠只适用于有锁大厅的平台",
     "Top up does not meet Promo Code minimum required amount": "您的存款金额低于该优惠代码限制，请调整存款金额。",
     "Exceed the total application limit": "优惠已全数发送完毕， 谢谢。",
+    "Exceed the total application limit from the same IP": "已达同IP领取数量上限",
     "Exceed the total application limit of the player": "已达个人领取数量上限。",
     "The period of the reward has not yet opened": "本周期的场次尚未开放",
     "SMS failure, please retry": "短信验证码发送失败，请重新点击获取",
@@ -444,6 +446,9 @@ var simplifiedChinese = {
     "The partner commission for this period is already settled.": "此代理该周期已经结算。",
     "Proposal No.": "提案号：",
     "New phone number is already used. Please insert other phone number.": "新号码已绑定账号，不支持重复绑定。",
+    "Parent Partner": "一级代理",
+    "1.Partner Commission Proposal No.: ": "1.代理佣金提案号：",
+    "2.Parent Partner Commission Rate：": "2.一级代理佣金比例：",
 
     //todo::add missing messages here
 

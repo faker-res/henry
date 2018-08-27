@@ -15,6 +15,7 @@ const dbRewardEvent = require('./../db_modules/dbRewardEvent');
 const dbRewardTaskGroup = require('./../db_modules/dbRewardTaskGroup');
 const dbPlayerCredibility = require('../db_modules/dbPlayerCredibility');
 const dbPlayerOnlineTime = require('../db_modules/dbPlayerOnlineTime');
+const dbPlatformAutoFeedback = require('../db_modules/dbPlatformAutoFeedback');
 const dbSmsGroup = require('../db_modules/dbSmsGroup');
 const constProposalType = require('./../const/constProposalType');
 const constFinancialPointsType = require('./../const/constFinancialPointsType');
@@ -346,6 +347,18 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerCredibility.getCredibilityRemarks, [data.platformObjId], actionName, isValidData);
         },
 
+        setFixedCredibilityRemarks: function setFixedCredibilityRemarks(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.fixedRemarks);
+            socketUtil.emitter(self.socket, dbPlayerCredibility.setFixedCredibilityRemarks, [data.platformObjId, data.fixedRemarks], actionName, isValidData);
+        },
+
+        getFixedCredibilityRemarks: function getFixedCredibilityRemarks(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlayerCredibility.getFixedCredibilityRemarks, [data.platformObjId], actionName, isValidData);
+        },
+
         addCredibilityRemark: function addCredibilityRemark(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.name && data.score);
@@ -455,7 +468,7 @@ function socketActionPlatform(socketIO, socket) {
         createNewPlayerAdvertisementRecord: function createNewPlayerAdvertisementRecord(data){
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.advertisementCode && data.inputDevice && data.title && data.backgroundBannerImage && data.imageButton && data.hasOwnProperty("orderNo"));
-            socketUtil.emitter(self.socket, dbPlatform.createNewPlayerAdvertisementRecord, [data.platformId, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.createNewPlayerAdvertisementRecord, [data.platformId, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice, data.showInRealServer], actionName, isValidData);
         },
 
         deleteAdvertisementRecord: function deleteAdvertisementRecord(data){
@@ -467,7 +480,7 @@ function socketActionPlatform(socketIO, socket) {
         savePlayerAdvertisementRecordChanges: function savePlayerAdvertisementRecordChanges(data){
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data._id && data.advertisementCode && data.title && data.backgroundBannerImage && data.imageButton && data.inputDevice && data.hasOwnProperty("orderNo"));
-            socketUtil.emitter(self.socket, dbPlatform.savePlayerAdvertisementRecordChanges, [data.platformId, data._id, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.savePlayerAdvertisementRecordChanges, [data.platformId, data._id, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice, data.showInRealServer], actionName, isValidData);
         },
 
         updateAdvertisementRecord: function updateAdvertisementRecord(data){
@@ -528,7 +541,7 @@ function socketActionPlatform(socketIO, socket) {
         createNewPartnerAdvertisementRecord: function createNewPartnerAdvertisementRecord(data){
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.hasOwnProperty("orderNo") && data.advertisementCode && data.title && data.backgroundBannerImage && data.imageButton && data.inputDevice);
-            socketUtil.emitter(self.socket, dbPlatform.createNewPartnerAdvertisementRecord, [data.platformId, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.createNewPartnerAdvertisementRecord, [data.platformId, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice, data.showInRealServer], actionName, isValidData);
         },
 
         deletePartnerAdvertisementRecord: function deletePartnerAdvertisementRecord(data){
@@ -540,7 +553,7 @@ function socketActionPlatform(socketIO, socket) {
         savePartnerAdvertisementRecordChanges: function savePartnerAdvertisementRecordChanges(data){
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data._id && data.hasOwnProperty("orderNo") && data.advertisementCode && data.title && data.backgroundBannerImage && data.imageButton && data.inputDevice);
-            socketUtil.emitter(self.socket, dbPlatform.savePartnerAdvertisementRecordChanges, [data.platformId, data._id, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.savePartnerAdvertisementRecordChanges, [data.platformId, data._id, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice, data.showInRealServer], actionName, isValidData);
         },
 
         changePartnerAdvertisementStatus: function changePartnerAdvertisementStatus(data){
@@ -709,8 +722,8 @@ function socketActionPlatform(socketIO, socket) {
 
         getOnlineTimeLogByPlatform: function getOnlineTimeLogByPlatform(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime);
-            socketUtil.emitter(self.socket, dbPlayerOnlineTime.getOnlineTimeLogByPlatform, [data.platformObjId, data.startTime, data.endTime], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime && data.period);
+            socketUtil.emitter(self.socket, dbPlayerOnlineTime.getOnlineTimeLogByPlatform, [data.platformObjId, data.startTime, data.endTime, data.period], actionName, isValidData);
         },
 
         createAutoFeedback: function createAutoFeedback(data) {

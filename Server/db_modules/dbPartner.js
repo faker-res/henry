@@ -895,66 +895,92 @@ let dbPartner = {
 
         if (sortObj){
             //if there is sorting parameter
-            partnerInfo = dbconfig.collection_partner.aggregate([
-                {$match:query},
-                {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
-                        "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
-                        "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "totalSettledCommission":1, "_id":1, }},
-                {$sort:sortObj},
-                {$skip:index},
-                {$limit:limit}
-            ]).then(
-                aggr => {
-                    var retData = [];
-                    for (var index in aggr) {
-                        var prom = dbPartner.getPartnerItem(aggr[index]._id , aggr[index].childrencount);
-                        retData.push(prom);
-                    }
-                    return Q.all(retData);
-            }).then(
-                partners => {
-                    for (let i = 0; i < partners.length; i++) {
-                        if (partners[i].phoneNumber) {
-                            partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
-                        }
-                    }
-                    return partners;
-                },
-                error => {
-                    Q.reject({name: "DBError", message: "Error finding partners.", error: error});
+            let aggrOperation = [];
+            partnerInfo = dbconfig.collection_partner.findOne({partnerName: query.partnerName}, {_id:1, children: 1}).lean().then(data => {
+                if (data && data._id && data.children && data.children.length > 0 && query && query.partnerName) {
+                    query.$or = [{partnerName: query.partnerName},{parent: data._id}];
+                    delete query.partnerName;
+
+                    aggrOperation =[
+                        {$match:query},
+                        {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
+                                "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
+                                "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "totalSettledCommission":1, "_id":1, }},
+                        {$skip:index},
+                        {$limit:limit}
+                    ]
+                } else {
+                    aggrOperation =[
+                        {$match:query},
+                        {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
+                                "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
+                                "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "totalSettledCommission":1, "_id":1, }},
+                        {$sort:sortObj},
+                        {$skip:index},
+                        {$limit:limit}
+                    ]
                 }
-            );
+            }).then(() => {
+                return dbconfig.collection_partner.aggregate(aggrOperation).then(
+                    aggr => {
+                        var retData = [];
+                        for (var index in aggr) {
+                            var prom = dbPartner.getPartnerItem(aggr[index]._id , aggr[index].childrencount);
+                            retData.push(prom);
+                        }
+                        return Q.all(retData);
+                    }).then(
+                    partners => {
+                        for (let i = 0; i < partners.length; i++) {
+                            if (partners[i].phoneNumber) {
+                                partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
+                            }
+                        }
+                        return partners;
+                    },
+                    error => {
+                        Q.reject({name: "DBError", message: "Error finding partners.", error: error});
+                    }
+                );
+            });
         } else {
             //if there is no sorting parameter
-            partnerInfo = dbconfig.collection_partner.aggregate([
-                {$match:query},
-                {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
-                        "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
-                        "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "totalSettledCommission":1, "_id":1, }},
-                {$skip:index},
-                {$limit:limit}
-            ]).then(
-                aggr => {
-                    var retData = [];
-                    for (var index in aggr) {
-                        var prom = dbPartner.getPartnerItem(aggr[index]._id , aggr[index].childrencount);
-                        retData.push(prom);
-                    }
-                    return Q.all(retData);
-            }).then(
-                partners => {
-                    for (let i = 0; i < partners.length; i++) {
-                        if (partners[i].phoneNumber) {
-                            partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
-                        }
-                    }
-
-                    return partners;
-                },
-                error => {
-                    Q.reject({name: "DBError", message: "Error finding partners.", error: error});
+            partnerInfo = dbconfig.collection_partner.findOne({partnerName: query.partnerName}, {_id:1, children: 1}).lean().then(data => {
+                if (data && data._id && data.children && data.children.length > 0 && query && query.partnerName) {
+                    query.$or = [{partnerName: query.partnerName},{parent: data._id}];
+                    delete query.partnerName;
                 }
-            );
+            }).then(() => {
+                return dbconfig.collection_partner.aggregate([
+                    {$match:query},
+                    {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
+                            "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
+                            "monthlyActivePlayer":1, "totalPlayerDownline":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "totalSettledCommission":1, "_id":1, }},
+                    {$skip:index},
+                    {$limit:limit}
+                ]).then(
+                    aggr => {
+                        var retData = [];
+                        for (var index in aggr) {
+                            var prom = dbPartner.getPartnerItem(aggr[index]._id , aggr[index].childrencount);
+                            retData.push(prom);
+                        }
+                        return Q.all(retData);
+                    }).then(
+                    partners => {
+                        for (let i = 0; i < partners.length; i++) {
+                            if (partners[i].phoneNumber) {
+                                partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
+                            }
+                        }
+
+                        return partners;
+                    },
+                    error => {
+                        Q.reject({name: "DBError", message: "Error finding partners.", error: error});
+                    }
+                );
+            });
         }
 
         return Q.all([count, partnerInfo]).then( function(data){
@@ -1695,6 +1721,7 @@ let dbPartner = {
                             if (decoded && decoded.name == partnerData.name) {
                                 conn.isAuth = true;
                                 conn.partnerId = partnerId;
+                                conn.partnerObjId = partnerData._id;
                                 deferred.resolve(true);
                             }
                             else {
@@ -6261,6 +6288,13 @@ let dbPartner = {
                 downLinesRawCommissionDetails = commissionDetail.downLinesRawCommissionDetail || [];
 
                 delete commissionDetail.downLinesRawCommissionDetail;
+                if (commissionDetail.rawCommissions && commissionDetail.rawCommissions.length) {
+                    commissionDetail.rawCommissions.map(rawCommission => {
+                        if (rawCommission && rawCommission.crewProfitDetail) {
+                            delete rawCommission.crewProfitDetail;
+                        }
+                    });
+                }
 
                 return dbconfig.collection_partnerCommissionLog.findOneAndUpdate({
                     partner: commissionDetail.partner,
@@ -6407,6 +6441,9 @@ let dbPartner = {
         let totalWithdrawal = 0;
         let totalWithdrawalFee = 0;
         let nettCommission = 0;
+        let totaldownLines = 0;
+        let parentPartnerCommissionDetail;
+        let remarks;
 
         let commissionPeriod = getCommissionPeriod(commissionType);
         if (startTime && endTime) {
@@ -6417,7 +6454,8 @@ let dbPartner = {
         }
 
         let partnerProm = dbconfig.collection_partner.findOne({_id: partnerObjId})
-            .populate({path: "platform", model: dbconfig.collection_platform}).lean();
+            .populate({path: "platform", model: dbconfig.collection_platform})
+            .populate({path: "parent", model: dbconfig.collection_partner}).lean();
 
         return partnerProm.then(
             data => {
@@ -6464,6 +6502,8 @@ let dbPartner = {
                 rewardProposalTypes = data[3];
 
                 partnerCommissionRateConfig = data[4];
+
+                totaldownLines = downLines.length;
 
                 let downLinesRawDetailProms = [];
 
@@ -6520,6 +6560,7 @@ let dbPartner = {
 
                     rawCommissions.push({
                         crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
+                        crewProfitDetail: providerGroupConsumptionData[groupRate.groupName].crewProfitDetail,
                         groupName: groupRate.groupName,
                         groupId: groupRate.groupId,
                         amount: rawCommission,
@@ -6546,7 +6587,23 @@ let dbPartner = {
 
                 nettCommission = grossCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
 
-                return {
+                if (partner && partner.parent && Object.keys(partner.parent) && Object.keys(partner.parent).length > 0) {
+                    parentPartnerCommissionDetail = {};
+                    let totalWinLose = getTotalWinLose(downLinesRawData);
+                    let rate = partnerCommissionRateConfig && partnerCommissionRateConfig.parentCommissionRate ? partnerCommissionRateConfig.parentCommissionRate : 0;
+
+                    parentPartnerCommissionDetail.parentPartnerObjId = partner.parent._id;
+                    parentPartnerCommissionDetail.parentPartnerName = partner.parent.partnerName;
+                    parentPartnerCommissionDetail.parentPartnerId = partner.parent.partnerId;
+                    parentPartnerCommissionDetail.totalWinLose = totalWinLose;
+                    parentPartnerCommissionDetail.parentCommissionRate = rate;
+                    parentPartnerCommissionDetail.totalParentCommissionFee = totalWinLose < 0 ? -totalWinLose * rate / 100 : 0;
+                    parentPartnerCommissionDetail.totaldownLines = totaldownLines;
+
+                    remarks = translate("Parent Partner") + "：" + partner.parent.partnerName + "（"+ rate + "％）";
+                }
+
+                let returnObj = {
                     partner: partner._id,
                     platform: platform._id,
                     commissionType: commissionType,
@@ -6573,7 +6630,50 @@ let dbPartner = {
                     status: constPartnerCommissionLogStatus.PREVIEW,
                     nettCommission: nettCommission,
                     disableCommissionSettlement: Boolean(partner.permission && partner.permission.disableCommSettlement),
+                    parentPartnerCommissionDetail: parentPartnerCommissionDetail,
+                    remarks: remarks,
                 };
+
+                if (totalTopUp) {
+                    let depositCrewDetail = [];
+                    downLinesRawData.forEach(downLine => {
+                        if (downLine.topUpDetail.topUpAmount) {
+                            depositCrewDetail.push({
+                                crewAccount: downLine.name,
+                                crewDepositAmount: downLine.topUpDetail.topUpAmount
+                            })
+                        }
+                    });
+                    returnObj.depositCrewDetail = depositCrewDetail;
+                }
+
+                if (totalWithdrawal) {
+                    let withdrawCrewDetail = [];
+                    downLinesRawData.forEach(downLine => {
+                        if (downLine.withdrawalDetail.withdrawalAmount) {
+                            withdrawCrewDetail.push({
+                                crewAccount: downLine.name,
+                                crewWithdrawAmount: downLine.withdrawalDetail.withdrawalAmount
+                            })
+                        }
+                    });
+                    returnObj.withdrawCrewDetail = withdrawCrewDetail;
+                }
+
+                if (totalWithdrawal) {
+                    let bonusCrewDetail = [];
+                    downLinesRawData.forEach(downLine => {
+                        if (downLine.rewardDetail.total) {
+                            bonusCrewDetail.push({
+                                crewAccount: downLine.name,
+                                crewBonusAmount: downLine.rewardDetail.total
+                            })
+                        }
+                    });
+                    returnObj.bonusCrewDetail = bonusCrewDetail;
+                }
+
+                return returnObj;
             }
         );
     },
@@ -6777,7 +6877,7 @@ let dbPartner = {
             let remark = commissionApplication.remark;
 
             let prom = applyCommissionToPartner(logObjId, settleType, remark, adminInfo).catch(err => {
-                console.error('settle fail', logObjId, err);
+                console.log('settle fail', logObjId, err);
                 return errorUtils.reportError(err);
             });
 
@@ -8040,7 +8140,11 @@ let dbPartner = {
                     endTime = new Date(endTime);
                 }
 
-                return dbconfig.collection_players.find({platform: platformObj._id, partner: partnerData._id},{_id: 1, name: 1, playerId: 1}).lean();
+                // Find crews
+                return dbconfig.collection_players.find({
+                    platform: platformObj._id,
+                    partner: partnerData._id
+                }, {_id: 1, name: 1, playerId: 1, registrationTime: 1, lastAccessTime: 1}).lean();
             }
         ).then(
             allDownLinesData => {
@@ -8403,7 +8507,7 @@ let dbPartner = {
         );
     },
 
-    preditCommission: (platformId, partnerId) => {
+    preditCommission: (platformId, partnerId, searchPreviousPeriod = 0) => {
         let platform = {};
         let partner = {};
 
@@ -8433,6 +8537,11 @@ let dbPartner = {
 
                 partner = partnerData;
                 let period = getCurrentCommissionPeriod(partner.commissionType);
+                if (searchPreviousPeriod && !isNaN(Number(searchPreviousPeriod))) {
+                    for (let i = 0; i < Number(searchPreviousPeriod); i++) {
+                        period = getPreviousCommissionPeriod(partner.commissionType, period);
+                    }
+                }
 
                 return dbPartner.calculatePartnerCommissionDetail(partner._id, partner.commissionType, new Date(period.startTime), new Date(period.endTime));
             }
@@ -8446,12 +8555,21 @@ let dbPartner = {
 
                 output.activeCrewNumbers = commissionDetail.activeDownLines;
                 output.totalDepositAmount = commissionDetail.totalTopUp;
+                if (commissionDetail.depositCrewDetail) {
+                    output.depositCrewDetail = commissionDetail.depositCrewDetail;
+                }
                 output.depositFeeRate = commissionDetail.topUpFeeRate;
                 output.totalDepositFee = commissionDetail.totalTopUpFee;
                 output.totalWithdrawAmount = commissionDetail.totalWithdrawal;
+                if (commissionDetail.withdrawCrewDetail) {
+                    output.withdrawCrewDetail = commissionDetail.withdrawCrewDetail;
+                }
                 output.withdrawFeeRate = commissionDetail.withdrawFeeRate;
                 output.totalWithdrawalFee = commissionDetail.totalWithdrawalFee;
                 output.totalBonusAmount = commissionDetail.totalReward;
+                if (commissionDetail.bonusCrewDetail) {
+                    output.bonusCrewDetail = commissionDetail.bonusCrewDetail;
+                }
                 output.bonusFeeRate = commissionDetail.rewardFeeRate;
                 output.totalBonusFee = commissionDetail.totalRewardFee;
                 output.totalProviderFee = commissionDetail.totalPlatformFee;
@@ -8467,6 +8585,7 @@ let dbPartner = {
                             providerGroupCommission: providerCommission.amount,
                             providerGroupFee: providerCommission.platformFee,
                             crewProfit: providerCommission.crewProfit,
+                            crewProfitDetail: providerCommission.crewProfitDetail,
                             commissionRate: providerCommission.commissionRate ? providerCommission.commissionRate : 0,
                             providerGroupFeeRate: providerCommission.platformFeeRate ? providerCommission.platformFeeRate / 100 : 0
                         })
@@ -8786,6 +8905,134 @@ let dbPartner = {
             }
         );
     },
+
+    getChildPartnerRecords: (platformId, partnerObjId) => {
+        let childPartnerData = [];
+        let childPartnerNameArr = [];
+        let query = {
+            platform: mongoose.Types.ObjectId(platformId),
+            _id: mongoose.Types.ObjectId(partnerObjId)
+        }
+
+        return dbconfig.collection_partner.aggregate([
+            {$match: query},
+            {
+                $project: {
+                    "_id": 1,
+                    "children": 1
+                }
+            },
+        ]).then(aggr => {
+            let retData = [];
+            if (aggr && aggr[0] && aggr[0].children && aggr[0].children.length > 0) {
+                let childrenList = aggr[0].children || [];
+                for (let index in childrenList) {
+                    if (childrenList[index]) {
+                        let prom = dbconfig.collection_partner.findOne({_id: mongoose.Types.ObjectId(childrenList[index])}, {partnerName:1, _id: 1, partnerId: 1}).lean();
+                        retData.push(prom);
+                    }
+                }
+            }
+            return Promise.all(retData);
+        }).then(childPartner => {
+            if (childPartner && childPartner.length > 0) {
+                for (let i = 0, len = childPartner.length; i < len; i++) {
+                    if (childPartner[i] && childPartner[i].partnerName) {
+                        childPartnerNameArr.push(childPartner[i].partnerName);
+                    }
+                }
+            }
+
+            return dbconfig.collection_proposalType.findOne({
+                platformId: platformId,
+                name: constProposalType.UPDATE_CHILD_PARTNER
+            }).lean();
+        }).then(proposalTypeData => {
+            if (proposalTypeData) {
+                let proms = [];
+
+                if (childPartnerNameArr && childPartnerNameArr.length > 0) {
+                    for (let i = 0, len = childPartnerNameArr.length; i < len; i++) {
+                        if (childPartnerNameArr[i]) {
+                            let matchQuery = {
+                                'data.platformId': mongoose.Types.ObjectId(platformId),
+                                'data.updateChildPartnerName': {$in: [childPartnerNameArr[i]]},
+                                'data.curChildPartnerName': {$nin: [childPartnerNameArr[i]]},
+                                'data.partnerObjId': partnerObjId,
+                                type: proposalTypeData._id,
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                            }
+
+                            proms.push(dbconfig.collection_proposal.aggregate([
+                                {
+                                    $match: matchQuery
+                                },
+                                {
+                                    $sort: { createTime: -1 }
+                                },
+                                {
+                                    $group: {
+                                        _id: childPartnerNameArr[i],
+                                        proposalId: {$first: "$proposalId"},
+                                        updateDateTime: {$first: "$createTime"},
+                                    }
+                                }
+                            ]));
+                        }
+                    }
+
+                    return Promise.all(proms);
+                }
+            } else {
+                return Promise.reject({name: "DataError", message: "Failed to find proposal type data"});
+            }
+        }).then(data => {
+            if (data && data.length > 0) {
+                for (let i = 0, len = data.length; i < len; i++) {
+                    let childPartnerProposal = data[i];
+                    if (childPartnerProposal && childPartnerProposal.length > 0) {
+                        for (let j = 0, jLen = childPartnerProposal.length; j < jLen; j++) {
+                            if (childPartnerProposal[j] && Object.keys(childPartnerProposal[j]).length
+                                && childPartnerProposal[j]._id && childPartnerProposal[j].proposalId && childPartnerProposal[j].updateDateTime) {
+                                childPartnerData.push({partnerName: childPartnerProposal[j]._id, proposalId: childPartnerProposal[j].proposalId, createTime: childPartnerProposal[j].updateDateTime});
+                            }
+                        }
+                    }
+                }
+            }
+
+            let sortChildPartner = [];
+            if (childPartnerData && childPartnerData.length > 0) {
+                sortChildPartner = childPartnerData.sort(function(a, b) { return a.createTime - b.createTime});
+            }
+
+            return sortChildPartner;
+        });
+    },
+
+    checkChildPartnerNameValidity: (platformId, partnerName) => {
+        let isPartnerExist = null;
+        let parentPartnerName = null;
+
+        return dbconfig.collection_partner.findOne({platform: mongoose.Types.ObjectId(platformId), partnerName: partnerName.trim()}, {_id: 1}).lean().then(
+            partnerData => {
+            if (!partnerData) {
+                isPartnerExist = false;
+                return {isExist: isPartnerExist};
+            } else {
+                if (partnerData._id) {
+                    return dbconfig.collection_partner.findOne({children: {$in: [partnerData._id]}}, {partnerName: 1}).lean().then(data => {
+                        if (data) {
+                            isPartnerExist = true;
+                            parentPartnerName = data && data.partnerName ? data.partnerName : '';
+                            return {isExist: isPartnerExist, parent: parentPartnerName};
+                        }
+                    });
+                }
+            }
+
+        })
+    }
 };
 
 function getPreviousNCommissionPeriod (commissionType, n) {
@@ -9503,6 +9750,7 @@ function getTotalPlayerConsumptionByProviderGroupName (downLineRawDetail, provid
                 validAmount: 0,
                 bonusAmount: 0,
                 consumptionTimes: 0,
+                crewProfitDetail: [],
             };
         });
 
@@ -9512,6 +9760,12 @@ function getTotalPlayerConsumptionByProviderGroupName (downLineRawDetail, provid
                     total[group.name].validAmount += downLine.consumptionDetail.consumptionProviderDetail[group.name].validAmount;
                     total[group.name].bonusAmount += downLine.consumptionDetail.consumptionProviderDetail[group.name].bonusAmount;
                     total[group.name].consumptionTimes += downLine.consumptionDetail.consumptionProviderDetail[group.name].consumptionTimes;
+                    if (downLine.consumptionDetail.consumptionProviderDetail[group.name].consumptionTimes) {
+                        total[group.name].crewProfitDetail.push({
+                            crewAccount: downLine.name,
+                            singleCrewProfit: downLine.consumptionDetail.consumptionProviderDetail[group.name].bonusAmount
+                        });
+                    }
                 }
             });
         });
@@ -9622,6 +9876,7 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
                 rateAfterRebateGameProviderGroup: rateData.rateAfterRebateGameProviderGroup,
                 rateAfterRebateTotalDeposit: rateData.rateAfterRebateTotalDeposit,
                 rateAfterRebateTotalWithdrawal: rateData.rateAfterRebateTotalWithdrawal,
+                parentCommissionRate: rateData.parentCommissionRate,
             };
 
             if (data[1]) {
@@ -9699,6 +9954,15 @@ function getTotalWithdrawal (downLineRawDetail) {
     let total = 0;
     downLineRawDetail.map(downLine => {
         total += downLine.withdrawalDetail.withdrawalAmount || 0;
+    });
+
+    return total;
+}
+
+function getTotalWinLose (downLineRawDetail) {
+    let total = 0;
+    downLineRawDetail.map(downLine => {
+        total += downLine.consumptionDetail.bonusAmount || 0;
     });
 
     return total;
@@ -9809,6 +10073,45 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
                     amount: commissionLog.nettCommission,
                     status: constPartnerCommissionLogStatus.PREVIEW,
                     logObjId: commissionLog._id,
+                    remark: proposalRemark
+                },
+                entryType: constProposalEntryType.ADMIN,
+                userType: constProposalUserType.PARTNERS
+            };
+
+            return dbProposal.createProposalWithTypeId(proposalType._id, proposalData);
+        }
+    );
+}
+
+function updateParentPartnerCommission(commissionLog, adminInfo, proposalId) {
+    // find proposal type
+    return dbconfig.collection_proposalType.findOne({name: constProposalType.UPDATE_PARENT_PARTNER_COMMISSION, platformId: commissionLog.platform}).lean().then(
+        proposalType => {
+            if (!proposalType) {
+                return Promise.reject({
+                    message: "Error in getting proposal type"
+                });
+            }
+
+            let proposalRemark = translate("1.Partner Commission Proposal No.: ") + proposalId + '<br>' + translate("2.Parent Partner Commission Rate：") + commissionLog.parentPartnerCommissionDetail.parentCommissionRate + "%";
+
+            // create proposal data
+            let proposalData = {
+                type: proposalType._id,
+                creator: adminInfo,
+                data: {
+                    partnerObjId: commissionLog.parentPartnerCommissionDetail.parentPartnerObjId,
+                    platformObjId: commissionLog.platform,
+                    partnerId: commissionLog.parentPartnerCommissionDetail.parentPartnerId,
+                    partnerName: commissionLog.parentPartnerCommissionDetail.parentPartnerName,
+                    parentCommissionRate: commissionLog.parentPartnerCommissionDetail.parentCommissionRate,
+                    amount: commissionLog.parentPartnerCommissionDetail.totalParentCommissionFee,
+                    childPartnerName: commissionLog.partnerName,
+                    childPartnerTotalDownLines: commissionLog.parentPartnerCommissionDetail.totaldownLines,
+                    childPartnerCommissionType: commissionLog.commissionType,
+                    childPlayerTotalWinLose: commissionLog.parentPartnerCommissionDetail.totalWinLose,
+                    relatedProposalId: proposalId,
                     remark: proposalRemark
                 },
                 entryType: constProposalEntryType.ADMIN,
@@ -10418,6 +10721,8 @@ function getCrewDetail (player, startTime, endTime) {
             returnData = {
                 playerId: player.playerId,
                 crewAccount: player.name,
+                crewRegisterTime: player.registrationTime,
+                crewLastLoginTime: player.lastAccessTime,
                 depositAmount: topUpDetail.length && topUpDetail[0].topUpAmount? topUpDetail[0].topUpAmount: 0,
                 depositCount: topUpDetail.length && topUpDetail[0].topUpTimes? topUpDetail[0].topUpTimes: 0,
                 validBet: consumptionDetail.validAmount,
@@ -10546,6 +10851,19 @@ function applyCommissionToPartner (logObjId, settleType, remark, adminInfo) {
                 remark = "结算后清空馀额：" + remark;
             }
             return applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
+        }
+    ).then(
+        proposal => {
+
+            if (log && log.parentPartnerCommissionDetail && Object.keys(log.parentPartnerCommissionDetail) && Object.keys(log.parentPartnerCommissionDetail).length > 0
+                && proposal && proposal.proposalId) {
+                updateParentPartnerCommission(log, adminInfo, proposal.proposalId).catch(error => {
+                    console.trace("Update parent partner commission");
+                    return errorUtils.reportError(error);
+                })
+            }
+
+            return proposal;
         }
     );
 }

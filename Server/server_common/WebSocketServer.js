@@ -149,7 +149,10 @@ proto.run = function () {
         return true;
     };
 
-    this._wss.on("connection", function (ws) {         //连接时进行验证
+    this._wss.on("connection", function (ws, req) {         //连接时进行验证
+        if (req && !ws.upgradeReq) {
+            ws.upgradeReq = req;
+        }
         console.log("A new connection is coming.");
         //if need authentication for this connection, set the isAuth to false
         //检测socket链接是否需要验证

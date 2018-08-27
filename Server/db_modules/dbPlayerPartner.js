@@ -449,7 +449,7 @@ let dbPlayerPartner = {
                     }
                 }
 
-                let verificationPhone = curPhoneNumber;
+                let verificationPhone = newPhoneNumber ? newPhoneNumber : curPhoneNumber;
 
                 if (!newPhoneNumber) {
                     if (data[1] && data[1][0] && data[1][0].tel) {
@@ -630,7 +630,7 @@ let dbPlayerPartner = {
                         break;
                 }
 
-                return result;
+                return true;
             }
         )
     },

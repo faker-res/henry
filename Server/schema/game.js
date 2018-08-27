@@ -39,7 +39,9 @@ var gameSchema = new Schema({
     //progressive game code
     progressivegamecode: {type: String},
     //game images
-    images: {type: JSON}
+    images: {type: JSON},
+    // sourceURL to add in front of images url if CDN not set up
+    sourceURL: {type: String},
 });
 
 //game is unique by provider and code
