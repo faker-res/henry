@@ -230,9 +230,9 @@
                     // console.log("callAPIOnce:", data);
                     wsFunc.request(data);
                     var key = wsFunc.generateSyncKey(data);
-                    console.log("AAAAAAAAAAAAAAAAAA",key);
+
                     wsFunc.onceSync(key, function (res) {
-                        console.log("BBBBBBBBBBBBBBBB",res + "key");
+
                         if (res && res.status == 200) {
                             var resObj = Object.assign({}, res);
                             delete resObj.status;
