@@ -3903,6 +3903,8 @@
   "FPMS Group": "FPMS组",
   "PMS Group": "PMS组",
   "Player's Name (PMS Group Search)": "会员账号（PMS 分组查询）",
+  "Delete Provider Group": "删除锁大厅组",
+  "This will release all rewards amount binded with this group to player.": "这将会解锁所有此大厅的锁定额度，释放成自由额度。",
 
   "RECEIVE_BANK_TYPE": "收款银行类型",
   "RECEIVE_BANK_ACC": "收款银行账号",
