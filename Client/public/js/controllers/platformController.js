@@ -32765,7 +32765,7 @@ define(['js/app'], function (myApp) {
                 //reset the adding table
                 vm.addNewPartnerAdvertisement = false;
                 vm.currentPartnerImageButtonNo = 2;
-                vm.partnerAdvertisementGroup = [];
+                vm.partnerAdvertisementGroup = {};
                 vm.partnerAdvertisementTitle = [];
                 vm.partnerAdvertisementGroup.imageButton = [
                     {

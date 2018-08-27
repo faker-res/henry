@@ -429,7 +429,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchPlayerDepositAnalysisReport(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click='vm.exportPlayerDepositAnalysisReportToExcel()') {{'EXPORT_EXCEL' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click="vm.exportToExcel('playerDepositAnalysisExcelReportTable', 'PLAYER_DEPOSIT_ANALYSIS_REPORT');") {{'EXPORT_EXCEL' | translate}}
                     span#loadingPlayerDepositAnalysisReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -493,6 +493,7 @@
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchPlayerDepositTrackingReport(true)') {{'SEARCH' | translate}}
                     button.btn.btn-primary.margin-left-5(data-toggle="modal", data-target='#modalPlayerDepositTrackingGroupTable' ng-click='vm.initDepositTrackingGroup()') {{'EDIT_TRACKING_GROUP' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click="vm.exportToExcel('playerDepositTrackingTable', 'PLAYER_DEPOSIT_TRACKING_REPORT')") {{'EXPORT_EXCEL' | translate}}
                     span#loadingPlayerDepositTrackingReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -568,6 +569,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchNewPlayerRecord(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click="vm.exportToExcel('newAccountTable', 'NEWACCOUNT_REPORT')") {{'EXPORT_EXCEL' | translate}}
                     span *搜寻在该时段开户玩家的总记录
             //.row.text-center
             //    .col-md-2
@@ -586,7 +588,7 @@
             //        label.block {{"Player with Partner" | translate}}
             //        label.block.text-danger {{vm.newPlayerQuery.totalpartnerPlayerCount || 0}}
             .text-center
-                table.playerLvlTable(style='width:100%')
+                table.playerLvlTable#newAccountTable(style='width:100%')
                     thead
                         tr
                             th(ng-click='vm.newPlayerQuery.promoteWaySort = vm.newPlayerQuery.promoteWaySort == "promoteWayName" ? "-promoteWayName":"promoteWayName"') {{"Promotion Method" | translate}}
@@ -626,7 +628,7 @@
                         #validPlayerPie(style="height:380px;width:100%")
                     .col-md-6(style='padding-top:10px')
                         .text-center
-                            table.playerLvlTable(style='width:100%')
+                            table.playerLvlTable#validPlayerPromoteWay(style='width:100%')
                                 thead
                                     tr
                                         th(ng-click='vm.newPlayerQuery.validPlayerGraphSort = vm.newPlayerQuery.validPlayerGraphSort == "promoteWayName" ? "-promoteWayName":"promoteWayName"') {{"Promotion Method" | translate}}
@@ -651,7 +653,7 @@
                         .row
                             button.btn.btn-primary.common-button.pull-right(ng-click='vm.newPlayerQuery.validPlayerTableIsHide = !vm.newPlayerQuery.validPlayerTableIsHide') {{ vm.newPlayerQuery.validPlayerTableIsHide? "expand" : "collapse" | translate}}
                         .text-center(style='overflow:auto' ng-hide='vm.newPlayerQuery.validPlayerTableIsHide')
-                            table.common-table.playerLvlTable
+                            table.common-table.playerLvlTable#validPlayerPromoteWayDetails
                                 thead
                                     tr
                                         th {{ "MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
@@ -722,7 +724,7 @@
                         #validPlayerCsAnalysisPie(style="height:380px;width:100%")
                     .col-md-6(style='padding-top:10px')
                         .text-center
-                            table.playerLvlTable(style='width:100%')
+                            table.playerLvlTable#validPlayerCSOfficer(style='width:100%')
                                 thead
                                     tr
                                         th(ng-click='vm.newPlayerQuery.validPlayerCsAnalysisGraphSort = vm.newPlayerQuery.validPlayerCsAnalysisGraphSort == "promoteWayName" ? "-promoteWayName":"promoteWayName"') {{"Create Account Cs Name" | translate}}
@@ -747,7 +749,7 @@
                         .row
                             button.btn.btn-primary.common-button.pull-right(ng-click='vm.newPlayerQuery.validPlayerCsAnalysisTableIsHide = !vm.newPlayerQuery.validPlayerCsAnalysisTableIsHide') {{ vm.newPlayerQuery.validPlayerCsAnalysisTableIsHide? "expand" : "collapse" | translate}}
                         .text-center(style='overflow:auto' ng-hide='vm.newPlayerQuery.validPlayerCsAnalysisTableIsHide')
-                            table.common-table.playerLvlTable
+                            table.common-table.playerLvlTable#validPlayerCSOfficerDetails
                                 thead
                                     tr
                                         th {{ "MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
@@ -818,7 +820,7 @@
                         #validPlayerPartnerAnalysisPie(style="height:380px;width:100%")
                     .col-md-6(style='padding-top:10px')
                         .text-center
-                            table.playerLvlTable(style='width:100%')
+                            table.playerLvlTable#validPlayerPartner(style='width:100%')
                                 thead
                                     tr
                                         th(ng-click='vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort = vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort == "promoteWayName" ? "-promoteWayName":"promoteWayName"') {{"partner" | translate}}
@@ -858,7 +860,7 @@
                         .row
                             button.btn.btn-primary.common-button.pull-right(ng-click='vm.newPlayerQuery.validPlayerPartnerAnalysisTableIsHide = !vm.newPlayerQuery.validPlayerPartnerAnalysisTableIsHide') {{ vm.newPlayerQuery.validPlayerPartnerAnalysisTableIsHide? "expand" : "collapse" | translate}}
                         .text-center(style='overflow:auto' ng-hide='vm.newPlayerQuery.validPlayerPartnerAnalysisTableIsHide')
-                            table.common-table.playerLvlTable
+                            table.common-table.playerLvlTable#validPlayerPartnerDetails
                                 thead
                                     tr
                                         th {{ "MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
@@ -929,7 +931,7 @@
                         #validPlayerDomainAnalysisPie(style="height:380px;width:100%")
                     .col-md-6(style='padding-top:10px')
                         .text-center
-                            table.playerLvlTable(style='width:100%')
+                            table.playerLvlTable#validPlayerDomain(style='width:100%')
                                 thead
                                     tr
                                         th(ng-click='vm.newPlayerQuery.validPlayerPartnerDomainGraphSort = vm.newPlayerQuery.validPlayerPartnerDomainGraphSort == "promoteWayName" ? "-promoteWayName":"promoteWayName"') {{"Registration Domain" | translate}}
@@ -969,7 +971,7 @@
                         .row
                             button.btn.btn-primary.common-button.pull-right(ng-click='vm.newPlayerQuery.validPlayerDomainAnalysisTableIsHide = !vm.newPlayerQuery.validPlayerDomainAnalysisTableIsHide') {{ vm.newPlayerQuery.validPlayerDomainAnalysisTableIsHide? "expand" : "collapse" | translate}}
                         .text-center(style='overflow:auto' ng-hide='vm.newPlayerQuery.validPlayerDomainAnalysisTableIsHide')
-                            table.common-table.playerLvlTable
+                            table.common-table.playerLvlTable#validPlayerDomainDetails
                                 thead
                                     tr
                                         th {{"MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
@@ -1140,11 +1142,13 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchDXNewPlayerReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click="vm.exportDXNewPlayerReportToExcel()") {{'EXPORT_EXCEL' | translate}}
                     span#dxNewPlayerReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
             label {{"Total" | translate}} {{vm.dxNewPlayerQuery.totalCount}} {{"records" | translate}}
             table.common-table#dxNewPlayerReportTable.display(style="width:100% ;overflow-x: scroll")
+            table.common-table#dxNewPlayerReportExcelTable.display(style="width:100% ;overflow-x: scroll")
 
         div(ng-if='vm.showPageName=="PLAYERPARTNER_REPORT"')
             #playerPartnerReportQuery.block-query.col-md-12.well
