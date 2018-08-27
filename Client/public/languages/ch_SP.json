@@ -161,6 +161,7 @@
   "Reward apply type": "优惠提案申请(生成)方式",
   "Is player manually applicable": "前端展示按钮",
   "Is show in production server": "正式站展示",
+  "IS_SHOW_PRODUCTION_SERVER": "正式站是否展示",
   "Is ignore audit": "优惠提案生成后，将自动添加(忽略审核部)",
   "Reward start time": "优惠起始时间",
   "Reward end time": "优惠结束时间",
