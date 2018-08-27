@@ -2745,6 +2745,13 @@ var dbPlatform = {
                         advertisementInfo.map(info => {
                             if (info) {
                                 let activityListObj = {};
+
+                                activityListObj.showInRealServer = 1;
+
+                                if (info.hasOwnProperty("showInRealServer") && !info.showInRealServer) {
+                                    activityListObj.showInRealServer = 0;
+                                }
+
                                 if (info.advertisementCode) {
                                     activityListObj.code = info.advertisementCode;
                                 }
