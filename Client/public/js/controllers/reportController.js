@@ -8931,12 +8931,7 @@ define(['js/app'], function (myApp) {
                         });
                         vm.playerDepositAnalysis = tempFilter;
 
-                        // vm.drawPlayerDepositAnalysisReport(drawData, data.data.total, data.data.size, newSearch);
                     });
-
-                    for(let i = 0; i <= vm.playerDepositAnalysis.length; i ++){
-                        vm.exportToExcel('playerDepositAnalysisExcelReportTable' + i, 'PLAYER_DEPOSIT_ANALYSIS_REPORT');
-                    }
 
                     vm.exportToExcel('playerDepositAnalysisExcelReportTable', 'PLAYER_DEPOSIT_ANALYSIS_REPORT');
                 });
@@ -8958,12 +8953,25 @@ define(['js/app'], function (myApp) {
                     })
                 };
 
-                let tab = document.getElementById(tableId);
-                let test = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML
+                let tab = "";
+                let htmlContent = "";
+
+                if(reportName == "PLAYER_DEPOSIT_ANALYSIS_REPORT"){
+                    for(let i = 0; i <= vm.playerDepositAnalysis.length - 1; i ++){
+                        tab = document.getElementById("playerDepositAnalysisExcelReportTable" + i);
+                        if(i != 0){
+                            htmlContent += "<tr></tr>";
+                        }
+                        htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML
+                    }
+                }else{
+                    tab = document.getElementById(tableId);
+                    htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML
+                }
 
                 var ctx = {
                     worksheet : 'Worksheet',
-                    table : test
+                    table : htmlContent
                 }
 
 
