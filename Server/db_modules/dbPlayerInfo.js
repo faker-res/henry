@@ -680,9 +680,9 @@ let dbPlayerInfo = {
                             dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect);
                         }
 
-                        //todo::temp disable similar player untill ip is correct
                         if (data.lastLoginIp && data.lastLoginIp != "undefined") {
                             dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
+                            dbPlayerInfo.checkPlayerIsIDCIp(platformObjId, data._id, data.lastLoginIp).catch(errorUtils.reportError);
                         }
                         // dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber).then();
                         return data;
@@ -718,6 +718,16 @@ let dbPlayerInfo = {
         } else {
             return Q.reject({name: "DataError", message: "Platform does not exist"});
         }
+    },
+
+    checkPlayerIsIDCIp: (platformObjId, playerObjId, ipAddress) => {
+        return dbUtility.getIDCIpDetail(ipAddress).then(
+            idcDetail => {
+                if (idcDetail) {
+                    return dbPlayerCredibility.addFixedCredibilityRemarkToPlayer(platformObjId, playerObjId, 'IDC')
+                }
+            }
+        )
     },
 
     createPlayerFromTel: (inputData) => {
