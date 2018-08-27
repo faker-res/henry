@@ -1391,6 +1391,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchPartnerSettlementHistory(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click="vm.exportPartnerSettlementHistoryToExcel()") {{'EXPORT_EXCEL' | translate}}
                     span#partnerSettlementTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                 div(style="display:block;")
@@ -1405,6 +1406,7 @@
             label {{"Total" | translate}} {{vm.partnerSettlementQuery.totalCount}} {{"records" | translate}}
             table.common-table#partnerSettlementTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
             #partnerSettlementTablePage
+            table.common-table#partnerSettlementExcelTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
         div(ng-if='vm.showPageName=="REAL_TIME_COMMISSION_REPORT"')
             #realTimeCommissionQuery.block-query.col-md-12.well
                 div
@@ -1429,11 +1431,12 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchRealTimePartnerCommissionData()') {{'SEARCH' | translate}}
-                    span#realTimeCommissionTableSpin.collapse
+                    button.btn.btn-info.margin-left-5(ng-click="vm.exportToExcel('realTimeComissionTable', 'REAL_TIME_COMMISSION_REPORT')") {{'EXPORT_EXCEL' | translate}}
+                    span#realTimeCommissionTableSpin.searchRealTimePartnerCommissionData
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.realTimeCommissionLoadingStatus}}
             .clearfix
-            table.simple-table
+            table.simple-table#realTimeComissionTable
                 thead
                     tr
                         th {{'PARTNER_NAME' | translate}}
@@ -1563,12 +1566,14 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchFeedbackReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click="vm.exportFeedbackReportToExcel()") {{'EXPORT_EXCEL' | translate}}
                     span#feedbackReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
             label {{"Total" | translate}} {{vm.feedbackQuery.totalCount}} {{"records" | translate}}
             table.common-table#feedbackReportTable.display(style="width:100% ;overflow-x: scroll")
             #feedbackReportTablePage
+            table.common-table#feedbackReportExcelTable.display(style="width:100% ;overflow-x: scroll")
 
         // rewards report
         div#rewardProposalPage(ng-if='vm.currentRewardCode && vm.showPageName=="RewardReport"')
