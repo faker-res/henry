@@ -5433,7 +5433,13 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('CREDIT'), advSearch: true,
                             "sClass": "alignRight sumFloat",
-                            data: 'credits'
+                            data: 'credits',
+                            render: function (data, type, row) {
+                                let link = $('<a>', {
+                                    'ng-click': 'vm.showTransferPartnerCreditToPlayerModal("' + row._id + '")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
                         },
                         {
                             title: $translate('REGISTRATION_TIME'),
@@ -15362,6 +15368,7 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            // Edit Child Partner
             vm.initEditChildPartner = function () {
                 vm.isChildPartnerEditing = false;
                 vm.disableEditChildPartner = true;
@@ -15512,7 +15519,126 @@ define(['js/app'], function (myApp) {
                     console.log('err',err);
                 });
             };
+            // End of Edit Child Partner
 
+            // Transfer Partner Credit to Player
+            vm.showTransferPartnerCreditToPlayerModal = function (partnerObjId) {
+                vm.isEditingTransferPartnerCredit = false;
+                vm.downlinePlayerName = null;
+                vm.selectedPartnerObjId = partnerObjId;
+                vm.downlinePlayers = {};
+                vm.downlinePlayers.limit = 50;
+                vm.downlinePlayers.index = 0;
+                vm.downlinePlayers.currentPage = 1;
+                vm.downlinePlayers.totalPage = 1;
+                vm.downlinePlayers.totalCount = 0;
+
+                vm.loadDownlinePlayersRecord();
+                $('#modalTransferPartnerCreditToPlayer').modal().show();
+            };
+
+            vm.loadDownlinePlayersRecord = function () {
+                vm.downlinePlayersData = [];
+                vm.sumTotalTransferAmount = 0;
+                if (vm.downlinePlayerName && vm.downlinePlayers) {
+                    vm.downlinePlayers.currentPage = 1;
+                    vm.downlinePlayers.index = 0;
+                    vm.downlinePlayers.limit = 50;
+                }
+
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    partnerObjId: vm.selectedPartnerObjId || vm.selectedSinglePartner._id,
+                    playerName: vm.downlinePlayerName,
+                    limit: vm.downlinePlayers.limit || 50,
+                    index: vm.downlinePlayers.index || 0,
+                    sortCol: vm.downlinePlayers.sortCol || null
+                };
+                console.log('sendData ',sendData);
+                socketService.$socket($scope.AppSocket, 'getDownlinePlayersRecord', sendData, function (data) {
+                    console.log("getDownlinePlayersRecord", data);
+                    $scope.$evalAsync(() => {
+                        let tblData = data && data.data ? data.data.data : []
+                        if (tblData && tblData.length > 0) {
+                            tblData.forEach((record, index) => {
+                                record.orderNo = index + sendData.index + 1;
+                                vm.downlinePlayersData.push({
+                                    orderNo: record.orderNo,
+                                    _id: record._id,
+                                    name: record.name,
+                                    playerId: record.playerId,
+                                });
+                            });
+                        }
+
+                        if(data && data.data && data.data.size){
+                            let itemTotal = data && data.data && data.data.size ? data.data.size : 0;
+                            let totalPage = itemTotal / vm.downlinePlayers.limit
+                            vm.downlinePlayers.totalPage = Math.ceil(totalPage);
+                            vm.downlinePlayers.totalCount = data.data.size;
+                        }else{
+                            vm.downlinePlayers.totalPage  = 1;
+                            vm.downlinePlayers.totalCount = 0;
+                        }
+                        vm.downlinePlayersPages = [];
+                        for(let i = 0; i < vm.downlinePlayers.totalPage; i++){
+                            vm.downlinePlayersPages.push(i);
+                        }
+                    });
+                });
+            };
+
+            vm.getSumTotalTransferAmount = function (data) {
+                let sum = 0;
+                data.forEach(el => {
+                    if (el && el.amount && el.amount >= 0) {
+                        sum += el.amount;
+                    }
+                });
+                vm.sumTotalTransferAmount = sum;
+            };
+
+            vm.editTransferPartnerCreditToPlayer = function () {
+                vm.isEditingTransferPartnerCredit = true;
+                vm.isTransferPartnerCreditToPlayer = true;
+            };
+
+            vm.disableTransferPartnerCreditToPlayer = function (value) {
+                if (vm.sumTotalTransferAmount == 0 || value < 0 || (value && value.toString == 'undefined')) {
+                    vm.isTransferPartnerCreditToPlayer = true;
+                } else if (vm.sumTotalTransferAmount <= vm.selectedSinglePartner.credits) {
+                    vm.isTransferPartnerCreditToPlayer = false;
+                } else {
+                    vm.isTransferPartnerCreditToPlayer = true;
+                }
+            }
+
+            vm.nextDownlinePlayerPage = function(){
+                vm.downlinePlayers.currentPage += 1;
+                vm.downlinePlayers.index = (vm.downlinePlayers.currentPage - 1) * vm.downlinePlayers.limit;
+                if (vm.downlinePlayers.currentPage > 0 && vm.downlinePlayers.currentPage <= vm.downlinePlayers.totalPage) {
+                    vm.loadDownlinePlayersRecord();
+                }
+            };
+            vm.gotoDownlinePlayerPage = function(pg, $event){
+                $('body .pagination li').removeClass('active');
+                if($event){
+                    $($event.currentTarget).addClass('active');
+                }
+                let pgNo = null;
+                if(pg<=0){
+                    pgNo = 0
+                }else if(pg >= 1){
+                    pgNo = pg;
+                }
+                vm.downlinePlayers.index = ((pgNo - 1) * vm.downlinePlayers.limit);
+                vm.downlinePlayers.currentPage = pgNo;
+                if (vm.downlinePlayers.currentPage > 0 && vm.downlinePlayers.currentPage <= vm.downlinePlayers.totalPage) {
+                    vm.loadDownlinePlayersRecord();
+                }
+            };
+
+            // end of Transfer Partner Credit to Player
         };
 
         let injectParams = [

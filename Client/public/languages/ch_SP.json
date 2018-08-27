@@ -4232,5 +4232,14 @@
   "CHILD_PARTNER_COMMISSION_TYPE": "二级代理佣金模式",
   "CHILD_PARTNER_TOTAL_WINLOSE": "二级代理下线玩家总输赢",
   "CHILD_PARTNER_RELATED_PROPOSAL_NO": "相关二级代理佣金提案号",
-  "NOT_EXIST": "未建立"
+  "NOT_EXIST": "未建立",
+  "Transfer Partner Credit To Player": "代理转帐至下线玩家",
+  "Before Transfer": "转帐前",
+  "After Transfer": "转帐后",
+  "Search by Downline Player Name": "搜索下线玩家帐号",
+  "Empty: Default(ALL)": "（空：默认全部）",
+  "Downline Player Name": "下线玩家帐号",
+  "Transfer Credit (Only allow positive value)": "转帐金额（只能填正数）",
+  "Withdraw Consumption (Accurate number/non-multiple)": "提款流水（准确数字/非倍数）",
+  "EachPage": "每页"
 }
