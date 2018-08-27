@@ -3190,7 +3190,7 @@ define(['js/app'], function (myApp) {
 
 
         /////// player domain report
-        vm.searchPlayerDomainRepport = function (newSearch) {
+        vm.searchPlayerDomainReport = function (newSearch) {
             $('#playerDomainReportTableSpin').show();
 
             let admins = [];
@@ -3400,7 +3400,7 @@ define(['js/app'], function (myApp) {
 
             $('#playerDomainReportTable').off('order.dt');
             $('#playerDomainReportTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'playerDomain', vm.searchPlayerDomainRepport);
+                vm.commonSortChangeHandler(a, 'playerDomain', vm.searchPlayerDomainReport);
             });
         }
         /////// player domain report end
@@ -9038,6 +9038,526 @@ define(['js/app'], function (myApp) {
 
             };
 
+            /************************************************ Export PLAYERPARTNER_REPORT to excel **********************************************/
+            vm.exportPlayerPartnerRecordToExcel = function (newSearch) {
+
+                vm.newPartnerQuery = $.extend(true, {}, vm.partnerQuery);
+                $('#playerPartnerTableSpin').show();
+                //$('#playerPartnerTable').hide();
+                $('#playerPartnerSummaryTable').hide();
+
+                console.log("vm.newPartnerQuery", vm.newPartnerQuery);
+                var sendData = {
+                    platformId: vm.curPlatformId,
+                    partnerName: vm.newPartnerQuery.partnerName,
+                    startTime: vm.newPartnerQuery.startTime.data('datetimepicker').getLocalDate(),
+                    endTime: vm.newPartnerQuery.endTime.data('datetimepicker').getLocalDate(),
+                    index: 0,
+                    limit: 5000
+                }
+                if (vm.newPartnerQuery.playerType == "Real Player") {
+                    sendData.isRealPlayer = true
+                }
+                if (vm.newPartnerQuery.playerType == "Test Player") {
+                    sendData.isTestPlayer = true
+                }
+                console.log("vm.newPartnerQuery:sendData", sendData);
+                socketService.$socket($scope.AppSocket, 'getPartnerSummaryReport', sendData, function (data) {
+                    vm.playerPartnerSummaryData = data.data;
+                    console.log('playerPartnerSummaryData', data.data);
+                    $('#playerPartnerSummaryTable').show();
+                    $scope.safeApply();
+                }, function (err) {
+                    $scope.safeApply();
+                }, true);
+
+                socketService.$socket($scope.AppSocket, 'getPartnerPlayers', sendData, function (data) {
+                    $('#playerPartnerTableSpin').hide();
+                    console.log('getPartnerPlayers:res:data', data);
+                    console.log('player data', data.data);
+
+                    var resultData = data.data.data || [];
+                    console.log('result', resultData);
+
+                    vm.partnerQuery.totalCount = data.data.size;
+
+                    // For Summary at the table footer, Grab data from Summary Socket
+                    var summary = {};
+                    summary.totalTopUpTimes = 0;
+                    summary.totalPlayers = 0;
+                    var summaryData = vm.playerPartnerSummaryData;
+                    if (summaryData && summaryData.length > 0) {
+                        for (var j = 0; j < summaryData.length; j++) {
+                            summary.totalTopUpTimes += summaryData[j].total_topup_times;
+                            summary.totalPlayers += summaryData[j].total_players
+                        }
+                    }
+                    console.log("summary.totalPlayers", summary.totalPlayers);
+                    console.log("summary.totalTopUpTimes", summary.totalTopUpTimes);
+                    vm.drawPlayerPartnerExcelReport(resultData, data.data.size, summary);
+                    $scope.safeApply();
+                }, function (err) {
+                    $('#playerPartnerTableSpin').hide();
+                    // vm.operationReportLoadingStatus = settlementResult.failureReportMessage;
+                }, true);
+            };
+            vm.drawPlayerPartnerExcelReport = function (data, size, summary) {
+                console.log("vm.drawPlayerPartnerReport", data);
+
+                var tableOptions = {
+                    id: "playerPartnerExcelTable",
+                    data: data,
+                    // "order": vm.partnerQuery.aaSorting,
+                    columns: [
+                        {title: $translate('PARTNER_NAME'), data: "partner.partnerName"},
+                        {title: $translate('PLAYER_ID'), data: "playerId"},
+                        {title: $translate('PLAYERNAME'), data: "name", sClass: "sumText"},
+                        {title: $translate('LAST_LOGIN_IP'), data: "lastLoginIp",},
+                        {title: $translate('PLAYER_DOMAIN'), data: "domain"},
+                        {title: $translate('COUNTRY'), data: "country"},
+                        {title: $translate('PROVINCE'), data: "province"},
+                        {title: $translate('CITY'), data: "city"},
+                        {title: $translate('TOTAL_TOPUP_TIMES'), data: "topUpTimes", sClass: 'sumInt alignRight'}
+                    ],
+                    "paging": false,
+                    // "dom": '<"top">rt<"bottom"ilp><"clear">',
+                    "language": {
+                        "info": "Total _MAX_ records",
+                        "emptyTable": $translate("No data available in table"),
+                    },
+                    "fnDrawCallback": function (nFoot, aData, iStart, iEnd, aiDisplay) {
+                        var api = this.api();
+                    }
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                vm.partnerQuery.pageObj.init({maxCount: size});
+
+                vm.playerPartnerTable = utilService.createDatatableWithFooter('#playerPartnerExcelTable', tableOptions, {
+                    8: summary.totalTopUpTimes,
+                    // 5: summary.totalPlayers
+                });
+
+                $('#playerPartnerExcelTable_wrapper').hide();
+                vm.exportToExcel('playerPartnerExcelTable', 'PLAYERPARTNER_REPORT');
+            };
+
+            /************************************************ Export PLAYERDOMAIN_REPORT to excel **********************************************/
+            vm.exportPlayerDomainReportToExcel = function () {
+                $('#playerDomainReportTableSpin').show();
+
+                let admins = [];
+                let csPromoteWay = [];
+
+                if (vm.playerDomain) {
+                    if (vm.playerDomain.departments) {
+                        if (vm.playerDomain.roles) {
+                            vm.pdQueryRoles.map(e => {
+                                if (e._id && (vm.playerDomain.roles.indexOf(e._id) >= 0)) {
+                                    e.users.map(f => admins.push(f._id))
+                                }
+                            })
+                        } else {
+                            vm.pdQueryRoles.map(e => e.users.map(f => admins.push(f._id)))
+                        }
+                    }
+                }
+
+
+                var sendquery = {
+                    platform: vm.curPlatformId,
+                    query: {
+                        playerType: vm.playerDomain.playerType,
+                        name: vm.playerDomain.name,
+                        realName: vm.playerDomain.realName,
+                        domain: vm.playerDomain.domain,
+                        sourceUrl: vm.playerDomain.sourceUrl,
+                        topUpTimesOperator: vm.playerDomain.topUpTimesOperator,
+                        topUpTimesValue: vm.playerDomain.topUpTimesValue,
+                        topUpTimesValueTwo: vm.playerDomain.topUpTimesValueTwo,
+                        playerValueOperator: vm.playerDomain.playerValueOperator,
+                        playerValue: vm.playerDomain.playerValue,
+                        playerValueTwo: vm.playerDomain.playerValueTwo,
+                        registrationInterface: vm.playerDomain.registrationInterface,
+                        isNewSystem: vm.playerDomain.isNewSystem,
+                        startTime: vm.playerDomain.startTime.data('datetimepicker').getLocalDate(),
+                        endTime: vm.playerDomain.endTime.data('datetimepicker').getLocalDate(),
+                        csPromoteWay: vm.playerDomain.csPromoteWay && vm.playerDomain.csPromoteWay.length > 0 ? vm.playerDomain.csPromoteWay : csPromoteWay,
+                        csOfficer: vm.playerDomain.admins && vm.playerDomain.admins.length > 0 ? vm.playerDomain.admins : admins
+                    },
+                    index: 0,
+                    limit: 5000,
+                    sortCol: vm.playerDomain.sortCol || {registrationTime: -1},
+                };
+                console.log('player domain query', sendquery);
+
+                socketService.$socket($scope.AppSocket, 'getPlayerDomainReport', sendquery, function (data) {
+                    console.log('retData', data);
+                    vm.playerDomain.totalCount = data.data.size;
+                    $('#playerDomainReportTableSpin').hide();
+                    vm.drawPlayerDomainExcelReport(data.data.data.map(item => {
+                        item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
+                        item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
+                        if (!item.name && item.partnerName) {
+                            item.name = item.partnerName;
+                        }
+
+                        if (item.userAgent && item.userAgent[0]) {
+                            item.registrationOS$ = item.userAgent[0].os;
+                            item.registrationBrowser$ = item.userAgent[0].browser;
+                        } else {
+                            item.registrationOS$ = "";
+                            item.registrationBrowser$ = "";
+                        }
+
+                        item.gameProviderPlayed$ = "";
+                        if (item.gameProviderPlayed) {
+                            let providerLength = vm.allProviders.length;
+                            for (let i = 0; i < item.gameProviderPlayed.length; i++) {
+                                for (let j = 0; j < providerLength; j++) {
+                                    if (item.gameProviderPlayed[i].toString() === vm.allProviders[j]._id.toString()) {
+                                        item.gameProviderPlayed$ += vm.allProviders[j].name + "<br>";
+                                    }
+                                }
+                            }
+                        }
+
+                        if (item.domain && item.domain.indexOf("fpms8") !== -1) {
+                            item.sourceUrl = "";
+                            item.registrationBrowser$ = "";
+                            item.registrationOS$ = "";
+                        }
+
+                        // if (!item.sourceUrl) {
+                        //     item.registrationAgent$ = "Backstage";
+                        // }
+                        if (item.registrationInterface == vm.inputDevice.BACKSTAGE) {
+                            item.registrationAgent$ = "Backstage";
+                        }
+                        else if (item.registrationBrowser$ && (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1)) {
+                            if (item.partner) {
+                                item.registrationAgent$ = "APP Agent";
+                            }
+                            else {
+                                item.registrationAgent$ = "APP Player";
+                            }
+                        }
+                        else if (item.registrationOS$ && (item.registrationOS$.indexOf("iOS") !== -1 || item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1)) {
+                            if (item.partner) {
+                                item.registrationAgent$ = "HTML5 Agent";
+                            }
+                            else {
+                                item.registrationAgent$ = "HTML5 Player";
+                            }
+                        }
+                        else {
+                            if (item.partner) {
+                                item.registrationAgent$ = "Web Agent";
+                            }
+                            else {
+                                item.registrationAgent$ = "Web Player";
+                            }
+                        }
+                        item.registrationAgent$ = $translate(item.registrationAgent$);
+
+                        if (!item.phoneProvince | item.phoneProvince === 'null' || item.phoneProvince === 'undefined') {
+                            item.phoneProvince = $translate('Unknown');
+                        }
+                        if (!item.phoneCity | item.phoneCity === 'null' || item.phoneCity === 'undefined') {
+                            item.phoneCity = $translate('Unknown');
+                        }
+                        if (!item.province | item.province === 'null' || item.province === 'undefined') {
+                            item.province = $translate('Unknown');
+                        }
+                        if (!item.city | item.city === 'null' || item.city === 'undefined') {
+                            item.city = $translate('Unknown');
+                        }
+
+                        item.phoneArea$ = item.phoneProvince + " " + item.phoneCity;
+                        item.ipArea$ = item.province + " " + item.city;
+
+                        if (item.partner && item.partner.partnerName) {
+                            item.partner$ = item.partner.partnerName;
+                        }
+                        else if (item.parent && item.parent.partnerName) {
+                            item.partner$ = item.parent.partnerName;
+                        }
+
+                        return item;
+                    }), data.data.size);
+                    $scope.safeApply();
+                });
+            };
+            vm.drawPlayerDomainExcelReport = function (tableData, size) {
+                let tableOptions = {
+                    id: "playerDomainReportExcelTable",
+                    data: tableData,
+                    "order": vm.playerDomain.aaSorting || [[2, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'name', 'aTargets': [0], bSortable: true},
+                        {'sortCol': 'realName', 'aTargets': [1], bSortable: true},
+                        {'sortCol': 'registrationTime', 'aTargets': [2], bSortable: true},
+                        {'sortCol': 'phoneArea', 'aTargets': [3], bSortable: true},
+                        {'sortCol': 'ipArea', 'aTargets': [4], bSortable: true},
+                        {'sortCol': 'gameProviderPlayed', 'aTargets': [5], bSortable: true},
+                        {'sortCol': 'lastAccessTime', 'aTargets': [6], bSortable: true},
+                        {'sortCol': 'loginTimes', 'aTargets': [7], bSortable: true},
+                        {'sortCol': 'topUpTimes', 'aTargets': [8], bSortable: true},
+                        {'sortCol': 'valueScore', 'aTargets': [9], bSortable: true},
+                        {'sortCol': 'csOfficer.adminName', 'aTargets': [10], bSortable: true},
+                        {'sortCol': 'promoteWay', 'aTargets': [11], bSortable: true},
+                        {'sortCol': 'sourceUrl', 'aTargets': [12], bSortable: true},
+                        {'sortCol': 'domain', 'aTargets': [13], bSortable: true},
+                        {'sortCol': 'registrationInterface', 'aTargets': [14], bSortable: true},
+                        {'sortCol': 'os', 'aTargets': [15], bSortable: true},
+                        {'sortCol': 'browser', 'aTargets': [16], bSortable: true},
+                        {'sortCol': 'partner', 'aTargets': [17], bSortable: true},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {title: $translate('PLAYER_NAME'), data: "name"},
+                        {title: $translate('realName'), data: "realName", sClass: "realNameCell wordWrap"},
+                        {title: $translate('REGISTRATION_TIME'), data: "registrationTime$"},
+                        {title: $translate("PHONE_LOCATION"), data: "phoneArea$"},
+                        {title: $translate("IP_LOCATION"), data: "ipArea$"},
+                        {title: $translate("GAME_PROVIDER"), data: "gameProviderPlayed$"},
+                        {title: $translate('LAST_ACCESS_TIME'), data: "lastAccessTime$"},
+                        {title: $translate('LOGIN_TIMES'), data: "loginTimes"},
+                        {title: $translate('TOP_UP_TIMES'), data: "topUpTimes"},
+                        {title: $translate('PLAYER_VALUE'), data: "valueScore"},
+                        {title: $translate('REGISTRATION_ADMIN'), data: "csOfficer.adminName"},
+                        {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
+                        {
+                            title: $translate('Source Domain'),
+                            data: "sourceUrl",
+                            render: function (data, type, row) {
+                                if (data && data.length > 35)
+                                    return "<a target=\"_blank\" href=\"" + data + "\">" + data.substring(0, 30) + "...</a>";
+                                else if (data)
+                                    return "<a target=\"_blank\" href=\"" + data + "\">" + data + "</a>";
+                                else
+                                    return data;
+                            }
+                        },
+                        {title: $translate('Registration Domain'), data: "domain"},
+                        {title: $translate("REGISTRATION_AGENT"), data: "registrationAgent$"},
+                        {title: $translate('OS'), data: "registrationOS$"},
+                        {title: $translate('Browser'), data: "registrationBrowser$"},
+                        {title: $translate('partner'), data: "partner$"},
+                    ],
+                    "paging": false,
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                utilService.createDatatableWithFooter('#playerDomainReportExcelTable', tableOptions, {});
+
+                $('#playerDomainReportExcelTable_wrapper').hide();
+                vm.exportToExcel('playerDomainReportExcelTable', 'PLAYERDOMAIN_REPORT');
+
+            };
+
+            /************************************************ Export PARTNERPLAYERBOUNS_REPORT to excel **********************************************/
+            vm.exportPartnerPlayerBonusDataToExcel = function () {
+                var startTime = vm.partnerPlayerBonusQuery.startTime.data('datetimepicker').getLocalDate();
+                var endTime = vm.partnerPlayerBonusQuery.endTime.data('datetimepicker').getLocalDate();
+
+                var sendData = {
+                    platformId: vm.curPlatformId,
+                    partnerName: vm.partnerPlayerBonusQuery.partnerName,
+                    startTime: startTime,
+                    endTime: endTime,
+                    limit: 5000,
+                    index: 0,
+                    sortCol: vm.partnerPlayerBonusQuery.sortCol || {}
+                };
+                $('#partnerPlayerBonusTableSpin').show();
+                socketService.$socket($scope.AppSocket, 'getPartnerPlayerBonusReport', sendData, function (data) {
+                    $('#partnerPlayerBonusTableSpin').hide();
+                    console.log('partner player bonus report', data);
+                    vm.partnerPlayerBonusQuery.totalCount = data.data.stats ? data.data.stats.totalCount : 0;
+                    vm.partnerPlayerBonusQuery.message = data.data.message || '';
+                    $scope.safeApply();
+                    vm.drawPartnerPlayerBonusExcelTable(data.data.players.map(item => {
+                        item.lastBonusTime$ = item.lastBonusTime ? utilService.$getTimeFromStdTimeFormat(item.lastBonusTime) : $translate('NULL')
+                        item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
+                        item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
+                        item.totalTopUpAmount$ = parseFloat(item.totalTopUpAmount).toFixed(2);
+                        item.totalBonusAmount$ = parseFloat(item.totalBonusAmount).toFixed(2);
+                        item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
+                        item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                        return item;
+                    }), vm.partnerPlayerBonusQuery.totalCount, data.data.summary);
+
+                }, function (err) {
+                    $('#partnerPlayerBonusTableSpin').hide();
+                }, true);
+            };
+            vm.drawPartnerPlayerBonusExcelTable = function (tableData, size, summary) {
+                var tableOptions = {
+                    id: "partnerPlayerBonusExcelTable",
+                    data: tableData,
+                    "order": vm.partnerPlayerBonusQuery.aaSorting || [],
+                    aoColumnDefs: [
+                        // {'sortCol': 'playerId', 'aTargets': [0]},
+                        // {'sortCol': 'playerId', 'aTargets': [1]},
+                        // {'sortCol': 'operationType', 'aTargets': [2]},
+                        // {'sortCol': 'amount', 'aTargets': [3]},
+                        // {'sortCol': 'operationTime', 'aTargets': [4]},
+                        {targets: '_all', defaultContent: 0, bSortable: false}
+                    ],
+                    columns: [
+                        {data: "playerName"},
+                        {data: "registrationTime$"},
+                        {data: "lastAccessTime$"},
+                        {data: "lastBonusTime$", sClass: "sumText"},
+                        {data: "totalTopUpTimes", sClass: "sumInt alignRight"},
+                        {data: "totalBonusTimes", sClass: "sumInt alignRight"},
+                        {data: "totalTopUpAmount$", sClass: "sumFloat alignRight"},
+                        {data: "totalBonusAmount$", sClass: "sumFloat alignRight"},
+                        {data: "topUpTimes", sClass: "sumInt alignRight"},
+                        {data: "bonusTimes", sClass: "sumInt alignRight"},
+                        {data: "topUpAmount$", sClass: "sumFloat alignRight"},
+                        {data: "bonusAmount$", sClass: "sumFloat alignRight"},
+                    ],
+                    "bAutoWidth": true,
+                    "paging": false,
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+                var sumObj = summary ? {
+                    4: summary.totalTopUpTimes,
+                    5: summary.totalBonusTimes,
+                    6: summary.totalTopUpAmount,
+                    7: summary.totalBonusAmount,
+                    8: summary.topUpTimes,
+                    9: summary.bonusTimes,
+                    10: summary.topUpAmount,
+                    11: summary.bonusAmount,
+                } : {};
+
+                vm.partnerPlayerBonusTable = utilService.createDatatableWithFooter('#partnerPlayerBonusExcelTable', tableOptions, sumObj);
+
+                $('#partnerPlayerBonusExcelTable_wrapper').hide();
+                vm.exportToExcel('partnerPlayerBonusExcelTable', 'PARTNERPLAYERBOUNS_REPORT');
+            };
+
+            /************************************************ Export PARTNERCOMMISSION_REPORT to excel **********************************************/
+            vm.exportPartnerCommissionDataToExcel = function () {
+                $('#partnerCommissionTableSpin').show();
+
+                var startTime = vm.partnerCommissionQuery.startTime.data('datetimepicker').getLocalDate();
+                var endTime = vm.partnerCommissionQuery.endTime.data('datetimepicker').getLocalDate();
+
+                Q.resolve().then(
+                    () => {
+                        var midnightThisMorningSG = getDayStartTime();
+                        if (endTime >= midnightThisMorningSG) {
+                            return $scope.$socketPromise('manualPlatformPartnerCommissionSettlement', {platformId: vm.curPlatformId}, true);
+                        }
+                    }
+                ).then(
+                    () => {
+                        var sendData = {
+                            platformId: vm.curPlatformId,
+                            partnerName: vm.partnerCommissionQuery.partnerName,
+                            startTime: startTime,
+                            endTime: endTime,
+                            limit: 5000,
+                            index: 0,
+                            sortCol: vm.partnerCommissionQuery.sortCol || {}
+                        };
+
+                        return $scope.$socketPromise('getPartnerCommissionReport', sendData, true).then(
+                            function (data) {
+                                console.log("getPartnerCommissionReport", data);
+                                vm.partnerCommissionQuery.totalCount = data.data.size ? data.data.size : 0;
+                                vm.partnerCommissionQuery.message = data.data.message || '';
+                                $scope.safeApply();
+                                vm.drawPartnerCommissionExcelTable(data.data.data.map(item => {
+                                    item.profitAmount$ = parseFloat(item.profitAmount).toFixed(2);
+                                    item.serviceFee$ = parseFloat(item.serviceFee).toFixed(2);
+                                    item.platformFee$ = parseFloat(item.platformFee).toFixed(2);
+                                    item.marketCost$ = parseFloat(item.marketCost).toFixed(2);
+                                    item.totalRewardAmount$ = parseFloat(item.totalRewardAmount).toFixed(2);
+                                    item.operationFee$ = parseFloat(item.operationFee).toFixed(2);
+                                    item.totalTopUpAmount$ = parseFloat(item.totalTopUpAmount).toFixed(2);
+                                    item.totalPlayerBonusAmount$ = parseFloat(item.totalPlayerBonusAmount).toFixed(2);
+                                    // item.totalBonusAmount$ = parseFloat(item.totalBonusAmount).toFixed(2);
+                                    item.totalCommissionAmount$ = parseFloat(item.totalCommissionAmount).toFixed(2);
+                                    item.totalCommissionOfChildren$ = parseFloat(item.totalCommissionOfChildren).toFixed(2);
+                                    return item;
+                                }), vm.partnerCommissionQuery.totalCount, data.data.summary);
+                            }
+                        );
+                    }
+                ).catch(console.error).then(
+                    () => $('#partnerCommissionTableSpin').hide()
+                );
+            };
+            vm.drawPartnerCommissionExcelTable = function (tableData, size, summary) {
+                var tableOptions = {
+                    id: "partnerCommissionExcelTable",
+                    data: tableData,
+                    "order": vm.partnerCommissionQuery.aaSorting || [],
+                    aoColumnDefs: [
+                        {'sortCol': 'profitAmount', 'aTargets': [1]},
+                        {'sortCol': 'serviceFee', 'aTargets': [2]},
+                        {'sortCol': 'platformFee', 'aTargets': [3]},
+                        {'sortCol': 'totalRewardAmount', 'aTargets': [4]},
+                        {'sortCol': 'marketCost', 'aTargets': [5]},
+                        {'sortCol': 'operationFee', 'aTargets': [6]},
+                        {'sortCol': 'totalTopUpAmount', 'aTargets': [7]},
+                        {'sortCol': 'totalPlayerBonusAmount', 'aTargets': [8]},
+                        {'sortCol': 'totalCommissionAmount', 'aTargets': [9]},
+                        {'sortCol': 'totalCommissionOfChildren', 'aTargets': [10]},
+                        {targets: '_all', defaultContent: 0, bSortable: true}
+                    ],
+                    columns: [
+                        {title: $translate("partnerName"), data: "_id.partnerName", sClass: "sumText", bSortable: false},
+                        {title: $translate('profitAmount'), data: "profitAmount$", sClass: "sumFloat alignRight"},
+                        {title: $translate('serviceFee'), data: "serviceFee$", sClass: "sumFloat alignRight"},
+                        {title: $translate('platformFee'), data: "platformFee$", sClass: "sumFloat alignRight"},
+                        {title: $translate('REWARDAMOUNT'), data: "totalRewardAmount$", sClass: "sumFloat alignRight"},
+                        {title: $translate('marketCost'), data: "marketCost$", sClass: "sumFloat alignRight"},
+                        {title: $translate('operationFee'), data: "operationFee$", sClass: "sumFloat alignRight"},
+                        {title: $translate('totalTopUpAmount'), data: "totalTopUpAmount$", sClass: "sumFloat alignRight"},
+                        {
+                            title: $translate('totalBonusAmount'),
+                            data: "totalPlayerBonusAmount$",
+                            sClass: "sumFloat alignRight"
+                        },
+                        {
+                            title: $translate('totalCommissionAmount'),
+                            data: "totalCommissionAmount$",
+                            sClass: "sumFloat alignRight"
+                        },
+                        {
+                            title: $translate('totalCommissionOfChildren'),
+                            data: "totalCommissionOfChildren$",
+                            sClass: "sumFloat alignRight"
+                        },
+                    ],
+                    "bAutoWidth": true,
+                    "paging": false,
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                var summaryObj = {
+                    1: summary.profitAmount,
+                    2: summary.serviceFee,
+                    3: summary.platformFee,
+                    4: summary.totalRewardAmount,
+                    5: summary.marketCost,
+                    6: summary.operationFee,
+                    7: summary.totalTopUpAmount,
+                    8: summary.totalPlayerBonusAmount,
+                    9: summary.totalCommissionAmount,
+                    10: summary.totalCommissionOfChildren
+                };
+                vm.partnerCommissionTable = utilService.createDatatableWithFooter('#partnerCommissionExcelTable', tableOptions, summaryObj);
+
+                $('#partnerCommissionExcelTable_wrapper').hide();
+                vm.exportToExcel('partnerCommissionExcelTable', 'PARTNERCOMMISSION_REPORT');
+
+            };
+
             // generate a download for xls
             vm.exportToExcel = function(tableId, reportName) {
                 var htmls = "";
@@ -9062,45 +9582,56 @@ define(['js/app'], function (myApp) {
                         if (i != 0) {
                             htmlContent += "<tr></tr>";
                         }
-                        htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML
+                        htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
                     }
                 }else if(reportName == "NEWACCOUNT_REPORT"){
                     tab = document.getElementById(tableId);
-                    htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML
+                    htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
 
-                    if(document.getElementById("validPlayerPromoteWay")){
+                    if(document.getElementById("validPlayerPromoteWay")) {
                         htmlContent += "<tr></tr><tr><td><strong>" + $translate("Valid Player (promote way analysis)") + "</strong></td></tr>";
                         tab = document.getElementById("validPlayerPromoteWay");
-                        htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML
+                        htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
                     }
 
-                    if(document.getElementById("validPlayerCSOfficer")){
+                    if(document.getElementById("validPlayerCSOfficer")) {
                         htmlContent += "<tr></tr><tr><td><strong>" + $translate("Valid Player (cs officer analysis)") + "</strong></td></tr>";
                         tab = document.getElementById("validPlayerCSOfficer");
-                        htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML
+                        htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
                     }
 
-                    if(document.getElementById("validPlayerPartner")){
+                    if(document.getElementById("validPlayerPartner")) {
                         htmlContent += "<tr></tr><tr><td><strong>" + $translate("Valid Player (partner analysis)") + "</strong></td></tr>";
                         tab = document.getElementById("validPlayerPartner");
-                        htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML
+                        htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
                     }
 
-                    if(document.getElementById("validPlayerDomain")){
+                    if(document.getElementById("validPlayerDomain")) {
                         htmlContent += "<tr></tr><tr><td><strong>" + $translate("Valid Player (domain analysis)") + "</strong></td></tr>";
                         tab = document.getElementById("validPlayerDomain");
-                        htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML
+                        htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
                     }
+                }else if(reportName == "PLAYERPARTNER_REPORT") {
+                    tab = document.getElementById(tableId);
+                    htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
+
+                    if (document.getElementById("playerPartnerSummaryTable")) {
+                        tab = document.getElementById("playerPartnerSummaryTable");
+                        htmlContent += "<tr></tr>";
+                        htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
+                    }
+                }else if(reportName == "PARTNERPLAYERBOUNS_REPORT"){
+                    tab = document.getElementById(tableId);
+                    htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[1].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
                 }else{
                     tab = document.getElementById(tableId);
-                    htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML
+                    htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
                 }
 
                 var ctx = {
                     worksheet : 'Worksheet',
                     table : htmlContent
                 }
-
 
                 var link = document.createElement("a");
                 link.download = reportName ? $translate(reportName)+ ".xls": "FPMS report.xls";
@@ -9502,9 +10033,9 @@ define(['js/app'], function (myApp) {
 
                         vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
                         vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {}, $translate, function (curP, pageSize) {
-                            vm.commonPageChangeHandler(curP, pageSize, "playerDomain", vm.searchPlayerDomainRepport)
+                            vm.commonPageChangeHandler(curP, pageSize, "playerDomain", vm.searchPlayerDomainReport)
                         });
-                        vm.searchPlayerDomainRepport(true);
+                        vm.searchPlayerDomainReport(true);
                     });
                     break;
                 case "RewardReport":

@@ -1172,6 +1172,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchPlayerPartnerRecord(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click="vm.exportPlayerPartnerRecordToExcel()") {{'EXPORT_EXCEL' | translate}}
                     span#playerParnterTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.operationReportLoadingStatus}}
@@ -1179,6 +1180,7 @@
             table#playerPartnerTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
                 label {{"Total" | translate}} {{vm.partnerQuery.totalCount}} {{"records" | translate}}
             #playerPartnerTablePage
+            table#playerPartnerExcelTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
             table.common-table.simple-table#playerPartnerSummaryTable.collapse(style='margin-top:10px;font-size:12px')
                 thead
                     tr
@@ -1275,13 +1277,15 @@
                         option(value='old') {{'OLD_SYSTEM'|translate}}
                 div
                     label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchPlayerDomainRepport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-success(ng-click='vm.searchPlayerDomainReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click="vm.exportPlayerDomainReportToExcel()") {{'EXPORT_EXCEL' | translate}}
                     span#playerDomainReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
             label {{"Total" | translate}} {{vm.playerDomain.totalCount}} {{"records" | translate}}
             table#playerDomainReportTable.common-table.display(style="width:100%")
             #playerDomainReportTablePage
+            table#playerDomainReportExcelTable.common-table.display(style="width:100%")
 
         div(ng-if='vm.showPageName=="PARTNERPLAYERBOUNS_REPORT"')
             #partnerPlayerBonusQuery.block-query.col-md-12.well
@@ -1297,6 +1301,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchPartnerPlayerBonusData(true)', ng-disabled='!vm.partnerPlayerBonusQuery.partnerName') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click="vm.exportPartnerPlayerBonusDataToExcel()") {{'EXPORT_EXCEL' | translate}}
                     span#partnerPlayerBonusTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.operationReportLoadingStatus}}
@@ -1321,6 +1326,24 @@
                         th {{'TOP_UP_SUM' | translate}}
                         th {{'BonusAmount' | translate}}
             #partnerPlayerBonusTablePage
+            table.common-table#partnerPlayerBonusExcelTable.display(style="width:inherit; min-width:100%; overflow-x: scroll; display: none")
+                thead
+                    tr
+                        th(rowspan=2) {{'playerName' | translate}}
+                        th(rowspan=2) {{'registrationTime' | translate}}
+                        th(rowspan=2) {{'lastAccessTime' | translate}}
+                        th(rowspan=2) {{'lastBonusTime' | translate}}
+                        th(colspan=4) {{'total' | translate}}
+                        th(colspan=4) {{'Within Search Period' | translate}}
+                    tr
+                        th {{'TOP_UP_TIMES' | translate}}
+                        th {{'BonusTime' | translate}}
+                        th {{'TOP_UP_SUM' | translate}}
+                        th {{'BonusAmount' | translate}}
+                        th {{'TOP_UP_TIMES' | translate}}
+                        th {{'BonusTime' | translate}}
+                        th {{'TOP_UP_SUM' | translate}}
+                        th {{'BonusAmount' | translate}}
         div(ng-if='vm.showPageName=="PARTNERCOMMISSION_REPORT"')
             #partnerCommissionQuery.block-query.col-md-12.well
                 div
@@ -1335,6 +1358,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchPartnerCommissionData(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click="vm.exportPartnerCommissionDataToExcel()") {{'EXPORT_EXCEL' | translate}}
                     span#partnerCommissionTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.partnerCommissionReportLoadingStatus}}
@@ -1343,6 +1367,7 @@
             span.text-danger.margin-left-5 {{vm.partnerCommissionQuery.message | translate}}
             table.common-table#partnerCommissionTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
             #partnerCommissionTablePage
+            table.common-table#partnerCommissionExcelTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
         div(ng-if='vm.showPageName=="PARTNER_SETTLEMENT_HISTORY_REPORT"')
             #partnerSettlementQuery.block-query.col-md-12.well
                 div
