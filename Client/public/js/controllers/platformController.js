@@ -369,6 +369,7 @@ define(['js/app'], function (myApp) {
             vm.addedButtonName = "activityBtn";
             vm.playerAdvertisementGroup = {};
             vm.playerAdvertisementGroup.orderNo = 0;
+            vm.playerAdvertisementGroup.showInRealServer = true;
             vm.playerAdvertisementGroup.imageButton = [
                 {
                     buttonName: "activityBtn1",
@@ -397,6 +398,7 @@ define(['js/app'], function (myApp) {
             vm.addedPartnerButtonName = "activityBtn";
             vm.partnerAdvertisementGroup = {};
             vm.partnerAdvertisementGroup.orderNo = 0;
+            vm.partnerAdvertisementGroup.showInRealServer = true;
             vm.partnerAdvertisementGroup.imageButton = [
                 {
                     buttonName: "activityBtn1",
@@ -30917,6 +30919,7 @@ define(['js/app'], function (myApp) {
                         let query = {
                             platformId: vm.selectedPlatform.id,
                             orderNo: vm.playerAdvertisementGroup.orderNo ? vm.playerAdvertisementGroup.orderNo : 0,
+                            showInRealServer: vm.playerAdvertisementGroup.showInRealServer,
                             advertisementCode: vm.playerAdvertisementGroup.advertisementCode ? vm.playerAdvertisementGroup.advertisementCode : "",
                             title: vm.playerAdvertisementTitle ? vm.playerAdvertisementTitle : [],
                             backgroundBannerImage: {
@@ -31327,6 +31330,7 @@ define(['js/app'], function (myApp) {
                 vm.currentImageButtonNo = 2;
                 vm.playerAdvertisementGroup = [];
                 vm.playerAdvertisementTitle = [];
+                vm.playerAdvertisementGroup.showInRealServer = true;
                 vm.playerAdvertisementGroup.imageButton = [
                     {
                         buttonName: "activityBtn1",
@@ -32452,6 +32456,7 @@ define(['js/app'], function (myApp) {
                         let query = {
                             platformId: vm.selectedPlatform.id,
                             orderNo: vm.partnerAdvertisementGroup.orderNo ? vm.partnerAdvertisementGroup.orderNo : 0,
+                            showInRealServer: vm.partnerAdvertisementGroup.showInRealServer,
                             advertisementCode: vm.partnerAdvertisementGroup.advertisementCode ? vm.partnerAdvertisementGroup.advertisementCode : "",
                             title: vm.partnerAdvertisementTitle ? vm.partnerAdvertisementTitle : [],
                             backgroundBannerImage: {
@@ -32767,6 +32772,7 @@ define(['js/app'], function (myApp) {
                 vm.currentPartnerImageButtonNo = 2;
                 vm.partnerAdvertisementGroup = {};
                 vm.partnerAdvertisementTitle = [];
+                vm.partnerAdvertisementGroup.showInRealServer = true;
                 vm.partnerAdvertisementGroup.imageButton = [
                     {
                         buttonName: "activityBtn1",
