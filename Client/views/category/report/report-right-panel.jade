@@ -1566,7 +1566,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchFeedbackReport(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click="vm.exportFeedbackReportToExcel()") {{'EXPORT_EXCEL' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click="vm.searchFeedbackReport(true, true)") {{'EXPORT_EXCEL' | translate}}
                     span#feedbackReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix

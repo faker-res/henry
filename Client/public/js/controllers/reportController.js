@@ -2810,7 +2810,7 @@ define(['js/app'], function (myApp) {
         };
 
         ////////////////////FEEDBACK REPORT//////////////////////
-        vm.searchFeedbackReport = function (newSearch) {
+        vm.searchFeedbackReport = function (newSearch, isExport = false) {
             $('#feedbackReportTableSpin').show();
 
             let admins = [];
@@ -2873,108 +2873,113 @@ define(['js/app'], function (myApp) {
             };
             console.log('sendquery', sendquery);
             socketService.$socket($scope.AppSocket, 'getFeedbackReport', sendquery, function (data) {
-                console.log('retData', data);
-                vm.feedbackDataSum = {
-                    manualTopUpAmount: 0,
-                    weChatTopUpAmount: 0,
-                    aliPayTopUpAmount: 0,
-                    onlineTopUpAmount: 0,
-                    topUpTimes: 0,
-                    topUpAmount: 0,
-                    bonusTimes: 0,
-                    bonusAmount: 0,
-                    rewardAmount: 0,
-                    consumptionReturnAmount: 0,
-                    consumptionTimes: 0,
-                    validConsumptionAmount: 0,
-                    consumptionBonusAmount: 0,
-                    profit: 0,
-                    consumptionAmount: 0
-                };
-                vm.feedbackQuery.totalCount = data.data.size;
-                vm.feedbackData = data.data.data.map(item => {
-                    item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
-                    item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.feedback.createTime);
-                    item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.endTime);
-                    item.manualTopUpAmount$ = parseFloat(item.manualTopUpAmount).toFixed(2);
-                    item.onlineTopUpAmount$ = parseFloat(item.onlineTopUpAmount).toFixed(2);
-                    item.weChatTopUpAmount$ = parseFloat(item.weChatTopUpAmount).toFixed(2);
-                    item.aliPayTopUpAmount$ = parseFloat(item.aliPayTopUpAmount).toFixed(2);
-                    item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
-                    item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
-                    item.rewardAmount$ = parseFloat(item.rewardAmount).toFixed(2);
-                    item.consumptionReturnAmount$ = parseFloat(item.consumptionReturnAmount).toFixed(2);
-                    item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
-                    item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
-                    item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
-                    item.feedbackTopic$ = (item.feedback.topic == null ||item.feedback.topic == undefined) ? '-' : item.feedback.topic;
-                    item.feedbackAdminName$ = (item && item.feedback && item.feedback.adminId && item.feedback.adminId.adminName) ? item.feedback.adminId.adminName : '-';
-                    item.credibility$ = "";
-                    if (item.credibilityRemarks) {
-                        for (let i = 0; i < item.credibilityRemarks.length; i++) {
-                            for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                                if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
-                                    item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                $scope.$evalAsync(() => {
+                    console.log('retData', data);
+                    vm.feedbackDataSum = {
+                        manualTopUpAmount: 0,
+                        weChatTopUpAmount: 0,
+                        aliPayTopUpAmount: 0,
+                        onlineTopUpAmount: 0,
+                        topUpTimes: 0,
+                        topUpAmount: 0,
+                        bonusTimes: 0,
+                        bonusAmount: 0,
+                        rewardAmount: 0,
+                        consumptionReturnAmount: 0,
+                        consumptionTimes: 0,
+                        validConsumptionAmount: 0,
+                        consumptionBonusAmount: 0,
+                        profit: 0,
+                        consumptionAmount: 0
+                    };
+                    vm.feedbackQuery.totalCount = data.data.size;
+                    vm.feedbackData = data.data.data.map(item => {
+                        item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
+                        item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.feedback.createTime);
+                        item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.endTime);
+                        item.manualTopUpAmount$ = parseFloat(item.manualTopUpAmount).toFixed(2);
+                        item.onlineTopUpAmount$ = parseFloat(item.onlineTopUpAmount).toFixed(2);
+                        item.weChatTopUpAmount$ = parseFloat(item.weChatTopUpAmount).toFixed(2);
+                        item.aliPayTopUpAmount$ = parseFloat(item.aliPayTopUpAmount).toFixed(2);
+                        item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
+                        item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                        item.rewardAmount$ = parseFloat(item.rewardAmount).toFixed(2);
+                        item.consumptionReturnAmount$ = parseFloat(item.consumptionReturnAmount).toFixed(2);
+                        item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
+                        item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
+                        item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
+                        item.feedbackTopic$ = (item.feedback.topic == null ||item.feedback.topic == undefined) ? '-' : item.feedback.topic;
+                        item.feedbackAdminName$ = (item && item.feedback && item.feedback.adminId && item.feedback.adminId.adminName) ? item.feedback.adminId.adminName : '-';
+                        item.credibility$ = "";
+                        if (item.credibilityRemarks) {
+                            for (let i = 0; i < item.credibilityRemarks.length; i++) {
+                                for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                    if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                        item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    item.providerArr = [];
-                    for (var key in item.providerDetail) {
-                        if (item.providerDetail.hasOwnProperty(key)) {
-                            item.providerDetail[key].providerId = key;
-                            item.providerArr.push(item.providerDetail[key]);
+                        item.providerArr = [];
+                        for (var key in item.providerDetail) {
+                            if (item.providerDetail.hasOwnProperty(key)) {
+                                item.providerDetail[key].providerId = key;
+                                item.providerArr.push(item.providerDetail[key]);
+                            }
                         }
-                    }
 
-                    item.provider$ = "";
-                    if (item.providerDetail) {
-                        for (let i = 0; i < item.providerArr.length; i++) {
-                            item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
-                            item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
-                            item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
-                            item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
-                            for (let j = 0; j < vm.allProviders.length; j++) {
-                                if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
-                                    item.providerArr[i].name = vm.allProviders[j].name;
-                                    item.provider$ += vm.allProviders[j].name + "<br>";
+                        item.provider$ = "";
+                        if (item.providerDetail) {
+                            for (let i = 0; i < item.providerArr.length; i++) {
+                                item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
+                                item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
+                                item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
+                                item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                                for (let j = 0; j < vm.allProviders.length; j++) {
+                                    if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                        item.providerArr[i].name = vm.allProviders[j].name;
+                                        item.provider$ += vm.allProviders[j].name + "<br>";
+                                    }
                                 }
                             }
                         }
+
+                        item.profit = 0;
+                        item.profit$ = 0;
+                        if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0) {
+                            item.profit = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100);
+                            item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
+                        }
+
+                        //build sumData for table Footer usage (total amount of all data)
+                        item.manualTopUpAmount ? vm.feedbackDataSum.manualTopUpAmount += item.manualTopUpAmount : null;
+                        item.weChatTopUpAmount ? vm.feedbackDataSum.weChatTopUpAmount += item.weChatTopUpAmount : null;
+                        item.aliPayTopUpAmount ? vm.feedbackDataSum.aliPayTopUpAmount += item.aliPayTopUpAmount : null;
+                        item.onlineTopUpAmount ? vm.feedbackDataSum.onlineTopUpAmount += item.onlineTopUpAmount : null;
+                        item.topUpTimes ? vm.feedbackDataSum.topUpTimes += parseInt(item.topUpTimes, 10) : null;
+                        item.topUpAmount ? vm.feedbackDataSum.topUpAmount += item.topUpAmount : null;
+                        item.bonusTimes ? vm.feedbackDataSum.bonusTimes += parseInt(item.bonusTimes, 10) : null;
+                        item.bonusAmount ? vm.feedbackDataSum.bonusAmount += item.bonusAmount : null;
+                        item.rewardAmount ? vm.feedbackDataSum.rewardAmount += item.rewardAmount : null;
+                        item.consumptionReturnAmount ? vm.feedbackDataSum.consumptionReturnAmount += item.consumptionReturnAmount : null;
+                        item.consumptionTimes ? vm.feedbackDataSum.consumptionTimes += parseInt(item.consumptionTimes, 10) : null;
+                        item.validConsumptionAmount ? vm.feedbackDataSum.validConsumptionAmount += item.validConsumptionAmount : null;
+                        item.consumptionBonusAmount ? vm.feedbackDataSum.consumptionBonusAmount += item.consumptionBonusAmount : null;
+                        item.consumptionAmount ? vm.feedbackDataSum.consumptionAmount += item.consumptionAmount : null;
+
+                        return item;
+                    });
+
+                    vm.feedbackDataSum.profit = (-vm.feedbackDataSum.consumptionBonusAmount) / vm.feedbackDataSum.validConsumptionAmount * 100;
+
+                    $('#feedbackReportTableSpin').hide();
+                    if(isExport){
+                        vm.drawFeedbackExcelReport();
+                    }else{
+                        vm.drawFeedbackReport(newSearch);
                     }
-
-                    item.profit = 0;
-                    item.profit$ = 0;
-                    if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0) {
-                        item.profit = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100);
-                        item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
-                    }
-
-                    //build sumData for table Footer usage (total amount of all data)
-                    item.manualTopUpAmount ? vm.feedbackDataSum.manualTopUpAmount += item.manualTopUpAmount : null;
-                    item.weChatTopUpAmount ? vm.feedbackDataSum.weChatTopUpAmount += item.weChatTopUpAmount : null;
-                    item.aliPayTopUpAmount ? vm.feedbackDataSum.aliPayTopUpAmount += item.aliPayTopUpAmount : null;
-                    item.onlineTopUpAmount ? vm.feedbackDataSum.onlineTopUpAmount += item.onlineTopUpAmount : null;
-                    item.topUpTimes ? vm.feedbackDataSum.topUpTimes += parseInt(item.topUpTimes, 10) : null;
-                    item.topUpAmount ? vm.feedbackDataSum.topUpAmount += item.topUpAmount : null;
-                    item.bonusTimes ? vm.feedbackDataSum.bonusTimes += parseInt(item.bonusTimes, 10) : null;
-                    item.bonusAmount ? vm.feedbackDataSum.bonusAmount += item.bonusAmount : null;
-                    item.rewardAmount ? vm.feedbackDataSum.rewardAmount += item.rewardAmount : null;
-                    item.consumptionReturnAmount ? vm.feedbackDataSum.consumptionReturnAmount += item.consumptionReturnAmount : null;
-                    item.consumptionTimes ? vm.feedbackDataSum.consumptionTimes += parseInt(item.consumptionTimes, 10) : null;
-                    item.validConsumptionAmount ? vm.feedbackDataSum.validConsumptionAmount += item.validConsumptionAmount : null;
-                    item.consumptionBonusAmount ? vm.feedbackDataSum.consumptionBonusAmount += item.consumptionBonusAmount : null;
-                    item.consumptionAmount ? vm.feedbackDataSum.consumptionAmount += item.consumptionAmount : null;
-
-                    return item;
                 });
-
-                vm.feedbackDataSum.profit = (-vm.feedbackDataSum.consumptionBonusAmount) / vm.feedbackDataSum.validConsumptionAmount * 100;
-
-                $('#feedbackReportTableSpin').hide();
-                vm.drawFeedbackReport(newSearch);
-                $scope.safeApply();
             });
         };
 
@@ -9679,175 +9684,6 @@ define(['js/app'], function (myApp) {
             };
 
             /************************************************ Export FEEDBACK_REPORT to excel **********************************************/
-            vm.exportFeedbackReportToExcel = function () {
-                $('#feedbackReportTableSpin').show();
-
-                let admins = [];
-                let query = {};
-
-                if (vm.feedbackQuery.departments) {
-                    if (vm.feedbackQuery.roles) {
-                        vm.queryRoles.map(e => {
-                            if (e._id != "" && (vm.feedbackQuery.roles.indexOf(e._id) >= 0)) {
-                                e.users.map(f => admins.push(f._id))
-                            }
-                        })
-                    } else {
-                        vm.queryRoles.map(e => e.users.map(f => admins.push(f._id)))
-                    }
-                }
-
-                if(vm.feedbackQuery.userType && vm.feedbackQuery.userType!=null) {
-                    query.playerType = vm.feedbackQuery.userType;
-                }
-                if(vm.feedbackQuery.days && vm.feedbackQuery.days!=null) {
-                    query.days = vm.feedbackQuery.days;
-                }
-                if(vm.feedbackQuery.result && vm.feedbackQuery.result.length > 0) {
-                    query.result = {$in: vm.feedbackQuery.result};
-                }
-                if(vm.feedbackQuery.topic && vm.feedbackQuery.topic.length > 0) {
-                    query.topic = {$in: vm.feedbackQuery.topic};
-                }
-                if(vm.feedbackQuery.admins && vm.feedbackQuery.admins.length > 0) {
-                    query.admins = vm.feedbackQuery.admins;
-                } else if (admins && admins.length > 0) {
-                    query.admins = admins;
-                }
-
-                query.start = vm.feedbackQuery.start.data('datetimepicker').getLocalDate();
-                query.end = vm.feedbackQuery.end.data('datetimepicker').getLocalDate();
-                query.credibilityRemarks = vm.feedbackQuery.credibility;
-                query.valueScoreOperator = vm.feedbackQuery.valueOperator;
-                query.playerScoreValue = vm.feedbackQuery.valueFormal;
-                query.playerScoreValueTwo = vm.feedbackQuery.valueLatter;
-                query.topUpTimesOperator = vm.feedbackQuery.topUpTimesOperator;
-                query.topUpTimesValue = vm.feedbackQuery.topUpTimesFormal;
-                query.topUpTimesValueTwo = vm.feedbackQuery.topUpTimesLatter;
-                query.bonusTimesOperator = vm.feedbackQuery.bonusTimesOperator;
-                query.bonusTimesValue = vm.feedbackQuery.bonusTimesFormal;
-                query.bonusTimesValueTwo = vm.feedbackQuery.bonusTimesLatter;
-                query.topUpAmountOperator = vm.feedbackQuery.topUpAmountOperator;
-                query.topUpAmountValue = vm.feedbackQuery.topUpAmountFormal;
-                query.topUpAmountValueTwo = vm.feedbackQuery.topUpAmountLatter;
-
-                vm.feedbackQuery.sortCol = vm.feedbackQuery.sortCol || {createTime$: -1};
-
-                let sendquery = {
-                    platformId: vm.curPlatformId,
-                    query: query,
-                    index: 0,
-                    limit: 5000,
-                    sortCol: vm.feedbackQuery.sortCol,
-                };
-                console.log('sendquery', sendquery);
-                socketService.$socket($scope.AppSocket, 'getFeedbackReport', sendquery, function (data) {
-                    $scope.$evalAsync(() => {
-                        console.log('retData', data);
-                        vm.feedbackDataSum = {
-                            manualTopUpAmount: 0,
-                            weChatTopUpAmount: 0,
-                            aliPayTopUpAmount: 0,
-                            onlineTopUpAmount: 0,
-                            topUpTimes: 0,
-                            topUpAmount: 0,
-                            bonusTimes: 0,
-                            bonusAmount: 0,
-                            rewardAmount: 0,
-                            consumptionReturnAmount: 0,
-                            consumptionTimes: 0,
-                            validConsumptionAmount: 0,
-                            consumptionBonusAmount: 0,
-                            profit: 0,
-                            consumptionAmount: 0
-                        };
-                        vm.feedbackQuery.totalCount = data.data.size;
-                        vm.feedbackData = data.data.data.map(item => {
-                            item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
-                            item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.feedback.createTime);
-                            item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.endTime);
-                            item.manualTopUpAmount$ = parseFloat(item.manualTopUpAmount).toFixed(2);
-                            item.onlineTopUpAmount$ = parseFloat(item.onlineTopUpAmount).toFixed(2);
-                            item.weChatTopUpAmount$ = parseFloat(item.weChatTopUpAmount).toFixed(2);
-                            item.aliPayTopUpAmount$ = parseFloat(item.aliPayTopUpAmount).toFixed(2);
-                            item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
-                            item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
-                            item.rewardAmount$ = parseFloat(item.rewardAmount).toFixed(2);
-                            item.consumptionReturnAmount$ = parseFloat(item.consumptionReturnAmount).toFixed(2);
-                            item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
-                            item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
-                            item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
-                            item.feedbackTopic$ = (item.feedback.topic == null ||item.feedback.topic == undefined) ? '-' : item.feedback.topic;
-                            item.feedbackAdminName$ = (item && item.feedback && item.feedback.adminId && item.feedback.adminId.adminName) ? item.feedback.adminId.adminName : '-';
-                            item.credibility$ = "";
-                            if (item.credibilityRemarks) {
-                                for (let i = 0; i < item.credibilityRemarks.length; i++) {
-                                    for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                                        if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
-                                            item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
-                                        }
-                                    }
-                                }
-                            }
-
-                            item.providerArr = [];
-                            for (var key in item.providerDetail) {
-                                if (item.providerDetail.hasOwnProperty(key)) {
-                                    item.providerDetail[key].providerId = key;
-                                    item.providerArr.push(item.providerDetail[key]);
-                                }
-                            }
-
-                            item.provider$ = "";
-                            if (item.providerDetail) {
-                                for (let i = 0; i < item.providerArr.length; i++) {
-                                    item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
-                                    item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
-                                    item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
-                                    item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
-                                    for (let j = 0; j < vm.allProviders.length; j++) {
-                                        if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
-                                            item.providerArr[i].name = vm.allProviders[j].name;
-                                            item.provider$ += vm.allProviders[j].name + "<br>";
-                                        }
-                                    }
-                                }
-                            }
-
-                            item.profit = 0;
-                            item.profit$ = 0;
-                            if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0) {
-                                item.profit = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100);
-                                item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
-                            }
-
-                            //build sumData for table Footer usage (total amount of all data)
-                            item.manualTopUpAmount ? vm.feedbackDataSum.manualTopUpAmount += item.manualTopUpAmount : null;
-                            item.weChatTopUpAmount ? vm.feedbackDataSum.weChatTopUpAmount += item.weChatTopUpAmount : null;
-                            item.aliPayTopUpAmount ? vm.feedbackDataSum.aliPayTopUpAmount += item.aliPayTopUpAmount : null;
-                            item.onlineTopUpAmount ? vm.feedbackDataSum.onlineTopUpAmount += item.onlineTopUpAmount : null;
-                            item.topUpTimes ? vm.feedbackDataSum.topUpTimes += parseInt(item.topUpTimes, 10) : null;
-                            item.topUpAmount ? vm.feedbackDataSum.topUpAmount += item.topUpAmount : null;
-                            item.bonusTimes ? vm.feedbackDataSum.bonusTimes += parseInt(item.bonusTimes, 10) : null;
-                            item.bonusAmount ? vm.feedbackDataSum.bonusAmount += item.bonusAmount : null;
-                            item.rewardAmount ? vm.feedbackDataSum.rewardAmount += item.rewardAmount : null;
-                            item.consumptionReturnAmount ? vm.feedbackDataSum.consumptionReturnAmount += item.consumptionReturnAmount : null;
-                            item.consumptionTimes ? vm.feedbackDataSum.consumptionTimes += parseInt(item.consumptionTimes, 10) : null;
-                            item.validConsumptionAmount ? vm.feedbackDataSum.validConsumptionAmount += item.validConsumptionAmount : null;
-                            item.consumptionBonusAmount ? vm.feedbackDataSum.consumptionBonusAmount += item.consumptionBonusAmount : null;
-                            item.consumptionAmount ? vm.feedbackDataSum.consumptionAmount += item.consumptionAmount : null;
-
-                            return item;
-                        });
-
-                        vm.feedbackDataSum.profit = (-vm.feedbackDataSum.consumptionBonusAmount) / vm.feedbackDataSum.validConsumptionAmount * 100;
-
-                        $('#feedbackReportTableSpin').hide();
-                        vm.drawFeedbackExcelReport();
-                    });
-                });
-            };
-
             vm.drawFeedbackExcelReport = function () {
                 function localDataProcessing() {
                     vm.feedbackQuery.sortCol = vm.feedbackQuery.sortCol || {'createTime$': -1};
