@@ -468,7 +468,7 @@ function socketActionPlatform(socketIO, socket) {
         createNewPlayerAdvertisementRecord: function createNewPlayerAdvertisementRecord(data){
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.advertisementCode && data.inputDevice && data.title && data.backgroundBannerImage && data.imageButton && data.hasOwnProperty("orderNo"));
-            socketUtil.emitter(self.socket, dbPlatform.createNewPlayerAdvertisementRecord, [data.platformId, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.createNewPlayerAdvertisementRecord, [data.platformId, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice, data.showInRealServer], actionName, isValidData);
         },
 
         deleteAdvertisementRecord: function deleteAdvertisementRecord(data){
@@ -480,7 +480,7 @@ function socketActionPlatform(socketIO, socket) {
         savePlayerAdvertisementRecordChanges: function savePlayerAdvertisementRecordChanges(data){
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data._id && data.advertisementCode && data.title && data.backgroundBannerImage && data.imageButton && data.inputDevice && data.hasOwnProperty("orderNo"));
-            socketUtil.emitter(self.socket, dbPlatform.savePlayerAdvertisementRecordChanges, [data.platformId, data._id, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.savePlayerAdvertisementRecordChanges, [data.platformId, data._id, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice, data.showInRealServer], actionName, isValidData);
         },
 
         updateAdvertisementRecord: function updateAdvertisementRecord(data){
@@ -541,7 +541,7 @@ function socketActionPlatform(socketIO, socket) {
         createNewPartnerAdvertisementRecord: function createNewPartnerAdvertisementRecord(data){
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.hasOwnProperty("orderNo") && data.advertisementCode && data.title && data.backgroundBannerImage && data.imageButton && data.inputDevice);
-            socketUtil.emitter(self.socket, dbPlatform.createNewPartnerAdvertisementRecord, [data.platformId, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.createNewPartnerAdvertisementRecord, [data.platformId, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice, data.showInRealServer], actionName, isValidData);
         },
 
         deletePartnerAdvertisementRecord: function deletePartnerAdvertisementRecord(data){
@@ -553,7 +553,7 @@ function socketActionPlatform(socketIO, socket) {
         savePartnerAdvertisementRecordChanges: function savePartnerAdvertisementRecordChanges(data){
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data._id && data.hasOwnProperty("orderNo") && data.advertisementCode && data.title && data.backgroundBannerImage && data.imageButton && data.inputDevice);
-            socketUtil.emitter(self.socket, dbPlatform.savePartnerAdvertisementRecordChanges, [data.platformId, data._id, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.savePartnerAdvertisementRecordChanges, [data.platformId, data._id, data.orderNo, data.advertisementCode, data.title, data.backgroundBannerImage, data.imageButton, data.inputDevice, data.showInRealServer], actionName, isValidData);
         },
 
         changePartnerAdvertisementStatus: function changePartnerAdvertisementStatus(data){
