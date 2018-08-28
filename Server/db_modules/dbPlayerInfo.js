@@ -6624,6 +6624,12 @@ let dbPlayerInfo = {
                         }
                         delete rewardEventItem.display;
 
+                        let isShowInRealServer = 1;
+                        if (rewardEventItem && rewardEventItem.hasOwnProperty("showInRealServer") && rewardEventItem.showInRealServer == false) {
+                            isShowInRealServer = 0;
+                        }
+                        rewardEventItem.showInRealServer = isShowInRealServer;
+
                         if (rewardEventItem.canApplyFromClient) {
                             rewardEventArray.push(rewardEventItem);
                         }
