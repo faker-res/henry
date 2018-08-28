@@ -6630,6 +6630,10 @@ let dbPlayerInfo = {
                         }
                         rewardEventItem.showInRealServer = isShowInRealServer;
 
+                        if (rewardEventItem && rewardEventItem.condition) {
+                            rewardEventItem.condition.showInRealServer = isShowInRealServer;
+                        }
+
                         if (rewardEventItem.canApplyFromClient) {
                             rewardEventArray.push(rewardEventItem);
                         }
