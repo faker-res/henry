@@ -4570,8 +4570,15 @@ let dbPlayerInfo = {
                                     delete playerData[ind].fullPhoneNumber;
 
                                     // add fixed credibility remarks
-                                    dbPlayerInfo.getPagedSimilarPhoneForPlayers(playerId, platformId, fullPhoneNumber, true, index, limit, sortObj, adminName);
-                                    dbPlayerInfo.getPagedSimilarIpForPlayers(playerId, platformId, lastLoginIp, true, index, limit, sortObj, adminName);
+                                    let skippedIP = ['localhost', '127.0.0.1'];
+
+                                    if (fullPhoneNumber) {
+                                        dbPlayerInfo.getPagedSimilarPhoneForPlayers(playerId, platformId, fullPhoneNumber, true, index, limit, sortObj, adminName);
+                                    }
+
+                                    if (lastLoginIp && !skippedIP.includes(lastLoginIp)) {
+                                        dbPlayerInfo.getPagedSimilarIpForPlayers(playerId, platformId, lastLoginIp, true, index, limit, sortObj, adminName);
+                                    }
                                 }
                             }
                             return Q.all(players)
@@ -6633,6 +6640,16 @@ let dbPlayerInfo = {
                             rewardEventItem.list = rewardEventItem.display;
                         }
                         delete rewardEventItem.display;
+
+                        let isShowInRealServer = 1;
+                        if (rewardEventItem && rewardEventItem.hasOwnProperty("showInRealServer") && rewardEventItem.showInRealServer == false) {
+                            isShowInRealServer = 0;
+                        }
+                        rewardEventItem.showInRealServer = isShowInRealServer;
+
+                        if (rewardEventItem && rewardEventItem.condition) {
+                            rewardEventItem.condition.showInRealServer = isShowInRealServer;
+                        }
 
                         if (rewardEventItem.canApplyFromClient) {
                             rewardEventArray.push(rewardEventItem);
@@ -18750,7 +18767,7 @@ let dbPlayerInfo = {
                 // if there is other player with similar phone in playerData, selected player need to add this credibility remark
                 if (totalCount > 0) {
                     if (selectedPlayer.credibilityRemarks && selectedPlayer.credibilityRemarks.length > 0) {
-                        if (selectedPlayer.credibilityRemarks.some(e => e.toString() === similarPhoneCredibilityRemarkObjId.toString())) {
+                        if (selectedPlayer.credibilityRemarks.some(e => e && e.toString() === similarPhoneCredibilityRemarkObjId.toString())) {
                             // if similarPhoneCredibilityRemarkObjId already exist
                             credibilityRemarks = selectedPlayer.credibilityRemarks;
                         } else {
@@ -18875,7 +18892,7 @@ let dbPlayerInfo = {
                 // if there is other player with similar ip in playerData, selected player need to add this credibility remark
                 if (totalCount > 0) {
                     if (selectedPlayer.credibilityRemarks && selectedPlayer.credibilityRemarks.length > 0) {
-                        if (selectedPlayer.credibilityRemarks.some(e => e.toString() === similarIpCredibilityRemarkObjId.toString())) {
+                        if (selectedPlayer.credibilityRemarks.some(e => e && e.toString() === similarIpCredibilityRemarkObjId.toString())) {
                             // if similarIpCredibilityRemarkObjId already exist
                             credibilityRemarks = selectedPlayer.credibilityRemarks;
                         } else {
