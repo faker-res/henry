@@ -104,6 +104,7 @@ const constProposalMainType = {
     "UpdateChildPartner": constMainType.OTHERS,
     "UpdateParentPartnerCommission": constMainType.OTHERS,
     "PartnerCreditTransferToDownline": constMainType.OTHERS,
+    "DownlineReceivePartnerCredit": constMainType.OTHERS,
 
 };
 

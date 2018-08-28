@@ -21,6 +21,7 @@ const constProposalType = {
     CUSTOMIZE_PARTNER_COMM_RATE: "CustomizePartnerCommRate",
     UPDATE_CHILD_PARTNER: "UpdateChildPartner",
     PARTNER_CREDIT_TRANSFER_TO_DOWNLINE: "PartnerCreditTransferToDownline",
+    DOWNLINE_RECEIVE_PARTNER_CREDIT: "DownlineReceivePartnerCredit",
     UPDATE_PARENT_PARTNER_COMMISSION: "UpdateParentPartnerCommission",
     SETTLE_PARTNER_COMMISSION: "SettlePartnerCommission",
     FULL_ATTENDANCE: "FullAttendance",

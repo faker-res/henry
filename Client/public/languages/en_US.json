@@ -1664,5 +1664,6 @@
   "PROVIDER_GROUP": "Provider Group",
   "PARTNER_CREDIT_AMOUNT_BEFORE_TRANSFER": "Partner Credit Amount Before Transfer",
   "PARTNER_CREDIT_AMOUNT_AFTER_TRANSFER": "Partner Credit Amount After Transfer",
-  "TOTAL_TRANSFER_PARTNER_CREDIT_AMOUNT": "Total Transfer Partner Credit Amount"
+  "TOTAL_TRANSFER_PARTNER_CREDIT_AMOUNT": "Total Transfer Partner Credit Amount",
+  "DownlineReceivePartnerCredit": "Downline Receive Partner Credit"
 }
