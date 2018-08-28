@@ -4572,8 +4572,6 @@ let dbPlayerInfo = {
                                     // add fixed credibility remarks
                                     let skippedIP = ['localhost', '127.0.0.1'];
 
-                                    console.log('ricco - 1125', playerId, platformId);
-
                                     if (fullPhoneNumber) {
                                         dbPlayerInfo.getPagedSimilarPhoneForPlayers(
                                             playerId, platformId, fullPhoneNumber, true, index, limit, sortObj,
@@ -16165,7 +16163,7 @@ let dbPlayerInfo = {
             let filteredDomain = dbUtility.filterDomainName(domain);
             console.log("checking---yH---filteredDomain", filteredDomain)
 
-            let promoteWayProm = domain ?
+            let promoteWayProm = domain && filteredDomain ?
                 dbconfig.collection_csOfficerUrl.findOne({
                     platform: platformObjId,
                     // domain: {$regex: filteredDomain, $options: "xi"}
@@ -16173,7 +16171,12 @@ let dbPlayerInfo = {
                 }).populate({
                     path: 'admin',
                     model: dbconfig.collection_admin
-                }).lean() : Promise.resolve(false);
+                }).lean().catch(
+                    err => {
+                        console.log('error - 1128', err);
+                        return false;
+                    }
+                ) : Promise.resolve(false);
 
             return Promise.all([consumptionProm, topUpProm, bonusProm, consumptionReturnProm, rewardProm, playerProm, promoteWayProm]).then(
                 data => {
@@ -18864,8 +18867,6 @@ let dbPlayerInfo = {
             path: 'playerLevel',
             model: dbconfig.collection_playerLevel
         }).sort(sortCol).skip(index).limit(limit).lean();
-
-        console.log('ricco - 1124', playerObjId, platformObjId, isRealPlayer);
 
         let selectedPlayerProm = dbconfig.collection_players.findOne({
             _id: playerObjId,
