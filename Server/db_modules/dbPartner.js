@@ -5168,6 +5168,23 @@ let dbPartner = {
         )
     },
 
+    getDownlinePlayersRecord: function (platformObjId, partnerObjId, playerName, index, limit, sortCol) {
+        let query = {platform: platformObjId, partner: partnerObjId};
+
+        if (playerName) {
+            query.name = playerName;
+        }
+
+        let countProm = dbconfig.collection_players.find(query).count();
+        let downlinesProm = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit).lean();
+
+        return Promise.all([countProm, downlinesProm]).then(
+            data => {
+                return {data: data[1], size: data[0]};
+            }
+        );
+    },
+
     getReferralsList: (partnerArr) => {
         let partnerProm = [];
         partnerArr.forEach(partner => {

@@ -680,9 +680,9 @@ let dbPlayerInfo = {
                             dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect);
                         }
 
-                        //todo::temp disable similar player untill ip is correct
                         if (data.lastLoginIp && data.lastLoginIp != "undefined") {
                             dbPlayerInfo.updateGeoipws(data._id, platformObjId, data.lastLoginIp);
+                            dbPlayerInfo.checkPlayerIsIDCIp(platformObjId, data._id, data.lastLoginIp).catch(errorUtils.reportError);
                         }
                         // dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber).then();
                         return data;
@@ -718,6 +718,16 @@ let dbPlayerInfo = {
         } else {
             return Q.reject({name: "DataError", message: "Platform does not exist"});
         }
+    },
+
+    checkPlayerIsIDCIp: (platformObjId, playerObjId, ipAddress) => {
+        return dbUtility.getIDCIpDetail(ipAddress).then(
+            idcDetail => {
+                if (idcDetail) {
+                    return dbPlayerCredibility.addFixedCredibilityRemarkToPlayer(platformObjId, playerObjId, '机房IP')
+                }
+            }
+        )
     },
 
     createPlayerFromTel: (inputData) => {
@@ -16120,9 +16130,12 @@ let dbPlayerInfo = {
             let playerProm = dbconfig.collection_players.findOne(
                 playerQuery, {
                     playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1, accAdmin: 1,
-                    promoteWay: 1, phoneProvince: 1, phoneCity: 1, province: 1, city: 1, depositTrackingGroup: 1
+                    promoteWay: 1, phoneProvince: 1, phoneCity: 1, province: 1, city: 1, depositTrackingGroup: 1, csOfficer: 1
                 }
-            ).lean();
+            ).populate({
+                path: 'csOfficer',
+                model: dbconfig.collection_admin
+            }).lean();
 
             // Promise domain CS and promote way
             console.log("checking---yH---domain", domain)
@@ -16367,6 +16380,9 @@ let dbPlayerInfo = {
                     else if (csOfficerDetail) {
                         result.csOfficer = csOfficerDetail.admin ? csOfficerDetail.admin.adminName : "";
                         // result.csPromoteWay = csOfficerDetail.way;
+                    }
+                    else if (playerDetail.csOfficer){
+                        result.csOfficer = playerDetail.csOfficer.adminName || "";
                     }
 
                     if (playerDetail && playerDetail.promoteWay) {

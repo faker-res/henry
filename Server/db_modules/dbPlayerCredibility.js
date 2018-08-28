@@ -189,6 +189,40 @@ let dbPlayerCredibility = {
         return dbconfig.collection_platform.findOneAndUpdate({_id: ObjectId(platformObjId)}, {playerValueConfig: config}).lean();
     },
 
+    addFixedCredibilityRemarkToPlayer: (platformObjId, playerObjId, remarkName) => {
+        let query = {
+            platform: platformObjId,
+            name: remarkName,
+            isFixed: true
+        };
+
+        return dbconfig.collection_playerCredibilityRemark.findOne(query, '_id').lean().then(
+            remark => {
+                if (remark) {
+                    return remark;
+                } else {
+                    return dbconfig.collection_playerCredibilityRemark({
+                        platform: platformObjId,
+                        name: remarkName,
+                        score: 0,
+                        isFixed: true
+                    }).save();
+                }
+            }
+        ).then(
+            fixedRemark => {
+                if (fixedRemark && fixedRemark._id) {
+                    dbconfig.collection_players.findOneAndUpdate(
+                        {_id: playerObjId},
+                        {
+                            $push: {credibilityRemarks: fixedRemark._id}
+                        }
+                    ).catch(errorUtils.reportError);
+                }
+            }
+        )
+    },
+
     setFixedCredibilityRemarks: (platformObjId, fixedRemarks) => {
         let proms = [];
         if (fixedRemarks && fixedRemarks.length > 0) {
