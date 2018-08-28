@@ -18728,6 +18728,8 @@ let dbPlayerInfo = {
             model: dbconfig.collection_playerLevel
         }).sort(sortCol).skip(index).limit(limit).lean();
 
+        console.log('ricco - 1123', playerObjId, platformObjId, isRealPlayer);
+
         let selectedPlayerProm = dbconfig.collection_players.findOne({
             _id: playerObjId,
             platform: platformObjId,
