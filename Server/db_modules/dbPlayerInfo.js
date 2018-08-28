@@ -16161,22 +16161,19 @@ let dbPlayerInfo = {
             // Promise domain CS and promote way
             console.log("checking---yH---domain", domain)
             let filteredDomain = dbUtility.filterDomainName(domain);
-            console.log("checking---yH---filteredDomain", filteredDomain)
+            console.log("checking---yH---filteredDomain", filteredDomain);
 
-            let promoteWayProm = domain && filteredDomain ?
+            let regExpDomain = /[a-zA-Z]+.[a-zA-Z]+/;
+
+            let promoteWayProm = filteredDomain && regExpDomain.test(filteredDomain) ?
                 dbconfig.collection_csOfficerUrl.findOne({
                     platform: platformObjId,
                     // domain: {$regex: filteredDomain, $options: "xi"}
-                    domain: new RegExp("^" + filteredDomain, "ui")
+                    domain: new RegExp("^" + filteredDomain, "i")
                 }).populate({
                     path: 'admin',
                     model: dbconfig.collection_admin
-                }).lean().catch(
-                    err => {
-                        console.log('error - 1128', err);
-                        return false;
-                    }
-                ) : Promise.resolve(false);
+                }).lean() : Promise.resolve(false);
 
             return Promise.all([consumptionProm, topUpProm, bonusProm, consumptionReturnProm, rewardProm, playerProm, promoteWayProm]).then(
                 data => {
