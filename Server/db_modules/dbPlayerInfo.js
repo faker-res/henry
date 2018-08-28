@@ -4572,6 +4572,8 @@ let dbPlayerInfo = {
                                     // add fixed credibility remarks
                                     let skippedIP = ['localhost', '127.0.0.1'];
 
+                                    console.log('ricco - 1125', playerId, platformId);
+
                                     if (fullPhoneNumber) {
                                         dbPlayerInfo.getPagedSimilarPhoneForPlayers(
                                             playerId, platformId, fullPhoneNumber, true, index, limit, sortObj,
