@@ -7766,6 +7766,38 @@ define(['js/app'], function (myApp) {
                     vm.selectedProposal.data = proposalDetail;
                 }
 
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PartnerCreditTransferToDownline") {
+                    let proposalDetail = {};
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+
+                    proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
+                    proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
+                    proposalDetail["PARTNER_CREDIT_AMOUNT_BEFORE_TRANSFER"] = vm.selectedProposal.data.currentCredit;
+                    proposalDetail["PARTNER_CREDIT_AMOUNT_AFTER_TRANSFER"] = vm.selectedProposal.data.updateCredit;
+                    proposalDetail["TOTAL_TRANSFER_PARTNER_CREDIT_AMOUNT"] = vm.selectedProposal.data.amount * -1;
+
+                    vm.selectedProposal.data.transferToDownlineDetail = vm.selectedProposal.data.transferToDownlineDetail || [];
+                    vm.selectedProposal.data.transferToDownlineDetail.map((transferredDownline, index) => {
+                        let providerGroupName = '';
+                        let orderNo = 0;
+                        orderNo = index + 1;
+
+                        if (transferredDownline && transferredDownline.providerGroup) {
+                            providerGroupName = vm.getProviderGroupNameById(transferredDownline.providerGroup);
+                        } else {
+                            providerGroupName = $translate("LOCAL_CREDIT");
+                        }
+
+                        let str = transferredDownline.playerName + "/" + transferredDownline.amount + "/" + providerGroupName + "/" + transferredDownline.withdrawConsumption;
+
+                        proposalDetail[$translate("Targeted Downline Player") + "（" + orderNo + "）" + "/" + $translate("Transferred Amount") + "/" + $translate("PROVIDER_GROUP") + "/" + $translate("Withdraw Consumption")] =  str;
+                    });
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
+
                 if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
                     let proposalDetail = {};
                     if (!vm.selectedProposal.data) {

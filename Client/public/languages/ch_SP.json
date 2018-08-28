@@ -4241,5 +4241,13 @@
   "Downline Player Name": "下线玩家帐号",
   "Transfer Credit (Only allow positive value)": "转帐金额（只能填正数）",
   "Withdraw Consumption (Accurate number/non-multiple)": "提款流水（准确数字/非倍数）",
-  "EachPage": "每页"
+  "EachPage": "每页",
+  "PartnerCreditTransferToDownline": "代理转帐至下线玩家",
+  "PARTNER_CREDIT_AMOUNT_BEFORE_TRANSFER": "代理转帐前馀额",
+  "PARTNER_CREDIT_AMOUNT_AFTER_TRANSFER": "代理转帐后馀额",
+  "TOTAL_TRANSFER_PARTNER_CREDIT_AMOUNT": "代理转帐总金额",
+  "Targeted Downline Player": "目标下线玩家",
+  "PROVIDER_GROUP": "锁大厅",
+  "Withdraw Consumption": "流水",
+  "Transferred Amount": "金额"
 }
