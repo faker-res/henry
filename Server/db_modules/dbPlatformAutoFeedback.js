@@ -403,11 +403,6 @@ let dbPlatformAutoFeedback = {
                             console.log("noneCSOfficerQuery",noneCSOfficerQuery);
                             console.log("csOfficerArr",csOfficerArr);
                             if (Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0 && csOfficerArr.length > 0) {
-                                // if(playerQuery.$or) {
-                                //     playerQuery.$or.push([noneCSOfficerQuery, {csOfficer: {$in: csOfficerArr}}]);
-                                // } else {
-                                //     playerQuery.$or = [noneCSOfficerQuery, {csOfficer: {$in: csOfficerArr}}];
-                                // }
                                 addMultipleOr([noneCSOfficerQuery, {csOfficer: {$in: csOfficerArr}}]);
 
                             } else if ((Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0) && !csOfficerArr.length) {

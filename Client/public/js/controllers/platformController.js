@@ -33286,13 +33286,6 @@ define(['js/app'], function (myApp) {
                     vm.autoFeedbackMissions = data.data;
                 });
             };
-
-            // vm.testScheduler = function() {
-            //     socketService.$socket($scope.AppSocket, 'testScheduler', {}, function (data) {
-            //         console.log("getAllAutoFeedbackMissions ret",data);
-            //         vm.autoFeedbackMissions = data.data;
-            //     });
-            // };
         };
 
         let injectParams = [
