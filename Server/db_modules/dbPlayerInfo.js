@@ -16149,18 +16149,14 @@ let dbPlayerInfo = {
             }).lean();
 
             // Promise domain CS and promote way
-            console.log("checking---yH---domain", domain)
             let filteredDomain = dbUtility.filterDomainName(domain);
-            console.log("checking---yH---filteredDomain", filteredDomain);
-
             let regExpDomain = /[a-zA-Z]+.[a-zA-Z]+/;
-            console.log('regExpDomain', regExpDomain.test(filteredDomain));
 
-            let promoteWayProm = filteredDomain && regExpDomain.test(filteredDomain) ?
+            let promoteWayProm = filteredDomain ?
                 dbconfig.collection_csOfficerUrl.findOne({
                     platform: platformObjId,
                     // domain: {$regex: filteredDomain, $options: "xi"}
-                    domain: new RegExp("^" + filteredDomain, "i")
+                    domain: filteredDomain
                 }).populate({
                     path: 'admin',
                     model: dbconfig.collection_admin
