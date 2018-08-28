@@ -3658,11 +3658,11 @@ define(['js/app'], function (myApp) {
                         }
 
                         if(newObj.bigShow){
-                            newObj.bigShow = playerRouteSetting ? playerRouteSetting + newObj.bigShow : (newObj.sourceURL ? newObj.sourceURL + newObj.bigShow : newObj.sourceURL);
+                            newObj.bigShow = playerRouteSetting ? playerRouteSetting + newObj.bigShow : (newObj.sourceURL ? newObj.sourceURL + newObj.bigShow : newObj.bigShow);
                         }
 
                         if(newObj.smallShow){
-                            newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.sourceURL);
+                            newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.smallShow);
                         }
 
                         if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
