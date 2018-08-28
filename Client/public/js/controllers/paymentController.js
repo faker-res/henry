@@ -1919,6 +1919,8 @@ define(['js/app'], function (myApp) {
                                     data.accountNumber = alipay.bankCard;
                                     data.name = alipay.cardName;
                                     data.singleLimit = alipay.singleLimit;
+                                    data.quota = alipay.dailyLimit;
+                                    data.minDepositAmount = alipay.minDepositAmount;
                                     data.state = alipay.flag ? alipay.flag.split(" ")[0] : "DISABLED";
 
                                     groupData.alipays.push(data);

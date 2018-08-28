@@ -190,7 +190,9 @@ var GameServiceImplement = function () {
                 ip = forwardedIp[0].trim();
             }
         }
-
+        if (ip && ip.substr(0, 7) == "::ffff:") {
+            ip = ip.substr(7)
+        }
         var uaString = conn.upgradeReq.headers['user-agent'];
         var ua = uaParser(uaString);
         var md = new mobileDetect(uaString);
@@ -212,6 +214,9 @@ var GameServiceImplement = function () {
             if(forwardedIp[0].trim() != "undefined"){
                 ip = forwardedIp[0].trim();
             }
+        }
+        if (ip && ip.substr(0, 7) == "::ffff:") {
+            ip = ip.substr(7)
         }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getTestLoginURL, [conn.playerId, data.gameId, ip, conn.lang, data.clientDomainName, data.clientType], isValidData);
     };

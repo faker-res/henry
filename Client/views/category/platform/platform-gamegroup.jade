@@ -134,6 +134,12 @@
                         button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Platform', 'GameGroup', 'RemoveGameFromGroup')", ng-click='vm.gametoGameGroup("detach")')
                             i.fa.fa-minus-square
                             text {{"EXCLUDE" | translate}}
+                        div(style="inline-flex;")
+                            buton.btn.btn-success.common-button-sm(ng-if="checkViewPermission('Platform', 'Game', 'UploadImage')", ng-click='vm.updateImageUrl("gameGroupImageUploader");')
+                                i.fa.fa-upload
+                                text {{"Upload Image" | translate}}
+                            input(type='file', name='file' id='gameGroupImageUploader' style="display: inline !important")
+                            label(ng-if="vm.uploadImageMsg" style="color: red;") {{vm.uploadImageMsg | translate}}
                     div(ng-if='vm.showGameCate=="exclude"')
                         button.btn.btn-primary.common-button.pull-right(ng-if="checkViewPermission('Platform', 'GameGroup', 'AddGameToGroup')", ng-click='vm.gametoGameGroup("attach")')
                             i.fa.fa-plus-square

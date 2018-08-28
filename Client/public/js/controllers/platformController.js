@@ -369,6 +369,7 @@ define(['js/app'], function (myApp) {
             vm.addedButtonName = "activityBtn";
             vm.playerAdvertisementGroup = {};
             vm.playerAdvertisementGroup.orderNo = 0;
+            vm.playerAdvertisementGroup.showInRealServer = true;
             vm.playerAdvertisementGroup.imageButton = [
                 {
                     buttonName: "activityBtn1",
@@ -397,6 +398,7 @@ define(['js/app'], function (myApp) {
             vm.addedPartnerButtonName = "activityBtn";
             vm.partnerAdvertisementGroup = {};
             vm.partnerAdvertisementGroup.orderNo = 0;
+            vm.partnerAdvertisementGroup.showInRealServer = true;
             vm.partnerAdvertisementGroup.imageButton = [
                 {
                     buttonName: "activityBtn1",
@@ -3712,6 +3714,11 @@ define(['js/app'], function (myApp) {
             vm.gameClicked = function (i, v) {
                 if (!v) return;
                 console.log('game clicked', v);
+                vm.uploadImageMsg = "";
+                let imageFile = document.getElementById('gameImageUploader');
+                if(imageFile && imageFile.value){
+                    imageFile.value = "";
+                }
                 var exists = false;
                 vm.selectedGamesInGameGroup = vm.selectedGamesInGameGroup.filter(item => {
                     if (item && item._id) {
@@ -10663,7 +10670,7 @@ define(['js/app'], function (myApp) {
                 if (!isConfirm) {
                     vm.modalYesNo = {};
                     vm.modalYesNo.modalTitle = $translate("Delete Provider Group");
-                    vm.modalYesNo.modalText = $translate("Delete provider group " + grp.name + "? This will release all rewards amount binded with this group to player.");
+                    vm.modalYesNo.modalText = $translate("Delete Provider Group") + " " + grp.name + "? " + $translate("This will release all rewards amount binded with this group to player.");
                     vm.modalYesNo.actionYes = () => vm.deleteProviderGroup(index, grp, true);
                     $('#modalYesNo').modal();
                 }
@@ -11646,7 +11653,7 @@ define(['js/app'], function (myApp) {
                             orderable: false,
                         },
                         {
-                            title: "<div>" + $translate('REMARKS'), data: " ",
+                            title: "<div>" + $translate('REMARKS'), data: "data.remark",
                             orderable: false,
                         }
 
@@ -20318,6 +20325,14 @@ define(['js/app'], function (myApp) {
                                     value: cond.value
                                 };
 
+                                if (cond.default) {
+                                    vm.rewardMainCondition[cond.index].value = cond.default;
+                                }
+
+                                if (vm.showReward.hasOwnProperty("showInRealServer") && vm.rewardMainCondition[cond.index].name == "showInRealServer") {
+                                    vm.rewardMainCondition[cond.index].value = vm.showReward.showInRealServer;
+                                }
+
                                 if (cond.chainType && cond.chainOptions) {
                                     vm.rewardMainCondition[cond.index].chainType = cond.chainType;
                                     vm.rewardMainCondition[cond.index].chainOptions = cond.chainOptions;
@@ -20424,6 +20439,10 @@ define(['js/app'], function (myApp) {
                                         vm.rewardMainCondition[cond.index].value1 = vm.rewardMainCondition[cond.index].value[1];
                                         vm.rewardMainCondition[cond.index].value = vm.rewardMainCondition[cond.index].value[0];
                                     }
+                                }
+
+                                if (el == "canApplyFromClient" && !(vm.rewardMainCondition[cond.index] && vm.rewardMainCondition[cond.index].value)) {
+                                    vm.rewardDisabledParam.push("showInRealServer")
                                 }
 
                                 // Render dateTimePicker
@@ -20710,6 +20729,14 @@ define(['js/app'], function (myApp) {
 
             vm.changeRewardParamLayout = (model, isFirstLoad) => {
                 let isResetLayout = Boolean(isFirstLoad);
+
+                if (model && model.name == "canApplyFromClient") {
+                    if (model.value == true && vm.rewardDisabledParam && vm.rewardDisabledParam.indexOf("showInRealServer") > -1) {
+                        vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "showInRealServer");
+                    } else if (model.value == false && vm.rewardDisabledParam && vm.rewardDisabledParam.indexOf("showInRealServer")  < 0) {
+                        vm.rewardDisabledParam.push("showInRealServer");
+                    }
+                }
 
                 if (model == "isMultiStepReward") {
                     vm.isMultiStepReward = vm.rewardMainParam[model].value;
@@ -21402,6 +21429,7 @@ define(['js/app'], function (myApp) {
                     needApply: vm.showReward.needApply,
                     needSettlement: vm.showReward.needSettlement,
                     canApplyFromClient: vm.showReward.canApplyFromClient,
+                    showInRealServer: vm.showReward.showInRealServer,
                     settlementPeriod: vm.showReward.settlementPeriod,
                     description: vm.showReward.description,
                     platform: vm.showReward.platform,
@@ -21429,7 +21457,7 @@ define(['js/app'], function (myApp) {
                             }
 
                             // Save name and code to outer level
-                            if (condName == "name" || condName == "code" || condName == "canApplyFromClient" || condName == "validStartTime" || condName == "validEndTime") {
+                            if (condName == "name" || condName == "code" || condName == "canApplyFromClient" || condName == "showInRealServer" || condName == "validStartTime" || condName == "validEndTime") {
                                 curReward[condName] = condValue;
                             }
 
@@ -21536,7 +21564,7 @@ define(['js/app'], function (myApp) {
                             }
 
                             // Save name and code to outer level
-                            if (condName == "name" || condName == "code" || condName == "canApplyFromClient" || condName == "validStartTime" || condName == "validEndTime") {
+                            if (condName == "name" || condName == "code" || condName == "canApplyFromClient" || condName == "showInRealServer" || condName == "validStartTime" || condName == "validEndTime") {
                                 sendData[condName] = condValue;
                             }
 
@@ -30891,6 +30919,7 @@ define(['js/app'], function (myApp) {
                         let query = {
                             platformId: vm.selectedPlatform.id,
                             orderNo: vm.playerAdvertisementGroup.orderNo ? vm.playerAdvertisementGroup.orderNo : 0,
+                            showInRealServer: vm.playerAdvertisementGroup.showInRealServer,
                             advertisementCode: vm.playerAdvertisementGroup.advertisementCode ? vm.playerAdvertisementGroup.advertisementCode : "",
                             title: vm.playerAdvertisementTitle ? vm.playerAdvertisementTitle : [],
                             backgroundBannerImage: {
@@ -31301,6 +31330,7 @@ define(['js/app'], function (myApp) {
                 vm.currentImageButtonNo = 2;
                 vm.playerAdvertisementGroup = [];
                 vm.playerAdvertisementTitle = [];
+                vm.playerAdvertisementGroup.showInRealServer = true;
                 vm.playerAdvertisementGroup.imageButton = [
                     {
                         buttonName: "activityBtn1",
@@ -32426,6 +32456,7 @@ define(['js/app'], function (myApp) {
                         let query = {
                             platformId: vm.selectedPlatform.id,
                             orderNo: vm.partnerAdvertisementGroup.orderNo ? vm.partnerAdvertisementGroup.orderNo : 0,
+                            showInRealServer: vm.partnerAdvertisementGroup.showInRealServer,
                             advertisementCode: vm.partnerAdvertisementGroup.advertisementCode ? vm.partnerAdvertisementGroup.advertisementCode : "",
                             title: vm.partnerAdvertisementTitle ? vm.partnerAdvertisementTitle : [],
                             backgroundBannerImage: {
@@ -32739,8 +32770,9 @@ define(['js/app'], function (myApp) {
                 //reset the adding table
                 vm.addNewPartnerAdvertisement = false;
                 vm.currentPartnerImageButtonNo = 2;
-                vm.partnerAdvertisementGroup = [];
+                vm.partnerAdvertisementGroup = {};
                 vm.partnerAdvertisementTitle = [];
+                vm.partnerAdvertisementGroup.showInRealServer = true;
                 vm.partnerAdvertisementGroup.imageButton = [
                     {
                         buttonName: "activityBtn1",
@@ -33222,6 +33254,29 @@ define(['js/app'], function (myApp) {
                 //         tr.addClass('shown');
                 //     }
                 // });
+            };
+
+            vm.updateImageUrl = function(uploaderName){
+                let imageFile = document.getElementById(uploaderName);
+                if(imageFile.files.length > 0){
+                    let platformId = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.platformId
+                        ? vm.selectedPlatform.data.platformId : null;
+                    let fileName = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0].name || null;
+                    let fileData = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0] || null;
+                    let sendQuery = {
+                        query: {
+                            platformId: platformId,
+                            gameId: vm.curGame.gameId || null,
+                            gameName: fileName || null
+                        },
+                        fileData: fileData
+                    };
+                    $scope.$socketPromise("updateImageUrl", sendQuery);
+                    alert($translate('Upload Successful'));
+                    vm.providerClicked(1, vm.SelectedProvider);
+                } else {
+                    vm.uploadImageMsg = "Please choose an image first";
+                }
             };
 
             vm.getAllAutoFeedback = function() {

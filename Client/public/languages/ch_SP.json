@@ -160,6 +160,8 @@
   "Reward code": "系统代码",
   "Reward apply type": "优惠提案申请(生成)方式",
   "Is player manually applicable": "前端展示按钮",
+  "Is show in production server": "正式站展示",
+  "IS_SHOW_PRODUCTION_SERVER": "正式站是否展示",
   "Is ignore audit": "优惠提案生成后，将自动添加(忽略审核部)",
   "Reward start time": "优惠起始时间",
   "Reward end time": "优惠结束时间",
@@ -3263,6 +3265,7 @@
   "REWARD_CODE_DETAIL": "系统中的编号（自定义/不可重复）",
   "REWARD_APPLY_TYPE_DETAIL": "如选 3.提交时间必须在周期结束后隔日",
   "REWARD_CLIENT_APPLY_DETAIL": "玩家页面将可看见按钮并点击",
+  "REWARD_SERVER_SHOW_DETAIL": "正式站是否显示优惠",
   "REWARD_IGNORE_AUDIT_DETAIL": "不勾选会依据『提案流程』来走",
   "REWARD_TOP_UP_TYPE_DETAIL": "可指定详细存款方式",
   "REWARD_INTERVAL_DETAIL": "按照日历来定义周期（0点分界）",
@@ -3901,6 +3904,8 @@
   "FPMS Group": "FPMS组",
   "PMS Group": "PMS组",
   "Player's Name (PMS Group Search)": "会员账号（PMS 分组查询）",
+  "Delete Provider Group": "删除锁大厅组",
+  "This will release all rewards amount binded with this group to player.": "这将会解锁所有此大厅的锁定额度，释放成自由额度。",
 
   "RECEIVE_BANK_TYPE": "收款银行类型",
   "RECEIVE_BANK_ACC": "收款银行账号",
@@ -4227,5 +4232,14 @@
   "CHILD_PARTNER_COMMISSION_TYPE": "二级代理佣金模式",
   "CHILD_PARTNER_TOTAL_WINLOSE": "二级代理下线玩家总输赢",
   "CHILD_PARTNER_RELATED_PROPOSAL_NO": "相关二级代理佣金提案号",
-  "NOT_EXIST": "未建立"
+  "NOT_EXIST": "未建立",
+  "Transfer Partner Credit To Player": "代理转帐至下线玩家",
+  "Before Transfer": "转帐前",
+  "After Transfer": "转帐后",
+  "Search by Downline Player Name": "搜索下线玩家帐号",
+  "Empty: Default(ALL)": "（空：默认全部）",
+  "Downline Player Name": "下线玩家帐号",
+  "Transfer Credit (Only allow positive value)": "转帐金额（只能填正数）",
+  "Withdraw Consumption (Accurate number/non-multiple)": "提款流水（准确数字/非倍数）",
+  "EachPage": "每页"
 }
