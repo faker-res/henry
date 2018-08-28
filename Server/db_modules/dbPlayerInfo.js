@@ -724,7 +724,7 @@ let dbPlayerInfo = {
         return dbUtility.getIDCIpDetail(ipAddress).then(
             idcDetail => {
                 if (idcDetail) {
-                    return dbPlayerCredibility.addFixedCredibilityRemarkToPlayer(platformObjId, playerObjId, 'IDC')
+                    return dbPlayerCredibility.addFixedCredibilityRemarkToPlayer(platformObjId, playerObjId, '机房IP')
                 }
             }
         )
