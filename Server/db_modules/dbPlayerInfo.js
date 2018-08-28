@@ -16154,6 +16154,7 @@ let dbPlayerInfo = {
             console.log("checking---yH---filteredDomain", filteredDomain);
 
             let regExpDomain = /[a-zA-Z]+.[a-zA-Z]+/;
+            console.log('regExpDomain', regExpDomain.test(filteredDomain));
 
             let promoteWayProm = filteredDomain && regExpDomain.test(filteredDomain) ?
                 dbconfig.collection_csOfficerUrl.findOne({
