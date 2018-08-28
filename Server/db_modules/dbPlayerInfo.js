@@ -4573,11 +4573,15 @@ let dbPlayerInfo = {
                                     let skippedIP = ['localhost', '127.0.0.1'];
 
                                     if (fullPhoneNumber) {
-                                        dbPlayerInfo.getPagedSimilarPhoneForPlayers(playerId, platformId, fullPhoneNumber, true, index, limit, sortObj, adminName);
+                                        dbPlayerInfo.getPagedSimilarPhoneForPlayers(
+                                            playerId, platformId, fullPhoneNumber, true, index, limit, sortObj,
+                                            adminName).catch(errorUtils.reportError);
                                     }
 
                                     if (lastLoginIp && !skippedIP.includes(lastLoginIp)) {
-                                        dbPlayerInfo.getPagedSimilarIpForPlayers(playerId, platformId, lastLoginIp, true, index, limit, sortObj, adminName);
+                                        dbPlayerInfo.getPagedSimilarIpForPlayers(
+                                            playerId, platformId, lastLoginIp, true, index, limit, sortObj,
+                                            adminName).catch(errorUtils.reportError);
                                     }
                                 }
                             }
@@ -16159,7 +16163,7 @@ let dbPlayerInfo = {
             let filteredDomain = dbUtility.filterDomainName(domain);
             console.log("checking---yH---filteredDomain", filteredDomain)
 
-            let promoteWayProm = domain ?
+            let promoteWayProm = domain && filteredDomain ?
                 dbconfig.collection_csOfficerUrl.findOne({
                     platform: platformObjId,
                     // domain: {$regex: filteredDomain, $options: "xi"}
@@ -16167,7 +16171,12 @@ let dbPlayerInfo = {
                 }).populate({
                     path: 'admin',
                     model: dbconfig.collection_admin
-                }).lean() : Promise.resolve(false);
+                }).lean().catch(
+                    err => {
+                        console.log('error - 1128', err);
+                        return false;
+                    }
+                ) : Promise.resolve(false);
 
             return Promise.all([consumptionProm, topUpProm, bonusProm, consumptionReturnProm, rewardProm, playerProm, promoteWayProm]).then(
                 data => {
