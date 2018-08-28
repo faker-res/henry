@@ -1462,6 +1462,82 @@ p
                 button.btn.btn-success.common-button(ng-click="vm.editChildPartner()"  ng-if="!vm.isChildPartnerEditing && checkViewPermission('Platform', 'Partner', 'EditChildPartner')") {{"EDIT" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss="modal" ng-if="vm.isChildPartnerEditing && checkViewPermission('Platform', 'Partner', 'EditChildPartner')" ng-click="vm.submitChildPartner()" ng-disabled='vm.disableEditChildPartner') {{"CONFIRM" | translate}}
 
+#modalTransferPartnerCreditToPlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:85%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Transfer Partner Credit To Player" | translate}}: {{vm.selectedSinglePartner.partnerName}}
+
+            .modal-body
+                div
+                    table.simple-table
+                        tbody
+                            tr
+                                td(style="width:280px")
+                                td(style="width:280px") {{'Before Transfer' | translate}}
+                                td(style="width:280px") {{'After Transfer' | translate}}
+                                th(rowspan=3 style="vertical-align:bottom;")
+                                    button.btn.btn-primary.common-button(ng-click='vm.loadDownlinePlayersRecord();' style="margin-left:5px") {{'SEARCH' | translate}}
+                            tr
+                                td {{'PARTNER_ACCOUNT_BALANCE' | translate}} :
+                                td {{vm.selectedSinglePartner.credits || 0}}
+                                td(style='color:red') {{vm.sumTotalTransferAmount > 0 ? vm.selectedSinglePartner.credits - vm.sumTotalTransferAmount : 0 || 0}}
+
+                            tr
+                                td {{'Search by Downline Player Name' | translate}} :
+                                td(colspan=2)
+                                    input.form-control(style="text" placeholder="{{'Empty: Default(ALL)' | translate}}" ng-model="vm.downlinePlayerName")
+                br
+                div(style='min-height:500px')
+                    label {{"Total" | translate}} {{vm.downlinePlayers.totalCount}} {{"COUNT1" | translate}}
+                    table.simple-table
+                        thead
+                            tr
+                                th {{'order' | translate}}
+                                th {{'Downline Player Name' | translate}}
+                                th {{'Transfer Credit (Only allow positive value)' | translate}}
+                                th {{'Provider group' | translate}}
+                                th {{'Withdraw Consumption (Accurate number/non-multiple)' | translate}}
+
+                        tbody
+                            tr(ng-repeat='(idx, val) in vm.downlinePlayersData')
+                                td {{val.orderNo}}
+                                td {{val.name}}
+                                td
+                                    input.form-control(type='number', ng-model='val.amount', ng-change='vm.getSumTotalTransferAmount(vm.downlinePlayersData);vm.disableTransferPartnerCreditToPlayer(val.amount)' ng-disabled='!vm.isEditingTransferPartnerCredit', style='color:red')
+                                td
+                                    select.form-control(ng-model='val.providerGroup' ng-disabled='!vm.isEditingTransferPartnerCredit')
+                                        option(value='') {{'LOCAL_CREDIT' | translate}}
+                                        option(ng-repeat='(i,v) in vm.gameProviderGroup', value='{{v._id}}') {{ v.name }}
+                                td {{vm.downlinePlayersData[idx].amount}}
+                            tr(ng-if='vm.downlinePlayersData.length > 0')
+                                td(colspan=2) {{'All Pages' | translate}}
+                                td(style='color:red') {{vm.sumTotalTransferAmount || 0}}
+                                td(colspan=2)
+                            tr(ng-if='vm.downlinePlayersData.length == 0')
+                                td(colspan=5) {{'No data available in table' | translate}}
+
+                        tfoot
+                            tr
+                                th
+                                    div(style='display:inline-block;font-weight:normal')
+                                        text.margin-right-5(style='display:inline-block') {{'EachPage' | translate}}
+                                        input.form-control(style='max-width:60px;display:inline-block;',type='number',ng-init=50,ng-model='vm.downlinePlayers.limit' ,ng-blur='vm.loadDownlinePlayersRecord()')
+                                        text.margin-left-5(style="display:inline-block") {{'COUNT1' | translate}}
+                                th(colspan=4 style="text-align:right")
+                                    div(style='display:inline-block;font-weight:normal')
+                                        text.margin-right-5(style='display:inline-block') {{'Jump to' | translate}}
+                                        input.form-control.margin-right-5(style='max-width:60px;display:inline-block', type='number',ng-model='vm.downlinePlayers.currentPage',ng-init=1 ,ng-blur="vm.gotoDownlinePlayerPage((vm.downlinePlayers.currentPage),null)")
+                                        text(style="display:inline-block") / {{ vm.downlinePlayers.totalPage }} {{'Page' | translate}}
+                                    div(style='display:inline-block')
+                                        button.btn.btnPage.next_page.margin-left-5(style='border: 1px solid #878787;margin-top:2px' ng-click='vm.nextDownlinePlayerPage()', ng-disabled='vm.downlinePlayers.currentPage == vm.downlinePlayers.totalPage') {{'NEXT_PAGE' | translate}}
+
+            .modal-footer
+                button.btn.btn-danger.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+                button.btn.btn-success.common-button(ng-click='vm.editTransferPartnerCreditToPlayer()' ng-if='!vm.isEditingTransferPartnerCredit' ng-disabled='vm.downlinePlayersData.length == 0') {{"EDIT" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal' ng-click='' ng-if='vm.isEditingTransferPartnerCredit' ng-disabled='vm.isTransferPartnerCreditToPlayer') {{"CONFIRM" | translate}}
+
 include partner-feedback-popup
 include ../common-widget/telephone-popover
 include ../common-widget/modalYesNo

@@ -512,6 +512,7 @@ form(name="form_new_platform" ,novalidate)
                                     th {{'BANNER TITLE' | translate}}
                                     th {{'DISPLAY BACKGROUND IMAGE' | translate}}
                                     th {{'BANNER LINK BUTTON' | translate}}
+                                    th {{'IS_SHOW_PRODUCTION_SERVER' | translate}}
                                     th {{'ACTION_BUTTON' | translate}}
                             tbody
                                 tr(ng-if="vm.showAdvertisementRecord" ng-repeat="a in vm.displayAdvertisementList" )
@@ -565,6 +566,8 @@ form(name="form_new_platform" ,novalidate)
                                                                         td
                                                                             a(href='{{v.hyperLink}}', title='{{v.hyperLink}}', target='_blank') {{v.hyperLinkDisplay | translate}}
                                                                             //input(type='text' , ng-model='v.hyperLink', style="margin-bottom: 2px;")
+                                    td(ng-class='{grayRow: a.status==0}')
+                                        input(type="checkbox" ng-model="a.showInRealServer" ng-disabled='true')
                                     td(ng-class='{grayRow: a.status==0}')
                                         div(style="display: inline-grid; font-size: 10px;")
                                             button.common-button.btn.btn-info(ng-click="vm.selectedAdvListData(a._id,vm.subject='player');vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false);" data-toggle="modal", data-target="#modalAdvPlatform" style="width: auto; background-color: #5bc0de") {{'PREVIEW AND SETTING' | translate}}
@@ -635,6 +638,8 @@ form(name="form_new_platform" ,novalidate)
                                                                             label {{'HYPERLINK' | translate}}
                                                                         td
                                                                             input(type='text' , ng-model='c.hyperLink', style="margin-bottom: 2px;")
+                                    td(ng-class='{grayRow: a.status==0}')
+                                        input(type="checkbox" ng-model="a.showInRealServer")
                                     td
                                         div(style="display: inline-grid;font-size: 10px;")
                                             button.common-button.btn.btn-info(ng-click="vm.savePlayerAdvertisementRecordChanges();" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
@@ -658,6 +663,7 @@ form(name="form_new_platform" ,novalidate)
                                         th {{'BANNER TITLE' | translate}}
                                         th {{'DISPLAY BACKGROUND IMAGE' | translate}}
                                         th {{'BANNER LINK BUTTON' | translate}}
+                                        th {{'IS_SHOW_PRODUCTION_SERVER' | translate}}
                                         th {{'ACTION_BUTTON' | translate}}
                                 tbody
                                     tr
@@ -722,6 +728,8 @@ form(name="form_new_platform" ,novalidate)
                                                                                 label {{'HYPERLINK' | translate}}
                                                                             td
                                                                                 input(type='text' , ng-model='v.hyperLink', style="margin-bottom: 2px;")
+                                        td
+                                            input(type='checkbox' , ng-model='vm.playerAdvertisementGroup.showInRealServer')
                                         td
                                             div(style="display: inline-grid; font-size: 10px;")
                                                 button.common-button.btn.btn-info(ng-click="vm.addNewPlayerAdvertisementRecord();vm.playerAdvertisementList();" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
@@ -1191,6 +1199,7 @@ form(name="form_new_platform" ,novalidate)
                                     th {{'BANNER TITLE' | translate}}
                                     th {{'DISPLAY BACKGROUND IMAGE' | translate}}
                                     th {{'BANNER LINK BUTTON' | translate}}
+                                    th {{'IS_SHOW_PRODUCTION_SERVER' | translate}}
                                     th {{'ACTION_BUTTON' | translate}}
                             tbody
                                 tr(ng-if="vm.showPartnerAdvertisementRecord" ng-repeat="a in vm.displayPartnerAdvertisementList" )
@@ -1244,6 +1253,8 @@ form(name="form_new_platform" ,novalidate)
                                                                         td
                                                                             a(href='{{v.hyperLink}}', title='{{v.hyperLink}}', target='_blank') {{v.hyperLinkDisplay | translate}}
                                                                             //input(type='text' , ng-model='v.hyperLink', style="margin-bottom: 2px;")
+                                    td(ng-class='{grayRow: a.status==0}')
+                                        input(type="checkbox" ng-model="a.showInRealServer" ng-disabled='true')
                                     td(ng-class='{grayRow: a.status==0}')
                                         div(style="display: inline-grid; font-size: 10px;")
                                             button.common-button.btn.btn-info(ng-click="vm.selectedAdvListData(a._id,vm.subject='partner');vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false)" data-toggle="modal", data-target="#modalAdvPlatform" style="width: auto; background-color: #5bc0de") {{'PREVIEW AND SETTING' | translate}}
@@ -1314,6 +1325,8 @@ form(name="form_new_platform" ,novalidate)
                                                                             label {{'HYPERLINK' | translate}}
                                                                         td
                                                                             input(type='text' , ng-model='c.hyperLink', style="margin-bottom: 2px;")
+                                    td(ng-class='{grayRow: a.status==0}')
+                                        input(type="checkbox" ng-model="a.showInRealServer")
                                     td
                                         div(style="display: inline-grid;font-size: 10px;")
                                             button.common-button.btn.btn-info(ng-click="vm.savePartnerAdvertisementRecordChanges();" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
@@ -1337,6 +1350,7 @@ form(name="form_new_platform" ,novalidate)
                                         th {{'BANNER TITLE' | translate}}
                                         th {{'DISPLAY BACKGROUND IMAGE' | translate}}
                                         th {{'BANNER LINK BUTTON' | translate}}
+                                        th {{'IS_SHOW_PRODUCTION_SERVER' | translate}}
                                         th {{'ACTION_BUTTON' | translate}}
                                 tbody
                                     tr
@@ -1399,6 +1413,8 @@ form(name="form_new_platform" ,novalidate)
                                                                                 label {{'HYPERLINK' | translate}}
                                                                             td
                                                                                 input(type='text' , ng-model='v.hyperLink', style="margin-bottom: 2px;")
+                                        td
+                                            input(type='checkbox' , ng-model='vm.partnerAdvertisementGroup.showInRealServer')
                                         td
                                             div(style="display: inline-grid; font-size: 10px;")
                                                 button.common-button.btn.btn-info(ng-click="vm.addNewPartnerAdvertisementRecord();vm.partnerAdvertisementList();" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}

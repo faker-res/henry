@@ -13934,6 +13934,11 @@ let dbPlayerInfo = {
     },
 
     updatePlayerCredibilityRemark: (adminName, platformObjId, playerObjId, remarks, comment) => {
+        // Avoid assigning empty remarks
+        if (!remarks) {
+            return;
+        }
+
         return dbconfig.collection_players.findOneAndUpdate(
             {
                 _id: playerObjId,
@@ -16115,9 +16120,12 @@ let dbPlayerInfo = {
             let playerProm = dbconfig.collection_players.findOne(
                 playerQuery, {
                     playerLevel: 1, credibilityRemarks: 1, name: 1, valueScore: 1, registrationTime: 1, accAdmin: 1,
-                    promoteWay: 1, phoneProvince: 1, phoneCity: 1, province: 1, city: 1, depositTrackingGroup: 1
+                    promoteWay: 1, phoneProvince: 1, phoneCity: 1, province: 1, city: 1, depositTrackingGroup: 1, csOfficer: 1
                 }
-            ).lean();
+            ).populate({
+                path: 'csOfficer',
+                model: dbconfig.collection_admin
+            }).lean();
 
             // Promise domain CS and promote way
             console.log("checking---yH---domain", domain)
@@ -16362,6 +16370,9 @@ let dbPlayerInfo = {
                     else if (csOfficerDetail) {
                         result.csOfficer = csOfficerDetail.admin ? csOfficerDetail.admin.adminName : "";
                         // result.csPromoteWay = csOfficerDetail.way;
+                    }
+                    else if (playerDetail.csOfficer){
+                        result.csOfficer = playerDetail.csOfficer.adminName || "";
                     }
 
                     if (playerDetail && playerDetail.promoteWay) {
