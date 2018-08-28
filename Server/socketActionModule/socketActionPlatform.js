@@ -745,11 +745,6 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data], actionName, isValidData);
-        },
-        testScheduler: function testScheduler() {
-            let actionName = arguments.callee.name;
-            let isValidData = true;
-            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.executeAutoFeedback, [], actionName, isValidData);
         }
     };
     socketActionPlatform.actions = this.actions;
