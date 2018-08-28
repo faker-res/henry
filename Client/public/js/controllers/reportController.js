@@ -2927,7 +2927,7 @@ define(['js/app'], function (myApp) {
                         if (item.credibilityRemarks) {
                             for (let i = 0; i < item.credibilityRemarks.length; i++) {
                                 for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                                    if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                    if (item.credibilityRemarks[i] && vm.credibilityRemarks[j] && vm.credibilityRemarks[j]._id && item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
                                         item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
                                     }
                                 }
@@ -3529,7 +3529,7 @@ define(['js/app'], function (myApp) {
                         for (let i = 0; i < item.credibilityRemarks.length; i++) {
                             if (item.credibilityRemarks[i]) {
                                 for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                                    if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                    if (vm.credibilityRemarks[j] && vm.credibilityRemarks[j]._id && item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
                                         item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
                                     }
                                 }
@@ -3801,7 +3801,7 @@ define(['js/app'], function (myApp) {
                         if (item.credibilityRemarks) {
                             for (let i = 0; i < item.credibilityRemarks.length; i++) {
                                 for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                                    if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                    if (item.credibilityRemarks[i] && vm.credibilityRemarks[j] && vm.credibilityRemarks[j]._id && item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
                                         item.credibility$ += vm.credibilityRemarks[j].name + breakLine;
                                     }
                                 }
@@ -4069,7 +4069,7 @@ define(['js/app'], function (myApp) {
                         if (item.credibilityRemarks) {
                             for (let i = 0; i < item.credibilityRemarks.length; i++) {
                                 for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                                    if (item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                    if (item.credibilityRemarks[i] && vm.credibilityRemarks[j] && vm.credibilityRemarks[j]._id && item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
                                         item.credibility$ += vm.credibilityRemarks[j].name + breakLine;
                                     }
                                 }
