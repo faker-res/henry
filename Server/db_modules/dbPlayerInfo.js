@@ -16157,7 +16157,7 @@ let dbPlayerInfo = {
                 dbconfig.collection_csOfficerUrl.findOne({
                     platform: platformObjId,
                     // domain: {$regex: filteredDomain, $options: "xi"}
-                    domain: new RegExp("/^" + filteredDomain + "/u", "i")
+                    domain: new RegExp("^" + filteredDomain, "ui")
                 }).populate({
                     path: 'admin',
                     model: dbconfig.collection_admin
