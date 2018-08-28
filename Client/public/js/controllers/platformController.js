@@ -10670,7 +10670,7 @@ define(['js/app'], function (myApp) {
                 if (!isConfirm) {
                     vm.modalYesNo = {};
                     vm.modalYesNo.modalTitle = $translate("Delete Provider Group");
-                    vm.modalYesNo.modalText = $translate("Delete provider group " + grp.name + "? This will release all rewards amount binded with this group to player.");
+                    vm.modalYesNo.modalText = $translate("Delete Provider Group") + " " + grp.name + "? " + $translate("This will release all rewards amount binded with this group to player.");
                     vm.modalYesNo.actionYes = () => vm.deleteProviderGroup(index, grp, true);
                     $('#modalYesNo').modal();
                 }
