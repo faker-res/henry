@@ -78,7 +78,6 @@ let dbPlatformAutoFeedback = {
             missionEndTime: {$gte: new Date()},
             enabled: true,
         };
-        // let playerQueries = [];
 
         return dbPlatformAutoFeedback.getAutoFeedback(query).then(autoFeedbacks => {
             let executeAutoFeedback = feedback => {
@@ -88,7 +87,6 @@ let dbPlatformAutoFeedback = {
                 let admins = [];
 
                 let departmentProm = dbDepartment.getDepartmentDetailsByPlatformObjId(feedback.platformObjId).then(departments => {
-                    console.log(departments);
                     departments.forEach(department => {
                         if(department._id == platformObjId) {
                             roles = department.roles;
@@ -113,7 +111,7 @@ let dbPlatformAutoFeedback = {
                     }
                 });
 
-                Promise.all([departmentProm]).then(data => {
+                return Promise.all([departmentProm]).then(data => {
                     let registerStartTime = feedback.registerStartTime;
                     let registerEndTime = feedback.registerEndTime;
                     let playerQuery = {platform: platformObjId};
@@ -420,7 +418,6 @@ let dbPlatformAutoFeedback = {
                     return dbconfig.collection_players.find(playerQuery).lean();
                 }).then(players => {
                     console.log("players", players);
-                    let relatedFeedbackPlayerObjIds = [];
                     let relatedFeedbackQuery = {};
                     let playerObjIds = [];
 
@@ -429,23 +426,35 @@ let dbPlatformAutoFeedback = {
                         relatedFeedbackQuery.topic = {$nin: feedback.filterFeedbackTopic};
                         relatedFeedbackQuery.platform = feedback.platformObjId;
                         relatedFeedbackQuery.playerId = {$in: playerObjIds};
-                    }
-                    return dbconfig.collection_playerFeedback.find(relatedFeedbackQuery).lean().then(feedbacks => {
-                        feedbacks.forEach(feedback => {relatedFeedbackPlayerObjIds.push(feedback.playerId)});
-                        return dbconfig.collection_players.find({_id: {$in: relatedFeedbackPlayerObjIds}}).lean().then(leftOutPlayers => {
-                            console.log("leftOutPlayers", leftOutPlayers);
-                            return players.concat(leftOutPlayers);
+
+                        return dbconfig.collection_playerFeedback.find(relatedFeedbackQuery).lean().then(feedbacks => {
+                            console.log("feedbacks", feedbacks);
+                            players.forEach((player, index) => {
+                                let exist = false;
+                                feedbacks.forEach(feedback => {
+                                    if(player._id.toString() == feedback.playerId.toString()) {
+                                        exist = true;
+                                    }
+                                });
+                                if(!exist) {
+                                    players.splice(index,1);
+                                }
+                            });
+                            return players;
                         });
-                    });
+                    } else {
+                        return players;
+                    }
                 }).then(filteredPlayers => {
                     console.log("filteredPlayers", filteredPlayers);
+                    return true;
                 });
             };
 
             let executionChain = Promise.resolve();
             autoFeedbacks.forEach(feedback => {
-                executionChain.then(()=>{
-                    executeAutoFeedback(feedback);
+                executionChain = executionChain.then(()=>{
+                    return executeAutoFeedback(feedback);
                 });
             });
             return executionChain;
