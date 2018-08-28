@@ -4573,11 +4573,15 @@ let dbPlayerInfo = {
                                     let skippedIP = ['localhost', '127.0.0.1'];
 
                                     if (fullPhoneNumber) {
-                                        dbPlayerInfo.getPagedSimilarPhoneForPlayers(playerId, platformId, fullPhoneNumber, true, index, limit, sortObj, adminName);
+                                        dbPlayerInfo.getPagedSimilarPhoneForPlayers(
+                                            playerId, platformId, fullPhoneNumber, true, index, limit, sortObj,
+                                            adminName).catch(errorUtils.reportError);
                                     }
 
                                     if (lastLoginIp && !skippedIP.includes(lastLoginIp)) {
-                                        dbPlayerInfo.getPagedSimilarIpForPlayers(playerId, platformId, lastLoginIp, true, index, limit, sortObj, adminName);
+                                        dbPlayerInfo.getPagedSimilarIpForPlayers(
+                                            playerId, platformId, lastLoginIp, true, index, limit, sortObj,
+                                            adminName).catch(errorUtils.reportError);
                                     }
                                 }
                             }
