@@ -4570,8 +4570,15 @@ let dbPlayerInfo = {
                                     delete playerData[ind].fullPhoneNumber;
 
                                     // add fixed credibility remarks
-                                    dbPlayerInfo.getPagedSimilarPhoneForPlayers(playerId, platformId, fullPhoneNumber, true, index, limit, sortObj, adminName);
-                                    dbPlayerInfo.getPagedSimilarIpForPlayers(playerId, platformId, lastLoginIp, true, index, limit, sortObj, adminName);
+                                    let skippedIP = ['localhost', '127.0.0.1'];
+
+                                    if (fullPhoneNumber) {
+                                        dbPlayerInfo.getPagedSimilarPhoneForPlayers(playerId, platformId, fullPhoneNumber, true, index, limit, sortObj, adminName);
+                                    }
+
+                                    if (lastLoginIp && !skippedIP.includes(lastLoginIp)) {
+                                        dbPlayerInfo.getPagedSimilarIpForPlayers(playerId, platformId, lastLoginIp, true, index, limit, sortObj, adminName);
+                                    }
                                 }
                             }
                             return Q.all(players)
