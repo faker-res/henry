@@ -939,6 +939,10 @@ var dbUtility = {
             filteredDomain = filteredDomain.split("/")[0];
         }
 
+        if (filteredDomain.indexOf("#") !== -1) {
+            filteredDomain = filteredDomain.split("#")[0];
+        }
+
         return filteredDomain;
     },
 
