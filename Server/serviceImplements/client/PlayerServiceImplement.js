@@ -35,13 +35,7 @@ let PlayerServiceImplement = function () {
     this.create.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data.name && data.platformId && data.password /*&& (data.password.length >= constSystemParam.PASSWORD_LENGTH)*/ && (!data.realName || data.realName.match(/\d+/g) === null));
         if (data.smsCode || ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha')) {
-            data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
-            var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
-            if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-                if(forwardedIp[0].trim() != "undefined"){
-                    data.lastLoginIp = forwardedIp[0].trim();
-                }
-            }
+            data.lastLoginIp = dbUtility.getIpAddress(conn);
             data.loginIps = [data.lastLoginIp];
             let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
             var uaString = conn.upgradeReq.headers['user-agent'];
