@@ -1888,6 +1888,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.getWinRateReportData()') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click='vm.exportToExcel("winRateSummaryTable", "WINRATE_REPORT")') {{'EXPORT_EXCEL' | translate}}
                     span#winRateTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.winRateReportLoadingStatus}}
