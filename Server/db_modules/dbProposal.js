@@ -3310,6 +3310,7 @@ var proposal = {
 
         let consumpQuery = {
             platformId: reqData.platformId,
+            betDetails: {$exists: true},
             createTime: {
                 $gte: reqData.startTime,
                 $lt: reqData.endTime
