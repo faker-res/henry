@@ -481,7 +481,9 @@ var rootObj = {};
             return;
         var key = "";
         for(var i = 0; i < this._syncKeys.length; i++){
-            key += String(data[this._syncKeys[i]]);
+            if (typeof data[this._syncKeys[i]] !== "undefined") {
+                key += String(data[this._syncKeys[i]]);
+            }
         }
         return key;
     };
