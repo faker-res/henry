@@ -298,6 +298,11 @@ define(['js/app'], function (myApp) {
 
         vm.loadTab = function (tabName) {
             vm.selectedTab = tabName;
+
+            switch(tabName) {
+                case 'PHONE_MISSION':
+                    vm.initTeleMarketingOverview();
+            }
         };
 
         //set selected platform node
@@ -322,23 +327,11 @@ define(['js/app'], function (myApp) {
             }
             vm.getPlatformProviderGroup();
             vm.phoneNumFilterClicked();
-
-            vm.teleMarketingTaskTab ='TELEMARKETING_TASK_OVERVIEW';
-            vm.initTeleMarketingOverview();
         };
 
         //search and select platform node
         vm.searchAndSelectPlatform = function (text, option) {
-            // var findNodes = $('#platformTree').treeview('search', [text, {
-            //     ignoreCase: false,
-            //     exactMatch: true
-            // }]);
-            // if (findNodes && findNodes.length > 0) {
-            //     vm.selectPlatformNode(findNodes[0], option);
-            //     $('#platformTree').treeview('selectNode', [findNodes[0], {silent: true}]);
-            // }
-
-            var findNodes = vm.allPlatformData.filter(e => e.name === text);
+            let findNodes = vm.allPlatformData.filter(e => e.name === text);
             if (findNodes && findNodes.length > 0) {
                 selectPlatformNode(findNodes[0], option);
             } else {
