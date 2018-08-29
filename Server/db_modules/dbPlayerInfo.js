@@ -11346,11 +11346,15 @@ let dbPlayerInfo = {
             }
         ).then(
             loginData => ({gameURL: loginData.gameURL}),
-            error => Q.reject({
-                status: constServerCode.INVALID_API_USER,
-                name: "DataError",
-                message: "Please login and try again"
-            })
+            error => {
+                console.log('error', error);
+                return Promise.reject({
+                    status: constServerCode.INVALID_API_USER,
+                    name: "DataError",
+                    message: "Please login and try again",
+                    error: error
+                })
+            }
         );
     },
 

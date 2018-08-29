@@ -2865,6 +2865,16 @@
   "BET_TIME": "下注时间",
   "STATE": "状态",
   "range": "区间",
+  "NEW_PHONE_LIST": "新增名单",
+  "PHONE_LISTS": "名单报表",
+  "PHONE_LIST_MANAGEMENT": "名单管理",
+  "PHONE_LIST_ASSIGNMENT": "派发名单",
+  "SALES_CONFIGURATION": "基础数据",
+  "MEMBER_INFO": "客户资料",
+  "PHONE_LOOKUP": "号码查询",
+  "SALES_REPORT": "人员报表",
+  "MEMBER_REPORT": "客户报表",
+  "PHONE_MISSION": "短信任务",
   "PLAYER'S CDN/FTP ROUTE SETTING": "玩家 CDN/FTP 相对路径配置",
   "PARTNER'S CDN/FTP ROUTE SETTING": "代理 CDN/FTP 相对路径配置",
   "CDN/FTP ROUTE SETTING": "相对路径配置",
@@ -4250,5 +4260,9 @@
   "PROVIDER_GROUP": "锁大厅",
   "Withdraw Consumption": "流水",
   "Transferred Amount": "金额",
-  "DownlineReceivePartnerCredit": "下线玩家接收代理转帐"
+  "DownlineReceivePartnerCredit": "下线玩家接收代理转帐",
+  "Downline Player ID": "下线玩家ID",
+  "Received Amount": "接收金额",
+  "Proposal No. of Partner Transfer Credit to Downline": "代理转帐至下线玩家提案号",
+  "Partner Proposal No": "代理提案号"
 }
