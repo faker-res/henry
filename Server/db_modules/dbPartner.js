@@ -7080,12 +7080,14 @@ let dbPartner = {
                                     }
                                 }
                             })
-                            let commissionObj = {
-                                providerGroupId: oriCommission[j].provider && oriCommission[j].provider.hasOwnProperty("providerGroupId") ? oriCommission[j].provider.providerGroupId : "",
-                                providerGroupName: oriCommission[j].provider.name ? oriCommission[j].provider.name : "",
-                                list: oriCommission[j].commissionSetting
-                            };
-                            returnData.push(commissionObj);
+                            if(oriCommission[j].provider){
+                                let commissionObj = {
+                                    providerGroupId: oriCommission[j].provider && oriCommission[j].provider.hasOwnProperty("providerGroupId") ? oriCommission[j].provider.providerGroupId : "",
+                                    providerGroupName: oriCommission[j].provider.name ? oriCommission[j].provider.name : "",
+                                    list: oriCommission[j].commissionSetting
+                                };
+                                returnData.push(commissionObj);
+                            }
                         }
                     } else {
                         for (let i = 0; i < commissionData.length; i++) {
