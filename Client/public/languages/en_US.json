@@ -1659,5 +1659,11 @@
   "CHILD_PARTNER_RELATED_PROPOSAL_NO": "Related Child Partner Proposal No.",
   "FIRST_TIME": "First Time",
   "SECOND_TIME": "Second Time",
-  "THIRD_TIME": "Third Time"
+  "THIRD_TIME": "Third Time",
+  "PartnerCreditTransferToDownline": "Partner Credit Transfer to Player",
+  "PROVIDER_GROUP": "Provider Group",
+  "PARTNER_CREDIT_AMOUNT_BEFORE_TRANSFER": "Partner Credit Amount Before Transfer",
+  "PARTNER_CREDIT_AMOUNT_AFTER_TRANSFER": "Partner Credit Amount After Transfer",
+  "TOTAL_TRANSFER_PARTNER_CREDIT_AMOUNT": "Total Transfer Partner Credit Amount",
+  "DownlineReceivePartnerCredit": "Downline Receive Partner Credit"
 }

@@ -16658,6 +16658,7 @@ define(['js/app'], function (myApp) {
                         vm.queryDepartments.push({_id:'', departmentName:'N/A'});
 
                         vm.currentPlatformDepartment.map(e => {
+                            // this implies the name has to be exactly the same, case sensitive.
                             if (e.departmentName == vm.selectedPlatform.data.name) {
                                 vm.queryDepartments.push(e);
                                 parentId = e._id;
@@ -33284,7 +33285,7 @@ define(['js/app'], function (myApp) {
                     console.log("getAllAutoFeedbackMissions ret",data);
                     vm.autoFeedbackMissions = data.data;
                 });
-            }
+            };
         };
 
         let injectParams = [

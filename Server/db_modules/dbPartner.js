@@ -8923,6 +8923,24 @@ let dbPartner = {
         );
     },
 
+    transferPartnerCreditToPlayer: (platformId, partnerObjId, currentCredit, updateCredit, totalTransferAmount, transferToPlayers, adminInfo) => {
+        return dbconfig.collection_partner.findOne({platform: platformId, _id: partnerObjId}).lean().then( partnerData => {
+            if (partnerData) {
+                if (partnerData.credits) {
+                    if(partnerData.credits != currentCredit) {
+                        return Promise.reject({name: "DataError", message: "Partner does not have enough credit."});
+                    } else {
+                        return applyTransferPartnerCreditToPlayer(platformId, partnerData, currentCredit, updateCredit, totalTransferAmount, transferToPlayers, adminInfo);
+                    }
+                } else {
+                    return Promise.reject({name: "DataError", message: "Partner does not have enough credit."});
+                }
+            } else {
+                return Promise.reject({name: "DataError", message: "Invalid partner data"});
+            }
+        })
+    },
+
     getChildPartnerRecords: (platformId, partnerObjId) => {
         let childPartnerData = [];
         let childPartnerNameArr = [];
@@ -10130,6 +10148,43 @@ function updateParentPartnerCommission(commissionLog, adminInfo, proposalId) {
                     childPlayerTotalWinLose: commissionLog.parentPartnerCommissionDetail.totalWinLose,
                     relatedProposalId: proposalId,
                     remark: proposalRemark
+                },
+                entryType: constProposalEntryType.ADMIN,
+                userType: constProposalUserType.PARTNERS
+            };
+
+            return dbProposal.createProposalWithTypeId(proposalType._id, proposalData);
+        }
+    );
+}
+
+function applyTransferPartnerCreditToPlayer(platformId, partner, currentCredit, updateCredit, totalTransferAmount, transferToPlayers, adminInfo) {
+    // find proposal type
+    return dbconfig.collection_proposalType.findOne({name: constProposalType.PARTNER_CREDIT_TRANSFER_TO_DOWNLINE, platformId: platformId}).lean().then(
+        proposalType => {
+            if (!proposalType) {
+                return Promise.reject({
+                    message: "Error in getting proposal type"
+                });
+            }
+
+            // create proposal data
+            let proposalData = {
+                type: proposalType._id,
+                creator: adminInfo ? adminInfo : {
+                    type: 'partner',
+                    name: partner.partnerName,
+                    id: partner._id
+                },
+                data: {
+                    partnerObjId: partner._id,
+                    platformObjId: platformId,
+                    partnerId: partner.partnerId,
+                    partnerName: partner.partnerName,
+                    currentCredit: currentCredit,
+                    updateCredit: updateCredit,
+                    amount: -totalTransferAmount,
+                    transferToDownlineDetail: transferToPlayers
                 },
                 entryType: constProposalEntryType.ADMIN,
                 userType: constProposalUserType.PARTNERS
