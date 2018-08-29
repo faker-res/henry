@@ -745,6 +745,30 @@ var roleChecker = {
                 queryByTotalValidPlayer: [],
                 queryByTotalDepositAmount: [],
                 queryByTotalValidConsumption: [],
+            },
+            PHONE_LISTS: {
+                Read: []
+            },
+            PHONE_LIST_MANAGEMENT: {
+                Read: []
+            },
+            PHONE_LIST_ASSIGNMENT: {
+                Read: []
+            },
+            SALES_CONFIGURATION: {
+                Read: []
+            },
+            MEMBER_INFO: {
+                Read: []
+            },
+            PHONE_LOOKUP: {
+                Read: []
+            },
+            SALES_REPORT: {
+                Read: []
+            },
+            MEMBER_REPORT: {
+                Read: []
             }
         }
     },
