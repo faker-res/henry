@@ -28662,11 +28662,13 @@ define(['js/app'], function (myApp) {
                 vm.selectedProposalType = {};
                 if (data) {
                     $.each(data, function (i, v) {
-                        var obj = {
-                            text: $translate(v.name),
-                            data: v
+                        if (v && v.name && v.name != 'DownlineReceivePartnerCredit') {
+                            var obj = {
+                                text: $translate(v.name),
+                                data: v
+                            }
+                            vm.proposalTypeList.push(obj);
                         }
-                        vm.proposalTypeList.push(obj);
                     });
                 }
                 $('#proposalTypeTree').treeview(

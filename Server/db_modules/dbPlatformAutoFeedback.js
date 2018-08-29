@@ -426,17 +426,20 @@ let dbPlatformAutoFeedback = {
                         relatedFeedbackQuery.topic = {$nin: feedback.filterFeedbackTopic};
                         relatedFeedbackQuery.platform = feedback.platformObjId;
                         relatedFeedbackQuery.playerId = {$in: playerObjIds};
+                        if(feedback.filterFeedback) {
+                            relatedFeedbackQuery.createTime = {$lt: dbutility.getDayEndTime(dbutility.getNDaysAgoFromSpecificStartTime(new Date(), feedback.filterFeedback))};
+                        }
 
-                        return dbconfig.collection_playerFeedback.find(relatedFeedbackQuery).lean().then(feedbacks => {
-                            console.log("feedbacks", feedbacks);
+                        return dbconfig.collection_playerFeedback.distinct("playerId", relatedFeedbackQuery).lean().then(feedbackPlayerObjIds => {
+                            console.log("feedbackPlayerObjIds", feedbackPlayerObjIds);
                             players.forEach((player, index) => {
                                 let exist = false;
-                                feedbacks.forEach(feedback => {
-                                    if(player._id.toString() == feedback.playerId.toString()) {
+                                feedbackPlayerObjIds.forEach(feedbackPlayerObjId => {
+                                    if(player._id.toString() == feedbackPlayerObjId.toString()) {
                                         exist = true;
                                     }
                                 });
-                                if(!exist) {
+                                if(!exist && player.lastFeedbackTime) {
                                     players.splice(index,1);
                                 }
                             });
