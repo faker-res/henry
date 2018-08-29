@@ -13,7 +13,7 @@
                 .full-width-input-block
                     label {{"Feedback Mission Name"|translate}}
                     div(style="display:inline-block;")
-                        input.form-control(type="text" ng-model="vm.autoFeedbackMission.name")
+                        input.form-control(type="text" ng-model="vm.autoFeedbackMission.name" ng-disabled="vm.autoFeedbackEditStatus")
                 .full-width-input-block
                     label {{"Feedback Mission Remarks"|translate}}
                     div(style="display:inline-block;")
@@ -32,7 +32,7 @@
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                 .full-width-input-block
                     label {{"Feedback Mission Default Status"|translate}}
-                    select.form-control(style='max-width:300px', ng-model="vm.autoFeedbackMission.defaultStatus")
+                    select.form-control(style='max-width:300px', ng-model="vm.autoFeedbackMission.defaultStatus" ng-disabled="vm.autoFeedbackEditStatus")
                         option(value='Manual') {{'Manual' | translate}}
                         option(value='Active') {{'active' | translate}}
                 .full-width-input-block

@@ -591,6 +591,13 @@ var dbUtility = {
         return moment(date).add(n,'days').toDate();
     },
 
+    getNDaysAgoFromSpecificStartTime: function (inputDate, n) {
+        if (!(inputDate instanceof Date) || !Number.isInteger(n)) {
+            return;
+        }
+        return new Date(inputDate.setDate(inputDate.getDate() - n));
+    },
+
 
     /**
      * Get current week time frame based on settlement time
@@ -930,6 +937,10 @@ var dbUtility = {
 
         if (filteredDomain.indexOf("/") !== -1) {
             filteredDomain = filteredDomain.split("/")[0];
+        }
+
+        if (filteredDomain.indexOf("#") !== -1) {
+            filteredDomain = filteredDomain.split("#")[0];
         }
 
         return filteredDomain;

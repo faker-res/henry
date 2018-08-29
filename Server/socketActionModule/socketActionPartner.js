@@ -587,8 +587,17 @@ function socketActionPartner(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platform && data.partnerName);
             socketUtil.emitter(self.socket, dbPartner.checkChildPartnerNameValidity, [data.platform, data.partnerName], actionName, isValidData);
-        }
+        },
 
+        /**
+         * get downline player by entered player name or blank
+         * @param {json} data - It has to contain the query fields such as  bankAccount , partnerName, partnerId, level
+         */
+        getDownlinePlayersRecord: function getDownlinePlayersRecord(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.partnerObjId);
+            socketUtil.emitter(self.socket, dbPartner.getDownlinePlayersRecord, [data.platformId, data.partnerObjId, data.playerName, data.index, data.limit, data.sortCol], actionName, isValidData);
+        }
     };
 
     socketActionPartner.actions = this.actions;
