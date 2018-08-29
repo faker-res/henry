@@ -1,26 +1,47 @@
-.row.margin-left-5.margin-right-5(ng-show="checkViewPermission('TeleMarketing')")
+.row.padding-left-right-5(ng-show="checkViewPermission('TeleMarketing')")
     #marketingContent(style="padding-left:0;",ng-class='vm.rightPanelClass')
-        .padding-all-5
+        .col-md-12
+            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedTab === "NEW_PHONE_LIST"}', ng-click='vm.loadTab("NEW_PHONE_LIST")')
+                span {{"NEW_PHONE_LIST" | translate}}
+            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "history"}', ng-click='vm.promoCodeTabClicked("history")')
+                span {{"PHONE_LISTS" | translate}}
+            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "monitor"}', ng-click='vm.promoCodeTabClicked("monitor")')
+                span {{"PHONE_LIST_MANAGEMENT" | translate}}
+            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "activatePromoCode"}', ng-click='vm.promoCodeTabClicked("activatePromoCode")')
+                span {{"PHONE_LIST_ASSIGNMENT" | translate}}
+            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "smsContent"}', ng-click='vm.promoCodeTabClicked("smsContent")')
+                span {{"SALES_CONFIGURATION" | translate}}
+            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "userGroupConfig"}', ng-click='vm.promoCodeTabClicked("userGroupConfig")')
+                span {{"MEMBER_INFO" | translate}}
+            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "promoCodeAnalysis"}', ng-click='vm.promoCodeTabClicked("promoCodeAnalysis")')
+                span {{"PHONE_LOOKUP" | translate}}
+            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "promoCodeTemplate"}', ng-click='vm.promoCodeTabClicked("promoCodeTemplate")')
+                span {{"SALES_REPORT" | translate}}
+            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "openPromoCodeTemplate"}', ng-click='vm.promoCodeTabClicked("openPromoCodeTemplate")')
+                span {{"MEMBER_REPORT" | translate}}
+            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedTab === "PHONE_MISSION"}', ng-click='vm.loadTab("PHONE_MISSION")')
+                span {{"PHONE_MISSION" | translate}}
+        .col-md-12
             .panel.panel-primary
-                .panel-heading.common-left-panel-heading
-                    ul.nav.nav-tabs.common-nav-tabs(id='ulMenu')
-                        #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
+                div(ng-switch="vm.selectedTab")
+                    div(ng-switch-when="NEW_PHONE_LIST")
+                        include ./teleMarketing-phone-num-filter
+                    div(ng-switch-when="PHONE_MISSION")
+                        include ./teleMarketing-task
 
-                        li.active(ng-show="checkViewPermission('TeleMarketing', 'Task', 'Read')" style="margin-left: 20px;")
-                            a.common-tab(data-toggle="tab", href="#Task", ng-click="vm.teleMarketingPageName='TELEMARKETING_TASK';vm.updatePageTile();")
-                                .fa.fa-wrench.margin-right-5
-                                text.span {{"TELEMARKETING_TASK" | translate}}
-                        li(ng-show="checkViewPermission('TeleMarketing', 'phoneNumFilter', 'Read')")
-                            a.common-tab(data-toggle="tab", href="#Filter", ng-click="vm.teleMarketingPageName='phoneNumFilter';vm.updatePageTile();")
-                                .fa.fa-file-text.margin-right-5
-                                text.span {{"phoneNumFilter" | translate}}
 
-                .panel-body
-                    div.tab-content
-                        #Task.tab-pane.fade.in.active
-                            include ./teleMarketing-task
-                        #Filter.tab-pane.fade
-                            include ./teleMarketing-phone-num-filter
+
+
+
+                        //ul.nav.nav-tabs.common-nav-tabs(id='ulMenu')
+                        //    li.active(ng-show="checkViewPermission('TeleMarketing', 'Task', 'Read')" style="margin-left: 20px;")
+                        //        a.common-tab(data-toggle="tab", href="#Task", ng-click="vm.teleMarketingPageName='TELEMARKETING_TASK';vm.updatePageTile();")
+                        //            .fa.fa-wrench.margin-right-5
+                        //            text.span {{"TELEMARKETING_TASK" | translate}}
+                        //    li(ng-show="checkViewPermission('TeleMarketing', 'phoneNumFilter', 'Read')")
+                        //        a.common-tab(data-toggle="tab", href="#Filter", ng-click="vm.teleMarketingPageName='phoneNumFilter';vm.updatePageTile();")
+                        //            .fa.fa-file-text.margin-right-5
+                        //            text.span {{"phoneNumFilter" | translate}}
 
 #modalDeleteDXMission.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
