@@ -15540,6 +15540,7 @@ define(['js/app'], function (myApp) {
             vm.loadDownlinePlayersRecord = function () {
                 vm.downlinePlayersData = [];
                 vm.sumTotalTransferAmount = 0;
+                vm.isEditingTransferPartnerCredit = false;
                 if (vm.downlinePlayerName && vm.downlinePlayers) {
                     vm.downlinePlayers.currentPage = 1;
                     vm.downlinePlayers.index = 0;
@@ -15620,6 +15621,7 @@ define(['js/app'], function (myApp) {
                     vm.loadDownlinePlayersRecord();
                 }
             };
+
             vm.gotoDownlinePlayerPage = function(pg, $event){
                 $('body .pagination li').removeClass('active');
                 if($event){
@@ -15636,6 +15638,43 @@ define(['js/app'], function (myApp) {
                 if (vm.downlinePlayers.currentPage > 0 && vm.downlinePlayers.currentPage <= vm.downlinePlayers.totalPage) {
                     vm.loadDownlinePlayersRecord();
                 }
+            };
+
+            vm.submitTransferPartnerCreditToPlayer = function () {
+                let playerArr = [];
+
+                if (vm.downlinePlayersData && vm.downlinePlayersData.length > 0) {
+                    for (let i = 0, len = vm.downlinePlayersData.length; i < len; i++) {
+                        let player = vm.downlinePlayersData[i];
+
+                        if (player && player.amount) {
+                            playerArr.push({
+                                playerObjId: player._id,
+                                playerName: player.name,
+                                amount: player.amount,
+                                providerGroup: player.providerGroup,
+                                withdrawConsumption: player.amount
+                            });
+                        }
+                    }
+                };
+
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    partnerObjId: vm.selectedPartnerObjId || vm.selectedSinglePartner._id,
+                    currentCredit: vm.selectedSinglePartner.credits || 0,
+                    updateCredit: vm.sumTotalTransferAmount > 0 ? vm.selectedSinglePartner.credits - vm.sumTotalTransferAmount : 0 || 0,
+                    totalTransferAmount: vm.sumTotalTransferAmount,
+                    transferToPlayers: playerArr
+                };
+                console.log('sendData', sendData);
+
+                socketService.$socket($scope.AppSocket, 'transferPartnerCreditToPlayer', sendData, function (data) {
+                    console.log('sent', data);
+                    vm.getPlatformPartnersData();
+                }, function (err) {
+                    console.log('err',err);
+                });
             };
 
             // end of Transfer Partner Credit to Player

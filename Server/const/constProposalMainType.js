@@ -103,6 +103,8 @@ const constProposalMainType = {
     "FinancialPointsDeduct": constMainType.OTHERS,
     "UpdateChildPartner": constMainType.OTHERS,
     "UpdateParentPartnerCommission": constMainType.OTHERS,
+    "PartnerCreditTransferToDownline": constMainType.OTHERS,
+    "DownlineReceivePartnerCredit": constMainType.OTHERS,
 
 };
 

@@ -3,7 +3,7 @@
  */
 
 let env = require("./config/env").config();
-let scheduleAutoFeedback = require('./schedule/scheduleAutoFeedback');
+// let scheduleAutoFeedback = require('./schedule/scheduleAutoFeedback');
 let scheduleSettlement = require('./schedule/scheduleSettlement');
 let scheduleProposal = require('./schedule/scheduleProposal');
 let scheduleSavePlayersCredit = require('./schedule/scheduleSavePlayersCredit');
