@@ -7093,7 +7093,7 @@ let dbPartner = {
                         for (let i = 0; i < commissionData.length; i++) {
                             if (commissionData[i].provider) {
                                 let commissionObj = {
-                                    providerGroupId: commissionData[j].provider && commissionData[i].provider.hasOwnProperty("providerGroupId") ? commissionData[i].provider.providerGroupId : "",
+                                    providerGroupId: commissionData[i].provider && commissionData[i].provider.hasOwnProperty("providerGroupId") ? commissionData[i].provider.providerGroupId : "",
                                     providerGroupName: commissionData[i].provider && commissionData[i].provider.name ? commissionData[i].provider.name : ""
                                 };
                                 if (commissionData[i].commissionSetting && commissionData[i].commissionSetting.length) {

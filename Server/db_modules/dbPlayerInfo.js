@@ -4440,7 +4440,7 @@ let dbPlayerInfo = {
             })
     },
 
-    getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj, adminName) {
+    getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortObj = sortObj || {registrationTime: -1};
 
@@ -4567,6 +4567,7 @@ let dbPlayerInfo = {
                                     let platformId = playerData[ind].platform;
                                     let fullPhoneNumber = playerData[ind].fullPhoneNumber;
                                     let lastLoginIp = playerData[ind].lastLoginIp;
+                                    let adminName = 'System';
                                     delete playerData[ind].fullPhoneNumber;
 
                                     // add fixed credibility remarks
@@ -4888,6 +4889,7 @@ let dbPlayerInfo = {
                                 function () {
                                     if (bUpdateIp) {
                                         dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
+                                        dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, playerData.lastLoginIp).catch(errorUtils.reportError);
                                     }
 
                                     if (updateSimilarIpPlayer) {
@@ -10834,32 +10836,80 @@ let dbPlayerInfo = {
 
     getFavoriteGames: function (playerId) {
         var result = [];
+        let playerRouteSetting = null;
+        let platformId;
 
-        function getDetailGame(gameId, platformId) {
-            return dbconfig.collection_game.findOne({_id: gameId})
-                .populate({path: "provider", model: dbconfig.collection_gameProvider}).lean()
-                .then(data => {
-                    if (data) {
-                        // get the data from platformGameStatus to get the status information
-                        let queryObj = {
-                            game: data._id,
-                            platform: platformId
-                        }
-                        return dbconfig.collection_platformGameStatus.findOne(queryObj).lean().then(platformGame => {
-                            if (platformGame) {
-                                data.isFavorite = true;
-                                data.status = platformGame.status;
-                                if (data.provider && data.provider.providerId) {
-                                    var providerShortId = data.provider.providerId;
-                                    data.provider = providerShortId;
-                                } else {
-                                    data.provider = 'unknown';
+        function getDetailGame(gameId, platformObjId) {
+            return dbconfig.collection_platform.findOne({_id: platformObjId}).then(
+                platformData => {
+                    if(!platformData){
+                        return null;
+                    }
+
+                    playerRouteSetting = platformData.playerRouteSetting;
+                    platformId = platformData.platformId;
+
+                    return dbconfig.collection_game.findOne({_id: gameId})
+                        .populate({path: "provider", model: dbconfig.collection_gameProvider}).lean()
+                        .then(data => {
+                            if (data) {
+                                // get the data from platformGameStatus to get the status information
+                                let queryObj = {
+                                    game: data._id,
+                                    platform: platformObjId
                                 }
-                                return data;
-                            }
+                                return dbconfig.collection_platformGameStatus.findOne(queryObj).lean().then(platformGame => {
+                                    if (platformGame) {
+                                        data.isFavorite = true;
+                                        data.status = platformGame.status;
+                                        if (data.provider && data.provider.providerId) {
+                                            var providerShortId = data.provider.providerId;
+                                            data.provider = providerShortId;
+                                        } else {
+                                            data.provider = 'unknown';
+                                        }
+
+                                        let gameChangedName = {};
+                                        if(data.changedName && platformId){
+                                            Object.keys(data.changedName).forEach(function(key) {
+                                                if(key == platformId){
+                                                    gameChangedName[key] = data.changedName[key];
+                                                    return;
+                                                }
+                                            });
+                                            data.changedName = gameChangedName;
+                                        }
+
+                                        let gameChangedImage = {};
+                                        if(data.images && platformId){
+                                            Object.keys(data.images).forEach(function(key) {
+                                                if(key == platformId){
+                                                    if(data.images[key] && !data.images[key].includes("http")){
+                                                        gameChangedImage[key] = playerRouteSetting ? playerRouteSetting + data.images[key] : (data.sourceURL ? data.sourceURL + data.images[key] : data.images[key]);
+                                                    }else{
+                                                        gameChangedImage[key] = data.images[key];
+                                                    }
+
+                                                    return;
+                                                }
+                                            });
+                                            data.images = gameChangedImage;
+                                        }
+
+                                        if(data.bigShow && !data.bigShow.includes("http")){
+                                            data.bigShow = playerRouteSetting ? playerRouteSetting + data.bigShow : (data.sourceURL ? data.sourceURL + data.bigShow : data.bigShow);
+                                        }
+
+                                        if(data.smallShow && !data.smallShow.includes("http")){
+                                            data.smallShow = playerRouteSetting ? playerRouteSetting + data.smallShow : (data.sourceURL ? data.sourceURL + data.smallShow : data.smallShow);
+                                        }
+                                        return data;
+                                    }
+                                });
+                            } else return null;
                         });
-                    } else return null;
-                });
+                }
+            )
         }
 
         return dbconfig.collection_players.findOne({playerId}).lean().then(
@@ -11362,6 +11412,9 @@ let dbPlayerInfo = {
             {path: "merchantGroup", model: dbconfig.collection_platformMerchantGroup}
         ).lean().then(
             data => {
+                if (data && data.permission && !data.permission.topupOnline) {
+                    return [];
+                }
                 if (data && data.platform) {
                     if (data.platform.merchantGroupIsPMS) {
                         bPMSGroup = true
