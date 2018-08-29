@@ -5168,6 +5168,23 @@ let dbPartner = {
         )
     },
 
+    getDownlinePlayersRecord: function (platformObjId, partnerObjId, playerName, index, limit, sortCol) {
+        let query = {platform: platformObjId, partner: partnerObjId};
+
+        if (playerName) {
+            query.name = playerName;
+        }
+
+        let countProm = dbconfig.collection_players.find(query).count();
+        let downlinesProm = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit).lean();
+
+        return Promise.all([countProm, downlinesProm]).then(
+            data => {
+                return {data: data[1], size: data[0]};
+            }
+        );
+    },
+
     getReferralsList: (partnerArr) => {
         let partnerProm = [];
         partnerArr.forEach(partner => {
@@ -8906,6 +8923,24 @@ let dbPartner = {
         );
     },
 
+    transferPartnerCreditToPlayer: (platformId, partnerObjId, currentCredit, updateCredit, totalTransferAmount, transferToPlayers, adminInfo) => {
+        return dbconfig.collection_partner.findOne({platform: platformId, _id: partnerObjId}).lean().then( partnerData => {
+            if (partnerData) {
+                if (partnerData.credits) {
+                    if(partnerData.credits != currentCredit) {
+                        return Promise.reject({name: "DataError", message: "Partner does not have enough credit."});
+                    } else {
+                        return applyTransferPartnerCreditToPlayer(platformId, partnerData, currentCredit, updateCredit, totalTransferAmount, transferToPlayers, adminInfo);
+                    }
+                } else {
+                    return Promise.reject({name: "DataError", message: "Partner does not have enough credit."});
+                }
+            } else {
+                return Promise.reject({name: "DataError", message: "Invalid partner data"});
+            }
+        })
+    },
+
     getChildPartnerRecords: (platformId, partnerObjId) => {
         let childPartnerData = [];
         let childPartnerNameArr = [];
@@ -10113,6 +10148,43 @@ function updateParentPartnerCommission(commissionLog, adminInfo, proposalId) {
                     childPlayerTotalWinLose: commissionLog.parentPartnerCommissionDetail.totalWinLose,
                     relatedProposalId: proposalId,
                     remark: proposalRemark
+                },
+                entryType: constProposalEntryType.ADMIN,
+                userType: constProposalUserType.PARTNERS
+            };
+
+            return dbProposal.createProposalWithTypeId(proposalType._id, proposalData);
+        }
+    );
+}
+
+function applyTransferPartnerCreditToPlayer(platformId, partner, currentCredit, updateCredit, totalTransferAmount, transferToPlayers, adminInfo) {
+    // find proposal type
+    return dbconfig.collection_proposalType.findOne({name: constProposalType.PARTNER_CREDIT_TRANSFER_TO_DOWNLINE, platformId: platformId}).lean().then(
+        proposalType => {
+            if (!proposalType) {
+                return Promise.reject({
+                    message: "Error in getting proposal type"
+                });
+            }
+
+            // create proposal data
+            let proposalData = {
+                type: proposalType._id,
+                creator: adminInfo ? adminInfo : {
+                    type: 'partner',
+                    name: partner.partnerName,
+                    id: partner._id
+                },
+                data: {
+                    partnerObjId: partner._id,
+                    platformObjId: platformId,
+                    partnerId: partner.partnerId,
+                    partnerName: partner.partnerName,
+                    currentCredit: currentCredit,
+                    updateCredit: updateCredit,
+                    amount: -totalTransferAmount,
+                    transferToDownlineDetail: transferToPlayers
                 },
                 entryType: constProposalEntryType.ADMIN,
                 userType: constProposalUserType.PARTNERS

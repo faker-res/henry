@@ -71,7 +71,7 @@
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchTopupRecord(true)') {{'SEARCH' | translate}}
                     button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click='vm.exportTopupReportToExcel()') {{'EXPORT_EXCEL' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click='vm.searchTopupRecord(true, true)') {{'EXPORT_EXCEL' | translate}}
                     span#topupTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -129,7 +129,7 @@
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchProposalRecord(true)') {{'SEARCH' | translate}}
                     button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click='vm.exportProposalRecordToExcel()') {{'EXPORT_EXCEL' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click='vm.searchProposalRecord(true, true)') {{'EXPORT_EXCEL' | translate}}
                     span#proposalTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -153,7 +153,7 @@
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchFinancialPointsRecord(true)') {{'SEARCH' | translate}}
                     button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click='vm.exportFinancialPointsRecordToExcel()') {{'EXPORT_EXCEL' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click='vm.searchFinancialPointsRecord(true, true)') {{'EXPORT_EXCEL' | translate}}
                     span#financialPointsTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -212,6 +212,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchOperationRecord()') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click='vm.exportToExcel("operationTable", "PROVIDER_REPORT")') {{'EXPORT_EXCEL' | translate}}
                     span#operationTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.operationReportLoadingStatus}}
@@ -257,6 +258,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchProviderPlayerRecord(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click='vm.searchProviderPlayerRecord(true,true)') {{'EXPORT_EXCEL' | translate}}
                     span#playerExpenseTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.operationReportLoadingStatus}}
@@ -264,6 +266,7 @@
             label {{"Total" | translate}} {{vm.playerExpenseQuery.totalCount}} {{"records" | translate}}
             table.common-table#playerExpenseTable.display(style="width:100% ;overflow-x: scroll")
             #playerExpenseTablePage
+            table.common-table#playerExpenseExcelTable.display(style="width:100% ;overflow-x: scroll")
 
         div(ng-if='vm.showPageName=="PLAYER_REPORT"')
             .block-query.col-md-12.well
@@ -375,7 +378,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchPlayerReport(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click='vm.exportPlayerReportToExcel()') {{'EXPORT_EXCEL' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click='vm.searchPlayerReport(true, true)') {{'EXPORT_EXCEL' | translate}}
                     span#loadingPlayerReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -1142,7 +1145,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchDXNewPlayerReport(true)') {{'SEARCH' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click="vm.exportDXNewPlayerReportToExcel()") {{'EXPORT_EXCEL' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click="vm.searchDXNewPlayerReport(true, true)") {{'EXPORT_EXCEL' | translate}}
                     span#dxNewPlayerReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -1172,6 +1175,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchPlayerPartnerRecord(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click="vm.searchPlayerPartnerRecord(true,true)") {{'EXPORT_EXCEL' | translate}}
                     span#playerParnterTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.operationReportLoadingStatus}}
@@ -1179,6 +1183,7 @@
             table#playerPartnerTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
                 label {{"Total" | translate}} {{vm.partnerQuery.totalCount}} {{"records" | translate}}
             #playerPartnerTablePage
+            table#playerPartnerExcelTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
             table.common-table.simple-table#playerPartnerSummaryTable.collapse(style='margin-top:10px;font-size:12px')
                 thead
                     tr
@@ -1275,13 +1280,15 @@
                         option(value='old') {{'OLD_SYSTEM'|translate}}
                 div
                     label &nbsp;
-                    button.btn.btn-success(ng-click='vm.searchPlayerDomainRepport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-success(ng-click='vm.searchPlayerDomainReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click="vm.searchPlayerDomainReport(true, true)") {{'EXPORT_EXCEL' | translate}}
                     span#playerDomainReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
             label {{"Total" | translate}} {{vm.playerDomain.totalCount}} {{"records" | translate}}
             table#playerDomainReportTable.common-table.display(style="width:100%")
             #playerDomainReportTablePage
+            table#playerDomainReportExcelTable.common-table.display(style="width:100%")
 
         div(ng-if='vm.showPageName=="PARTNERPLAYERBOUNS_REPORT"')
             #partnerPlayerBonusQuery.block-query.col-md-12.well
@@ -1297,6 +1304,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchPartnerPlayerBonusData(true)', ng-disabled='!vm.partnerPlayerBonusQuery.partnerName') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click="vm.searchPartnerPlayerBonusData(true, true)") {{'EXPORT_EXCEL' | translate}}
                     span#partnerPlayerBonusTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.operationReportLoadingStatus}}
@@ -1321,6 +1329,24 @@
                         th {{'TOP_UP_SUM' | translate}}
                         th {{'BonusAmount' | translate}}
             #partnerPlayerBonusTablePage
+            table.common-table#partnerPlayerBonusExcelTable.display(style="width:inherit; min-width:100%; overflow-x: scroll; display: none")
+                thead
+                    tr
+                        th(rowspan=2) {{'playerName' | translate}}
+                        th(rowspan=2) {{'registrationTime' | translate}}
+                        th(rowspan=2) {{'lastAccessTime' | translate}}
+                        th(rowspan=2) {{'lastBonusTime' | translate}}
+                        th(colspan=4) {{'total' | translate}}
+                        th(colspan=4) {{'Within Search Period' | translate}}
+                    tr
+                        th {{'TOP_UP_TIMES' | translate}}
+                        th {{'BonusTime' | translate}}
+                        th {{'TOP_UP_SUM' | translate}}
+                        th {{'BonusAmount' | translate}}
+                        th {{'TOP_UP_TIMES' | translate}}
+                        th {{'BonusTime' | translate}}
+                        th {{'TOP_UP_SUM' | translate}}
+                        th {{'BonusAmount' | translate}}
         div(ng-if='vm.showPageName=="PARTNERCOMMISSION_REPORT"')
             #partnerCommissionQuery.block-query.col-md-12.well
                 div
@@ -1335,6 +1361,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchPartnerCommissionData(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click="vm.searchPartnerCommissionData(true, true)") {{'EXPORT_EXCEL' | translate}}
                     span#partnerCommissionTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.partnerCommissionReportLoadingStatus}}
@@ -1343,6 +1370,7 @@
             span.text-danger.margin-left-5 {{vm.partnerCommissionQuery.message | translate}}
             table.common-table#partnerCommissionTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
             #partnerCommissionTablePage
+            table.common-table#partnerCommissionExcelTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
         div(ng-if='vm.showPageName=="PARTNER_SETTLEMENT_HISTORY_REPORT"')
             #partnerSettlementQuery.block-query.col-md-12.well
                 div
@@ -1366,6 +1394,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchPartnerSettlementHistory(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click="vm.searchPartnerSettlementHistory(true, true)") {{'EXPORT_EXCEL' | translate}}
                     span#partnerSettlementTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                 div(style="display:block;")
@@ -1380,6 +1409,7 @@
             label {{"Total" | translate}} {{vm.partnerSettlementQuery.totalCount}} {{"records" | translate}}
             table.common-table#partnerSettlementTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
             #partnerSettlementTablePage
+            table.common-table#partnerSettlementExcelTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
         div(ng-if='vm.showPageName=="REAL_TIME_COMMISSION_REPORT"')
             #realTimeCommissionQuery.block-query.col-md-12.well
                 div
@@ -1404,11 +1434,12 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchRealTimePartnerCommissionData()') {{'SEARCH' | translate}}
-                    span#realTimeCommissionTableSpin.collapse
+                    button.btn.btn-info.margin-left-5(ng-click="vm.exportToExcel('realTimeComissionTable', 'REAL_TIME_COMMISSION_REPORT')") {{'EXPORT_EXCEL' | translate}}
+                    span#realTimeCommissionTableSpin.searchRealTimePartnerCommissionData
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.realTimeCommissionLoadingStatus}}
             .clearfix
-            table.simple-table
+            table.simple-table#realTimeComissionTable
                 thead
                     tr
                         th {{'PARTNER_NAME' | translate}}
@@ -1538,12 +1569,14 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchFeedbackReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click="vm.searchFeedbackReport(true, true)") {{'EXPORT_EXCEL' | translate}}
                     span#feedbackReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
             label {{"Total" | translate}} {{vm.feedbackQuery.totalCount}} {{"records" | translate}}
             table.common-table#feedbackReportTable.display(style="width:100% ;overflow-x: scroll")
             #feedbackReportTablePage
+            table.common-table#feedbackReportExcelTable.display(style="width:100% ;overflow-x: scroll")
 
         // rewards report
         div#rewardProposalPage(ng-if='vm.currentRewardCode && vm.showPageName=="RewardReport"')
@@ -1855,6 +1888,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.getWinRateReportData()') {{'SEARCH' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click='vm.exportToExcel("winRateSummaryTable", "WINRATE_REPORT")') {{'EXPORT_EXCEL' | translate}}
                     span#winRateTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.winRateReportLoadingStatus}}
@@ -2258,7 +2292,7 @@
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title.text-center {{"PLAYER_DEPOSIT_TRACKING_GROUP_TITLE" | translate}}
-            .modal-body
+            .modal-body.well
                 div
                     table.simple-table
                         thead
@@ -2271,7 +2305,7 @@
                                 td(colspan = 3) {{ 'No data available in table' | translate }}
                             tr(ng-if="vm.depositTrackingGroup.length > 0", ng-repeat="v in vm.depositTrackingGroup track by $index")
                                 td(ng-if='vm.editDepositTrackingGroup')
-                                    a(ng-click="vm.saveDepositTrackingGroup(true, v._id)") {{'DELETE' | translate}}
+                                    a.text-danger(ng-click="vm.saveDepositTrackingGroup(true, v._id)") {{'DELETE' | translate}}
                                         | &nbsp (
                                         i.fa.fa-minus
                                         | )
@@ -2284,7 +2318,7 @@
 
                             tr(ng-if='vm.editDepositTrackingGroup' ng-click="vm.newRowDepositTrackingGroup(vm.newDepositTrackingGroup)")
                                 td(colspan="3")
-                                    strong {{'ADD' | translate}}
+                                    strong.text-success {{'ADD' | translate}}
                                         | &nbsp (
                                         i.fa.fa-plus
                                         | )
