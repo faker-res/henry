@@ -6904,7 +6904,7 @@ define(['js/app'], function (myApp) {
                 limit: newSearch ? vm.similarPhoneForPlayer.limit : (vm.similarPhoneForPlayer.limit || 50),
                 sortCol: {registrationTime: -1},
                 isRealPlayer: true,
-                admin: authService.adminName,
+                admin: 'System',
             };
             socketService.$socket($scope.AppSocket, "getPagedSimilarPhoneForPlayers", sendQuery, function (data) {
                 vm.similarPhoneForPlayers = data.data.data;
@@ -6994,7 +6994,7 @@ define(['js/app'], function (myApp) {
                 limit: newSearch ? vm.similarIpForPlayer.limit : (vm.similarIpForPlayer.limit || 50),
                 sortCol: {registrationTime: -1},
                 isRealPlayer: true,
-                admin: authService.adminName,
+                admin: 'System',
             };
             socketService.$socket($scope.AppSocket, "getPagedSimilarIpForPlayers", sendQuery, function (data) {
                 vm.similarIpForPlayers = data.data.data;

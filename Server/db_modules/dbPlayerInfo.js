@@ -4440,7 +4440,7 @@ let dbPlayerInfo = {
             })
     },
 
-    getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj, adminName) {
+    getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortObj = sortObj || {registrationTime: -1};
 
@@ -4567,6 +4567,7 @@ let dbPlayerInfo = {
                                     let platformId = playerData[ind].platform;
                                     let fullPhoneNumber = playerData[ind].fullPhoneNumber;
                                     let lastLoginIp = playerData[ind].lastLoginIp;
+                                    let adminName = 'System';
                                     delete playerData[ind].fullPhoneNumber;
 
                                     // add fixed credibility remarks
