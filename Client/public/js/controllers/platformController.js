@@ -27174,6 +27174,10 @@ define(['js/app'], function (myApp) {
                     {
                         name: '注册IP重复',
                         score: 0
+                    },
+                    {
+                        name: '机房IP',
+                        score: 0
                     }
                 ];
 
