@@ -351,7 +351,8 @@ var roleChecker = {
                 sendSMS: [],
                 partnerApiLog: [],
                 CreditAdjustment: ['createUpdatePartnerCreditProposal'],
-                SettleCommission: ['getAllPartnerCommSettPreview']
+                SettleCommission: ['getAllPartnerCommSettPreview'],
+                PartnerCreditTransferToDownline: ['transferPartnerCreditToPlayer']
             },
             "Game": {
                 Read: ['getAllGameProviders', 'getGamesByPlatformAndProvider', 'getGamesNotAttachedToPlatform'],
