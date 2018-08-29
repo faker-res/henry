@@ -332,7 +332,7 @@ var roleChecker = {
                 Read: ['getPartnersByPlatform', 'partnerLevel/getByPlatform', 'getPartnersPlayerInfo', 'getPartner', 'getChildrenPartner', 'getAllPartner', 'getPartnerActivePlayers',
                     'getPartnerValidPlayers', 'getPartnerReferralPlayers', 'getPartnerActivePlayersForPastWeek', 'getAllGameProviders', 'getPartnerIPHistory', 'getDuplicatePhoneNumber',
                     'getReferralsList', 'getDailyActivePlayerCount', 'getWeeklyActivePlayerCount', 'getMonthlyActivePlayerCount', 'getValidPlayersCount', 'getTotalChildrenDeposit',
-                    'getTotalChildrenBalance'],
+                    'getTotalChildrenBalance', 'getAdminInfo'],
                 AdvancedSearch: ['getPartnersByAdvancedQuery'],
                 Create: ['createPartnerWithParent', 'createPartner', 'createPlayerLoginRecord'],
                 Delete: ['deletePartnersById', 'deletePlayerLoginRecord'],
