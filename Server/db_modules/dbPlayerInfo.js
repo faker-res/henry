@@ -4889,6 +4889,7 @@ let dbPlayerInfo = {
                                 function () {
                                     if (bUpdateIp) {
                                         dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
+                                        dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, playerData.lastLoginIp).catch(errorUtils.reportError);
                                     }
 
                                     if (updateSimilarIpPlayer) {
