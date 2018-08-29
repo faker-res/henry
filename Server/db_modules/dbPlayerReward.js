@@ -5364,7 +5364,6 @@ let dbPlayerReward = {
 
         return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
             data => {
-                console.log('main then - 1');
                 let topupInPeriodData = data[0];
                 let eventInPeriodData = data[1];
                 let rewardSpecificData = data[2];
@@ -5446,7 +5445,7 @@ let dbPlayerReward = {
                                     selectedRewardParam = selectedRewardParam[eventStep];
                                 } else {
                                     let firstRewardParam = selectedRewardParam[0];
-                                    selectedRewardParam = selectedRewardParam.filter(e => applyAmount >= e.minTopUpAmount).sort((a, b) => b.minTopUpAmount - a.minTopUpAmount);
+                                    selectedRewardParam = selectedRewardParam.filter(e => Math.trunc(applyAmount) >= Math.trunc(e.minTopUpAmount)).sort((a, b) => b.minTopUpAmount - a.minTopUpAmount);
                                     selectedRewardParam = selectedRewardParam[0] || firstRewardParam || {};
                                 }
                             } else {

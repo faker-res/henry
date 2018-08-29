@@ -125,10 +125,11 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                 console.log('all platform data', data.data);
                 vm.showPlatformSpin = false;
-                vm.buildPlatformList(data.data);
+                // vm.buildPlatformList(data.data);
+                vm.allPlatformData = data.data;
 
                 //select platform from cookies data
-                var storedPlatform = $cookies.get("platform");
+                let storedPlatform = $cookies.get("platform");
                 if (storedPlatform) {
                     vm.searchAndSelectPlatform(storedPlatform, option);
                 }
@@ -193,7 +194,7 @@ define(['js/app'], function (myApp) {
             );
             // vm.selectPlatformNode($('#platformTree').treeview('getNode', 0));
             $('#platformTree').on('nodeSelected', function (event, data) {
-                vm.selectPlatformNode(data);
+                selectPlatformNode(data);
             });
         };
 
@@ -295,12 +296,26 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.loadTab = function (tabName) {
+            vm.selectedTab = tabName;
+        };
+
         //set selected platform node
-        vm.selectPlatformNode = function (node, option) {
-            vm.selectedPlatform = node;
-            vm.curPlatformText = node.text;
-            console.log("vm.selectedPlatform", vm.selectedPlatform);
-            $cookies.put("platform", node.text);
+        async function selectPlatformNode (platformObj, option) {
+            vm.selectedPlatform = {
+                text: platformObj.name,
+                id: platformObj._id,
+                selectable: true,
+                data: platformObj,
+                image: {
+                    url: platformObj.icon,
+                    width: 30,
+                    height: 30,
+                }
+            };
+
+            vm.curPlatformText = vm.selectedPlatform.text;
+            $cookies.put("platform", vm.selectedPlatform.text);
             if (option && !option.loadAll) {
                 $scope.safeApply();
                 return;
@@ -314,13 +329,20 @@ define(['js/app'], function (myApp) {
 
         //search and select platform node
         vm.searchAndSelectPlatform = function (text, option) {
-            var findNodes = $('#platformTree').treeview('search', [text, {
-                ignoreCase: false,
-                exactMatch: true
-            }]);
+            // var findNodes = $('#platformTree').treeview('search', [text, {
+            //     ignoreCase: false,
+            //     exactMatch: true
+            // }]);
+            // if (findNodes && findNodes.length > 0) {
+            //     vm.selectPlatformNode(findNodes[0], option);
+            //     $('#platformTree').treeview('selectNode', [findNodes[0], {silent: true}]);
+            // }
+
+            var findNodes = vm.allPlatformData.filter(e => e.name === text);
             if (findNodes && findNodes.length > 0) {
-                vm.selectPlatformNode(findNodes[0], option);
-                $('#platformTree').treeview('selectNode', [findNodes[0], {silent: true}]);
+                selectPlatformNode(findNodes[0], option);
+            } else {
+                selectPlatformNode(vm.allPlatformData[0], option);
             }
         };
 
