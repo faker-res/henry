@@ -1,25 +1,25 @@
 .row.padding-left-right-5(ng-show="checkViewPermission('TeleMarketing')")
     #marketingContent(style="padding-left:0;",ng-class='vm.rightPanelClass')
         .col-md-12
-            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedTab === "NEW_PHONE_LIST"}', ng-click='vm.loadTab("NEW_PHONE_LIST")')
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'phoneNumFilter', 'Read')" ng-class='{active: vm.selectedTab === "NEW_PHONE_LIST"}', ng-click='vm.loadTab("NEW_PHONE_LIST")')
                 span {{"NEW_PHONE_LIST" | translate}}
-            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "history"}', ng-click='vm.promoCodeTabClicked("history")')
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'PHONE_LISTS', 'Read')" ng-class='{active: vm.selectedTab === "PHONE_LISTS"}', ng-click='vm.loadTab("PHONE_LISTS")')
                 span {{"PHONE_LISTS" | translate}}
-            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "monitor"}', ng-click='vm.promoCodeTabClicked("monitor")')
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'PHONE_LIST_MANAGEMENT', 'Read')" ng-class='{active: vm.selectedTab === "PHONE_LIST_MANAGEMENT"}', ng-click='vm.loadTab("PHONE_LIST_MANAGEMENT")')
                 span {{"PHONE_LIST_MANAGEMENT" | translate}}
-            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "activatePromoCode"}', ng-click='vm.promoCodeTabClicked("activatePromoCode")')
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'PHONE_LIST_ASSIGNMENT', 'Read')" ng-class='{active: vm.selectedTab === "PHONE_LIST_ASSIGNMENT"}', ng-click='vm.loadTab("PHONE_LIST_ASSIGNMENT")')
                 span {{"PHONE_LIST_ASSIGNMENT" | translate}}
-            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "smsContent"}', ng-click='vm.promoCodeTabClicked("smsContent")')
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'SALES_CONFIGURATION', 'Read')" ng-class='{active: vm.selectedTab === "SALES_CONFIGURATION"}', ng-click='vm.loadTab("SALES_CONFIGURATION")')
                 span {{"SALES_CONFIGURATION" | translate}}
-            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "userGroupConfig"}', ng-click='vm.promoCodeTabClicked("userGroupConfig")')
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'MEMBER_INFO', 'Read')" ng-class='{active: vm.selectedTab === "MEMBER_INFO"}', ng-click='vm.loadTab("MEMBER_INFO")')
                 span {{"MEMBER_INFO" | translate}}
-            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "promoCodeAnalysis"}', ng-click='vm.promoCodeTabClicked("promoCodeAnalysis")')
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'PHONE_LOOKUP', 'Read')" ng-class='{active: vm.selectedTab === "PHONE_LOOKUP"}', ng-click='vm.loadTab("PHONE_LOOKUP")')
                 span {{"PHONE_LOOKUP" | translate}}
-            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "promoCodeTemplate"}', ng-click='vm.promoCodeTabClicked("promoCodeTemplate")')
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'SALES_REPORT', 'Read')" ng-class='{active: vm.selectedTab === "SALES_REPORT"}', ng-click='vm.loadTab("SALES_REPORT")')
                 span {{"SALES_REPORT" | translate}}
-            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "openPromoCodeTemplate"}', ng-click='vm.promoCodeTabClicked("openPromoCodeTemplate")')
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'MEMBER_REPORT', 'Read')" ng-class='{active: vm.selectedTab === "MEMBER_REPORT"}', ng-click='vm.loadTab("MEMBER_REPORT")')
                 span {{"MEMBER_REPORT" | translate}}
-            button.btn.btn-primary.common-button(ng-class='{active: vm.selectedTab === "PHONE_MISSION"}', ng-click='vm.loadTab("PHONE_MISSION")')
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'Task', 'Read')" ng-class='{active: vm.selectedTab === "PHONE_MISSION"}', ng-click='vm.loadTab("PHONE_MISSION")')
                 span {{"PHONE_MISSION" | translate}}
         .col-md-12
             .panel.panel-primary
