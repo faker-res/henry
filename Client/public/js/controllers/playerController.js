@@ -19258,6 +19258,7 @@ define(['js/app'], function (myApp) {
         vm.getCredibilityRemarks = (forbidUIRenderTwice) => {
             return new Promise((resolve, reject) => {
                 socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
+                    vm.getFixedCredibilityRemarks();
                     vm.credibilityRemarks = data.data;
                     vm.filterCredibilityRemarks = data.data ? JSON.parse(JSON.stringify(data.data)) : [];
                     vm.filterCredibilityRemarks.push({'_id':'', 'name':'N/A'});
@@ -19269,6 +19270,18 @@ define(['js/app'], function (myApp) {
                 }, function (err) {
                     reject(err);
                 });
+            });
+        };
+
+        vm.getFixedCredibilityRemarks = () => {
+            socketService.$socket($scope.AppSocket, 'getFixedCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
+                console.log('getFixedCredibilityRemarks', data);
+                vm.fixedRemarks = [];
+                if (data && data.data && data.data.length > 0) {
+                    data.data.forEach(remark => {
+                        vm.fixedRemarks.push(remark._id);
+                    });
+                }
             });
         };
 
