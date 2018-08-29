@@ -481,7 +481,9 @@ var rootObj = {};
             return;
         var key = "";
         for(var i = 0; i < this._syncKeys.length; i++){
-            key += String(data[this._syncKeys[i]]);
+            if (typeof data[this._syncKeys[i]] !== "undefined") {
+                key += String(data[this._syncKeys[i]]);
+            }
         }
         return key;
     };
@@ -565,6 +567,7 @@ var rootObj = {};
         }
 
         var key = this.generateSyncKey(data);
+        console.log('WebSocketService dispatchResponse key and data', key, data, Object.keys(this._requestListenersOnceSync));
         if( key ){
             if( this._requestListenersOnceSync[key] ) {
                 for( var i = 0; i < this._requestListenersOnceSync[key].length; i++ ){

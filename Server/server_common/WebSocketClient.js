@@ -166,6 +166,7 @@
 
     proto._dispatch = function (dataObj) {
         //在此对数据进行分发
+        // console.log("_dispatch dataObj", dataObj);
         var serviceName = dataObj["service"], funcName = dataObj["functionName"];
         if (!serviceName || !funcName) {
             console.log("No such service or function", serviceName, funcName, dataObj);
@@ -230,6 +231,7 @@
                     // console.log("callAPIOnce:", data);
                     wsFunc.request(data);
                     var key = wsFunc.generateSyncKey(data);
+                    console.log('callAPIOnce funcName and key', funcName, key)
 
                     wsFunc.onceSync(key, function (res) {
 
