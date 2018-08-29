@@ -27189,19 +27189,6 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'setFixedCredibilityRemarks', sendData, function (data) {
                     console.log('setFixedCredibilityRemarks', data);
-                    vm.getFixedCredibilityRemarks();
-                });
-            };
-
-            vm.getFixedCredibilityRemarks = () => {
-                socketService.$socket($scope.AppSocket, 'getFixedCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
-                    console.log('getFixedCredibilityRemarks', data);
-                    vm.fixedRemarks = [];
-                    if (data && data.data && data.data.length > 0) {
-                        data.data.forEach(remark => {
-                            vm.fixedRemarks.push(remark._id);
-                        });
-                    }
                 });
             };
 
