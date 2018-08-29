@@ -560,6 +560,10 @@ var proposal = {
                         proposalData.data.phoneNumber = dbutility.encodePhoneNum(proposalData.data.phoneNumber);
                     }
 
+                    if (proposalData.type && proposalData.type.name && proposalData.type.name == constProposalType.PLAYER_MANUAL_TOP_UP && proposalData && proposalData.data && proposalData.data.bankCardNo) {
+                        proposalData.data.bankCardNo = dbutility.encodeBankAcc(proposalData.data.bankCardNo);
+                    }
+
                     if (proposalData && proposalData.type && platform.indexOf(proposalData.type.platformId.toString()) > -1) {
                         return proposalData;
                     } else {

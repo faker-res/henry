@@ -23773,7 +23773,7 @@ define(['js/app'], function (myApp) {
                         proposalDetail["ACCNAME"] = vm.selectedProposal.data.realName || " ";
                         proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                         proposalDetail["RECEIVE_BANK_TYPE"] = vm.allBankTypeList[vm.selectedProposal.data.bankTypeId] || (vm.selectedProposal.data.bankTypeId + " ! " + $translate("not in bank type list"));
-                        proposalDetail["RECEIVE_BANK_ACC"] = vm.selectedProposal.data.bankCardNo? utilService.encodeBankAcc(vm.selectedProposal.data.bankCardNo): " ";
+                        proposalDetail["RECEIVE_BANK_ACC"] = vm.selectedProposal.data.bankCardNo;
                         proposalDetail["RECEIVE_BANK_ACC_NAME"] = vm.selectedProposal.data.cardOwner;
                         proposalDetail["RECEIVE_BANK_ACC_PROVINCE"] = vm.selectedProposal.data.provinceId;
                         proposalDetail["RECEIVE_BANK_ACC_CITY"] = vm.selectedProposal.data.cityId;
