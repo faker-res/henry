@@ -3071,23 +3071,23 @@ define(['js/app'], function (myApp) {
 
                             vm.includedGamesGroup.push(newObj);
 
-                            if(newObj.bigShow){
-                                newObj.bigShow = playerRouteSetting ? playerRouteSetting + newObj.bigShow : (newObj.sourceURL ? newObj.sourceURL + newObj.bigShow : newObj.sourceURL);
+                            if(newObj.bigShow && !newObj.bigShow.includes("http")){
+                                newObj.bigShow = playerRouteSetting ? playerRouteSetting + newObj.bigShow : (newObj.sourceURL ? newObj.sourceURL + newObj.bigShow : newObj.bigShow);
                             }
 
-                            if(newObj.smallShow){
-                                newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.sourceURL);
+                            if(newObj.smallShow && !newObj.smallShow.incldues("http")){
+                                newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.smallShow);
                             }
 
                             if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
                                 let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
-                                if(platformCustomImage){
+                                if(platformCustomImage && !platformCustomImage.includes("http")){
                                     platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (newObj.sourceURL ? newObj.sourceURL  + platformCustomImage : platformCustomImage);
                                 }
 
-                                vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, platformCustomImage);
+                                vm.gameSmallShow[v.game._id] = platformCustomImage;
                             }else{
-                                vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
+                                vm.gameSmallShow[v.game._id] = newObj.smallShow
                             }
 
                             if (v.game && v.game.hasOwnProperty('platformGameStatus')) {
@@ -3657,23 +3657,23 @@ define(['js/app'], function (myApp) {
                             vm.gameStatus[v.game._id] = v.status;
                         }
 
-                        if(newObj.bigShow){
-                            newObj.bigShow = playerRouteSetting ? playerRouteSetting + newObj.bigShow : (newObj.sourceURL ? newObj.sourceURL + newObj.bigShow : newObj.sourceURL);
+                        if(newObj.bigShow && !newObj.bigShow.includes("http")){
+                            newObj.bigShow = playerRouteSetting ? playerRouteSetting + newObj.bigShow : (newObj.sourceURL ? newObj.sourceURL + newObj.bigShow : newObj.bigShow);
                         }
 
-                        if(newObj.smallShow){
-                            newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.sourceURL);
+                        if(newObj.smallShow && !newObj.smallShow.includes("http")){
+                            newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.smallShow);
                         }
 
                         if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
                             let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
-                            if(platformCustomImage){
+                            if(platformCustomImage && !platformCustomImage.includes("http")){
                                 platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (newObj.sourceURL ? newObj.sourceURL  + platformCustomImage : platformCustomImage);
                             }
 
-                            vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, platformCustomImage);
+                            vm.gameSmallShow[v.game._id] = platformCustomImage;
                         }else{
-                            vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, newObj.smallShow);
+                            vm.gameSmallShow[v.game._id] = newObj.smallShow;
                         }
                     })
                     console.log("vm.includedGames", vm.includedGames);

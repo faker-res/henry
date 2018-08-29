@@ -315,7 +315,6 @@
                     deferred.resolve(true);
 
                     wsFunc.onceSync(key, function (res) {
-                        console.log("AAAAAAAAAAAAAAAAAAAAaa", res);
                         if (res && res.status == 200) {
                             var resObj = Object.assign({}, res);
                             delete resObj.status;

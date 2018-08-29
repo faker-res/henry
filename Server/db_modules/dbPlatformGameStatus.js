@@ -230,9 +230,13 @@ var dbPlatformGameStatus = {
         var typeProm = getGameType(type);
         var platformProm = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
         var groupProm = dbPlatformGameStatus.getGroupGames(platformId, groupCode);
+        var platformId = null;
+        var playerRouteSetting = null;
         return Q.all([platformProm, typeProm, groupProm]).then(
             data => {
                 if (data && data[0]) {
+                    platformId = data[0].platformId;
+                    playerRouteSetting = data[0].playerRouteSetting;
                     var queryObj = {
                         platform: data[0]._id
                     };
@@ -313,6 +317,42 @@ var dbPlatformGameStatus = {
                             if (platformGamesMap[game._id] && platformGamesMap[game._id].smallShow) {
                                 game.smallShow = platformGamesMap[game._id].smallShow;
                             }
+
+                            let gameChangedName = {};
+                            if(game.changedName && platformId){
+                                Object.keys(game.changedName).forEach(function(key) {
+                                    if(key == platformId){
+                                        gameChangedName[key] = game.changedName[key];
+                                        return;
+                                    }
+                                });
+                                game.changedName = gameChangedName;
+                            }
+
+                            let gameChangedImage = {};
+                            if(game.images && platformId){
+                                Object.keys(game.images).forEach(function(key) {
+                                    if(key == platformId){
+                                        if(game.images[key] && !game.images[key].includes("http")){
+                                            gameChangedImage[key] = playerRouteSetting ? playerRouteSetting + game.images[key] : (game.sourceURL ? game.sourceURL + game.images[key] : game.images[key]);
+                                        }else{
+                                            gameChangedImage[key] = game.images[key];
+                                        }
+
+                                        return;
+                                    }
+                                });
+                                game.images = gameChangedImage;
+                            }
+
+                            if(game.bigShow && !game.bigShow.includes("http")){
+                                game.bigShow = playerRouteSetting ? playerRouteSetting + game.bigShow : (game.sourceURL ? game.sourceURL + game.bigShow : game.bigShow);
+                            }
+
+                            if(game.smallShow && !game.smallShow.includes("http")){
+                                game.smallShow = playerRouteSetting ? playerRouteSetting + game.smallShow : (game.sourceURL ? game.sourceURL + game.smallShow : game.smallShow);
+                            }
+
                             game.provider = game.provider.providerId;
                         }
                     );
