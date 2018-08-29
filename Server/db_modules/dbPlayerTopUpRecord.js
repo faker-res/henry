@@ -2582,6 +2582,9 @@ var dbPlayerTopUpRecord = {
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).lean().then(
                 playerData => {
+                    if (playerData && playerData.permission && playerData.permission.disableWechatPay) {
+                        return [];
+                    }
                     if ((playerData && playerData.platform && playerData.wechatPayGroup && playerData.wechatPayGroup.wechats && playerData.wechatPayGroup.wechats.length > 0) || bPMSGroup) {
                         if (playerData.platform.wechatPayGroupIsPMS) {
                             bPMSGroup = true
@@ -2661,6 +2664,9 @@ var dbPlayerTopUpRecord = {
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup}).then(
                 playerData => {
+                    if (playerData && playerData.permission && !playerData.permission.alipayTransaction) {
+                        return [];
+                    }
                     if (playerData && playerData.platform && playerData.platform.aliPayGroupIsPMS) {
                         bPMSGroup = true
                     } else {
