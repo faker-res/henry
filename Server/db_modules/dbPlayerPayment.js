@@ -351,6 +351,8 @@ const dbPlayerPayment = {
                             }
                         }
                     }
+                } else {
+                    return returnData;
                 }
                 return Promise.all([promDeposit1, promDeposit2, promDeposit3]);
             }

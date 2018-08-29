@@ -2292,7 +2292,7 @@
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title.text-center {{"PLAYER_DEPOSIT_TRACKING_GROUP_TITLE" | translate}}
-            .modal-body
+            .modal-body.well
                 div
                     table.simple-table
                         thead
@@ -2305,7 +2305,7 @@
                                 td(colspan = 3) {{ 'No data available in table' | translate }}
                             tr(ng-if="vm.depositTrackingGroup.length > 0", ng-repeat="v in vm.depositTrackingGroup track by $index")
                                 td(ng-if='vm.editDepositTrackingGroup')
-                                    a(ng-click="vm.saveDepositTrackingGroup(true, v._id)") {{'DELETE' | translate}}
+                                    a.text-danger(ng-click="vm.saveDepositTrackingGroup(true, v._id)") {{'DELETE' | translate}}
                                         | &nbsp (
                                         i.fa.fa-minus
                                         | )
@@ -2318,7 +2318,7 @@
 
                             tr(ng-if='vm.editDepositTrackingGroup' ng-click="vm.newRowDepositTrackingGroup(vm.newDepositTrackingGroup)")
                                 td(colspan="3")
-                                    strong {{'ADD' | translate}}
+                                    strong.text-success {{'ADD' | translate}}
                                         | &nbsp (
                                         i.fa.fa-plus
                                         | )
