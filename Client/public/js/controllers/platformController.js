@@ -15732,7 +15732,7 @@ define(['js/app'], function (myApp) {
                         if (vm.playerFeedbackResultExtended.credibilityRemarks) {
                             for (let i = 0; i < vm.playerFeedbackResultExtended.credibilityRemarks.length; i++) {
                                 for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                                    if (vm.playerFeedbackResultExtended.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                    if (vm.playerFeedbackResultExtended.credibilityRemarks[i] && vm.playerFeedbackResultExtended.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
                                         vm.playerFeedbackResultExtended.credibility$ += vm.credibilityRemarks[j].name + "<br>";
                                     }
                                 }
