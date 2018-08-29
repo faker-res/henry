@@ -158,6 +158,7 @@
         //var messageData = message.data.replace(/'/g, '"');
         var messageData = message.data;
         // console.log("client _messageHandler:", messageData);
+        console.log('_messageHandler', messageData)
         if (IsJsonString(messageData)) {
             var data = JSON.parse(messageData);
             this._dispatch(data);
@@ -166,6 +167,7 @@
 
     proto._dispatch = function (dataObj) {
         //在此对数据进行分发
+        console.log("_dispatch dataObj", dataObj);
         var serviceName = dataObj["service"], funcName = dataObj["functionName"];
         if (!serviceName || !funcName) {
             console.log("No such service or function", serviceName, funcName, dataObj);

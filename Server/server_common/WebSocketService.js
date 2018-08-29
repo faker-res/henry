@@ -558,6 +558,7 @@ var rootObj = {};
     proto.dispatchResponse = function (data) {
         if (!data)
             return;
+        console.log('WebSocketService dispatchResponse data', data);
         var listeners = this._requestListeners, listenersOnce = this._requestListenersOnce, i, len; //是否分前后顺序
         for (i = 0, len = listeners.length; i < len; i++) {
             if (listeners[i] && typeof listeners[i] === "function")
