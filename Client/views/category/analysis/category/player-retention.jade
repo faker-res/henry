@@ -48,7 +48,7 @@
             div(style='max-width:250px;')
                 label {{'Registration Domain' | translate}} ({{'Multiple' | translate}})
                 select.form-control.spicker(ng-options='item for item in vm.domainList', ng-model='vm.chosenDomain', multiple, bsp, data-actions-box='true', data-live-search="true")
-                label.blink(ng-if='!vm.domainList') {{"Searching existing domain name..." | translate}}
+                label.blink(ng-if='!vm.domainList') {{"Searching related domain name..." | translate}}
             div
                 label &nbsp;
                 button.btn.btn-primary.common-button(ng-click='vm.getPlayerRetention()') {{'SEARCH' | translate}}
