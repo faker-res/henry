@@ -193,7 +193,11 @@ var dbPlatformGameGroup = {
                             if(game.images && platformId){
                                 Object.keys(game.images).forEach(function(key) {
                                     if(key == platformId){
-                                        gameChangedImage[key] = playerRouteSetting ? playerRouteSetting + game.images[key] : (game.sourceURL ? game.sourceURL + game.images[key] : game.images[key]);
+                                        if(game.images[key] && !game.images[key].includes("http")){
+                                            gameChangedImage[key] = playerRouteSetting ? playerRouteSetting + game.images[key] : (game.sourceURL ? game.sourceURL + game.images[key] : game.images[key]);
+                                        }else{
+                                            gameChangedImage[key] = game.images[key];
+                                        }
 
                                         return;
                                     }
