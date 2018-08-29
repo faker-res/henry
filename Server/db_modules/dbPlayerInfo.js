@@ -11360,6 +11360,9 @@ let dbPlayerInfo = {
             {path: "merchantGroup", model: dbconfig.collection_platformMerchantGroup}
         ).lean().then(
             data => {
+                if (data && data.permission && !data.permission.topupOnline) {
+                    return [];
+                }
                 if (data && data.platform) {
                     if (data.platform.merchantGroupIsPMS) {
                         bPMSGroup = true
