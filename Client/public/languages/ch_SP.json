@@ -2877,6 +2877,7 @@
   "SALES_REPORT": "人员报表",
   "MEMBER_REPORT": "客户报表",
   "PHONE_MISSION": "短信任务",
+  "FILTER_THEN_IMPORT_XLS_TS": "过滤和导入电销系统",
   "PLAYER'S CDN/FTP ROUTE SETTING": "玩家 CDN/FTP 相对路径配置",
   "PARTNER'S CDN/FTP ROUTE SETTING": "代理 CDN/FTP 相对路径配置",
   "CDN/FTP ROUTE SETTING": "相对路径配置",
