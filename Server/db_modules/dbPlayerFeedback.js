@@ -661,7 +661,7 @@ var dbPlayerFeedback = {
             "10.167.11.154",
             "203.90.255.250",
             "203.69.30.85",
-            "::ffff:10.167.11.155"
+            " ::ffff:10.167.11.155"
         ];
 
         if (!allowedIP.includes(ipAddress)) {
@@ -776,13 +776,17 @@ var dbPlayerFeedback = {
 
                     if (player.credibilityRemarks && player.credibilityRemarks.length > 0) {
                         player.credibilityRemarks.map(remark => {
-                            playerData.fame.push(remark.name);
+                            if(remark){
+                                playerData.fame.push(remark.name);
+                            }
                         });
                     }
 
                     if (player.gameProviderPlayed && player.gameProviderPlayed.length > 0) {
                         player.gameProviderPlayed.map(provider => {
-                            playerData.gameLobby.push(provider.name);
+                            if(provider){
+                                playerData.gameLobby.push(provider.name);
+                            }
                         });
                     }
 
