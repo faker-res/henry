@@ -727,7 +727,7 @@ var roleChecker = {
                 Delete: [],
             },
             "phoneNumFilter": {
-                Read: ['comparePhoneNum', 'uploadPhoneFileTXT', 'uploadPhoneFileXLS', 'importDiffPhoneNum', 'getAllDxMission'],
+                Read: ['comparePhoneNum', 'uploadPhoneFileTXT', 'uploadPhoneFileXLS', 'importDiffPhoneNum', 'getAllDxMission', 'importTSNewList'],
                 FilterAllPlatform: [],
             },
             "Overview": {
