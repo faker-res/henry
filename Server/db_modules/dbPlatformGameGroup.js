@@ -330,7 +330,9 @@ var dbPlatformGameGroup = {
                 platformData =>
                 {
                     routeSetting = platformData && platformData.playerRouteSetting ? platformData.playerRouteSetting : null;
-                    return dbconfig.collection_platformGameGroup.find({platform: platformData._id});
+                    return dbconfig.collection_platformGameGroup.find({
+                        platform: platformData._id
+                    }, {games: 0, parent: 0, platform: 0, _id: 0}).lean();
                 }
             );
         }
