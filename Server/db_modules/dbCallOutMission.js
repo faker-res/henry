@@ -348,6 +348,10 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
             outputData = Object.assign({}, outputData, mission);
             outputData.callee = calleeList;
 
+            if(outputData.callee && outputData.callee.length){
+                console.log(mission.missionName)
+                console.log('=CallOutMission= ----->callOutBack total callee: ' + outputData.callee.length);
+            }
             if (limit) {
                 let total = calleeList.length;
                 index = index || 0;
@@ -361,6 +365,8 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
                     index: index,
                     total: total
                 };
+                console.log('=CallOutMission= ------>feedbackPlayerDetail.playersData: ', feedbackPlayerDetail.data);
+                console.log('=CallOutMission= ------>feedbackPlayerDetail.playersData: ', feedbackPlayerDetail.total);
 
                 outputData.feedbackPlayerDetail = feedbackPlayerDetail;
                 return outputData;
@@ -441,6 +447,8 @@ function getCalleeList (query, sortCol, selectedPlayers) {
                 return [];
             }
             players = playerData;
+
+            console.log('=CallOutMission= getCalleeList ---->' + playerData.length);
 
             return players.map(player => {
                 let phoneNumber = player.phoneNumber;
