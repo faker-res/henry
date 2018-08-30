@@ -109,6 +109,15 @@ function socketActionPartner(socketIO, socket) {
          * getPlayerRetention
          * @param {json} data - It has to contain platform and retention parameters
          */
+        getDomainList: function getDomainList(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.startTime && data.endTime && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
+            var startTime = dbUtil.getDayStartTime(data.startTime);
+            var endTime = dbUtil.getDayEndTime(data.endTime);
+            
+            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getDomainList, [ObjectId(data.platformId), startTime, endTime, data.isRealPlayer, data.isTestPlayer, data.hasPartner, data.playerType], actionName, isValidData);
+        },
+
         getPlayerRetention: function getPlayerRetention(data) {
             var actionName = arguments.callee.name;
             let diffDays;
@@ -120,7 +129,7 @@ function socketActionPartner(socketIO, socket) {
             }
             var isValidData = Boolean(data && data.platform && data.startTime && data.endTime && data.days && diffDays && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
             var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : new Date(0);
-            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerRetention, [ObjectId(data.platform), startTime, data.days, data.playerType, diffDays, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerRetention, [ObjectId(data.platform), startTime, data.days, data.playerType, diffDays, data.isRealPlayer, data.isTestPlayer, data.hasPartner, data.domainList], actionName, isValidData);
         },
         /**
          * getPlayerLoginRecord
