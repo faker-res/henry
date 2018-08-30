@@ -614,6 +614,9 @@ var dbPlayerFeedback = {
         let count = dbconfig.collection_players.find(query, { _id: 1}).lean();
         return Q.all([players, count]).then(data => {
             let total = data[1].length ? data[1].length : 0;
+            if(data[0] && data[0].length){
+                console.log('=CallOutMission= callout query result', data[0].length);
+            }
 
             return {
                 data: data[0] ? data[0] : {},
@@ -657,7 +660,8 @@ var dbPlayerFeedback = {
             "103.29.22.118",
             "10.167.11.154",
             "203.90.255.250",
-            "203.69.30.85"
+            "203.69.30.85",
+            "::ffff:10.167.11.155"
         ];
 
         if (!allowedIP.includes(ipAddress)) {
