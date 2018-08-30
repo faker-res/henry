@@ -541,8 +541,8 @@ define(['js/app'], function (myApp) {
         vm.playerPMSBankCardGroupSearch = () => {
             return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName}).then(data => {
                 console.log('getPMSUserPaymentGroup', data)
-                if (data && data.data && data.data.map && data.data.map["银行卡组"]) {
-                    let groupName = Object.entries(data.data.map["银行卡组"])[0][0];
+                if (data && data.data && data.data.map && data.data.map["银行卡"]) {
+                    let groupName = Object.entries(data.data.map["银行卡"])[0][0];
                     if (vm.platformBankCardGroupList && vm.platformBankCardGroupList.length) {
                         for (let i = 0; i < vm.platformBankCardGroupList.length; i++) {
                             if (vm.platformBankCardGroupList[i].code == groupName) {
@@ -1590,8 +1590,8 @@ define(['js/app'], function (myApp) {
         vm.playerPMSMerchantGroupSearch = () => {
             return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName}).then(data => {
                 console.log('getPMSUserPaymentGroup', data)
-                if (data && data.data && data.data.map && data.data.map["在线组"]) {
-                    let groupName = Object.entries(data.data.map["在线组"])[0][0];
+                if (data && data.data && data.data.map && data.data.map["在线"]) {
+                    let groupName = Object.entries(data.data.map["在线"])[0][0];
                     if (vm.platformMerchantGroupList && vm.platformMerchantGroupList.length) {
                         for (let i = 0; i < vm.platformMerchantGroupList.length; i++) {
                             if (vm.platformMerchantGroupList[i].code == groupName) {
@@ -2047,8 +2047,8 @@ define(['js/app'], function (myApp) {
         vm.playerPMSAlipayGroupSearch = () => {
             return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName}).then(data => {
                 console.log('getPMSUserPaymentGroup', data)
-                if (data && data.data && data.data.map && data.data.map["支付宝组"]) {
-                    let groupName = Object.entries(data.data.map["支付宝组"])[0][0];
+                if (data && data.data && data.data.map && data.data.map["支付宝"]) {
+                    let groupName = Object.entries(data.data.map["支付宝"])[0][0];
                     if (vm.platformAlipayGroupList && vm.platformAlipayGroupList.length) {
                         for (let i = 0; i < vm.platformAlipayGroupList.length; i++) {
                             if (vm.platformAlipayGroupList[i].code == groupName) {
@@ -2745,8 +2745,8 @@ define(['js/app'], function (myApp) {
         vm.playerPMSWechatGroupSearch = () => {
             return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName}).then(data => {
                 console.log('getPMSUserPaymentGroup', data)
-                if (data && data.data && data.data.map && data.data.map["微信组"]) {
-                    let groupName = Object.entries(data.data.map["微信组"])[0][0];
+                if (data && data.data && data.data.map && data.data.map["微信"]) {
+                    let groupName = Object.entries(data.data.map["微信"])[0][0];
                     if (vm.platformWechatPayGroupList && vm.platformWechatPayGroupList.length) {
                         for (let i = 0; i < vm.platformWechatPayGroupList.length; i++) {
                             if (vm.platformWechatPayGroupList[i].code == groupName) {
