@@ -4771,7 +4771,7 @@ function calculateUniqueIpDomainDayAnalysis (platform, startTime, endTime, domai
                 for (let i = 0; i < timeFrames.length; i++) {
                     let dayCount = {
                         day: timeFrames[i].startTime,
-                        count: ipDomainCounts[i] && ipDomainCounts[i].count || 0
+                        count: ipDomainCounts[i] && ipDomainCounts[i][0] && ipDomainCounts[i][0].count || 0
                     };
                     output.push(dayCount);
                 }
@@ -4785,7 +4785,7 @@ function calculateIpDomainAnalysis (platform, startTime, endTime) {
     return dbconfig.collection_ipDomainLog.aggregate([
         {
             $match: {
-                createTime: {$gte: startTime, $lt: endTime},
+                createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
                 platform: ObjectId(platform)
             }
         }, {
@@ -4814,7 +4814,7 @@ function calculateUniqueIpDomainAnalysis (platform, startTime, endTime) {
     return dbconfig.collection_ipDomainLog.aggregate([
         {
             $match: {
-                createTime: {$gte: startTime, $lt: endTime},
+                createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
                 platform: ObjectId(platform)
             }
         }, {
