@@ -139,6 +139,12 @@ var platformGameGroupModel = db_admin.model('platformGameGroup', platformGameGro
 var platformBankCardGroupSchema = require('./../schema/platformBankCardGroup');
 var platformBankCardGroupModel = db_admin.model('platformBankCardGroup', platformBankCardGroupSchema, 'platformBankCardGroup');
 
+var clientQnATemplateSchema = require('../schema/clientQnATemplate');
+var clientQnATemplateModel = db_admin.model('clientQnATemplate', clientQnATemplateSchema, 'clientQnATemplate');
+
+var clientQnATemplateConfigSchema = require('../schema/clientQnATemplateConfig');
+var clientQnATemplateConfigModel = db_admin.model('clientQnATemplateConfig', clientQnATemplateConfigSchema, 'clientQnATemplateConfig');
+
 var platformBankCardListSchema = require('./../schema/platformBankCardList');
 var platformBankCardListModel = db_admin.model('platformBankCardList', platformBankCardListSchema, 'platformBankCardList');
 
@@ -484,6 +490,8 @@ var dbProperties = {
     collection_platformGameStatus: platformGameStatusModel,
     collection_platformGameGroup: platformGameGroupModel,
     collection_platformBankCardGroup: platformBankCardGroupModel,
+    collection_clientQnATemplate: clientQnATemplateModel,
+    collection_clientQnATemplateConfig: clientQnATemplateConfigModel,
     collection_platformBankCardList: platformBankCardListModel,
     collection_platformMerchantGroup: platformMerchantGroupModel,
     collection_platformMerchantList: platformMerchantListModel,
