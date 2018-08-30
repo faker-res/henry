@@ -729,10 +729,6 @@ var dbPlayerLoginRecord = {
                                 }
                             };
 
-                            if (domainList){
-                                matchObj.clientDomain = {$in: domainList};
-                            }
-
                             var temp = dbconfig.collection_playerLoginRecord.aggregate(
                                 [{
                                     $match: matchObj
@@ -771,9 +767,9 @@ var dbPlayerLoginRecord = {
                                 for (var i = 1; i <= dayCount; i++) {
                                     var date = new Date(startTime);
                                     date.setDate(date.getDate() + i - 1);
-                                    var showDate = new Date(startTime);
-                                    showDate.setDate(showDate.getDate() + i);
-                                    var row = {date: showDate};
+                                    // var showDate = new Date(startTime);
+                                    // showDate.setDate(showDate.getDate() + i);
+                                    var row = {date: date};
                                     var baseArr = [];
 
                                     if (day0PlayerObj[date]) {
