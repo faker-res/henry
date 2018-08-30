@@ -33140,7 +33140,14 @@ define(['js/app'], function (myApp) {
                 });
             };
             vm.autoFeedbackDeleteMission = function(i) {
-                //delete
+                let sendData = {
+                    autoFeedbackObjId: vm.autoFeedbackSearchResult[i]._id
+                };
+                socketService.$socket($scope.AppSocket, 'removeAutoFeedbackByObjId', sendData, function (data) {
+                    console.log("autoFeedbackDeleteMission ret",data);
+                    vm.autoFeedbackSearchResult.splice(i,1);
+                    vm.drawAutoFeedbackOverviewTable(vm.autoFeedbackPrepareTableData(vm.autoFeedbackSearchResult));
+                });
             };
 
             vm.initAutoFeedbackSearch = function() {
@@ -33214,6 +33221,7 @@ define(['js/app'], function (myApp) {
                     else {
                         mission.missionStatus$ = $translate('Manually Cancelled');
                     }
+                    mission.createTime$ = utilService.getFormatTime(mission.createTime);
                     return mission;
                 });
                 return drawData;
@@ -33237,7 +33245,6 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('TASK_NAME'),
-                            // data: "name",
                             render: function(data, type, row) {
                                 let link = $('<a>', {
                                     'ng-click': 'vm.initAutoFeedbackEdit(' + JSON.stringify(row) + ')'
@@ -33246,7 +33253,7 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {title: $translate('TASK_REMARK'), data: "remarks"},
-                        {title: $translate('TASK_CREATE_TIME'), data: "createTime"},
+                        {title: $translate('TASK_CREATE_TIME'), data: "createTime$"},
                         {title: $translate('Mission Status'), data: "missionStatus$"},
                         {
                             title: $translate('ACTION_BUTTON'),

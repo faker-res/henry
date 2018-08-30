@@ -80,6 +80,10 @@ let dbPlatformAutoFeedback = {
         });
     },
 
+    removeAutoFeedbackByObjId: function (objId) {
+        return dbconfig.collection_autoFeedback.remove({_id: objId}).exec();
+    },
+
     executeAutoFeedback: function () {
         let query = {
             missionStartTime: {$lte: new Date()},
