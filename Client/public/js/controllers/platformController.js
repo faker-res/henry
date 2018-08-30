@@ -15732,7 +15732,7 @@ define(['js/app'], function (myApp) {
                         if (vm.playerFeedbackResultExtended.credibilityRemarks) {
                             for (let i = 0; i < vm.playerFeedbackResultExtended.credibilityRemarks.length; i++) {
                                 for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                                    if (vm.playerFeedbackResultExtended.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                    if (vm.playerFeedbackResultExtended.credibilityRemarks[i] && vm.playerFeedbackResultExtended.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
                                         vm.playerFeedbackResultExtended.credibility$ += vm.credibilityRemarks[j].name + "<br>";
                                     }
                                 }
@@ -27175,6 +27175,10 @@ define(['js/app'], function (myApp) {
                     {
                         name: '注册IP重复',
                         score: 0
+                    },
+                    {
+                        name: '机房IP',
+                        score: 0
                     }
                 ];
 
@@ -27185,19 +27189,6 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'setFixedCredibilityRemarks', sendData, function (data) {
                     console.log('setFixedCredibilityRemarks', data);
-                    vm.getFixedCredibilityRemarks();
-                });
-            };
-
-            vm.getFixedCredibilityRemarks = () => {
-                socketService.$socket($scope.AppSocket, 'getFixedCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
-                    console.log('getFixedCredibilityRemarks', data);
-                    vm.fixedRemarks = [];
-                    if (data && data.data && data.data.length > 0) {
-                        data.data.forEach(remark => {
-                            vm.fixedRemarks.push(remark._id);
-                        });
-                    }
                 });
             };
 
@@ -27494,11 +27485,8 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.checkPromoCodeField = function (insertData, type){
+            vm.checkPromoCodeField = function (insertData, type, tab){
 
-                if (!insertData && !type) {
-                    return false;
-                }
 
                 if (!insertData.amount) {
                     if (type == 3) {
@@ -27524,21 +27512,23 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
-                if(!insertData.applyLimitPerPlayer){
-                    return socketService.showErrorMessage($translate("The application limit of individual is required"));
-                }
+                if (tab == 'openPromoCode') {
+                    if (!insertData.applyLimitPerPlayer) {
+                        return socketService.showErrorMessage($translate("The application limit of individual is required"));
+                    }
 
-                if(!insertData.totalApplyLimit){
-                    return socketService.showErrorMessage($translate("The total application limit is required"));
-                }
+                    if (!insertData.totalApplyLimit) {
+                        return socketService.showErrorMessage($translate("The total application limit is required"));
+                    }
 
-                if(!insertData.ipLimit){
-                    return socketService.showErrorMessage($translate("The application limit from the same IP is required"));
-                }
+                    if (!insertData.ipLimit) {
+                        return socketService.showErrorMessage($translate("The application limit from the same IP is required"));
+                    }
 
 
-                if(insertData.ipLimit && insertData.applyLimitPerPlayer && insertData.ipLimit < insertData.applyLimitPerPlayer){
-                    return socketService.showErrorMessage($translate("The application limit from the same IP has to be at least equal to the application limit of the individual"));
+                    if (insertData.ipLimit && insertData.applyLimitPerPlayer && insertData.ipLimit < insertData.applyLimitPerPlayer) {
+                        return socketService.showErrorMessage($translate("The application limit from the same IP has to be at least equal to the application limit of the individual"));
+                    }
                 }
 
                 return true;
@@ -27548,7 +27538,7 @@ define(['js/app'], function (myApp) {
                 if (func == 'add') {
 
                     if (collection && data && type) {
-                        let returnedMsg = vm.checkPromoCodeField(data, type);
+                        let returnedMsg = vm.checkPromoCodeField(data, type, tab);
                         vm.promoCodeFieldCheckFlag = false;
                         if (returnedMsg) {
 

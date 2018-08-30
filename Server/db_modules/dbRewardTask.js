@@ -1843,7 +1843,8 @@ const dbRewardTask = {
         return taskGroupProm.then(() => {
             // Check if player is in game when reward group completed
             // Move balance in RTG to free credit when RTG became no credit
-            if (!rewardGroupData.inProvider || unlockType === constRewardTaskStatus.NO_CREDIT) {
+            // Move balance when RTG achieved, as there may be no transfer out action and credit will lost
+            if (!rewardGroupData.inProvider || unlockType === constRewardTaskStatus.NO_CREDIT || unlockType === constRewardTaskStatus.ACHIEVED) {
                 // If player has left game, add the rewardAmt to player's credit
                 playerCreditChange = {
                     $inc: {validCredit: rewardAmount}

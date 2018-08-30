@@ -4440,7 +4440,7 @@ let dbPlayerInfo = {
             })
     },
 
-    getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj, adminName) {
+    getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortObj = sortObj || {registrationTime: -1};
 
@@ -4567,6 +4567,7 @@ let dbPlayerInfo = {
                                     let platformId = playerData[ind].platform;
                                     let fullPhoneNumber = playerData[ind].fullPhoneNumber;
                                     let lastLoginIp = playerData[ind].lastLoginIp;
+                                    let adminName = 'System';
                                     delete playerData[ind].fullPhoneNumber;
 
                                     // add fixed credibility remarks
@@ -4888,6 +4889,7 @@ let dbPlayerInfo = {
                                 function () {
                                     if (bUpdateIp) {
                                         dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
+                                        dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, playerData.lastLoginIp).catch(errorUtils.reportError);
                                     }
 
                                     if (updateSimilarIpPlayer) {
@@ -11410,6 +11412,9 @@ let dbPlayerInfo = {
             {path: "merchantGroup", model: dbconfig.collection_platformMerchantGroup}
         ).lean().then(
             data => {
+                if (data && data.permission && !data.permission.topupOnline) {
+                    return [];
+                }
                 if (data && data.platform) {
                     if (data.platform.merchantGroupIsPMS) {
                         bPMSGroup = true
