@@ -16125,17 +16125,19 @@ define(['js/app'], function (myApp) {
                         limit: vm.playerFeedbackQuery.limit,
                         sortCol: vm.playerFeedbackQuery.sortCol
                     }, function (data) {
-                        console.log('_getPlayerFeedbackQuery', data);
-                        let playerList = data.data.data;
-                        console.log(playerList);
-                        setTableData(vm.playerFeedbackTable, playerList);
-                        vm.playerFeedbackQuery.total = data.data.total || 0;
-                        vm.playerFeedbackQuery.index = data.data.index || 0;
-                        vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total}, isNewSearch);
+                        $scope.$evalAsync(() => {
+                            console.log('_getPlayerFeedbackQuery', data);
+                            let playerList = data.data.data;
+                            console.log(playerList);
+                            setTableData(vm.playerFeedbackTable, playerList);
+                            vm.playerFeedbackQuery.total = data.data.total || 0;
+                            vm.playerFeedbackQuery.index = data.data.index || 0;
+                            vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total}, isNewSearch);
 
-                        vm.feedbackPlayersPara.total = vm.playerFeedbackQuery.total;
-                        $('#platformFeedbackSpin').hide();
-                        $scope.safeApply();
+                            vm.feedbackPlayersPara.total = vm.playerFeedbackQuery.total;
+                            $('#platformFeedbackSpin').hide();
+                            // $scope.safeApply();
+                        });
                     });
                 }
                 vm.playerCredibilityComment = [];
