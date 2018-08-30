@@ -2346,6 +2346,8 @@
   "not locked": "未锁定",
   "Lock Proposal": "锁定提案",
   "Unlock Proposal": "解锁提案",
+  "Multiple": "复选",
+  "Searching related domain name...": "查找相关的开户域名。。。",
   "rewardType": "优惠类型",
   "VERIFY_BANK_ACCOUNT": "验证银行账号",
   "adminName": "管理员",

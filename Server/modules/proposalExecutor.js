@@ -2552,7 +2552,7 @@ var proposalExecutor = {
             },
 
             executePlayerConsecutiveRewardGroup: function (proposalData, deferred) {
-                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && !isNaN(parseInt(proposalData.data.rewardAmount)) ) {
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
                         type: constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
