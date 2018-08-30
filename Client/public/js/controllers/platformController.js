@@ -3108,8 +3108,28 @@ define(['js/app'], function (myApp) {
                             if (!v || !v.game) {
                                 return true;
                             }
+
+                            let newObj = v.game;
                             vm.excludedGamesGroup.push(v.game);
-                            vm.gameSmallShow[v.game._id] = processImgAddr(v.smallShow, v.game.smallShow);
+
+                            if(newObj.bigShow && !newObj.bigShow.includes("http")){
+                                newObj.bigShow = playerRouteSetting ? playerRouteSetting + newObj.bigShow : (newObj.sourceURL ? newObj.sourceURL + newObj.bigShow : newObj.bigShow);
+                            }
+
+                            if(newObj.smallShow && !newObj.smallShow.includes("http")){
+                                newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.smallShow);
+                            }
+
+                            if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
+                                let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
+                                if(platformCustomImage && !platformCustomImage.includes("http")){
+                                    platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (newObj.sourceURL ? newObj.sourceURL  + platformCustomImage : platformCustomImage);
+                                }
+
+                                vm.gameSmallShow[v.game._id] = platformCustomImage;
+                            }else{
+                                vm.gameSmallShow[v.game._id] = newObj.smallShow
+                            }
 
                         })
                         console.log('vm.excludedGamesGroup', vm.excludedGamesGroup);
@@ -3684,12 +3704,31 @@ define(['js/app'], function (myApp) {
                     vm.excludedGames = [];
                     $.each(vm.filterGames(data2.data, false), function (i, v) {
                         vm.excludedGames.push(v);
+
+                        if(v.bigShow && !v.bigShow.includes("http")){
+                            v.bigShow = playerRouteSetting ? playerRouteSetting + v.bigShow : (v.sourceURL ? v.sourceURL + v.bigShow : v.bigShow);
+                        }
+
+                        if(v.smallShow && !v.smallShow.includes("http")){
+                            v.smallShow = playerRouteSetting ? playerRouteSetting + v.smallShow : (v.sourceURL ? v.sourceURL + v.smallShow : v.smallShow);
+                        }
+
+                        if(v.images && v.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
+                            let platformCustomImage = v.images[vm.selectedPlatform.data.platformId] || v.smallShow;
+                            if(platformCustomImage && !platformCustomImage.includes("http")){
+                                platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (v.sourceURL ? v.sourceURL  + platformCustomImage : platformCustomImage);
+                            }
+
+                            vm.gameSmallShow[v._id] = platformCustomImage;
+                        }else{
+                            vm.gameSmallShow[v._id] = v.smallShow
+                        }
+
                         if (v.hasOwnProperty('status')) {
                             vm.gameStatus[v._id] = v.status;
                         } else {
                             vm.gameStatus[v._id] = "default";
                         }
-                        vm.gameSmallShow[v._id] = processImgAddr(null, v.smallShow);
                     })
                     $scope.safeApply();
                 })
