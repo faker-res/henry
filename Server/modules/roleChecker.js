@@ -332,7 +332,7 @@ var roleChecker = {
                 Read: ['getPartnersByPlatform', 'partnerLevel/getByPlatform', 'getPartnersPlayerInfo', 'getPartner', 'getChildrenPartner', 'getAllPartner', 'getPartnerActivePlayers',
                     'getPartnerValidPlayers', 'getPartnerReferralPlayers', 'getPartnerActivePlayersForPastWeek', 'getAllGameProviders', 'getPartnerIPHistory', 'getDuplicatePhoneNumber',
                     'getReferralsList', 'getDailyActivePlayerCount', 'getWeeklyActivePlayerCount', 'getMonthlyActivePlayerCount', 'getValidPlayersCount', 'getTotalChildrenDeposit',
-                    'getTotalChildrenBalance'],
+                    'getTotalChildrenBalance', 'getAdminInfo'],
                 AdvancedSearch: ['getPartnersByAdvancedQuery'],
                 Create: ['createPartnerWithParent', 'createPartner', 'createPlayerLoginRecord'],
                 Delete: ['deletePartnersById', 'deletePlayerLoginRecord'],
@@ -351,7 +351,8 @@ var roleChecker = {
                 sendSMS: [],
                 partnerApiLog: [],
                 CreditAdjustment: ['createUpdatePartnerCreditProposal'],
-                SettleCommission: ['getAllPartnerCommSettPreview']
+                SettleCommission: ['getAllPartnerCommSettPreview'],
+                PartnerCreditTransferToDownline: ['transferPartnerCreditToPlayer']
             },
             "Game": {
                 Read: ['getAllGameProviders', 'getGamesByPlatformAndProvider', 'getGamesNotAttachedToPlatform'],
@@ -745,6 +746,30 @@ var roleChecker = {
                 queryByTotalValidPlayer: [],
                 queryByTotalDepositAmount: [],
                 queryByTotalValidConsumption: [],
+            },
+            PHONE_LISTS: {
+                Read: []
+            },
+            PHONE_LIST_MANAGEMENT: {
+                Read: []
+            },
+            PHONE_LIST_ASSIGNMENT: {
+                Read: []
+            },
+            SALES_CONFIGURATION: {
+                Read: []
+            },
+            MEMBER_INFO: {
+                Read: []
+            },
+            PHONE_LOOKUP: {
+                Read: []
+            },
+            SALES_REPORT: {
+                Read: []
+            },
+            MEMBER_REPORT: {
+                Read: []
             }
         }
     },

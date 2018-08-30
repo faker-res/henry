@@ -7067,45 +7067,50 @@ let dbPartner = {
                                 }
                             }
                             oriCommission[j].commissionSetting.forEach(ori => {
-                                if (ori.activePlayerValueTo == null) {
-                                    ori.activePlayerValueTo = "-";
-                                }
-                                if (ori.playerConsumptionAmountTo == null) {
-                                    ori.playerConsumptionAmountTo = "-";
-                                }
-                                if (!ori.hasOwnProperty("defaultCommissionRate")) {
-                                    ori.defaultCommissionRate = ori.commissionRate;
-                                    delete ori.commissionRate;
+                                if(ori){
+                                    if (ori.activePlayerValueTo == null) {
+                                        ori.activePlayerValueTo = "-";
+                                    }
+                                    if (ori.playerConsumptionAmountTo == null) {
+                                        ori.playerConsumptionAmountTo = "-";
+                                    }
+                                    if (!ori.hasOwnProperty("defaultCommissionRate")) {
+                                        ori.defaultCommissionRate = ori.commissionRate;
+                                        delete ori.commissionRate;
+                                    }
                                 }
                             })
-                            let commissionObj = {
-                                providerGroupId: oriCommission[j].provider.hasOwnProperty("providerGroupId") ? oriCommission[j].provider.providerGroupId : "",
-                                providerGroupName: oriCommission[j].provider.name ? oriCommission[j].provider.name : "",
-                                list: oriCommission[j].commissionSetting
-                            };
-                            returnData.push(commissionObj);
+                            if(oriCommission[j].provider){
+                                let commissionObj = {
+                                    providerGroupId: oriCommission[j].provider && oriCommission[j].provider.hasOwnProperty("providerGroupId") ? oriCommission[j].provider.providerGroupId : "",
+                                    providerGroupName: oriCommission[j].provider.name ? oriCommission[j].provider.name : "",
+                                    list: oriCommission[j].commissionSetting
+                                };
+                                returnData.push(commissionObj);
+                            }
                         }
                     } else {
                         for (let i = 0; i < commissionData.length; i++) {
-                            if (!commissionData[i].provider) continue;
-                            let commissionObj = {
-                                providerGroupId: commissionData[i].provider.hasOwnProperty("providerGroupId") ? commissionData[i].provider.providerGroupId : "",
-                                providerGroupName: commissionData[i].provider.name ? commissionData[i].provider.name : ""
-                            };
-                            if (commissionData[i].commissionSetting && commissionData[i].commissionSetting.length) {
-                                for (let j = 0; j < commissionData[i].commissionSetting.length; j++) {
-                                    if (commissionData[i].commissionSetting[j].activePlayerValueTo == null) {
-                                        commissionData[i].commissionSetting[j].activePlayerValueTo = "-";
+                            if (commissionData[i].provider) {
+                                let commissionObj = {
+                                    providerGroupId: commissionData[i].provider && commissionData[i].provider.hasOwnProperty("providerGroupId") ? commissionData[i].provider.providerGroupId : "",
+                                    providerGroupName: commissionData[i].provider && commissionData[i].provider.name ? commissionData[i].provider.name : ""
+                                };
+                                if (commissionData[i].commissionSetting && commissionData[i].commissionSetting.length) {
+                                    for (let j = 0; j < commissionData[i].commissionSetting.length; j++) {
+                                        if (commissionData[i].commissionSetting[j].activePlayerValueTo == null) {
+                                            commissionData[i].commissionSetting[j].activePlayerValueTo = "-";
+                                        }
+                                        if (commissionData[i].commissionSetting[j].playerConsumptionAmountTo == null) {
+                                            commissionData[i].commissionSetting[j].playerConsumptionAmountTo = "-";
+                                        }
+                                        commissionData[i].commissionSetting[j].defaultCommissionRate = commissionData[i].commissionSetting[j].commissionRate;
+                                        delete commissionData[i].commissionSetting[j].commissionRate;
                                     }
-                                    if (commissionData[i].commissionSetting[j].playerConsumptionAmountTo == null) {
-                                        commissionData[i].commissionSetting[j].playerConsumptionAmountTo = "-";
-                                    }
-                                    commissionData[i].commissionSetting[j].defaultCommissionRate = commissionData[i].commissionSetting[j].commissionRate;
-                                    delete commissionData[i].commissionSetting[j].commissionRate;
+                                    commissionObj.list = commissionData[i].commissionSetting;
                                 }
-                                commissionObj.list = commissionData[i].commissionSetting;
+                                returnData.push(commissionObj);
                             }
-                            returnData.push(commissionObj);
                         }
                     }
                     return returnData;
@@ -8923,6 +8928,24 @@ let dbPartner = {
         );
     },
 
+    transferPartnerCreditToPlayer: (platformId, partnerObjId, currentCredit, updateCredit, totalTransferAmount, transferToPlayers, adminInfo) => {
+        return dbconfig.collection_partner.findOne({platform: platformId, _id: partnerObjId}).lean().then( partnerData => {
+            if (partnerData) {
+                if (partnerData.credits) {
+                    if(partnerData.credits != currentCredit) {
+                        return Promise.reject({name: "DataError", message: "Partner does not have enough credit."});
+                    } else {
+                        return applyTransferPartnerCreditToPlayer(platformId, partnerData, currentCredit, updateCredit, totalTransferAmount, transferToPlayers, adminInfo);
+                    }
+                } else {
+                    return Promise.reject({name: "DataError", message: "Partner does not have enough credit."});
+                }
+            } else {
+                return Promise.reject({name: "DataError", message: "Invalid partner data"});
+            }
+        })
+    },
+
     getChildPartnerRecords: (platformId, partnerObjId) => {
         let childPartnerData = [];
         let childPartnerNameArr = [];
@@ -10130,6 +10153,43 @@ function updateParentPartnerCommission(commissionLog, adminInfo, proposalId) {
                     childPlayerTotalWinLose: commissionLog.parentPartnerCommissionDetail.totalWinLose,
                     relatedProposalId: proposalId,
                     remark: proposalRemark
+                },
+                entryType: constProposalEntryType.ADMIN,
+                userType: constProposalUserType.PARTNERS
+            };
+
+            return dbProposal.createProposalWithTypeId(proposalType._id, proposalData);
+        }
+    );
+}
+
+function applyTransferPartnerCreditToPlayer(platformId, partner, currentCredit, updateCredit, totalTransferAmount, transferToPlayers, adminInfo) {
+    // find proposal type
+    return dbconfig.collection_proposalType.findOne({name: constProposalType.PARTNER_CREDIT_TRANSFER_TO_DOWNLINE, platformId: platformId}).lean().then(
+        proposalType => {
+            if (!proposalType) {
+                return Promise.reject({
+                    message: "Error in getting proposal type"
+                });
+            }
+
+            // create proposal data
+            let proposalData = {
+                type: proposalType._id,
+                creator: adminInfo ? adminInfo : {
+                    type: 'partner',
+                    name: partner.partnerName,
+                    id: partner._id
+                },
+                data: {
+                    partnerObjId: partner._id,
+                    platformObjId: platformId,
+                    partnerId: partner.partnerId,
+                    partnerName: partner.partnerName,
+                    currentCredit: currentCredit,
+                    updateCredit: updateCredit,
+                    amount: -totalTransferAmount,
+                    transferToDownlineDetail: transferToPlayers
                 },
                 entryType: constProposalEntryType.ADMIN,
                 userType: constProposalUserType.PARTNERS

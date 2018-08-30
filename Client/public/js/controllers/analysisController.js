@@ -285,10 +285,11 @@ define(['js/app'], function (myApp) {
                             for (var i = 1; i < 31; i++) {
                                 vm.dayListLength.push(i);
                             }
+                            vm.queryPara.playerRetention.userType = "all";
+                            vm.checkDomainList();
                             vm.playerRetentionInit(function () {
                                 //vm.getPlayerRetention();
                             });
-                            vm.queryPara.playerRetention.userType = "all";
                             $scope.safeApply();
                         });
                         break;
@@ -4719,10 +4720,53 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        vm.checkDomainList = function (){
+            vm.domainList = null;
+            var sendData = {
+                platformId: vm.selectedPlatform._id,
+                startTime: vm.queryPara.playerRetention.startTime,
+                endTime: vm.queryPara.playerRetention.endTime,
+                playerType: vm.queryPara.playerRetention.playerType
+            };
+
+            switch (vm.queryPara.playerRetention.userType) {
+                case 'all':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    break;
+                case 'individual':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = false;
+                    break;
+                case 'underPartner':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = true;
+                    break;
+                case 'test':
+                    sendData.isRealPlayer = false;
+                    sendData.isTestPlayer = true;
+                    break;
+            }
+            if (typeof sendData.hasPartner !== 'boolean'){
+                sendData.hasPartner = null;
+            }
+
+            socketService.$socket($scope.AppSocket, 'getDomainList', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.domainList = data && data.data && data.data[0] && data.data[0].urls ? data.data[0].urls : [];
+                    console.log('domain data', vm.domainList);
+                })
+            });
+        };
+
         vm.retentionFilterOnChange = function () {
-            vm.queryPara.playerRetention.minTime = utilService.getFormatDate(vm.queryPara.playerRetention.startTime);
-            $scope.safeApply();
-        }
+            $scope.$evalAsync( () => {
+                vm.queryPara.playerRetention.minTime = utilService.getFormatDate(vm.queryPara.playerRetention.startTime);
+                vm.checkDomainList();
+            })
+        };
 
         vm.tableDataReformat = function (data) {
             if (Number.isInteger(data)) {
@@ -4748,6 +4792,10 @@ define(['js/app'], function (myApp) {
                 startTime: vm.queryPara.playerRetention.startTime,
                 endTime: vm.queryPara.playerRetention.endTime,
                 playerType: vm.queryPara.playerRetention.playerType
+            }
+
+            if (vm.chosenDomain && vm.chosenDomain.length > 0){
+                sendData.domainList = vm.chosenDomain;
             }
 
             switch (vm.queryPara.playerRetention.userType) {
@@ -4835,7 +4883,7 @@ define(['js/app'], function (myApp) {
                     rowData.sort((a, b) => {
                         return a[0] - b[0];
                     });
-                    var lineData = {label: vm.dateReformat(obj.date), data: rowData};
+                    var lineData = {label: obj.date == $translate("average line") ? $translate("average line") : vm.dateReformat(obj.date), data: rowData};
                     vm.allRetentionLineData.push(lineData);
                 }
             })

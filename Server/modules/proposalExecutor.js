@@ -252,6 +252,7 @@ var proposalExecutor = {
             this.executions.executeCustomizePartnerCommRate.des = "Customize Partner Commmission Rate";
             this.executions.executeSettlePartnerCommission.des = "Settle Partner Commission";
             this.executions.executeUpdateParentPartnerCommission.des = "Update Parent Partner Commission";
+            this.executions.executePartnerCreditTransferToDownline.des = "Partner Credit Transfer To Downline";
             this.executions.executeBulkExportPlayerData.des = "Bulk Export Player Data";
             this.executions.executeFinancialPointsAdd.des = "Add Platform Financial Points";
             this.executions.executeFinancialPointsDeduct.des = "Deduct Platform Financial Points";
@@ -321,6 +322,7 @@ var proposalExecutor = {
             this.rejections.rejectCustomizePartnerCommRate.des = "Reject Customize Partner Commmission Rate";
             this.rejections.rejectSettlePartnerCommission.des = "Reject Settle Partner Commission";
             this.rejections.rejectUpdateParentPartnerCommission.des = "Reject Update Parent Partner Commission";
+            this.rejections.rejectPartnerCreditTransferToDownline.des = "Reject Partner Credit Transfer To Downline";
             this.rejections.rejectBulkExportPlayerData.des = "Reject Bulk Export Player Data";
             this.rejections.rejectFinancialPointsAdd.des = "Reject Add Platform Financial Points";
             this.rejections.rejectFinancialPointsDeduct.des = " Reject Deduct Platform Financial Points";
@@ -2550,7 +2552,7 @@ var proposalExecutor = {
             },
 
             executePlayerConsecutiveRewardGroup: function (proposalData, deferred) {
-                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && !isNaN(parseInt(proposalData.data.rewardAmount)) ) {
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
                         type: constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
@@ -2870,6 +2872,16 @@ var proposalExecutor = {
                 if (proposalData && proposalData.data && proposalData.data.partnerObjId) {
                     proposalData.data.proposalId = proposalData.proposalId;
                     return dbPartner.changePartnerCredit(proposalData.data.partnerObjId, proposalData.data.platformObjId, proposalData.data.amount, constProposalType.UPDATE_PARENT_PARTNER_COMMISSION, proposalData).then(
+                        data => deferred.resolve(data),
+                        error => deferred.reject(error)
+                    );
+                }
+            },
+
+            executePartnerCreditTransferToDownline: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.partnerObjId) {
+                    proposalData.data.proposalId = proposalData.proposalId;
+                    return dbPartner.changePartnerCredit(proposalData.data.partnerObjId, proposalData.data.platformObjId, proposalData.data.amount, constProposalType.PARTNER_CREDIT_TRANSFER_TO_DOWNLINE, proposalData).then(
                         data => deferred.resolve(data),
                         error => deferred.reject(error)
                     );
@@ -3693,6 +3705,10 @@ var proposalExecutor = {
             },
 
             rejectSettlePartnerCommission: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPartnerCreditTransferToDownline: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
 

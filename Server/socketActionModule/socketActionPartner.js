@@ -577,6 +577,12 @@ function socketActionPartner(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPartner.settlePastCommission, [data.partnerName, data.platformObjId, data.pastX, adminInfo], actionName, isValidData);
         },
 
+        transferPartnerCreditToPlayer: function transferPartnerCreditToPlayer (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.partnerObjId && data.currentCredit && data.updateCredit && data.totalTransferAmount);
+            socketUtil.emitter(self.socket, dbPartner.transferPartnerCreditToPlayer, [data.platformId, data.partnerObjId, data.currentCredit, data.updateCredit, data.totalTransferAmount, data.transferToPlayers, adminInfo], actionName, isValidData);
+        },
+
         getChildPartnerRecords: function getChildPartnerRecords (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platform && data._id);

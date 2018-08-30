@@ -2455,6 +2455,38 @@ define(['js/app'], function (myApp) {
                 vm.selectedProposalDetailForDisplay = proposalDetail;
             }
 
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PartnerCreditTransferToDownline") {
+                let proposalDetail = {};
+                if (!vm.selectedProposalDetailForDisplay) {
+                    vm.selectedProposalDetailForDisplay = {};
+                }
+
+                proposalDetail["PARTNER_ID"] = vm.selectedProposalDetailForDisplay.partnerId;
+                proposalDetail["PARTNER_NAME"] = vm.selectedProposalDetailForDisplay.partnerName;
+                proposalDetail["PARTNER_CREDIT_AMOUNT_BEFORE_TRANSFER"] = vm.selectedProposalDetailForDisplay.currentCredit;
+                proposalDetail["PARTNER_CREDIT_AMOUNT_AFTER_TRANSFER"] = vm.selectedProposalDetailForDisplay.updateCredit;
+                proposalDetail["TOTAL_TRANSFER_PARTNER_CREDIT_AMOUNT"] = vm.selectedProposalDetailForDisplay.amount * -1;
+
+                vm.selectedProposalDetailForDisplay.transferToDownlineDetail = vm.selectedProposalDetailForDisplay.transferToDownlineDetail || [];
+                vm.selectedProposalDetailForDisplay.transferToDownlineDetail.map((transferredDownline, index) => {
+                    let providerGroupName = '';
+                    let orderNo = 0;
+                    orderNo = index + 1;
+
+                    if (transferredDownline && transferredDownline.providerGroup) {
+                        providerGroupName = vm.getProviderGroupNameById(transferredDownline.providerGroup);
+                    } else {
+                        providerGroupName = $translate("LOCAL_CREDIT");
+                    }
+
+                    let str = transferredDownline.playerName + "/" + transferredDownline.amount + "/" + providerGroupName + "/" + transferredDownline.withdrawConsumption;
+
+                    proposalDetail[$translate("Targeted Downline Player") + "（" + orderNo + "）" + "/" + $translate("Transferred Amount") + "/" + $translate("PROVIDER_GROUP") + "/" + $translate("Withdraw Consumption")] =  str;
+                });
+
+                vm.selectedProposalDetailForDisplay = proposalDetail;
+            }
+
             // Remove fields for detail viewing
             delete vm.selectedProposalDetailForDisplay.creator;
             delete vm.selectedProposalDetailForDisplay.platform;

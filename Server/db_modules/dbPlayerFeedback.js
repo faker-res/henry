@@ -607,17 +607,18 @@ var dbPlayerFeedback = {
 
             }
         }
-
         let players = dbconfig.collection_players.find(query).skip(index).limit(limit)
             .populate({path: "partner", model: dbconfig.collection_partner})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
             .sort(sortCol).lean();
-        let count = dbconfig.collection_players.find(query).count();
+        let count = dbconfig.collection_players.find(query, { _id: 1}).lean();
         return Q.all([players, count]).then(data => {
+            let total = data[1].length ? data[1].length : 0;
+
             return {
                 data: data[0] ? data[0] : {},
                 index: index,
-                total: data[1]
+                total: total
             }
         });
     },
@@ -713,7 +714,7 @@ var dbPlayerFeedback = {
                 if (proposal.data && proposal.data.targetExportPlatform) {
                     targetPlatformProm = dbconfig.collection_platform.findOne({_id: proposal.data.targetExportPlatform}, {platformId: 1}).lean();
                 }
-                
+
                 let playersProm = searchPlayerFromExportProposal(proposal);
 
                 return Promise.all([playersProm, originPlatformProm, targetPlatformProm]);
