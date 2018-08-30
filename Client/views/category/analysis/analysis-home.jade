@@ -144,6 +144,8 @@ div(ng-if="checkViewPermission('Analysis')")
                 include category/withdrawal-speed
             div(ng-if='vm.showPageName=="PLAYER_ONLINE_TIME"')
                 include category/player-online-time
+            div(ng-if='vm.showPageName=="DOMAIN_VISIT_AMOUNT"')
+                include category/ip-domain
             div(ng-if='vm.showPageName==""')
                 label Please select a Data type
     include category/common/input-date

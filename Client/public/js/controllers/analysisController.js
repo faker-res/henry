@@ -458,7 +458,12 @@ define(['js/app'], function (myApp) {
                     case "PLAYER_ONLINE_TIME":
                         vm.initSearchParameter('playerOnlineTime', 'day', 3, function () {});
                         break;
-                    case ""
+                    case "DOMAIN_VISIT_AMOUNT":
+                        vm.initSearchParameter('ipDomain', 'day', 3);
+                        vm.initSearchParameter('ipDomainUnique', 'day', 3);
+                        vm.queryPara.ipDomain.domain = '';
+                        vm.queryPara.ipDomainUnique.domain = '';
+                        break;
                 }
                 // $(".flot-tick-label.tickLabel").addClass("rotate330");
                 //
@@ -6159,6 +6164,165 @@ define(['js/app'], function (myApp) {
             $('#demoPlayerLogTbl').resize();
             $('#demoPlayerLogTbl').off('order.dt');
             $scope.safeApply();
+        };
+
+        vm.analyseIpDomain = function (canRepeat) {
+            let keyword = canRepeat ? "ipDomain" : "ipDomainUnique";
+
+            if (!vm.queryPara || !vm.queryPara[keyword]) return;
+
+            let sendQuery = {
+                platformObjId: vm.selectedPlatform._id,
+                startTime: vm.queryPara[keyword].startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.queryPara[keyword].endTime.data('datetimepicker').getLocalDate(),
+                canRepeat: canRepeat
+            };
+
+            if (vm.queryPara[keyword].domain) {
+                if (canRepeat) {
+                    vm.ipDomainAnalysisDay = true;
+                } else {
+                    vm.ipDomainUniqueAnalysisDay = true;
+                }
+
+                sendQuery.domain = vm.queryPara[keyword].domain;
+            } else {
+                if (canRepeat) {
+                    vm.ipDomainAnalysisDay = false;
+                } else {
+                    vm.ipDomainUniqueAnalysisDay = false;
+                }
+            }
+
+            console.log('sendQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'getIpDomainAnalysis', sendQuery, function (data) {
+                console.log('getIpDomainAnalysis output', data);
+
+                if (canRepeat && vm.ipDomainAnalysisDay) {
+                    let calculatedIpDomainAnalysisDayData = vm.calculateLineDataAndAverage(data.data, 'count', 'AMOUNT');
+                    vm.ipDomainAnalysisDayAverage = calculatedIpDomainAnalysisDayData.average;
+                    vm.plotLineByElementId("#line-ipDomainDayCount", calculatedIpDomainAnalysisDayData.lineData, $translate('AMOUNT'), $translate("DAY"));
+                    vm.drawIpDomainDayTable(data.data, "#ipDomainDayAnalysisTable");
+                } else if (canRepeat) {
+                    vm.drawIpDomainPie(data.data, "#ipDomainAnalysis .pieChart");
+                    vm.drawIpDomainTable(data.data, "#ipDomainAnalysisTable");
+                } else if (vm.ipDomainUniqueAnalysisDay) {
+                    let calculatedIpDomainUniqueAnalysisDayData = vm.calculateLineDataAndAverage(data.data, 'count', 'AMOUNT');
+                    vm.ipDomainUniqueAnalysisDayAverage = calculatedIpDomainUniqueAnalysisDayData.average;
+                    vm.plotLineByElementId("#line-ipDomainUniqueDayCount", calculatedIpDomainUniqueAnalysisDayData.lineData, $translate('AMOUNT'), $translate("DAY"));
+                    vm.drawIpDomainDayTable(data.data, "#ipDomainUniqueDayAnalysisTable");
+                } else {
+                    vm.drawIpDomainPie(data.data, "#ipDomainUniqueAnalysis .pieChart");
+                    vm.drawIpDomainTable(data.data, "#ipDomainUniqueAnalysisTable");
+                }
+            });
+        };
+
+        vm.drawIpDomainPie = function (srcData, pieChartName) {
+            let placeholder = pieChartName + ' div.graphDiv';
+            let finalizedPieData = [];
+
+            srcData.map(s => {
+                finalizedPieData.push({label: s.domain, data: s.count});
+            });
+
+            function labelFormatter(label, series) {
+                return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
+            }
+
+            var options = {
+                series: {
+                    pie: {
+                        show: true,
+                        radius: 1,
+                        label: {
+                            show: true,
+                            radius: 1,
+                            formatter: labelFormatter,
+                            background: {
+                                opacity: 0.8
+                            }
+                        },
+                        combine: {
+                            color: "#999",
+                            threshold: 0.0
+                        }
+                    }
+                },
+                grid: {
+                    hoverable: true,
+                    clickable: true
+                },
+                legend: {
+                    show: false
+                }
+            };
+
+            socketService.$plotPie(placeholder, finalizedPieData, options, 'clientSourceClickData');
+
+        };
+
+        vm.drawIpDomainTable = function (srcData, tableName) {
+            let tableData = [];
+            let total = 0;
+
+            srcData.map(item => {
+                tableData.push(item);
+                total += item.count;
+            });
+
+            tableData.push({domain: $translate("total"), count: total});
+
+            var dataOptions = {
+                data: tableData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false, sClass: "text-center"}
+                ],
+                columns: [
+                    {title: $translate("Domain Name"), data: "domain"},
+                    {title: $translate('AMOUNT'), data: "count"}
+                ],
+                "paging": false,
+            };
+            dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
+            var a = $(tableName).DataTable(dataOptions);
+            a.columns.adjust().draw();
+        };
+
+        vm.drawIpDomainDayTable = function (srcData, tableName) {
+            let tableData = [];
+            let total = 0;
+
+            srcData.map(item => {
+                tableData.push(item);
+                total += item.count;
+            });
+
+            tableData.push({date: $translate("total"), count: total});
+
+            tableData.map(data => {
+                if(data){
+                    if(data.date){
+                        data.date = String(utilService.$getTimeFromStdTimeFormat(new Date(data.date))).substring(0, 10);
+                    }
+                }
+            });
+
+            var dataOptions = {
+                data: tableData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false, sClass: "text-center"}
+                ],
+                columns: [
+                    {title: $translate("DAY"), data: "date"},
+                    {title: $translate('AMOUNT'), data: "count"}
+                ],
+                "paging": false,
+            };
+            dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
+            var a = $(tableName).DataTable(dataOptions);
+            a.columns.adjust().draw();
         };
 
         vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {

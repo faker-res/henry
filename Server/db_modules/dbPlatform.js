@@ -4722,7 +4722,7 @@ function calculateIpDomainDayAnalysis (platform, startTime, endTime, domain) {
             if (ipDomainCounts && ipDomainCounts.length) {
                 for (let i = 0; i < timeFrames.length; i++) {
                     let dayCount = {
-                        day: timeFrames[i].startTime,
+                        date: timeFrames[i].startTime,
                         count: ipDomainCounts[i] || 0
                     };
                     output.push(dayCount);
@@ -4770,7 +4770,7 @@ function calculateUniqueIpDomainDayAnalysis (platform, startTime, endTime, domai
             if (ipDomainCounts && ipDomainCounts.length) {
                 for (let i = 0; i < timeFrames.length; i++) {
                     let dayCount = {
-                        day: timeFrames[i].startTime,
+                        date: timeFrames[i].startTime,
                         count: ipDomainCounts[i] && ipDomainCounts[i][0] && ipDomainCounts[i][0].count || 0
                     };
                     output.push(dayCount);

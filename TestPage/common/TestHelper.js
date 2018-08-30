@@ -284,8 +284,8 @@
 
     var TestHelper = {
         // This is the default.  It may be overridden below if we are running in development
-        websocketIP: "devoffice99.fpms8.me",
-        wsMigration: "devoffice99.fpms8.me",
+        websocketIP: "devtest.wsweb.me",
+        wsMigration: "devtest.wsweb.me",
         // This will be set later, based on WebSocketIP
         websocketURL: null,
         //
@@ -301,13 +301,13 @@
     };
 
     // For development: If we are running the Test Page in a browser pointing at localhost, then point the sockets at localhost too
-    // if (!isNode && typeof window !== 'undefined') {
-    //     var localNames = ['localhost', '127.0.0.1', '127.0.1.1', '0.0.0.0'];
-    //     if (localNames.indexOf(window.location.hostname) >= 0) {
-    //         TestHelper.websocketIP = window.location.hostname;
-    //         TestHelper.wsMigration = window.location.hostname;
-    //     }
-    // }
+    if (!isNode && typeof window !== 'undefined') {
+        var localNames = ['localhost', '127.0.0.1', '127.0.1.1', '0.0.0.0'];
+        if (localNames.indexOf(window.location.hostname) >= 0) {
+            TestHelper.websocketIP = window.location.hostname;
+            TestHelper.wsMigration = window.location.hostname;
+        }
+    }
 
     TestHelper.websocketURL = "ws://" + TestHelper.websocketIP + ":9280";
 
