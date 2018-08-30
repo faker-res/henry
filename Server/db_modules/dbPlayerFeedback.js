@@ -776,13 +776,17 @@ var dbPlayerFeedback = {
 
                     if (player.credibilityRemarks && player.credibilityRemarks.length > 0) {
                         player.credibilityRemarks.map(remark => {
-                            playerData.fame.push(remark.name);
+                            if(remark){
+                                playerData.fame.push(remark.name);
+                            }
                         });
                     }
 
                     if (player.gameProviderPlayed && player.gameProviderPlayed.length > 0) {
                         player.gameProviderPlayed.map(provider => {
-                            playerData.gameLobby.push(provider.name);
+                            if(provider){
+                                playerData.gameLobby.push(provider.name);
+                            }
                         });
                     }
 
