@@ -27485,11 +27485,8 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.checkPromoCodeField = function (insertData, type){
+            vm.checkPromoCodeField = function (insertData, type, tab){
 
-                if (!insertData && !type) {
-                    return false;
-                }
 
                 if (!insertData.amount) {
                     if (type == 3) {
@@ -27515,21 +27512,23 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
-                if(!insertData.applyLimitPerPlayer){
-                    return socketService.showErrorMessage($translate("The application limit of individual is required"));
-                }
+                if (tab == 'openPromoCode') {
+                    if (!insertData.applyLimitPerPlayer) {
+                        return socketService.showErrorMessage($translate("The application limit of individual is required"));
+                    }
 
-                if(!insertData.totalApplyLimit){
-                    return socketService.showErrorMessage($translate("The total application limit is required"));
-                }
+                    if (!insertData.totalApplyLimit) {
+                        return socketService.showErrorMessage($translate("The total application limit is required"));
+                    }
 
-                if(!insertData.ipLimit){
-                    return socketService.showErrorMessage($translate("The application limit from the same IP is required"));
-                }
+                    if (!insertData.ipLimit) {
+                        return socketService.showErrorMessage($translate("The application limit from the same IP is required"));
+                    }
 
 
-                if(insertData.ipLimit && insertData.applyLimitPerPlayer && insertData.ipLimit < insertData.applyLimitPerPlayer){
-                    return socketService.showErrorMessage($translate("The application limit from the same IP has to be at least equal to the application limit of the individual"));
+                    if (insertData.ipLimit && insertData.applyLimitPerPlayer && insertData.ipLimit < insertData.applyLimitPerPlayer) {
+                        return socketService.showErrorMessage($translate("The application limit from the same IP has to be at least equal to the application limit of the individual"));
+                    }
                 }
 
                 return true;
@@ -27539,7 +27538,7 @@ define(['js/app'], function (myApp) {
                 if (func == 'add') {
 
                     if (collection && data && type) {
-                        let returnedMsg = vm.checkPromoCodeField(data, type);
+                        let returnedMsg = vm.checkPromoCodeField(data, type, tab);
                         vm.promoCodeFieldCheckFlag = false;
                         if (returnedMsg) {
 
