@@ -36,14 +36,20 @@ let dbPlatformAutoFeedback = {
         );
     },
 
-    updateAutoFeedback: function (autoFeedbackData) {
+    updateAutoFeedback: function (autoFeedbackObjId, autoFeedbackData) {
         console.log(autoFeedbackData);
-        return dbconfig.collection_autoFeedback.update(
+        if(autoFeedbackData._id) {
+            delete autoFeedbackData._id;
+        }
+        if(autoFeedbackData.defaultStatus) {
+            delete autoFeedbackData.defaultStatus;
+        }
+        return dbconfig.collection_autoFeedback.findOneAndUpdate(
             {
-                _id: autoFeedbackData._id,
+                _id: autoFeedbackObjId,
             },
             autoFeedbackData,
-            {multi: true}
+            {new: true}
         ).then(
             data => {
                 console.log(data);
