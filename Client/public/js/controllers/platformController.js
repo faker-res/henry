@@ -3075,7 +3075,7 @@ define(['js/app'], function (myApp) {
                                 newObj.bigShow = playerRouteSetting ? playerRouteSetting + newObj.bigShow : (newObj.sourceURL ? newObj.sourceURL + newObj.bigShow : newObj.bigShow);
                             }
 
-                            if(newObj.smallShow && !newObj.smallShow.incldues("http")){
+                            if(newObj.smallShow && !newObj.smallShow.includes("http")){
                                 newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.smallShow);
                             }
 
