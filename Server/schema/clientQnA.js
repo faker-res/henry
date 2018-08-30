@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 // for security question
-var clientQnATemplateConfigSchema = new Schema({
+var clientQnASchema = new Schema({
     //QnA template object Id
     template: {type: Schema.ObjectId, ref: 'CSQnATemplate', required: true},
     //player object Id
@@ -12,8 +12,8 @@ var clientQnATemplateConfigSchema = new Schema({
     // data for each step
     QnAData: {type: JSON, default: {}}
 });
-//record is unique by platform, playerObjId and template
-clientQnATemplateConfigSchema.index({platform: 1, template: 1, playerObjId: 1});
+//record is unique by playerObjId and template
+clientQnASchema.index({template: 1, playerObjId: 1});
 
 
-module.exports = clientQnATemplateConfigSchema;
+module.exports = clientQnASchema;
