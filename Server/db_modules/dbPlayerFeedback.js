@@ -661,7 +661,8 @@ var dbPlayerFeedback = {
             "10.167.11.154",
             "203.90.255.250",
             "203.69.30.85",
-            " ::ffff:10.167.11.155"
+            // " ::ffff:10.167.11.155",
+            "::ffff:10.167.11.155"
         ];
 
         if (!allowedIP.includes(ipAddress)) {
