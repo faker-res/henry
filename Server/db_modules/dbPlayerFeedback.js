@@ -667,7 +667,7 @@ var dbPlayerFeedback = {
         if (!allowedIP.includes(ipAddress)) {
             return Promise.reject({
                 code: constServerCode.INVALID_API_USER,
-                message: "IP not authorized"
+                message: "IP not authorized:" + ipAddress
             })
         }
 
