@@ -313,7 +313,8 @@ define(['js/app'], function (myApp) {
                                     data.cityName = bankCard.cityName;
                                     data.name = bankCard.cardName;
                                     data.provinceName = bankCard.provinceName;
-                                    data.quota = bankCard.dailyLimit;
+                                    data.dailyLimit = bankCard.dailyLimit;
+                                    data.singleLimit = bankCard.singleLimit;
                                     data.openingPoint = bankCard.bankAddress;
                                     data.show$ = true;
                                     data.included = true;
