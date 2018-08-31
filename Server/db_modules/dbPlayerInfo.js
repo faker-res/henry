@@ -19196,8 +19196,168 @@ let dbPlayerInfo = {
                 applyXIMAFrontEnd: false
             }
         })
+    },
+
+    creditTransferedFromPartner: function(proposalId, platformId){
+        let partnerProposal;
+        let proposalTypeObj;1
+        let proposalProm = [];
+        let createPlayerProposalsProm = [];
+        return dbconfig.collection_proposalType.findOne({name: constProposalType.DOWNLINE_RECEIVE_PARTNER_CREDIT, platformId: platformId}).lean().then(
+            proposalType => {
+                if (!proposalType) {
+                    return Promise.reject({
+                        message: "Error in getting proposal type"
+                    });
+                }
+
+                proposalTypeObj = proposalType;
+
+                return dbconfig.collection_proposal.findOne({proposalId: proposalId});
+            }
+        ).then(
+            proposalData => {
+                if(proposalData && proposalData.data && proposalData.data.transferToDownlineDetail){
+                    if(proposalData.data.transferToDownlineDetail && proposalData.data.transferToDownlineDetail.length > 0){
+
+                        proposalData.data.transferToDownlineDetail.forEach(downlineDetails => {
+                            if(downlineDetails){
+                                proposalProm = createPlayerCreditTransferProposal(proposalId, platformId,
+                                    downlineDetails.playerObjId, downlineDetails.providerGroup,downlineDetails.amount,
+                                    downlineDetails.withdrawConsumption, proposalTypeObj, proposalData.data.partnerObjId,
+                                    proposalData.data.partnerId, proposalData.data.partnerName, proposalData.creator);
+
+                                createPlayerProposalsProm.push(proposalProm);
+                            }
+                        });
+                        return Promise.all(createPlayerProposalsProm).then(
+                            data => {
+                                return data;
+                            }
+                        );
+                    }
+
+                    return;
+
+                }else{
+                    return Promise.reject({
+                        message: "Error in getting proposal"
+                    });
+                }
+            }
+        );
     }
 };
+
+function createPlayerCreditTransferProposal(proposalId, platformId, playerObjId, providerGroup, amount, withdrawConsumption, proposalType, partnerObjId, partnerId, partnerName, adminInfo){
+    let playerData = null;
+    let proposal = null;
+    return dbconfig.collection_players.findOne({_id: playerObjId})
+        .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+        .then( player => {
+            if(!player){
+                return Promise.reject({
+                    message: "Error in player details"
+                });
+            }
+
+            playerData = player;
+
+            // create proposal data
+            let proposalData = {
+                type: proposalType._id,
+                creator: adminInfo ? adminInfo : {
+                    type: 'partner',
+                    name: partnerName,
+                    id: partnerObjId
+                },
+                data: {
+                    playerId: player.playerId,
+                    playerObjId: player._id,
+                    playerName: player.name,
+                    amount: amount,
+                    providerGroup: providerGroup,
+                    withdrawConsumption: withdrawConsumption,
+                    partnerTransferCreditToDownlineProposalNo: proposalId,
+                    partnerId: partnerId,
+                    partnerName: partnerName,
+                    remark: "代理提案号: "+ proposalId,
+                    playerLevelName: player.playerLevel.name,
+                },
+                entryType: constProposalEntryType.ADMIN,
+                userType: constProposalUserType.PARTNERS,
+                status: constProposalStatus.SUCCESS
+            };
+
+            return dbProposal.createProposalWithTypeId(proposalType._id, proposalData);
+        }
+    ).then(
+        proposalData => {
+            proposal = proposalData;
+            //add amount and withdrawConsumption to reward task group
+            let sendQuery = {
+                playerId: playerObjId,
+                providerGroup: providerGroup || null,
+                platformId: platformId,
+                status: constRewardTaskStatus.STARTED
+            };
+
+            return dbconfig.collection_rewardTaskGroup.findOne(sendQuery);
+        }
+    ).then(
+        rewardTaskGroup => {
+            if(rewardTaskGroup && rewardTaskGroup._id){
+                let updateData = {
+                    $inc: {
+                        targetConsumption: withdrawConsumption,
+                        currentAmt: amount,
+                        initAmt: amount,
+                    }
+                };
+
+                if(rewardTaskGroup.providerGroup){
+                    updateData.$inc.rewardAmt =  amount;
+                }
+
+                return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                    {_id: rewardTaskGroup._id},
+                    updateData
+                );
+            }else{
+                let newRewardTaskGroup = {
+                    platformId: platformId,
+                    playerId: playerObjId,
+                    providerGroup: providerGroup || null,
+                    forbidWithdrawIfBalanceAfterUnlock: 0,
+                    useConsumption: false,
+                    forbidXIMAAmt: 0,
+                    currentAmt: amount,
+                    targetConsumption: withdrawConsumption,
+                    curConsumption: 0,
+                    _inputRewardAmt: 0,
+                    _inputFreeAmt: 0,
+                    initAmt: amount,
+                    inProvider: false,
+                    status: constRewardTaskStatus.STARTED
+                };
+
+                if(providerGroup){
+                    newRewardTaskGroup.rewardAmt = amount;
+                }
+
+                return dbconfig.collection_rewardTaskGroup(newRewardTaskGroup).save();
+            }
+        }
+    ).then(
+        rewardTaskGroupData => {
+            if(!providerGroup){
+                return dbPlayerInfo.changePlayerCredit(playerObjId, platformId, amount, constPlayerCreditChangeType.DOWNLINE_RECEIVE_PARTNER_CREDIT, proposal);
+            }else{
+                return dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platformId, 0, constPlayerCreditChangeType.DOWNLINE_RECEIVE_PARTNER_CREDIT, playerData.validCredit, rewardTaskGroupData.currentAmt,  amount, null, proposal);
+            }
+        }
+    )
+}
 
 function censoredPlayerName(name) {
     let censoredName, front, censor = "***", rear;

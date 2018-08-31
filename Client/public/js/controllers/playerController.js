@@ -18116,6 +18116,35 @@ define(['js/app'], function (myApp) {
                     vm.selectedProposal.data = proposalDetail;
                 }
 
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "DownlineReceivePartnerCredit") {
+                    let proposalDetail = {};
+                    let inputDevice = "";
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+
+                    proposalDetail["Downline Player ID"] = vm.selectedProposal.data.playerId;
+                    proposalDetail["Downline Player Name"] = vm.selectedProposal.data.playerName;
+                    proposalDetail["Received Amount"] = vm.selectedProposal.data.amount;
+                    proposalDetail["Provider group"] = vm.selectedProposal.data.providerGroup ? vm.selectedProposal.data.providerGroup : $translate("LOCAL_CREDIT");
+                    proposalDetail["Withdraw Consumption (Accurate number/non-multiple)"] = vm.selectedProposal.data.withdrawConsumption;
+                    proposalDetail["Proposal No. of Partner Transfer Credit to Downline"] = vm.selectedProposal.data.partnerTransferCreditToDownlineProposalNo;
+                    proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
+                    proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
+
+                    for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                        if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == vm.selectedProposal.inputDevice ){
+                            inputDevice =  $translate(Object.keys(vm.inputDevice)[i]);
+                        }
+                    }
+
+                    proposalDetail["INPUT_DEVICE"] = inputDevice;
+                    proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
+
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
                         vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
@@ -18389,6 +18418,35 @@ define(['js/app'], function (myApp) {
                     proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.alipayQRCode || " ";
                     proposalDetail["ALIPAY_QR_ADDRESS"] = vm.selectedProposal.data.qrcodeAddress || " ";
                     proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                    vm.selectedProposal.data = proposalDetail;
+                }
+
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "DownlineReceivePartnerCredit") {
+                    let proposalDetail = {};
+                    let inputDevice = "";
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+
+                    proposalDetail["Downline Player ID"] = vm.selectedProposal.data.playerId;
+                    proposalDetail["Downline Player Name"] = vm.selectedProposal.data.playerName;
+                    proposalDetail["Received Amount"] = vm.selectedProposal.data.amount;
+                    proposalDetail["Provider group"] = vm.selectedProposal.data.providerGroup ? vm.selectedProposal.data.providerGroup : $translate("LOCAL_CREDIT");
+                    proposalDetail["Withdraw Consumption (Accurate number/non-multiple)"] = vm.selectedProposal.data.withdrawConsumption;
+                    proposalDetail["Proposal No. of Partner Transfer Credit to Downline"] = vm.selectedProposal.data.partnerTransferCreditToDownlineProposalNo;
+                    proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
+                    proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
+
+                    for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                        if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == vm.selectedProposal.inputDevice ){
+                            inputDevice =  $translate(Object.keys(vm.inputDevice)[i]);
+                        }
+                    }
+
+                    proposalDetail["INPUT_DEVICE"] = inputDevice;
+                    proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+
                     vm.selectedProposal.data = proposalDetail;
                 }
 
