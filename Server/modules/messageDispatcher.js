@@ -95,11 +95,13 @@ const messageDispatcher = {
                     }
                 }
 
-                let messageContent = messageDispatcher.contentModifier(metaData.promoCodeType.smsContent,metaData);
+                let messageTitle = metaData.promoCodeType ? metaData.promoCodeType.smsTitle : metaData.smsTitle;
+                let rawContent = metaData.promoCodeType ? metaData.promoCodeType.smsContent : metaData.smsContent;
+                let messageContent = messageDispatcher.contentModifier(rawContent,metaData);
 
                 let messageTemplate = {
                     format: 'internal',
-                    subject: metaData.promoCodeType.smsTitle,
+                    subject: messageTitle,
                     content: messageContent
                 }
 
