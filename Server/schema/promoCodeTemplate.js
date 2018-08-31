@@ -15,7 +15,7 @@ let promoCodeTemplateSchema = new Schema({
     // Disable Withdrawal after accept promo code
     disableWithdraw: {type: Boolean, default: false, index: true},
     // Allowed Game Providers, empty if all providers
-    allowedProviders: [{type: Schema.ObjectId}],
+    allowedProviders: {type: Schema.ObjectId},
     // Is platform using provider group
     isProviderGroup: {type: Boolean},
     // Banner Text

@@ -4566,7 +4566,7 @@ let dbPlayerInfo = {
                                     let playerId = playerData[ind]._id;
                                     let platformId = playerData[ind].platform;
                                     let fullPhoneNumber = playerData[ind].fullPhoneNumber;
-                                    let lastLoginIp = playerData[ind].lastLoginIp;
+                                    let registrationIp = playerData[ind].loginIps[0] || "";
                                     let adminName = 'System';
                                     delete playerData[ind].fullPhoneNumber;
 
@@ -4579,9 +4579,9 @@ let dbPlayerInfo = {
                                             adminName).catch(errorUtils.reportError);
                                     }
 
-                                    if (lastLoginIp && !skippedIP.includes(lastLoginIp)) {
+                                    if (registrationIp && !skippedIP.includes(registrationIp)) {
                                         dbPlayerInfo.getPagedSimilarIpForPlayers(
-                                            playerId, platformId, lastLoginIp, true, index, limit, sortObj,
+                                            playerId, platformId, registrationIp, true, index, limit, sortObj,
                                             adminName).catch(errorUtils.reportError);
                                     }
                                 }
@@ -18897,7 +18897,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getPagedSimilarIpForPlayers: function (playerId, platformId, lastLoginIp, isRealPlayer, index, limit, sortCol, adminName) {
+    getPagedSimilarIpForPlayers: function (playerId, platformId, registrationIp, isRealPlayer, index, limit, sortCol, adminName) {
         let playerObjId = playerId ? ObjectId(playerId) : "";
         let platformObjId = platformId ? ObjectId(platformId) : "";
         let similarIpCredibilityRemarkObjId = null;
@@ -18905,14 +18905,14 @@ let dbPlayerInfo = {
         let similarIpCountProm = dbconfig.collection_players.find({
             _id: {$ne: playerObjId},
             platform: platformObjId,
-            loginIps: {$in: [lastLoginIp]},
+            "loginIps.0": registrationIp, // only take first IP in loginIps, which is considered to be registration IP
             isRealPlayer: isRealPlayer,
         }).count();
 
         let similarIpProm = dbconfig.collection_players.find({
             _id: {$ne: playerObjId},
             platform: platformObjId,
-            loginIps: {$in: [lastLoginIp]},
+            "loginIps.0": registrationIp,
             isRealPlayer: isRealPlayer,
         }).populate({
             path: 'playerLevel',
@@ -18965,6 +18965,15 @@ let dbPlayerInfo = {
                         // player didn't have any credibility remarks, auto add
                         credibilityRemarks.push(similarIpCredibilityRemarkObjId);
                         dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, selectedPlayer._id, credibilityRemarks, '注册IP重复');
+                    }
+                }
+
+                // if there is no other player with similar ip in playerData, selected player need to remove this credibility remark
+                if (totalCount === 0 && selectedPlayer.credibilityRemarks && selectedPlayer.credibilityRemarks.length > 0) {
+                    if (selectedPlayer.credibilityRemarks.some(e => e && e.toString() === similarIpCredibilityRemarkObjId.toString())) {
+                        // if similarIpCredibilityRemarkObjId already exist
+                        let credibilityRemarks = selectedPlayer.credibilityRemarks.filter(e => e && e.toString() !== similarIpCredibilityRemarkObjId.toString() );
+                        dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, selectedPlayer._id, credibilityRemarks, '删除注册IP重复');
                     }
                 }
 

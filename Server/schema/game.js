@@ -7,13 +7,13 @@ var gameSchema = new Schema({
     //simplified gameId
     gameId: {type: String, unique: true, index: true},
     //game name
-    name: {type: String, required: true},
+    name: {type: String, required: true, index: true},
     //customized game name list by platform
     changedName: {type: JSON},
     //game title
     title: {type: String},
     //code
-    code: {type: String, required: true},
+    code: {type: String, required: true, index: true},
     //aliasCode ["g1","g2","g3"]
     aliasCode: String,
     //big Game Icon
@@ -29,13 +29,13 @@ var gameSchema = new Schema({
     //game description
     description: {type: String, default: null},
     //game provider
-    provider: {type: Schema.ObjectId, ref: 'gameProvider'},
+    provider: {type: Schema.ObjectId, ref: 'gameProvider', index: true},
     //status
-    status: {type: Number, default: constGameStatus.ENABLE},
+    status: {type: Number, default: constGameStatus.ENABLE, index: true},
     //display order
     showPriority: {type: Number},
     //1: flash, 2: html5
-    playGameType: {type: String},
+    playGameType: {type: String, index: true},
     //progressive game code
     progressivegamecode: {type: String},
     //game images
