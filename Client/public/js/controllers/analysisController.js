@@ -4793,7 +4793,7 @@ define(['js/app'], function (myApp) {
                 playerType: vm.queryPara.playerRetention.playerType
             }
 
-            if (vm.chosenDomain && vm.chosenDomain.length > 0){
+            if (vm.chosenDomain && vm.chosenDomain.length > 0 && vm.chosenDomain.length != vm.domainList.length){
                 sendData.domainList = vm.chosenDomain;
             }
 
