@@ -13,6 +13,8 @@ const constProposalType = require ('./../const/constProposalType');
 const constServerCode = require ('./../const/constServerCode');
 const constProposalStatus = require ('./../const/constProposalStatus');
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
+const dbPlayerReward = require('./../db_modules/dbPlayerReward');
+const dbPlayerFeedback = require('./../db_modules/dbPlayerFeedback');
 const dbDepartment = require('./../db_modules/dbDepartment');
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -450,7 +452,27 @@ let dbPlatformAutoFeedback = {
                     }
                 }).then(filteredPlayers => {
                     console.log("filteredPlayers", filteredPlayers);
-                    return true;
+                    filteredPlayers.forEach(player => {
+                        let newPromoCodeEntry;
+                        return dbconfig.collection_promoCodeTemplate.findOne({_id: feedback.schedule[0].template}).lean().then(template => {
+                            newPromoCodeEntry = JSON.parse(JSON.stringify(template));
+                            delete newPromoCodeEntry._id;
+                            delete newPromoCodeEntry.createTime;
+                            newPromoCodeEntry.promoCodeTemplateObjId = template._id;
+                            newPromoCodeEntry.playerName = player.name;
+                            newPromoCodeEntry.expirationTime = dbutility.getNdaylaterFromSpecificStartTime(template.expiredInDay, new Date());
+                            return dbPlayerReward.generatePromoCode(player.platform, newPromoCodeEntry, null, null);
+                        }).then(data => {
+                            let feedbackData = {
+                                playerId: player._id,
+                                platform: player.platform,
+                                content: feedback.schedule[0].content,
+                                result: feedback.schedule[0].feedbackResult,
+                                topic: feedback.schedule[0].feedbackTopic
+                            };
+                            return dbPlayerFeedback.createPlayerFeedback(feedbackData);
+                        })
+                    });
                 });
             };
 

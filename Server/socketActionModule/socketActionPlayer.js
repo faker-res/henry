@@ -1297,7 +1297,7 @@ function socketActionPlayer(socketIO, socket) {
         getPagedSimilarIpForPlayers: function getPagedSimilarIpForPlayers(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.platformId && data.isRealPlayer);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPagedSimilarIpForPlayers, [data.playerId, data.platformId, data.lastLoginIp, data.isRealPlayer, data.index, data.limit, data.sortCol, data.admin], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPagedSimilarIpForPlayers, [data.playerId, data.platformId, data.registrationIp, data.isRealPlayer, data.index, data.limit, data.sortCol, data.admin], actionName, isValidData);
         },
 
         checkIPArea: function checkIPArea(data) {
