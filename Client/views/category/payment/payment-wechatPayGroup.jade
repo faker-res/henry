@@ -224,7 +224,7 @@
                             td {{ val.name | translate}}
                             td {{ val.nickName | translate}}
                             td {{ val.singleLimit | translate}}
-                            td {{ val.quota | translate}}
+                            td {{ val.dailyLimit | translate}}
                 br
                 .div.pull-right
                     button.btn.btn-info.common-button.pull-right(ng-click="vm.selectWechatGroup(true)" ng-if="vm.wechatGroupUsed != 'PMS'") {{"Select All" | translate}}
