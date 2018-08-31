@@ -660,13 +660,18 @@ var dbPlayerFeedback = {
             "103.29.22.118",
             "10.167.11.154",
             "203.90.255.250",
-            "203.69.30.85"
+            "203.69.30.85",
+            // " ::ffff:10.167.11.155",
+            "::ffff:10.167.11.155",
+            "::ffff:10.168.11.155",
+            "::ffff:10.167.11.154",
+            "::ffff:10.168.11.145"
         ];
 
         if (!allowedIP.includes(ipAddress)) {
             return Promise.reject({
                 code: constServerCode.INVALID_API_USER,
-                message: "IP not authorized"
+                message: "IP not authorized:" + ipAddress
             })
         }
 
@@ -775,13 +780,17 @@ var dbPlayerFeedback = {
 
                     if (player.credibilityRemarks && player.credibilityRemarks.length > 0) {
                         player.credibilityRemarks.map(remark => {
-                            playerData.fame.push(remark.name);
+                            if(remark){
+                                playerData.fame.push(remark.name);
+                            }
                         });
                     }
 
                     if (player.gameProviderPlayed && player.gameProviderPlayed.length > 0) {
                         player.gameProviderPlayed.map(provider => {
-                            playerData.gameLobby.push(provider.name);
+                            if(provider){
+                                playerData.gameLobby.push(provider.name);
+                            }
                         });
                     }
 

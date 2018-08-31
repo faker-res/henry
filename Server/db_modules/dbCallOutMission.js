@@ -365,7 +365,10 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
                     index: index,
                     total: total
                 };
-                console.log('=CallOutMission= ------>feedbackPlayerDetail.playersData: ', feedbackPlayerDetail.data);
+                if(feedbackPlayerDetail.data && feedbackPlayerDetail.data.length){
+                    console.log('=CallOutMission= ------>feedbackPlayerDetail.playersData: ', feedbackPlayerDetail.data.length);
+                }
+
                 console.log('=CallOutMission= ------>feedbackPlayerDetail.playersData: ', feedbackPlayerDetail.total);
 
                 outputData.feedbackPlayerDetail = feedbackPlayerDetail;
