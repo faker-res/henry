@@ -7,7 +7,23 @@ let promoCodeSchema = new Schema({
     // user id
     playerObjId: {type: Schema.ObjectId, ref: 'player', required: true},
     // promo code type
-    promoCodeTypeObjId: {type: Schema.ObjectId, ref: 'promoCodeType', required: true},
+    promoCodeTypeObjId: {
+        type: Schema.ObjectId,
+        ref: 'promoCodeType',
+        required: [
+            function() { return this.promoCodeTemplateObjId == null; },
+            'promoCodeTypeObjId is required if promoCodeTemplateObjId is unspecified.'
+        ]
+    },
+    // promo code template
+    promoCodeTemplateObjId: {
+        type: Schema.ObjectId,
+        ref: 'promoCodeTemplate',
+        required: [
+            function() { return this.promoCodeTypeObjId == null; },
+            'promoCodeTemplateObjId is required if promoCodeTypeObjId is unspecified.'
+        ]
+    },
     // promo code reward amount
     amount: {type: Number, required: true},
     // promo code minimum top up amount

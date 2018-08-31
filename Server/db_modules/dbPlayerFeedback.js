@@ -614,6 +614,9 @@ var dbPlayerFeedback = {
         let count = dbconfig.collection_players.find(query, { _id: 1}).lean();
         return Q.all([players, count]).then(data => {
             let total = data[1].length ? data[1].length : 0;
+            if(data[0] && data[0].length){
+                console.log('=CallOutMission= callout query result', data[0].length);
+            }
 
             return {
                 data: data[0] ? data[0] : {},
@@ -657,13 +660,16 @@ var dbPlayerFeedback = {
             "103.29.22.118",
             "10.167.11.154",
             "203.90.255.250",
-            "203.69.30.85"
+            "203.69.30.85",
+            // " ::ffff:10.167.11.155",
+            "::ffff:10.167.11.155",
+            "::ffff:10.168.11.155"
         ];
 
         if (!allowedIP.includes(ipAddress)) {
             return Promise.reject({
                 code: constServerCode.INVALID_API_USER,
-                message: "IP not authorized"
+                message: "IP not authorized:" + ipAddress
             })
         }
 
@@ -772,13 +778,17 @@ var dbPlayerFeedback = {
 
                     if (player.credibilityRemarks && player.credibilityRemarks.length > 0) {
                         player.credibilityRemarks.map(remark => {
-                            playerData.fame.push(remark.name);
+                            if(remark){
+                                playerData.fame.push(remark.name);
+                            }
                         });
                     }
 
                     if (player.gameProviderPlayed && player.gameProviderPlayed.length > 0) {
                         player.gameProviderPlayed.map(provider => {
-                            playerData.gameLobby.push(provider.name);
+                            if(provider){
+                                playerData.gameLobby.push(provider.name);
+                            }
                         });
                     }
 

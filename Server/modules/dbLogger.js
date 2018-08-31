@@ -557,7 +557,7 @@ var dbLogger = {
         if (curAmount < 0) {
             curAmount = 0;
         }
-        
+
         dbconfig.collection_rewardTaskGroup.find({
             platformId: platformId,
             playerId: playerId,
@@ -594,7 +594,7 @@ var dbLogger = {
                                 data: data ? data : null
                             };
 
-                            if (data.transferId) {
+                            if (data && data.transferId) {
                                 logData.transferId = data.transferId;
                             }
 
@@ -614,7 +614,7 @@ var dbLogger = {
                         data: data ? data : null
                     };
 
-                    if (data.transferId) {
+                    if (data && data.transferId) {
                         logData.transferId = data.transferId;
                     }
 
