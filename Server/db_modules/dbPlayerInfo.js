@@ -10535,7 +10535,7 @@ let dbPlayerInfo = {
     /*
      * update top up proposal
      */
-    updatePlayerTopupProposal: function (proposalId, bSuccess, remark) {
+    updatePlayerTopupProposal: function (proposalId, bSuccess, remark, callbackData) {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId})
             .populate({path: "type", model: dbconfig.collection_proposalType}).then(
                 data => {
@@ -10562,7 +10562,10 @@ let dbPlayerInfo = {
                                             {
                                                 status: status,
                                                 "data.lastSettleTime": lastSettleTime,
-                                                "data.remark": remark
+                                                "data.remark": remark,
+                                                "data.alipayer": callbackData ? callbackData.payer : "",
+                                                "data.alipayerAccount": callbackData ? callbackData.account : "",
+                                                "data.alipayerNickName": callbackData ? callbackData.nickName : "",
                                             }
                                         )
                                     );
