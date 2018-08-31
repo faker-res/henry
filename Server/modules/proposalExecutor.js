@@ -2882,8 +2882,17 @@ var proposalExecutor = {
                 if (proposalData && proposalData.data && proposalData.data.partnerObjId) {
                     proposalData.data.proposalId = proposalData.proposalId;
                     return dbPartner.changePartnerCredit(proposalData.data.partnerObjId, proposalData.data.platformObjId, proposalData.data.amount, constProposalType.PARTNER_CREDIT_TRANSFER_TO_DOWNLINE, proposalData).then(
-                        data => deferred.resolve(data),
+                        data => {
+                            return dbPlayerInfo.creditTransferedFromPartner(proposalData.proposalId, proposalData.data.platformObjId).then(
+                                creditTransferedData => deferred.resolve(creditTransferedData),
+                                error => deferred.reject(error)
+                            )
+                        },
                         error => deferred.reject(error)
+                    ).then(
+                        () => {
+
+                        }
                     );
                 }
             },
