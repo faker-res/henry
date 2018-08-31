@@ -2889,10 +2889,6 @@ var proposalExecutor = {
                             )
                         },
                         error => deferred.reject(error)
-                    ).then(
-                        () => {
-
-                        }
                     );
                 }
             },
