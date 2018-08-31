@@ -16,7 +16,9 @@
                 .endTime
             div
                 label {{"Domain Name" | translate }}
-                input.form-control(ng-model='vm.queryPara.ipDomain.domain')
+                select.form-control(ng-model="vm.queryPara.ipDomain.domain")
+                    option(value="") {{'ALL' | translate}}
+                    option(ng-repeat="(i,v) in vm.ipDomainOption" ng-value="v") {{v}}
             div
                 label &nbsp;
                 button.btn.btn-primary.common-button(ng-click='vm.analyseIpDomain(true)') {{'SEARCH' | translate}}
@@ -36,7 +38,7 @@
     .row
         .titlePic
             .title
-                text {{"DOMAIN_VISIT_AMOUNT_ANALYSIS_IP_REPEAT" | translate}}
+                text {{"DOMAIN_VISIT_AMOUNT_ANALYSIS_IP_NOT_REPEAT" | translate}}
                 .pull-right
                     a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#ipDomainAnalysis .block-query","ipDomain")')
                         text.pull-left.margin-right-5 {{vm.optionText.ipDomain | translate}}
@@ -50,7 +52,9 @@
                 .endTime
             div
                 label {{"Domain Name" | translate }}
-                input.form-control(ng-model='vm.queryPara.ipDomainUnique.domain')
+                select.form-control(ng-model="vm.queryPara.ipDomainUnique.domain")
+                    option(value="") {{'ALL' | translate}}
+                    option(ng-repeat="(i,v) in vm.ipDomainUniqueOption" ng-value="v") {{v}}
             div
                 label &nbsp;
                 button.btn.btn-primary.common-button(ng-click='vm.analyseIpDomain()') {{'SEARCH' | translate}}

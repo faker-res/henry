@@ -30065,23 +30065,23 @@ define(['js/app'], function (myApp) {
                     platformId: vm.selectedPlatform.id
                 };
                 socketService.$socket($scope.AppSocket, 'getAllUrl', query, function (data) {
-                        vm.allUrl = data.data;
-                        vm.allUrl = vm.allUrl.map(url => {
-                            for (let i = 0, len = vm.adminList.length; i < len; i++) {
-                                let admin = vm.adminList[i];
-                                if (url.admin.toString() === admin._id.toString()) {
-                                    url.adminName$ = admin.adminName;
-                                    break;
-                                }
+                    vm.allUrl = data.data;
+                    vm.allUrl = vm.allUrl.map(url => {
+                        for (let i = 0, len = vm.adminList.length; i < len; i++) {
+                            let admin = vm.adminList[i];
+                            if (url.admin.toString() === admin._id.toString()) {
+                                url.adminName$ = admin.adminName;
+                                break;
                             }
-                            return url;
-                        });
-                        console.log("vm.allUrl", vm.allUrl);
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        console.log(err);
+                        }
+                        return url;
                     });
+                    console.log("vm.allUrl", vm.allUrl);
+                    $scope.safeApply();
+                },
+                function (err) {
+                    console.log(err);
+                });
             };
 
             vm.searchCsUrl = function () {

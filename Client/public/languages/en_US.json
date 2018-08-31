@@ -1600,6 +1600,9 @@
   "PAST_COMMISSION_SETTLEMENT": "Settle Previous Period Partner Commission",
   "FORCE_STOP_MISSION_WARNING": "Are you sure you want to force stop FPMS call out mission?",
 
+  "DOMAIN_VISIT_AMOUNT_ANALYSIS_IP_REPEAT": "Domain Visit Amount Analysis",
+  "DOMAIN_VISIT_AMOUNT_ANALYSIS_IP_NOT_REPEAT": "Domain Visit Unique Ip Amount Analysis",
+
   "DX_NEWACCOUNT_REPORT": "Telemarketing New Account Report",
   "REAL_TIME_COMMISSION_REPORT": "Real Time Commission Report",
   "REAL_TIME_COMMISSION_FORCAST": "Real Time Commission Forecast",

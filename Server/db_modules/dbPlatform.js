@@ -4568,6 +4568,13 @@ var dbPlatform = {
             }
         }
     },
+
+    getUniqueIpDomainsWithinTimeFrame: (platform, startTime, endTime) => {
+        return dbconfig.collection_ipDomainLog.distinct("domain", {
+            platform: platform,
+            createTime: {$gte: new Date(startTime), $lt: new Date(endTime)}
+        });
+    },
 };
 
 function getPlatformStringForCallback(platformStringArray, playerId, lineId) {

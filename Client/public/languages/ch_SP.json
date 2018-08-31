@@ -3921,6 +3921,7 @@
 
   "DOMAIN_VISIT_AMOUNT": "域名瀏覽次數",
   "DOMAIN_VISIT_AMOUNT_ANALYSIS_IP_REPEAT": "域名瀏覽次數分析（IP重复）",
+  "DOMAIN_VISIT_AMOUNT_ANALYSIS_IP_NOT_REPEAT": "瀏覽 IP 數（IP 不重複計算））",
 
   "RECEIVE_BANK_TYPE": "收款银行类型",
   "RECEIVE_BANK_ACC": "收款银行账号",
