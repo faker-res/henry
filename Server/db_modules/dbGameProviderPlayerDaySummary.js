@@ -803,7 +803,7 @@ var dbGameProviderPlayerDaySummary = {
                             var proms = [];
                             for (var i = 0; i < data.length; i++) {
                                 //  if (i + 1 <= limit) {
-                                var prom_player = dbconfig.collection_players.findOne({"_id": ObjectId(data[i]._id.playerId)});
+                                var prom_player = dbconfig.collection_players.findOne({"_id": ObjectId(data[i]._id.playerId)}, {_id:1, playerId:1, name:1}).read("secondaryPreferred").lean();
                                 proms.push(prom_player);
                                 //   }
                             }
