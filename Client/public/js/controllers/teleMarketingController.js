@@ -304,6 +304,11 @@ define(['js/app'], function (myApp) {
                     vm.tsNewList = {phoneIdx: 0};
                     vm.phoneNumFilterClicked();
                     break;
+                case 'PHONE_LISTS':
+                    vm.phoneListSearch = {};
+                    commonService.commonInitTime(utilService, vm, vm.phoneListSearch, '#phoneListStartTimePicker', utilService.getTodayStartTime());
+                    commonService.commonInitTime(utilService, vm, vm.phoneListSearch, '#phoneListEndTimePicker', utilService.getTodayEndTime());
+                    break;
                 case 'PHONE_MISSION':
                     vm.initTeleMarketingOverview();
             }
@@ -331,6 +336,11 @@ define(['js/app'], function (myApp) {
             }
             vm.getPlatformProviderGroup();
 
+            // Zero dependencies variable
+            [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins]] = await Promise.all([
+                commonService.getAllTSPhoneList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                commonService.getAllDepartmentInfo($scope, vm.selectedPlatform.id, vm.selectedPlatform.data.name).catch(err => Promise.resolve([[], [], []])),
+            ]);
         };
 
         //search and select platform node
@@ -4592,6 +4602,51 @@ define(['js/app'], function (myApp) {
                 })
             }
         }
+
+        vm.setQueryRole = (modal) => {
+            vm.queryRoles = [];
+
+            vm.queryDepartments.map(e => {
+                if (e._id != "" && (modal.departments.indexOf(e._id) >= 0)) {
+                    vm.queryRoles = vm.queryRoles.concat(e.roles);
+                }
+            });
+
+            if (modal && modal.departments && modal.departments.length > 0) {
+                if (modal.departments.includes("")) {
+                    vm.queryRoles.push({_id:'', roleName:'N/A'});
+
+                    if (!vm.queryAdmins || !vm.queryAdmins.length) {
+                        vm.queryAdmins = [];
+                        vm.queryAdmins.push({_id:'', adminName:'N/A'});
+                    }
+
+                    if (modal && modal.roles && modal.admins) {
+                        modal.roles.push("");
+                        modal.admins.push("");
+                    } else {
+                        modal.roles = [];
+                        modal.admins = [];
+                        modal.roles.push("");
+                        modal.admins.push("");
+                    }
+                }
+            }
+        };
+
+        vm.setQueryAdmins = (modal) => {
+            vm.queryAdmins = [];
+
+            if (modal.departments.includes("") && modal.roles.includes("") && modal.admins.includes("")) {
+                vm.queryAdmins.push({_id:'', adminName:'N/A'});
+            }
+
+            vm.queryRoles.map(e => {
+                if (e._id != "" && (modal.roles.indexOf(e._id) >= 0)) {
+                    vm.queryAdmins = vm.queryAdmins.concat(e.users);
+                }
+            });
+        };
 
     };
 

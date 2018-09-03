@@ -5,7 +5,7 @@ let Schema = mongoose.Schema;
 
 let tsPhoneSchema = new Schema({
     platform: {type: Schema.ObjectId, ref: 'platform', index: true, required: true},
-    phoneNumber: {type: String, index: true},
+    phoneNumber: {type: String},
     tsPhoneList: {type: Schema.Types.ObjectId, ref: 'tsPhoneList', index: true},
 });
 

@@ -213,6 +213,38 @@ define([], () => {
             );
         };
 
+        self.getAllTSPhoneList = function ($scope, platformObjId) {
+            return $scope.$socketPromise("getAllTSPhoneList", {platformObjId: platformObjId}).then(data => data.data)
+        };
+
+        self.getAllDepartmentInfo = function ($scope, platformObjId, platformName) {
+            return $scope.$socketPromise("getDepartmentDetailsByPlatformObjId", {platformObjId: platformObjId}).then(
+                data => {
+                    let parentId;
+                    let queryDepartments = [];
+                    let queryRoles = [];
+                    let queryAdmins = [];
+
+                    queryDepartments.push({_id: '', departmentName: 'N/A'});
+
+                    data.data.map(e => {
+                        if (e.departmentName === platformName) {
+                            queryDepartments.push(e);
+                            parentId = e._id;
+                        }
+                    });
+
+                    data.data.map(e => {
+                        if (String(parentId) === String(e.parent)) {
+                            queryDepartments.push(e);
+                        }
+                    });
+
+                    return [queryDepartments, queryRoles, queryAdmins];
+                }
+            )
+        };
+
         this.updatePageTile = ($translate, pageName, tabName) => {
             window.document.title = $translate(pageName) + "->" + $translate(tabName);
             $(document).one('shown.bs.tab', function (e) {
@@ -403,6 +435,15 @@ define([], () => {
                 });
                 return dptArr.join(',');
             };
+        };
+
+        this.commonInitTime = (utilService, vm, obj, queryId, defTime) => {
+            if (!obj) return;
+
+            utilService.actionAfterLoaded(queryId, () => {
+                obj.startTime = utilService.createDatePicker(queryId);
+                $(queryId).data('datetimepicker').setLocalDate(new Date(defTime));
+            })
         };
     };
 
