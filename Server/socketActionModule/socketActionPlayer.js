@@ -1199,13 +1199,19 @@ function socketActionPlayer(socketIO, socket) {
         uploadPhoneFileXLS: function uploadPhoneFileXLS(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && typeof(data.filterAllPlatform) === "boolean" && data.platformObjId && data.arrayPhoneXLS);
-            socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileXLS, [data.filterAllPlatform, data.platformObjId, data.arrayPhoneXLS], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileXLS, [data.filterAllPlatform, data.platformObjId, data.arrayPhoneXLS, data.isTSNewList], actionName, isValidData);
         },
 
         importDiffPhoneNum: function importDiffPhoneNum(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platform && data.phoneNumber && data.dxMission);
             socketUtil.emitter(self.socket, dbPlayerInfo.importDiffPhoneNum, [ObjectId(data.platform), data.phoneNumber, ObjectId(data.dxMission)], actionName, isValidData);
+        },
+
+        importTSNewList: function importTSNewList(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform && data.phoneNumber && data.listName && data.listDesc);
+            socketUtil.emitter(self.socket, dbPlayerInfo.importTSNewList, [ObjectId(data.platform), data.phoneNumber, data.listName, data.listDesc, getAdminId()], actionName, isValidData);
         },
 
         downloadTranslationCSV: function downloadTranslationCSV(data) {

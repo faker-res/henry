@@ -15604,15 +15604,23 @@ define(['js/app'], function (myApp) {
                 vm.isTransferPartnerCreditToPlayer = true;
             };
 
-            vm.disableTransferPartnerCreditToPlayer = function (value) {
+            vm.disableTransferPartnerCreditToPlayer = function (value, withdrawConsumptionValue) {
                 if (vm.sumTotalTransferAmount == 0 || value < 0 || (value && value.toString == 'undefined')) {
                     vm.isTransferPartnerCreditToPlayer = true;
-                } else if (vm.sumTotalTransferAmount <= vm.selectedSinglePartner.credits) {
+                } else if (vm.sumTotalTransferAmount <= vm.selectedSinglePartner.credits && withdrawConsumptionValue) {
                     vm.isTransferPartnerCreditToPlayer = false;
                 } else {
                     vm.isTransferPartnerCreditToPlayer = true;
                 }
-            }
+            };
+
+            vm.checkIsDisableTransferPartnerCreditToPlayer = function (value) {
+                if (!value || value < 0 || (value && (value.toString == 'undefined' || value.toString == '-'))) {
+                    vm.isTransferPartnerCreditToPlayer = true;
+                } else {
+                    vm.isTransferPartnerCreditToPlayer = false;
+                }
+            };
 
             vm.nextDownlinePlayerPage = function(){
                 vm.downlinePlayers.currentPage += 1;
@@ -15653,7 +15661,7 @@ define(['js/app'], function (myApp) {
                                 playerName: player.name,
                                 amount: player.amount,
                                 providerGroup: player.providerGroup,
-                                withdrawConsumption: player.amount
+                                withdrawConsumption: player.withdrawConsumption
                             });
                         }
                     }

@@ -667,19 +667,32 @@ var dbPlayerLoginRecord = {
                     };
 
                     if (domainList){
-                        queryObj.domain = {$in: domainList};
+                        if (domainList.indexOf("") != -1){
+                            queryObj['$and'] = [
+                                {$or: [{domain: {$exists: false}}, {domain: {$in: domainList}}]}
+                            ]
+                        }
+                        else{
+                            queryObj.domain = {$in: domainList};
+                        }
                     }
 
                     if (hasPartner !== null){
                         if (hasPartner == true){
                             queryObj.partner = {$type: "objectId"};
                         }else {
-                            queryObj['$or'] = [
-                                {partner: null},
-                                {partner: {$exists: false}}
-                            ]
+                            if (queryObj.hasOwnProperty("$and")){
+                                queryObj['$and'].push({$or: [ {partner: null}, {partner: {$exists: false}} ]})
+                            }
+                            else{
+                                queryObj['$or'] = [
+                                    {partner: null},
+                                    {partner: {$exists: false}}
+                                ]
+                            }
                         }
                     }
+                    
                     queryObj = Object.assign({}, queryObj, playerFilter);
 
                     var temp = dbconfig.collection_players.aggregate(

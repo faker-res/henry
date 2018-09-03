@@ -9,9 +9,9 @@ let idcIpSchema = new Schema({
     // IP range end
     ip_end: {type: String},
     // IP start integer
-    ip_start_num: {type: Number},
+    ip_start_num: {type: Number, index: true},
     // IP end integer
-    ip_end_num: {type: Number},
+    ip_end_num: {type: Number, index: true},
     // detailed information on IP
     country: {type: String},
     province: {type: String},

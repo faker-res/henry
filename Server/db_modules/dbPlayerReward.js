@@ -1019,8 +1019,7 @@ let dbPlayerReward = {
 
             // let today = dbUtility.getTodaySGTime();
             let currentDay = dbUtility.getTargetSGTime(startCheckTime);
-            let intervalStartTime = intervalTime.startTime; // for dynamic case
-
+            
             while (currentDay.startTime <= today.startTime && player) {
                 checkRequirementMeetProms.push(isDayMeetRequirement(event, player, currentDay, requiredBet, requiredDeposit, requireBoth, isCheckToday));
                 currentDay = dbUtility.getTargetSGTime(currentDay.endTime);
@@ -1423,10 +1422,14 @@ let dbPlayerReward = {
 
                     totalTopUpAmount += record.amount;
                     usedTopUpRecord.push(record._id)
-                    if (totalTopUpAmount >= requiredTopUpAmount) {
+                    if (!event.condition.isDynamicRewardAmount && totalTopUpAmount >= requiredTopUpAmount) {
                         requiredTopUpMet = true;
                         break;
                     }
+                }
+                
+                if (totalTopUpAmount >= requiredTopUpAmount) {
+                    requiredTopUpMet = true;
                 }
 
                 let meetRequirement = false;

@@ -368,6 +368,10 @@ let playerOnlineTimeSchema = require('./../schema/logs2/playerOnlineTime');
 let playerOnlineTimeModel = dbLogs2.model('playerOnlineTime', playerOnlineTimeSchema, 'playerOnlineTime');
 let ipDomainLogSchema = require('./../schema/logs2/ipDomainLog');
 let ipDomainLogModel = dbLogs2.model('ipDomainLog', ipDomainLogSchema, 'ipDomainLog');
+let tsPhoneListSchema = require('./../schema/logs2/tsPhoneList');
+let tsPhoneListModel = dbLogs2.model('tsPhoneList', tsPhoneListSchema, 'tsPhoneList');
+let tsPhoneSchema = require('./../schema/logs2/tsPhone');
+let tsPhoneModel = dbLogs2.model('tsPhone', tsPhoneSchema, 'tsPhone');
 
 let openPromoCodeTemplateSchema = require('./../schema/logs2/openPromoCodeTemplate');
 let openPromoCodeTemplateModel = dbLogs2.model('openPromoCodeTemplate', openPromoCodeTemplateSchema, 'openPromoCodeTemplate');
@@ -605,6 +609,8 @@ var dbProperties = {
     collection_downLinesRawCommissionDetail: downLinesRawCommissionDetailModel,
     collection_callOutMission: callOutMissionModel,
     collection_callOutMissionCallee: callOutMissionCalleeModel,
+    collection_tsPhoneList: tsPhoneListModel,
+    collection_tsPhone: tsPhoneModel,
 
     collection_qualityInspection: qualityInspectionModel,
     collection_live800RecordDaySummary: live800RecordDaySummaryModel,

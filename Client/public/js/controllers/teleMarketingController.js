@@ -300,6 +300,15 @@ define(['js/app'], function (myApp) {
             vm.selectedTab = tabName;
 
             switch(tabName) {
+                case 'NEW_PHONE_LIST':
+                    vm.tsNewList = {phoneIdx: 0};
+                    vm.phoneNumFilterClicked();
+                    break;
+                case 'PHONE_LISTS':
+                    vm.phoneListSearch = {};
+                    commonService.commonInitTime(utilService, vm, vm.phoneListSearch, '#phoneListStartTimePicker', utilService.getTodayStartTime());
+                    commonService.commonInitTime(utilService, vm, vm.phoneListSearch, '#phoneListEndTimePicker', utilService.getTodayEndTime());
+                    break;
                 case 'PHONE_MISSION':
                     vm.initTeleMarketingOverview();
             }
@@ -326,7 +335,12 @@ define(['js/app'], function (myApp) {
                 return;
             }
             vm.getPlatformProviderGroup();
-            vm.phoneNumFilterClicked();
+
+            // Zero dependencies variable
+            [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins]] = await Promise.all([
+                commonService.getAllTSPhoneList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                commonService.getAllDepartmentInfo($scope, vm.selectedPlatform.id, vm.selectedPlatform.data.name).catch(err => Promise.resolve([[], [], []])),
+            ]);
         };
 
         //search and select platform node
@@ -834,6 +848,28 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        // import phone number to system
+        vm.importTSNewList = function (diffPhoneNum, listName, listDesc) {
+            let sendData = {
+                platform: vm.selectedPlatform.id,
+                phoneNumber: diffPhoneNum,
+                listName: listName,
+                listDesc: listDesc
+            };
+
+            socketService.$socket($scope.AppSocket, 'importTSNewList', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    if (data.success && data.data) {
+                        //display success
+                        vm.importPhoneResult = 'IMPORT_SUCCESS';
+                    } else {
+                        //display error
+                        vm.importPhoneResult = 'IMPORT_FAIL';
+                    }
+                })
+            });
+        };
+
         /****************** CSV - start ******************/
         // upload phone file: csv
         vm.uploadPhoneFileCSV = function (content) {
@@ -1010,16 +1046,14 @@ define(['js/app'], function (myApp) {
 
         /****************** XLS - start ******************/
         vm.uploadPhoneFileXLS = function (data, importXLS, dxMission) {
-            var data = [
-                [] // header row
-            ];
-            var rows = uiGridExporterService.getData(vm.gridApi.grid, uiGridExporterConstants.VISIBLE, uiGridExporterConstants.VISIBLE);
-            var sheet = {};
-            var rowArray = [];
-            var rowArrayMerge;
+            let rows = uiGridExporterService.getData(vm.gridApi.grid, uiGridExporterConstants.VISIBLE, uiGridExporterConstants.VISIBLE);
+            let sheet = {};
+            let rowArray = [];
+            let rowArrayMerge;
+            let isTSNewList = !Boolean(dxMission);
 
             for (let z = 0; z < rows.length; z++) {
-                let rowObject = rows[z][0];
+                let rowObject = rows[z][vm.tsNewList.phoneIdx];
                 let rowObjectValue = Object.values(rowObject);
                 rowArray.push(rowObjectValue);
                 rowArrayMerge = [].concat.apply([], rowArray);
@@ -1028,7 +1062,8 @@ define(['js/app'], function (myApp) {
             let sendData = {
                 filterAllPlatform: vm.filterAllPlatform,
                 platformObjId: vm.selectedPlatform.id,
-                arrayPhoneXLS: rowArrayMerge
+                arrayPhoneXLS: rowArrayMerge,
+                isTSNewList: isTSNewList
             };
 
             socketService.$socket($scope.AppSocket, 'uploadPhoneFileXLS', sendData, function (data) {
@@ -1037,57 +1072,63 @@ define(['js/app'], function (myApp) {
                 vm.diffPhoneTotalXLS = data.data.diffPhoneTotalXLS;
                 vm.samePhoneTotalXLS = data.data.samePhoneTotalXLS;
                 vm.xlsTotal = rows.length;
-                var rowsFilter = rows;
+                let rowsFilter = rows;
 
-                for (let x = 0; x < rowsFilter.length; x++) {
-                    let rowObject = rowsFilter[x][0];
-                    let rowObjectValue = Object.values(rowObject);
-                    for (let y = 0; y < vm.samePhoneXLS.length; y++) {
-                        if (rowObjectValue == vm.samePhoneXLS[y]) {
-                            rowsFilter.splice(x, 1);
-                            --x;
-                            break;
+                if (vm.diffPhoneTotalXLS) {
+                    for (let x = 0; x < rowsFilter.length; x++) {
+                        let rowObject = rowsFilter[x][vm.tsNewList.phoneIdx];
+                        let rowObjectValue = Object.values(rowObject);
+                        for (let y = 0; y < vm.samePhoneXLS.length; y++) {
+                            if (rowObjectValue == vm.samePhoneXLS[y]) {
+                                rowsFilter.splice(x, 1);
+                                --x;
+                                break;
+                            }
                         }
                     }
-                }
 
-                vm.gridApi.grid.columns.forEach(function (col, i) {
-                    if (col.visible) {
-                        var loc = XLSX.utils.encode_cell({r: 0, c: i});
-                        sheet[loc] = {
-                            v: col.displayName
-                        };
-                    }
-                });
-
-                var endLoc;
-                rowsFilter.forEach(function (row, ri) {
-                    ri += 1;
-                    vm.gridApi.grid.columns.forEach(function (col, ci) {
-                        var loc = XLSX.utils.encode_cell({r: ri, c: ci});
-                        sheet[loc] = {
-                            v: row[ci].value,
-                            t: 's'
-                        };
-                        endLoc = loc;
+                    vm.gridApi.grid.columns.forEach(function (col, i) {
+                        if (col.visible) {
+                            let loc = XLSX.utils.encode_cell({r: 0, c: i});
+                            sheet[loc] = {
+                                v: col.displayName
+                            };
+                        }
                     });
-                });
 
-                sheet['!ref'] = XLSX.utils.encode_range({s: 'A1', e: endLoc});
-                var workbook = {
-                    SheetNames: ['Sheet1'],
-                    Sheets: {
-                        Sheet1: sheet
+                    var endLoc;
+                    rowsFilter.forEach(function (row, ri) {
+                        ri += 1;
+                        vm.gridApi.grid.columns.forEach(function (col, ci) {
+                            let loc = XLSX.utils.encode_cell({r: ri, c: ci});
+                            sheet[loc] = {
+                                v: row[ci].value,
+                                t: 's'
+                            };
+                            endLoc = loc;
+                        });
+                    });
+
+                    sheet['!ref'] = XLSX.utils.encode_range({s: 'A1', e: endLoc});
+                    let workbook = {
+                        SheetNames: ['Sheet1'],
+                        Sheets: {
+                            Sheet1: sheet
+                        }
+                    };
+
+                    if (isTSNewList) {
+                        vm.importTSNewList(vm.diffPhoneXLS, vm.tsNewList.name, vm.tsNewList.description)
+                    } else if (importXLS) {
+                        vm.importDiffPhoneNum(vm.diffPhoneXLS, dxMission)
+                    } else {
+                        var wopts = {bookType: 'xlsx', bookSST: false, type: 'binary'};
+                        // write workbook (use type 'binary')
+                        var wbout = XLSX.write(workbook, wopts);
+                        saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
                     }
-                };
-
-                if (importXLS) {
-                    vm.importDiffPhoneNum(vm.diffPhoneXLS, dxMission)
                 } else {
-                    var wopts = {bookType: 'xlsx', bookSST: false, type: 'binary'};
-                    // write workbook (use type 'binary')
-                    var wbout = XLSX.write(workbook, wopts);
-                    saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
+                    vm.importPhoneResult = 'THERE_IS_NO_DIFFERENT_NUMBER_IN_LIST';
                 }
 
                 $scope.safeApply();
@@ -4561,6 +4602,51 @@ define(['js/app'], function (myApp) {
                 })
             }
         }
+
+        vm.setQueryRole = (modal) => {
+            vm.queryRoles = [];
+
+            vm.queryDepartments.map(e => {
+                if (e._id != "" && (modal.departments.indexOf(e._id) >= 0)) {
+                    vm.queryRoles = vm.queryRoles.concat(e.roles);
+                }
+            });
+
+            if (modal && modal.departments && modal.departments.length > 0) {
+                if (modal.departments.includes("")) {
+                    vm.queryRoles.push({_id:'', roleName:'N/A'});
+
+                    if (!vm.queryAdmins || !vm.queryAdmins.length) {
+                        vm.queryAdmins = [];
+                        vm.queryAdmins.push({_id:'', adminName:'N/A'});
+                    }
+
+                    if (modal && modal.roles && modal.admins) {
+                        modal.roles.push("");
+                        modal.admins.push("");
+                    } else {
+                        modal.roles = [];
+                        modal.admins = [];
+                        modal.roles.push("");
+                        modal.admins.push("");
+                    }
+                }
+            }
+        };
+
+        vm.setQueryAdmins = (modal) => {
+            vm.queryAdmins = [];
+
+            if (modal.departments.includes("") && modal.roles.includes("") && modal.admins.includes("")) {
+                vm.queryAdmins.push({_id:'', adminName:'N/A'});
+            }
+
+            vm.queryRoles.map(e => {
+                if (e._id != "" && (modal.roles.indexOf(e._id) >= 0)) {
+                    vm.queryAdmins = vm.queryAdmins.concat(e.users);
+                }
+            });
+        };
 
     };
 

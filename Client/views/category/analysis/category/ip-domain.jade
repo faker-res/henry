@@ -1,0 +1,77 @@
+.section
+    .row
+        .titlePic
+            .title
+                text {{"DOMAIN_VISIT_AMOUNT_ANALYSIS_IP_REPEAT" | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#ipDomainAnalysis .block-query","ipDomain")')
+                        text.pull-left.margin-right-5 {{vm.optionText.ipDomain | translate}}
+    #ipDomainAnalysis
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            div
+                label {{"Start date"|translate}}
+                .startTime
+            div
+                label {{"End date"|translate}}
+                .endTime
+            div
+                label {{"Domain Name" | translate }}
+                select.form-control(ng-model="vm.queryPara.ipDomain.domain")
+                    option(value="") {{'ALL' | translate}}
+                    option(ng-repeat="(i,v) in vm.ipDomainOption" ng-value="v") {{v}}
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.analyseIpDomain(true)') {{'SEARCH' | translate}}
+        //label.text-primary {{'' | translate}}
+        .row
+            .col-md-6
+                .graph
+                    .panel.panel-default
+                        .pieChart(ng-show="!vm.ipDomainAnalysisDay")
+                            div.graphDiv
+                        #line-ipDomainDayCount.lineChart.graphDiv(style='height: 600px;' ng-show="vm.ipDomainAnalysisDay")
+            .col-md-6
+                .graph(ng-if="!vm.ipDomainAnalysisDay")
+                    table#ipDomainAnalysisTable.display.tableDiv(style='min-width:100%')
+                .graph(ng-if="vm.ipDomainAnalysisDay")
+                    table#ipDomainDayAnalysisTable.display.tableDiv(style='min-width:100%')
+    .row
+        .titlePic
+            .title
+                text {{"DOMAIN_VISIT_AMOUNT_ANALYSIS_IP_NOT_REPEAT" | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#ipDomainAnalysis .block-query","ipDomain")')
+                        text.pull-left.margin-right-5 {{vm.optionText.ipDomain | translate}}
+    #ipDomainUniqueAnalysis
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            div
+                label {{"Start date"|translate}}
+                .startTime
+            div
+                label {{"End date"|translate}}
+                .endTime
+            div
+                label {{"Domain Name" | translate }}
+                select.form-control(ng-model="vm.queryPara.ipDomainUnique.domain")
+                    option(value="") {{'ALL' | translate}}
+                    option(ng-repeat="(i,v) in vm.ipDomainUniqueOption" ng-value="v") {{v}}
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.analyseIpDomain()') {{'SEARCH' | translate}}
+        //label.text-primary {{'' | translate}}
+        .row
+
+            .col-md-6
+                .graph
+                    .panel.panel-default
+                        .pieChart(ng-show="!vm.ipDomainUniqueAnalysisDay")
+                            div.graphDiv
+                        #line-ipDomainUniqueDayCount.lineChart.graphDiv(style='height: 600px;' ng-show="vm.ipDomainUniqueAnalysisDay")
+            .col-md-6
+                .graph(ng-if="!vm.ipDomainUniqueAnalysisDay")
+                    table#ipDomainUniqueAnalysisTable.display.tableDiv(style='min-width:100%')
+                .graph(ng-if="vm.ipDomainUniqueAnalysisDay")
+                    table#ipDomainUniqueDayAnalysisTable.display.tableDiv(style='min-width:100%')
+
+
+p(ng-init="vm.loadPageFunc(vm.showPageName)")
