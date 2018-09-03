@@ -11,6 +11,7 @@ let constPartnerCommissionSettlementMode = require('./../const/constPartnerCommi
 const dbAutoProposal = require('./../db_modules/dbAutoProposal');
 const dbGameProvider = require('./../db_modules/dbGameProvider');
 const dbPlayerLevel = require('./../db_modules/dbPlayerLevel');
+const dbClientQnA = require('./../db_modules/dbClientQnA');
 const dbRewardEvent = require('./../db_modules/dbRewardEvent');
 const dbRewardTaskGroup = require('./../db_modules/dbRewardTaskGroup');
 const dbPlayerCredibility = require('../db_modules/dbPlayerCredibility');
@@ -151,6 +152,25 @@ function socketActionPlatform(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.adminId);
             socketUtil.emitter(self.socket, dbPlatform.getPlatformByAdminId, [data.adminId], actionName, isValidData);
+        },
+
+
+        getClientQnAProcessStep: function getClientQnAProcessStep(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.type);
+            socketUtil.emitter(self.socket, dbClientQnA.getClientQnAProcessStep, [data.type, data.processNo, data.inputDataObj, data.isAlternative], actionName, isValidData);
+        },
+
+        getClientQnASecurityQuesConfig: function getClientQnASecurityQuesConfig(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.type && data.platformObjId);
+            socketUtil.emitter(self.socket, dbClientQnA.getClientQnASecurityQuesConfig, [data.type, data.platformObjId], actionName, isValidData);
+        },
+
+        editClientQnAConfig: function editClientQnAConfig(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.type && data.platformObjId && data.updateObj);
+            socketUtil.emitter(self.socket, dbClientQnA.editClientQnAConfig, [data.type, data.platformObjId, data.updateObj], actionName, isValidData);
         },
 
         //todo::test platform settlement api, to be commentout

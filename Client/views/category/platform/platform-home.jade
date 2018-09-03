@@ -145,6 +145,10 @@
                             a.common-tab(data-toggle="tab", href="#externalUserInfo", ng-click="vm.loadTab('externalUserInfo');")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"External User Info" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'ClientAutoQnA', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#ClientAutoQnA", ng-click="vm.loadTab('ClientQnA');vm.buildClientQnATypeList();")
+                                .fa.fa-file-text-o.margin-right-5
+                                text.span {{"ClientQnA" | translate}}
 
                 .panel-body.common-right-panel-body
                     div.tab-content
@@ -168,6 +172,8 @@
                             include platform-reward
                         #Proposal.tab-pane.fade
                             include ./../proposal/proposal-home
+                        #ClientAutoQnA.tab-pane.fade
+                            include ./../clientQnA/clientQnA-home
                         #Config.tab-pane.fade
                             include ./platform-config
                         #MessageTemplates.tab-pane.fade
