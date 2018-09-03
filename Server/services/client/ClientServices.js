@@ -435,6 +435,7 @@
                 "getCommissionProposalList",
                 "getPartnerConfig",
                 "checkAllCrewDetail",
+                "getDownPartnerInfo",
                 "notifyNewMail",
                 "getMailList",
                 "deleteAllMail",

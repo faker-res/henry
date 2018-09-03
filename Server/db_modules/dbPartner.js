@@ -9050,6 +9050,157 @@ let dbPartner = {
         });
     },
 
+    getDownPartnerInfo: (platformId, partnerId, startIndex, count) => {
+        let platformObj;
+        let partnerObj;
+        let childPartnerObj;
+        let proposalTypeObj;
+        let index = startIndex || 0;
+        let limit = count || 10;
+        let statsObj;
+        let totalCount = 0;
+        let totalPage = 1;
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    platformObj = platformData;
+                    if (partnerId) {
+                        let query = {
+                            platform: platformObj._id,
+                            partnerId: partnerId
+                        }
+
+                        return dbconfig.collection_partner.findOne(query, {_id: 1, partnerId: 1, partnerName: 1}).lean();
+
+                    } else {
+                        return Promise.resolve(true);
+                    }
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
+            partnerData => {
+                if (partnerData) {
+                    partnerObj = partnerData;
+
+                    let query = {
+                        platform: platformObj._id,
+                        parent: partnerObj._id
+                    };
+
+                    let countProm = dbconfig.collection_partner.find(query).count();
+                    let childPartnerProm = dbconfig.collection_partner.find(query, {_id: 0, partnerName: 1, commissionType: 1}).skip(index).limit(limit).lean();
+                    let proposalTypeProm = dbconfig.collection_proposalType.findOne({platformId: platformObj._id, name: constProposalType.UPDATE_PARENT_PARTNER_COMMISSION}).lean();
+
+                    return Promise.all([countProm, childPartnerProm, proposalTypeProm]);
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find partner"});
+                }
+            }
+        ).then(
+            data => {
+                totalCount = data && data[0] ? data[0] : 0;
+                totalPage = Math.ceil(totalCount / limit);
+                childPartnerObj = data && data[1] ? data[1] : null;
+                proposalTypeObj = data && data[2] ? data[2] : null;
+
+                if(!proposalTypeObj) {
+                    return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+                }
+
+                let todayDate = new Date();
+                let thisMonthDateStartTime = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1, 0, 0, 0);
+                let endTime = new Date();
+                endTime.setHours(23, 59, 59, 999);
+                let proms = [];
+
+                if (childPartnerObj && childPartnerObj.length > 0) {
+                    for (let i = 0, len = childPartnerObj.length; i < len; i++) {
+                        let childPartner = childPartnerObj[i];
+
+                        if (childPartner && childPartner.partnerName) {
+
+                            proms.push(dbconfig.collection_proposal.aggregate([
+                                {
+                                    $match: {
+                                        createTime: {$gte: new Date(thisMonthDateStartTime), $lt: new Date(endTime)},
+                                        type: proposalTypeObj._id,
+                                        "data.partnerObjId": partnerObj._id,
+                                        "data.platformId": platformObj._id,
+                                        "data.childPartnerName": childPartner.partnerName
+                                    }
+                                },
+                                {
+                                    $group: {
+                                        _id: {
+                                            name: "$data.childPartnerName",
+                                            commissionType: "$data.childPartnerCommissionType"
+                                        },
+                                        totalContribution: {$sum: "$data.amount"},
+                                    }
+                                },
+                                {
+                                    $project: {
+                                        _id: 0,
+                                        name: "$_id.name",
+                                        commissionType: "$_id.commissionType",
+                                        totalContribution: 1
+                                    }
+                                }
+                            ]));
+
+                        }
+                    }
+                }
+
+                return Promise.all(proms).then(data => {
+                    let contributionDetailsArr = data ? data : [];
+
+                    if (childPartnerObj && childPartnerObj.length > 0) {
+                        childPartnerObj.map(childPartner => {
+
+                            childPartner.monthContribution = 0;
+                            childPartner.commissionType = localization.localization.translate(Object.keys(constPartnerCommissionType)[childPartner.commissionType]);
+
+                            if (contributionDetailsArr && contributionDetailsArr.length > 0) {
+                                for (let i = 0, len = contributionDetailsArr.length; i < len; i++) {
+
+                                    let details = contributionDetailsArr[i];
+                                    if (details && details.length > 0) {
+                                        for (let j = 0, len = details.length; j < len; j++) {
+
+                                            let detail = details[j];
+                                            if (detail && detail.name && childPartner && childPartner.partnerName && detail.name == childPartner.partnerName) {
+                                                childPartner.monthContribution = detail.totalContribution ? detail.totalContribution : 0;
+                                            }
+                                            if (detail.commissionType && childPartner.commissionType && Number(detail.commissionType) == Number(childPartner.commissionType)) {
+                                                childPartner.commissionType = localization.localization.translate(Object.keys(constPartnerCommissionType)[Number(detail.commissionType)]);
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    return childPartnerObj;
+                });
+
+            }
+        ).then(finalChildPartnerData => {
+            statsObj = {};
+            statsObj.downstreamTotal = totalCount;
+            statsObj.totalCount = totalCount;
+            statsObj.totalPage = totalPage;
+            statsObj.startIndex = index;
+
+            return {stats: statsObj, list: finalChildPartnerData ? finalChildPartnerData : []};
+        })
+    },
+
     checkChildPartnerNameValidity: (platformId, partnerName) => {
         let isPartnerExist = null;
         let parentPartnerName = null;

@@ -290,6 +290,12 @@
         this.partnerService.checkAllCrewDetail.once(callback);
     };
 
+    proto.getDownPartnerInfo = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.getDownPartnerInfo.request(data);
+        this.partnerService.getDownPartnerInfo.once(callback);
+    };
+
     proto.notifyNewMail = function (callback, requestData) {
         //var data = requestData || {};
         //this.partnerService.notifyNewMail.request(data);
