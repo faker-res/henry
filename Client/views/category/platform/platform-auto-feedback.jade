@@ -206,7 +206,16 @@
                         tr
                             td {{"FIRST_TIME"|translate}}
                             td {{"Execute upon fulfillment of criteria"|translate}}
-                            td 14:00:00
+                            td
+                                div
+                                    span(style="width:50%;display:inline-block;") {{"HOUR"|translate}}
+                                    span(style="width:50%;display:inline-block;") {{"MINUTE"|translate}}
+                                select.form-control(style="width:50%;display:inline-block;" ng-model='vm.autoFeedbackMission.schedule[0].triggerHour',
+                                ng-options='+(i) as v for (i,v) in vm.autoFeedbackTriggerHours' required)
+                                    //option(ng-options='v as i in vm.autoFeedbackTriggerHours', value='{{i}}') {{v}}
+                                select.form-control(style="width:50%;display:inline-block;" ng-model='vm.autoFeedbackMission.schedule[0].triggerMinute',
+                                ng-options='+(i) as v for (i,v) in vm.autoFeedbackTriggerMinutes' required)
+                                    //option(ng-repeat='(i,v) in vm.autoFeedbackTriggerMinutes', value='{{i}}') {{v}}
                             td
                                 select.form-control(ng-model='vm.autoFeedbackMission.schedule[0].template', required)
                                     option(ng-repeat='(i,v) in vm.promoCodeTemplateData', value='{{v._id}}') {{v.name}}
@@ -222,7 +231,14 @@
                             td {{"SECOND_TIME"|translate}}
                             td
                                 input.form-control(type="number" ng-model='vm.autoFeedbackMission.schedule[1].dayAfterLastMission', required)
-                            td 15:00:00
+                            td
+                                div
+                                    span(style="width:50%;display:inline-block;") {{"HOUR"|translate}}
+                                    span(style="width:50%;display:inline-block;") {{"MINUTE"|translate}}
+                                select.form-control(style="width:50%;display:inline-block;" ng-model='vm.autoFeedbackMission.schedule[1].triggerHour',
+                                ng-options='+(i) as v for (i,v) in vm.autoFeedbackTriggerHours' required)
+                                select.form-control(style="width:50%;display:inline-block;" ng-model='vm.autoFeedbackMission.schedule[1].triggerMinute',
+                                ng-options='+(i) as v for (i,v) in vm.autoFeedbackTriggerMinutes' required)
                             td
                                 select.form-control(ng-model='vm.autoFeedbackMission.schedule[1].template', required)
                                     option(ng-repeat='(i,v) in vm.promoCodeTemplateData', value='{{v._id}}') {{v.name}}
@@ -238,7 +254,14 @@
                             td {{"THIRD_TIME"|translate}}
                             td
                                 input.form-control(type="number" ng-model='vm.autoFeedbackMission.schedule[2].dayAfterLastMission', required)
-                            td 16:00:00
+                            td
+                                div
+                                    span(style="width:50%;display:inline-block;") {{"HOUR"|translate}}
+                                    span(style="width:50%;display:inline-block;") {{"MINUTE"|translate}}
+                                select.form-control(style="width:50%;display:inline-block;" ng-model='vm.autoFeedbackMission.schedule[2].triggerHour',
+                                ng-options='+(i) as v for (i,v) in vm.autoFeedbackTriggerHours' required)
+                                select.form-control(style="width:50%;display:inline-block;" ng-model='vm.autoFeedbackMission.schedule[2].triggerMinute',
+                                ng-options='+(i) as v for (i,v) in vm.autoFeedbackTriggerMinutes' required)
                             td
                                 select.form-control(ng-model='vm.autoFeedbackMission.schedule[2].template', required)
                                     option(ng-repeat='(i,v) in vm.promoCodeTemplateData', value='{{v._id}}') {{v.name}}
@@ -259,6 +282,9 @@
                         button.btn.btn-primary(ng-hide="vm.autoFeedbackEditStatus" ng-if="checkViewPermission('Platform','AutoFeedback','create')" ng-click='vm.autoFeedbackCreateMission()') {{"Create Mission" | translate}}
                     .inlineBlk
                         button.btn.btn-primary(ng-show="vm.autoFeedbackEditStatus" ng-if="checkViewPermission('Platform','AutoFeedback','edit')" ng-click='vm.autoFeedbackUpdateMission()') {{"Update Mission" | translate}}
+                    .inlineBlk
+                        span(style="font-weight:bold" ng-show="vm.autoFeedbackUpdateMissionStatus=='success'||vm.autoFeedbackCreateMissionStatus=='success'") {{"SUCCESS"|translate}}
+                        span(style="font-weight:bold" ng-show="vm.autoFeedbackUpdateMissionStatus=='fail'||vm.autoFeedbackCreateMissionStatus=='fail'") {{"FAIL"|translate}}
                     //.inlineBlk
                     //    button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="many";vm.submitPlayerFeedbackQuery(true, false);') {{"SEARCH_LIST" | translate}}
                     //.inlineBlk

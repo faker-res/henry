@@ -75,7 +75,11 @@ let promoCodeSchema = new Schema({
     //admin name, that create this promo code
     adminName: {type: String},
     // remark
-    remark: {type: String}
+    remark: {type: String},
+    //auto feedback mission obj id
+    autoFeedbackMissionObjId: {type: Schema.ObjectId},
+    //auto feedback schedule number (first, second, or third time)
+    autoFeedbackMissionScheduleNumber: {type: Number}
 
 });
 
