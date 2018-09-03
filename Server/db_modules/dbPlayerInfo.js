@@ -19008,7 +19008,7 @@ let dbPlayerInfo = {
                 // if there is other player with similar ip in playerData, selected player need to add this credibility remark
                 if (totalCount > 0) {
                     if (selectedPlayer.credibilityRemarks && selectedPlayer.credibilityRemarks.length > 0) {
-                        if (selectedPlayer.credibilityRemarks.some(e => e && e.toString() === similarIpCredibilityRemarkObjId.toString())) {
+                        if (selectedPlayer.credibilityRemarks.some(e => e && similarIpCredibilityRemarkObjId && e.toString() === similarIpCredibilityRemarkObjId.toString())) {
                             // if similarIpCredibilityRemarkObjId already exist
                             credibilityRemarks = selectedPlayer.credibilityRemarks;
                         } else {
@@ -19026,9 +19026,9 @@ let dbPlayerInfo = {
 
                 // if there is no other player with similar ip in playerData, selected player need to remove this credibility remark
                 if (totalCount === 0 && selectedPlayer.credibilityRemarks && selectedPlayer.credibilityRemarks.length > 0) {
-                    if (selectedPlayer.credibilityRemarks.some(e => e && e.toString() === similarIpCredibilityRemarkObjId.toString())) {
+                    if (selectedPlayer.credibilityRemarks.some(e => e && similarIpCredibilityRemarkObjId && e.toString() === similarIpCredibilityRemarkObjId.toString())) {
                         // if similarIpCredibilityRemarkObjId already exist
-                        let credibilityRemarks = selectedPlayer.credibilityRemarks.filter(e => e && e.toString() !== similarIpCredibilityRemarkObjId.toString() );
+                        let credibilityRemarks = selectedPlayer.credibilityRemarks.filter(e => e && similarIpCredibilityRemarkObjId && e.toString() !== similarIpCredibilityRemarkObjId.toString() );
                         dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, selectedPlayer._id, credibilityRemarks, '删除注册IP重复');
                     }
                 }
