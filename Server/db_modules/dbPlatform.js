@@ -4551,7 +4551,30 @@ var dbPlatform = {
                 }
             }
         )
-    }
+    },
+
+    getIpDomainAnalysis: (platform, startTime, endTime, canRepeat, domain) => {
+        if (domain) {
+            if (canRepeat) {
+                return calculateIpDomainDayAnalysis(platform, startTime, endTime, domain);
+            } else {
+                return calculateUniqueIpDomainDayAnalysis(platform, startTime, endTime, domain);
+            }
+        } else {
+            if (canRepeat) {
+                return calculateIpDomainAnalysis(platform, startTime, endTime);
+            } else {
+                return calculateUniqueIpDomainAnalysis(platform, startTime, endTime);
+            }
+        }
+    },
+
+    getUniqueIpDomainsWithinTimeFrame: (platform, startTime, endTime) => {
+        return dbconfig.collection_ipDomainLog.distinct("domain", {
+            platform: platform,
+            createTime: {$gte: new Date(startTime), $lt: new Date(endTime)}
+        });
+    },
 };
 
 function getPlatformStringForCallback(platformStringArray, playerId, lineId) {
@@ -4681,6 +4704,152 @@ function excludeTelNum(data){
     })
     return data;
 }
+
+function calculateIpDomainDayAnalysis (platform, startTime, endTime, domain) {
+    let timeFrames = dbUtility.sliceTimeFrameToDaily(startTime, endTime);
+
+    let proms = [];
+
+    timeFrames.map(timeFrame => {
+        let ipDomainCountProm = dbconfig.collection_ipDomainLog.find({
+            createTime: {
+                $gte: timeFrame.startTime,
+                $lt: timeFrame.endTime
+            },
+            platform: platform,
+            domain: domain
+        }).count().read("secondaryPreferred");
+
+        proms.push(ipDomainCountProm);
+    });
+
+    return Promise.all(proms).then(
+        ipDomainCounts => {
+            let output = [];
+            if (ipDomainCounts && ipDomainCounts.length) {
+                for (let i = 0; i < timeFrames.length; i++) {
+                    let dayCount = {
+                        date: timeFrames[i].startTime,
+                        count: ipDomainCounts[i] || 0
+                    };
+                    output.push(dayCount);
+                }
+            }
+            return output;
+        }
+    );
+}
+
+function calculateUniqueIpDomainDayAnalysis (platform, startTime, endTime, domain) {
+    let timeFrames = dbUtility.sliceTimeFrameToDaily(startTime, endTime);
+
+    let proms = [];
+
+    timeFrames.map(timeFrame => {
+        let ipDomainCountProm = dbconfig.collection_ipDomainLog.aggregate([
+            {
+                $match: {
+                    createTime: {
+                        $gte: timeFrame.startTime,
+                        $lt: timeFrame.endTime
+                    },
+                    platform: ObjectId(platform),
+                    domain: domain
+                }
+            }, {
+                $group: {
+                    _id: "$ipAddress"
+                }
+            }, {
+                $group: {
+                    _id: null,
+                    count: {$sum: 1}
+                }
+            }
+        ]).read("secondaryPreferred");
+
+        proms.push(ipDomainCountProm);
+    });
+
+    return Promise.all(proms).then(
+        ipDomainCounts => {
+            let output = [];
+            if (ipDomainCounts && ipDomainCounts.length) {
+                for (let i = 0; i < timeFrames.length; i++) {
+                    let dayCount = {
+                        date: timeFrames[i].startTime,
+                        count: ipDomainCounts[i] && ipDomainCounts[i][0] && ipDomainCounts[i][0].count || 0
+                    };
+                    output.push(dayCount);
+                }
+            }
+            return output;
+        }
+    );
+}
+
+function calculateIpDomainAnalysis (platform, startTime, endTime) {
+    return dbconfig.collection_ipDomainLog.aggregate([
+        {
+            $match: {
+                createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
+                platform: ObjectId(platform)
+            }
+        }, {
+            $group: {
+                _id: "$domain",
+                count: {$sum: 1}
+            }
+        }
+    ]).read("secondaryPreferred").then(
+        data => {
+            let output = [];
+            if (data && data.length) {
+                data.map(domain => {
+                    let domainData = {};
+                    domainData.domain = domain._id;
+                    domainData.count = domain.count;
+                    output.push(domainData);
+                });
+            }
+            return output;
+        }
+    );
+}
+
+function calculateUniqueIpDomainAnalysis (platform, startTime, endTime) {
+    return dbconfig.collection_ipDomainLog.aggregate([
+        {
+            $match: {
+                createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
+                platform: ObjectId(platform)
+            }
+        }, {
+            $group: {
+                _id: {domain: "$domain", ipAddress: "$ipAddress"}
+            }
+        }, {
+            $group: {
+                _id: "$_id.domain",
+                count: {$sum: 1}
+            }
+        }
+    ]).read("secondaryPreferred").then(
+        data => {
+            let output = [];
+            if (data && data.length) {
+                data.map(domain => {
+                    let domainData = {};
+                    domainData.domain = domain._id;
+                    domainData.count = domain.count;
+                    output.push(domainData);
+                });
+            }
+            return output;
+        }
+    );
+}
+
 var proto = dbPlatformFunc.prototype;
 proto = Object.assign(proto, dbPlatform);
 

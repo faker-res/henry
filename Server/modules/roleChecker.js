@@ -620,6 +620,7 @@ var roleChecker = {
                 ManualApproval: ['getManualApprovalRecords'],
                 FrontEndRegistrationAttritionRate: ['getSpecificProposalTypeByName', 'getRegistrationClickCountRecords'],
                 WithdrawalSpeed: ['getWithdrawalProposal', 'getProposalByObjId'],
+                IpDomain: ['getIpDomainReport'],
                 PlayerOnlineTime: ['getOnlineTimeLogByPlatform']
             }
         },
@@ -727,7 +728,7 @@ var roleChecker = {
                 Delete: [],
             },
             "phoneNumFilter": {
-                Read: ['comparePhoneNum', 'uploadPhoneFileTXT', 'uploadPhoneFileXLS', 'importDiffPhoneNum', 'getAllDxMission'],
+                Read: ['comparePhoneNum', 'uploadPhoneFileTXT', 'uploadPhoneFileXLS', 'importDiffPhoneNum', 'getAllDxMission', 'importTSNewList'],
                 FilterAllPlatform: [],
             },
             "Overview": {

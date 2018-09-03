@@ -1379,6 +1379,42 @@ var dbUtility = {
         return parseFloat(tempNum);
     },
 
+    sliceTimeFrameToDaily: (startTime, endTime, fullDayOnly) => {
+        let timeFrames = [];
+
+        if (!startTime || !endTime) {
+            return Promise.reject({errorMessage:"Invalid time frame"});
+        }
+
+        startTime = new Date(startTime);
+        endTime = new Date(endTime);
+
+        if (startTime > endTime) {
+            return timeFrames;
+        }
+
+        let firstDay = dbUtility.getTargetSGTime(startTime);
+        if (!fullDayOnly) {
+            firstDay.startTime = startTime;
+        }
+
+        let nextDay = firstDay;
+
+        for (let i = 0; i < 100 ; i++) {
+            timeFrames.push(nextDay);
+            nextDay = dbUtility.getTargetSGTime(nextDay.endTime);
+            if (nextDay.endTime >= endTime) {
+                break;
+            }
+        }
+
+        if (!fullDayOnly) {
+            nextDay.endTime = endTime;
+        }
+        timeFrames.push(nextDay);
+
+        return timeFrames;
+    },
     convertIpToInt: function (ipAdd) {
         return ipAdd.split('.').reduce(function(ipInt, octet) { return (ipInt<<8) + parseInt(octet, 10)}, 0) >>> 0;
     },

@@ -441,6 +441,48 @@
     <textarea></textarea>
 </div>
 
+
+<h3>Get Test Login Url Without Login(试玩游戏——未登入)</h3>
+<div class="test-container">
+    <label>Game Id
+        <input name="gameId">
+    </label>
+    <p></p>
+    <label>username
+        <input name="username">
+    </label>
+    <p></p>
+    <label>platformId
+        <input name="platformId">
+    </label>
+    <p></p>
+    <label>Provider Id
+        <input name="providerId">
+    </label>
+    <p></p>
+    <label>Client Domain Name
+        <input name="clientDomainName">
+    </label>
+    <p></p>
+    <label>Language
+        <input name="lang">
+    </label>
+    <p></p>
+    <label>IP
+        <input name="ip">
+    </label>
+    <p></p>
+    <label>Client Type
+        <input name="clientType">
+    </label>
+    <p></p>
+
+    <div>
+        <button data-api-name="getTestLoginURLWithOutUser">get</button>
+    </div>
+    <textarea></textarea>
+</div>
+
 <script>
     require(['services/cpms/cpmsServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/cpmsAPITest/PlayerAPITest', 'testAPI/cpmsAPITest/ConnectionAPITest'],
             function (PlayerServices, WebSocketClient, TestHelper, PlayerAPITest, verificationAPITest) {

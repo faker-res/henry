@@ -1,0 +1,26 @@
+#modalNewTSPhoneListXLS.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"FILTER_THEN_IMPORT_XLS_TS" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    div.padding-all-5
+                                        label {{"NAME" | translate}}
+                                        input.form-control(ng-model="vm.tsNewList.name")
+                                    div.padding-all-5
+                                        label {{"DESCRIPTION" | translate}}
+                                        input.form-control(ng-model="vm.tsNewList.description")
+            .modal-footer
+                div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
+                button.btn.btn-success.common-button(ng-if="!vm.importPhoneResult" ng-click="vm.uploadPhoneFileXLS('', true)")
+                    i.fa.fa-check
+                    text {{"CONFIRM" | translate}}
+                bbutton.btn.btn-danger.common-button(data-dismiss='modal')
+                    i.fa.fa-ban
+                    text {{"CANCEL" | translate}}
