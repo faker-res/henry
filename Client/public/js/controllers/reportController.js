@@ -3212,7 +3212,7 @@ define(['js/app'], function (myApp) {
 
 
         /////// player domain report
-        vm.searchPlayerDomainReport = function (newSearch, isExport) {
+        vm.searchPlayerDomainReport = function (newSearch, isExport = false) {
             $('#playerDomainReportTableSpin').show();
 
             let admins = [];
@@ -3257,6 +3257,7 @@ define(['js/app'], function (myApp) {
                 index: isExport ? 0 : (newSearch ? 0 : (vm.playerDomain.index || 0)),
                 limit: isExport ? 5000 : (vm.playerDomain.limit || 10),
                 sortCol: vm.playerDomain.sortCol || {registrationTime: -1},
+                isExport: isExport
             };
             console.log('player domain query', sendquery);
 

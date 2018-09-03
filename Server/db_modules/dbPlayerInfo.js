@@ -8288,12 +8288,12 @@ let dbPlayerInfo = {
     },
 
     // report
-    getPlayerDomainReport: function (platform, para, index, limit, sortCol) {
+    getPlayerDomainReport: function (platform, para, index, limit, sortCol, isExport = false) {
         if (para.playerType === 'Partner') {
             return dbPartner.getPartnerDomainReport(platform, para, index, limit, sortCol);
         }
         index = index || 0;
-        limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
+        limit = isExport ? limit : Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         sortCol = sortCol || {'registrationTime': -1};
         if (sortCol.phoneArea) {
             let sortOrder = sortCol.phoneArea;
