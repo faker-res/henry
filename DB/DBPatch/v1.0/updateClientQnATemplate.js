@@ -59,3 +59,15 @@ db.clientQnATemplate.update(
     {upsert: true});
 
 // endregion
+
+//region forgotUserID
+//endregion
+
+//region updatePhoneNumber
+//endregion
+
+//region editBankCard
+//endregion
+
+//region editName
+//endregion
