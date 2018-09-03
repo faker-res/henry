@@ -26,6 +26,8 @@
                 div(ng-switch="vm.selectedTab")
                     div(ng-switch-when="NEW_PHONE_LIST")
                         include ./teleMarketing-phone-num-filter
+                    div(ng-switch-when="PHONE_LISTS")
+                        include ./teleMarketing-phone-list
                     div(ng-switch-when="PHONE_MISSION")
                         include ./teleMarketing-task
 

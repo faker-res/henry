@@ -15612,7 +15612,15 @@ define(['js/app'], function (myApp) {
                 } else {
                     vm.isTransferPartnerCreditToPlayer = true;
                 }
-            }
+            };
+
+            vm.checkIsDisableTransferPartnerCreditToPlayer = function (providerGroupId, withdrawConsumption) {
+                if (providerGroupId && (!withdrawConsumption || withdrawConsumption < 0)) {
+                    vm.isTransferPartnerCreditToPlayer = true;
+                } else {
+                    vm.isTransferPartnerCreditToPlayer = false;
+                }
+            };
 
             vm.nextDownlinePlayerPage = function(){
                 vm.downlinePlayers.currentPage += 1;
@@ -15653,7 +15661,7 @@ define(['js/app'], function (myApp) {
                                 playerName: player.name,
                                 amount: player.amount,
                                 providerGroup: player.providerGroup,
-                                withdrawConsumption: player.amount
+                                withdrawConsumption: player.withdrawConsumption || 0
                             });
                         }
                     }

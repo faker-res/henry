@@ -1335,6 +1335,45 @@
     </div>
 </div>
 
+<h3>Transfer Partner Credit To Player (代理转金额给下线)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Partner Id
+            <input type=text name="partnerId">
+        </label>
+    </div>
+    <div>
+        <label>Amount
+            <input type=number name="amount">
+        </label>
+    </div>
+    <div>
+        <label>Username
+            <input type=text name="username">
+        </label>
+    </div>
+    <div>
+        <label>Provider Group ID
+            <input type=number name="lockedCreditId">
+        </label>
+    </div>
+    <div>
+        <label>Withdraw Consumption
+            <input type=number name="spendingTimes">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <button id="partnerCreditToPlayer" data-api-name="partnerCreditToPlayer">Transfer</button>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPartnerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
         function (ClientServices, WebSocketClient, TestHelper, ClientPartnerAPITest, ClientConnectionAPITest) {

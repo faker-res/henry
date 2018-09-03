@@ -436,6 +436,7 @@
                 "getPartnerConfig",
                 "checkAllCrewDetail",
                 "getDownPartnerInfo",
+                "partnerCreditToPlayer",
                 "notifyNewMail",
                 "getMailList",
                 "deleteAllMail",
