@@ -497,6 +497,12 @@ var PartnerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getDownPartnerInfo, [data.platformId, data.partnerId, data.startIndex, data.count], isValidData, false, false, true);
     };
 
+    this.partnerCreditToPlayer.onRequest = function (wsFunc, conn, data) {
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
+        let isValidData = Boolean(data && data.platformId && data.partnerId && (data.amount && data.amount > 0) && data.username);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.partnerCreditToPlayer, [data.platformId, data.partnerId, data.amount, data.username, data.lockedCreditId, data.spendingTimes, userAgent], isValidData, false, false, true);
+    };
+
     this.notifyNewMail.addListener(
         function (data) {
             WebSocketUtil.notifyMessagePartner(self, "notifyNewMail", data);

@@ -185,9 +185,10 @@ let dbPlayerInfo = {
                                 }
                             ).then(
                                 data => {
-                                    return dbconfig.collection_players.findOne({_id: data._id})
-                                        .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints})
-                                        .lean();
+                                    return dbconfig.collection_players.findOne({_id: data._id}).populate({
+                                        path: "playerLevel",
+                                        model: dbconfig.collection_playerLevel
+                                    }).populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints}).lean();
                                 }
                             )
                         }
@@ -15937,7 +15938,7 @@ let dbPlayerInfo = {
                         let feedBackIds = playerObjIds;
                         let feedbackData;
 
-                        prom = dbconfig.collection_playerFeedback.findById(feedBackIds[p], 'createTime playerId adminId')
+                        prom = dbconfig.collection_playerFeedback.findById(feedBackIds[p], 'createTime playerId adminId topic result content')
                             .populate({path: 'adminId', select: '_id adminName', model: dbconfig.collection_admin})
                             .lean().then(
                                 data => {
@@ -16994,8 +16995,10 @@ let dbPlayerInfo = {
         });
     },
 
-    uploadPhoneFileXLS: function (filterAllPlatform, platformObjId, arrayPhoneXLS) {
+    uploadPhoneFileXLS: function (filterAllPlatform, platformObjId, arrayPhoneXLS, isTSNewList) {
         let oldNewPhone = {$in: []};
+        let dbPhone = Promise.resolve([]);
+        let matchObj = {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}};
 
         for (let i = 0; i < arrayPhoneXLS.length; i++) {
             oldNewPhone.$in.push(arrayPhoneXLS[i]);
@@ -17005,24 +17008,28 @@ let dbPlayerInfo = {
         // if true, user can filter phone across all platform
         if (filterAllPlatform) {
             // display phoneNumber from DB without asterisk masking
-            var dbPhone = dbconfig.collection_players.aggregate([
-                {$match: {"phoneNumber": oldNewPhone}},
-                {$project: {name: 1, phoneNumber: 1, _id: 0}}
-            ]);
-        } else {
-            // display phoneNumber from DB without asterisk masking
-            var dbPhone = dbconfig.collection_players.aggregate([
-                {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}},
-                {$project: {name: 1, phoneNumber: 1, _id: 0}}
-            ]);
+            matchObj = {$match: {"phoneNumber": oldNewPhone}};
         }
 
         let diffPhoneXLS;
         let samePhoneXLS;
         let arrayDbPhone = [];
+        let aggregateObj = [
+            matchObj,
+            {$project: {phoneNumber: 1, _id: 0}}
+        ];
 
         // display phoneNumber result that matched input phoneNumber
-        return dbPhone.then(playerData => {
+        return dbconfig.collection_players.aggregate(aggregateObj).then(
+            existResult => {
+                if (isTSNewList) {
+                    return dbconfig.collection_tsPhone.aggregate(aggregateObj)
+                        .then(newListResult => existResult.concat(newListResult))
+                }
+
+                return existResult;
+            }
+        ).then(playerData => {
             // encrypted phoneNumber in DB will be decrypted
             for (let q = 0; q < playerData.length; q++) {
                 if (playerData[q].phoneNumber.length > 20) {
@@ -17099,6 +17106,53 @@ let dbPlayerInfo = {
             );
         }
         return false;
+    },
+
+    importTSNewList: function (platform, phoneNumber, listName, listDesc, adminId) {
+        let phoneArr = phoneNumber.split(/[\n,]+/).map((item) => item.trim());
+
+        if (phoneArr.length > 0) {
+            return dbconfig.collection_tsPhoneList.findOne({
+                platform: platform,
+                name: listName
+            }).lean().then(
+                list => {
+                    if (list) {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "List with same name exist"
+                        })
+                    }
+
+                    return new dbconfig.collection_tsPhoneList({
+                        platform: platform,
+                        name: listName,
+                        description: listDesc,
+                        creator: adminId
+                    }).save();
+                }
+            ).then(
+                tsList => {
+                    if (tsList) {
+                        let promArr = [];
+
+                        phoneArr.forEach(phoneNumber => {
+                            let encryptedNumber = rsaCrypto.encrypt(phoneNumber);
+
+                            promArr.push(
+                                dbconfig.collection_tsPhone({
+                                    platform: platform,
+                                    phoneNumber: encryptedNumber,
+                                    tsPhoneList: tsList._id
+                                }).save()
+                            )
+                        })
+
+                        return Promise.all(promArr);
+                    }
+                }
+            ).then(() => true);
+        }
     },
 
     filterDxPhoneExist: function (dxMission, phoneArr) {
@@ -18955,7 +19009,7 @@ let dbPlayerInfo = {
                 // if there is other player with similar ip in playerData, selected player need to add this credibility remark
                 if (totalCount > 0) {
                     if (selectedPlayer.credibilityRemarks && selectedPlayer.credibilityRemarks.length > 0) {
-                        if (selectedPlayer.credibilityRemarks.some(e => e && e.toString() === similarIpCredibilityRemarkObjId.toString())) {
+                        if (selectedPlayer.credibilityRemarks.some(e => e && similarIpCredibilityRemarkObjId && e.toString() === similarIpCredibilityRemarkObjId.toString())) {
                             // if similarIpCredibilityRemarkObjId already exist
                             credibilityRemarks = selectedPlayer.credibilityRemarks;
                         } else {
@@ -18973,9 +19027,9 @@ let dbPlayerInfo = {
 
                 // if there is no other player with similar ip in playerData, selected player need to remove this credibility remark
                 if (totalCount === 0 && selectedPlayer.credibilityRemarks && selectedPlayer.credibilityRemarks.length > 0) {
-                    if (selectedPlayer.credibilityRemarks.some(e => e && e.toString() === similarIpCredibilityRemarkObjId.toString())) {
+                    if (selectedPlayer.credibilityRemarks.some(e => e && similarIpCredibilityRemarkObjId && e.toString() === similarIpCredibilityRemarkObjId.toString())) {
                         // if similarIpCredibilityRemarkObjId already exist
-                        let credibilityRemarks = selectedPlayer.credibilityRemarks.filter(e => e && e.toString() !== similarIpCredibilityRemarkObjId.toString() );
+                        let credibilityRemarks = selectedPlayer.credibilityRemarks.filter(e => e && similarIpCredibilityRemarkObjId && e.toString() !== similarIpCredibilityRemarkObjId.toString() );
                         dbPlayerInfo.updatePlayerCredibilityRemark(adminName, platformObjId, selectedPlayer._id, credibilityRemarks, '删除注册IP重复');
                     }
                 }
