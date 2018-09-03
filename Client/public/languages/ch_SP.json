@@ -3953,6 +3953,13 @@
   "partnerApiLog": "代理登入记录",
   "Force Stop Mission": "强制停止FPMS群播任务",
   "FORCE_STOP_MISSION_WARNING": "此功能只会停止FPMS的群播任务，并不会对CTI造成任何影响。停止后将不能重新使用同一个群播任务，必须重新开启新的群播任务。一般只有当进入回访页面，没点击批量播出却会跳出CTI报错信息时使用。确定强制停止群播任务？",
+  "VISITED_DOMAIN": "被瀏覽域名",
+  "VISITED_TIMES": "瀏覽次數",
+  "IP_REPEAT": "IP重複",
+  "IP_NOT_REPEAT": "IP不重複",
+  "VISITED_IP_AMOUNT": "瀏覽 IP 數",
+  "IP_DOMAIN_ANALYSIS_EXPLAIN": "*訪問者此次瀏覽網站次數+1，本次切換頁面不重複計算，但刷新會重新計算。",
+  "IP_DOMAIN_UNIQUE_ANALYSIS_EXPLAIN": "*該訪問的IP此次瀏覽網站次數+1，本次切換頁面、刷新都不重複計算。",
 
   "Please Enter Task Name": "请输入该任务 名称",
   "Please Enter Task Description": "请输入该任务 备注",
