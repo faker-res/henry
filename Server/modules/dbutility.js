@@ -1399,12 +1399,13 @@ var dbUtility = {
         }
 
         let nextDay = firstDay;
-        let dayNo = 1;
 
-        while (dayNo <= 100 && nextDay.endTime < endTime) {
-            dayNo++;
+        for (let i = 0; i < 100 ; i++) {
             timeFrames.push(nextDay);
             nextDay = dbUtility.getTargetSGTime(nextDay.endTime);
+            if (nextDay.endTime >= endTime) {
+                break;
+            }
         }
 
         if (!fullDayOnly) {
