@@ -661,13 +661,17 @@ var dbPlayerFeedback = {
             "10.167.11.154",
             "203.90.255.250",
             "203.69.30.85",
-            " ::ffff:10.167.11.155"
+            // " ::ffff:10.167.11.155",
+            "::ffff:10.167.11.155",
+            "::ffff:10.168.11.155",
+            "::ffff:10.167.11.154",
+            "::ffff:10.168.11.145"
         ];
 
         if (!allowedIP.includes(ipAddress)) {
             return Promise.reject({
                 code: constServerCode.INVALID_API_USER,
-                message: "IP not authorized"
+                message: "IP not authorized:" + ipAddress
             })
         }
 

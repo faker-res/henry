@@ -18,6 +18,7 @@ var simplifiedChinese = {
     "Player ip doesn't match!": "玩家IP不匹配",
     "top up or consumption summary does not match record": "玩家累计存款或投注与实时记录不匹配",
     "transfer credit fail, please try again later": "转账失败，请稍后重试",
+    "CLOSED_COMMISSION": "关闭",
     "DAILY_BONUS_AMOUNT": "1天-输赢值",
     "WEEKLY_BONUS_AMOUNT": "7天-输赢值",
     "BIWEEKLY_BONUS_AMOUNT": "半月-输赢值",
