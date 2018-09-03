@@ -185,9 +185,10 @@ let dbPlayerInfo = {
                                 }
                             ).then(
                                 data => {
-                                    return dbconfig.collection_players.findOne({_id: data._id})
-                                        .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints})
-                                        .lean();
+                                    return dbconfig.collection_players.findOne({_id: data._id}).populate({
+                                        path: "playerLevel",
+                                        model: dbconfig.collection_playerLevel
+                                    }).populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints}).lean();
                                 }
                             )
                         }
