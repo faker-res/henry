@@ -15934,7 +15934,7 @@ let dbPlayerInfo = {
                         let feedBackIds = playerObjIds;
                         let feedbackData;
 
-                        prom = dbconfig.collection_playerFeedback.findById(feedBackIds[p], 'createTime playerId adminId')
+                        prom = dbconfig.collection_playerFeedback.findById(feedBackIds[p], 'createTime playerId adminId topic result content')
                             .populate({path: 'adminId', select: '_id adminName', model: dbconfig.collection_admin})
                             .lean().then(
                                 data => {
