@@ -30106,23 +30106,23 @@ define(['js/app'], function (myApp) {
                     platformId: vm.selectedPlatform.id
                 };
                 socketService.$socket($scope.AppSocket, 'getAllUrl', query, function (data) {
-                        vm.allUrl = data.data;
-                        vm.allUrl = vm.allUrl.map(url => {
-                            for (let i = 0, len = vm.adminList.length; i < len; i++) {
-                                let admin = vm.adminList[i];
-                                if (url.admin.toString() === admin._id.toString()) {
-                                    url.adminName$ = admin.adminName;
-                                    break;
-                                }
+                    vm.allUrl = data.data;
+                    vm.allUrl = vm.allUrl.map(url => {
+                        for (let i = 0, len = vm.adminList.length; i < len; i++) {
+                            let admin = vm.adminList[i];
+                            if (url.admin.toString() === admin._id.toString()) {
+                                url.adminName$ = admin.adminName;
+                                break;
                             }
-                            return url;
-                        });
-                        console.log("vm.allUrl", vm.allUrl);
-                        $scope.safeApply();
-                    },
-                    function (err) {
-                        console.log(err);
+                        }
+                        return url;
                     });
+                    console.log("vm.allUrl", vm.allUrl);
+                    $scope.safeApply();
+                },
+                function (err) {
+                    console.log(err);
+                });
             };
 
             vm.searchCsUrl = function () {
@@ -33109,8 +33109,12 @@ define(['js/app'], function (myApp) {
                 vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
                 console.log(vm.autoFeedbackMission);
+                let sendData = {
+                    autoFeedbackObjId: vm.autoFeedbackMission._id,
+                    updateData: vm.autoFeedbackMission
+                };
 
-                socketService.$socket($scope.AppSocket, 'updateAutoFeedback', vm.autoFeedbackMission, function (data) {
+                socketService.$socket($scope.AppSocket, 'updateAutoFeedback', sendData, function (data) {
                     console.log("updateAutoFeedback ret",data);
                 });
             };
@@ -33121,6 +33125,29 @@ define(['js/app'], function (myApp) {
                 } else {
                     vm.initAutoFeedbackCreate();
                 }
+            };
+            vm.autoFeedbackToggleActive = function(i) {
+                let sendData = {
+                    autoFeedbackObjId: vm.autoFeedbackSearchResult[i]._id,
+                    updateData: {
+                        enabled: !vm.autoFeedbackSearchResult[i].enabled
+                    }
+                };
+                socketService.$socket($scope.AppSocket, 'updateAutoFeedback', sendData, function (data) {
+                    console.log("autoFeedbackToggleActive ret",data);
+                    vm.autoFeedbackSearchResult[i] = data.data;
+                    vm.drawAutoFeedbackOverviewTable(vm.autoFeedbackPrepareTableData(vm.autoFeedbackSearchResult));
+                });
+            };
+            vm.autoFeedbackDeleteMission = function(i) {
+                let sendData = {
+                    autoFeedbackObjId: vm.autoFeedbackSearchResult[i]._id
+                };
+                socketService.$socket($scope.AppSocket, 'removeAutoFeedbackByObjId', sendData, function (data) {
+                    console.log("autoFeedbackDeleteMission ret",data);
+                    vm.autoFeedbackSearchResult.splice(i,1);
+                    vm.drawAutoFeedbackOverviewTable(vm.autoFeedbackPrepareTableData(vm.autoFeedbackSearchResult));
+                });
             };
 
             vm.initAutoFeedbackSearch = function() {
@@ -33171,8 +33198,33 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getAutoFeedback', sendData, function (data) {
                     console.log("getAutoFeedback ret",data);
                     vm.autoFeedbackSearchResult = data.data;
-                    vm.drawAutoFeedbackOverviewTable(vm.autoFeedbackSearchResult, true);
+
+                    let drawData = vm.autoFeedbackPrepareTableData(vm.autoFeedbackSearchResult);
+                    console.log("drawData",drawData);
+                    vm.drawAutoFeedbackOverviewTable(drawData, true);
                 });
+            };
+            vm.autoFeedbackPrepareTableData = function (missions) {
+                let curTime = new Date();
+                let drawData = missions.map(mission => {
+                    let missionStartTime = utilService.setThisDayStartTime(new Date(mission.missionStartTime));
+                    let missionEndTime = utilService.setThisDayStartTime(new Date(mission.missionEndTime));
+                    if(mission.enabled) {
+                        if (missionStartTime > curTime) {
+                            mission.missionStatus$ = $translate('Unbegun');
+                        } else if (missionStartTime < curTime && missionEndTime > curTime) {
+                            mission.missionStatus$ = $translate('Ongoing');
+                        } else if (missionEndTime < curTime) {
+                            mission.missionStatus$ = $translate('Ended');
+                        }
+                    }
+                    else {
+                        mission.missionStatus$ = $translate('Manually Cancelled');
+                    }
+                    mission.createTime$ = utilService.getFormatTime(mission.createTime);
+                    return mission;
+                });
+                return drawData;
             };
             vm.drawAutoFeedbackOverviewTable = function (data, newSearch) {
                 console.log('data', data);
@@ -33193,31 +33245,45 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('TASK_NAME'),
-                            data: "name",
                             render: function(data, type, row) {
-                                // return '<a ng-click="'+vm.initAutoFeedbackEdit(row)+'">'+row.name+'</a>';
-                                var link = $('<a>', {
+                                let link = $('<a>', {
                                     'ng-click': 'vm.initAutoFeedbackEdit(' + JSON.stringify(row) + ')'
                                 }).text(row.name);
                                 return link.prop('outerHTML');
                             }
                         },
                         {title: $translate('TASK_REMARK'), data: "remarks"},
-                        {title: $translate('TASK_CREATE_TIME'), data: "createTime"},
-                        {title: $translate('Mission Status'), data: "$missionStatus"},
+                        {title: $translate('TASK_CREATE_TIME'), data: "createTime$"},
+                        {title: $translate('Mission Status'), data: "missionStatus$"},
                         {
                             title: $translate('ACTION_BUTTON'),
                             render: function(data, type, row) {
-                                let actionHtmlToggle = '<button class="btn btn-primary common-button" onclick="">' +
-                                    '<i class="fa fa-pencil-square-o"></i>' +
-                                    '<text>'+$translate('ENABLE')+'/'+$translate('SUSPEND')+'</text>' +
-                                    '</button>';
+                                let div = $('<div>', {});
+                                let buttonToggle = $('<button>', {
+                                    'class': 'btn btn-primary common-button',
+                                    'ng-click': 'vm.autoFeedbackToggleActive('+(index-1)+');'
+                                });
+                                let iconToggle = $('<i>', {
+                                    'class': 'fa fa-pencil-square-o'
+                                });
+                                let textToggle = $('<text>', {}).text($translate('ENABLE')+'/'+$translate('SUSPEND'));
+                                buttonToggle.append(iconToggle);
+                                buttonToggle.append(textToggle);
 
-                                let actionHtmlDelete = '<button class="btn btn-danger common-button" onclick="">' +
-                                    '<i class="fa fa-trash"></i>' +
-                                    '<text>'+$translate('Delete Mission')+'</text>' +
-                                    '</button>';
-                                return actionHtmlToggle + actionHtmlDelete;
+                                let buttonDelete = $('<button>', {
+                                    'class': 'btn btn-danger common-button',
+                                    'ng-click': 'vm.autoFeedbackDeleteMission('+(index-1)+');'
+                                });
+                                let iconDelete = $('<i>', {
+                                    'class': 'fa fa-pencil-square-o'
+                                });
+                                let textDelete = $('<text>', {}).text($translate('Delete Mission'));
+                                buttonDelete.append(iconDelete);
+                                buttonDelete.append(textDelete);
+
+                                div.append(buttonToggle);
+                                div.append(buttonDelete);
+                                return div.prop('outerHTML');
                             }
                         },
                         {
@@ -33290,6 +33356,13 @@ define(['js/app'], function (myApp) {
                 // });
             };
 
+            vm.getAllAutoFeedback = function() {
+                socketService.$socket($scope.AppSocket, 'getAllAutoFeedback', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                    console.log("getAllAutoFeedbackMissions ret",data);
+                    vm.autoFeedbackMissions = data.data;
+                });
+            };
+
             vm.updateImageUrl = function(uploaderName){
                 let imageFile = document.getElementById(uploaderName);
                 if(imageFile.files.length > 0){
@@ -33311,13 +33384,6 @@ define(['js/app'], function (myApp) {
                 } else {
                     vm.uploadImageMsg = "Please choose an image first";
                 }
-            };
-
-            vm.getAllAutoFeedback = function() {
-                socketService.$socket($scope.AppSocket, 'getAllAutoFeedback', {platformObjId: vm.selectedPlatform.id}, function (data) {
-                    console.log("getAllAutoFeedbackMissions ret",data);
-                    vm.autoFeedbackMissions = data.data;
-                });
             };
         };
 

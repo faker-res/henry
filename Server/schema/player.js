@@ -335,6 +335,9 @@ var playerSchema = new Schema({
 playerSchema.index({name: 1, platform: 1});
 playerSchema.index({platform: 1, partner: 1});
 playerSchema.index({platform: 1, isRealPlayer: 1});
+playerSchema.index({loginIps: 1});
+playerSchema.index({"loginIps.0": 1});
+playerSchema.index({"loginIps.0": 1, platform: 1, isRealPlayer: 1, _id: 1});
 
 playerSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('playerId'));
 
