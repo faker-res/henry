@@ -294,6 +294,10 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 .full-width-input-block
                                     label {{"Forbid withdraw if there is balance after unlock" | translate}}:
                                     input.form-control(type='number', ng-model='vm.createTeleMarketing.forbidWithdrawIfBalanceAfterUnlock')
+
+                                .full-width-input-block
+                                    label {{"REQUIRE_SMS_VERIFICATION" | translate}}:
+                                    input.form-control(type='checkbox', ng-model='vm.createTeleMarketing.requireSMSVerification')
                         br
                         table.simple-table
                             thead
