@@ -135,7 +135,8 @@ const SMSSender = {
                         channelData => {
                             if (channelData && channelData.channels && channelData.channels.length > 1) {
                                 defaultChannel = 2;
-                                let messageContent = SMSSender.contentModifier(promoData.promoCodeType.smsContent,promoData);
+                                let rawContent = promoData.promoCodeType ? promoData.promoCodeType.smsContent : promoData.smsContent;
+                                let messageContent = SMSSender.contentModifier(rawContent,promoData);
 
                                 var messageData = {
                                     channel: defaultChannel,
