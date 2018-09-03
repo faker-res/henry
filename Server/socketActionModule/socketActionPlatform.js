@@ -745,7 +745,19 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data], actionName, isValidData);
-        }
+        },
+
+        getIpDomainAnalysis: function getIpDomainAnalysis(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPlatform.getIpDomainAnalysis, [data.platformObjId, data.startTime, data.endTime, data.canRepeat, data.domain], actionName, isValidData);
+        },
+
+        getUniqueIpDomainsWithinTimeFrame: function(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPlatform.getUniqueIpDomainsWithinTimeFrame, [data.platformObjId, data.startTime, data.endTime], actionName, isValidData);
+        },
     };
     socketActionPlatform.actions = this.actions;
 }

@@ -7,7 +7,7 @@ let ipDomainLogSchema = new Schema({
     // Create time
     createTime: {type: Date, default: new Date(), index: true},
     // Domain
-    domain: {type: String},
+    domain: {type: String, index: true},
     // IP Address
     ipAddress: {type: String, index: true}
 });

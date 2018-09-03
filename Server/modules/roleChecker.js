@@ -620,6 +620,7 @@ var roleChecker = {
                 ManualApproval: ['getManualApprovalRecords'],
                 FrontEndRegistrationAttritionRate: ['getSpecificProposalTypeByName', 'getRegistrationClickCountRecords'],
                 WithdrawalSpeed: ['getWithdrawalProposal', 'getProposalByObjId'],
+                IpDomain: ['getIpDomainReport'],
                 PlayerOnlineTime: ['getOnlineTimeLogByPlatform']
             }
         },
