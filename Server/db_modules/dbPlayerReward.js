@@ -3364,7 +3364,7 @@ let dbPlayerReward = {
                     status: constPromoCodeStatus.ACCEPTED,
                     proposalId: newProp.proposalId,
                     acceptedAmount: newProp.data.rewardAmount,
-                    topUpAmount: newProp.data.applyAmount
+                    topUpAmount: newProp.data.applyAmount || topUpProp && topUpProp.data && topUpProp.data.amount || 0
                 })
             }
         ).then(() => {

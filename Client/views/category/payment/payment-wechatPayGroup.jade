@@ -21,12 +21,12 @@
                 div
                         label {{"PAYMENT_CARD_MODE" | translate}}
                         br
-                        input#wechatPayFPMSGroupSetting(type='radio' value='false' ng-model="vm.wechatPayGroupPMS")
+                        input#wechatPayFPMSGroupSetting(type='radio' value='false' ng-model="vm.wechatPayGroupPMS" ng-disabled="!checkViewPermission('Payment', 'WechatPayGroup', 'UpdateCardGroupType')")
                         label(for='wechatPayFPMSGroupSetting') {{"FPMS Group" | translate}}
-                        input#wechatPayPMSGroupSetting(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' type='radio' value='true' ng-model="vm.wechatPayGroupPMS")
+                        input#wechatPayPMSGroupSetting(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' type='radio' value='true' ng-model="vm.wechatPayGroupPMS" ng-disabled="!checkViewPermission('Payment', 'WechatPayGroup', 'UpdateCardGroupType')")
                         label(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' for='wechatPayPMSGroupSetting') {{"PMS Group" | translate}}
                         br
-                        button.btn.btn-primary.common-button(ng-click="vm.updateIsPMSGroup(vm.wechatPayGroupPMS, 'wechatPayGroupIsPMS')") {{"CONFIRMATION" | translate}}
+                        button.btn.btn-primary.common-button(ng-click="vm.updateIsPMSGroup(vm.wechatPayGroupPMS, 'wechatPayGroupIsPMS')" ng-if="checkViewPermission('Payment', 'WechatPayGroup', 'UpdateCardGroupType')") {{"CONFIRMATION" | translate}}
                 br
                 .btn-group.text-center(style="border-radius:9px", role="group")
                     button.btn.btn-primary.common-button(ng-if="vm.selectedPlatform.data.financialSettlement && vm.selectedPlatform.data.financialSettlement.financialSettlementToggle && checkViewPermission('Payment', 'WechatPayGroup', 'CreateWechatPay')", data-toggle="modal", ng-click='vm.newWechatpayAcc={};', data-target='#modalAddNewWechatpay')

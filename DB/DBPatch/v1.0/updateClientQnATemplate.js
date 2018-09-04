@@ -20,6 +20,20 @@ db.clientQnATemplate.update(
 
 db.clientQnATemplate.update(
     {
+        processNo: "2_1",
+        type: type1
+    },
+    {
+        $set: {
+            question: [{questionNo: 1, des: "Please enter phone number of the account, a sms verification code will be sent"}],
+            answerInput: [{type: "text", objKey: "phoneNumber", questionNo: 1, placeHolder: "Please enter phone number"}],
+            action: "forgotPassword2_1"
+        }
+    },
+    {upsert: true});
+
+db.clientQnATemplate.update(
+    {
         processNo: "2_2",
         type: type1
     },
@@ -28,10 +42,10 @@ db.clientQnATemplate.update(
             isSecurityQuestion: true,
             questionTitle: "Please answer the question below",
             question: [
-                {questionNo: 1, des: "1. Please enter last 4 digits of bank account (must answer correctly)"},
-                {questionNo: 2, des: "2. Please enter bank card name?"},
-                {questionNo: 3, des: "3. Please enter bank card registration city?"},
-                {questionNo: 4, des: "4. Please enter bank name?"}],
+                {questionNo: 1, des: "Please enter last 4 digits of bank account (must answer correctly)"},
+                {questionNo: 2, des: "Please enter bank card name?"},
+                {questionNo: 3, des: "Please enter bank card registration city?"},
+                {questionNo: 4, des: "Please enter bank name?"}],
             answerInput: [
                 {type: "text", objKey: "bankAccount", questionNo: 1},
                 {type: "text", objKey: "bankCardName", questionNo: 2},

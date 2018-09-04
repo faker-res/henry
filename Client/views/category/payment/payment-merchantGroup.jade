@@ -26,12 +26,12 @@ style.
                 div
                         label {{"PAYMENT_CARD_MODE" | translate}}
                         br
-                        input#merchantFPMSGroupSetting(type='radio' value='false' ng-model="vm.merchantGroupPMS")
+                        input#merchantFPMSGroupSetting(type='radio' value='false' ng-model="vm.merchantGroupPMS" ng-disabled="!checkViewPermission('Payment', 'MerchantGroup', 'UpdateCardGroupType')")
                         label(for='merchantFPMSGroupSetting') {{"FPMS Group" | translate}}
-                        input#merchantPMSGroupSetting(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' type='radio' value='true' ng-model="vm.merchantGroupPMS")
+                        input#merchantPMSGroupSetting(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' type='radio' value='true' ng-model="vm.merchantGroupPMS" ng-disabled="!checkViewPermission('Payment', 'MerchantGroup', 'UpdateCardGroupType')")
                         label(ng-if='!vm.selectedPlatform.data.financialSettlement.financialSettlementToggle' for='merchantPMSGroupSetting') {{"PMS Group" | translate}}
                         br
-                        button.btn.btn-primary.common-button(ng-click="vm.updateIsPMSGroup(vm.merchantGroupPMS, 'merchantGroupIsPMS')") {{"CONFIRMATION" | translate}}
+                        button.btn.btn-primary.common-button(ng-click="vm.updateIsPMSGroup(vm.merchantGroupPMS, 'merchantGroupIsPMS')" ng-if="checkViewPermission('Payment', 'MerchantGroup', 'UpdateCardGroupType')") {{"CONFIRMATION" | translate}}
                 br
                 .btn-group.text-center(style="border-radius:9px",role="group")
                     button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'MerchantGroup', 'Create') && vm.merchantGroupUsed != 'PMS'", data-toggle="modal", ng-click='vm.newMerchantGroup={};', data-target='#modalAddMerchantGroup')

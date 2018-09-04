@@ -18107,6 +18107,9 @@ define(['js/app'], function (myApp) {
                     proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.alipayQRCode || " ";
                     proposalDetail["ALIPAY_QR_ADDRESS"] = vm.selectedProposal.data.qrcodeAddress || " ";
                     proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                    proposalDetail["alipayer"] = vm.selectedProposal.data.alipayer || " ";
+                    proposalDetail["alipayerAccount"] = vm.selectedProposal.data.alipayerAccount || " ";
+                    proposalDetail["alipayerNickName"] = vm.selectedProposal.data.alipayerNickName || " ";
                     if (vm.selectedProposal.data.hasOwnProperty("pointsBefore")) {
                         proposalDetail["pointsBefore"] = vm.selectedProposal.data.pointsBefore;
                     }
@@ -18418,6 +18421,9 @@ define(['js/app'], function (myApp) {
                     proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.alipayQRCode || " ";
                     proposalDetail["ALIPAY_QR_ADDRESS"] = vm.selectedProposal.data.qrcodeAddress || " ";
                     proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                    proposalDetail["alipayer"] = vm.selectedProposal.data.alipayer || " ";
+                    proposalDetail["alipayerAccount"] = vm.selectedProposal.data.alipayerAccount || " ";
+                    proposalDetail["alipayerNickName"] = vm.selectedProposal.data.alipayerNickName || " ";
                     vm.selectedProposal.data = proposalDetail;
                 }
 
@@ -19199,8 +19205,6 @@ define(['js/app'], function (myApp) {
             vm.autoApprovalBasic.manualAuditBanWithdrawal = typeof vm.selectedPlatform.data.manualAuditBanWithdrawal === 'boolean' ? vm.selectedPlatform.data.manualAuditBanWithdrawal : true;
             vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleBonusApplyLessThan;
             vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleDayTotalBonusApplyLessThan;
-            vm.autoApprovalBasic.showAutoApproveRepeatCount = vm.selectedPlatform.data.autoApproveRepeatCount;
-            vm.autoApprovalBasic.showAutoApproveRepeatDelay = vm.selectedPlatform.data.autoApproveRepeatDelay;
             vm.autoApprovalBasic.lostThreshold = vm.selectedPlatform.data.autoApproveLostThreshold;
             vm.autoApprovalBasic.consumptionOffset = vm.selectedPlatform.data.autoApproveConsumptionOffset;
             vm.autoApprovalBasic.profitTimes = vm.selectedPlatform.data.autoApproveProfitTimes;
@@ -19800,8 +19804,6 @@ define(['js/app'], function (myApp) {
                     manualAuditBanWithdrawal: srcData.manualAuditBanWithdrawal,
                     autoApproveWhenSingleBonusApplyLessThan: srcData.showAutoApproveWhenSingleBonusApplyLessThan,
                     autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
-                    autoApproveRepeatCount: srcData.showAutoApproveRepeatCount,
-                    autoApproveRepeatDelay: srcData.showAutoApproveRepeatDelay,
                     autoApproveLostThreshold: srcData.lostThreshold,
                     autoApproveConsumptionOffset: srcData.consumptionOffset,
                     autoApproveProfitTimes: srcData.profitTimes,

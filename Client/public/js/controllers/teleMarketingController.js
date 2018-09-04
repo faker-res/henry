@@ -305,9 +305,8 @@ define(['js/app'], function (myApp) {
                     vm.phoneNumFilterClicked();
                     break;
                 case 'PHONE_LISTS':
-                    vm.phoneListSearch = {};
-                    commonService.commonInitTime(utilService, vm, vm.phoneListSearch, '#phoneListStartTimePicker', utilService.getTodayStartTime());
-                    commonService.commonInitTime(utilService, vm, vm.phoneListSearch, '#phoneListEndTimePicker', utilService.getTodayEndTime());
+                    commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#phoneListStartTimePicker', utilService.getTodayStartTime());
+                    commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#phoneListEndTimePicker', utilService.getTodayEndTime());
                     break;
                 case 'PHONE_MISSION':
                     vm.initTeleMarketingOverview();
@@ -1117,15 +1116,15 @@ define(['js/app'], function (myApp) {
                         }
                     };
 
-                    if (isTSNewList) {
-                        vm.importTSNewList(vm.diffPhoneXLS, vm.tsNewList.name, vm.tsNewList.description)
-                    } else if (importXLS) {
-                        vm.importDiffPhoneNum(vm.diffPhoneXLS, dxMission)
-                    } else {
+                    if (vm.phoneNumXLSResult) {
                         var wopts = {bookType: 'xlsx', bookSST: false, type: 'binary'};
                         // write workbook (use type 'binary')
                         var wbout = XLSX.write(workbook, wopts);
                         saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
+                    } else if (isTSNewList) {
+                        vm.importTSNewList(vm.diffPhoneXLS, vm.tsNewList.name, vm.tsNewList.description)
+                    } else if (importXLS) {
+                        vm.importDiffPhoneNum(vm.diffPhoneXLS, dxMission)
                     }
                 } else {
                     vm.importPhoneResult = 'THERE_IS_NO_DIFFERENT_NUMBER_IN_LIST';
