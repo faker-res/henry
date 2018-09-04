@@ -213,9 +213,12 @@ let dbPlayerCredibility = {
             fixedRemark => {
                 if (fixedRemark && fixedRemark._id) {
                     dbconfig.collection_players.findOneAndUpdate(
-                        {_id: playerObjId},
                         {
-                            $push: {credibilityRemarks: fixedRemark._id}
+                            _id: playerObjId,
+                            platform: platformObjId
+                        },
+                        {
+                            $addToSet: {credibilityRemarks: fixedRemark._id}
                         }
                     ).catch(errorUtils.reportError);
                 }

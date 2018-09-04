@@ -396,6 +396,10 @@ var roleChecker = {
                 Update: ['updateProposalType', 'updateProposalTypeProcessStep', 'updateProposalProcessStep', 'updateProposalTypeProcessSteps'],
                 Delete: ['deleteProposalTypes', 'deleteProposalTypeProcessStepById', 'deleteProposalProcessByIds']
             },
+            "ClientAutoQnA": {
+                Read: [],
+                Update: []
+            },
             "Config": {
                 Read: ['getPlayerLevelByPlatformId', 'getPlayerTrustLevelByPlatformId', 'getPartnerLevelConfig', 'getPlatformAnnouncements'],
                 PlayerLevelRead: ['getPlayerLevelByPlatformId'],
@@ -504,7 +508,8 @@ var roleChecker = {
                 AddPlayer: ['addPlayersToBankCardGroup'],
                 AddAllPlayer: ['addAllPlayersToBankCardGroup'],
                 CreateBankCard: ['createNewBankCardAcc'],
-                EditBankCard: ['updateBankCardAcc', 'deleteBankCardAcc']
+                EditBankCard: ['updateBankCardAcc', 'deleteBankCardAcc'],
+                UpdateCardGroupType: []
             },
             "MerchantGroup": {
                 Read: ['getPlatformMerchantGroup', 'getMerchantTypeList', 'getIncludedMerchantByMerchantGroup', 'getExcludedMerchantByMerchantGroup'],
@@ -512,7 +517,8 @@ var roleChecker = {
                 Update: ['renamePlatformMerchantGroup', 'updatePlatformMerchantGroup', 'setPlatformDefaultMerchantGroup'],
                 Delete: ['deleteMerchantGroup'],
                 AddPlayer: ['addPlayersToMerchantGroup'],
-                AddAllPlayer: ['addAllPlayersToMerchantGroup']
+                AddAllPlayer: ['addAllPlayersToMerchantGroup'],
+                UpdateCardGroupType: []
             },
             "AlipayGroup": {
                 Read: ['getPlatformAliPayGroup'],
@@ -522,7 +528,8 @@ var roleChecker = {
                 AddPlayer: ['addPlayersToAlipayGroup'],
                 AddAllPlayer: ['addAllPlayersToAlipayGroup'],
                 CreateAlipay: ['createNewAlipayAcc'],
-                EditAlipay: ['updateAlipayAcc', 'deleteAlipayAcc']
+                EditAlipay: ['updateAlipayAcc', 'deleteAlipayAcc'],
+                UpdateCardGroupType: []
             },
             "WechatPayGroup": {
                 Read: ['getPlatformWechatPayGroup'],
@@ -532,7 +539,8 @@ var roleChecker = {
                 AddPlayer: ['addPlayersToWechatPayGroup'],
                 AddAllPlayer: ['addAllPlayersToWechatPayGroup'],
                 CreateWechatPay: ['createNewWechatpayAcc'],
-                EditWechatPay: ['updateWechatPayAcc', 'deleteWechatPayAcc']
+                EditWechatPay: ['updateWechatPayAcc', 'deleteWechatPayAcc'],
+                UpdateCardGroupType: []
             },
             "QuickPayGroup": {
                 Read: ['getPlatformQuickPayGroup'],

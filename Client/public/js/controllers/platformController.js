@@ -124,6 +124,14 @@ define(['js/app'], function (myApp) {
             //     "PlayerLimitedOfferReward"
             // ];
 
+            vm.constClientQnA = {
+                FORGOT_PASSWORD: "forgotPassword",
+                FORGOT_USER_ID: "forgotUserID",
+                UPDATE_PHONE: "updatePhoneNumber",
+                EDIT_BANK_CARD: "editBankCard",
+                EDIT_NAME: "editName"
+            };
+
             vm.constProposalType = {
                 UPDATE_PLAYER_INFO: "UpdatePlayerInfo",
                 UPDATE_PLAYER_CREDIT: "UpdatePlayerCredit",
@@ -27127,8 +27135,6 @@ define(['js/app'], function (myApp) {
                 vm.autoApprovalBasic.manualAuditBanWithdrawal = typeof vm.selectedPlatform.data.manualAuditBanWithdrawal === 'boolean' ? vm.selectedPlatform.data.manualAuditBanWithdrawal : true;
                 vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleBonusApplyLessThan;
                 vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleDayTotalBonusApplyLessThan;
-                vm.autoApprovalBasic.showAutoApproveRepeatCount = vm.selectedPlatform.data.autoApproveRepeatCount;
-                vm.autoApprovalBasic.showAutoApproveRepeatDelay = vm.selectedPlatform.data.autoApproveRepeatDelay;
                 vm.autoApprovalBasic.lostThreshold = vm.selectedPlatform.data.autoApproveLostThreshold;
                 vm.autoApprovalBasic.consumptionOffset = vm.selectedPlatform.data.autoApproveConsumptionOffset;
                 vm.autoApprovalBasic.profitTimes = vm.selectedPlatform.data.autoApproveProfitTimes;
@@ -28296,8 +28302,6 @@ define(['js/app'], function (myApp) {
                         manualAuditBanWithdrawal: srcData.manualAuditBanWithdrawal,
                         autoApproveWhenSingleBonusApplyLessThan: srcData.showAutoApproveWhenSingleBonusApplyLessThan,
                         autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
-                        autoApproveRepeatCount: srcData.showAutoApproveRepeatCount,
-                        autoApproveRepeatDelay: srcData.showAutoApproveRepeatDelay,
                         autoApproveLostThreshold: srcData.lostThreshold,
                         autoApproveConsumptionOffset: srcData.consumptionOffset,
                         autoApproveProfitTimes: srcData.profitTimes,
@@ -28740,6 +28744,170 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             };
+
+            vm.buildClientQnATypeList = function () {
+                vm.questionLabelStyle = "text-align:center;display:block";
+                vm.clientQnAData;
+                vm.clientQnAInput = {}; // QnA input
+                vm.clientQnATypeList = [];
+                vm.selectedClientQnAType = {};
+                for (let key in vm.constClientQnA) {
+                    vm.clientQnATypeList.push({text: $translate(vm.constClientQnA[key]), data: vm.constClientQnA[key]});
+                }
+
+                $('#clientQnATypeTree').treeview(
+                    {
+                        data: vm.clientQnATypeList,
+                        highlightSearchResults: true
+                    }
+                );
+                //if (!isRedraw) {
+                $('#searchClientQnAType').keyup(function () {
+                    $('#clientQnATypeTree').treeview('search', [$(this).val(), {
+                        ignoreCase: true,     // case insensitive
+                        exactMatch: false,    // like or equals
+                        revealResults: true,  // reveal matching nodes
+                    }]);
+
+                });
+                $('#clientQnATypeTree').on('searchComplete', function (event, data) {
+                    var showAll = ($('#searchClientQnAType').val()) ? false : true;
+                    $('#clientQnATypeTree li:not(.search-result)').each(function (i, o) {
+                        if (showAll) {
+                            $(o).show();
+                        } else {
+                            $(o).hide();
+                        }
+                    });
+                    $('#clientQnATypeTree li:has(.search-result)').each(function (i, o) {
+                        $(o).show();
+                    });
+                });
+//}
+                $('#clientQnATypeTree').on('nodeSelected', function (event, data) {
+                    vm.clientQnAData = {};
+                    $scope.$evalAsync(() => {
+                        vm.selectedClientQnAType = data;
+                        //get process and steps data for selected proposal type
+                        // vm.getProposalTypeProcessSteps();
+                        // vm.getProposalTypeExpirationDuration();
+                        // console.log("vm.selectedProposalType", vm.selectedProposalType);
+                        // $scope.safeApply();
+                        vm.getClientQnAProcess();
+                        vm.getClientQnASecurityQuesConfig();
+                    });
+                });
+            }
+
+            // display first step of the selected QnA type if processNo is null
+            vm.getClientQnAProcess = function (isAlternative) {
+                vm.clientQnADataErr = ""; //reset error text
+                let sendData = {
+                    type: vm.selectedClientQnAType.data,
+                    inputDataObj: vm.clientQnAInput
+                }
+                if (isAlternative) {
+                    sendData.isAlternative = true;
+                }
+                if (vm.clientQnAData && vm.clientQnAData.processNo) {
+                    sendData.processNo = vm.clientQnAData.processNo;
+                }
+                socketService.$socket($scope.AppSocket, 'getClientQnAProcessStep', sendData,  function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.clientQnAInput = {}; //reset input data
+                        vm.clientQnAData = data.data;
+                        if (vm.clientQnAData && vm.clientQnAData.questionTitle && vm.clientQnAData.isSecurityQuestion) {
+                            vm.questionLabelStyle = "text-align:left;display:block";
+                        }
+                    });
+                }, function (err) {
+                    $scope.$evalAsync(() => {
+                        // vm.clientQnAData = {}; //reset template
+                        vm.clientQnADataErr = err.error && err.error.message? $translate(err.error.message): "";
+                    });
+                });
+            }
+
+            vm.getClientQnASecurityQuesConfig = function () {
+                vm.clientQnASecurityQuesConfig = {
+                    question: [],
+                    config: {}
+                };
+                vm.clientQnASecurityQuesCount = {
+                    minQuestionPass: 0,
+                    totalQues: 0
+                };
+
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    type: vm.selectedClientQnAType.data
+                }
+                socketService.$socket($scope.AppSocket, 'getClientQnASecurityQuesConfig', sendData,  function (data) {
+                    if (data.data) {
+                        $scope.$evalAsync(() => {
+                            if (data.data[0] && data.data[0].question && data.data[0].question.length) {
+                                vm.clientQnASecurityQuesConfig.question = data.data[0].question;
+                                vm.clientQnASecurityQuesCount.totalQues = data.data[0].question.length;
+                            }
+                            if (data.data[1]) {
+                                vm.clientQnASecurityQuesConfig.config = data.data[1];
+                                if (data.data[1].minQuestionPass) {
+                                    vm.clientQnASecurityQuesCount.minQuestionPass = data.data[1].minQuestionPass;
+                                }
+                            }
+                        });
+                    }
+
+                });
+            }
+
+            //reset everything
+            vm.endClientQnAProcess = function () {
+                vm.selectedClientQnAType = {};
+                vm.clientQnAInput = {};
+                vm.clientQnAData = {}
+            }
+
+            //copy QnA question
+            vm.copyClientQnA = function () {
+                let copiedText = "";
+                if (vm.clientQnAData) {
+                    if (vm.clientQnAData.question && vm.clientQnAData.question.length) {
+                        vm.clientQnAData.question.forEach(ques => {
+                            if (ques.des) {
+                                if (copiedText) {
+                                    copiedText += " \n";
+                                }
+                                copiedText += $translate(ques.des);
+                            }
+                        })
+                    }
+                }
+                //add on here
+                commonService.copyToClipboard(copiedText);
+            }
+
+            vm.showClientQnAConfigModal = () => {
+                $('#modalClientQnAConfig').modal('show');
+            };
+
+            vm.editClientQnAConfig = function () {
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    type: vm.selectedClientQnAType.data,
+                    updateObj: vm.clientQnASecurityQuesConfig.config
+                }
+                socketService.$socket($scope.AppSocket, 'editClientQnAConfig', sendData, function (data) {
+                    if (data.data) {
+                        // vm.clientQnASecurityQuesConfig.config = data.data
+                        $scope.$evalAsync(() => {
+                            vm.clientQnASecurityQuesConfig.config = data.data;
+                            vm.clientQnASecurityQuesCount.minQuestionPass = data.data.minQuestionPass ? data.data.minQuestionPass : 0;
+                        });
+                    }
+                });
+            };
+
             vm.createProposalTypeForm = function () {
                 vm.newProposal = {};
 
