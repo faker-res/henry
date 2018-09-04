@@ -301,7 +301,7 @@ p
                                             br
                                             button.btn.btn-primary.common-button-sm(ng-click='vm.getPartnerInfoHistory()') {{"EDIT_HISTORY" | translate}}
                                             br
-                                            button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Partner', 'ResetPassword')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal",ng-click='vm.newPartner=vm.selectedSinglePartner; vm.partnerNewPassword = false',data-target='#modalPartnerPasswordReset') {{"RESET_PASSWORD" | translate}}
+                                            button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Partner', 'ResetPassword')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal",ng-click='vm.initResetPartnerPasswordModal()',data-target='#modalPartnerPasswordReset') {{"RESET_PASSWORD" | translate}}
 
                                 tr
                                     td
@@ -740,6 +740,10 @@ p
                                 text.control-label {{"The password of partner"|translate}}
                                 text.text-success &nbsp;{{vm.selectedSinglePartner.partnerName}}
                                 span &nbsp;{{"will be reset. Are you sure?"|translate}}
+                            .form-group
+                                label.control-label {{'NEW_PASSWORD' | translate}} ({{'optional' | translate}})
+                                input.form-control(ng-model='vm.customNewPassword', placeholder='{{"Leaving empty will generate a random password." | translate}}')
+                                text {{"Note: " | translate}}{{"Leaving empty will generate a random password." | translate}}
                         .well(ng-if='vm.partnerNewPassword')
                             .form-group
                                 text The new password for&nbsp;

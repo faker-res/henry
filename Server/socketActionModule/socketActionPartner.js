@@ -248,10 +248,10 @@ function socketActionPartner(socketIO, socket) {
          * @param {json} data - It has to contain  object id of partner
          */
         resetPartnerPassword: function resetPartnerPassword(data) {
-            var actionName = arguments.callee.name;
-            var randomPSW = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
-            var isValidData = Boolean(data && data._id);
-            socketUtil.emitter(self.socket, dbPartner.resetPartnerPassword, [data._id, randomPSW], actionName, isValidData);
+            let actionName = arguments.callee.name;
+            let randomPSW = (data && data.newPassword) ? data.newPassword : chance.hash({length: constSystemParam.PASSWORD_LENGTH}); //random password will be generated if blank
+            let isValidData = Boolean(data && data._id && randomPSW && randomPSW.length >= 6);
+            socketUtil.emitter(self.socket, dbPartner.resetPartnerPassword, [data._id, randomPSW, data.platform], actionName, isValidData);
         },
 
         /**
