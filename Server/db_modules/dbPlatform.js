@@ -3950,8 +3950,6 @@ var dbPlatform = {
                 "manualAuditBanWithdrawal",
                 "autoApproveWhenSingleBonusApplyLessThan",
                 "autoApproveWhenSingleDayTotalBonusApplyLessThan",
-                "autoApproveRepeatCount",
-                "autoApproveRepeatDelay",
                 "autoApproveLostThreshold",
                 "autoApproveConsumptionOffset",
                 "autoApproveProfitTimes",
