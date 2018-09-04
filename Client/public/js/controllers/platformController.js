@@ -28804,6 +28804,7 @@ define(['js/app'], function (myApp) {
                 vm.clientQnADataErr = ""; //reset error text
                 let sendData = {
                     type: vm.selectedClientQnAType.data,
+                    platformObjId: vm.selectedPlatform.id,
                     inputDataObj: vm.clientQnAInput
                 }
                 if (isAlternative) {

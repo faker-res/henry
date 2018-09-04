@@ -157,8 +157,8 @@ function socketActionPlatform(socketIO, socket) {
 
         getClientQnAProcessStep: function getClientQnAProcessStep(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.type);
-            socketUtil.emitter(self.socket, dbClientQnA.getClientQnAProcessStep, [data.type, data.processNo, data.inputDataObj, data.isAlternative], actionName, isValidData);
+            var isValidData = Boolean(data && data.type && data.platformObjId);
+            socketUtil.emitter(self.socket, dbClientQnA.getClientQnAProcessStep, [data.platformObjId, data.type, data.processNo, data.inputDataObj, data.isAlternative], actionName, isValidData);
         },
 
         getClientQnASecurityQuesConfig: function getClientQnASecurityQuesConfig(data) {
