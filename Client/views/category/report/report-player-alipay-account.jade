@@ -1,0 +1,30 @@
+#playerAlipayAccountReport.block-query.col-md-12.well
+    div
+        label {{"Player ID"|translate}}
+        input.form-control.span.input-sm(type="text", ng-model="vm.playerExpenseQuery.playerId")
+    div
+        label {{"Player Name"|translate}}
+        input.form-control.span.input-sm(type="text", ng-model="vm.playerExpenseQuery.playerName")
+    div
+        label {{"Provider"|translate}}
+        select.form-control(ng-model='vm.playerExpenseQuery.providerId', style='max-width:300px', required)
+            option(value='all') {{'all' | translate}}
+            option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}', ng-selected='vm.playerExpenseQuery.providerId==v._id') {{v.name || translate}}
+    div
+        label {{"Start date"|translate}}
+        .startTime
+    div
+        label {{"End date"|translate}}
+        .endTime
+    div
+        label &nbsp;
+        button.btn.btn-success(ng-click='vm.searchProviderPlayerRecord(true)') {{'SEARCH' | translate}}
+        button.btn.btn-info.margin-left-5(ng-click='vm.searchProviderPlayerRecord(true,true)') {{'EXPORT_EXCEL' | translate}}
+        span#playerExpenseTableSpin.collapse
+            i.fa.fa-spinner.fa-spin
+        span.margin-left-5 {{vm.operationReportLoadingStatus}}
+.clearfix
+label {{"Total" | translate}} {{vm.playerExpenseQuery.totalCount}} {{"records" | translate}}
+table.common-table#playerExpenseTable.display(style="width:100% ;overflow-x: scroll")
+#playerExpenseTablePage
+table.common-table#playerExpenseExcelTable.display(style="width:100% ;overflow-x: scroll")

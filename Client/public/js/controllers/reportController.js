@@ -995,7 +995,6 @@ define(['js/app'], function (myApp) {
                 vm.seleDataType[choice] = 'bg-bright';
             }
             vm.showPageName = choice;
-            //$('#reportRightTable').removeClass('panel-danger').addClass('panel-primary');
             vm.currentRewardCode = code;
             vm.currentRewardTaskName = null;
             vm.currentEventId = eventObjId;

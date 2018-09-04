@@ -1489,6 +1489,7 @@
   "playerAccount": "会员帐号",
   "relatedTopUpAmount": "关连存款金额",
   "REQUIRE_SMS_VERIFICATION": "需要短信验证",
+  "PLAYER_ALIPAY_ACCOUNT_REPORT": "玩家个人支付宝收录历史",
   "phoneNumFilter": "电话号码过滤",
   "FILTER_ALL_PLATFORM": "过滤全部平台",
   "FILTER_ALL_PLATFORM_ENABLED": "启用",
