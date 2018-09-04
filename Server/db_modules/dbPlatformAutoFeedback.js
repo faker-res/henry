@@ -93,9 +93,15 @@ let dbPlatformAutoFeedback = {
             return Promise.all(missionsProms);
         }).then(counts => {
             result.forEach((item, i) => {
-                item.firstRunCount = counts[i][0];
-                item.secondRunCount = counts[i][1];
-                item.thirdRunCount = counts[i][2];
+                if(counts && counts[i]) {
+                    item.firstRunCount = counts[i][0] || 0;
+                    item.secondRunCount = counts[i][1] || 0;
+                    item.thirdRunCount = counts[i][2] || 0;
+                } else {
+                    item.firstRunCount = 0;
+                    item.secondRunCount = 0;
+                    item.thirdRunCount = 0;
+                }
             });
             return result;
         });
