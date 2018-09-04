@@ -45,7 +45,7 @@ var dbClientQnA = {
             updateData, {upsert: true, new: true})
     },
 
-    getClientQnAProcessStep: function (type, processNo, inputDataObj, isAlternative) {
+    getClientQnAProcessStep: function (platformObjId, type, processNo, inputDataObj, isAlternative) {
         let QnAQuery = {
             type: type
         }
@@ -66,7 +66,7 @@ var dbClientQnA = {
                     } else if (QnATemplate.action) {
                         actionString = QnATemplate.action;
                     }
-                    return dbClientQnA[actionString]();
+                    return dbClientQnA[actionString](platformObjId, inputDataObj);
                 }
 
                 return QnATemplate;
@@ -82,13 +82,23 @@ var dbClientQnA = {
         return dbconfig.collection_clientQnATemplate.findOne(QnAQuery).lean();
     },
 
-    // forgotPassword1: function () {
-    //     let QnAQuery = {
-    //         type: constClientQnA.FORGOT_PASSWORD,
-    //         processNo: "2"
-    //     }
-    //     return dbconfig.collection_clientQnATemplate.findOne(QnAQuery).lean();
-    // },
+    forgotPassword1: function (platformObjId, inputDataObj) {
+        if (!(inputDataObj && inputDataObj.name)) {
+            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        }
+
+        return dbconfig.collection_players.findOne({}).lean().then(
+            playerData => {
+
+            }
+        )
+        // let QnAQuery = {
+        //     type: constClientQnA.FORGOT_PASSWORD,
+        //     processNo: "2"
+        // }
+        // return dbconfig.collection_clientQnATemplate.findOne(QnAQuery).lean();
+
+    },
     //endregion
 
     //region forgotUserID
