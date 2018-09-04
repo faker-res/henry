@@ -15602,18 +15602,18 @@ define(['js/app'], function (myApp) {
                 vm.isTransferPartnerCreditToPlayer = true;
             };
 
-            vm.disableTransferPartnerCreditToPlayer = function (value, withdrawConsumptionValue) {
+            vm.disableTransferPartnerCreditToPlayer = function (value) {
                 if (vm.sumTotalTransferAmount == 0 || value < 0 || (value && value.toString == 'undefined')) {
                     vm.isTransferPartnerCreditToPlayer = true;
-                } else if (vm.sumTotalTransferAmount <= vm.selectedSinglePartner.credits && withdrawConsumptionValue) {
+                } else if (vm.sumTotalTransferAmount <= vm.selectedSinglePartner.credits) {
                     vm.isTransferPartnerCreditToPlayer = false;
                 } else {
                     vm.isTransferPartnerCreditToPlayer = true;
                 }
             };
 
-            vm.checkIsDisableTransferPartnerCreditToPlayer = function (value) {
-                if (!value || value < 0 || (value && (value.toString == 'undefined' || value.toString == '-'))) {
+            vm.checkIsDisableTransferPartnerCreditToPlayer = function (providerGroupId, withdrawConsumption) {
+                if (providerGroupId && (!withdrawConsumption || withdrawConsumption < 0)) {
                     vm.isTransferPartnerCreditToPlayer = true;
                 } else {
                     vm.isTransferPartnerCreditToPlayer = false;
@@ -15659,7 +15659,7 @@ define(['js/app'], function (myApp) {
                                 playerName: player.name,
                                 amount: player.amount,
                                 providerGroup: player.providerGroup,
-                                withdrawConsumption: player.withdrawConsumption
+                                withdrawConsumption: player.withdrawConsumption || 0
                             });
                         }
                     }

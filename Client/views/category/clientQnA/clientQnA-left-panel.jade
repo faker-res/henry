@@ -1,0 +1,16 @@
+.panel.panel-primary
+    .panel-heading.panel-heading-sm
+        //.fa.fa-inbox
+        label.margin-left-5 {{"Type" | translate}}
+    .panel-body.common-left-sub-panel-body
+        .row
+            .col-md-12
+                .search-box
+                    a.fa.fa-search.pull-right.margin-all-5
+                    input#searchClientQnAType.span.input-sm(type="text", placeholder='{{"SEARCH" | translate}}' )
+        p
+        //.row
+            .col-md-12
+        div#clientQnATypeTree(style="height: 530px; overflow-y: auto;")
+
+

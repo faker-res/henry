@@ -1,0 +1,36 @@
+.panel.panel-primary
+    .panel-heading.panel-heading-sm
+        label(style="text-align:left;display:block") {{"SECURITY_QUESTION" | translate}} {{": " + vm.clientQnASecurityQuesCount.minQuestionPass + "/" + vm.clientQnASecurityQuesCount.totalQues}}
+    .panel-body.common-left-sub-panel-body
+        .row
+            br
+            div(style='width:90%;margin:auto' ng-if='vm.clientQnASecurityQuesConfig && checkViewPermission("Platform", "ClientAutoQnA", "Update")')
+                div(ng-repeat='(i,v) in vm.clientQnASecurityQuesConfig.question')
+                    label {{v.des | translate}}
+                br
+                br
+                br
+                button.common-button.btn.btn-primary(ng-click="vm.showClientQnAConfigModal()") {{'QNA_CONFIG' | translate}}
+
+#modalClientQnAConfig.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"QNA_CONFIG" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .form-group
+                                .control-label {{"Please enter the minimum correct answer count (include)" | translate}}
+                                input.form-control(type='text', ng-model='vm.clientQnASecurityQuesConfig.config.minQuestionPass')
+                            .form-group
+                                .control-label {{"Security answer maximum incorrect count (include)" | translate}}
+                                input.form-control(type='text', ng-model='vm.clientQnASecurityQuesConfig.config.wrongCount')
+                            .form-group
+                                .control-label {{"Default password for reset password" | translate}}
+                                input.form-control(type='text', ng-model='vm.clientQnASecurityQuesConfig.config.defaultPassword')
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.editClientQnAConfig()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}

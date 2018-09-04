@@ -465,10 +465,14 @@ define(['js/app'], function (myApp) {
                         vm.queryPara.ipDomainUnique.domain = '';
                         vm.getIpDomainOption();
                         vm.getIpDomainUniqueOption();
-                        $('#ipDomainAnalysis .startTime input').change(vm.getIpDomainOptionDebounce);
-                        $('#ipDomainAnalysis .endTime input').change(vm.getIpDomainOptionDebounce);
-                        $('#ipDomainUniqueAnalysis .startTime input').change(vm.getIpDomainUniqueOptionDebounce);
-                        $('#ipDomainUniqueAnalysis .endTime input').change(vm.getIpDomainUniqueOptionDebounce);
+                        vm.queryPara["ipDomain"].startTime.off('changeDate');
+                        vm.queryPara["ipDomain"].endTime.off('changeDate');
+                        vm.queryPara["ipDomainUnique"].startTime.off('changeDate');
+                        vm.queryPara["ipDomainUnique"].endTime.off('changeDate');
+                        vm.queryPara["ipDomain"].startTime.on('changeDate', vm.getIpDomainOptionDebounce);
+                        vm.queryPara["ipDomain"].endTime.on('changeDate', vm.getIpDomainOptionDebounce);
+                        vm.queryPara["ipDomainUnique"].startTime.on('changeDate', vm.getIpDomainUniqueOptionDebounce);
+                        vm.queryPara["ipDomainUnique"].endTime.on('changeDate', vm.getIpDomainUniqueOptionDebounce);
 
                         break;
                 }
@@ -6320,13 +6324,22 @@ define(['js/app'], function (myApp) {
         vm.drawIpDomainTable = function (srcData, tableName) {
             let tableData = [];
             let total = 0;
+            let tableAmountColumnName = $translate("VISITED_TIMES") + "(" + $translate("IP_REPEAT") + ")";
 
             srcData.map(item => {
-                tableData.push(item);
                 total += item.count;
             });
 
-            tableData.push({domain: $translate("total"), count: total});
+            srcData.map(item => {
+                item.ratio = Number(item.count / total * 100).toFixed(2);
+                tableData.push(item);
+            });
+
+            if (tableName == "#ipDomainUniqueAnalysisTable") {
+                tableAmountColumnName = $translate("VISITED_IP_AMOUNT");
+            }
+
+            tableData.push({domain: $translate("total"), count: total, ratio: "100%"});
 
             var dataOptions = {
                 data: tableData,
@@ -6334,8 +6347,9 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false, sClass: "text-center"}
                 ],
                 columns: [
-                    {title: $translate("Domain Name"), data: "domain"},
-                    {title: $translate('AMOUNT'), data: "count"}
+                    {title: $translate("VISITED_DOMAIN"), data: "domain"},
+                    {title: tableAmountColumnName, data: "count"},
+                    {title: $translate('ratio'), data: "ratio"}
                 ],
                 "paging": false,
             };
@@ -6347,6 +6361,14 @@ define(['js/app'], function (myApp) {
         vm.drawIpDomainDayTable = function (srcData, tableName) {
             let tableData = [];
             let total = 0;
+            let tableAmountColumnName = $translate("VISITED_TIMES") + "(" + $translate("IP_REPEAT") + ")";
+
+            let keyword = "ipDomain";
+
+            if (tableName == "#ipDomainUniqueDayAnalysisTable") {
+                keyword = "ipDomainUnique";
+                tableAmountColumnName = $translate("VISITED_TIMES") + "(" + $translate("IP_NOT_REPEAT") + ")";
+            }
 
             srcData.map(item => {
                 tableData.push(item);
@@ -6368,8 +6390,8 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false, sClass: "text-center"}
                 ],
                 columns: [
-                    {title: $translate("DAY"), data: "date"},
-                    {title: $translate('AMOUNT'), data: "count"}
+                    {title: $translate("DAY") + "(" + vm.queryPara[keyword].domain + ")", data: "date"},
+                    {title: tableAmountColumnName, data: "count"}
                 ],
                 "paging": false,
             };

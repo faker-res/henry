@@ -25,6 +25,7 @@
         //label.text-primary {{'' | translate}}
         .row
             .col-md-6
+                div {{'IP_DOMAIN_ANALYSIS_EXPLAIN' | translate}}
                 .graph
                     .panel.panel-default
                         .pieChart(ng-show="!vm.ipDomainAnalysisDay")
@@ -62,6 +63,7 @@
         .row
 
             .col-md-6
+                div {{'IP_DOMAIN_UNIQUE_ANALYSIS_EXPLAIN' | translate}}
                 .graph
                     .panel.panel-default
                         .pieChart(ng-show="!vm.ipDomainUniqueAnalysisDay")

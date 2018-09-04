@@ -9201,6 +9201,71 @@ let dbPartner = {
         })
     },
 
+    partnerCreditToPlayer: (platformId, partnerId, amount, playerName, providerGroupId, withdrawConsumption, userAgent) => {
+        let platformObj;
+        let partnerObj;
+        let playerObj;
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(platformData => {
+            if (!platformData || !platformData._id) {
+                return Promise.reject({name: "DataError", message: "Cannot find platform"});
+            }
+
+            platformObj = platformData;
+
+            return dbconfig.collection_partner.findOne({platform: platformObj._id, partnerId: partnerId}).lean();
+
+        }).then(partnerData => {
+            if (!partnerData || !partnerData._id) {
+                return Promise.reject({name: "DataError", message: "Invalid partner data"});
+            }
+
+            partnerObj = partnerData;
+
+            return dbconfig.collection_players.findOne({platform: platformObj._id, name: playerName, partner: partnerObj._id}).lean();
+
+        }).then(playerData => {
+            if (!playerData || !playerData._id) {
+                return Promise.reject({name: "DataError", message: "Invalid player data"});
+            }
+
+            playerObj = playerData;
+
+            if (providerGroupId) {
+                if (!withdrawConsumption) {
+                    return Promise.reject({name: "DataError", message: "Withdraw Consumption cannot be empty"});
+                } else {
+                    return dbconfig.collection_gameProviderGroup.findOne({providerGroupId: providerGroupId, platform: platformObj._id}).lean();
+                }
+            }
+        }).then(providerGroupData => {
+            let transferDetail = {
+                playerObjId: playerObj._id,
+                playerName: playerObj.name,
+                amount: amount,
+                withdrawConsumption: withdrawConsumption ? withdrawConsumption : 0,
+                providerGroup: providerGroupData && providerGroupData._id ? providerGroupData._id : ''
+            };
+
+            if (partnerObj.credits) {
+                if(partnerObj.credits <= 0 || partnerObj.credits < amount) {
+                    return Promise.reject({name: "DataError", message: "Partner does not have enough credit."});
+                } else {
+                    let currentCredit = partnerObj.credits;
+                    let updateCredit = partnerObj.credits - amount;
+
+                    return applyTransferPartnerCreditToPlayer(platformObj._id, partnerObj, currentCredit, updateCredit, amount, [transferDetail], null, userAgent);
+                }
+            } else {
+                return Promise.reject({name: "DataError", message: "Partner does not have enough credit."});
+            }
+        }).then(proposalData => {
+            if (proposalData && proposalData.data && proposalData.data.amount) {
+                return {amount: proposalData.data.amount * -1};
+            }
+        })
+    },
+
     checkChildPartnerNameValidity: (platformId, partnerName) => {
         let isPartnerExist = null;
         let parentPartnerName = null;
@@ -10314,7 +10379,7 @@ function updateParentPartnerCommission(commissionLog, adminInfo, proposalId) {
     );
 }
 
-function applyTransferPartnerCreditToPlayer(platformId, partner, currentCredit, updateCredit, totalTransferAmount, transferToPlayers, adminInfo) {
+function applyTransferPartnerCreditToPlayer(platformId, partner, currentCredit, updateCredit, totalTransferAmount, transferToPlayers, adminInfo, userAgent) {
     // find proposal type
     return dbconfig.collection_proposalType.findOne({name: constProposalType.PARTNER_CREDIT_TRANSFER_TO_DOWNLINE, platformId: platformId}).lean().then(
         proposalType => {
@@ -10342,9 +10407,13 @@ function applyTransferPartnerCreditToPlayer(platformId, partner, currentCredit, 
                     amount: -totalTransferAmount,
                     transferToDownlineDetail: transferToPlayers
                 },
-                entryType: constProposalEntryType.ADMIN,
+                entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                 userType: constProposalUserType.PARTNERS
             };
+
+            if (userAgent) {
+                proposalData.inputDevice = dbutility.getInputDevice(userAgent,true);
+            }
 
             return dbProposal.createProposalWithTypeId(proposalType._id, proposalData);
         }
