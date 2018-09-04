@@ -3963,6 +3963,7 @@
   "VISITED_IP_AMOUNT": "瀏覽 IP 數",
   "IP_DOMAIN_ANALYSIS_EXPLAIN": "*訪問者此次瀏覽網站次數+1，本次切換頁面不重複計算，但刷新會重新計算。",
   "IP_DOMAIN_UNIQUE_ANALYSIS_EXPLAIN": "*該訪問的IP此次瀏覽網站次數+1，本次切換頁面、刷新都不重複計算。",
+  "UpdateCardGroupType": "派卡逻辑修改",
 
   "Please Enter Task Name": "请输入该任务 名称",
   "Please Enter Task Description": "请输入该任务 备注",
