@@ -775,7 +775,21 @@ var roleChecker = {
             MEMBER_REPORT: {
                 Read: []
             }
-        }
+        },
+        ThemeControl: {
+            "ThemeControl": {
+                Read: [],
+                Edit: []
+            },
+            "playerTheme": {
+                Read: [],
+                Edit: []
+            },
+            "partnerTheme": {
+                Read: [],
+                Edit: []
+            },
+        },
     },
 
     /**
