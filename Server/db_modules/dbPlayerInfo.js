@@ -8442,7 +8442,7 @@ let dbPlayerInfo = {
         let count = dbconfig.collection_players.find(query).count();
         let detail = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit)
             .populate({path: 'partner', model: dbconfig.collection_partner}).lean()
-            .populate({path: 'csOfficer', model: dbconfig.collection_admin, select: "adminName"}).lean();
+            .populate({path: 'csOfficer', model: dbconfig.collection_admin, select: "adminName"}).read("secondaryPreferred").lean();
 
         return Q.all([count, detail]).then(
             data => {

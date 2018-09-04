@@ -5159,7 +5159,7 @@ let dbPartner = {
 
         let count = dbconfig.collection_partner.find(query).count();
         let detail = dbconfig.collection_partner.find(query).sort(sortCol).skip(index).limit(limit)
-            .populate({path: 'parent', model: dbconfig.collection_partner}).lean();
+            .populate({path: 'parent', model: dbconfig.collection_partner}).read("secondaryPreferred").lean();
 
         return Q.all([count, detail]).then(
             data => {
