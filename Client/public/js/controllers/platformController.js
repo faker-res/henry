@@ -33394,7 +33394,7 @@ define(['js/app'], function (myApp) {
                 }
                 if(newSearch) {
                     sendData.index = 0;
-                    sendData.limit = 10;
+                    sendData.limit = vm.autoFeedbackMissionSearch.limit || 10;
                 } else {
                     sendData.index = vm.autoFeedbackMissionSearch.index;
                     sendData.limit = vm.autoFeedbackMissionSearch.limit;
@@ -33510,9 +33510,6 @@ define(['js/app'], function (myApp) {
                         }
                     ],
                     "paging": false,
-                    createdRow: function (row, data, dataIndex) {
-                        $compile(angular.element(row).contents())($scope);
-                    },
                     "language": {
                         "info": "Display _MAX_ provider records",
                         "emptyTable": $translate("No data available in table"),
