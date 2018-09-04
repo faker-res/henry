@@ -71,6 +71,7 @@ const constProposalMainType = {
     //"ManualUnlockPlayerReward": constMainType.UPDATE_PLAYER,
     //"PlayerRegistrationIntention":constMainType.UPDATE_PLAYER,
     "PlayerLevelMigration": constMainType.UPDATE_PLAYER,
+    "UpdatePlayerRealName": constMainType.UPDATE_PLAYER,
 
     //UPDATE_PARTNER
     "UpdatePartnerInfo": constMainType.UPDATE_PARTNER,
