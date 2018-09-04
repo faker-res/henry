@@ -503,6 +503,11 @@ var PartnerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.partnerCreditToPlayer, [data.platformId, data.partnerId, data.amount, data.username, data.lockedCreditId, data.spendingTimes, userAgent], isValidData, false, false, true);
     };
 
+    this.getDownPartnerContribution.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && data.partnerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getDownPartnerContribution, [data.platformId, data.partnerId, data.startIndex, data.count, data.startTime, data.endTime], isValidData, false, false, true);
+    };
+
     this.notifyNewMail.addListener(
         function (data) {
             WebSocketUtil.notifyMessagePartner(self, "notifyNewMail", data);
