@@ -305,9 +305,8 @@ define(['js/app'], function (myApp) {
                     vm.phoneNumFilterClicked();
                     break;
                 case 'PHONE_LISTS':
-                    vm.phoneListSearch = {};
-                    commonService.commonInitTime(utilService, vm, vm.phoneListSearch, '#phoneListStartTimePicker', utilService.getTodayStartTime());
-                    commonService.commonInitTime(utilService, vm, vm.phoneListSearch, '#phoneListEndTimePicker', utilService.getTodayEndTime());
+                    commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#phoneListStartTimePicker', utilService.getTodayStartTime());
+                    commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#phoneListEndTimePicker', utilService.getTodayEndTime());
                     break;
                 case 'PHONE_MISSION':
                     vm.initTeleMarketingOverview();

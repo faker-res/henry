@@ -1624,6 +1624,9 @@ define(['js/app'], function (myApp) {
                     proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.alipayQRCode || " ";
                     proposalDetail["ALIPAY_QR_ADDRESS"] = vm.selectedProposal.data.qrcodeAddress || " ";
                     proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                    proposalDetail["alipayer"] = vm.selectedProposal.data.alipayer || " ";
+                    proposalDetail["alipayerAccount"] = vm.selectedProposal.data.alipayerAccount || " ";
+                    proposalDetail["alipayerNickName"] = vm.selectedProposal.data.alipayerNickName || " ";
                     vm.selectedProposal.data = proposalDetail;
                 }
 

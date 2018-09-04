@@ -38,6 +38,9 @@ var simplifiedChinese = {
     "Currently no available alipay": "目前无可用支付宝",
     "Currently no available wechatpay": "目前无可用微信支付",
 
+    "Reset password failed": "找回密码失败",
+    "Attention! This player does not bind phone number (or inconvenient to receive sms code), cannot verify bank card. Please contact customer service to reset password manually": "提示！此玩家无绑定电话（或不方便短信验证）、银行卡，无法进行核对，请客服人工进行其他方式核对后手动修改密码。",
+
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",
     "APP_PLAYER": "APP玩家",
