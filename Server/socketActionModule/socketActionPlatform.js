@@ -758,8 +758,8 @@ function socketActionPlatform(socketIO, socket) {
         },
         getAutoFeedback: function getAutoFeedback(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.createTimeStart && data.createTimeEnd);
-            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data], actionName, isValidData);
+            let isValidData = Boolean(data && data.query && data.query.platformObjId && data.query.createTimeStart && data.query.createTimeEnd);
+            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data.query, data.index, data.limit], actionName, isValidData);
         },
         getAllAutoFeedback: function getAllAutoFeedback(data) {
             let actionName = arguments.callee.name;
