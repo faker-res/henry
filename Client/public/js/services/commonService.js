@@ -252,6 +252,8 @@ define([], () => {
             });
         };
 
+        let thisService = this;
+
         this.copyObjToText = function ($translate, ObjToCopy, fieldEnd, modalId) {
             let copiedText = "";
             let objLength;
@@ -269,10 +271,10 @@ define([], () => {
                 }
                 copiedText += $translate(Object.keys(ObjToCopy)[i]) + ": " + ObjToCopy[Object.keys(ObjToCopy)[i]];
             }
-            copyToClipboard(copiedText, modalId);
+            thisService.copyToClipboard(copiedText, modalId);
         };
 
-        function copyToClipboard(text, modalId) {
+        this.copyToClipboard = function (text, modalId) {
             var dummy = document.createElement("TEXTAREA");
             let elementBody;
             if (modalId) {
