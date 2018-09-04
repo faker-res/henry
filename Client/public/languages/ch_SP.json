@@ -4307,5 +4307,8 @@
   "Downline Player ID": "下线玩家ID",
   "Received Amount": "接收金额",
   "Proposal No. of Partner Transfer Credit to Downline": "代理转帐至下线玩家提案号",
-  "Partner Proposal No": "代理提案号"
+  "Partner Proposal No": "代理提案号",
+  "alipayer": "PMS收录玩家支付宝帐号",
+  "alipayerAccount": "PMS收录玩家支付宝实名",
+  "alipayerNickName": "PMS收录玩家支付宝腻称"
 }
