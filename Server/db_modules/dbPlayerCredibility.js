@@ -357,7 +357,7 @@ let dbPlayerCredibility = {
                                 totalBonus: {$sum: "$bonusAmount"}
                             }
                         }
-                    ]);
+                    ]).read("secondaryPreferred");
 
                     return Promise.all([platformProm,/* gameTypeProm,*/ playerLevelProm, playerRemarksProm, winRatioProm]);
                 }
