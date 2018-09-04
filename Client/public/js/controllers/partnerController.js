@@ -11710,8 +11710,6 @@ define(['js/app'], function (myApp) {
                         manualAuditBanWithdrawal: srcData.manualAuditBanWithdrawal,
                         autoApproveWhenSingleBonusApplyLessThan: srcData.showAutoApproveWhenSingleBonusApplyLessThan,
                         autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
-                        autoApproveRepeatCount: srcData.showAutoApproveRepeatCount,
-                        autoApproveRepeatDelay: srcData.showAutoApproveRepeatDelay,
                         autoApproveLostThreshold: srcData.lostThreshold,
                         autoApproveConsumptionOffset: srcData.consumptionOffset,
                         autoApproveProfitTimes: srcData.profitTimes,

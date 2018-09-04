@@ -27127,8 +27127,6 @@ define(['js/app'], function (myApp) {
                 vm.autoApprovalBasic.manualAuditBanWithdrawal = typeof vm.selectedPlatform.data.manualAuditBanWithdrawal === 'boolean' ? vm.selectedPlatform.data.manualAuditBanWithdrawal : true;
                 vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleBonusApplyLessThan;
                 vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleDayTotalBonusApplyLessThan;
-                vm.autoApprovalBasic.showAutoApproveRepeatCount = vm.selectedPlatform.data.autoApproveRepeatCount;
-                vm.autoApprovalBasic.showAutoApproveRepeatDelay = vm.selectedPlatform.data.autoApproveRepeatDelay;
                 vm.autoApprovalBasic.lostThreshold = vm.selectedPlatform.data.autoApproveLostThreshold;
                 vm.autoApprovalBasic.consumptionOffset = vm.selectedPlatform.data.autoApproveConsumptionOffset;
                 vm.autoApprovalBasic.profitTimes = vm.selectedPlatform.data.autoApproveProfitTimes;
@@ -28296,8 +28294,6 @@ define(['js/app'], function (myApp) {
                         manualAuditBanWithdrawal: srcData.manualAuditBanWithdrawal,
                         autoApproveWhenSingleBonusApplyLessThan: srcData.showAutoApproveWhenSingleBonusApplyLessThan,
                         autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
-                        autoApproveRepeatCount: srcData.showAutoApproveRepeatCount,
-                        autoApproveRepeatDelay: srcData.showAutoApproveRepeatDelay,
                         autoApproveLostThreshold: srcData.lostThreshold,
                         autoApproveConsumptionOffset: srcData.consumptionOffset,
                         autoApproveProfitTimes: srcData.profitTimes,

@@ -290,7 +290,6 @@ function checkRewardTaskGroup(proposal, platformObj) {
  * @returns {Promise}
  */
 function checkProposalConsumption(proposal, platformObj) {
-    let repeatCount = platformObj.autoApproveRepeatCount;
     let todayBonusAmount = 0;
     let bFirstWithdraw = false;
     let initialAmount = 0, totalTopUpAmount = 0, totalBonusAmount = 0;
@@ -776,14 +775,8 @@ function checkProposalConsumption(proposal, platformObj) {
                             sendToApprove(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
                         }
                     } else {
-                        // Consumption not reached; Throw back to loop pool or deny this proposal
-                        proposal.data.autoApproveRepeatCount =
-                            proposal.data.autoApproveRepeatCount || proposal.data.autoApproveRepeatCount == 0 ?
-                                proposal.data.autoApproveRepeatCount - 1
-                                : repeatCount - 1;
 
                         let updObj = {
-                            'data.autoApproveRepeatCount': proposal.data.autoApproveRepeatCount,
                             'data.autoAuditTime': Date.now()
                         };
 
@@ -802,21 +795,15 @@ function checkProposalConsumption(proposal, platformObj) {
                             updObj['data.detailChinese'] = abnormalMessageChinese;
                         }
 
-                        if (proposal.data.autoApproveRepeatCount > 0) {
-                            let nextCheckTime = new Date();
-                            nextCheckTime.setMinutes(nextCheckTime.getMinutes() + platformObj.autoApproveRepeatDelay);
-                            updObj['data.nextCheckTime'] = nextCheckTime;
-                        } else {
-                            updObj['data.nextCheckTime'] = undefined;
+                        updObj['data.nextCheckTime'] = undefined;
 
-                            // Check if player is VIP - Passed
-                            if (proposal.data.proposalPlayerLevelValue == 0) {
-                                //sendToReject(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit", "失败：非VIP：超出回圈次数", checkMsg, abnormalMessage, abnormalMessageChinese);
-                                sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
-                            } else {
-                                //sendToReject(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit", "失败：VIP：超出回圈次数", checkMsg, abnormalMessage, abnormalMessageChinese);
-                                sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
-                            }
+                        // Check if player is VIP - Passed
+                        if (proposal.data.proposalPlayerLevelValue == 0) {
+                            //sendToReject(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit", "失败：非VIP：超出回圈次数", checkMsg, abnormalMessage, abnormalMessageChinese);
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
+                        } else {
+                            //sendToReject(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit", "失败：VIP：超出回圈次数", checkMsg, abnormalMessage, abnormalMessageChinese);
+                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
                         }
 
                         return dbconfig.collection_proposal.findOneAndUpdate({
