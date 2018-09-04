@@ -63,8 +63,12 @@ let dbPlatformAutoFeedback = {
         );
     },
 
-    getAutoFeedback: function (query) {
+    getAutoFeedback: function (query, index, limit) {
         console.log(query);
+        index = index || 0;
+        limit = limit || 10;
+        let curTime = new Date();
+        let result;
         if(query.createTimeStart) {
             query.createTime = {$gte: query.createTimeStart};
             delete query.createTimeStart;
@@ -73,9 +77,30 @@ let dbPlatformAutoFeedback = {
             query.createTime = {$lte: query.createTimeEnd};
             delete query.createTimeEnd;
         }
+        if(query.status) {
+            let status = query.status;
+            switch(status) {
+                case 'Unbegun':
+                    query.enabled = true;
+                    query.missionStartTime = {$gt: curTime};
+                    break;
+                case 'Ongoing':
+                    query.enabled = true;
+                    query.missionStartTime = {$lte: curTime};
+                    query.missionEndTime = {$gte: curTime};
+                    break;
+                case 'Ended':
+                    query.enabled = true;
+                    query.missionEndTime = {$lt: curTime};
+                    break;
+                case 'Manually Cancelled':
+                    query.enabled = false;
+                    break;
+            }
+            delete query.status;
+        }
         console.log(query);
-        let result;
-        return dbconfig.collection_autoFeedback.find(query).sort({createTime:-1}).lean().then(autoFeedbacks => {
+        return dbconfig.collection_autoFeedback.find(query).sort({createTime:-1}).skip(index).limit(limit).lean().then(autoFeedbacks => {
             console.log(autoFeedbacks);
             result = autoFeedbacks;
             let missionsProms = [];
@@ -103,7 +128,9 @@ let dbPlatformAutoFeedback = {
                     item.thirdRunCount = 0;
                 }
             });
-            return result;
+            return dbconfig.collection_autoFeedback.count(query).lean();
+        }).then(totalResultCount => {
+            return {total: totalResultCount, data: result};
         });
     },
 
