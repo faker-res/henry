@@ -47,6 +47,8 @@ var platformAutoFeedbackSchema = new Schema({
     callPermission: {type: String},
     schedule: [{
         dayAfterLastMission: {type: Number},
+        triggerHour: {type: Number},
+        triggerMinute: {type: Number},
         template: {type: Schema.ObjectId, ref: 'promoCodeTemplate'},
         feedbackResult: {type: String},
         feedbackTopic: {type: String},
