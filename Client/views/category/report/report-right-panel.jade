@@ -1577,7 +1577,8 @@
             table.common-table#feedbackReportTable.display(style="width:100% ;overflow-x: scroll")
             #feedbackReportTablePage
             table.common-table#feedbackReportExcelTable.display(style="width:100% ;overflow-x: scroll")
-
+        div(ng-if='vm.showPageName=="PLAYER_ALIPAY_ACCOUNT_REPORT"')
+            include ./report-player-alipay-account
         // rewards report
         div#rewardProposalPage(ng-if='vm.currentRewardCode && vm.showPageName=="RewardReport"')
             .panel.panel-primary

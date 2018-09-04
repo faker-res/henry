@@ -439,11 +439,11 @@ define([], () => {
             };
         };
 
-        this.commonInitTime = (utilService, vm, obj, queryId, defTime) => {
-            if (!obj) return;
+        this.commonInitTime = (utilService, vm, model, field, queryId, defTime) => {
+            vm[model] = vm[model] || {};
 
             utilService.actionAfterLoaded(queryId, () => {
-                obj.startTime = utilService.createDatePicker(queryId);
+                vm[model][field] = utilService.createDatePicker(queryId);
                 $(queryId).data('datetimepicker').setLocalDate(new Date(defTime));
             })
         };
