@@ -33154,7 +33154,18 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initAutoFeedback = function() {
-                //
+                vm.autoFeedbackTriggerHours = [];
+                vm.autoFeedbackTriggerMinutes = [];
+                for(let x=0; x<24; x++) {
+                    let hour = x.toString();
+                    hour = hour.length < 2 ? "0"+hour : hour;
+                    vm.autoFeedbackTriggerHours.push(hour);
+                }
+                for(let x=0; x<60; x++) {
+                    let minute = x.toString();
+                    minute = minute.length < 2 ? "0"+minute : minute;
+                    vm.autoFeedbackTriggerMinutes.push(minute);
+                }
             };
 
             vm.initAutoFeedbackCreate = function() {
@@ -33216,6 +33227,15 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'createAutoFeedback', vm.autoFeedbackMission, function (data) {
                     console.log("createAutoFeedback ret",data);
+                    if(data.success) {
+                        $scope.$evalAsync(() => {
+                            vm.autoFeedbackCreateMissionStatus = 'success';
+                        });
+                    } else {
+                        $scope.$evalAsync(() => {
+                            vm.autoFeedbackCreateMissionStatus = 'fail';
+                        });
+                    }
                 });
             };
 
@@ -33284,6 +33304,15 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'updateAutoFeedback', sendData, function (data) {
                     console.log("updateAutoFeedback ret",data);
+                    if(data.success) {
+                        $scope.$evalAsync(() => {
+                            vm.autoFeedbackUpdateMissionStatus = 'success';
+                        });
+                    } else {
+                        $scope.$evalAsync(() => {
+                            vm.autoFeedbackUpdateMissionStatus = 'fail';
+                        });
+                    }
                 });
             };
             vm.autoFeedbackCancel = function() {

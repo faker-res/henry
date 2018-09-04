@@ -6,7 +6,7 @@
             br
             div(style='width:90%;margin:auto' ng-if='vm.clientQnASecurityQuesConfig && checkViewPermission("Platform", "ClientAutoQnA", "Update")')
                 div(ng-repeat='(i,v) in vm.clientQnASecurityQuesConfig.question')
-                    label {{v.des | translate}}
+                    label {{v.questionNo + "."}} {{v.des | translate}}
                 br
                 br
                 br

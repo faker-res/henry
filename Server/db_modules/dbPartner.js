@@ -5159,7 +5159,7 @@ let dbPartner = {
 
         let count = dbconfig.collection_partner.find(query).count();
         let detail = dbconfig.collection_partner.find(query).sort(sortCol).skip(index).limit(limit)
-            .populate({path: 'parent', model: dbconfig.collection_partner}).lean();
+            .populate({path: 'parent', model: dbconfig.collection_partner}).read("secondaryPreferred").lean();
 
         return Q.all([count, detail]).then(
             data => {
@@ -9162,7 +9162,6 @@ let dbPartner = {
                         childPartnerObj.map(childPartner => {
 
                             childPartner.monthContribution = 0;
-                            childPartner.commissionType = localization.localization.translate(Object.keys(constPartnerCommissionType)[childPartner.commissionType]);
 
                             if (contributionDetailsArr && contributionDetailsArr.length > 0) {
                                 for (let i = 0, len = contributionDetailsArr.length; i < len; i++) {
@@ -9176,7 +9175,7 @@ let dbPartner = {
                                                 childPartner.monthContribution = detail.totalContribution ? detail.totalContribution : 0;
                                             }
                                             if (detail.commissionType && childPartner.commissionType && Number(detail.commissionType) == Number(childPartner.commissionType)) {
-                                                childPartner.commissionType = localization.localization.translate(Object.keys(constPartnerCommissionType)[Number(detail.commissionType)]);
+                                                childPartner.commissionType = Number(detail.commissionType);
                                             }
                                             break;
                                         }
@@ -9264,6 +9263,142 @@ let dbPartner = {
                 return {amount: proposalData.data.amount * -1};
             }
         })
+    },
+
+    getDownPartnerContribution: (platformId, partnerId, startIndex, count, startTime, endTime) => {
+        let platformObj;
+        let partnerObj;
+        let downlineProposalObj;
+        let parentProposalObj;
+        let index = startIndex || 0;
+        let limit = count || 10;
+        let statsObj;
+        let totalCount = 0;
+        let totalPage = 1;
+        let sortCol = {createTime: 1};
+        let totalAmount = 0;
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    platformObj = platformData;
+
+                    if (partnerId) {
+                        return dbconfig.collection_partner.findOne({
+                            platform: platformObj._id,
+                            partnerId: partnerId
+                        }, {_id: 1, partnerId: 1, partnerName: 1, children: 1}).lean();
+
+                    } else {
+                        return Promise.resolve(true);
+                    }
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
+            partnerData => {
+                if (partnerData) {
+                    partnerObj = partnerData;
+
+                    return dbconfig.collection_proposalType.findOne({platformId: platformObj._id, name: constProposalType.SETTLE_PARTNER_COMMISSION}).lean();
+
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find partner"});
+                }
+            }
+        ).then(
+            proposalTypeData => {
+                if (proposalTypeData) {
+                    if (!startTime) {
+                        let todayDate = new Date();
+                        startTime = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1, 0, 0, 0);
+                    }
+
+                    if (!endTime) {
+                        endTime = new Date();
+                        endTime.setHours(23, 59, 59, 999);
+                    }
+
+                    let query = {
+                        type: proposalTypeData._id,
+                        'data.partnerObjId': {$in: partnerObj.children},
+                        'data.platformObjId': platformObj._id,
+                        createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
+                    };
+
+                    let countProm = dbconfig.collection_proposal.find(query).count();
+                    let downlineProposalProm = dbconfig.collection_proposal.find(
+                        query, {
+                            _id: 0, proposalId: 1, status: 1, createTime: 1, 'data.commissionType': 1, 'data.partnerName': 1
+                        }).skip(index).limit(limit).sort(sortCol).lean();
+                    let parentProposalProm = dbconfig.collection_proposalType.findOne({platformId: platformObj._id, name: constProposalType.UPDATE_PARENT_PARTNER_COMMISSION}).lean().then(
+                        proposalTypeData => {
+                            if (proposalTypeData) {
+                                return dbconfig.collection_proposal.find({
+                                    type: proposalTypeData._id,
+                                    'data.partnerObjId': partnerObj._id,
+                                    'data.platformObjId': platformObj._id,
+                                    createTime: {$gte: new Date(startTime), $lt: new Date(endTime)}
+                                }, {
+                                    'data.relatedProposalId': 1, 'data.amount': 1
+                                }).lean();
+                            }
+                        }
+                    );
+
+                    return Promise.all([countProm, downlineProposalProm, parentProposalProm]);
+
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+                }
+            }
+        ).then(
+            data => {
+                totalCount = data && data[0] ? data[0] : 0;
+                totalPage = Math.ceil(totalCount / limit);
+                downlineProposalObj = data && data[1] ? data[1] : null;
+                parentProposalObj = data && data[2] ? data[2] : null;
+
+                if (downlineProposalObj && downlineProposalObj.length > 0) {
+                    downlineProposalObj.map(downlineProposal => {
+                        downlineProposal.username = downlineProposal && downlineProposal.data && downlineProposal.data.partnerName ? downlineProposal.data.partnerName : "";
+                        downlineProposal.commissionType = downlineProposal && downlineProposal.data && downlineProposal.data.commissionType ? downlineProposal.data.commissionType : 0;
+                        downlineProposal.time = downlineProposal.createTime;
+                        downlineProposal.contribution = 0;
+
+                        if (parentProposalObj && parentProposalObj.length > 0) {
+                            for (let i = 0, len = parentProposalObj.length; i < len; i++) {
+                                let proposal = parentProposalObj[i];
+
+                                if (proposal && proposal.data && proposal.data.relatedProposalId && downlineProposal && downlineProposal.proposalId
+                                    && proposal.data.relatedProposalId == downlineProposal.proposalId) {
+                                    downlineProposal.contribution = proposal.data.amount ? proposal.data.amount : 0;
+                                }
+                            }
+                        }
+
+                        delete downlineProposal.data;
+                        delete downlineProposal.createTime;
+                    });
+                }
+
+                return downlineProposalObj;
+            }
+        ).then(finaldownlineProposalData => {
+            if (finaldownlineProposalData && finaldownlineProposalData.length > 0) {
+                totalAmount = finaldownlineProposalData.reduce((sum, value) => sum + value.contribution, 0);
+            }
+
+            statsObj = {};
+            statsObj.totalAmount = totalAmount;
+            statsObj.totalCount = totalCount;
+            statsObj.totalPage = totalPage;
+            statsObj.startIndex = index;
+
+            return {stats: statsObj, list: finaldownlineProposalData ? finaldownlineProposalData : []};
+        })
+
     },
 
     checkChildPartnerNameValidity: (platformId, partnerName) => {

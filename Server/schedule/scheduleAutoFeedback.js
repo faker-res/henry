@@ -5,10 +5,11 @@ let dbPlatformAutoFeedback = require('../db_modules/dbPlatformAutoFeedback');
 console.log("Auto feedback schedule start");
 
 let dailyAutoFeedbackJob = new CronJob(
-    // 1400, 1500, 1600 of everyday
-    '0 14,15,16 * * *', function () {
+    // check for job every minute
+    '* * * * *', function () {
         let date = new Date();
         console.log("Auto feedback schedule starts at: ", date);
+        console.log("Auto feedback check against: ", date.getHours()+":"+date.getMinutes());
 
         return dbPlatformAutoFeedback.executeAutoFeedback().catch(
             error => Promise.reject({
