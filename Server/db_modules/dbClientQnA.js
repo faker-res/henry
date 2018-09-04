@@ -14,6 +14,9 @@ const constServerCode = require('./../const/constServerCode');
 const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
 const constProposalType = require('../const/constProposalType');
+const errorUtils = require('../modules/errorUtils');
+const localization = require("../modules/localization");
+const pmsAPI = require('../externalAPI/pmsAPI');
 const Q = require("q");
 
 var dbClientQnA = {
@@ -75,6 +78,16 @@ var dbClientQnA = {
         );
     },
 
+    // save input data from each step
+    updateClientQnAData: function (playerObjId, type, updateObj) {
+        return dbconfig.collection_clientQnA.findOneAndUpdate(
+            {
+                playerObjId: playerObjId,
+                type: type
+            },
+            updateObj,{upsert: true}).lean()
+    },
+
     forgotPassword1_2: function () {
         let QnAQuery = {
             type: constClientQnA.FORGOT_PASSWORD,
@@ -88,8 +101,39 @@ var dbClientQnA = {
             return Promise.reject({name: "DBError", message: "Invalid Data"})
         }
 
-        return dbconfig.collection_players.findOne({}).lean().then(
+        return dbconfig.collection_players.findOne({platform: platformObjId, name: inputDataObj.name}).lean().then(
             playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DBError", message: "Cannot find player"})
+                }
+
+                let updateObj = {
+                    QnAData: {name: inputDataObj.name}
+                };
+                dbClientQnA.updateClientQnAData(playerData._id, constClientQnA.FORGOT_PASSWORD, updateObj).catch(errorUtils.reportError);
+
+                if (playerData.phoneNumber) {
+                    return dbconfig.collection_clientQnATemplate.findOne({
+                        type: constClientQnA.FORGOT_PASSWORD,
+                        processNo: "2_1"
+                    }).lean();
+                } else if (playerData.bankAccount) {
+                    return dbconfig.collection_clientQnATemplate.findOne({
+                        type: constClientQnA.FORGOT_PASSWORD,
+                        processNo: "2_2"
+                    }).lean().then(
+                        QnATemplate => {
+                            return pmsAPI.foundation_getProvinceList({});
+                        }
+                    );
+                } else {
+                    return Promise.resolve({
+                        clientQnAEnd: {
+                            title: localization.localization.translate("Reset password failed"),
+                            des: localization.localization.translate("Attention! This player does not bind phone number (or inconvenient to receive sms code), cannot verify bank card. Please contact customer service to reset password manually")
+                        }
+                    })
+                }
 
             }
         )

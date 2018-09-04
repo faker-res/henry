@@ -1747,6 +1747,8 @@
   "END": "结束",
   "SECURITY_QUESTION": "密保问题",
   "QNA_CONFIG": "配置流程参数",
+  "Please enter phone number": "请输入手机号码",
+  "Please enter phone number of the account, a sms verification code will be sent": "请输入该帐号绑定电话号码，将发送短信验证码",
   "Please enter the minimum correct answer count (include)": "请输入玩家最少答对的密保问题数量（含）",
   "Security answer maximum incorrect count (include)": "密保问题验证容错次数上限（含）",
   "Default password for reset password": "密码重新设置的预设值",
