@@ -1593,6 +1593,14 @@
   "CURRENT_PERIOD": "Current Period",
   "PREVIOUS_X_PERIOD": "Previous X Period",
 
+  "VISITED_DOMAIN": "Visited Domain",
+  "VISITED_TIMES": "Visited Times",
+  "IP_REPEAT": "IP Repeatable",
+  "IP_NOT_REPEAT": "Unique IP",
+  "VISITED_IP_AMOUNT": "Amount of IP Visited",
+  "IP_DOMAIN_ANALYSIS_EXPLAIN": "",
+  "IP_DOMAIN_UNIQUE_ANALYSIS_EXPLAIN": "",
+
   "DOMAIN_VISIT_AMOUNT": "Domain Visit Rate",
 
   "CALL_PERMISSION": "Call Permission",
