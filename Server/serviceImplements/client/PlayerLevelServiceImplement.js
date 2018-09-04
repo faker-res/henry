@@ -14,8 +14,8 @@ var PlayerLevelServiceImplement = function () {
 
     this.getAllLevel.expectsData = '';
     this.getAllLevel.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && conn.playerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerPlatformLevel, [conn.playerId], isValidData);
+        var isValidData = Boolean(data && (conn.playerId || data.platformId));
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerPlatformLevel, [conn.playerId, data.platformId], isValidData, false, false, true);
     };
 
     this.getLevelReward.expectsData = '';
