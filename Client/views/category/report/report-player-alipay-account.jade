@@ -1,21 +1,25 @@
 #playerAlipayAccountReport.block-query.col-md-12.well
     div
-        label {{"Player ID"|translate}}
-        input.form-control.span.input-sm(type="text", ng-model="vm.playerExpenseQuery.playerId")
+        label {{"playerName" | translate}}
+        input.form-control.span.input-sm(ng-model="vm.playerAlipayAccReport.playerName")
     div
-        label {{"Player Name"|translate}}
-        input.form-control.span.input-sm(type="text", ng-model="vm.playerExpenseQuery.playerName")
+        label {{"RECORD_ALIPAY_ACC"|translate}}
+        input.form-control.span.input-sm(ng-model="vm.playerAlipayAccReport.alipayAcc")
     div
-        label {{"Provider"|translate}}
-        select.form-control(ng-model='vm.playerExpenseQuery.providerId', style='max-width:300px', required)
-            option(value='all') {{'all' | translate}}
-            option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}', ng-selected='vm.playerExpenseQuery.providerId==v._id') {{v.name || translate}}
+        label {{"RECORD_ALIPAY_NAME"|translate}}
+        input.form-control.span.input-sm(ng-model="vm.playerAlipayAccReport.alipayName")
+    div
+        label {{"RECORD_ALIPAY_NICKNAME"|translate}}
+        input.form-control.span.input-sm(ng-model="vm.playerAlipayAccReport.alipayNickname")
+    div
+        label {{"RECORD_ALIPAY_REMARK"|translate}}
+        input.form-control.span.input-sm(ng-model="vm.playerAlipayAccReport.alipayRemark")
     div
         label {{"Start date"|translate}}
-        .startTime
+        #playerAlipayAccountReportStartTime
     div
         label {{"End date"|translate}}
-        .endTime
+        #playerAlipayAccountReportEndTime
     div
         label &nbsp;
         button.btn.btn-success(ng-click='vm.searchProviderPlayerRecord(true)') {{'SEARCH' | translate}}

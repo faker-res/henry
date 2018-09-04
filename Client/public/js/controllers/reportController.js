@@ -8269,7 +8269,6 @@ define(['js/app'], function (myApp) {
         }
 
         function drawReportQuery (choice) {
-
             vm.merchantNoNameObj = {};
             vm.merchantGroupObj = [];
             let merGroupName = {};
@@ -8725,6 +8724,10 @@ define(['js/app'], function (myApp) {
                         vm.rewardReportAnalysis.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     })
                     break;
+                case 'PLAYER_ALIPAY_ACCOUNT_REPORT':
+                    vm.playerAlipayAccReport = {};
+                    commonService.commonInitTime(utilService, vm, 'playerAlipayAccReport', 'startTime', '#playerAlipayAccountReportStartTime', utilService.getTodayStartTime());
+                    commonService.commonInitTime(utilService, vm, 'playerAlipayAccReport', 'endTime', '#playerAlipayAccountReportEndTime', utilService.getTodayEndTime());
             }
 
             vm.dynamicGameType = function () {
