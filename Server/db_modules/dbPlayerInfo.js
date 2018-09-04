@@ -8859,7 +8859,7 @@ let dbPlayerInfo = {
             platformProm = dbconfig.collection_platform.findOne({platformId: platformId});
         }
 
-        platformProm.then(
+        return platformProm.then(
             platformData => {
                 if(platformData){
                     return dbconfig.collection_playerLevel.find({platform: platformData._id}).sort({value: 1}).lean().then(
