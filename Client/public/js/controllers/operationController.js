@@ -2519,21 +2519,18 @@ define(['js/app'], function (myApp) {
                 vm.selectedProposalDetailForDisplay = proposalDetail;
             }
 
-            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "DownlineReceivePartnerCredit") {
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePlayerRealName") {
                 let proposalDetail = {};
                 let inputDevice = "";
                 if (!vm.selectedProposal.data) {
                     vm.selectedProposal.data = {};
                 }
 
-                proposalDetail["Downline Player ID"] = vm.selectedProposal.data.playerId;
-                proposalDetail["Downline Player Name"] = vm.selectedProposal.data.playerName;
-                proposalDetail["Received Amount"] = vm.selectedProposal.data.amount;
-                proposalDetail["Provider group"] = vm.selectedProposal.data.providerGroup ? vm.selectedProposal.data.providerGroup : $translate("LOCAL_CREDIT");
-                proposalDetail["Withdraw Consumption (Accurate number/non-multiple)"] = vm.selectedProposal.data.withdrawConsumption;
-                proposalDetail["Proposal No. of Partner Transfer Credit to Downline"] = vm.selectedProposal.data.partnerTransferCreditToDownlineProposalNo;
-                proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
-                proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["PLAYER_Id"] = vm.selectedProposal.data.playerId;
+                proposalDetail["Player Level"] = vm.selectedProposal.data.playerLevelName;
+                proposalDetail["realNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
+                proposalDetail["realNameAfterEdit"] = vm.selectedProposal.data.realNameAfterEdit;
 
                 for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
                     if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == vm.selectedProposal.inputDevice ){
