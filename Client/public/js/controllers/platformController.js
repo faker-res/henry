@@ -33377,6 +33377,7 @@ define(['js/app'], function (myApp) {
                 });
             };
             vm.autoFeedbackSearchMission = function(newSearch) {
+                $('#autoFeedbackOverviewSpin').show();
                 vm.autoFeedbackMissionSearch.platformObjId = vm.selectedPlatform.id;
                 vm.autoFeedbackMissionSearch.createTimeStart = $('#autoFeedbackOverviewCreateTimeStartPicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMissionSearch.createTimeEnd = $('#autoFeedbackOverviewCreateTimeEndPicker').data('datetimepicker').getDate();
@@ -33410,6 +33411,7 @@ define(['js/app'], function (myApp) {
                     let drawData = vm.autoFeedbackPrepareTableData(vm.autoFeedbackSearchResult);
                     console.log("drawData",drawData);
                     vm.drawAutoFeedbackOverviewTable(drawData, newSearch);
+                    $('#autoFeedbackOverviewSpin').hide();
                 });
             };
             vm.autoFeedbackPrepareTableData = function (missions) {
@@ -33527,7 +33529,7 @@ define(['js/app'], function (myApp) {
             vm.getAllAutoFeedback = function() {
                 socketService.$socket($scope.AppSocket, 'getAllAutoFeedback', {platformObjId: vm.selectedPlatform.id}, function (data) {
                     console.log("getAllAutoFeedbackMissions ret",data);
-                    vm.autoFeedbackMissions = data.data;
+                    vm.autoFeedbackMissions = data.data.data;
                 });
             };
 
