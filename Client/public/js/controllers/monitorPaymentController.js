@@ -617,8 +617,9 @@ define(['js/app'], function (myApp) {
             }
             return result;
         }
-        vm.getOnlineMerchantId = function (merchantNo, targetDevices, topupType) {
+        vm.getOnlineMerchantId = function (merchantNo, devices, topupType) {
             let result = '';
+            let targetDevices = vm.getPMSDevices(devices);
             if (merchantNo && vm.merchants) {
                 let merchant = vm.merchants.filter(item => {
                     if(topupType){
@@ -626,13 +627,43 @@ define(['js/app'], function (myApp) {
                     }else{
                         return item.merchantNo == merchantNo && targetDevices == item.targetDevices;
                     }
-
                 })
                 if (merchant.length > 0) {
                     result = merchant[0].name
                 }
             }
             return result;
+        }
+
+        vm.getPMSDevices = function(num){
+            // PMS definition of device type
+            // Web: 1, H5: 2, Both: 3, App:4
+            let result = 7;
+            switch (num) {
+                case 1:
+                    result = 1;
+                    break;
+                case 2:
+                    result = 1;
+                    break;
+                case 3:
+                    result = 2;
+                    break;
+                case 4:
+                    result = 2;
+                    break;
+                case 5:
+                    result = 4;
+                    break;
+                case 6:
+                    result = 4;
+                    break;
+                default:
+                    // if set 0 , might got issues with false or null , so i set 7
+                    result = 7;
+                    break;
+            }
+            return result
         }
         vm.resetTopUpMonitorQuery = function () {
             vm.paymentMonitorQuery.mainTopupType = "";
