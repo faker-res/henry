@@ -1374,6 +1374,51 @@
     </div>
 </div>
 
+<h3>Get Down Partner Contribution (获取下级代理贡献值详情)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Partner Id
+            <input type=text name="partnerId">
+        </label>
+    </div>
+    <div>
+        <label>Start Index
+            <input name="startIndex" type="number">
+        </label>
+
+        <p>
+    </div>
+    <div>
+        <label>Count
+            <input name="count" type="number">
+        </label>
+
+        <p>
+    </div>
+    <div>
+        <label>Start Time
+            <input name="startTime" type="datetime-local">
+        </label>
+        <p>
+    </div>
+    <div>
+        <label>End Time
+            <input name="endTime" type="datetime-local">
+        </label>
+        <p>
+    </div>
+    <p></p>
+    <div>
+        <button id="getDownPartnerContribution" data-api-name="getDownPartnerContribution">Transfer</button>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPartnerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
         function (ClientServices, WebSocketClient, TestHelper, ClientPartnerAPITest, ClientConnectionAPITest) {

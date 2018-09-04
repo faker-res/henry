@@ -302,6 +302,12 @@
         this.partnerService.partnerCreditToPlayer.once(callback);
     };
 
+    proto.getDownPartnerContribution = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.getDownPartnerContribution.request(data);
+        this.partnerService.getDownPartnerContribution.once(callback);
+    };
+
     proto.notifyNewMail = function (callback, requestData) {
         //var data = requestData || {};
         //this.partnerService.notifyNewMail.request(data);
