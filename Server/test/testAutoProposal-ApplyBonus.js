@@ -54,7 +54,6 @@ describe("Test Auto Proposal - Apply Bonus", function () {
         let platformData = {
             autoApproveWhenSingleBonusApplyLessThan: 300,
             autoApproveWhenSingleDayTotalBonusApplyLessThan: 500,
-            autoApproveRepeatCount: 3,
             samePhoneNumberRegisterCount: 10,
             autoApproveProfitTimesMinAmount: 100,
         };
@@ -379,7 +378,6 @@ describe("Test Auto Proposal - Apply Bonus", function () {
                     }).then(
                         proposal => {
                             proposal.status.should.equal("Processing");
-                            // proposal.data.autoApproveRepeatCount.should.equal(2);
                             done();
                         }
                     );
@@ -554,7 +552,6 @@ describe("Test Auto Proposal - Apply Bonus", function () {
                     }).then(
                         proposal => {
                             proposal.status.should.equal("Processing");
-                            // proposal.data.autoApproveRepeatCount.should.equal(2);
                             done();
                         }
                     ).catch(

@@ -1307,16 +1307,6 @@
                                 td
                                     input(type='checkbox', ng-model='vm.autoApprovalBasic.enableAutoApplyBonus', ng-disabled='!vm.configTableEdit')
                             tr
-                                td {{'Auto Approval Retry Count' | translate}}
-                                td
-                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveRepeatCount}}
-                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveRepeatCount')
-                            tr
-                                td {{'Auto Approval Interval' | translate}}
-                                td
-                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveRepeatDelay}}
-                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveRepeatDelay')
-                            tr
                                 td {{'Single Withdrawal Limit' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan}}

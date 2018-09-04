@@ -226,10 +226,6 @@ var platformSchema = new Schema({
     autoApproveWhenSingleBonusApplyLessThan: {type: Number, default: 0},
     // Auto approve daily total withdrawal limit
     autoApproveWhenSingleDayTotalBonusApplyLessThan: {type: Number, default: 0},
-    // Auto approve repeat audit count if audit failed
-    autoApproveRepeatCount: {type: Number, default: 0},
-    // Auto approve delay in minutes
-    autoApproveRepeatDelay: {type: Number, default: 0},
     // Auto approve deficit offset
     autoApproveLostThreshold: {type: Number, default: 0},
     // Auto approve consumption offset
