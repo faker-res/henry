@@ -46,6 +46,7 @@ var dbClientQnA = {
     },
 
     getClientQnAProcessStep: function (platformObjId, type, processNo, inputDataObj, isAlternative) {
+        platformObjId = ObjectId(platformObjId);
         let QnAQuery = {
             type: type
         }
