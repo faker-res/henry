@@ -4627,6 +4627,7 @@ let dbPlayerInfo = {
                 return {data: data[0], size: data[1]}
             },
             err => {
+                console.error("getPagePlayerByAdvanceQuery:", error);
                 return {error: err};
             }
         );
