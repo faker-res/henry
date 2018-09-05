@@ -1,8 +1,8 @@
 'use strict';
 
 define(['js/app'], function (myApp) {
-    let injectParams = ['$sce', '$scope', '$filter', '$compile', '$location', '$log', 'socketService', 'authService', 'utilService', 'CONFIG', "$cookies"];
-    let monitorPaymentController = function ($sce, $scope, $filter, $compile, $location, $log, socketService, authService, utilService, CONFIG, $cookies) {
+    let injectParams = ['$sce', '$scope', '$filter', '$compile', '$location', '$log', 'socketService', 'authService', 'utilService', 'CONFIG', "$cookies", 'commonService'];
+    let monitorPaymentController = function ($sce, $scope, $filter, $compile, $location, $log, socketService, authService, utilService, CONFIG, $cookies, commonService) {
         let $translate = $filter('translate');
         let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
         let vm = this;
@@ -547,53 +547,54 @@ define(['js/app'], function (myApp) {
             console.log('sendObj', sendObj);
 
             socketService.$socket($scope.AppSocket, 'getPaymentMonitorResult', sendObj, function (data) {
-                $('#paymentMonitorTableSpin').hide();
-                console.log('Payment Monitor Result', data);
-                vm.paymentMonitorQuery.totalCount = data.data.size;
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    $('#paymentMonitorTableSpin').hide();
+                    console.log('Payment Monitor Result', data);
+                    vm.paymentMonitorQuery.totalCount = data.data.size;
 
-                vm.drawPaymentRecordTable(
-                    data.data.data.map(item => {
-                        item.amount$ = parseFloat(item.data.amount).toFixed(2);
-                        item.merchantNo$ = item.data.merchantNo ? item.data.merchantNo
-                            : item.data.wechatAccount ? item.data.wechatAccount
-                                : item.data.weChatAccount != null ? item.data.weChatAccount
-                                    : item.data.alipayAccount ? item.data.alipayAccount
-                                        : item.data.bankCardNo ? item.data.bankCardNo
-                                            : item.data.accountNo ? item.data.accountNo : null;
-                        item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
-                        item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
-                        item.status$ = $translate(item.status);
-                        item.merchantName = vm.getMerchantName(item.data.merchantNo);
+                    vm.drawPaymentRecordTable(
+                        data.data.data.map(item => {
+                            item.amount$ = parseFloat(item.data.amount).toFixed(2);
+                            item.merchantNo$ = item.data.merchantNo ? item.data.merchantNo
+                                : item.data.wechatAccount ? item.data.wechatAccount
+                                    : item.data.weChatAccount != null ? item.data.weChatAccount
+                                        : item.data.alipayAccount ? item.data.alipayAccount
+                                            : item.data.bankCardNo ? item.data.bankCardNo
+                                                : item.data.accountNo ? item.data.accountNo : null;
+                            item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
+                            item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
+                            item.status$ = $translate(item.status);
+                            item.merchantName = vm.getMerchantName(item.data.merchantNo);
 
 
-                        //vm.merchantNumbers[item.data.merchantNo];
+                            //vm.merchantNumbers[item.data.merchantNo];
 
-                        if (item.data.msg && item.data.msg.indexOf(" 单号:") !== -1) {
-                            let msgSplit = item.data.msg.split(" 单号:");
-                            item.merchantName = msgSplit[0];
-                            item.merchantNo$ = msgSplit[1];
-                        }
+                            if (item.data.msg && item.data.msg.indexOf(" 单号:") !== -1) {
+                                let msgSplit = item.data.msg.split(" 单号:");
+                                item.merchantName = msgSplit[0];
+                                item.merchantNo$ = msgSplit[1];
+                            }
 
-                        if (item.type.name === 'PlayerTopUp') {
-                            //show detail topup type info for online topup.
-                            let typeID = item.data.topUpType || item.data.topupType;
-                            item.topupTypeStr = typeID
-                                ? $translate(vm.topUpTypeList[typeID])
-                                : $translate("Unknown")
-                            item.merchantNo$ = vm.getOnlineMerchantId(item.data.merchantNo, item.inputDevice, typeID);
-                        } else {
-                            //show topup type for other types
-                            item.topupTypeStr = $translate(item.type.name);
-                        }
-                        item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.createTime));
-                        //item.endTime$ = item.data.lastSettleTime ? utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime) : "-";
-                        item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime) : "-";
-                        // $('.merchantNoList').selectpicker('refresh');
-                        item.remark$ = item.data.remark? item.data.remark: "";
-                        return item;
-                    }), data.data.size, {}, isNewSearch
-                );
+                            if (item.type.name === 'PlayerTopUp') {
+                                //show detail topup type info for online topup.
+                                let typeID = item.data.topUpType || item.data.topupType;
+                                item.topupTypeStr = typeID
+                                    ? $translate(vm.topUpTypeList[typeID])
+                                    : $translate("Unknown")
+                                item.merchantNo$ = vm.getOnlineMerchantId(item.data.merchantNo, item.inputDevice, typeID);
+                            } else {
+                                //show topup type for other types
+                                item.topupTypeStr = $translate(item.type.name);
+                            }
+                            item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.createTime));
+                            //item.endTime$ = item.data.lastSettleTime ? utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime) : "-";
+                            item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime) : "-";
+                            // $('.merchantNoList').selectpicker('refresh');
+                            item.remark$ = item.data.remark? item.data.remark: "";
+                            return item;
+                        }), data.data.size, {}, isNewSearch
+                    );
+                });
             }, function (err) {
                 console.error(err);
             }, true);
@@ -619,7 +620,7 @@ define(['js/app'], function (myApp) {
         }
         vm.getOnlineMerchantId = function (merchantNo, devices, topupType) {
             let result = '';
-            let targetDevices = vm.getPMSDevices(devices);
+            let targetDevices = commonService.getPMSDevices(devices);
             if (merchantNo && vm.merchants) {
                 let merchant = vm.merchants.filter(item => {
                     if(topupType){
@@ -635,36 +636,7 @@ define(['js/app'], function (myApp) {
             return result;
         }
 
-        vm.getPMSDevices = function(num){
-            // PMS definition of device type
-            // Web: 1, H5: 2, Both: 3, App:4
-            let result = 7;
-            switch (num) {
-                case 1:
-                    result = 1;
-                    break;
-                case 2:
-                    result = 1;
-                    break;
-                case 3:
-                    result = 2;
-                    break;
-                case 4:
-                    result = 2;
-                    break;
-                case 5:
-                    result = 4;
-                    break;
-                case 6:
-                    result = 4;
-                    break;
-                default:
-                    // if set 0 , might got issues with false or null , so i set 7
-                    result = 7;
-                    break;
-            }
-            return result
-        }
+
         vm.resetTopUpMonitorQuery = function () {
             vm.paymentMonitorQuery.mainTopupType = "";
             vm.paymentMonitorQuery.topupType = "";
