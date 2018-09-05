@@ -2698,6 +2698,11 @@ define(['js/app'], function (myApp) {
                 endTime: vm.playerAlipayAccReport.endTime.data('datetimepicker').getLocalDate(),
             };
 
+            if (vm.playerAlipayAccReport.playerName) { sendQuery.playerName = vm.playerAlipayAccReport.playerName }
+            if (vm.playerAlipayAccReport.alipayAcc) { sendQuery.alipayAcc = vm.playerAlipayAccReport.alipayAcc }
+            if (vm.playerAlipayAccReport.alipayName) { sendQuery.alipayName = vm.playerAlipayAccReport.alipayName }
+            if (vm.playerAlipayAccReport.alipayNickname) { sendQuery.alipayNickname = vm.playerAlipayAccReport.alipayNickname }
+
             console.log('sendQuery', sendQuery);
 
             socketService.$socket($scope.AppSocket, 'getPlayerAlipayAccReport', sendQuery, function (data) {
