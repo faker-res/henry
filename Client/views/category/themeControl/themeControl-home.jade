@@ -1,0 +1,14 @@
+.row.padding-left-right-5(ng-show="checkViewPermission('ThemeControl')")
+    #themeControlContent(style="padding-left:0;", ng-class='vm.rightPanelClass')
+        .padding-all-5
+            .panel.panel-primary
+                .panel-heading.common-left-panel-heading
+                    ul.nav.nav-tabs.common-nav-tabs.padding-left-5
+                        li.active
+                            a.common-tab(ng-if="checkViewPermission('ThemeControl', 'playerTheme', 'Read')", data-toggle="tab", href="#playerTheme", ng-click="vm.playerThemeTabClicked();vm.themeControlPageName='playerTheme';vm.updatePageTile();")
+                                .fa.fa-user.margin-right-5
+                                text.span {{"playerTheme" | translate}}
+                        li
+                            a.common-tab(ng-if="checkViewPermission('ThemeControl', 'partnerTheme', 'Read')", data-toggle="tab", href="#partnerTheme", ng-click="vm.partnerThemeTabClicked();vm.themeControlPageName='partnerTheme';vm.updatePageTile();")
+                                .fa.fa-share-alt.margin-right-5
+                                text.span {{"partnerTheme" | translate}}
