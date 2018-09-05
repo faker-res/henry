@@ -1392,7 +1392,7 @@ define(['js/app'], function (myApp) {
             console.log(type, data);
             vm.getSMSTemplate();
             var title, text;
-            if (type == 'msg' && authService.checkViewPermission('Platform', 'Player', 'sendSMS')) {
+            if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
                 vm.smsPlayer = {
                     playerId: data.playerId,
                     name: data.name,
@@ -4034,7 +4034,7 @@ define(['js/app'], function (myApp) {
                                 'title': $translate("PHONE"),
                                 'data-placement': 'left',
                             }));
-                            if ($scope.checkViewPermission('Platform', 'Player', 'AddFeedback')) {
+                            if ($scope.checkViewPermission('Player', 'Feedback', 'AddFeedback')) {
                                 link.append($('<a>', {
                                     'style': (row.alerted ? "color:red;" : ""),
                                     'class': 'fa fa-commenting margin-right-5',
@@ -4047,7 +4047,7 @@ define(['js/app'], function (myApp) {
                                 }));
                             }
                             //if(row.isRealPlayer) {
-                                if ($scope.checkViewPermission('Platform', 'Player', 'ApplyManualTopup')) {
+                                if ($scope.checkViewPermission('Player', 'TopUp', 'ApplyManualTopup')) {
                                     link.append($('<a>', {
                                         'class': 'fa fa-plus-circle',
                                         'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row) + ' ;vm.getAllBankCard(); vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);',
@@ -4061,7 +4061,7 @@ define(['js/app'], function (myApp) {
                                     }));
                                 }
                                 link.append($('<br>'));
-                                if ($scope.checkViewPermission('Platform', 'Player', 'applyBonus')) {
+                                if ($scope.checkViewPermission('Player', 'Bonus', 'applyBonus')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5 margin-right-5',
                                         'src': (row.alerted ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
@@ -4075,7 +4075,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'left',   // because top and bottom got hidden behind the table edges
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'AddRewardTask')) {
+                                if ($scope.checkViewPermission('Player', 'Reward', 'AddRewardTask')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5 margin-right-5',
                                         'src': (row.alerted ? "images/icon/rewardRed.png" : "images/icon/rewardBlue.png"),
@@ -4089,7 +4089,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'left',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'RepairPayment') || $scope.checkViewPermission('Platform', 'Player', 'RepairTransaction')) {
+                                if ($scope.checkViewPermission('Player', 'Player', 'RepairPayment') || $scope.checkViewPermission('Player', 'Player', 'RepairTransaction')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
                                         'src': (row.alerted ? "images/icon/reapplyRed.png" : "images/icon/reapplyBlue.png"),
@@ -4102,7 +4102,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'right',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'CreditAdjustment')) {
+                                if ($scope.checkViewPermission('Player', 'Credit', 'CreditAdjustment')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
                                         'src': (row.alerted ? "images/icon/creditAdjustRed.png" : "images/icon/creditAdjustBlue.png"),
@@ -4116,7 +4116,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'right',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsConvert')) {
+                                if ($scope.checkViewPermission('Player', 'RewardPoints', 'RewardPointsChange') || $scope.checkViewPermission('Player', 'RewardPoints', 'RewardPointsConvert')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
                                         'src': (row.alerted ? "images/icon/rewardPointsRed.png" : "images/icon/rewardPointsBlue.png"),

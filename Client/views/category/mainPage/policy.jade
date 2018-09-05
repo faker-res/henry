@@ -1,11 +1,11 @@
 #adminPolicy
     .btn-group.btn-group-vertical
         button.btn.btn-default(class='{{vm.roleCategory[i]}}', ng-repeat=("(i,v) in vm.allView"),ng-if='vm.checkWhetherShow(i,null)', ng-click='vm.expandPolicySection(i)') {{i|translate}}
-    .panel.panel-primary
+    .panel.panel-primary(style="min-height: 510px;")
         .panel-heading.panel-heading-sm
             .panel-title(ng-if='!vm.policyCategory.title') {{"Please select a category" |translate}}
             .panel-title(ng-if='vm.policyCategory.title') {{vm.policyCategory.title | translate}}
-        .panel-body(style='height:380px;overflow-y:auto', ng-class='vm.showRoleFlag[vm.policyCategory.title].all ? "subDisabled":"" ')
+        .panel-body(style='height:480px;overflow-y:auto', ng-class='vm.showRoleFlag[vm.policyCategory.title].all ? "subDisabled":"" ')
             .panel.panel-info(ng-repeat='(sectionName,sectionData) in vm.allView[vm.policyCategory.title]', ng-if='vm.checkWhetherShow(vm.policyCategory.title,sectionName)')
                 .panel-heading.panel-heading-sm
                     .panel-title {{sectionName | translate}}

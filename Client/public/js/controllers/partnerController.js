@@ -1696,7 +1696,7 @@ define(['js/app'], function (myApp) {
                 console.log(type, data);
                 vm.getSMSTemplate();
                 let title, text;
-                if (type === 'msg' && authService.checkViewPermission('Platform', 'Partner', 'sendSMS')) {
+                if (type === 'msg' && authService.checkViewPermission('Partner', 'Partner', 'sendSMS')) {
                     vm.smsPartner = {
                         partnerId: partnerObjId.partnerId,
                         partnerName: partnerObjId.partnerName,
@@ -3407,7 +3407,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getPlatformRewardProposal = function () {
-                if (!authService.checkViewPermission('Platform', 'Player', 'RewardHistory')) {
+                if (!authService.checkViewPermission('Player', 'Reward', 'RewardHistory')) {
                     return;
                 }
                 socketService.$socket($scope.AppSocket, 'getPlatformRewardProposal', {platform: vm.selectedPlatform.id}, function (data) {
@@ -3638,7 +3638,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPlayerApiLogData = function (newSearch) {
-                if (!authService.checkViewPermission('Platform', 'Player', 'playerApiLog')) {
+                if (!authService.checkViewPermission('Player', 'Player', 'playerApiLog')) {
                     return;
                 }
 
@@ -4945,7 +4945,7 @@ define(['js/app'], function (myApp) {
 
             //get all platform partners data from server
             vm.getPlatformPartnersData = function () {
-                if (!authService.checkViewPermission('Platform', 'Partner', 'Read')) {
+                if (!authService.checkViewPermission('Partner', 'Partner', 'Read')) {
                     return;
                 }
                 $('#partnerRefreshIcon').addClass('fa-spin');
@@ -5405,7 +5405,7 @@ define(['js/app'], function (myApp) {
                             title: $translate('COMMISSION_TYPE'), "data": 'commissionType', advSearch: true, "sClass": "",
                             render: function (data, type, row) {
                                 data = data || '';
-                                if ($scope.checkViewPermission('Platform', 'Partner', 'EditCommission')) {
+                                if ($scope.checkViewPermission('Partner', 'Partner', 'EditCommission')) {
                                     if (row && row.isCustomizeSettingExist) {
                                         return $('<a style="z-index: auto; color:red" data-toggle="modal" data-container="body" ' +
                                             'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
@@ -5642,7 +5642,7 @@ define(['js/app'], function (myApp) {
                                     'title': $translate("PHONE"),
                                     'data-placement': 'left',
                                 }));
-                                if ($scope.checkViewPermission('Platform', 'Partner', 'AddFeedback')) {
+                                if ($scope.checkViewPermission('Partner', 'Feedback', 'AddFeedback')) {
                                     link.append($('<a>', {
                                         'class': 'fa fa-commenting margin-right-5',
                                         'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
@@ -5653,7 +5653,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'left',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Partner', 'ApplyBonus')) {
+                                if ($scope.checkViewPermission('Partner', 'Partner', 'ApplyBonus')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5 margin-right-5',
                                         'src': (row.permission.applyBonus === false ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
@@ -5667,7 +5667,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'left',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Partner', 'CreditAdjustment')) {
+                                if ($scope.checkViewPermission('Partner', 'Partner', 'CreditAdjustment')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
                                         'src': "images/icon/creditAdjustBlue.png",
@@ -6865,10 +6865,10 @@ define(['js/app'], function (myApp) {
                         $scope: $scope,
                         $compile: $compile,
                         childScope: {
-                            editPartnerPermission: $scope.checkViewPermission('Platform', 'Partner', 'Edit'),
-                            editPartnerContactPermission: $scope.checkViewPermission('Platform', 'Partner', 'EditContact'),
-                            editPartnerWithdrawPermission: $scope.checkViewPermission('Platform', 'Partner', 'BankDetail'),
-                            editPartnerCommissionPermission: $scope.checkViewPermission('Platform', 'Partner', 'EditCommission'),
+                            editPartnerPermission: $scope.checkViewPermission('Partner', 'Partner', 'Edit'),
+                            editPartnerContactPermission: $scope.checkViewPermission('Partner', 'Partner', 'EditContact'),
+                            editPartnerWithdrawPermission: $scope.checkViewPermission('Partner', 'Partner', 'BankDetail'),
+                            editPartnerCommissionPermission: $scope.checkViewPermission('Partner', 'Partner', 'EditCommission'),
                             selectedTab: vm.editPartnerSelectedTab,
                             tabClicked: vm.tabClicked,
                             modifyCritical: vm.modifyCritical,
@@ -7570,7 +7570,7 @@ define(['js/app'], function (myApp) {
 
             vm.getPartnerApiLogData = function (newSearch) {
                 vm.loadingPartnerApiLogTable = true;
-                if (!authService.checkViewPermission('Platform', 'Partner', 'partnerApiLog')) {
+                if (!authService.checkViewPermission('Partner', 'Partner', 'partnerApiLog')) {
                     vm.loadingPartnerApiLogTable = false;
                     return;
                 }
@@ -9835,7 +9835,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getAllPartnerLevels = function () {
-                if (!authService.checkViewPermission('Platform', 'Partner', 'Read')) {
+                if (!authService.checkViewPermission('Partner', 'Partner', 'Read')) {
                     return;
                 }
                 return $scope.$socketPromise(commonAPIs.partnerLevel.getByPlatform, {platformId: vm.selectedPlatform.id})

@@ -81,13 +81,13 @@
                                                     .col-sm-8
                                                         text(style='height:inherit') {{vm.convertDOBFormat(vm.selectedSinglePlayer.DOB) || 'NONE' | translate}}
                                     td.text-left
-                                        button.btn.btn-primary.common-button-sm(ng-click="vm.openEditPlayerDialog('basicInfo');", ng-if="checkViewPermission('Platform', 'Player', 'Edit')&&vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-click="vm.openEditPlayerDialog('basicInfo');", ng-if="checkViewPermission('Player', 'Player', 'Edit')&&vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
                                         br
                                         button.btn.btn-primary.common-button-sm(ng-click='vm.getPlayerInfoHistory()') {{"EDIT_HISTORY" | translate}}
                                         br
-                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'ResetPassword')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initResetPlayerPasswordModal()', data-target='#modalPlayerPasswordReset') {{"EDIT_WEBSITE_PASS" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Player', 'Player', 'ResetPassword')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initResetPlayerPasswordModal()', data-target='#modalPlayerPasswordReset') {{"EDIT_WEBSITE_PASS" | translate}}
                                         br
-                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'ModifyGamePassword')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareModifyPlayerGamePassword()' data-target='#modalModifyGamePassword') {{"EDIT_PROVIDER_PASS" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Player', 'Player', 'ModifyGamePassword')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareModifyPlayerGamePassword()' data-target='#modalModifyGamePassword') {{"EDIT_PROVIDER_PASS" | translate}}
 
 
                                 tr
@@ -130,7 +130,7 @@
                                         //    text(style='height:inherit') {{vm.selectedSinglePlayer.isTestPlayer ? 'Yes' : 'No' | translate}}
                                         //.inlineBlk.col-md-3
                                     td.text-left
-                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'EditContact')&&vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click="vm.openEditPlayerDialog('contactInfo')") {{"EDIT" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Player', 'Player', 'EditContact')&&vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click="vm.openEditPlayerDialog('contactInfo')") {{"EDIT" | translate}}
                                         br
                                         button.btn.btn-primary.common-button-sm(ng-click='vm.getPlayerContactHistory()') {{"EDIT_HISTORY" | translate}}
                                 tr
@@ -201,9 +201,9 @@
                                         //    label {{"Today Topup" | translate}}
                                         //    text {{vm.selectedSinglePlayer.dailyTopUpSum || 0}}
                                     td.text-left
-                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformation')&&vm.selectedSinglePlayer.isRealPlayer",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click="vm.openEditPlayerDialog('withdrawInfo');") {{"EDIT" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Player', 'Player', 'PaymentInformation')&&vm.selectedSinglePlayer.isRealPlayer",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click="vm.openEditPlayerDialog('withdrawInfo');") {{"EDIT" | translate}}
                                         br
-                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformationHistory')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.getPaymentInfoHistory(true)') {{"EDIT_HISTORY" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Player', 'Player', 'PaymentInformationHistory')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.getPaymentInfoHistory(true)') {{"EDIT_HISTORY" | translate}}
                                 tr
                                     td
                                         div {{"Topup Group" | translate}}
@@ -235,7 +235,7 @@
                                                     .col-sm-8
                                                         text {{vm.platformWechatPayGroupListCheck[vm.selectedSinglePlayer.wechatPayGroup] | translate}}
                                     td.text-left
-                                        button.btn.btn-primary.common-button-sm(ng-click='vm.openEditPlayerDialog("topUpInfo");', ng-if="checkViewPermission('Platform', 'Player', 'Edit')&&vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-click='vm.openEditPlayerDialog("topUpInfo");', ng-if="checkViewPermission('Player', 'Player', 'Edit')&&vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
                                         br
                                         //button.btn.btn-primary.common-button-sm(ng-click='') {{"EDIT_HISTORY" | translate}}
                                 tr
@@ -582,15 +582,15 @@
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('current-credit')") {{"PLAYER_CURRENT_CREDIT" | translate}}
                     li(ng-class="vm.selectedPlayerAccountingDetailTab == 'proposal-log' ? 'active' : null")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('proposal-log');vm.prepareShowProposal();") {{"PLAYER_PROPOSAL_LOG" | translate}}
-                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'bet-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'PlayerExpenses');")
+                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'bet-log' ? 'active' : null", ng-show="checkViewPermission('Player', 'Player', 'PlayerExpenses');")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('bet-log');vm.prepareShowPlayerExpense();") {{"PLAYER_BET_LOG" | translate}}
-                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'credit-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'CreditChangeLog')")
+                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'credit-log' ? 'active' : null", ng-show="checkViewPermission('Player', 'Credit', 'CreditChangeLog')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('credit-log');vm.showPagedPlayerCreditChangeLog();") {{"PLAYER_CREDIT_LOG" | translate}}
-                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'platform-transfer-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'PlatformCreditTransferLog')")
+                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'platform-transfer-log' ? 'active' : null", ng-show="checkViewPermission('Player', 'Player', 'PlatformCreditTransferLog')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('platform-transfer-log');vm.showPlatformCreditTransferLog();") {{"PLAYER_PLATFORM_TRANSFER_LOG" | translate}}
-                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'midnight-balance-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'playerDailyCreditLog')")
+                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'midnight-balance-log' ? 'active' : null", ng-show="checkViewPermission('Player', 'Credit', 'playerDailyCreditLog')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('midnight-balance-log');vm.initPlayerCreditLog();") {{"PLAYER_MIDNIGHT_BALANCE_LOG" | translate}}
-                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'rewardTask-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'rewardTaskLog')")
+                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'rewardTask-log' ? 'active' : null", ng-show="checkViewPermission('Player', 'Reward', 'rewardTaskLog')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('rewardTask-log');vm.showPagedPlayerRewardTaskLog();") {{"PLAYER_REWARDTASK_LOG" | translate}}
 
                 .panel.panel-primary(style="border-radius:0 !important;")
@@ -886,11 +886,11 @@
                 .panel.panel-primary
                     ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu
                         .pull-left.padding-all-5
-                        li.active(id = 'addFeedbackTab', ng-show="checkViewPermission('Platform', 'Player','AddFeedback')")
+                        li.active(id = 'addFeedbackTab', ng-show="checkViewPermission('Player', 'Feedback','AddFeedback')")
                             a.common-tab(data-toggle="tab", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount != 1", ng-click="vm.feedbackModalTab = 'addFeedbackPanel'")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"ADD_FEEDBACK" | translate}}
-                        li(id = 'feedbackHistoryTab',ng-show="checkViewPermission('Platform', 'Player','FeedbackHistory')")
+                        li(id = 'feedbackHistoryTab',ng-show="checkViewPermission('Player', 'Feedback','FeedbackHistory')")
                             a.common-tab(data-toggle="tab", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount != 1", ng-click="vm.feedbackModalTab = 'feedbackHistoryPanel'; vm.prepareShowFeedbackRecord( vm.canEditPlayer() );")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"Feedback History" | translate}}
@@ -905,12 +905,12 @@
                             input.form-control(ng-model='vm.playerFeedback.adminId')
                         .form-group
                             label.control-label {{'FEEDBACK_RESULTS' | translate}}
-                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Platform', 'Player','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
+                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
                             select.form-control(style='margin-top:5px;', ng-model='vm.playerFeedback.result', required)
                                 option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
                         .form-group
                             label.control-label {{'FEEDBACK_TOPIC' | translate}}
-                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Platform', 'Player','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
+                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
                             select.form-control(style='margin-top:5px;', ng-model='vm.playerFeedback.topic', required)
                                 option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
                         .form-group
@@ -960,12 +960,12 @@
                 form(name='form_feedback').well
                     .form-group
                         label.control-label {{'FEEDBACK_RESULTS' | translate}}
-                        button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Platform', 'Player','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
+                        button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
                         select.form-control(style='margin-top:5px;', ng-model='vm.playerFeedback.result', required)
                             option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
                     .form-group
                         label.control-label {{'FEEDBACK_TOPIC' | translate}}
-                        button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Platform', 'Player','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
+                        button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
                         select.form-control(style='margin-top:5px;', ng-model='vm.playerFeedback.topic', required)
                             option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
                     .form-group
@@ -1020,11 +1020,11 @@
                 h4.modal-title {{"TOP_UP" | translate}}
             .modal-body
                 ul.nav.nav-tabs.common-nav-tabs
-                    li(ng-class="vm.selectedTopupTab == 'manual' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'ApplyManualTopup')")
+                    li(ng-class="vm.selectedTopupTab == 'manual' ? 'active' : null", ng-if="checkViewPermission('Player', 'TopUp', 'ApplyManualTopup')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showTopupTab('manual');vm.initPlayerManualTopUp();") {{"MANUAL_TOPUP" | translate}}
-                    li(ng-class="vm.selectedTopupTab == 'alipay' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'ApplyAlipayTopup')")
+                    li(ng-class="vm.selectedTopupTab == 'alipay' ? 'active' : null", ng-if="checkViewPermission('Player', 'TopUp', 'ApplyAlipayTopup')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showTopupTab('alipay');vm.initPlayerAlipayTopUp();") {{"ALIPAY" | translate}}
-                    li(ng-class="vm.selectedTopupTab == 'wechatpay' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'ApplyWechatPayTopup')")
+                    li(ng-class="vm.selectedTopupTab == 'wechatpay' ? 'active' : null", ng-if="checkViewPermission('Player', 'TopUp', 'ApplyWechatPayTopup')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showTopupTab('wechatpay');vm.initPlayerWechatPayTopUp();") {{"WECHATPAY" | translate}}
                     //li(ng-class="vm.selectedTopupTab == 'quickpay' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'ApplyQuickpayTopup')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showTopupTab('quickpay');vm.initPlayerQuickpayTopUp();") {{"WECHATPAY" | translate}}
@@ -1317,13 +1317,13 @@
                 h4.modal-title {{"REWARD_ACTION" | translate}} : {{vm.selectedSinglePlayer.name}}
             .modal-body(style='height: 80vh;overflow-y:auto;')
                 ul.nav.nav-tabs.common-nav-tabs
-                    li(ng-class="vm.selectedRewardSettingsTab == 'manual-reward' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'AddRewardTask')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1")
+                    li(ng-class="vm.selectedRewardSettingsTab == 'manual-reward' ? 'active' : null", ng-if="checkViewPermission('Player', 'Reward', 'AddRewardTask')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1")
                         a.common-tab(data-toggle="tab", ng-click="vm.showRewardSettingsTab('manual-reward');vm.initPlayerAddRewardTask();") {{"Add Reward Task" | translate}}
-                    li(ng-class="vm.selectedRewardSettingsTab == 'system-reward' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'applyReward')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1")
+                    li(ng-class="vm.selectedRewardSettingsTab == 'system-reward' ? 'active' : null", ng-if="checkViewPermission('Player', 'Reward', 'applyReward')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1")
                         a.common-tab(data-toggle="tab", ng-click="vm.showRewardSettingsTab('system-reward');vm.initPlayerApplyReward();") {{"APPLY_REWARD" | translate}}
                     //li(ng-class="vm.selectedRewardSettingsTab == 'unlock-reward' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'ManualUnlockRewardTask')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1")
                         a.common-tab(data-toggle="tab", ng-click="vm.showRewardSettingsTab('unlock-reward');vm.initManualUnlockRewardTask();") {{"Manual Unlock Reward Task" | translate}}
-                    li(ng-class="vm.selectedRewardSettingsTab == 'reward-progress' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'rewardTaskLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1")
+                    li(ng-class="vm.selectedRewardSettingsTab == 'reward-progress' ? 'active' : null", ng-if="checkViewPermission('Player', 'Reward', 'rewardTaskLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1")
                         a.common-tab(data-toggle="tab", ng-click="vm.showRewardSettingsTab('reward-progress');vm.initManualUnlockRewardTask();vm.initRewardTaskLog();") {{"RewardTask Progress Log" | translate}}
                 .panel.panel-primary(style="border-radius:0 !important;")
                     .panel-body
@@ -1509,8 +1509,8 @@
                 //#modalPlayerApplyReward
                 div(ng-show="vm.selectedRewardSettingsTab == 'system-reward'")
                     label.text-success(ng-show="vm.applyXM") {{'Apply Player Consumption Return InProgress' | translate}}
-                    button.common-button.margin-right-5.btn.btn-success(ng-if="checkViewPermission('Platform','Player','applyReward') && !vm.playerApplyEventResult && vm.playerApplyRewardShow.manualSignConsecutiveLogin", ng-click='vm.applyPreviousConsecutiveLoginReward()') {{"PREVIOUS_CONSECUTIVE_LOGIN" | translate}}
-                    button.common-button.margin-right-5.btn.btn-success(ng-if="checkViewPermission('Platform','Player','applyReward') && !vm.playerApplyEventResult",ng-disabled='form_player_reward.$invalid || form_player_reward.$pristine || !vm.playerApplyRewardPara.code || (vm.playerApplyRewardShow.showReferral && !vm.playerApplyRewardPara.referPlayer)', ng-click='vm.applyPlayerReward()') {{'APPLY' | translate}}
+                    button.common-button.margin-right-5.btn.btn-success(ng-if="checkViewPermission('Player','Reward','applyReward') && !vm.playerApplyEventResult && vm.playerApplyRewardShow.manualSignConsecutiveLogin", ng-click='vm.applyPreviousConsecutiveLoginReward()') {{"PREVIOUS_CONSECUTIVE_LOGIN" | translate}}
+                    button.common-button.margin-right-5.btn.btn-success(ng-if="checkViewPermission('Player','Reward','applyReward') && !vm.playerApplyEventResult",ng-disabled='form_player_reward.$invalid || form_player_reward.$pristine || !vm.playerApplyRewardPara.code || (vm.playerApplyRewardShow.showReferral && !vm.playerApplyRewardPara.referPlayer)', ng-click='vm.applyPlayerReward()') {{'APPLY' | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
                 //#modalManualUnlockRewardTask
                 div(ng-show="vm.selectedRewardSettingsTab == 'reward-progress'")
@@ -1528,9 +1528,9 @@
                 h4.modal-title {{"ALL_REAPPLY_ORDER" | translate}} : {{vm.selectedSinglePlayer.name}}
             .modal-body
                 ul.nav.nav-tabs.common-nav-tabs
-                    li(ng-class="vm.selectedReapplyLostOrderTab == 'credit' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'RepairTransaction')")
+                    li(ng-class="vm.selectedReapplyLostOrderTab == 'credit' ? 'active' : null", ng-show="checkViewPermission('Player', 'Player', 'RepairTransaction')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showReapplyLostOrderTab('credit');vm.prepareShowPlayerCredit();") {{"CREDIT_ORDER_LOST" | translate}}
-                    li(ng-class="vm.selectedReapplyLostOrderTab == 'payment' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'RepairPayment')")
+                    li(ng-class="vm.selectedReapplyLostOrderTab == 'payment' ? 'active' : null", ng-show="checkViewPermission('Player', 'Player', 'RepairPayment')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showReapplyLostOrderTab('payment');") {{"PAYMENT_ORDER_LOST" | translate}}
                 .panel.panel-primary(style="border-radius:0 !important;")
                     .panel-body
@@ -1595,7 +1595,7 @@
                     button.common-button.margin-right-5.btn.btn-success(ng-if="vm.repairProposalId && vm.submitRepairePayementStep!=2" ng-click='vm.submitRepairPayment()')
                         | {{'Repair Payment' | translate}} {{vm.repairProposalId}}
                         i.fa.fa-spin.fa-refresh(ng-show='vm.submitRepairePayementStep==1')
-                    button.common-button.margin-right-5.btn.btn-success(ng-if="checkViewPermission('Platform','Player','RepairPayment')",ng-show='!vm.repairProposalId', disabled) {{'Repair Payment' | translate}}
+                    button.common-button.margin-right-5.btn.btn-success(ng-if="checkViewPermission('Player','Player','RepairPayment')",ng-show='!vm.repairProposalId', disabled) {{'Repair Payment' | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal', ng-show='vm.submitRepairePayementStep!=2') {{"CANCEL" | translate}}
                     button.common-button.margin-right-5.btn.btn-success(data-dismiss='modal', ng-show='vm.submitRepairePayementStep==2') {{"Completed" | translate}} {{vm.repairProposalId}}
 
@@ -1647,9 +1647,9 @@
                     label.form-control {{"Player does not have reward points task permission" | translate}}
             .modal-body(ng-show='vm.isOneSelectedPlayer().permission && vm.isOneSelectedPlayer().permission.rewardPointsTask && vm.selectedPlatform.data.usePointSystem')
                 ul.nav.nav-tabs.common-nav-tabs
-                    li(ng-class="vm.selectedRewardPointsAdjustmentTab == 'change' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'RewardPointsChange')")
+                    li(ng-class="vm.selectedRewardPointsAdjustmentTab == 'change' ? 'active' : null", ng-show="checkViewPermission('Player', 'RewardPoints', 'RewardPointsChange')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showRewardPointsAdjustmentTab('change');") {{"VALID_REWARD_POINTS" | translate}}
-                    li(ng-class="vm.selectedRewardPointsAdjustmentTab == 'convert' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'RewardPointsConvert')")
+                    li(ng-class="vm.selectedRewardPointsAdjustmentTab == 'convert' ? 'active' : null", ng-show="checkViewPermission('Player', 'RewardPoints', 'RewardPointsConvert')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showRewardPointsAdjustmentTab('convert');") {{"ADVANCE_REWARD_POINTS_CONVERT" | translate}}
                 .panel.panel-primary(style="border-radius:0 !important;")
                     .panel-body
