@@ -131,7 +131,8 @@
                 "turnUrlToQr",
                 "getTemplateSetting",
                 "addIpDomainLog",
-                "getIDCIpDetail"
+                "getIDCIpDetail",
+                "getLockedLobbyConfig"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
