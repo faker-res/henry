@@ -4573,6 +4573,32 @@ var dbPlatform = {
             createTime: {$gte: new Date(startTime), $lt: new Date(endTime)}
         });
     },
+
+    getLockedLobbyConfig: function (platformId) {
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData && platformData._id) {
+                    return dbconfig.collection_gameProviderGroup.find({platform: platformData._id}, {_id:0, name: 1, providerGroupId: 1}).lean()
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
+            gameProviderGroupData => {
+                if (gameProviderGroupData && gameProviderGroupData.length > 0) {
+                    gameProviderGroupData.map(providerGroup => {
+                        providerGroup.nickName = providerGroup.name;
+                        providerGroup.id = providerGroup.providerGroupId;
+
+                        delete providerGroup.name;
+                        delete providerGroup.providerGroupId;
+                    });
+                }
+
+                return gameProviderGroupData ? gameProviderGroupData : [];
+            }
+        );
+    },
 };
 
 function getPlatformStringForCallback(platformStringArray, playerId, lineId) {
