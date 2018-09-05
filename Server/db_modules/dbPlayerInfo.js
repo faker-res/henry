@@ -4545,6 +4545,7 @@ let dbPlayerInfo = {
                     .sort(sortObj).skip(index).limit(limit).lean().then(
                         players => {
                             let calculatePlayerValueProms = [];
+                            let updatePlayerCredibilityRemarksProm = [];
                             for (let i = 0; i < players.length; i++) {
                                 let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
                                 calculatePlayerValueProms.push(calculateProm);
@@ -4552,9 +4553,38 @@ let dbPlayerInfo = {
                                 if (players[i].isTestPlayer) {
                                     isDemoPlayerExpire(players[i], platform.demoPlayerValidDays);
                                 }
-                            }
-                            return Promise.all(calculatePlayerValueProms);
 
+                                let uniqueCredibilityRemarks = [];
+                                if (players[i].credibilityRemarks && players[i].credibilityRemarks.length > 0) {
+                                    // filter out duplicate credibility remarks
+                                    uniqueCredibilityRemarks = players[i].credibilityRemarks.filter((elem, pos, arr) => {
+                                        arr = arr.map(remark => {
+                                            remark = remark.toString();
+                                            return remark;
+                                        });
+                                        elem = elem.toString();
+                                        return arr.indexOf(elem) === pos;
+                                    });
+
+                                    uniqueCredibilityRemarks.forEach(string => {
+                                        return ObjectId(string);
+                                    });
+
+                                    // if found duplicate credibility remarks, update with no duplicates
+                                    if (players[i]._id && players[i].platform && uniqueCredibilityRemarks && players[i].credibilityRemarks.length > uniqueCredibilityRemarks.length) {
+                                        updatePlayerCredibilityRemarksProm.push(dbconfig.collection_players.findOneAndUpdate(
+                                            {
+                                                _id: players[i]._id,
+                                                platform: players[i].platform
+                                            },
+                                            {
+                                                credibilityRemarks: uniqueCredibilityRemarks
+                                            }
+                                        ).exec().catch(errorUtils.reportError));
+                                    }
+                                }
+                            }
+                            return Promise.all([calculatePlayerValueProms, updatePlayerCredibilityRemarksProm]);
                         }
                     )
             }

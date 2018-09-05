@@ -63,7 +63,7 @@ let dbPlatformAutoFeedback = {
         );
     },
 
-    getAutoFeedback: function (query, index, limit) {
+    getAutoFeedback: function (query, index, limit, ignoreLimit) {
         console.log(query);
         index = index || 0;
         limit = limit || 10;
@@ -100,38 +100,42 @@ let dbPlatformAutoFeedback = {
             delete query.status;
         }
         console.log(query);
-        return dbconfig.collection_autoFeedback.find(query).sort({createTime:-1}).skip(index).limit(limit).lean().then(autoFeedbacks => {
-            console.log(autoFeedbacks);
-            result = autoFeedbacks;
-            let missionsProms = [];
-            autoFeedbacks.forEach(mission => {
-                let maxScheduleNumber = 3;
-                let missionProms = [];
-                for (let x = 0; x < maxScheduleNumber; x++) {
-                    missionProms.push(dbconfig.collection_promoCode.count({
-                        autoFeedbackMissionObjId: mission._id,
-                        autoFeedbackMissionScheduleNumber: x + 1
-                    }));
-                }
-                missionsProms.push(Promise.all(missionProms));
+        if(ignoreLimit) {
+            return dbconfig.collection_autoFeedback.find(query).sort({createTime:-1}).lean();
+        } else {
+            return dbconfig.collection_autoFeedback.find(query).sort({createTime: -1}).skip(index).limit(limit).lean().then(autoFeedbacks => {
+                console.log(autoFeedbacks);
+                result = autoFeedbacks;
+                let missionsProms = [];
+                autoFeedbacks.forEach(mission => {
+                    let maxScheduleNumber = 3;
+                    let missionProms = [];
+                    for (let x = 0; x < maxScheduleNumber; x++) {
+                        missionProms.push(dbconfig.collection_promoCode.count({
+                            autoFeedbackMissionObjId: mission._id,
+                            autoFeedbackMissionScheduleNumber: x + 1
+                        }));
+                    }
+                    missionsProms.push(Promise.all(missionProms));
+                });
+                return Promise.all(missionsProms);
+            }).then(counts => {
+                result.forEach((item, i) => {
+                    if (counts && counts[i]) {
+                        item.firstRunCount = counts[i][0] || 0;
+                        item.secondRunCount = counts[i][1] || 0;
+                        item.thirdRunCount = counts[i][2] || 0;
+                    } else {
+                        item.firstRunCount = 0;
+                        item.secondRunCount = 0;
+                        item.thirdRunCount = 0;
+                    }
+                });
+                return dbconfig.collection_autoFeedback.count(query).lean();
+            }).then(totalResultCount => {
+                return {total: totalResultCount, data: result};
             });
-            return Promise.all(missionsProms);
-        }).then(counts => {
-            result.forEach((item, i) => {
-                if(counts && counts[i]) {
-                    item.firstRunCount = counts[i][0] || 0;
-                    item.secondRunCount = counts[i][1] || 0;
-                    item.thirdRunCount = counts[i][2] || 0;
-                } else {
-                    item.firstRunCount = 0;
-                    item.secondRunCount = 0;
-                    item.thirdRunCount = 0;
-                }
-            });
-            return dbconfig.collection_autoFeedback.count(query).lean();
-        }).then(totalResultCount => {
-            return {total: totalResultCount, data: result};
-        });
+        }
     },
 
     removeAutoFeedbackByObjId: function (objId) {
@@ -157,9 +161,9 @@ let dbPlatformAutoFeedback = {
             enabled: true,
         };
 
-        return dbPlatformAutoFeedback.getAutoFeedback(query).then(autoFeedbacks => {
+        return dbPlatformAutoFeedback.getAutoFeedback(query, null, null, true).then(autoFeedbacks => {
             if(!autoFeedbacks || autoFeedbacks.length < 1) {
-                return Promise.resolve({message: 'No auto feedback for processing at this time.'});
+                return {message: 'No auto feedback for processing at this time.'};
             }
             let executeAutoFeedback = feedback => {
                 console.log("feedbackName", feedback.name);
