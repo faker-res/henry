@@ -189,6 +189,15 @@
         });
     };
 
+    proto.getLockedLobbyConfig = function (callback, requestData) {
+        this._service.getLockedLobbyConfig.request(requestData);
+        this._service.getLockedLobbyConfig.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     if (isNode) {
         module.exports = ClientPlatformAPITest;
     } else {
