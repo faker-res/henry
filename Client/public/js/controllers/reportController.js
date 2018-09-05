@@ -2698,6 +2698,11 @@ define(['js/app'], function (myApp) {
                 endTime: vm.playerAlipayAccReport.endTime.data('datetimepicker').getLocalDate(),
             };
 
+            if (vm.playerAlipayAccReport.playerName) { sendQuery.playerName = vm.playerAlipayAccReport.playerName }
+            if (vm.playerAlipayAccReport.alipayAcc) { sendQuery.alipayAcc = vm.playerAlipayAccReport.alipayAcc }
+            if (vm.playerAlipayAccReport.alipayName) { sendQuery.alipayName = vm.playerAlipayAccReport.alipayName }
+            if (vm.playerAlipayAccReport.alipayNickname) { sendQuery.alipayNickname = vm.playerAlipayAccReport.alipayNickname }
+
             console.log('sendQuery', sendQuery);
 
             socketService.$socket($scope.AppSocket, 'getPlayerAlipayAccReport', sendQuery, function (data) {
@@ -8293,19 +8298,6 @@ define(['js/app'], function (myApp) {
 
             // generate a download for xls
             vm.exportToExcel = function(tableId, reportName) {
-                var htmls = "";
-                var uri = 'data:application/vnd.ms-excel;base64,';
-                var template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>{table}</table></body></html>';
-                var base64 = function(s) {
-                    return window.btoa(unescape(encodeURIComponent(s)))
-                };
-
-                var format = function(s, c) {
-                    return s.replace(/{(\w+)}/g, function(m, p) {
-                        return c[p];
-                    })
-                };
-
                 let tab = "";
                 let htmlContent = "";
 
@@ -8370,15 +8362,19 @@ define(['js/app'], function (myApp) {
                     htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
                 }
 
-                var ctx = {
-                    worksheet : 'Worksheet',
-                    table : htmlContent
-                }
+                var tab_text = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+                tab_text = tab_text + '<head><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>';
+                tab_text = tab_text + '<x:Name>Test Sheet</x:Name>';
+                tab_text = tab_text + '<x:WorksheetOptions><x:Panes></x:Panes></x:WorksheetOptions></x:ExcelWorksheet>';
+                tab_text = tab_text + '</x:ExcelWorksheets></x:ExcelWorkbook></xml></head><body>';
+                tab_text = tab_text + "<table border='1px'>";
+                tab_text = tab_text + htmlContent;
+                tab_text = tab_text + '</table></body></html>';
+                var fileName = reportName ? $translate(reportName)+ ".xls": "FPMS report.xls";
 
-                var link = document.createElement("a");
-                link.download = reportName ? $translate(reportName)+ ".xls": "FPMS report.xls";
-                link.href = uri + base64(format(template, ctx));
-                link.click();
+                //Save the file
+                var blob = new Blob([tab_text], { type: "application/vnd.ms-excel;charset=utf-8" })
+                window.saveAs(blob, fileName);
             }
         }
 

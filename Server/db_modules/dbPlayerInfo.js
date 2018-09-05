@@ -4559,10 +4559,10 @@ let dbPlayerInfo = {
                                     // filter out duplicate credibility remarks
                                     uniqueCredibilityRemarks = players[i].credibilityRemarks.filter((elem, pos, arr) => {
                                         arr = arr.map(remark => {
-                                            remark = remark.toString();
+                                            remark = remark ? remark.toString() : "";
                                             return remark;
                                         });
-                                        elem = elem.toString();
+                                        elem = elem ? elem.toString() : "";
                                         return arr.indexOf(elem) === pos;
                                     });
 
@@ -4657,6 +4657,7 @@ let dbPlayerInfo = {
                 return {data: data[0], size: data[1]}
             },
             err => {
+                console.error("getPagePlayerByAdvanceQuery:", err);
                 return {error: err};
             }
         );
@@ -10088,8 +10089,9 @@ let dbPlayerInfo = {
                             }
                         }
 
+                        let permissionProm = Promise.resolve(true);
                         if (!player.permission.applyBonus) {
-                            dbconfig.collection_playerPermissionLog.find(
+                            permissionProm = dbconfig.collection_playerPermissionLog.find(
                                 {
                                     player: player._id,
                                     platform: platform._id,
@@ -10105,20 +10107,23 @@ let dbPlayerInfo = {
                                 }
                             );
                         }
-
-                        if (player.platform && player.platform.useProviderGroup) {
-                            let unlockAllGroups = Promise.resolve(true);
-                            if (bForce) {
-                                unlockAllGroups = dbRewardTaskGroup.unlockPlayerRewardTask(playerData._id, adminInfo).catch(errorUtils.reportError);
-                            }
-                            return unlockAllGroups.then(
-                                () => {
-                                    return findStartedRewardTaskGroup(playerData.platform, playerData._id);
+                        return permissionProm.then(
+                            res => {
+                                if (player.platform && player.platform.useProviderGroup) {
+                                    let unlockAllGroups = Promise.resolve(true);
+                                    if (bForce) {
+                                        unlockAllGroups = dbRewardTaskGroup.unlockPlayerRewardTask(playerData._id, adminInfo).catch(errorUtils.reportError);
+                                    }
+                                    return unlockAllGroups.then(
+                                        () => {
+                                            return findStartedRewardTaskGroup(playerData.platform, playerData._id);
+                                        }
+                                    );
+                                } else {
+                                    return false;
                                 }
-                            );
-                        } else {
-                            return false;
-                        }
+                            }
+                        );
                     } else {
                         return Promise.reject({name: "DataError", errorMessage: "Cannot find player"});
                     }
@@ -19009,7 +19014,7 @@ let dbPlayerInfo = {
                 // if there is other player with similar phone in playerData, selected player need to add this credibility remark
                 if (totalCount > 0) {
                     if (selectedPlayer.credibilityRemarks && selectedPlayer.credibilityRemarks.length > 0) {
-                        if (selectedPlayer.credibilityRemarks.some(e => e && e.toString() === similarPhoneCredibilityRemarkObjId.toString())) {
+                        if (selectedPlayer.credibilityRemarks.some(e => e && similarPhoneCredibilityRemarkObjId && e.toString() === similarPhoneCredibilityRemarkObjId.toString())) {
                             // if similarPhoneCredibilityRemarkObjId already exist
                             credibilityRemarks = selectedPlayer.credibilityRemarks;
                         } else {
