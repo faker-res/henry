@@ -665,6 +665,7 @@ define(['js/app'], function (myApp) {
                 }
             });
 
+
             vm.getProviderLatestTimeRecord = function () {
                 let longestDelayDate = new Date().toString();
 
@@ -23353,6 +23354,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.generatePromoCode = function (col, index, data, type) {
+
                 if (data && data.playerName) {
                     let sendData = Object.assign({}, data);
                     col[index].error = false;
@@ -23429,8 +23431,13 @@ define(['js/app'], function (myApp) {
                                         sendData.expirationTime = vm.dateReformat(sendData.expirationTime.data('datetimepicker').getLocalDate());
                                         sendData.promoCodeTypeObjId = sendData.promoCodeType._id;
                                         sendData.platformObjId = vm.selectedPlatform.id;
-                                        sendData.allowedProviders = sendData.allowedProviders && sendData.allowedProviders.length == usingGroup.length ? [] : sendData.allowedProviders;
                                         sendData.smsContent = sendData.promoCodeType.smsContent;
+
+                                        if(!sendData.allowedProviders){
+                                            sendData.allowedProviders = [];
+                                        }else if(sendData.allowedProviders && sendData.allowedProviders.length == usingGroup.length){
+                                            sendData.allowedProviders = [];
+                                        }
 
                                         delete sendData.isBlockPromoCodeUser;
 
