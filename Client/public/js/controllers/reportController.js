@@ -2702,6 +2702,7 @@ define(['js/app'], function (myApp) {
             if (vm.playerAlipayAccReport.alipayAcc) { sendQuery.alipayAcc = vm.playerAlipayAccReport.alipayAcc }
             if (vm.playerAlipayAccReport.alipayName) { sendQuery.alipayName = vm.playerAlipayAccReport.alipayName }
             if (vm.playerAlipayAccReport.alipayNickname) { sendQuery.alipayNickname = vm.playerAlipayAccReport.alipayNickname }
+            if (vm.playerAlipayAccReport.alipayRemark) { sendQuery.alipayRemark = vm.playerAlipayAccReport.alipayRemark }
 
             console.log('sendQuery', sendQuery);
 
@@ -2733,9 +2734,11 @@ define(['js/app'], function (myApp) {
                     {title: $translate('RELATED_ACCOUNT'), data: "data.playerName"},
                     {title: $translate('RELATED_AMOUNT'), data: "data.amount"},
                     {title: $translate('createTime'), data: "applyTime$"},
+                    {title: $translate('REMARK'), data: "data.remark"},
                     {title: $translate('RECORD_ALIPAY_ACC'), data: "data.alipayerAccount"},
                     {title: $translate('RECORD_ALIPAY_NAME'), data: "data.alipayer"},
                     {title: $translate('RECORD_ALIPAY_NICKNAME'), data: "data.alipayerNickName"},
+                    {title: $translate('RECORD_ALIPAY_REMARK'), data: "data.alipayRemark"},
                 ],
                 "paging": false,
                 "language": {

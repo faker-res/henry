@@ -9,10 +9,11 @@ const ObjectId = mongoose.Types.ObjectId;
 const dbPropUtil = require('./../db_common/dbProposalUtility');
 
 let dbReport = {
-    getPlayerAlipayAccReport: function (platformObjId, startTime, endTime, playerName, alipayAcc, alipayName, alipayNickname) {
+    getPlayerAlipayAccReport: function (platformObjId, startTime, endTime, playerName, alipayAcc, alipayName, alipayNickname, alipayRemark) {
         let query = {
             'data.platformId': platformObjId,
-            createTime: {$gte: startTime, $lt: endTime}
+            createTime: {$gte: startTime, $lt: endTime},
+            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
         };
 
         if (playerName) { query['data.playerName'] = playerName }
@@ -27,6 +28,7 @@ let dbReport = {
             query['data.alipayer'] = '*' + subName;
         }
         if (alipayNickname) { query['data.alipayerNickName'] = alipayNickname }
+        if (alipayRemark) { query['data.alipayRemark'] = alipayRemark }
 
         return dbPropUtil.getProposalDataOfType(platformObjId, constProposalType.PLAYER_ALIPAY_TOP_UP, query);
     },
