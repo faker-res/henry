@@ -49,8 +49,9 @@ db.clientQnATemplate.update(
             answerInput: [
                 {type: "text", objKey: "bankAccount", questionNo: 1},
                 {type: "text", objKey: "bankCardName", questionNo: 2},
-                {type: "select", objKey: "bankCardCity", questionNo: 3},
-                {type: "select", objKey: "bankName", questionNo: 4},
+                {type: "select", objKey: "bankCardProvince", questionNo: 3, options: "qnaProvinceList"},
+                {type: "select", objKey: "bankCardCity", questionNo: 3, options: "qnaCityList"},
+                {type: "select", objKey: "bankName", questionNo: 4, options: "qnaAllBankTypeList"},
                 ],
             action: "forgotPassword2_2"
         }

@@ -28746,6 +28746,9 @@ define(['js/app'], function (myApp) {
             };
 
             vm.buildClientQnATypeList = function () {
+                vm.getProvinceListQnA(5);
+                vm.getQnaAllBankTypeList();
+                vm.qnaCityList = [];//reset city
                 vm.questionLabelStyle = "text-align:center;display:block";
                 vm.clientQnAData;
                 vm.clientQnAInput = {}; // QnA input
@@ -28788,15 +28791,19 @@ define(['js/app'], function (myApp) {
                     vm.clientQnAData = {};
                     $scope.$evalAsync(() => {
                         vm.selectedClientQnAType = data;
-                        //get process and steps data for selected proposal type
-                        // vm.getProposalTypeProcessSteps();
-                        // vm.getProposalTypeExpirationDuration();
-                        // console.log("vm.selectedProposalType", vm.selectedProposalType);
-                        // $scope.safeApply();
                         vm.getClientQnAProcess();
                         vm.getClientQnASecurityQuesConfig();
                     });
                 });
+            }
+
+            vm.disableQnADefaultPassword = function () {
+                if (vm.selectedClientQnAType && vm.selectedClientQnAType.data) {
+                    if (vm.selectedClientQnAType.data == "forgotPassword" || vm.selectedClientQnAType.data == "forgotUserID" ) {
+                        return false;
+                    }
+                }
+                return true;
             }
 
             // display first step of the selected QnA type if processNo is null
@@ -28862,6 +28869,74 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            vm.getProvinceListQnA = function (repeatCount) {
+                socketService.$socket($scope.AppSocket, 'getProvinceList', {}, function (data) {
+                    if (data) {
+                        $scope.$evalAsync(() => {
+                            vm.qnaProvinceList = [];
+                            for (let i = 0, len = data.data.provinces.length; i < len; i++) {
+                                let province = data.data.provinces[i];
+                                province.id = province.id.toString();
+                                vm.qnaProvinceList.push(province);
+                            }
+                        });
+                    }
+                }, function (err) {
+                    if (repeatCount && !(vm.qnaProvinceList && vm.qnaProvinceList.length)) {
+                        repeatCount --;
+                        vm.getProvinceListQnA(repeatCount);
+                    }
+                }, true);
+            }
+
+            vm.qnaProvinceListChange = function () {
+                vm.getCityListQnA();
+            }
+
+            vm.getQnaAllBankTypeList = function () {
+                vm.qnaAllBankTypeList = [];
+                socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform.data.platformId}, function (data) {
+                    if (data && data.data && data.data.data) {
+                        let allBankTypeList = {};
+
+                        data.data.data.forEach(item => {
+                            if (item && item.bankTypeId) {
+                                allBankTypeList[item.id] = item.name + ' (' + item.id + ')';
+                            }
+                        });
+
+                        if (allBankTypeList && Object.keys(allBankTypeList).length) {
+                            $scope.$evalAsync(() => {
+                                for (let key in allBankTypeList) {
+                                    let bankObj = {
+                                        id: key,
+                                        name: allBankTypeList[key]
+                                    }
+                                    vm.qnaAllBankTypeList.push(bankObj);
+                                }
+                            });
+                        }
+                    }
+                }, null, true);
+            }
+
+            vm.getCityListQnA = function () {
+                socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: vm.clientQnAInput.bankCardProvince}, function (data) {
+                    if (data) {
+                        if (data.data.cities) {
+                            $scope.$evalAsync(() => {
+                                vm.qnaCityList = [];
+                                for (let i = 0, len = data.data.cities.length; i < len; i++) {
+                                    let city = data.data.cities[i];
+                                    city.id = city.id.toString();
+                                    vm.qnaCityList.push(city);
+                                }
+                            });
+                        }
+                    }
+                }, null, true);
+            }
+
             //reset everything
             vm.endClientQnAProcess = function () {
                 vm.selectedClientQnAType = {};
@@ -28900,7 +28975,6 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'editClientQnAConfig', sendData, function (data) {
                     if (data.data) {
-                        // vm.clientQnASecurityQuesConfig.config = data.data
                         $scope.$evalAsync(() => {
                             vm.clientQnASecurityQuesConfig.config = data.data;
                             vm.clientQnASecurityQuesCount.minQuestionPass = data.data.minQuestionPass ? data.data.minQuestionPass : 0;
