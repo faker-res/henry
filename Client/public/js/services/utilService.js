@@ -876,6 +876,7 @@ define([], function () {
                 case "UpdatePlayerQQ":
                 case "UpdatePlayerWeChat":
                 case "PlayerLevelMigration":
+                case "UpdatePlayerRealName":
                     groupName = "PLAYER_INFORMATION";
                     break;
                 case "UpdatePartnerInfo":
@@ -886,6 +887,7 @@ define([], function () {
                 case "UpdatePartnerWeChat":
                 case "UpdatePartnerCommissionType":
                 case "CustomizePartnerCommRate":
+                case "UpdatePartnerRealName":
                     groupName = "PARTNER_INFORMATION";
                     break;
                 case "UpdatePlayerCredit":

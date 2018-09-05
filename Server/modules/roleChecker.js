@@ -185,53 +185,110 @@ var roleChecker = {
     views: null,
 
     linkedViews: {
-        Dashboard: {
-            Platform: {
-                Read: ['countLoginPlayerbyPlatformWeek', 'getTopUpTotalAmountForAllPlatform',  'getPlayerConsumptionSumForAllPlatform', 'getBonusRequestList', 'countNewPlayers']
+        Player: {
+            "Player": {
+                Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList', "getDepartmentTreeById",
+                    'getPlayersCountByPlatform', 'getPlatform', 'getPlayerStatusChangeLog', 'getPlayerForAttachGroup',
+                    'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId', 'getSimilarPlayers', 'getPlayerCreditInProvider', "getAdminInfo", 'getUpdateCredibilityLog', 'getPlayerTopUpGroupLog',
+                    'getProviderLatestTimeRecord', 'checkTransferInSequence'],
+                AdvancedSearch: ['getPlayerByAdvanceQuery'],
+                Create: ['createPlayer', 'checkPlayerNameValidity'],
+                CreateTrial: ['createTestPlayerForPlatform'],
+                // Delete: ['deletePlayersById'],
+                Edit: ['createUpdatePlayerInfoProposal', 'updatePlayer', 'updatePlayerStatus', 'checkPlayerNameValidity', 'updatePlayerReferral','createUpdateTopUpGroupLog'],
+                EditContact: ['createUpdatePlayerEmailProposal', 'createUpdatePlayerPhoneProposal', 'createUpdatePlayerQQProposal','createUpdatePlayerWeChatProposal'],
+                PaymentInformation: ['updatePlayerPayment', 'createUpdatePlayerBankInfoProposal', 'verifyPlayerBankAccount'],
+                PaymentInformationHistory: ['getPaymentHistory'],
+                ResetPassword: ['resetPlayerPassword'],
+                PlayerExpenses: ['getPlayerConsumptionRecords', 'getPlayerTotalConsumptionForTimeFrame', 'playerPurchase'],
+                PlayerPermission: ['updatePlayerPermission'],
+                CallPlayer: ['getPlayerPhoneNumber'],
+                PermissionHistory: ['getPlayerPermissionLog'],
+                mailLog: ['searchMailLog'],
+                smsLog: ['searchSMSLog'],
+                sendSMS: ['sendSMSToPlayer'],
+                RepairPayment: ['getPlayerPendingPaymentProposal', 'submitRepairPaymentProposal'],
+                RepairTransaction: ['getPlayerTransferErrorLogs', 'getPagedPlayerCreditChangeLogs'],
+                ConsumptionReturnFix: ['createReturnFixProposal'],
+                ManualUnlockRewardTask: ['manualUnlockRewardTask'],
+                PlatformCreditTransferLog: ['getPagedPlatformCreditTransferLog', 'getAllPlayerCreditTransferStatus'],
+                NewPlayerList: ['getQueryProposalsForAdminId', 'getPlayerProposalsForAdminId'],
+                ModifyGamePassword: ['modifyGamePassword'],
+                ClearProposalLimit: ['requestClearProposalLimit'],
+                PlayerApiLog: ['getPlayerActionLog'],
+                TriggerAutoProposal: ['triggerAutoProposal'],
+                playerApiLog: ['getPlayerApiLog'],
+                UpdatePlayerCredibility: ['updatePlayerCredibilityRemark'],
+                ClearPlayerState: ['resetPlayerState']
             },
-            Operation: {
-                Read: ['getAllPlatformAvailableProposalsForAdminId', 'getAllRewardProposal']
-
+            "Reward": {
+                AddRewardTask: ['createPlayerRewardTask'],
+                applyReward: ['applyPreviousConsecutiveLoginReward'],
+                RewardHistory: ['queryRewardProposal', 'getPlatformRewardProposal'],
+                rewardTaskLog: ['getPlayerRewardTask'],
             },
-            Statistics: {
-                Read: ['countLoginPlayerAllPlatform', 'countTopUpORConsumptionAllPlatform', 'countNewPlayerAllPlatform', 'getProfitDisplayDetailByPlatform', 'getPlayerConsumptionDetailByPlatform', 'countNewPlayers']
-            }
+            "RewardPoints": {
+                RewardPointsChange: ['createPlayerRewardPointsRecord', 'updatePlayerRewardPointsRecord'],
+                RewardPointsConvert: ['getPlayerRewardPointsConversionRate', 'getPlayerRewardPointsDailyLimit', 'getPlayerRewardPointsDailyConvertedPoints', 'convertRewardPointsToCredit'],
+            },
+            "Bonus": {
+                applyBonus: ['applyBonusRequest'],
+                BonusHistory: [],
+            },
+            "Feedback": {
+                AddFeedback: [],
+                FeedbackHistory: ['getPlayerFeedbackReport'],
+                ModifyFeedbackResult: ['createPlayerFeedbackResult', 'deletePlayerFeedbackResult'],
+                ModifyFeedbackTopic: ['createPlayerFeedbackTopic', 'deletePlayerFeedbackTopic'],
+            },
+            "Disable": {
+                ForbidTopupTypes: [],
+                ForbidRewards: [],
+                ForbidProviders: [],
+                ForbidRewardPointsEvent: [],
+            },
+            "TopUp": {
+                ApplyManualTopup: ['applyManualTopUpRequest', 'cancelManualTopupRequest'],
+                ApplyAlipayTopup: ['getAlipayTopUpRequestList', 'applyAlipayTopUpRequest', 'cancelAlipayTopup'],
+                ApplyWechatPayTopup: ['getWechatPayTopUpRequestList', 'applyWechatPayTopUpRequest', 'cancelWechatPayTopup'],
+                ApplyQuickpayTopup: ['getQuickpayTopUpRequestList', 'applyQuickpayTopUpRequest', 'cancelQuickpayTopup'],
+                TopupRecord: ['getPlayerTopUpRecords'],
+            },
+            "Credit": {
+                CreditAdjustment: ['createUpdatePlayerCreditProposal'],
+                CreditChangeLog: ['getPlayerCreditChangeLogsByQuery', 'getPagedPlayerCreditChangeLogs'],
+                playerDailyCreditLog :['playerCreditDailyLog'],
+            },
         },
-        Admin: {
-            Department: {
-                Read: ['getDepartmentTreeById', 'getDepartmentTreeByIdWithUser', 'getAllDepartments', 'getAllRolesforAdmin', 'getUnAttachDepartments', 'getPotentialChildren'],
-                Create: ['createDepartment', 'createDepartmentWithParent'],
-                Delete: ['deleteDepartmentsById'],
-                Move: ['updateDepartmentParent', 'removeChildrenById', 'addChildrenById'],
-                Update: ['updateAdminDepartment', 'updateDepartment']
+        Partner: {
+            "Partner": {
+                Read: ['getPartnersByPlatform', 'partnerLevel/getByPlatform', 'getPartnersPlayerInfo', 'getPartner', 'getChildrenPartner', 'getAllPartner', 'getPartnerActivePlayers',
+                    'getPartnerValidPlayers', 'getPartnerReferralPlayers', 'getPartnerActivePlayersForPastWeek', 'getAllGameProviders', 'getPartnerIPHistory', 'getDuplicatePhoneNumber',
+                    'getReferralsList', 'getDailyActivePlayerCount', 'getWeeklyActivePlayerCount', 'getMonthlyActivePlayerCount', 'getValidPlayersCount', 'getTotalChildrenDeposit',
+                    'getTotalChildrenBalance', 'getAdminInfo'],
+                AdvancedSearch: ['getPartnersByAdvancedQuery'],
+                Create: ['createPartnerWithParent', 'createPartner', 'createPlayerLoginRecord'],
+                Delete: ['deletePartnersById', 'deletePlayerLoginRecord'],
+                Edit: ['updatePartner', 'checkPartnerFieldValidity', 'checkOwnDomainValidity', 'createUpdatePartnerInfoProposal'],
+                EditContact: ['createUpdatePartnerPhoneProposal', 'createUpdatePartnerEmailProposal', 'createUpdatePartnerQQProposal','createUpdatePartnerWeChatProposal','verifyPartnerPhoneNumber'],
+                BankDetail: ['createUpdatePartnerBankInfoProposal', 'verifyPartnerBankAccount'],
+                EditChildPartner: ['updateChildPartner', 'checkChildPartnerNameValidity', 'getChildPartnerRecords'],
+                EditCommission: ['updatePartner', 'checkPartnerFieldValidity', 'createUpdatePartnerCommissionTypeProposal', 'customizePartnerCommission'],
+                ResetPassword: ['resetPartnerPassword'],
+                ApplyBonus: ['applyPartnerBonusRequest'],
+                PartnerPermission: ['updatePartnerPermission'],
+                sendSMS: [],
+                partnerApiLog: [],
+                CreditAdjustment: ['createUpdatePartnerCreditProposal'],
+                SettleCommission: ['getAllPartnerCommSettPreview'],
+                PartnerCreditTransferToDownline: ['transferPartnerCreditToPlayer']
             },
-            User: {
-                Read: ['getAdminInfo', 'getAllAdminInfo', 'getFullAdminInfo', 'getFullAdminInfos', 'getAdminActionLog'],
-                Create: ['createAdmin', 'createAdminForDepartment'],
-                Delete: ['deleteAdminInfosById'],
-                Move: ['addUsersToDepartmentsById', 'removeUsersFromDepartmentsById', 'getUnAttachedUsersForDepartment'],
-                Update: [],
-                ResetPassword: ['resetAdminPassword'],
-                AttachRole: ['getUnAttachedDepartmentsforAdmin', 'getUnAttachedDepartmentRolesForAdmin', 'attachRolesToUsersById', 'getUnAttachUsers', 'attachRoleToUserByName'],
-                DetachRole: ['getAttachedDepartmentRolesforAdmin', 'detachRolesFromDepartmentsById', 'detachRolesFromUsersById', 'detachRoleFromUserByName'],
-                ViewLog: ['getAdminActionLog']
+            "Feedback": {
+                AddFeedback: ['getAllPartnerFeedbackResults', 'getAllPartnerFeedbackTopics'],
+                FeedbackHistory: ['getPartnerFeedbackReport'],
+                ModifyFeedbackResult: ['createPartnerFeedbackResult', 'deletePartnerFeedbackResult'],
+                ModifyFeedbackTopic: ['createPartnerFeedbackTopic', 'deletePartnerFeedbackTopic'],
             },
-            Role: {
-                Read: ['getAttachedRolesforAdmin', 'getAllViews', 'getUnAttachedRolesforAdmin', 'getAllRolesForAdmin', 'getRole', 'getAllRole', 'getAttachedRolesForDepartment', 'getUnAttachedRolesForDepartment'],
-                Create: ['createRole', 'createRoleForDepartment', 'attachRolesToDepartmentsById'],
-                Delete: ['deleteRolesById'],
-                Update: ['updateRole']
-            },
-            Platform: {
-                Read: ['getPlatform', 'getAllPlatforms'],
-                Move: ['addPlatformsToDepartmentById', 'removePlatformsFromDepartmentById'],
-                Create: ['createPlatform'],
-                Edit: ['updatePlatform'],
-                Delete: ['deletePlatformById']
-            },
-            PlayerMail: {
-                Read: []
-            }
         },
         Platform: {
             "Platform": {
@@ -252,65 +309,65 @@ var roleChecker = {
                 PlayerLevelSettlement: ['startPlatformPlayerLevelSettlement'],
                 PlayerConsecutiveConsumptionSettlement: ['startPlayerConsecutiveConsumptionSettlement']
             },
-            "Player": {
-                Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList', "getDepartmentTreeById",
-                    'getPlayersCountByPlatform', 'getPlatform', 'getPlayerStatusChangeLog', 'getPlayerForAttachGroup',
-                    'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId', 'getSimilarPlayers', 'getPlayerCreditInProvider', "getAdminInfo", 'getUpdateCredibilityLog', 'getPlayerTopUpGroupLog',
-                    'getProviderLatestTimeRecord', 'checkTransferInSequence'],
-                AdvancedSearch: ['getPlayerByAdvanceQuery'],
-                Create: ['createPlayer', 'checkPlayerNameValidity'],
-                CreateTrial: ['createTestPlayerForPlatform'],
-                // Delete: ['deletePlayersById'],
-                ForbidTopupTypes: [],
-                ForbidRewards: [],
-                ForbidProviders: [],
-                ForbidRewardPointsEvent: [],
-                AddFeedback: [],
-                FeedbackHistory: ['getPlayerFeedbackReport'],
-                Edit: ['createUpdatePlayerInfoProposal', 'updatePlayer', 'updatePlayerStatus', 'checkPlayerNameValidity', 'updatePlayerReferral','createUpdateTopUpGroupLog'],
-                EditContact: ['createUpdatePlayerEmailProposal', 'createUpdatePlayerPhoneProposal', 'createUpdatePlayerQQProposal','createUpdatePlayerWeChatProposal'],
-                PaymentInformation: ['updatePlayerPayment', 'createUpdatePlayerBankInfoProposal', 'verifyPlayerBankAccount'],
-                PaymentInformationHistory: ['getPaymentHistory'],
-                ResetPassword: ['resetPlayerPassword'],
-                ApplyManualTopup: ['applyManualTopUpRequest', 'cancelManualTopupRequest'],
-                ApplyAlipayTopup: ['getAlipayTopUpRequestList', 'applyAlipayTopUpRequest', 'cancelAlipayTopup'],
-                ApplyWechatPayTopup: ['getWechatPayTopUpRequestList', 'applyWechatPayTopUpRequest', 'cancelWechatPayTopup'],
-                ApplyQuickpayTopup: ['getQuickpayTopUpRequestList', 'applyQuickpayTopUpRequest', 'cancelQuickpayTopup'],
-                TopupRecord: ['getPlayerTopUpRecords'],
-                applyBonus: ['applyBonusRequest'],
-                BonusHistory: [],
-                CreditAdjustment: ['createUpdatePlayerCreditProposal'],
-                CreditChangeLog: ['getPlayerCreditChangeLogsByQuery', 'getPagedPlayerCreditChangeLogs'],
-                RewardPointsChange: ['createPlayerRewardPointsRecord', 'updatePlayerRewardPointsRecord'],
-                RewardPointsConvert: ['getPlayerRewardPointsConversionRate', 'getPlayerRewardPointsDailyLimit', 'getPlayerRewardPointsDailyConvertedPoints', 'convertRewardPointsToCredit'],
-                PlayerExpenses: ['getPlayerConsumptionRecords', 'getPlayerTotalConsumptionForTimeFrame', 'playerPurchase'],
-                AddRewardTask: ['createPlayerRewardTask'],
-                applyReward: ['applyPreviousConsecutiveLoginReward'],
-                RewardHistory: ['queryRewardProposal', 'getPlatformRewardProposal'],
-                PlayerPermission: ['updatePlayerPermission'],
-                CallPlayer: ['getPlayerPhoneNumber'],
-                PermissionHistory: ['getPlayerPermissionLog'],
-                mailLog: ['searchMailLog'],
-                smsLog: ['searchSMSLog'],
-                sendSMS: ['sendSMSToPlayer'],
-                RepairPayment: ['getPlayerPendingPaymentProposal', 'submitRepairPaymentProposal'],
-                RepairTransaction: ['getPlayerTransferErrorLogs', 'getPagedPlayerCreditChangeLogs'],
-                ConsumptionReturnFix: ['createReturnFixProposal'],
-                ManualUnlockRewardTask: ['manualUnlockRewardTask'],
-                PlatformCreditTransferLog: ['getPagedPlatformCreditTransferLog', 'getAllPlayerCreditTransferStatus'],
-                NewPlayerList: ['getQueryProposalsForAdminId', 'getPlayerProposalsForAdminId'],
-                ModifyGamePassword: ['modifyGamePassword'],
-                ClearProposalLimit: ['requestClearProposalLimit'],
-                PlayerApiLog: ['getPlayerActionLog'],
-                TriggerAutoProposal: ['triggerAutoProposal'],
-                playerDailyCreditLog :['playerCreditDailyLog'],
-                playerApiLog: ['getPlayerApiLog'],
-                rewardTaskLog: ['getPlayerRewardTask'],
-                UpdatePlayerCredibility: ['updatePlayerCredibilityRemark'],
-                ModifyFeedbackResult: ['createPlayerFeedbackResult', 'deletePlayerFeedbackResult'],
-                ModifyFeedbackTopic: ['createPlayerFeedbackTopic', 'deletePlayerFeedbackTopic'],
-                ClearPlayerState: ['resetPlayerState']
-            },
+            // "Player": {
+            //     Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList', "getDepartmentTreeById",
+            //         'getPlayersCountByPlatform', 'getPlatform', 'getPlayerStatusChangeLog', 'getPlayerForAttachGroup',
+            //         'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId', 'getSimilarPlayers', 'getPlayerCreditInProvider', "getAdminInfo", 'getUpdateCredibilityLog', 'getPlayerTopUpGroupLog',
+            //         'getProviderLatestTimeRecord', 'checkTransferInSequence'],
+            //     AdvancedSearch: ['getPlayerByAdvanceQuery'],
+            //     Create: ['createPlayer', 'checkPlayerNameValidity'],
+            //     CreateTrial: ['createTestPlayerForPlatform'],
+            //     // Delete: ['deletePlayersById'],
+            //     ForbidTopupTypes: [],
+            //     ForbidRewards: [],
+            //     ForbidProviders: [],
+            //     ForbidRewardPointsEvent: [],
+            //     AddFeedback: [],
+            //     FeedbackHistory: ['getPlayerFeedbackReport'],
+            //     Edit: ['createUpdatePlayerInfoProposal', 'updatePlayer', 'updatePlayerStatus', 'checkPlayerNameValidity', 'updatePlayerReferral','createUpdateTopUpGroupLog'],
+            //     EditContact: ['createUpdatePlayerEmailProposal', 'createUpdatePlayerPhoneProposal', 'createUpdatePlayerQQProposal','createUpdatePlayerWeChatProposal'],
+            //     PaymentInformation: ['updatePlayerPayment', 'createUpdatePlayerBankInfoProposal', 'verifyPlayerBankAccount'],
+            //     PaymentInformationHistory: ['getPaymentHistory'],
+            //     ResetPassword: ['resetPlayerPassword'],
+            //     ApplyManualTopup: ['applyManualTopUpRequest', 'cancelManualTopupRequest'],
+            //     ApplyAlipayTopup: ['getAlipayTopUpRequestList', 'applyAlipayTopUpRequest', 'cancelAlipayTopup'],
+            //     ApplyWechatPayTopup: ['getWechatPayTopUpRequestList', 'applyWechatPayTopUpRequest', 'cancelWechatPayTopup'],
+            //     ApplyQuickpayTopup: ['getQuickpayTopUpRequestList', 'applyQuickpayTopUpRequest', 'cancelQuickpayTopup'],
+            //     TopupRecord: ['getPlayerTopUpRecords'],
+            //     applyBonus: ['applyBonusRequest'],
+            //     BonusHistory: [],
+            //     CreditAdjustment: ['createUpdatePlayerCreditProposal'],
+            //     CreditChangeLog: ['getPlayerCreditChangeLogsByQuery', 'getPagedPlayerCreditChangeLogs'],
+            //     RewardPointsChange: ['createPlayerRewardPointsRecord', 'updatePlayerRewardPointsRecord'],
+            //     RewardPointsConvert: ['getPlayerRewardPointsConversionRate', 'getPlayerRewardPointsDailyLimit', 'getPlayerRewardPointsDailyConvertedPoints', 'convertRewardPointsToCredit'],
+            //     PlayerExpenses: ['getPlayerConsumptionRecords', 'getPlayerTotalConsumptionForTimeFrame', 'playerPurchase'],
+            //     AddRewardTask: ['createPlayerRewardTask'],
+            //     applyReward: ['applyPreviousConsecutiveLoginReward'],
+            //     RewardHistory: ['queryRewardProposal', 'getPlatformRewardProposal'],
+            //     PlayerPermission: ['updatePlayerPermission'],
+            //     CallPlayer: ['getPlayerPhoneNumber'],
+            //     PermissionHistory: ['getPlayerPermissionLog'],
+            //     mailLog: ['searchMailLog'],
+            //     smsLog: ['searchSMSLog'],
+            //     sendSMS: ['sendSMSToPlayer'],
+            //     RepairPayment: ['getPlayerPendingPaymentProposal', 'submitRepairPaymentProposal'],
+            //     RepairTransaction: ['getPlayerTransferErrorLogs', 'getPagedPlayerCreditChangeLogs'],
+            //     ConsumptionReturnFix: ['createReturnFixProposal'],
+            //     ManualUnlockRewardTask: ['manualUnlockRewardTask'],
+            //     PlatformCreditTransferLog: ['getPagedPlatformCreditTransferLog', 'getAllPlayerCreditTransferStatus'],
+            //     NewPlayerList: ['getQueryProposalsForAdminId', 'getPlayerProposalsForAdminId'],
+            //     ModifyGamePassword: ['modifyGamePassword'],
+            //     ClearProposalLimit: ['requestClearProposalLimit'],
+            //     PlayerApiLog: ['getPlayerActionLog'],
+            //     TriggerAutoProposal: ['triggerAutoProposal'],
+            //     playerDailyCreditLog :['playerCreditDailyLog'],
+            //     playerApiLog: ['getPlayerApiLog'],
+            //     rewardTaskLog: ['getPlayerRewardTask'],
+            //     UpdatePlayerCredibility: ['updatePlayerCredibilityRemark'],
+            //     ModifyFeedbackResult: ['createPlayerFeedbackResult', 'deletePlayerFeedbackResult'],
+            //     ModifyFeedbackTopic: ['createPlayerFeedbackTopic', 'deletePlayerFeedbackTopic'],
+            //     ClearPlayerState: ['resetPlayerState']
+            // },
             "AutoFeedback": {
                 Read: [],
                 create: [],
@@ -328,32 +385,32 @@ var roleChecker = {
             "FeedbackQuery": {
                 Read: ['getPlayerFeedbackQuery', 'getPlayerFeedbackResults', 'getAllPlayerFeedbacks']
             },
-            "Partner": {
-                Read: ['getPartnersByPlatform', 'partnerLevel/getByPlatform', 'getPartnersPlayerInfo', 'getPartner', 'getChildrenPartner', 'getAllPartner', 'getPartnerActivePlayers',
-                    'getPartnerValidPlayers', 'getPartnerReferralPlayers', 'getPartnerActivePlayersForPastWeek', 'getAllGameProviders', 'getPartnerIPHistory', 'getDuplicatePhoneNumber',
-                    'getReferralsList', 'getDailyActivePlayerCount', 'getWeeklyActivePlayerCount', 'getMonthlyActivePlayerCount', 'getValidPlayersCount', 'getTotalChildrenDeposit',
-                    'getTotalChildrenBalance', 'getAdminInfo'],
-                AdvancedSearch: ['getPartnersByAdvancedQuery'],
-                Create: ['createPartnerWithParent', 'createPartner', 'createPlayerLoginRecord'],
-                Delete: ['deletePartnersById', 'deletePlayerLoginRecord'],
-                Edit: ['updatePartner', 'checkPartnerFieldValidity', 'checkOwnDomainValidity', 'createUpdatePartnerInfoProposal'],
-                EditContact: ['createUpdatePartnerPhoneProposal', 'createUpdatePartnerEmailProposal', 'createUpdatePartnerQQProposal','createUpdatePartnerWeChatProposal','verifyPartnerPhoneNumber'],
-                BankDetail: ['createUpdatePartnerBankInfoProposal', 'verifyPartnerBankAccount'],
-                EditChildPartner: ['updateChildPartner', 'checkChildPartnerNameValidity', 'getChildPartnerRecords'],
-                EditCommission: ['updatePartner', 'checkPartnerFieldValidity', 'createUpdatePartnerCommissionTypeProposal', 'customizePartnerCommission'],
-                ResetPassword: ['resetPartnerPassword'],
-                ApplyBonus: ['applyPartnerBonusRequest'],
-                PartnerPermission: ['updatePartnerPermission'],
-                AddFeedback: ['getAllPartnerFeedbackResults', 'getAllPartnerFeedbackTopics'],
-                FeedbackHistory: ['getPartnerFeedbackReport'],
-                ModifyFeedbackResult: ['createPartnerFeedbackResult', 'deletePartnerFeedbackResult'],
-                ModifyFeedbackTopic: ['createPartnerFeedbackTopic', 'deletePartnerFeedbackTopic'],
-                sendSMS: [],
-                partnerApiLog: [],
-                CreditAdjustment: ['createUpdatePartnerCreditProposal'],
-                SettleCommission: ['getAllPartnerCommSettPreview'],
-                PartnerCreditTransferToDownline: ['transferPartnerCreditToPlayer']
-            },
+            // "Partner": {
+            //     Read: ['getPartnersByPlatform', 'partnerLevel/getByPlatform', 'getPartnersPlayerInfo', 'getPartner', 'getChildrenPartner', 'getAllPartner', 'getPartnerActivePlayers',
+            //         'getPartnerValidPlayers', 'getPartnerReferralPlayers', 'getPartnerActivePlayersForPastWeek', 'getAllGameProviders', 'getPartnerIPHistory', 'getDuplicatePhoneNumber',
+            //         'getReferralsList', 'getDailyActivePlayerCount', 'getWeeklyActivePlayerCount', 'getMonthlyActivePlayerCount', 'getValidPlayersCount', 'getTotalChildrenDeposit',
+            //         'getTotalChildrenBalance', 'getAdminInfo'],
+            //     AdvancedSearch: ['getPartnersByAdvancedQuery'],
+            //     Create: ['createPartnerWithParent', 'createPartner', 'createPlayerLoginRecord'],
+            //     Delete: ['deletePartnersById', 'deletePlayerLoginRecord'],
+            //     Edit: ['updatePartner', 'checkPartnerFieldValidity', 'checkOwnDomainValidity', 'createUpdatePartnerInfoProposal'],
+            //     EditContact: ['createUpdatePartnerPhoneProposal', 'createUpdatePartnerEmailProposal', 'createUpdatePartnerQQProposal','createUpdatePartnerWeChatProposal','verifyPartnerPhoneNumber'],
+            //     BankDetail: ['createUpdatePartnerBankInfoProposal', 'verifyPartnerBankAccount'],
+            //     EditChildPartner: ['updateChildPartner', 'checkChildPartnerNameValidity', 'getChildPartnerRecords'],
+            //     EditCommission: ['updatePartner', 'checkPartnerFieldValidity', 'createUpdatePartnerCommissionTypeProposal', 'customizePartnerCommission'],
+            //     ResetPassword: ['resetPartnerPassword'],
+            //     ApplyBonus: ['applyPartnerBonusRequest'],
+            //     PartnerPermission: ['updatePartnerPermission'],
+            //     AddFeedback: ['getAllPartnerFeedbackResults', 'getAllPartnerFeedbackTopics'],
+            //     FeedbackHistory: ['getPartnerFeedbackReport'],
+            //     ModifyFeedbackResult: ['createPartnerFeedbackResult', 'deletePartnerFeedbackResult'],
+            //     ModifyFeedbackTopic: ['createPartnerFeedbackTopic', 'deletePartnerFeedbackTopic'],
+            //     sendSMS: [],
+            //     partnerApiLog: [],
+            //     CreditAdjustment: ['createUpdatePartnerCreditProposal'],
+            //     SettleCommission: ['getAllPartnerCommSettPreview'],
+            //     PartnerCreditTransferToDownline: ['transferPartnerCreditToPlayer']
+            // },
             "Game": {
                 Read: ['getAllGameProviders', 'getGamesByPlatformAndProvider', 'getGamesNotAttachedToPlatform'],
                 // AttachProvider: ['addProviderToPlatformById'],
@@ -416,7 +473,7 @@ var roleChecker = {
                 ValidActiveRead: ['getPartnerLevelConfig'],
                 ValidActiveUpdate: ['updatePartnerLevelConfig'],
                 PartnerCommission: ['createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig','getPartnerCommissionRateConfig',
-                'createUpdatePartnerCommissionRateConfig','createUpdatePartnerCommissionConfigWithGameProviderGroup','getPartnerCommissionConfigWithGameProviderGroup','updateParentCommissionRateConfig'],
+                    'createUpdatePartnerCommissionRateConfig','createUpdatePartnerCommissionConfigWithGameProviderGroup','getPartnerCommissionConfigWithGameProviderGroup','updateParentCommissionRateConfig'],
                 platformBasic: [],
                 phoneFilterConfig: [],
                 financialSettlementConfig: ['updateAllAdminInfo', 'updatePlatform', 'updatePlatformFinancialPoints', 'updatePlatformAllBankCardGroup', 'updatePlatformAllWechatPayGroup', 'updatePlatformAllAlipayGroup'],
@@ -499,6 +556,117 @@ var roleChecker = {
                 Update: ['updateBatchPlayerCredibilityRemark', 'updateBatchPlayerPermission', 'updateBatchPlayerForbidRewardEvents', 'updateBatchPlayerForbidProviders', 'updateBatchPlayerForbidPaymentType', 'updateBatchPlayerForbidRewardPointsEvent'],
             }
         },
+        Report: {
+            General: {
+                Read: ['getPlatform', 'getProposalTypeByPlatformId', "getAllGameTypes", "getPlayerLevelByPlatformId", "getRewardEventsForPlatform", "getPromoCodeTypes", "getPlatformPartnerSettlementStatus"],
+                TOPUP_REPORT: ['topupReport', "getMerchantTypeList"],
+                PROPOSAL_REPORT: ['getProposalStaticsReport'],
+                FINANCIAL_POINTS_REPORT: ['getFinancialPointsReport'],
+                CONSUMPTION_MODE_REPORT: ['getConsumptionModeReport'],
+                PROVIDER_REPORT: ['operationReport', 'operationSummaryReport'],
+                PLAYER_EXPENSE_REPORT: ['getPlayerProviderReport', 'getProviderGamePlayerReport', 'getProviderGameReport', 'getPlayerProviderByGameReport', 'manualDailyProviderSettlement'],
+                PLAYER_REPORT: ['getPlayerReport', 'manualDailyProviderSettlement', 'getGames'],
+                PLAYER_DEPOSIT_ANALYSIS_REPORT: ['getPlayerDepositAnalysisReport', 'getPlayerDepositAnalysisDetails', 'addPlayerToDepositTrackingReport'],
+                PLAYER_DEPOSIT_TRACKING_REPORT: ['getPlayerDepositTrackingReport', 'getDepositTrackingGroup', 'addDepositTrackingGroup', 'deleteDepositTrackingGroup', 'modifyPlayerDepositTrackingGroup', 'removePlayerFromDepositTrackingReport', 'getPlayerDepositTrackingMonthlyDetails', 'getPlayerDepositTrackingDailyDetails'],
+                NEWACCOUNT_REPORT: ['getPlayerDomainAnalysisData', 'getNewAccountReportData', 'getAllAdminInfo', 'getAllPromoteWay', 'getPartnerLevelConfig', 'getAllUrl'],
+                DX_NEWACCOUNT_REPORT: ['getDXNewPlayerReport', 'getAllPromoteWay', 'getDepartmentDetailsByPlatformObjId'],
+                PLAYERPARTNER_REPORT: ['getPartnerPlayers', 'getPartnerSummaryReport', 'getPartnerPlayerBonusReport'],
+                PARTNERPLAYERBOUNS_REPORT: ['getPartnerPlayerBonusReport'],
+                PARTNERCOMMISSION_REPORT: ['getPartnerCommissionReport'],
+                PLAYERDOMAIN_REPORT: ['getPlayerDomainReport', 'getDepartmentDetailsByPlatformObjId'],
+                WINRATE_REPORT: ['winRateReport'],
+                FEEDBACK_REPORT: ['getDepartmentDetailsByPlatformObjId'],
+                PARTNER_SETTLEMENT_HISTORY_REPORT: [],
+                REAL_TIME_COMMISSION_REPORT: ['getCurrentPartnerCommissionDetail'],
+                PAST_COMMISSION_SETTLEMENT: ['settlePastCommission'],
+                PLAYER_ALIPAY_ACCOUNT_REPORT: [],
+            },
+            Reward: {
+                Read: ['getPlatformRewardPageReport', 'getRewardProposalReportByType','getRewardProposalReport'],
+                // PlayerConsumption: ['getPlayerConsumptionReturn'],
+                // FullAttendance: ['getFullAttendanceProposalReport'],
+                // FirstTopUp: ['getPlayerFirstTopUpReturn'],
+                // Provider: ['getPlatformRewardReport'],
+                // Transaction: ['getTransactionProposalReport'],
+                // PartnerConsumption: ['getPartnerConsumptionReturn'],
+                // PartnerIncentive: ['getPartnerIncentiveReward'],
+                // PartnerReferral: ['getPartnerReferralReward'],
+                // PlayerTopUpReturn: ['getPlayerTopUpReturn'],
+                // PlayerConsumptionReturn: ['getPlayerConsumptionIncentiveReturn']
+            },
+            Miscellaneous: {
+                Read: [],
+                PLAYER_FEEDBACK_REPORT: ['getPlayerFeedbackReport', 'getAllFeedbackResultList'],
+                CREDIT_CHANGE_REPORT: ['queryCreditChangeLog'],
+                PLAYER_ALMOST_LEVELUP_REPORT: ['getPlayerAlmostLevelupReport'],
+                ACTIONLOG_REPORT: ['getActionLogPageReport'],
+                ONLINE_PAYMENT_MISMATCH_REPORT: ['getMismatchReport'],
+                LIMITED_OFFER_REPORT: ['getLimitedOfferReport']
+            }
+        },
+        Operation: {
+            Proposal: {
+                Read: ['getProposalTypeByPlatformId', "getFullProposalProcess", 'getQueryApprovalProposalsForAdminId', "getQueryProposalsForAdminId", "getRewardEventsForPlatform", "getPromoCodeTypes"],
+                ProposalListRead: ['getAvailableProposalsForAdminId'],
+                ProposalListDetail: ['getAvailableProposalsForAdminId'],
+                ApproveProposal: ["updateProposalProcessStep"],
+                RejectProposal: ["updateProposalProcessStep"],
+                RepairPayment: ['getPlayerPendingPaymentProposal', 'submitRepairPaymentProposal'],
+                // TopupIntentionRead: ['getPlayerTopUpIntentRecordByPlatform', 'getPlayerTopUpIntentRecordStatusList'],
+                // TopupIntentionDetail: ['getPlayerTopUpIntentRecordByPlatform'],
+                // NewAccountListRead: ['getPlayerRegistrationIntentRecordByPlatform'],
+                // NewAccountListDetail: ['getPlayerRegistrationIntentRecordByPlatform'],
+                delayManualTopupRequest: ['delayManualTopupRequest'],
+                queryByProposalId: [],
+                queryByProposalType: [],
+                queryByProposalStatus: [],
+                queryByProposalCredit: [],
+                queryByProposalPlayer: [],
+                queryByProposalDate: [],
+                updatePlayerBonusStatus: ['setBonusProposalStatus'],
+                CsApproveProposal:["approveCsPendingAndChangeStatus"]
+            },
+            Player: {
+                Read: ['getCurrentActivePlayersCount', 'getActivePlayers'],
+                smsPlayer: ['sendSMSToPlayer'],
+                CallPlayer: ['getPlayerPhoneNumber']
+            }
+        },
+        Analysis: {
+            "Analysis": {
+                Read: [],
+                Location: ['getPlayerLoginLocation', 'getPlayerLoginLocationInCountry', 'getPlayerPhoneLocation', 'getPlayerPhoneLocationInProvince'],
+                Login: ['countLoginPlayerbyPlatform'],
+                Reward: ['getPlatformRewardAnalysis'],
+                Device: ['getPlayerDeviceAnalysisData'],
+                Consumption: ['getPlayerConsumptionSumForAllPlatform'],
+                TopUp: ['getTopUpTotalAmountForAllPlatform','getTopupAnalysisByPlatform'],
+                NewPlayer: ['countNewPlayerbyPlatform', 'countNewPlayers'],
+                ActivePlayer: ['countActivePlayerbyPlatform', 'countActivePlayerALLPlatform'],
+                PlayerRetention: ['getPlayerRetention'],
+                Bonus: ['getAnalysisBonusRequestList','getAnalysisSingleBonusRequestList'],
+                ApiResponseTime: ['getApiLoggerAllServiceName', 'getApiLoggerAllFunctionNameOfService', 'getApiResponseTimeQuery'],
+                ConsumptionInterval: ['getConsumptionIntervalData'],
+                ClientSource: ['getClientSourceQuery'],
+                LoginPlayer: ['countLoginPlayerbyPlatform'],
+                ValidActivePlayer: ['countValidActivePlayerbyPlatform'],
+                OnlineTopupSuccessRate: ['getOnlineTopupAnalysisByPlatform'],
+                TopupMethodRate: ['getTopUpMethodAnalysisByPlatform','getTopUpMethodCountByPlatform'],
+                DemoPlayer: ['getDemoPlayerAnalysis'],
+                ClickCount: ['getClickCountAnalysis'],
+                PlayerDomain: ['getPlayerDomainAnalysisData'],
+                ManualApproval: ['getManualApprovalRecords'],
+                FrontEndRegistrationAttritionRate: ['getSpecificProposalTypeByName', 'getRegistrationClickCountRecords'],
+                WithdrawalSpeed: ['getWithdrawalProposal', 'getProposalByObjId'],
+                IpDomain: ['getIpDomainReport'],
+                PlayerOnlineTime: ['getOnlineTimeLogByPlatform']
+            }
+        },
+        Monitor: {
+            Payment:{
+                Read: ['getPaymentMonitorResult']
+            }
+        },
         Payment: {
             "BankCardGroup": {
                 Read: ['getPlatformBankCardGroup', 'getIncludedBankCardByBankCardGroup', 'getExcludedBankCardByBankCardGroup'],
@@ -574,115 +742,52 @@ var roleChecker = {
                 UploadGamePic: []
             }
         },
-        Operation: {
-            Proposal: {
-                Read: ['getProposalTypeByPlatformId', "getFullProposalProcess", 'getQueryApprovalProposalsForAdminId', "getQueryProposalsForAdminId", "getRewardEventsForPlatform", "getPromoCodeTypes"],
-                ProposalListRead: ['getAvailableProposalsForAdminId'],
-                ProposalListDetail: ['getAvailableProposalsForAdminId'],
-                ApproveProposal: ["updateProposalProcessStep"],
-                RejectProposal: ["updateProposalProcessStep"],
-                RepairPayment: ['getPlayerPendingPaymentProposal', 'submitRepairPaymentProposal'],
-                // TopupIntentionRead: ['getPlayerTopUpIntentRecordByPlatform', 'getPlayerTopUpIntentRecordStatusList'],
-                // TopupIntentionDetail: ['getPlayerTopUpIntentRecordByPlatform'],
-                // NewAccountListRead: ['getPlayerRegistrationIntentRecordByPlatform'],
-                // NewAccountListDetail: ['getPlayerRegistrationIntentRecordByPlatform'],
-                delayManualTopupRequest: ['delayManualTopupRequest'],
-                queryByProposalId: [],
-                queryByProposalType: [],
-                queryByProposalStatus: [],
-                queryByProposalCredit: [],
-                queryByProposalPlayer: [],
-                queryByProposalDate: [],
-                updatePlayerBonusStatus: ['setBonusProposalStatus'],
-                CsApproveProposal:["approveCsPendingAndChangeStatus"]
+        Dashboard: {
+            Platform: {
+                Read: ['countLoginPlayerbyPlatformWeek', 'getTopUpTotalAmountForAllPlatform',  'getPlayerConsumptionSumForAllPlatform', 'getBonusRequestList', 'countNewPlayers']
             },
-            Player: {
-                Read: ['getCurrentActivePlayersCount', 'getActivePlayers'],
-                smsPlayer: ['sendSMSToPlayer'],
-                CallPlayer: ['getPlayerPhoneNumber']
+            Operation: {
+                Read: ['getAllPlatformAvailableProposalsForAdminId', 'getAllRewardProposal']
+
+            },
+            Statistics: {
+                Read: ['countLoginPlayerAllPlatform', 'countTopUpORConsumptionAllPlatform', 'countNewPlayerAllPlatform', 'getProfitDisplayDetailByPlatform', 'getPlayerConsumptionDetailByPlatform', 'countNewPlayers']
             }
         },
-        Analysis: {
-            "Analysis": {
-                Read: [],
-                Location: ['getPlayerLoginLocation', 'getPlayerLoginLocationInCountry', 'getPlayerPhoneLocation', 'getPlayerPhoneLocationInProvince'],
-                Login: ['countLoginPlayerbyPlatform'],
-                Reward: ['getPlatformRewardAnalysis'],
-                Device: ['getPlayerDeviceAnalysisData'],
-                Consumption: ['getPlayerConsumptionSumForAllPlatform'],
-                TopUp: ['getTopUpTotalAmountForAllPlatform','getTopupAnalysisByPlatform'],
-                NewPlayer: ['countNewPlayerbyPlatform', 'countNewPlayers'],
-                ActivePlayer: ['countActivePlayerbyPlatform', 'countActivePlayerALLPlatform'],
-                PlayerRetention: ['getPlayerRetention'],
-                Bonus: ['getAnalysisBonusRequestList','getAnalysisSingleBonusRequestList'],
-                ApiResponseTime: ['getApiLoggerAllServiceName', 'getApiLoggerAllFunctionNameOfService', 'getApiResponseTimeQuery'],
-                ConsumptionInterval: ['getConsumptionIntervalData'],
-                ClientSource: ['getClientSourceQuery'],
-                LoginPlayer: ['countLoginPlayerbyPlatform'],
-                ValidActivePlayer: ['countValidActivePlayerbyPlatform'],
-                OnlineTopupSuccessRate: ['getOnlineTopupAnalysisByPlatform'],
-                TopupMethodRate: ['getTopUpMethodAnalysisByPlatform','getTopUpMethodCountByPlatform'],
-                DemoPlayer: ['getDemoPlayerAnalysis'],
-                ClickCount: ['getClickCountAnalysis'],
-                PlayerDomain: ['getPlayerDomainAnalysisData'],
-                ManualApproval: ['getManualApprovalRecords'],
-                FrontEndRegistrationAttritionRate: ['getSpecificProposalTypeByName', 'getRegistrationClickCountRecords'],
-                WithdrawalSpeed: ['getWithdrawalProposal', 'getProposalByObjId'],
-                IpDomain: ['getIpDomainReport'],
-                PlayerOnlineTime: ['getOnlineTimeLogByPlatform']
-            }
-        },
-        Report: {
-            General: {
-                Read: ['getPlatform', 'getProposalTypeByPlatformId', "getAllGameTypes", "getPlayerLevelByPlatformId", "getRewardEventsForPlatform", "getPromoCodeTypes", "getPlatformPartnerSettlementStatus"],
-                TOPUP_REPORT: ['topupReport', "getMerchantTypeList"],
-                PROPOSAL_REPORT: ['getProposalStaticsReport'],
-                FINANCIAL_POINTS_REPORT: ['getFinancialPointsReport'],
-                CONSUMPTION_MODE_REPORT: ['getConsumptionModeReport'],
-                PROVIDER_REPORT: ['operationReport', 'operationSummaryReport'],
-                PLAYER_EXPENSE_REPORT: ['getPlayerProviderReport', 'getProviderGamePlayerReport', 'getProviderGameReport', 'getPlayerProviderByGameReport', 'manualDailyProviderSettlement'],
-                PLAYER_REPORT: ['getPlayerReport', 'manualDailyProviderSettlement', 'getGames'],
-                PLAYER_DEPOSIT_ANALYSIS_REPORT: ['getPlayerDepositAnalysisReport', 'getPlayerDepositAnalysisDetails', 'addPlayerToDepositTrackingReport'],
-                PLAYER_DEPOSIT_TRACKING_REPORT: ['getPlayerDepositTrackingReport', 'getDepositTrackingGroup', 'addDepositTrackingGroup', 'deleteDepositTrackingGroup', 'modifyPlayerDepositTrackingGroup', 'removePlayerFromDepositTrackingReport', 'getPlayerDepositTrackingMonthlyDetails', 'getPlayerDepositTrackingDailyDetails'],
-                NEWACCOUNT_REPORT: ['getPlayerDomainAnalysisData', 'getNewAccountReportData', 'getAllAdminInfo', 'getAllPromoteWay', 'getPartnerLevelConfig', 'getAllUrl'],
-                DX_NEWACCOUNT_REPORT: ['getDXNewPlayerReport', 'getAllPromoteWay', 'getDepartmentDetailsByPlatformObjId'],
-                PLAYERPARTNER_REPORT: ['getPartnerPlayers', 'getPartnerSummaryReport', 'getPartnerPlayerBonusReport'],
-                PARTNERPLAYERBOUNS_REPORT: ['getPartnerPlayerBonusReport'],
-                PARTNERCOMMISSION_REPORT: ['getPartnerCommissionReport'],
-                PLAYERDOMAIN_REPORT: ['getPlayerDomainReport', 'getDepartmentDetailsByPlatformObjId'],
-                WINRATE_REPORT: ['winRateReport'],
-                FEEDBACK_REPORT: ['getDepartmentDetailsByPlatformObjId'],
-                PARTNER_SETTLEMENT_HISTORY_REPORT: [],
-                REAL_TIME_COMMISSION_REPORT: ['getCurrentPartnerCommissionDetail'],
-                PAST_COMMISSION_SETTLEMENT: ['settlePastCommission'],
-                PLAYER_ALIPAY_ACCOUNT_REPORT: [],
+        Admin: {
+            Department: {
+                Read: ['getDepartmentTreeById', 'getDepartmentTreeByIdWithUser', 'getAllDepartments', 'getAllRolesforAdmin', 'getUnAttachDepartments', 'getPotentialChildren'],
+                Create: ['createDepartment', 'createDepartmentWithParent'],
+                Delete: ['deleteDepartmentsById'],
+                Move: ['updateDepartmentParent', 'removeChildrenById', 'addChildrenById'],
+                Update: ['updateAdminDepartment', 'updateDepartment']
             },
-            Reward: {
-                Read: ['getPlatformRewardPageReport', 'getRewardProposalReportByType','getRewardProposalReport'],
-                // PlayerConsumption: ['getPlayerConsumptionReturn'],
-                // FullAttendance: ['getFullAttendanceProposalReport'],
-                // FirstTopUp: ['getPlayerFirstTopUpReturn'],
-                // Provider: ['getPlatformRewardReport'],
-                // Transaction: ['getTransactionProposalReport'],
-                // PartnerConsumption: ['getPartnerConsumptionReturn'],
-                // PartnerIncentive: ['getPartnerIncentiveReward'],
-                // PartnerReferral: ['getPartnerReferralReward'],
-                // PlayerTopUpReturn: ['getPlayerTopUpReturn'],
-                // PlayerConsumptionReturn: ['getPlayerConsumptionIncentiveReturn']
+            User: {
+                Read: ['getAdminInfo', 'getAllAdminInfo', 'getFullAdminInfo', 'getFullAdminInfos', 'getAdminActionLog'],
+                Create: ['createAdmin', 'createAdminForDepartment'],
+                Delete: ['deleteAdminInfosById'],
+                Move: ['addUsersToDepartmentsById', 'removeUsersFromDepartmentsById', 'getUnAttachedUsersForDepartment'],
+                Update: [],
+                ResetPassword: ['resetAdminPassword'],
+                AttachRole: ['getUnAttachedDepartmentsforAdmin', 'getUnAttachedDepartmentRolesForAdmin', 'attachRolesToUsersById', 'getUnAttachUsers', 'attachRoleToUserByName'],
+                DetachRole: ['getAttachedDepartmentRolesforAdmin', 'detachRolesFromDepartmentsById', 'detachRolesFromUsersById', 'detachRoleFromUserByName'],
+                ViewLog: ['getAdminActionLog']
             },
-            Miscellaneous: {
-                Read: [],
-                PLAYER_FEEDBACK_REPORT: ['getPlayerFeedbackReport', 'getAllFeedbackResultList'],
-                CREDIT_CHANGE_REPORT: ['queryCreditChangeLog'],
-                PLAYER_ALMOST_LEVELUP_REPORT: ['getPlayerAlmostLevelupReport'],
-                ACTIONLOG_REPORT: ['getActionLogPageReport'],
-                ONLINE_PAYMENT_MISMATCH_REPORT: ['getMismatchReport'],
-                LIMITED_OFFER_REPORT: ['getLimitedOfferReport']
-            }
-        },
-        Monitor: {
-            Payment:{
-                Read: ['getPaymentMonitorResult']
+            Role: {
+                Read: ['getAttachedRolesforAdmin', 'getAllViews', 'getUnAttachedRolesforAdmin', 'getAllRolesForAdmin', 'getRole', 'getAllRole', 'getAttachedRolesForDepartment', 'getUnAttachedRolesForDepartment'],
+                Create: ['createRole', 'createRoleForDepartment', 'attachRolesToDepartmentsById'],
+                Delete: ['deleteRolesById'],
+                Update: ['updateRole']
+            },
+            Platform: {
+                Read: ['getPlatform', 'getAllPlatforms'],
+                Move: ['addPlatformsToDepartmentById', 'removePlatformsFromDepartmentById'],
+                Create: ['createPlatform'],
+                Edit: ['updatePlatform'],
+                Delete: ['deletePlatformById']
+            },
+            PlayerMail: {
+                Read: []
             }
         },
         QualityInspection: {

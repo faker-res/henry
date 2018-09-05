@@ -121,11 +121,12 @@ var dbClientQnA = {
                     return dbconfig.collection_clientQnATemplate.findOne({
                         type: constClientQnA.FORGOT_PASSWORD,
                         processNo: "2_2"
-                    }).lean().then(
-                        QnATemplate => {
-                            return pmsAPI.foundation_getProvinceList({});
-                        }
-                    );
+                    }).lean()
+                    //     .then(
+                    //     QnATemplate => {
+                    //         return pmsAPI.foundation_getProvinceList({});
+                    //     }
+                    // );
                 } else {
                     return Promise.resolve({
                         clientQnAEnd: {

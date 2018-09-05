@@ -245,6 +245,37 @@ define([], () => {
             )
         };
 
+        self.getPMSDevices = function(num){
+            // PMS definition of device type
+            // Web: 1, H5: 2, Both: 3, App:4
+            let result = 7;
+            switch (num) {
+                case 1:
+                    result = 1;
+                    break;
+                case 2:
+                    result = 1;
+                    break;
+                case 3:
+                    result = 2;
+                    break;
+                case 4:
+                    result = 2;
+                    break;
+                case 5:
+                    result = 4;
+                    break;
+                case 6:
+                    result = 4;
+                    break;
+                default:
+                    // if set 0 , might got issues with false or null , so i set 7
+                    result = 7;
+                    break;
+            }
+            return result
+        }
+
         this.updatePageTile = ($translate, pageName, tabName) => {
             window.document.title = $translate(pageName) + "->" + $translate(tabName);
             $(document).one('shown.bs.tab', function (e) {
