@@ -332,6 +332,8 @@
                         option(value='Manually Cancelled') {{'Manually Cancelled' | translate}}
                 .inlineBlk
                     button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','overview')" ng-click='vm.autoFeedbackSearchMission(true)') {{"SEARCH" | translate}}
+                span#autoFeedbackOverviewSpin.collapse
+                    i.fa.fa-spinner.fa-spin
 
                 br
                 table#autoFeedbackOverviewTable.common-table.display(style="min-width:100% ;overflow: scroll")

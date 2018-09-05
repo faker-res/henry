@@ -1,12 +1,12 @@
 .text-center
     p(ng-if="!vm.curPlatformText")
         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
-.col-md-6(ng-if="!checkViewPermission('Platform', 'Partner', 'AdvancedSearch') && vm.curPlatformText")
+.col-md-6(ng-if="!checkViewPermission('Partner', 'Partner', 'AdvancedSearch') && vm.curPlatformText")
     .search-box
         .fa.fa-search.pull-right.margin-all-5
         a.fa.fa-times.pull-right.margin-all-5(ng-if='vm.searchText', ng-click='vm.searchText=null')
         input#partnerSearch.span.input-sm(type="text", ng-model="vm.searchText", placeholder='{{"SEARCH_HERE" | translate}}')
-.col-md-12(ng-show="checkViewPermission('Platform', 'Partner', 'AdvancedSearch') && vm.curPlatformText")
+.col-md-12(ng-show="checkViewPermission('Partner', 'Partner', 'AdvancedSearch') && vm.curPlatformText")
     //.col-xs-11.col-sm-10.col-md-12.search-filters-container#partnerTable-search-filters.well
     .col-xs-11.col-sm-10.col-md-12.search-filters-container.well
         .search-filter.col-xs-12.col-sm-6.col-md-3
@@ -178,10 +178,10 @@ p
 p
 .col-md-12
     .btn-group.text-center.margin-small
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'Create')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalCreatePartner', ng-click='vm.prepareCreatePartner()')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Partner', 'Partner', 'Create')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalCreatePartner', ng-click='vm.prepareCreatePartner()')
             text {{"CREATE" | translate}}
             img.img-create
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'SettleCommission') && !vm.partnerSettlementSubmitted[prev.settMode]", ng-repeat="prev in vm.allPartnerCommSettPreview", ng-click='vm.initSettlePartnerComm(prev)')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Partner', 'Partner', 'SettleCommission') && !vm.partnerSettlementSubmitted[prev.settMode]", ng-repeat="prev in vm.allPartnerCommSettPreview", ng-click='vm.initSettlePartnerComm(prev)')
             text {{constPartnerCommissionSettlementType[prev.settMode] | translate}}
             .fa.fa-book
         //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'Delete')",ng-disabled="vm.selectedPartnerCount==0", data-toggle="modal", data-target='#modalDeletePartner')
@@ -297,11 +297,11 @@ p
                                                     .col-sm-8
                                                         text(style='height:inherit') {{vm.selectedSinglePartner.remarks || 'NONE' | translate}}
                                         td.text-left
-                                            button.btn.btn-primary.common-button-sm(ng-click="vm.openEditPartnerDialog('basicInfo');", ng-if="checkViewPermission('Platform', 'Partner', 'Edit')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner") {{"EDIT" | translate}}
+                                            button.btn.btn-primary.common-button-sm(ng-click="vm.openEditPartnerDialog('basicInfo');", ng-if="checkViewPermission('Partner', 'Partner', 'Edit')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner") {{"EDIT" | translate}}
                                             br
                                             button.btn.btn-primary.common-button-sm(ng-click='vm.getPartnerInfoHistory()') {{"EDIT_HISTORY" | translate}}
                                             br
-                                            button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Partner', 'ResetPassword')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal",ng-click='vm.newPartner=vm.selectedSinglePartner; vm.partnerNewPassword = false',data-target='#modalPartnerPasswordReset') {{"RESET_PASSWORD" | translate}}
+                                            button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Partner', 'Partner', 'ResetPassword')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal",ng-click='vm.initResetPartnerPasswordModal()',data-target='#modalPartnerPasswordReset') {{"RESET_PASSWORD" | translate}}
 
                                 tr
                                     td
@@ -339,7 +339,7 @@ p
                                                         text {{vm.selectedSinglePartner.email || 'Unknown' | translate}}
 
                                         td.text-left
-                                            button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Partner', 'EditContact')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal", ng-click="vm.openEditPartnerDialog('contactInfo')") {{"EDIT" | translate}}
+                                            button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Partner', 'Partner', 'EditContact')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal", ng-click="vm.openEditPartnerDialog('contactInfo')") {{"EDIT" | translate}}
                                             br
                                             button.btn.btn-primary.common-button-sm(ng-click='vm.getPartnerContactHistory()') {{"EDIT_HISTORY" | translate}}
 
@@ -405,9 +405,9 @@ p
                                                         text {{vm.selectedSinglePartner.bankAddress || 'Unknown' | translate}}
 
                                         td.text-left
-                                            button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Partner', 'BankDetail')",ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal", ng-click="vm.openEditPartnerDialog('withdrawInfo');") {{"EDIT" | translate}}
+                                            button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Partner', 'Partner', 'BankDetail')",ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal", ng-click="vm.openEditPartnerDialog('withdrawInfo');") {{"EDIT" | translate}}
                                             br
-                                            button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Partner', 'PaymentInformationHistory')",ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", ng-click='vm.getPaymentInfoHistory()') {{"EDIT_HISTORY" | translate}}
+                                            button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Partner', 'Partner', 'PaymentInformationHistory')",ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", ng-click='vm.getPaymentInfoHistory()') {{"EDIT_HISTORY" | translate}}
 
                                 tr
                                     td
@@ -459,7 +459,7 @@ p
                                                     text.margin-left-5 ({{vm.selectedSinglePartner.childrencount || 0}})
 
                                     td.text-left
-                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Partner', 'EditChildPartner')", data-toggle="modal", ng-click='vm.initEditChildPartner()', data-target='#modalEditChildPartner') {{"EDIT" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Partner', 'Partner', 'EditChildPartner')", data-toggle="modal", ng-click='vm.initEditChildPartner()', data-target='#modalEditChildPartner') {{"EDIT" | translate}}
 
                 div(ng-if="vm.selectedPartnerCommissionPreview")
                     table.simple-table
@@ -740,6 +740,10 @@ p
                                 text.control-label {{"The password of partner"|translate}}
                                 text.text-success &nbsp;{{vm.selectedSinglePartner.partnerName}}
                                 span &nbsp;{{"will be reset. Are you sure?"|translate}}
+                            .form-group
+                                label.control-label {{'NEW_PASSWORD' | translate}} ({{'optional' | translate}})
+                                input.form-control(ng-model='vm.customNewPassword', placeholder='{{"Leaving empty will generate a random password." | translate}}')
+                                text {{"Note: " | translate}}{{"Leaving empty will generate a random password." | translate}}
                         .well(ng-if='vm.partnerNewPassword')
                             .form-group
                                 text The new password for&nbsp;
@@ -784,11 +788,11 @@ p
                 .panel.panel-primary
                     ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu
                         .pull-left.padding-all-5
-                        li.active(id='addPartnerFeedbackTab', ng-show="checkViewPermission('Platform', 'Partner','AddFeedback')")
+                        li.active(id='addPartnerFeedbackTab', ng-show="checkViewPermission('Partner', 'Feedback','AddFeedback')")
                             a.common-tab(data-toggle="tab", ng-disabled="!vm.canEditPartner() || vm.selectedPartnerCount != 1", ng-click="vm.feedbackModalTabPartner = 'addPartnerFeedbackPanel'")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"ADD_FEEDBACK" | translate}}
-                        li(id='partnerFeedbackHistoryTab', ng-show="checkViewPermission('Platform', 'Partner','FeedbackHistory')")
+                        li(id='partnerFeedbackHistoryTab', ng-show="checkViewPermission('Partner', 'Feedback','FeedbackHistory')")
                             a.common-tab(data-toggle="tab", ng-disabled="!vm.canEditPartner() || vm.selectedPartnerCount != 1", ng-click="vm.feedbackModalTabPartner = 'partnerFeedbackHistoryPanel'; vm.prepareShowFeedbackRecord( vm.canEditPartner() );")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"Feedback History" | translate}}
@@ -800,12 +804,12 @@ p
                             label.form-control {{vm.isOneSelectedPartner().partnerName}}
                         .form-group
                             label.control-label {{'FEEDBACK_RESULTS' | translate}}
-                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPartnerFeedbackResultData={}; vm.deletePartnerFeedbackResultData={};", ng-show="checkViewPermission('Platform', 'Partner','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPartnerFeedbackResult") {{"ADD" | translate}}
+                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPartnerFeedbackResultData={}; vm.deletePartnerFeedbackResultData={};", ng-show="checkViewPermission('Partner', 'Feedback','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPartnerFeedbackResult") {{"ADD" | translate}}
                             select.form-control(style='margin-top:5px;', ng-model='vm.partnerFeedback.result', required)
                                 option(ng-repeat='(i,v) in vm.allPartnerFeedbackResults', value='{{v.key}}') {{v.value}}
                         .form-group
                             label.control-label {{'FEEDBACK_TOPIC' | translate}}
-                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPartnerFeedbackTopicData={}; vm.deletePartnerFeedbackTopicData={};", ng-show="checkViewPermission('Platform', 'Partner','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPartnerFeedbackTopic") {{"ADD" | translate}}
+                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPartnerFeedbackTopicData={}; vm.deletePartnerFeedbackTopicData={};", ng-show="checkViewPermission('Partner', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPartnerFeedbackTopic") {{"ADD" | translate}}
                             select.form-control(style='margin-top:5px;', ng-model='vm.partnerFeedback.topic', required)
                                 option(ng-repeat='(i,v) in vm.partnerFeedbackTopic', value='{{v.key}}') {{v.value}}
                         .form-group
@@ -1459,8 +1463,8 @@ p
 
             .modal-footer
                 button.btn.btn-danger.common-button(data-dismiss="modal") {{"CLOSE/CANCEL" | translate}}
-                button.btn.btn-success.common-button(ng-click="vm.editChildPartner()"  ng-if="!vm.isChildPartnerEditing && checkViewPermission('Platform', 'Partner', 'EditChildPartner')") {{"EDIT" | translate}}
-                button.btn.btn-primary.common-button(data-dismiss="modal" ng-if="vm.isChildPartnerEditing && checkViewPermission('Platform', 'Partner', 'EditChildPartner')" ng-click="vm.submitChildPartner()" ng-disabled='vm.disableEditChildPartner') {{"CONFIRM" | translate}}
+                button.btn.btn-success.common-button(ng-click="vm.editChildPartner()"  ng-if="!vm.isChildPartnerEditing && checkViewPermission('Partner', 'Partner', 'EditChildPartner')") {{"EDIT" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss="modal" ng-if="vm.isChildPartnerEditing && checkViewPermission('Partner', 'Partner', 'EditChildPartner')" ng-click="vm.submitChildPartner()" ng-disabled='vm.disableEditChildPartner') {{"CONFIRM" | translate}}
 
 #modalTransferPartnerCreditToPlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:85%;')

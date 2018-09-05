@@ -61,7 +61,7 @@ var proposal = {
         let deferred = Q.defer();
         let plyProm = null;
         // create proposal for partner
-        if (proposalData.isPartner) {
+        if (proposalData.isPartner || (proposalData.data && proposalData.data.isPartner)) {
             let partnerId = proposalData.data.partnerObjId ? proposalData.data.partnerObjId : proposalData.data._id;
             // query related partner info
             plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
@@ -366,6 +366,17 @@ var proposal = {
                     if (proposalTypeData.name == constProposalType.PARTNER_BONUS && proposalData.data.needCsApproved) {
                         bExecute = false;
                         proposalData.status = constProposalStatus.CSPENDING;
+                    }
+
+                    if(proposalData.data && data[2]){
+                        proposalData.data.realNameBeforeEdit = data[2].realName;
+                        proposalData.data.realNameAfterEdit = proposalData.data.realName;
+
+                        if(proposalTypeData.name == constProposalType.UPDATE_PLAYER_REAL_NAME){
+                            proposalData.data.playerId = data[2].playerId;
+                        }else if(proposalTypeData.name == constProposalType.UPDATE_PARTNER_REAL_NAME){
+                            proposalData.data.partnerId = data[2].partnerId;
+                        }
                     }
 
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(

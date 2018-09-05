@@ -1004,22 +1004,22 @@ let dbPartner = {
      * @param {String}  query - The query string
      * @param {string} updateData - The update data string
      */
-    resetPartnerPassword: function (partnerObjId, newPassword) {
+    resetPartnerPassword: function (partnerObjId, newPassword, platformId) {
         var deferred = Q.defer();
 
         bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
             if (err) {
-                deferred.reject({name: "DBError", message: "Error resetting partner password.", error: err});
+                deferred.reject({name: "DBError", message: "Error generate salt when updating partner password", error: err});
                 return;
             }
             bcrypt.hash(newPassword, salt, function (err, hash) {
                 if (err) {
-                    deferred.reject({name: "DBError", message: "Error resetting partner password.", error: err});
+                    deferred.reject({name: "DBError", message: "Error generate hash when updating partner password.", error: err});
                     return;
                 }
                 dbUtil.findOneAndUpdateForShard(
                     dbconfig.collection_partner,
-                    {_id: partnerObjId},
+                    {_id: partnerObjId, platform: platformId},
                     {password: hash},
                     constShardKeys.collection_partner
                 ).then(

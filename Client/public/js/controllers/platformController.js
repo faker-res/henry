@@ -6144,7 +6144,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 // todo :: #22
                                 data = data || '';
-                                if ($scope.checkViewPermission('Platform', 'Player', 'Edit')) {
+                                if ($scope.checkViewPermission('Player', 'Player', 'Edit')) {
                                     return $('<a style="z-index: auto" data-toggle="modal" data-container="body" ' +
                                         'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
                                         'ng-click="vm.onClickPlayerCheck(\'' + row._id + '\', vm.openEditPlayerDialog, \'basicInfo\');"></a>')
@@ -6393,7 +6393,7 @@ define(['js/app'], function (myApp) {
                                     'title': $translate("PHONE"),
                                     'data-placement': 'left',
                                 }));
-                                if ($scope.checkViewPermission('Platform', 'Player', 'AddFeedback')) {
+                                if ($scope.checkViewPermission('Player', 'Feedback', 'AddFeedback')) {
                                     link.append($('<a>', {
                                         'class': 'fa fa-commenting margin-right-5',
                                         'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
@@ -6405,7 +6405,7 @@ define(['js/app'], function (myApp) {
                                     }));
                                 }
                                 if (row.isRealPlayer) {
-                                    if ($scope.checkViewPermission('Platform', 'Player', 'ApplyManualTopup')) {
+                                    if ($scope.checkViewPermission('Player', 'TopUp', 'ApplyManualTopup')) {
                                         link.append($('<a>', {
                                             'class': 'fa fa-plus-circle',
                                             'ng-click': 'vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);',
@@ -6418,7 +6418,7 @@ define(['js/app'], function (myApp) {
                                         }));
                                     }
                                     link.append($('<br>'));
-                                    if ($scope.checkViewPermission('Platform', 'Player', 'applyBonus')) {
+                                    if ($scope.checkViewPermission('Player', 'Bonus', 'applyBonus')) {
                                         link.append($('<img>', {
                                             'class': 'margin-right-5 margin-right-5',
                                             'src': (row.permission.applyBonus === false ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
@@ -6432,7 +6432,7 @@ define(['js/app'], function (myApp) {
                                             'data-placement': 'left',   // because top and bottom got hidden behind the table edges
                                         }));
                                     }
-                                    if ($scope.checkViewPermission('Platform', 'Player', 'AddRewardTask')) {
+                                    if ($scope.checkViewPermission('Player', 'Reward', 'AddRewardTask')) {
                                         link.append($('<img>', {
                                             'class': 'margin-right-5 margin-right-5',
                                             'src': "images/icon/rewardBlue.png",
@@ -6446,7 +6446,7 @@ define(['js/app'], function (myApp) {
                                             'data-placement': 'left',
                                         }));
                                     }
-                                    if ($scope.checkViewPermission('Platform', 'Player', 'RepairPayment') || $scope.checkViewPermission('Platform', 'Player', 'RepairTransaction')) {
+                                    if ($scope.checkViewPermission('Player', 'Player', 'RepairPayment') || $scope.checkViewPermission('Player', 'Player', 'RepairTransaction')) {
                                         link.append($('<img>', {
                                             'class': 'margin-right-5',
                                             'src': "images/icon/reapplyBlue.png",
@@ -6459,7 +6459,7 @@ define(['js/app'], function (myApp) {
                                             'data-placement': 'right',
                                         }));
                                     }
-                                    if ($scope.checkViewPermission('Platform', 'Player', 'CreditAdjustment')) {
+                                    if ($scope.checkViewPermission('Player', 'Credit', 'CreditAdjustment')) {
                                         link.append($('<img>', {
                                             'class': 'margin-right-5',
                                             'src': "images/icon/creditAdjustBlue.png",
@@ -6473,7 +6473,7 @@ define(['js/app'], function (myApp) {
                                             'data-placement': 'right',
                                         }));
                                     }
-                                    if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsConvert')) {
+                                    if ($scope.checkViewPermission('Player', 'RewardPoints', 'RewardPointsChange') || $scope.checkViewPermission('Player', 'RewardPoints', 'RewardPointsConvert')) {
                                         link.append($('<img>', {
                                             'class': 'margin-right-5',
                                             'src': (row.permission.rewardPointsTask === false ? "images/icon/rewardPointsRed.png" : "images/icon/rewardPointsBlue.png"),
@@ -8359,7 +8359,7 @@ define(['js/app'], function (myApp) {
                 console.log(type, data);
                 vm.getSMSTemplate();
                 var title, text;
-                if (type == 'msg' && authService.checkViewPermission('Platform', 'Player', 'sendSMS')) {
+                if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
                     vm.smsPlayer = {
                         playerId: playerObjId.playerId,
                         name: playerObjId.name,
@@ -8400,7 +8400,7 @@ define(['js/app'], function (myApp) {
                 console.log(type, data);
                 vm.getSMSTemplate();
                 let title, text;
-                if (type === 'msg' && authService.checkViewPermission('Platform', 'Partner', 'sendSMS')) {
+                if (type === 'msg' && authService.checkViewPermission('Partner', 'Partner', 'sendSMS')) {
                     vm.smsPartner = {
                         partnerId: partnerObjId.partnerId,
                         partnerName: partnerObjId.partnerName,
@@ -8732,9 +8732,9 @@ define(['js/app'], function (myApp) {
                             },
                             isChangeLogTableInitiated: false,
                             playerTopUpGroupLog: vm.playerTopUpGroupLog,
-                            editPlayerPermission: $scope.checkViewPermission('Platform', 'Player', 'Edit'),
-                            editContactPermission: $scope.checkViewPermission('Platform', 'Player', 'EditContact'),
-                            editWithdrawPermission: $scope.checkViewPermission('Platform', 'Player', 'PaymentInformation'),
+                            editPlayerPermission: $scope.checkViewPermission('Player', 'Player', 'Edit'),
+                            editContactPermission: $scope.checkViewPermission('Player', 'Player', 'EditContact'),
+                            editWithdrawPermission: $scope.checkViewPermission('Player', 'Player', 'PaymentInformation'),
                             selectedTab: vm.editSelectedTab,
                             modifyCritical: vm.modifyCritical,
                             verifyPlayerPhoneNumber: vm.verifyPlayerPhoneNumber,
@@ -14525,7 +14525,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getPlatformRewardProposal = function () {
-                if (!authService.checkViewPermission('Platform', 'Player', 'RewardHistory')) {
+                if (!authService.checkViewPermission('Player', 'Reward', 'RewardHistory')) {
                     return;
                 }
                 socketService.$socket($scope.AppSocket, 'getPlatformRewardProposal', {platform: vm.selectedPlatform.id}, function (data) {
@@ -14716,7 +14716,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getPlayerCreditLogData = function (newSearch) {
-                if (!authService.checkViewPermission('Platform', 'Player', 'playerDailyCreditLog')) {
+                if (!authService.checkViewPermission('Player', 'Credit', 'playerDailyCreditLog')) {
                     return;
                 }
                 let sendQuery = {
@@ -14786,7 +14786,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPlayerApiLogData = function (newSearch) {
-                if (!authService.checkViewPermission('Platform', 'Player', 'playerApiLog')) {
+                if (!authService.checkViewPermission('Player', 'Player', 'playerApiLog')) {
                     return;
                 }
 
@@ -17174,7 +17174,7 @@ define(['js/app'], function (myApp) {
 
             //get all platform partners data from server
             vm.getPlatformPartnersData = function () {
-                if (!authService.checkViewPermission('Platform', 'Partner', 'Read')) {
+                if (!authService.checkViewPermission('Partner', 'Partner', 'Read')) {
                     return;
                 }
                 $('#partnerRefreshIcon').addClass('fa-spin');
@@ -17686,7 +17686,7 @@ define(['js/app'], function (myApp) {
                             title: $translate('COMMISSION_TYPE'), "data": 'commissionType', advSearch: true, "sClass": "",
                             render: function (data, type, row) {
                                 data = data || '';
-                                if ($scope.checkViewPermission('Platform', 'Partner', 'EditCommission')) {
+                                if ($scope.checkViewPermission('Partner', 'Partner', 'EditCommission')) {
                                     if (row && row.isCustomizeSettingExist) {
                                         return $('<a style="z-index: auto; color:red" data-toggle="modal" data-container="body" ' +
                                             'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
@@ -17917,7 +17917,7 @@ define(['js/app'], function (myApp) {
                                     'title': $translate("PHONE"),
                                     'data-placement': 'left',
                                 }));
-                                if ($scope.checkViewPermission('Platform', 'Partner', 'AddFeedback')) {
+                                if ($scope.checkViewPermission('Partner', 'Feedback', 'AddFeedback')) {
                                     link.append($('<a>', {
                                         'class': 'fa fa-commenting margin-right-5',
                                         'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
@@ -17928,7 +17928,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'left',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Partner', 'ApplyBonus')) {
+                                if ($scope.checkViewPermission('Partner', 'Partner', 'ApplyBonus')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5 margin-right-5',
                                         'src': (row.permission.applyBonus === false ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
@@ -17942,7 +17942,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'left',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Partner', 'CreditAdjustment')) {
+                                if ($scope.checkViewPermission('Partner', 'Partner', 'CreditAdjustment')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
                                         'src': "images/icon/creditAdjustBlue.png",
@@ -18871,10 +18871,10 @@ define(['js/app'], function (myApp) {
                         $scope: $scope,
                         $compile: $compile,
                         childScope: {
-                            editPartnerPermission: $scope.checkViewPermission('Platform', 'Partner', 'Edit'),
-                            editPartnerContactPermission: $scope.checkViewPermission('Platform', 'Partner', 'EditContact'),
-                            editPartnerWithdrawPermission: $scope.checkViewPermission('Platform', 'Partner', 'BankDetail'),
-                            editPartnerCommissionPermission: $scope.checkViewPermission('Platform', 'Partner', 'EditCommission'),
+                            editPartnerPermission: $scope.checkViewPermission('Partner', 'Partner', 'Edit'),
+                            editPartnerContactPermission: $scope.checkViewPermission('Partner', 'Partner', 'EditContact'),
+                            editPartnerWithdrawPermission: $scope.checkViewPermission('Partner', 'Partner', 'BankDetail'),
+                            editPartnerCommissionPermission: $scope.checkViewPermission('Partner', 'Partner', 'EditCommission'),
                             selectedTab: vm.editPartnerSelectedTab,
                             tabClicked: vm.tabClicked,
                             modifyCritical: vm.modifyCritical,
@@ -19576,7 +19576,7 @@ define(['js/app'], function (myApp) {
 
             vm.getPartnerApiLogData = function (newSearch) {
                 vm.loadingPartnerApiLogTable = true;
-                if (!authService.checkViewPermission('Platform', 'Partner', 'partnerApiLog')) {
+                if (!authService.checkViewPermission('Partner', 'Partner', 'partnerApiLog')) {
                     return;
                 }
 
@@ -25495,7 +25495,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getAllPartnerLevels = function () {
-                if (!authService.checkViewPermission('Platform', 'Partner', 'Read')) {
+                if (!authService.checkViewPermission('Partner', 'Partner', 'Read')) {
                     return;
                 }
                 return $scope.$socketPromise(commonAPIs.partnerLevel.getByPlatform, {platformId: vm.selectedPlatform.id})
@@ -28746,6 +28746,9 @@ define(['js/app'], function (myApp) {
             };
 
             vm.buildClientQnATypeList = function () {
+                vm.getProvinceListQnA(5);
+                vm.getQnaAllBankTypeList();
+                vm.qnaCityList = [];//reset city
                 vm.questionLabelStyle = "text-align:center;display:block";
                 vm.clientQnAData;
                 vm.clientQnAInput = {}; // QnA input
@@ -28788,15 +28791,19 @@ define(['js/app'], function (myApp) {
                     vm.clientQnAData = {};
                     $scope.$evalAsync(() => {
                         vm.selectedClientQnAType = data;
-                        //get process and steps data for selected proposal type
-                        // vm.getProposalTypeProcessSteps();
-                        // vm.getProposalTypeExpirationDuration();
-                        // console.log("vm.selectedProposalType", vm.selectedProposalType);
-                        // $scope.safeApply();
                         vm.getClientQnAProcess();
                         vm.getClientQnASecurityQuesConfig();
                     });
                 });
+            }
+
+            vm.disableQnADefaultPassword = function () {
+                if (vm.selectedClientQnAType && vm.selectedClientQnAType.data) {
+                    if (vm.selectedClientQnAType.data == "forgotPassword" || vm.selectedClientQnAType.data == "forgotUserID" ) {
+                        return false;
+                    }
+                }
+                return true;
             }
 
             // display first step of the selected QnA type if processNo is null
@@ -28862,6 +28869,74 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            vm.getProvinceListQnA = function (repeatCount) {
+                socketService.$socket($scope.AppSocket, 'getProvinceList', {}, function (data) {
+                    if (data) {
+                        $scope.$evalAsync(() => {
+                            vm.qnaProvinceList = [];
+                            for (let i = 0, len = data.data.provinces.length; i < len; i++) {
+                                let province = data.data.provinces[i];
+                                province.id = province.id.toString();
+                                vm.qnaProvinceList.push(province);
+                            }
+                        });
+                    }
+                }, function (err) {
+                    if (repeatCount && !(vm.qnaProvinceList && vm.qnaProvinceList.length)) {
+                        repeatCount --;
+                        vm.getProvinceListQnA(repeatCount);
+                    }
+                }, true);
+            }
+
+            vm.qnaProvinceListChange = function () {
+                vm.getCityListQnA();
+            }
+
+            vm.getQnaAllBankTypeList = function () {
+                vm.qnaAllBankTypeList = [];
+                socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform.data.platformId}, function (data) {
+                    if (data && data.data && data.data.data) {
+                        let allBankTypeList = {};
+
+                        data.data.data.forEach(item => {
+                            if (item && item.bankTypeId) {
+                                allBankTypeList[item.id] = item.name + ' (' + item.id + ')';
+                            }
+                        });
+
+                        if (allBankTypeList && Object.keys(allBankTypeList).length) {
+                            $scope.$evalAsync(() => {
+                                for (let key in allBankTypeList) {
+                                    let bankObj = {
+                                        id: key,
+                                        name: allBankTypeList[key]
+                                    }
+                                    vm.qnaAllBankTypeList.push(bankObj);
+                                }
+                            });
+                        }
+                    }
+                }, null, true);
+            }
+
+            vm.getCityListQnA = function () {
+                socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: vm.clientQnAInput.bankCardProvince}, function (data) {
+                    if (data) {
+                        if (data.data.cities) {
+                            $scope.$evalAsync(() => {
+                                vm.qnaCityList = [];
+                                for (let i = 0, len = data.data.cities.length; i < len; i++) {
+                                    let city = data.data.cities[i];
+                                    city.id = city.id.toString();
+                                    vm.qnaCityList.push(city);
+                                }
+                            });
+                        }
+                    }
+                }, null, true);
+            }
+
             //reset everything
             vm.endClientQnAProcess = function () {
                 vm.selectedClientQnAType = {};
@@ -28900,7 +28975,6 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'editClientQnAConfig', sendData, function (data) {
                     if (data.data) {
-                        // vm.clientQnASecurityQuesConfig.config = data.data
                         $scope.$evalAsync(() => {
                             vm.clientQnASecurityQuesConfig.config = data.data;
                             vm.clientQnASecurityQuesCount.minQuestionPass = data.data.minQuestionPass ? data.data.minQuestionPass : 0;
@@ -33377,6 +33451,7 @@ define(['js/app'], function (myApp) {
                 });
             };
             vm.autoFeedbackSearchMission = function(newSearch) {
+                $('#autoFeedbackOverviewSpin').show();
                 vm.autoFeedbackMissionSearch.platformObjId = vm.selectedPlatform.id;
                 vm.autoFeedbackMissionSearch.createTimeStart = $('#autoFeedbackOverviewCreateTimeStartPicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMissionSearch.createTimeEnd = $('#autoFeedbackOverviewCreateTimeEndPicker').data('datetimepicker').getDate();
@@ -33410,6 +33485,7 @@ define(['js/app'], function (myApp) {
                     let drawData = vm.autoFeedbackPrepareTableData(vm.autoFeedbackSearchResult);
                     console.log("drawData",drawData);
                     vm.drawAutoFeedbackOverviewTable(drawData, newSearch);
+                    $('#autoFeedbackOverviewSpin').hide();
                 });
             };
             vm.autoFeedbackPrepareTableData = function (missions) {
@@ -33511,6 +33587,9 @@ define(['js/app'], function (myApp) {
                         }
                     ],
                     "paging": false,
+                    createdRow: function (row, data, dataIndex) {
+                        $compile(angular.element(row).contents())($scope);
+                    },
                     "language": {
                         "info": "Display _MAX_ provider records",
                         "emptyTable": $translate("No data available in table"),
@@ -33527,7 +33606,7 @@ define(['js/app'], function (myApp) {
             vm.getAllAutoFeedback = function() {
                 socketService.$socket($scope.AppSocket, 'getAllAutoFeedback', {platformObjId: vm.selectedPlatform.id}, function (data) {
                     console.log("getAllAutoFeedbackMissions ret",data);
-                    vm.autoFeedbackMissions = data.data;
+                    vm.autoFeedbackMissions = data.data.data;
                 });
             };
 

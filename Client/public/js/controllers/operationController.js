@@ -2519,6 +2519,56 @@ define(['js/app'], function (myApp) {
                 vm.selectedProposalDetailForDisplay = proposalDetail;
             }
 
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePlayerRealName") {
+                let proposalDetail = {};
+                let inputDevice = "";
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["PLAYER_Id"] = vm.selectedProposal.data.playerId;
+                proposalDetail["Player Level"] = vm.selectedProposal.data.playerLevelName;
+                proposalDetail["realNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
+                proposalDetail["realNameAfterEdit"] = vm.selectedProposal.data.realNameAfterEdit;
+
+                for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                    if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == vm.selectedProposal.inputDevice ){
+                        inputDevice =  $translate(Object.keys(vm.inputDevice)[i]);
+                    }
+                }
+
+                proposalDetail["INPUT_DEVICE"] = inputDevice;
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+
+                vm.selectedProposalDetailForDisplay = proposalDetail;
+            }
+
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePartnerRealName") {
+                let proposalDetail = {};
+                let inputDevice = "";
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+
+                proposalDetail["partnerName"] = vm.selectedProposal.data.partnerName;
+                proposalDetail["partnerId"] = vm.selectedProposal.data.partnerId;
+                proposalDetail["realNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
+                proposalDetail["realNameAfterEdit"] = vm.selectedProposal.data.realNameAfterEdit;
+
+                for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                    if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == vm.selectedProposal.inputDevice ){
+                        inputDevice =  $translate(Object.keys(vm.inputDevice)[i]);
+                    }
+                }
+
+                proposalDetail["INPUT_DEVICE"] = inputDevice;
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+                vm.selectedProposalDetailForDisplay = proposalDetail;
+            }
+
             // Remove fields for detail viewing
             delete vm.selectedProposalDetailForDisplay.creator;
             delete vm.selectedProposalDetailForDisplay.platform;
