@@ -256,6 +256,7 @@ var proposalExecutor = {
             this.executions.executeBulkExportPlayerData.des = "Bulk Export Player Data";
             this.executions.executeFinancialPointsAdd.des = "Add Platform Financial Points";
             this.executions.executeFinancialPointsDeduct.des = "Deduct Platform Financial Points";
+            this.executions.executeUpdatePlayerRealName.des = "Update player real name";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -326,6 +327,7 @@ var proposalExecutor = {
             this.rejections.rejectBulkExportPlayerData.des = "Reject Bulk Export Player Data";
             this.rejections.rejectFinancialPointsAdd.des = "Reject Add Platform Financial Points";
             this.rejections.rejectFinancialPointsDeduct.des = " Reject Deduct Platform Financial Points";
+            this.rejections.rejectUpdatePlayerRealName.des = "Reject player update real name proposal";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -731,6 +733,33 @@ var proposalExecutor = {
                             deferred.reject({name: "DBError", message: "Failed to update player info", error: error});
                         }
                     );
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
+                }
+            },
+
+            /**
+             * execution function for update player real name proposal type
+             */
+            executeUpdatePlayerRealName: function (proposalData, deferred) {
+                //valid data
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.realNameAfterEdit) {
+
+                    dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).then(
+                        data => {
+                            if(data && data._id && data.platform){
+                                return dbconfig.collection_players.findOneAndUpdate(
+                                    {_id: data._id, platform: data.platform},
+                                    {realName: proposalData.data.realNameAfterEdit}
+                                );
+                            }
+                        }
+                    ).then(
+                        data => {
+                            deferred.resolve(data);
+                        }
+                    )
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
@@ -3004,6 +3033,13 @@ var proposalExecutor = {
              * reject function for UpdatePlayerInfo proposal
              */
             rejectUpdatePlayerInfo: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            /**
+             * reject function for UpdatePlayerRealName proposal
+             */
+            rejectUpdatePlayerRealName: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
 
