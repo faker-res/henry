@@ -28789,6 +28789,7 @@ define(['js/app'], function (myApp) {
 //}
                 $('#clientQnATypeTree').on('nodeSelected', function (event, data) {
                     vm.clientQnAData = {};
+                    vm.playerClientQnAObjId = ""; // ObjectID from clientQnA.js
                     $scope.$evalAsync(() => {
                         vm.selectedClientQnAType = data;
                         vm.getClientQnAProcess();
@@ -28809,10 +28810,12 @@ define(['js/app'], function (myApp) {
             // display first step of the selected QnA type if processNo is null
             vm.getClientQnAProcess = function (isAlternative) {
                 vm.clientQnADataErr = ""; //reset error text
+                vm.clientQnAInputCheck = {}; //reset error text
                 let sendData = {
                     type: vm.selectedClientQnAType.data,
                     platformObjId: vm.selectedPlatform.id,
-                    inputDataObj: vm.clientQnAInput
+                    inputDataObj: vm.clientQnAInput,
+                    qnaObjId: vm.playerClientQnAObjId
                 }
                 if (isAlternative) {
                     sendData.isAlternative = true;
@@ -28821,17 +28824,30 @@ define(['js/app'], function (myApp) {
                     sendData.processNo = vm.clientQnAData.processNo;
                 }
                 socketService.$socket($scope.AppSocket, 'getClientQnAProcessStep', sendData,  function (data) {
-                    $scope.$evalAsync(() => {
-                        vm.clientQnAInput = {}; //reset input data
-                        vm.clientQnAData = data.data;
-                        if (vm.clientQnAData && vm.clientQnAData.questionTitle && vm.clientQnAData.isSecurityQuestion) {
-                            vm.questionLabelStyle = "text-align:left;display:block";
-                        }
-                    });
+                    if (data && data.data) {
+                        $scope.$evalAsync(() => {
+                            vm.clientQnAInput = {}; //reset input data
+                            vm.clientQnAData = data.data;
+                            if (data.data.qnaObjId && !vm.playerClientQnAObjId) {
+                                vm.playerClientQnAObjId = data.data.qnaObjId;
+                            }
+                            if (vm.clientQnAData && vm.clientQnAData.questionTitle && vm.clientQnAData.isSecurityQuestion) {
+                                vm.questionLabelStyle = "text-align:left;display:inline-block";
+                            }
+                        });
+                    }
                 }, function (err) {
                     $scope.$evalAsync(() => {
                         // vm.clientQnAData = {}; //reset template
                         vm.clientQnADataErr = err.error && err.error.message? $translate(err.error.message): "";
+                        if (err && err.error) {
+                            if (err.error.correctAns && err.error.correctAns.length) {
+                                vm.clientQnAInputCheck.correctAns = err.error.correctAns;
+                            }
+                            if (err.error.incorrectAns && err.error.incorrectAns.length) {
+                                vm.clientQnAInputCheck.incorrectAns = err.error.incorrectAns;
+                            }
+                        }
                     });
                 });
             }

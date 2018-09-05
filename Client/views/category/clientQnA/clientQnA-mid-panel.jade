@@ -10,7 +10,10 @@
                 br(ng-if='vm.clientQnAData.questionTitle || (vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.title)')
                 div(ng-repeat='(i,v) in vm.clientQnAData.question')
                     label(style="text-align:center;display:block;color:red") {{vm.clientQnADataErr | translate}}
+                    label(ng-if='vm.clientQnAData.isSecurityQuestion') {{v.questionNo + ".&nbsp"}}
                     label(style="{{vm.questionLabelStyle}}") {{v.des | translate}}
+                    i.fa.fa-check.text-success(style='width:10px' ng-repeat='(k,o) in vm.clientQnAInputCheck.correctAns' ng-if='vm.clientQnAInputCheck && vm.clientQnAInputCheck.correctAns && o==v.questionNo')
+                    i.fa.fa-times.text-danger(style='width:10px' ng-repeat='(k,o) in vm.clientQnAInputCheck.incorrectAns' ng-if='vm.clientQnAInputCheck && vm.clientQnAInputCheck.incorrectAns && o==v.questionNo')                    
                     //- br
                     input.form-control(ng-repeat='(k,o) in vm.clientQnAData.answerInput' ng-if='o.questionNo == v.questionNo && o.type!="select" && o.type!="checkbox"' type='{{o.type}}' ng-model='vm.clientQnAInput[o.objKey]' placeholder='{{o.placeHolder | translate}}')
                     select.form-control(ng-repeat='(k,o) in vm.clientQnAData.answerInput' ng-if='o.questionNo == v.questionNo && o.type == "select"' ng-model="vm.clientQnAInput[o.objKey]" ng-options="va.id as va.name | translate for (in,va) in vm[o.options]" ng-change='vm[o.options + "Change"]()')
