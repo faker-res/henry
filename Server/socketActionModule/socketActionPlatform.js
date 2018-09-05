@@ -767,9 +767,14 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data], actionName, isValidData);
         },
         removeAutoFeedbackByObjId: function removeAutoFeedbackByObjId(data) {
-            var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.autoFeedbackObjId);
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.autoFeedbackObjId);
             socketUtil.emitter(self.socket, dbPlatformAutoFeedback.removeAutoFeedbackByObjId, [data.autoFeedbackObjId], actionName, isValidData);
+        },
+        getAutoFeedbackDetail: function getAutoFeedbackDetail(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.name && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedbackDetail, [data.platformObjId, data.name, data.startTime, data.endTime], actionName, isValidData);
         },
 
         getIpDomainAnalysis: function getIpDomainAnalysis(data) {

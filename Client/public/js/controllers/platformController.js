@@ -33603,6 +33603,90 @@ define(['js/app'], function (myApp) {
                 $('#autoFeedbackOverviewTable').resize();
             };
 
+            vm.initAutoFeedbackSearchDetail = function() {
+                vm.autoFeedbackMissionSearchDetail = {
+                    startTime: null,
+                    endTime: null
+                };
+                utilService.actionAfterLoaded("#autoFeedbackDetailSpin", function () {
+                    $('#autoFeedbackListStartTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackListEndTimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true,
+                        pickTime: true,
+                    });
+                    $('#autoFeedbackListStartTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(7)));
+                    $('#autoFeedbackListEndTimePicker').data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                    vm.autoFeedbackMissionSearchDetail.startTime = $('#autoFeedbackListStartTimePicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMissionSearchDetail.endTime = $('#autoFeedbackListEndTimePicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMissionSearchDetail.name = vm.autoFeedbackMissions[0].name;
+                });
+            };
+            vm.autoFeedbackSearchMissionDetail = function () {
+                $('#autoFeedbackDetailSpin').show();
+                vm.autoFeedbackMissionSearchDetail.platformObjId = vm.selectedPlatform.id;
+                vm.autoFeedbackMissionSearchDetail.startTime = $('#autoFeedbackListStartTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMissionSearchDetail.endTime = $('#autoFeedbackListEndTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMissionSearchDetail.name = !vm.autoFeedbackMissionSearchDetail.name ? vm.autoFeedbackMissions[0].name : vm.autoFeedbackMissionSearchDetail.name;
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    name: vm.autoFeedbackMissionSearchDetail.name,
+                    startTime: vm.autoFeedbackMissionSearchDetail.startTime,
+                    endTime: vm.autoFeedbackMissionSearchDetail.endTime
+                };
+                console.log("getAutoFeedbackDetail sendData",sendData);
+                socketService.$socket($scope.AppSocket, 'getAutoFeedbackDetail', sendData, function (data) {
+                    console.log("getAutoFeedbackDetail ret",data);
+                    let result = data.data;
+                    vm.autoFeedbackSearchDetailResult = {1:{},2:{},3:{}};
+                    let createDateSegment = (date, scheduleNumber) => {
+                        if(vm.autoFeedbackSearchDetailResult[scheduleNumber]) {
+                            vm.autoFeedbackSearchDetailResult[scheduleNumber][date] = {};
+                            vm.autoFeedbackSearchDetailResult[scheduleNumber][date].acceptedCount = 0;
+                            vm.autoFeedbackSearchDetailResult[scheduleNumber][date].accessCount = 0;
+                            vm.autoFeedbackSearchDetailResult[scheduleNumber][date].topUpCount = 0;
+                            vm.autoFeedbackSearchDetailResult[scheduleNumber][date].data = [];
+                        }
+                    };
+                    $scope.$evalAsync(() => {
+                        result.forEach(item => {
+                            let promoCodeTime = new Date(item.createTime);
+                            let accessTime = new Date(item.lastAccessTime);
+                            let topUpTime = new Date(item.lastTopUpTime);
+                            let date = new Date(promoCodeTime).toLocaleString('en-US', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit'
+                            }).replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$1-$2');
+
+                            if(item.autoFeedbackMissionScheduleNumber && !isNaN(parseInt(item.autoFeedbackMissionScheduleNumber))) {
+                                let scheduleNumber = item.autoFeedbackMissionScheduleNumber;
+                                if(!vm.autoFeedbackSearchDetailResult[scheduleNumber].hasOwnProperty(date)) {
+                                    createDateSegment(date, scheduleNumber);
+                                }
+                                if(item.status == vm.constPromoCodeStatus.ACCEPTED) {
+                                    vm.autoFeedbackSearchDetailResult[scheduleNumber][date].acceptedCount++;
+                                }
+                                if(promoCodeTime.getTime() < accessTime.getTime()) {
+                                    vm.autoFeedbackSearchDetailResult[scheduleNumber][date].accessCount++;
+                                }
+                                if(promoCodeTime.getTime() < topUpTime.getTime()) {
+                                    vm.autoFeedbackSearchDetailResult[scheduleNumber][date].topUpCount++;
+                                }
+                                vm.autoFeedbackSearchDetailResult[scheduleNumber][date].data.push(item);
+                            }
+                        });
+                    });
+                    $('#autoFeedbackDetailSpin').hide();
+                });
+            };
             vm.getAllAutoFeedback = function() {
                 socketService.$socket($scope.AppSocket, 'getAllAutoFeedback', {platformObjId: vm.selectedPlatform.id}, function (data) {
                     console.log("getAllAutoFeedbackMissions ret",data);
