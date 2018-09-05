@@ -655,7 +655,7 @@ var roleChecker = {
                 PARTNER_SETTLEMENT_HISTORY_REPORT: [],
                 REAL_TIME_COMMISSION_REPORT: ['getCurrentPartnerCommissionDetail'],
                 PAST_COMMISSION_SETTLEMENT: ['settlePastCommission'],
-                PLAYER_ALIPAY_ACCOUNT_REPORT: [],
+                PLAYER_ALIPAY_ACCOUNT_REPORT: ['getPlayerAlipayAccReport'],
             },
             Reward: {
                 Read: ['getPlatformRewardPageReport', 'getRewardProposalReportByType','getRewardProposalReport'],
