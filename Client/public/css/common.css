@@ -706,7 +706,7 @@ ul.roleList {
     width: calc(80% - 20px);
     margin: 5px 10px;
     display: inline-block;
-    max-height: 400px;
+    max-height: 465px;
     overflow-y: hidden;
 
 }
@@ -749,7 +749,7 @@ ul.roleList {
 /*}*/
 
 #permission > .panel > .panel-body {
-    height: 470px;
+    height: 500px;
 }
 
 #permission .panel-heading {
