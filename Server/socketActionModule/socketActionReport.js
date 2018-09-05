@@ -570,7 +570,7 @@ function socketActionReport(socketIO, socket) {
             let endTime = new Date(data.endTime);
             let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime && (endTime > startTime));
 
-            socketUtil.emitter(self.socket, dbReport.getPlayerAlipayAccReport, [ObjectId(data.platformObjId), startTime, endTime], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbReport.getPlayerAlipayAccReport, [ObjectId(data.platformObjId), startTime, endTime, data.playerName, data.alipayAcc, data.alipayName, data.alipayNickname], actionName, isValidData);
         },
     };
     socketActionReport.actions = this.actions;
