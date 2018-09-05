@@ -4562,7 +4562,7 @@ let dbPlayerInfo = {
                                             remark = remark ? remark.toString() : "";
                                             return remark;
                                         });
-                                        elem = elem.toString();
+                                        elem = elem ? elem.toString() : "";
                                         return arr.indexOf(elem) === pos;
                                     });
 
