@@ -39,7 +39,7 @@
   "CUSTOMIZED_PROMO_NAME": "自定义优惠名称",
   "PROMO_CODE_NAME": "优惠代码名称",
   "RELATED_ACCOUNT": "相关账号",
-
+  "RELATED_AMOUNT": "相关额度",
   "CONSUMPTION_RETURN_ABILITY": "可否洗码",
   "ABLE": "可",
   "UNABLE": "否",
@@ -4323,7 +4323,9 @@
   "realNameBeforeEdit": "玩家真实姓名（编辑前）：",
   "realNameAfterEdit": "玩家真实姓名（编辑后）：",
   "Partner Proposal No": "代理提案号",
-  "alipayer": "PMS收录玩家支付宝帐号",
-  "alipayerAccount": "PMS收录玩家支付宝实名",
-  "alipayerNickName": "PMS收录玩家支付宝腻称"
+  "alipayer": "PMS收录玩家支付宝实名",
+  "alipayerAccount": "PMS收录玩家支付宝帐号",
+  "alipayerNickName": "PMS收录玩家支付宝腻称",
+  "alipayerRemark": "PMS收录玩家支付宝备注",
+  "getLockedLobbyConfig": "获取平台锁大厅配置"
 }
