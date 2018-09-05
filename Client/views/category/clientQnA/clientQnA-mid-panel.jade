@@ -13,7 +13,7 @@
                     label(style="{{vm.questionLabelStyle}}") {{v.des | translate}}
                     //- br
                     input.form-control(ng-repeat='(k,o) in vm.clientQnAData.answerInput' ng-if='o.questionNo == v.questionNo && o.type!="select" && o.type!="checkbox"' type='{{o.type}}' ng-model='vm.clientQnAInput[o.objKey]' placeholder='{{o.placeHolder | translate}}')
-                    select.form-control(ng-repeat='(k,o) in vm.clientQnAData.answerInput' ng-if='o.questionNo == v.questionNo && o.type == "select"' ng-model="vm.clientQnAInput[o.objKey]" ng-options="va as va | translate for (in,va) in va.options")
+                    select.form-control(ng-repeat='(k,o) in vm.clientQnAData.answerInput' ng-if='o.questionNo == v.questionNo && o.type == "select"' ng-model="vm.clientQnAInput[o.objKey]" ng-options="va.id as va.name | translate for (in,va) in vm[o.options]" ng-change='vm[o.options + "Change"]()')
                     br
                 .pull-right
                     label(style="color:red" ng-if='vm.clientQnAData.alternativeQuestion && vm.clientQnAData.alternativeQuestion.des' ng-click='vm.getClientQnAProcess(true)') {{vm.clientQnAData.alternativeQuestion.des | translate}}
