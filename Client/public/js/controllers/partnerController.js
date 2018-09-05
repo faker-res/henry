@@ -7018,11 +7018,18 @@ define(['js/app'], function (myApp) {
                 if (Object.keys(updateData).length > 0) {
                     updateData._id = partnerId;
                     var isUpdate = false;
-
+                    let isRealName = false;
+                    let realNameObj = {
+                        isPartner: true
+                    };
                     updateData.partnerName = newPartnerData.name || vm.editPartner.name;
                     updatedKeys.forEach(function (key) {
                         if (key == "bankCardGroup" || key == "alipayGroup" || key == "wechatPayGroup" || key == "merchantGroup" || key == "quickPayGroup" || key == "referralName") {
                             //do nothing
+                        } else if(key == "realName"){
+                            isRealName = true;
+                            realNameObj.realName = updateData.realName;
+                            delete updateData.realName;
                         } else {
                             isUpdate = true;
                         }
@@ -7033,12 +7040,6 @@ define(['js/app'], function (myApp) {
                     }
 
                     updateData.remark = "";
-                    if (updateData.realName) {
-                        if (updateData.remark) {
-                            updateData.remark += ", ";
-                        }
-                        updateData.remark += $translate("realName");
-                    }
                     if (updateData.DOB) {
                         if (updateData.remark) {
                             updateData.remark += ", ";
@@ -7087,6 +7088,25 @@ define(['js/app'], function (myApp) {
                         socketService.$socket($scope.AppSocket, updateString, {
                             creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                             data: updateData,
+                            platformId: vm.selectedPlatform.id
+                        }, function (data) {
+                            if (data.data && data.data.stepInfo) {
+                                socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                            }
+                            vm.getPlatformPartnersData();
+                        }, null, true);
+                    }
+
+                    if (isRealName) {
+                        if (realNameObj) {
+                            realNameObj.updateData = $.extend({}, realNameObj);
+                            realNameObj.partnerObjId = partnerId;
+                            realNameObj.partnerName = vm.selectedSinglePartner.partnerName;
+                        }
+
+                        socketService.$socket($scope.AppSocket, "createUpdatePartnerRealNameProposal", {
+                            creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                            data: realNameObj,
                             platformId: vm.selectedPlatform.id
                         }, function (data) {
                             if (data.data && data.data.stepInfo) {

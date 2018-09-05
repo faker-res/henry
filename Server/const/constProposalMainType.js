@@ -82,6 +82,7 @@ const constProposalMainType = {
     "UpdatePartnerWeChat": constMainType.UPDATE_PARTNER,
     "UpdatePartnerCommissionType": constMainType.UPDATE_PARTNER,
     "CustomizePartnerCommRate": constMainType.UPDATE_PARTNER,
+    "UpdatePartnerRealName": constMainType.UPDATE_PARTNER,
     //"PartnerCommission": constMainType.UPDATE_PARTNER,
     //"UpdatePartnerCredit":constMainType.UPDATE_PARTNER,
 

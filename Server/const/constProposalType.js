@@ -19,6 +19,7 @@ const constProposalType = {
     UPDATE_PARTNER_WECHAT: "UpdatePartnerWeChat",
     UPDATE_PARTNER_INFO: "UpdatePartnerInfo",
     UPDATE_PARTNER_COMMISSION_TYPE: "UpdatePartnerCommissionType",
+    UPDATE_PARTNER_REAL_NAME: "UpdatePartnerRealName",
     CUSTOMIZE_PARTNER_COMM_RATE: "CustomizePartnerCommRate",
     UPDATE_CHILD_PARTNER: "UpdateChildPartner",
     PARTNER_CREDIT_TRANSFER_TO_DOWNLINE: "PartnerCreditTransferToDownline",

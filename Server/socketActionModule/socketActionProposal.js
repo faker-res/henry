@@ -157,6 +157,12 @@ function socketActionProposal(socketIO, socket) {
             socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PARTNER_INFO, data], actionName, isValidData);
         },
 
+        createUpdatePartnerRealNameProposal: function createUpdatePartnerRealNameProposal(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.data);
+            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PARTNER_REAL_NAME, data], actionName, isValidData);
+        },
+
         createUpdatePartnerCommissionTypeProposal: function createUpdatePartnerCommissionTypeProposal(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId && data.data);
