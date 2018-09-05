@@ -1540,8 +1540,8 @@ p
 
             .modal-footer
                 button.btn.btn-danger.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
-                button.btn.btn-success.common-button(ng-click='vm.editTransferPartnerCreditToPlayer()' ng-if='!vm.isEditingTransferPartnerCredit && checkViewPermission("Platform", "Partner", "PartnerCreditTransferToDownline")' ng-disabled='vm.downlinePlayersData.length == 0') {{"EDIT" | translate}}
-                button.btn.btn-primary.common-button(data-dismiss='modal' ng-click='vm.submitTransferPartnerCreditToPlayer()' ng-if='vm.isEditingTransferPartnerCredit && checkViewPermission("Platform", "Partner", "PartnerCreditTransferToDownline")' ng-disabled='vm.isTransferPartnerCreditToPlayer') {{"CONFIRM" | translate}}
+                button.btn.btn-success.common-button(ng-click='vm.editTransferPartnerCreditToPlayer()' ng-if='!vm.isEditingTransferPartnerCredit && checkViewPermission("Partner", "Partner", "PartnerCreditTransferToDownline")' ng-disabled='vm.downlinePlayersData.length == 0') {{"EDIT" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal' ng-click='vm.submitTransferPartnerCreditToPlayer()' ng-if='vm.isEditingTransferPartnerCredit && checkViewPermission("Partner", "Partner", "PartnerCreditTransferToDownline")' ng-disabled='vm.isTransferPartnerCreditToPlayer') {{"CONFIRM" | translate}}
 
 include partner-feedback-popup
 include ../common-widget/telephone-popover
