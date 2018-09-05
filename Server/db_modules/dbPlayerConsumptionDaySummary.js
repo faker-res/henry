@@ -224,7 +224,7 @@ var dbPlayerConsumptionDaySummary = {
             {
                 $group: {
                     _id: "$platformId",
-                    totalAmount: {$sum: "$validAmount"}
+                    totalAmount: {$sum: "$amount"}
                 }
             }
         ).then(
