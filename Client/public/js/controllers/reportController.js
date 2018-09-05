@@ -2688,7 +2688,69 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        vm.getPlayerAlipayAccReport = function (newSearch) {
+            $('#playerAlipayAccReportSpin').show();
+            vm.playerAlipayAccReport.index = 0;
 
+            let sendQuery = {
+                platformObjId: vm.selectedPlatform._id,
+                startTime: vm.playerAlipayAccReport.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.playerAlipayAccReport.endTime.data('datetimepicker').getLocalDate(),
+            };
+
+            if (vm.playerAlipayAccReport.playerName) { sendQuery.playerName = vm.playerAlipayAccReport.playerName }
+            if (vm.playerAlipayAccReport.alipayAcc) { sendQuery.alipayAcc = vm.playerAlipayAccReport.alipayAcc }
+            if (vm.playerAlipayAccReport.alipayName) { sendQuery.alipayName = vm.playerAlipayAccReport.alipayName }
+            if (vm.playerAlipayAccReport.alipayNickname) { sendQuery.alipayNickname = vm.playerAlipayAccReport.alipayNickname }
+
+            console.log('sendQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'getPlayerAlipayAccReport', sendQuery, function (data) {
+                console.log('getPlayerAlipayAccReport', data);
+
+                if(data.hasOwnProperty('data')) {
+                    vm.playerAlipayAccDetail = data.data;
+                    vm.playerAlipayAccDetail.map(e => {
+                        e.applyTime$ = $scope.timeReformat(e.createTime);
+                    });
+                    vm.playerAlipayAccReport.totalCount = vm.playerAlipayAccDetail.length;
+                }
+                drawPlayerAlipayAccReport(newSearch);
+                $('#playerAlipayAccReportSpin').hide();
+                $scope.$evalAsync();
+            });
+        };
+
+        function drawPlayerAlipayAccReport (newSearch) {
+            let tableOptions = {
+                data: vm.playerAlipayAccDetail,
+                "order": vm.playerAlipayAccDetail.aaSorting || [[0, 'desc']],
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('Proposal No'), data: "proposalId"},
+                    {title: $translate('RELATED_ACCOUNT'), data: "data.playerName"},
+                    {title: $translate('RELATED_AMOUNT'), data: "data.amount"},
+                    {title: $translate('createTime'), data: "applyTime$"},
+                    {title: $translate('RECORD_ALIPAY_ACC'), data: "data.alipayerAccount"},
+                    {title: $translate('RECORD_ALIPAY_NAME'), data: "data.alipayer"},
+                    {title: $translate('RECORD_ALIPAY_NICKNAME'), data: "data.alipayerNickName"},
+                ],
+                "paging": false,
+                "language": {
+                    "info": "Total _MAX_ records",
+                    "emptyTable": $translate("No data available in table"),
+                },
+                bSortClasses: false,
+                fnRowCallback: vm.limitedOfferTableCallback
+            };
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            let playerTbl = utilService.createDatatableWithFooter('#playerAlipayAccReportTable', tableOptions, {}, false);
+            utilService.setDataTablePageInput('playerAlipayAccReportTable', playerTbl, $translate);
+
+            $('#playerAlipayAccReportTable').resize();
+        };
 
         ////////////////////PARTNER REAL TIME COMMISSION REPORT//////////////////////
         vm.getSelectedCommissionPeriod = () => {
@@ -8236,19 +8298,6 @@ define(['js/app'], function (myApp) {
 
             // generate a download for xls
             vm.exportToExcel = function(tableId, reportName) {
-                var htmls = "";
-                var uri = 'data:application/vnd.ms-excel;base64,';
-                var template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>{table}</table></body></html>';
-                var base64 = function(s) {
-                    return window.btoa(unescape(encodeURIComponent(s)))
-                };
-
-                var format = function(s, c) {
-                    return s.replace(/{(\w+)}/g, function(m, p) {
-                        return c[p];
-                    })
-                };
-
                 let tab = "";
                 let htmlContent = "";
 
@@ -8313,15 +8362,19 @@ define(['js/app'], function (myApp) {
                     htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
                 }
 
-                var ctx = {
-                    worksheet : 'Worksheet',
-                    table : htmlContent
-                }
+                var tab_text = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+                tab_text = tab_text + '<head><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>';
+                tab_text = tab_text + '<x:Name>Test Sheet</x:Name>';
+                tab_text = tab_text + '<x:WorksheetOptions><x:Panes></x:Panes></x:WorksheetOptions></x:ExcelWorksheet>';
+                tab_text = tab_text + '</x:ExcelWorksheets></x:ExcelWorkbook></xml></head><body>';
+                tab_text = tab_text + "<table border='1px'>";
+                tab_text = tab_text + htmlContent;
+                tab_text = tab_text + '</table></body></html>';
+                var fileName = reportName ? $translate(reportName)+ ".xls": "FPMS report.xls";
 
-                var link = document.createElement("a");
-                link.download = reportName ? $translate(reportName)+ ".xls": "FPMS report.xls";
-                link.href = uri + base64(format(template, ctx));
-                link.click();
+                //Save the file
+                var blob = new Blob([tab_text], { type: "application/vnd.ms-excel;charset=utf-8" })
+                window.saveAs(blob, fileName);
             }
         }
 

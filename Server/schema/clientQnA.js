@@ -6,7 +6,7 @@ var clientQnASchema = new Schema({
     //clientQnA template type = constClientQnA
     type: {type: String, required: true, index: true},
     //player object Id
-    playerObjId: {type: Schema.ObjectId, ref: 'player', required: true},
+    playerObjId: {type: Schema.ObjectId, ref: 'player'},
     // security question total wrong count - reset when success
     totalWrongCount: {type: Number, default: 0},
     // data for each step

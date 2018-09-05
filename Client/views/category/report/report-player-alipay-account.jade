@@ -11,9 +11,9 @@
     div
         label {{"RECORD_ALIPAY_NICKNAME"|translate}}
         input.form-control.span.input-sm(ng-model="vm.playerAlipayAccReport.alipayNickname")
-    div
-        label {{"RECORD_ALIPAY_REMARK"|translate}}
-        input.form-control.span.input-sm(ng-model="vm.playerAlipayAccReport.alipayRemark")
+    //div
+    //    label {{"RECORD_ALIPAY_REMARK"|translate}}
+    //    input.form-control.span.input-sm(ng-model="vm.playerAlipayAccReport.alipayRemark")
     div
         label {{"Start date"|translate}}
         #playerAlipayAccountReportStartTime
@@ -22,13 +22,10 @@
         #playerAlipayAccountReportEndTime
     div
         label &nbsp;
-        button.btn.btn-success(ng-click='vm.searchProviderPlayerRecord(true)') {{'SEARCH' | translate}}
-        button.btn.btn-info.margin-left-5(ng-click='vm.searchProviderPlayerRecord(true,true)') {{'EXPORT_EXCEL' | translate}}
-        span#playerExpenseTableSpin.collapse
+        button.btn.btn-success(ng-click='vm.getPlayerAlipayAccReport(true)') {{'SEARCH' | translate}}
+        span#playerAlipayAccReportSpin.collapse
             i.fa.fa-spinner.fa-spin
-        span.margin-left-5 {{vm.operationReportLoadingStatus}}
 .clearfix
-label {{"Total" | translate}} {{vm.playerExpenseQuery.totalCount}} {{"records" | translate}}
-table.common-table#playerExpenseTable.display(style="width:100% ;overflow-x: scroll")
-#playerExpenseTablePage
-table.common-table#playerExpenseExcelTable.display(style="width:100% ;overflow-x: scroll")
+label {{"Total" | translate}} {{vm.playerAlipayAccReport.totalCount}} {{"records" | translate}}
+table.common-table#playerAlipayAccReportTable.display(style="width:100% ;overflow-x: scroll")
+#playerAlipayAccReportTablePage
