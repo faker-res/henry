@@ -4327,5 +4327,7 @@
   "Partner Proposal No": "代理提案号",
   "alipayer": "PMS收录玩家支付宝实名",
   "alipayerAccount": "PMS收录玩家支付宝帐号",
-  "alipayerNickName": "PMS收录玩家支付宝腻称"
+  "alipayerNickName": "PMS收录玩家支付宝腻称",
+  "alipayerRemark": "PMS收录玩家支付宝备注",
+  "getLockedLobbyConfig": "获取平台锁大厅配置"
 }

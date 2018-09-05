@@ -48,7 +48,11 @@ var dbClientQnA = {
             updateData, {upsert: true, new: true})
     },
 
-    getClientQnAProcessStep: function (platformObjId, type, processNo, inputDataObj, isAlternative) {
+    /**
+     * getClientQnAProcessStep
+     * @param qnaObjId = objId for clientQnA.js - pass this ID throughout whole process to retrieve data from db
+     */
+    getClientQnAProcessStep: function (platformObjId, type, processNo, inputDataObj, isAlternative, qnaObjId) {
         platformObjId = ObjectId(platformObjId);
         let QnAQuery = {
             type: type
@@ -70,7 +74,7 @@ var dbClientQnA = {
                     } else if (QnATemplate.action) {
                         actionString = QnATemplate.action;
                     }
-                    return dbClientQnA[actionString](platformObjId, inputDataObj);
+                    return dbClientQnA[actionString](platformObjId, inputDataObj, qnaObjId);
                 }
 
                 return QnATemplate;
@@ -79,13 +83,44 @@ var dbClientQnA = {
     },
 
     // save input data from each step
-    updateClientQnAData: function (playerObjId, type, updateObj) {
-        return dbconfig.collection_clientQnA.findOneAndUpdate(
-            {
-                playerObjId: playerObjId,
-                type: type
-            },
-            updateObj,{upsert: true}).lean()
+    updateClientQnAData: function (playerObjId, type, updateObj, qnaObjId) {
+        if (!playerObjId && !qnaObjId) {
+            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        }
+        let qnaQuery = {
+            type: type
+        }
+        if (playerObjId) {
+            qnaQuery.playerObjId = ObjectId(playerObjId);
+        } else if (qnaObjId) {
+            qnaQuery._id = ObjectId(qnaObjId);
+        }
+        return dbconfig.collection_clientQnA.findOneAndUpdate(qnaQuery, updateObj,{upsert: true, new: true}).lean();
+    },
+
+    // determine which answer is wrong (return this function if security question does not pass)
+    securityQuestionReject: function (qnaObjId, correctQuesArr, incorrectQuesArr) {
+        let returnObj = {
+            correctAns: correctQuesArr,
+            incorrectAns: incorrectQuesArr
+        }
+        return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).then(
+            clientQnAData => {
+                if (clientQnAData) {
+                    returnObj.totalWrongCount = clientQnAData.totalWrongCount
+                }
+                return Promise.reject(returnObj)
+            });
+    },
+
+    // return qna end message
+    qnaEndMessage: function (title, des) {
+        return Promise.resolve({
+            clientQnAEnd: {
+                title: localization.localization.translate(title),
+                des: localization.localization.translate(des)
+            }
+        })
     },
 
     forgotPassword1_2: function () {
@@ -110,41 +145,47 @@ var dbClientQnA = {
                 let updateObj = {
                     QnAData: {name: inputDataObj.name}
                 };
-                dbClientQnA.updateClientQnAData(playerData._id, constClientQnA.FORGOT_PASSWORD, updateObj).catch(errorUtils.reportError);
-
-                if (playerData.phoneNumber) {
-                    return dbconfig.collection_clientQnATemplate.findOne({
-                        type: constClientQnA.FORGOT_PASSWORD,
-                        processNo: "2_1"
-                    }).lean();
-                } else if (playerData.bankAccount) {
-                    return dbconfig.collection_clientQnATemplate.findOne({
-                        type: constClientQnA.FORGOT_PASSWORD,
-                        processNo: "2_2"
-                    }).lean()
-                    //     .then(
-                    //     QnATemplate => {
-                    //         return pmsAPI.foundation_getProvinceList({});
-                    //     }
-                    // );
-                } else {
-                    return Promise.resolve({
-                        clientQnAEnd: {
-                            title: localization.localization.translate("Reset password failed"),
-                            des: localization.localization.translate("Attention! This player does not bind phone number (or inconvenient to receive sms code), cannot verify bank card. Please contact customer service to reset password manually")
+                return dbClientQnA.updateClientQnAData(playerData._id, constClientQnA.FORGOT_PASSWORD, updateObj).then(
+                    clientQnAData => {
+                        if (!clientQnAData) {
+                            return Promise.reject({name: "DBError", message: "update QnA data failed"})
                         }
-                    })
-                }
 
+                        if (playerData.phoneNumber || playerData.bankAccount) {
+                            let processNo;
+                            if (playerData.phoneNumber) {
+                                processNo = "2_1";
+                            } else if (playerData.bankAccount) {
+                                processNo = "2_2";
+                            }
+                            return dbconfig.collection_clientQnATemplate.findOne({
+                                type: constClientQnA.FORGOT_PASSWORD,
+                                processNo: processNo
+                            }).lean().then(
+                                QnATemplate => {
+                                    if (QnATemplate) {
+                                        QnATemplate.qnaObjId = clientQnAData._id;
+                                    }
+                                    return QnATemplate;
+                                }
+                            );
+                        } else {
+                            let endTitle = "Reset password failed";
+                            let endDes = "Attention! This player does not bind phone number (or inconvenient to receive sms code), cannot verify bank card. Please contact customer service to reset password manually";
+                            return dbClientQnA.qnaEndMessage(endTitle, endDes)
+                        }
+                    });
             }
         )
-        // let QnAQuery = {
-        //     type: constClientQnA.FORGOT_PASSWORD,
-        //     processNo: "2"
-        // }
-        // return dbconfig.collection_clientQnATemplate.findOne(QnAQuery).lean();
-
     },
+
+    forgotPassword2_2: function (platformObjId, inputDataObj, qnaObjId) {
+        if (!qnaObjId) {
+            return Promise.reject({name: "DBError", message: "qnaObjId undefined"})
+        }
+
+       return dbClientQnA.securityQuestionReject(qnaObjId, [1,2],[3,4]);//test only - incomplete
+    }
     //endregion
 
     //region forgotUserID
