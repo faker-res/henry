@@ -3,7 +3,7 @@ var Schema = mongoose.Schema;
 
 // for security question
 var clientQnASchema = new Schema({
-    //clientQnA template type
+    //clientQnA template type = constClientQnA
     type: {type: String, required: true, index: true},
     //player object Id
     playerObjId: {type: Schema.ObjectId, ref: 'player', required: true},
