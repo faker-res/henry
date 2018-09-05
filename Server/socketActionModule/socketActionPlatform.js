@@ -11,6 +11,7 @@ let constPartnerCommissionSettlementMode = require('./../const/constPartnerCommi
 const dbAutoProposal = require('./../db_modules/dbAutoProposal');
 const dbGameProvider = require('./../db_modules/dbGameProvider');
 const dbPlayerLevel = require('./../db_modules/dbPlayerLevel');
+const dbClientQnA = require('./../db_modules/dbClientQnA');
 const dbRewardEvent = require('./../db_modules/dbRewardEvent');
 const dbRewardTaskGroup = require('./../db_modules/dbRewardTaskGroup');
 const dbPlayerCredibility = require('../db_modules/dbPlayerCredibility');
@@ -151,6 +152,25 @@ function socketActionPlatform(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.adminId);
             socketUtil.emitter(self.socket, dbPlatform.getPlatformByAdminId, [data.adminId], actionName, isValidData);
+        },
+
+
+        getClientQnAProcessStep: function getClientQnAProcessStep(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.type && data.platformObjId);
+            socketUtil.emitter(self.socket, dbClientQnA.getClientQnAProcessStep, [data.platformObjId, data.type, data.processNo, data.inputDataObj, data.isAlternative], actionName, isValidData);
+        },
+
+        getClientQnASecurityQuesConfig: function getClientQnASecurityQuesConfig(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.type && data.platformObjId);
+            socketUtil.emitter(self.socket, dbClientQnA.getClientQnASecurityQuesConfig, [data.type, data.platformObjId], actionName, isValidData);
+        },
+
+        editClientQnAConfig: function editClientQnAConfig(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.type && data.platformObjId && data.updateObj);
+            socketUtil.emitter(self.socket, dbClientQnA.editClientQnAConfig, [data.type, data.platformObjId, data.updateObj], actionName, isValidData);
         },
 
         //todo::test platform settlement api, to be commentout
@@ -738,8 +758,8 @@ function socketActionPlatform(socketIO, socket) {
         },
         getAutoFeedback: function getAutoFeedback(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.createTimeStart && data.createTimeEnd);
-            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data], actionName, isValidData);
+            let isValidData = Boolean(data && data.query && data.query.platformObjId && data.query.createTimeStart && data.query.createTimeEnd);
+            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data.query, data.index, data.limit], actionName, isValidData);
         },
         getAllAutoFeedback: function getAllAutoFeedback(data) {
             let actionName = arguments.callee.name;
@@ -762,7 +782,7 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime);
             socketUtil.emitter(self.socket, dbPlatform.getUniqueIpDomainsWithinTimeFrame, [data.platformObjId, data.startTime, data.endTime], actionName, isValidData);
-        },
+        }
     };
     socketActionPlatform.actions = this.actions;
 }

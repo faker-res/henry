@@ -7018,11 +7018,18 @@ define(['js/app'], function (myApp) {
                 if (Object.keys(updateData).length > 0) {
                     updateData._id = partnerId;
                     var isUpdate = false;
-
+                    let isRealName = false;
+                    let realNameObj = {
+                        isPartner: true
+                    };
                     updateData.partnerName = newPartnerData.name || vm.editPartner.name;
                     updatedKeys.forEach(function (key) {
                         if (key == "bankCardGroup" || key == "alipayGroup" || key == "wechatPayGroup" || key == "merchantGroup" || key == "quickPayGroup" || key == "referralName") {
                             //do nothing
+                        } else if(key == "realName"){
+                            isRealName = true;
+                            realNameObj.realName = updateData.realName;
+                            delete updateData.realName;
                         } else {
                             isUpdate = true;
                         }
@@ -7033,12 +7040,6 @@ define(['js/app'], function (myApp) {
                     }
 
                     updateData.remark = "";
-                    if (updateData.realName) {
-                        if (updateData.remark) {
-                            updateData.remark += ", ";
-                        }
-                        updateData.remark += $translate("realName");
-                    }
                     if (updateData.DOB) {
                         if (updateData.remark) {
                             updateData.remark += ", ";
@@ -7087,6 +7088,25 @@ define(['js/app'], function (myApp) {
                         socketService.$socket($scope.AppSocket, updateString, {
                             creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                             data: updateData,
+                            platformId: vm.selectedPlatform.id
+                        }, function (data) {
+                            if (data.data && data.data.stepInfo) {
+                                socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                            }
+                            vm.getPlatformPartnersData();
+                        }, null, true);
+                    }
+
+                    if (isRealName) {
+                        if (realNameObj) {
+                            realNameObj.updateData = $.extend({}, realNameObj);
+                            realNameObj.partnerObjId = partnerId;
+                            realNameObj.partnerName = vm.selectedSinglePartner.partnerName;
+                        }
+
+                        socketService.$socket($scope.AppSocket, "createUpdatePartnerRealNameProposal", {
+                            creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                            data: realNameObj,
                             platformId: vm.selectedPlatform.id
                         }, function (data) {
                             if (data.data && data.data.stepInfo) {
@@ -7734,8 +7754,20 @@ define(['js/app'], function (myApp) {
                 }, null, true);
             }
 
+            vm.initResetPartnerPasswordModal = () => {
+                vm.customNewPassword = "888888";
+                vm.newPartner=vm.selectedSinglePartner;
+                vm.partnerNewPassword = false;
+            };
+
             vm.submitResetPartnerPassword = function () {
-                socketService.$socket($scope.AppSocket, 'resetPartnerPassword', {_id: vm.selectedSinglePartner._id}, function (data) {
+                let sendData = {
+                    _id: vm.selectedSinglePartner._id,
+                    platform: vm.selectedPlatform.id,
+                    newPassword: vm.customNewPassword,
+                };
+
+                socketService.$socket($scope.AppSocket, 'resetPartnerPassword', sendData, function (data) {
                     console.log('password', data);
                     vm.partnerNewPassword = data.data;
                     $scope.safeApply();
@@ -9282,6 +9314,9 @@ define(['js/app'], function (myApp) {
                         proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.alipayQRCode || " ";
                         proposalDetail["ALIPAY_QR_ADDRESS"] = vm.selectedProposal.data.qrcodeAddress || " ";
                         proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                        proposalDetail["alipayer"] = vm.selectedProposal.data.alipayer || " ";
+                        proposalDetail["alipayerAccount"] = vm.selectedProposal.data.alipayerAccount || " ";
+                        proposalDetail["alipayerNickName"] = vm.selectedProposal.data.alipayerNickName || " ";
                         vm.selectedProposal.data = proposalDetail;
                     }
 
@@ -9558,6 +9593,9 @@ define(['js/app'], function (myApp) {
                         proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.alipayQRCode || " ";
                         proposalDetail["ALIPAY_QR_ADDRESS"] = vm.selectedProposal.data.qrcodeAddress || " ";
                         proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                        proposalDetail["alipayer"] = vm.selectedProposal.data.alipayer || " ";
+                        proposalDetail["alipayerAccount"] = vm.selectedProposal.data.alipayerAccount || " ";
+                        proposalDetail["alipayerNickName"] = vm.selectedProposal.data.alipayerNickName || " ";
                         vm.selectedProposal.data = proposalDetail;
                     }
 
@@ -11710,8 +11748,6 @@ define(['js/app'], function (myApp) {
                         manualAuditBanWithdrawal: srcData.manualAuditBanWithdrawal,
                         autoApproveWhenSingleBonusApplyLessThan: srcData.showAutoApproveWhenSingleBonusApplyLessThan,
                         autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
-                        autoApproveRepeatCount: srcData.showAutoApproveRepeatCount,
-                        autoApproveRepeatDelay: srcData.showAutoApproveRepeatDelay,
                         autoApproveLostThreshold: srcData.lostThreshold,
                         autoApproveConsumptionOffset: srcData.consumptionOffset,
                         autoApproveProfitTimes: srcData.profitTimes,
@@ -15604,18 +15640,18 @@ define(['js/app'], function (myApp) {
                 vm.isTransferPartnerCreditToPlayer = true;
             };
 
-            vm.disableTransferPartnerCreditToPlayer = function (value, withdrawConsumptionValue) {
+            vm.disableTransferPartnerCreditToPlayer = function (value) {
                 if (vm.sumTotalTransferAmount == 0 || value < 0 || (value && value.toString == 'undefined')) {
                     vm.isTransferPartnerCreditToPlayer = true;
-                } else if (vm.sumTotalTransferAmount <= vm.selectedSinglePartner.credits && withdrawConsumptionValue) {
+                } else if (vm.sumTotalTransferAmount <= vm.selectedSinglePartner.credits) {
                     vm.isTransferPartnerCreditToPlayer = false;
                 } else {
                     vm.isTransferPartnerCreditToPlayer = true;
                 }
             };
 
-            vm.checkIsDisableTransferPartnerCreditToPlayer = function (value) {
-                if (!value || value < 0 || (value && (value.toString == 'undefined' || value.toString == '-'))) {
+            vm.checkIsDisableTransferPartnerCreditToPlayer = function (providerGroupId, withdrawConsumption) {
+                if (providerGroupId && (!withdrawConsumption || withdrawConsumption < 0)) {
                     vm.isTransferPartnerCreditToPlayer = true;
                 } else {
                     vm.isTransferPartnerCreditToPlayer = false;
@@ -15661,7 +15697,7 @@ define(['js/app'], function (myApp) {
                                 playerName: player.name,
                                 amount: player.amount,
                                 providerGroup: player.providerGroup,
-                                withdrawConsumption: player.withdrawConsumption
+                                withdrawConsumption: player.withdrawConsumption || 0
                             });
                         }
                     }

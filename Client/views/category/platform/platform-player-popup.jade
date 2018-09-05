@@ -536,8 +536,8 @@
                                                 td
                                                     text {{data.score}}
                                                 td
-                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()", ng-if="vm.platformPageName !='batchPermit'")
-                                                    input.selectRemark(type="checkbox", ng-change='vm.forbidModification(data._id, isTrue, "forbidCredibilityAddList", "forbidCredibilityRemoveList")', ng-model="isTrue", ng-if="vm.platformPageName =='batchPermit'")
+                                                    input.selectRemark(type="checkbox", ng-show='!data.isFixed', ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()", ng-if="vm.platformPageName !='batchPermit'")
+                                                    input.selectRemark(type="checkbox", ng-show='!data.isFixed', ng-change='vm.forbidModification(data._id, isTrue, "forbidCredibilityAddList", "forbidCredibilityRemoveList")', ng-model="isTrue", ng-if="vm.platformPageName =='batchPermit'")
                                                     span(id="{{'c-'+data._id}}")
                 .panel.panel-primary
                     .panel-body

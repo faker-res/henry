@@ -301,7 +301,7 @@ p
                                             br
                                             button.btn.btn-primary.common-button-sm(ng-click='vm.getPartnerInfoHistory()') {{"EDIT_HISTORY" | translate}}
                                             br
-                                            button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Partner', 'Partner', 'ResetPassword')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal",ng-click='vm.newPartner=vm.selectedSinglePartner; vm.partnerNewPassword = false',data-target='#modalPartnerPasswordReset') {{"RESET_PASSWORD" | translate}}
+                                            button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Partner', 'Partner', 'ResetPassword')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner", data-toggle="modal",ng-click='vm.initResetPartnerPasswordModal()',data-target='#modalPartnerPasswordReset') {{"RESET_PASSWORD" | translate}}
 
                                 tr
                                     td
@@ -740,6 +740,10 @@ p
                                 text.control-label {{"The password of partner"|translate}}
                                 text.text-success &nbsp;{{vm.selectedSinglePartner.partnerName}}
                                 span &nbsp;{{"will be reset. Are you sure?"|translate}}
+                            .form-group
+                                label.control-label {{'NEW_PASSWORD' | translate}} ({{'optional' | translate}})
+                                input.form-control(ng-model='vm.customNewPassword', placeholder='{{"Leaving empty will generate a random password." | translate}}')
+                                text {{"Note: " | translate}}{{"Leaving empty will generate a random password." | translate}}
                         .well(ng-if='vm.partnerNewPassword')
                             .form-group
                                 text The new password for&nbsp;
@@ -1505,13 +1509,13 @@ p
                                 td {{val.orderNo}}
                                 td {{val.name}}
                                 td
-                                    input.form-control(type='number', ng-model='val.amount', ng-change='vm.getSumTotalTransferAmount(vm.downlinePlayersData);vm.disableTransferPartnerCreditToPlayer(val.amount, val.withdrawConsumption);' ng-disabled='!vm.isEditingTransferPartnerCredit', style='color:red')
+                                    input.form-control(type='number', ng-model='val.amount', ng-change='vm.getSumTotalTransferAmount(vm.downlinePlayersData);vm.disableTransferPartnerCreditToPlayer(val.amount);' ng-disabled='!vm.isEditingTransferPartnerCredit', style='color:red')
                                 td
-                                    select.form-control(ng-model='val.providerGroup' ng-disabled='!vm.isEditingTransferPartnerCredit')
+                                    select.form-control(ng-model='val.providerGroup', ng-change='vm.checkIsDisableTransferPartnerCreditToPlayer(val.providerGroup, val.withdrawConsumption)' ng-disabled='!vm.isEditingTransferPartnerCredit')
                                         option(value='') {{'LOCAL_CREDIT' | translate}}
                                         option(ng-repeat='(i,v) in vm.gameProviderGroup', value='{{v._id}}') {{ v.name }}
                                 td
-                                    input.form-control(type='number', ng-model='val.withdrawConsumption', ng-change='vm.checkIsDisableTransferPartnerCreditToPlayer(val.withdrawConsumption)' ng-disabled='!vm.isEditingTransferPartnerCredit')
+                                    input.form-control(type='number', ng-model='val.withdrawConsumption', ng-change='vm.checkIsDisableTransferPartnerCreditToPlayer(val.providerGroup, val.withdrawConsumption)' ng-disabled='!vm.isEditingTransferPartnerCredit')
                             tr(ng-if='vm.downlinePlayersData.length > 0')
                                 td(colspan=2) {{'All Pages' | translate}}
                                 td(style='color:red') {{vm.sumTotalTransferAmount || 0}}

@@ -1,0 +1,27 @@
+.panel.panel-primary
+    .panel-heading.panel-heading-sm
+        label(style="text-align:center;display:block") {{"WORKFLOW" | translate}}
+    .panel-body.common-left-sub-panel-body
+        .row
+            br
+            div(style='width:90%;margin:auto' ng-if='vm.clientQnAData && checkViewPermission("Platform", "ClientAutoQnA", "Update")')
+                label(style="text-align:left;display:block" ng-if='vm.clientQnAData.questionTitle') {{vm.clientQnAData.questionTitle | translate}}
+                label(style="text-align:center;display:block" ng-if='vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.title') {{vm.clientQnAData.clientQnAEnd.title | translate}}
+                br(ng-if='vm.clientQnAData.questionTitle || (vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.title)')
+                div(ng-repeat='(i,v) in vm.clientQnAData.question')
+                    label(style="text-align:center;display:block;color:red") {{vm.clientQnADataErr | translate}}
+                    label(style="{{vm.questionLabelStyle}}") {{v.des | translate}}
+                    //- br
+                    input.form-control(ng-repeat='(k,o) in vm.clientQnAData.answerInput' ng-if='o.questionNo == v.questionNo && o.type!="select" && o.type!="checkbox"' type='{{o.type}}' ng-model='vm.clientQnAInput[o.objKey]' placeholder='{{o.placeHolder | translate}}')
+                    select.form-control(ng-repeat='(k,o) in vm.clientQnAData.answerInput' ng-if='o.questionNo == v.questionNo && o.type == "select"' ng-model="vm.clientQnAInput[o.objKey]" ng-options="va as va | translate for (in,va) in va.options")
+                    br
+                .pull-right
+                    label(style="color:red" ng-if='vm.clientQnAData.alternativeQuestion && vm.clientQnAData.alternativeQuestion.des' ng-click='vm.getClientQnAProcess(true)') {{vm.clientQnAData.alternativeQuestion.des | translate}}
+                text(ng-if='vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.des') {{vm.clientQnAData.clientQnAEnd.des | translate}}
+                br
+                br
+                .pull-right
+                    button.common-button.btn.btn-success(ng-if='!vm.clientQnAData.clientQnAEnd && vm.clientQnAData.question' ng-click="vm.copyClientQnA()") {{'COPY_TEXT' | translate}}
+                    button.common-button.btn.btn-info(ng-if='!vm.clientQnAData.clientQnAEnd && vm.clientQnAData.question' ng-click="vm.getClientQnAProcess()") {{'NEXT_STEP' | translate}}
+                    button.common-button.btn.btn-danger(ng-if='vm.clientQnAData.clientQnAEnd' ng-click="vm.endClientQnAProcess()") {{'END' | translate}}
+                .clearfix

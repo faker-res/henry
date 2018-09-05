@@ -124,6 +124,14 @@ define(['js/app'], function (myApp) {
             //     "PlayerLimitedOfferReward"
             // ];
 
+            vm.constClientQnA = {
+                FORGOT_PASSWORD: "forgotPassword",
+                FORGOT_USER_ID: "forgotUserID",
+                UPDATE_PHONE: "updatePhoneNumber",
+                EDIT_BANK_CARD: "editBankCard",
+                EDIT_NAME: "editName"
+            };
+
             vm.constProposalType = {
                 UPDATE_PLAYER_INFO: "UpdatePlayerInfo",
                 UPDATE_PLAYER_CREDIT: "UpdatePlayerCredit",
@@ -27127,8 +27135,6 @@ define(['js/app'], function (myApp) {
                 vm.autoApprovalBasic.manualAuditBanWithdrawal = typeof vm.selectedPlatform.data.manualAuditBanWithdrawal === 'boolean' ? vm.selectedPlatform.data.manualAuditBanWithdrawal : true;
                 vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleBonusApplyLessThan;
                 vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleDayTotalBonusApplyLessThan;
-                vm.autoApprovalBasic.showAutoApproveRepeatCount = vm.selectedPlatform.data.autoApproveRepeatCount;
-                vm.autoApprovalBasic.showAutoApproveRepeatDelay = vm.selectedPlatform.data.autoApproveRepeatDelay;
                 vm.autoApprovalBasic.lostThreshold = vm.selectedPlatform.data.autoApproveLostThreshold;
                 vm.autoApprovalBasic.consumptionOffset = vm.selectedPlatform.data.autoApproveConsumptionOffset;
                 vm.autoApprovalBasic.profitTimes = vm.selectedPlatform.data.autoApproveProfitTimes;
@@ -28296,8 +28302,6 @@ define(['js/app'], function (myApp) {
                         manualAuditBanWithdrawal: srcData.manualAuditBanWithdrawal,
                         autoApproveWhenSingleBonusApplyLessThan: srcData.showAutoApproveWhenSingleBonusApplyLessThan,
                         autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
-                        autoApproveRepeatCount: srcData.showAutoApproveRepeatCount,
-                        autoApproveRepeatDelay: srcData.showAutoApproveRepeatDelay,
                         autoApproveLostThreshold: srcData.lostThreshold,
                         autoApproveConsumptionOffset: srcData.consumptionOffset,
                         autoApproveProfitTimes: srcData.profitTimes,
@@ -28740,6 +28744,171 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             };
+
+            vm.buildClientQnATypeList = function () {
+                vm.questionLabelStyle = "text-align:center;display:block";
+                vm.clientQnAData;
+                vm.clientQnAInput = {}; // QnA input
+                vm.clientQnATypeList = [];
+                vm.selectedClientQnAType = {};
+                for (let key in vm.constClientQnA) {
+                    vm.clientQnATypeList.push({text: $translate(vm.constClientQnA[key]), data: vm.constClientQnA[key]});
+                }
+
+                $('#clientQnATypeTree').treeview(
+                    {
+                        data: vm.clientQnATypeList,
+                        highlightSearchResults: true
+                    }
+                );
+                //if (!isRedraw) {
+                $('#searchClientQnAType').keyup(function () {
+                    $('#clientQnATypeTree').treeview('search', [$(this).val(), {
+                        ignoreCase: true,     // case insensitive
+                        exactMatch: false,    // like or equals
+                        revealResults: true,  // reveal matching nodes
+                    }]);
+
+                });
+                $('#clientQnATypeTree').on('searchComplete', function (event, data) {
+                    var showAll = ($('#searchClientQnAType').val()) ? false : true;
+                    $('#clientQnATypeTree li:not(.search-result)').each(function (i, o) {
+                        if (showAll) {
+                            $(o).show();
+                        } else {
+                            $(o).hide();
+                        }
+                    });
+                    $('#clientQnATypeTree li:has(.search-result)').each(function (i, o) {
+                        $(o).show();
+                    });
+                });
+//}
+                $('#clientQnATypeTree').on('nodeSelected', function (event, data) {
+                    vm.clientQnAData = {};
+                    $scope.$evalAsync(() => {
+                        vm.selectedClientQnAType = data;
+                        //get process and steps data for selected proposal type
+                        // vm.getProposalTypeProcessSteps();
+                        // vm.getProposalTypeExpirationDuration();
+                        // console.log("vm.selectedProposalType", vm.selectedProposalType);
+                        // $scope.safeApply();
+                        vm.getClientQnAProcess();
+                        vm.getClientQnASecurityQuesConfig();
+                    });
+                });
+            }
+
+            // display first step of the selected QnA type if processNo is null
+            vm.getClientQnAProcess = function (isAlternative) {
+                vm.clientQnADataErr = ""; //reset error text
+                let sendData = {
+                    type: vm.selectedClientQnAType.data,
+                    platformObjId: vm.selectedPlatform.id,
+                    inputDataObj: vm.clientQnAInput
+                }
+                if (isAlternative) {
+                    sendData.isAlternative = true;
+                }
+                if (vm.clientQnAData && vm.clientQnAData.processNo) {
+                    sendData.processNo = vm.clientQnAData.processNo;
+                }
+                socketService.$socket($scope.AppSocket, 'getClientQnAProcessStep', sendData,  function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.clientQnAInput = {}; //reset input data
+                        vm.clientQnAData = data.data;
+                        if (vm.clientQnAData && vm.clientQnAData.questionTitle && vm.clientQnAData.isSecurityQuestion) {
+                            vm.questionLabelStyle = "text-align:left;display:block";
+                        }
+                    });
+                }, function (err) {
+                    $scope.$evalAsync(() => {
+                        // vm.clientQnAData = {}; //reset template
+                        vm.clientQnADataErr = err.error && err.error.message? $translate(err.error.message): "";
+                    });
+                });
+            }
+
+            vm.getClientQnASecurityQuesConfig = function () {
+                vm.clientQnASecurityQuesConfig = {
+                    question: [],
+                    config: {}
+                };
+                vm.clientQnASecurityQuesCount = {
+                    minQuestionPass: 0,
+                    totalQues: 0
+                };
+
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    type: vm.selectedClientQnAType.data
+                }
+                socketService.$socket($scope.AppSocket, 'getClientQnASecurityQuesConfig', sendData,  function (data) {
+                    if (data.data) {
+                        $scope.$evalAsync(() => {
+                            if (data.data[0] && data.data[0].question && data.data[0].question.length) {
+                                vm.clientQnASecurityQuesConfig.question = data.data[0].question;
+                                vm.clientQnASecurityQuesCount.totalQues = data.data[0].question.length;
+                            }
+                            if (data.data[1]) {
+                                vm.clientQnASecurityQuesConfig.config = data.data[1];
+                                if (data.data[1].minQuestionPass) {
+                                    vm.clientQnASecurityQuesCount.minQuestionPass = data.data[1].minQuestionPass;
+                                }
+                            }
+                        });
+                    }
+
+                });
+            }
+
+            //reset everything
+            vm.endClientQnAProcess = function () {
+                vm.selectedClientQnAType = {};
+                vm.clientQnAInput = {};
+                vm.clientQnAData = {}
+            }
+
+            //copy QnA question
+            vm.copyClientQnA = function () {
+                let copiedText = "";
+                if (vm.clientQnAData) {
+                    if (vm.clientQnAData.question && vm.clientQnAData.question.length) {
+                        vm.clientQnAData.question.forEach(ques => {
+                            if (ques.des) {
+                                if (copiedText) {
+                                    copiedText += " \n";
+                                }
+                                copiedText += $translate(ques.des);
+                            }
+                        })
+                    }
+                }
+                //add on here
+                commonService.copyToClipboard(copiedText);
+            }
+
+            vm.showClientQnAConfigModal = () => {
+                $('#modalClientQnAConfig').modal('show');
+            };
+
+            vm.editClientQnAConfig = function () {
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    type: vm.selectedClientQnAType.data,
+                    updateObj: vm.clientQnASecurityQuesConfig.config
+                }
+                socketService.$socket($scope.AppSocket, 'editClientQnAConfig', sendData, function (data) {
+                    if (data.data) {
+                        // vm.clientQnASecurityQuesConfig.config = data.data
+                        $scope.$evalAsync(() => {
+                            vm.clientQnASecurityQuesConfig.config = data.data;
+                            vm.clientQnASecurityQuesCount.minQuestionPass = data.data.minQuestionPass ? data.data.minQuestionPass : 0;
+                        });
+                    }
+                });
+            };
+
             vm.createProposalTypeForm = function () {
                 vm.newProposal = {};
 
@@ -32986,7 +33155,18 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initAutoFeedback = function() {
-                //
+                vm.autoFeedbackTriggerHours = [];
+                vm.autoFeedbackTriggerMinutes = [];
+                for(let x=0; x<24; x++) {
+                    let hour = x.toString();
+                    hour = hour.length < 2 ? "0"+hour : hour;
+                    vm.autoFeedbackTriggerHours.push(hour);
+                }
+                for(let x=0; x<60; x++) {
+                    let minute = x.toString();
+                    minute = minute.length < 2 ? "0"+minute : minute;
+                    vm.autoFeedbackTriggerMinutes.push(minute);
+                }
             };
 
             vm.initAutoFeedbackCreate = function() {
@@ -33048,6 +33228,15 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'createAutoFeedback', vm.autoFeedbackMission, function (data) {
                     console.log("createAutoFeedback ret",data);
+                    if(data.success) {
+                        $scope.$evalAsync(() => {
+                            vm.autoFeedbackCreateMissionStatus = 'success';
+                        });
+                    } else {
+                        $scope.$evalAsync(() => {
+                            vm.autoFeedbackCreateMissionStatus = 'fail';
+                        });
+                    }
                 });
             };
 
@@ -33116,6 +33305,15 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'updateAutoFeedback', sendData, function (data) {
                     console.log("updateAutoFeedback ret",data);
+                    if(data.success) {
+                        $scope.$evalAsync(() => {
+                            vm.autoFeedbackUpdateMissionStatus = 'success';
+                        });
+                    } else {
+                        $scope.$evalAsync(() => {
+                            vm.autoFeedbackUpdateMissionStatus = 'fail';
+                        });
+                    }
                 });
             };
             vm.autoFeedbackCancel = function() {
@@ -33174,34 +33372,46 @@ define(['js/app'], function (myApp) {
                     vm.autoFeedbackMissionSearch.createTimeStart = $('#autoFeedbackOverviewCreateTimeStartPicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMissionSearch.createTimeEnd = $('#autoFeedbackOverviewCreateTimeEndPicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMissionSearch.pageObj = utilService.createPageForPagingTable("#autoFeedbackOverviewTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "autoFeedbackMissionSearch", vm.drawAutoFeedbackOverviewTable)
+                        vm.commonPageChangeHandler(curP, pageSize, "autoFeedbackMissionSearch", vm.autoFeedbackSearchMission)
                     });
                 });
             };
-            vm.autoFeedbackSearchMission = function() {
+            vm.autoFeedbackSearchMission = function(newSearch) {
+                $('#autoFeedbackOverviewSpin').show();
                 vm.autoFeedbackMissionSearch.platformObjId = vm.selectedPlatform.id;
                 vm.autoFeedbackMissionSearch.createTimeStart = $('#autoFeedbackOverviewCreateTimeStartPicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMissionSearch.createTimeEnd = $('#autoFeedbackOverviewCreateTimeEndPicker').data('datetimepicker').getDate();
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
-                    createTimeStart: vm.autoFeedbackMissionSearch.createTimeStart,
-                    createTimeEnd: vm.autoFeedbackMissionSearch.createTimeEnd
+                    query: {
+                        platformObjId: vm.selectedPlatform.id,
+                        createTimeStart: vm.autoFeedbackMissionSearch.createTimeStart,
+                        createTimeEnd: vm.autoFeedbackMissionSearch.createTimeEnd
+                    }
                 };
                 if(vm.autoFeedbackMissionSearch.name) {
-                    sendData.name = vm.autoFeedbackMissionSearch.name;
+                    sendData.query.name = vm.autoFeedbackMissionSearch.name;
                 }
                 if(vm.autoFeedbackMissionSearch.status) {
-                    sendData.status = vm.autoFeedbackMissionSearch.status;
+                    sendData.query.status = vm.autoFeedbackMissionSearch.status;
+                }
+                if(newSearch) {
+                    sendData.index = 0;
+                    sendData.limit = vm.autoFeedbackMissionSearch.limit || 10;
+                } else {
+                    sendData.index = vm.autoFeedbackMissionSearch.index;
+                    sendData.limit = vm.autoFeedbackMissionSearch.limit;
                 }
                 console.log(sendData);
 
                 socketService.$socket($scope.AppSocket, 'getAutoFeedback', sendData, function (data) {
                     console.log("getAutoFeedback ret",data);
-                    vm.autoFeedbackSearchResult = data.data;
+                    vm.autoFeedbackSearchResultTotal = data.data.total;
+                    vm.autoFeedbackSearchResult = data.data.data;
 
                     let drawData = vm.autoFeedbackPrepareTableData(vm.autoFeedbackSearchResult);
                     console.log("drawData",drawData);
-                    vm.drawAutoFeedbackOverviewTable(drawData, true);
+                    vm.drawAutoFeedbackOverviewTable(drawData, newSearch);
+                    $('#autoFeedbackOverviewSpin').hide();
                 });
             };
             vm.autoFeedbackPrepareTableData = function (missions) {
@@ -33303,63 +33513,23 @@ define(['js/app'], function (myApp) {
                         }
                     ],
                     "paging": false,
-                    createdRow: function (row, data, dataIndex) {
-                        $compile(angular.element(row).contents())($scope);
-                    },
-                    // fnDrawCallback: function () {
-                    //     $scope.safeApply();
-                    // },
                     "language": {
                         "info": "Display _MAX_ provider records",
                         "emptyTable": $translate("No data available in table"),
                     }
                 };
                 tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
-                // $.each(tableOptions.columns, function (i, v) {
-                //     v.defaultContent = v.defaultContent || "";
-                // });
-                // if (vm.autoFeedbackOverviewTable) {
-                //     vm.autoFeedbackOverviewTable.clear();
-                // }
                 vm.autoFeedbackOverviewTable = $('#autoFeedbackOverviewTable').DataTable(tableOptions);
-                // vm.autoFeedbackOverviewTable = utilService.createDatatableWithFooter('#autoFeedbackOverviewTable', tableOptions);
-                vm.autoFeedbackMissionSearch.pageObj.init({maxCount: 10}, newSearch);
+                vm.autoFeedbackMissionSearch.pageObj.init({maxCount: vm.autoFeedbackSearchResultTotal}, newSearch);
                 utilService.setDataTablePageInput('autoFeedbackOverviewTable', vm.autoFeedbackOverviewTable, $translate);
 
                 $('#autoFeedbackOverviewTable').resize();
-                // $('#operationTable tbody').off('click', 'td.expandProvider');
-                // $('#operationTable tbody').on('click', 'td.expandProvider', function () {
-                //     var tr = $(this).closest('tr');
-                //     var row = vm.operationTable.row(tr);
-                //
-                //     if (row.child.isShown()) {
-                //         // This row is already open - close it
-                //         row.child.hide();
-                //         tr.removeClass('shown');
-                //     }
-                //     else {
-                //         // Open this row
-                //         var data = row.data();
-                //         console.log('content', data);
-                //         var id = 'gametable' + data._id;
-                //         row.child(vm.createInnerTable(id)).show();
-                //         vm[id] = {};
-                //         utilService.actionAfterLoaded("#" + id + 'Page', function () {
-                //             vm[id].pageObj = utilService.createPageForPagingTable("#" + id + 'Page', {}, $translate, function (curP, pageSize) {
-                //                 vm.searchGameReportInProvider(data, id, false, (curP - 1) * pageSize, pageSize);
-                //             });
-                //
-                //         })
-                //         vm.searchGameReportInProvider(data, id, true);
-                //         tr.addClass('shown');
-                //     }
-                // });
             };
 
             vm.getAllAutoFeedback = function() {
                 socketService.$socket($scope.AppSocket, 'getAllAutoFeedback', {platformObjId: vm.selectedPlatform.id}, function (data) {
                     console.log("getAllAutoFeedbackMissions ret",data);
-                    vm.autoFeedbackMissions = data.data;
+                    vm.autoFeedbackMissions = data.data.data;
                 });
             };
 

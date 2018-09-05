@@ -42,6 +42,16 @@ function socketActionProposal(socketIO, socket) {
         },
 
         /**
+         * Create new Proposal to update player real name
+         * @param {json} data -platformId  proposal data
+         */
+        createUpdatePlayerRealNameProposal: function createUpdatePlayerRealNameProposal(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.data && (!data.data.realName || data.data.realName.match(/\d+/g) === null));
+            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PLAYER_REAL_NAME, data], actionName, isValidData);
+        },
+
+        /**
          * Create new Proposal to update player credit
          * @param {json} data - proposal data
          */
@@ -145,6 +155,12 @@ function socketActionProposal(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId && data.data);
             socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PARTNER_INFO, data], actionName, isValidData);
+        },
+
+        createUpdatePartnerRealNameProposal: function createUpdatePartnerRealNameProposal(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.data);
+            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PARTNER_REAL_NAME, data], actionName, isValidData);
         },
 
         createUpdatePartnerCommissionTypeProposal: function createUpdatePartnerCommissionTypeProposal(data) {
