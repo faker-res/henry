@@ -276,6 +276,36 @@ define([], () => {
             return result
         }
 
+        self.getMerchantName = function(merchantNo, merchantsFromPMS, merchantTypes, type){
+            let merchantName = '';
+            let result = '';
+            let merchant = [];
+            if (merchantNo && merchantsFromPMS) {
+
+                let inputDevice = self.getPMSDevices(type);
+
+                if(type){
+                    merchant = merchantsFromPMS.filter(item => {
+                        return item.merchantNo == merchantNo && item.targetDevices == inputDevice;
+                    });
+                }else{
+                    merchant = merchantsFromPMS.filter(item => {
+                        return item.merchantNo == merchantNo;
+                    });
+                }
+
+                if (merchant.length > 0) {
+                    let merchantName = merchantTypes.filter(item => {
+                        return item.merchantTypeId == merchant[0].merchantTypeId;
+                    })
+                    if (merchantName[0]) {
+                        result = merchantName[0].name;
+                    }
+                }
+            }
+            return result;
+        }
+
         this.updatePageTile = ($translate, pageName, tabName) => {
             window.document.title = $translate(pageName) + "->" + $translate(tabName);
             $(document).one('shown.bs.tab', function (e) {
