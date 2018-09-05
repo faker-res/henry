@@ -162,9 +162,7 @@ let dbPlatformAutoFeedback = {
         };
 
         return dbPlatformAutoFeedback.getAutoFeedback(query, null, null, true).then(autoFeedbacks => {
-            console.log(autoFeedbacks);
             if(!autoFeedbacks || autoFeedbacks.length < 1) {
-                console.log("No auto feedback for processing at this time.");
                 return {message: 'No auto feedback for processing at this time.'};
             }
             let executeAutoFeedback = feedback => {
