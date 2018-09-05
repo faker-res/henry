@@ -20,6 +20,20 @@ db.clientQnATemplate.update(
 
 db.clientQnATemplate.update(
     {
+        processNo: "2_1",
+        type: type1
+    },
+    {
+        $set: {
+            question: [{questionNo: 1, des: "Please enter phone number of the account, a sms verification code will be sent"}],
+            answerInput: [{type: "text", objKey: "phoneNumber", questionNo: 1, placeHolder: "Please enter phone number"}],
+            action: "forgotPassword2_1"
+        }
+    },
+    {upsert: true});
+
+db.clientQnATemplate.update(
+    {
         processNo: "2_2",
         type: type1
     },

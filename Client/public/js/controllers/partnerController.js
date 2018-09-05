@@ -7734,8 +7734,20 @@ define(['js/app'], function (myApp) {
                 }, null, true);
             }
 
+            vm.initResetPartnerPasswordModal = () => {
+                vm.customNewPassword = "888888";
+                vm.newPartner=vm.selectedSinglePartner;
+                vm.partnerNewPassword = false;
+            };
+
             vm.submitResetPartnerPassword = function () {
-                socketService.$socket($scope.AppSocket, 'resetPartnerPassword', {_id: vm.selectedSinglePartner._id}, function (data) {
+                let sendData = {
+                    _id: vm.selectedSinglePartner._id,
+                    platform: vm.selectedPlatform.id,
+                    newPassword: vm.customNewPassword,
+                };
+
+                socketService.$socket($scope.AppSocket, 'resetPartnerPassword', sendData, function (data) {
                     console.log('password', data);
                     vm.partnerNewPassword = data.data;
                     $scope.safeApply();

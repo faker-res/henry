@@ -308,6 +308,7 @@
                 .inlineBlk
                     label {{"Feedback Mission Name"|translate}}
                     select.form-control(style='max-width:300px', ng-model="vm.autoFeedbackMissionSearch.name")
+                        option(value='') {{'any' | translate}}
                         option(ng-repeat='(i,v) in vm.autoFeedbackMissions', value='{{v.name}}') {{v.name}}
                 .inlineBlk
                     label.control-label {{'Mission Create Start Time' | translate}}
@@ -324,12 +325,15 @@
                 .inlineBlk
                     label {{"Mission Status" | translate}}
                     select.form-control(ng-model='vm.autoFeedbackMissionSearch.status')
+                        option(value='') {{'any' | translate}}
                         option(value='Unbegun') {{'Unbegun' | translate}}
                         option(value='Ongoing') {{'Ongoing' | translate}}
                         option(value='Ended') {{'Ended' | translate}}
                         option(value='Manually Cancelled') {{'Manually Cancelled' | translate}}
                 .inlineBlk
-                    button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','overview')" ng-click='vm.autoFeedbackSearchMission()') {{"SEARCH" | translate}}
+                    button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','overview')" ng-click='vm.autoFeedbackSearchMission(true)') {{"SEARCH" | translate}}
+                span#autoFeedbackOverviewSpin.collapse
+                    i.fa.fa-spinner.fa-spin
 
                 br
                 table#autoFeedbackOverviewTable.common-table.display(style="min-width:100% ;overflow: scroll")

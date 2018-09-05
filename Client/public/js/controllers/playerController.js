@@ -8017,6 +8017,11 @@ define(['js/app'], function (myApp) {
             if (Object.keys(updateData).length > 0) {
                 updateData._id = playerId;
                 var isUpdate = false;
+                var isRealName = false;
+                let realNameObj = {
+                    playerName: newPlayerData.name || vm.editPlayer.name,
+                    playerObjId: playerId
+                };
 
                 updateData.playerName = newPlayerData.name || vm.editPlayer.name;
                 // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
@@ -8027,7 +8032,11 @@ define(['js/app'], function (myApp) {
                         //do nothing
                     } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
                         //do nothing
-                    } else {
+                    } else if(key == "realName"){
+                        isRealName = true;
+                        realNameObj.realName = updateData.realName;
+                        delete updateData.realName;
+                    } else{
                         isUpdate = true;
                     }
                     // }
@@ -8084,12 +8093,6 @@ define(['js/app'], function (myApp) {
                     }
                     updateData.remark += $translate("PLAYER_LEVEL");
                 }
-                if (updateData.realName) {
-                    if (updateData.remark) {
-                        updateData.remark += ", ";
-                    }
-                    updateData.remark += $translate("realName");
-                }
                 if (updateData.referralName) {
                     if (updateData.remark) {
                         updateData.remark += ", ";
@@ -8123,6 +8126,19 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: updateData,
+                        platformId: vm.selectedPlatform.id
+                    }, function (data) {
+                        if (data.data && data.data.stepInfo) {
+                            socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                        }
+                        vm.getPlatformPlayersData();
+                    }, null, true);
+                }
+
+                if(isRealName && realNameObj && realNameObj.realName){
+                    socketService.$socket($scope.AppSocket, 'createUpdatePlayerRealNameProposal', {
+                        creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                        data: realNameObj,
                         platformId: vm.selectedPlatform.id
                     }, function (data) {
                         if (data.data && data.data.stepInfo) {
@@ -18148,6 +18164,32 @@ define(['js/app'], function (myApp) {
                     vm.selectedProposal.data = proposalDetail;
                 }
 
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePlayerRealName") {
+                    let proposalDetail = {};
+                    let inputDevice = "";
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+
+                    proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                    proposalDetail["PLAYER_Id"] = vm.selectedProposal.data.playerId;
+                    proposalDetail["Player Level"] = vm.selectedProposal.data.playerLevelName;
+                    proposalDetail["realNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
+                    proposalDetail["realNameAfterEdit"] = vm.selectedProposal.data.realNameAfterEdit;
+
+                    for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                        if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == vm.selectedProposal.inputDevice ){
+                            inputDevice =  $translate(Object.keys(vm.inputDevice)[i]);
+                        }
+                    }
+
+                    proposalDetail["INPUT_DEVICE"] = inputDevice;
+                    proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
+
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
                         vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
@@ -18442,6 +18484,32 @@ define(['js/app'], function (myApp) {
                     proposalDetail["Proposal No. of Partner Transfer Credit to Downline"] = vm.selectedProposal.data.partnerTransferCreditToDownlineProposalNo;
                     proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
                     proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
+
+                    for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                        if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == vm.selectedProposal.inputDevice ){
+                            inputDevice =  $translate(Object.keys(vm.inputDevice)[i]);
+                        }
+                    }
+
+                    proposalDetail["INPUT_DEVICE"] = inputDevice;
+                    proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
+
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePlayerRealName") {
+                    let proposalDetail = {};
+                    let inputDevice = "";
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+
+                    proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                    proposalDetail["PLAYER_Id"] = vm.selectedProposal.data.playerId;
+                    proposalDetail["Player Level"] = vm.selectedProposal.data.playerLevelName;
+                    proposalDetail["realNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
+                    proposalDetail["realNameAfterEdit"] = vm.selectedProposal.data.realNameAfterEdit;
 
                     for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
                         if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == vm.selectedProposal.inputDevice ){

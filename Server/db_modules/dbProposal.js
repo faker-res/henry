@@ -368,6 +368,12 @@ var proposal = {
                         proposalData.status = constProposalStatus.CSPENDING;
                     }
 
+                    if(proposalTypeData.name == constProposalType.UPDATE_PLAYER_REAL_NAME && proposalData.data && data[2]){
+                        proposalData.data.realNameBeforeEdit = data[2].realName;
+                        proposalData.data.realNameAfterEdit = proposalData.data.realName;
+                        proposalData.data.playerId = data[2].playerId;
+                    }
+
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
                         pendingProposal => {
                             //for online top up and player consumption return, there can be multiple pending proposals

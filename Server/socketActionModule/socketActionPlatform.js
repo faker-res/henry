@@ -157,8 +157,8 @@ function socketActionPlatform(socketIO, socket) {
 
         getClientQnAProcessStep: function getClientQnAProcessStep(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.type);
-            socketUtil.emitter(self.socket, dbClientQnA.getClientQnAProcessStep, [data.type, data.processNo, data.inputDataObj, data.isAlternative], actionName, isValidData);
+            var isValidData = Boolean(data && data.type && data.platformObjId);
+            socketUtil.emitter(self.socket, dbClientQnA.getClientQnAProcessStep, [data.platformObjId, data.type, data.processNo, data.inputDataObj, data.isAlternative], actionName, isValidData);
         },
 
         getClientQnASecurityQuesConfig: function getClientQnASecurityQuesConfig(data) {
@@ -758,8 +758,8 @@ function socketActionPlatform(socketIO, socket) {
         },
         getAutoFeedback: function getAutoFeedback(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.createTimeStart && data.createTimeEnd);
-            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data], actionName, isValidData);
+            let isValidData = Boolean(data && data.query && data.query.platformObjId && data.query.createTimeStart && data.query.createTimeEnd);
+            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data.query, data.index, data.limit], actionName, isValidData);
         },
         getAllAutoFeedback: function getAllAutoFeedback(data) {
             let actionName = arguments.callee.name;

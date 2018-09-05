@@ -10,6 +10,7 @@ const constProposalType = {
     UPDATE_PLAYER_QQ: "UpdatePlayerQQ",
     UPDATE_PLAYER_WECHAT: "UpdatePlayerWeChat",
     UPDATE_PLAYER_BANK_INFO: "UpdatePlayerBankInfo",
+    UPDATE_PLAYER_REAL_NAME: "UpdatePlayerRealName",
     ADD_PLAYER_REWARD_TASK: "AddPlayerRewardTask",
     UPDATE_PARTNER_BANK_INFO: "UpdatePartnerBankInfo",
     UPDATE_PARTNER_PHONE: "UpdatePartnerPhone",
