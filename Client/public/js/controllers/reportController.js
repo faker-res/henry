@@ -2688,7 +2688,64 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        vm.getPlayerAlipayAccReport = function (newSearch) {
+            $('#playerAlipayAccReportSpin').show();
+            vm.playerAlipayAccReport.index = 0;
 
+            let sendQuery = {
+                platformObjId: vm.selectedPlatform._id,
+                startTime: vm.playerAlipayAccReport.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.playerAlipayAccReport.endTime.data('datetimepicker').getLocalDate(),
+            };
+
+            console.log('sendQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'getPlayerAlipayAccReport', sendQuery, function (data) {
+                console.log('getPlayerAlipayAccReport', data);
+
+                if(data.hasOwnProperty('data')) {
+                    vm.playerAlipayAccDetail = data.data;
+                    vm.playerAlipayAccDetail.map(e => {
+                        e.applyTime$ = $scope.timeReformat(e.createTime);
+                    });
+                    vm.playerAlipayAccReport.totalCount = vm.playerAlipayAccDetail.length;
+                }
+                drawPlayerAlipayAccReport(newSearch);
+                $('#playerAlipayAccReportSpin').hide();
+                $scope.$evalAsync();
+            });
+        };
+
+        function drawPlayerAlipayAccReport (newSearch) {
+            let tableOptions = {
+                data: vm.playerAlipayAccDetail,
+                "order": vm.playerAlipayAccDetail.aaSorting || [[0, 'desc']],
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('Proposal No'), data: "proposalId"},
+                    {title: $translate('RELATED_ACCOUNT'), data: "data.playerName"},
+                    {title: $translate('RELATED_AMOUNT'), data: "data.amount"},
+                    {title: $translate('createTime'), data: "applyTime$"},
+                    {title: $translate('RECORD_ALIPAY_ACC'), data: "data.alipayerAccount"},
+                    {title: $translate('RECORD_ALIPAY_NAME'), data: "data.alipayer"},
+                    {title: $translate('RECORD_ALIPAY_NICKNAME'), data: "data.alipayerNickName"},
+                ],
+                "paging": false,
+                "language": {
+                    "info": "Total _MAX_ records",
+                    "emptyTable": $translate("No data available in table"),
+                },
+                bSortClasses: false,
+                fnRowCallback: vm.limitedOfferTableCallback
+            };
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            let playerTbl = utilService.createDatatableWithFooter('#playerAlipayAccReportTable', tableOptions, {}, false);
+            utilService.setDataTablePageInput('playerAlipayAccReportTable', playerTbl, $translate);
+
+            $('#playerAlipayAccReportTable').resize();
+        };
 
         ////////////////////PARTNER REAL TIME COMMISSION REPORT//////////////////////
         vm.getSelectedCommissionPeriod = () => {
