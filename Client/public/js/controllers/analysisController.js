@@ -6352,7 +6352,7 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {title: $translate("VISITED_DOMAIN"), data: "domain"},
                     {title: tableAmountColumnName, data: "count"},
-                    {title: $translate('ratio'), data: "ratio"}
+                    {title: $translate('ratio'), data: "ratio", bSortable: true}
                 ],
                 "paging": false,
             };
