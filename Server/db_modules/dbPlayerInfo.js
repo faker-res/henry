@@ -10088,8 +10088,9 @@ let dbPlayerInfo = {
                             }
                         }
 
+                        let permissionProm = Promise.resolve(true);
                         if (!player.permission.applyBonus) {
-                            dbconfig.collection_playerPermissionLog.find(
+                            permissionProm = dbconfig.collection_playerPermissionLog.find(
                                 {
                                     player: player._id,
                                     platform: platform._id,
@@ -10105,20 +10106,23 @@ let dbPlayerInfo = {
                                 }
                             );
                         }
-
-                        if (player.platform && player.platform.useProviderGroup) {
-                            let unlockAllGroups = Promise.resolve(true);
-                            if (bForce) {
-                                unlockAllGroups = dbRewardTaskGroup.unlockPlayerRewardTask(playerData._id, adminInfo).catch(errorUtils.reportError);
-                            }
-                            return unlockAllGroups.then(
-                                () => {
-                                    return findStartedRewardTaskGroup(playerData.platform, playerData._id);
+                        return permissionProm.then(
+                            res => {
+                                if (player.platform && player.platform.useProviderGroup) {
+                                    let unlockAllGroups = Promise.resolve(true);
+                                    if (bForce) {
+                                        unlockAllGroups = dbRewardTaskGroup.unlockPlayerRewardTask(playerData._id, adminInfo).catch(errorUtils.reportError);
+                                    }
+                                    return unlockAllGroups.then(
+                                        () => {
+                                            return findStartedRewardTaskGroup(playerData.platform, playerData._id);
+                                        }
+                                    );
+                                } else {
+                                    return false;
                                 }
-                            );
-                        } else {
-                            return false;
-                        }
+                            }
+                        );
                     } else {
                         return Promise.reject({name: "DataError", errorMessage: "Cannot find player"});
                     }
