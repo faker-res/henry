@@ -24,13 +24,13 @@
                         .well
                             .form-group
                                 .control-label {{"Please enter the minimum correct answer count (include)" | translate}}
-                                input.form-control(type='text', ng-model='vm.clientQnASecurityQuesConfig.config.minQuestionPass')
+                                input.form-control(type='text', ng-model='vm.clientQnASecurityQuesConfig.config.minQuestionPass', ng-disabled='!vm.clientQnASecurityQuesConfig.question.length')
                             .form-group
                                 .control-label {{"Security answer maximum incorrect count (include)" | translate}}
-                                input.form-control(type='text', ng-model='vm.clientQnASecurityQuesConfig.config.wrongCount')
+                                input.form-control(type='text', ng-model='vm.clientQnASecurityQuesConfig.config.wrongCount', ng-disabled='!vm.clientQnASecurityQuesConfig.question.length')
                             .form-group
                                 .control-label {{"Default password for reset password" | translate}}
-                                input.form-control(type='text', ng-model='vm.clientQnASecurityQuesConfig.config.defaultPassword')
+                                input.form-control(type='text', ng-model='vm.clientQnASecurityQuesConfig.config.defaultPassword', ng-disabled='vm.disableQnADefaultPassword()')
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.editClientQnAConfig()") {{"CONFIRM" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}

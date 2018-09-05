@@ -5134,7 +5134,7 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row) {
                             // todo :: #22
                             data = data || '';
-                            if ($scope.checkViewPermission('Platform', 'Player', 'Edit')) {
+                            if ($scope.checkViewPermission('Player', 'Player', 'Edit')) {
                                 return $('<a style="z-index: auto" data-toggle="modal" data-container="body" ' +
                                     'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
                                     'ng-click="vm.onClickPlayerCheck(\'' + row._id + '\', vm.openEditPlayerDialog, \'basicInfo\');"></a>')
@@ -5383,7 +5383,7 @@ define(['js/app'], function (myApp) {
                                 'title': $translate("PHONE"),
                                 'data-placement': 'left',
                             }));
-                            if ($scope.checkViewPermission('Platform', 'Player', 'AddFeedback')) {
+                            if ($scope.checkViewPermission('Player', 'Feedback', 'AddFeedback')) {
                                 link.append($('<a>', {
                                     'class': 'fa fa-commenting margin-right-5',
                                     'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
@@ -5395,7 +5395,7 @@ define(['js/app'], function (myApp) {
                                 }));
                             }
                             if (row.isRealPlayer) {
-                                if ($scope.checkViewPermission('Platform', 'Player', 'ApplyManualTopup')) {
+                                if ($scope.checkViewPermission('Player', 'TopUp', 'ApplyManualTopup')) {
                                     link.append($('<a>', {
                                         'class': 'fa fa-plus-circle',
                                         'ng-click': 'vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);',
@@ -5408,7 +5408,7 @@ define(['js/app'], function (myApp) {
                                     }));
                                 }
                                 link.append($('<br>'));
-                                if ($scope.checkViewPermission('Platform', 'Player', 'applyBonus')) {
+                                if ($scope.checkViewPermission('Player', 'Bonus', 'applyBonus')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5 margin-right-5',
                                         'src': (row.permission.applyBonus === false ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
@@ -5422,7 +5422,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'left',   // because top and bottom got hidden behind the table edges
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'AddRewardTask')) {
+                                if ($scope.checkViewPermission('Player', 'Reward', 'AddRewardTask')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5 margin-right-5',
                                         'src': "images/icon/rewardBlue.png",
@@ -5436,7 +5436,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'left',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'RepairPayment') || $scope.checkViewPermission('Platform', 'Player', 'RepairTransaction')) {
+                                if ($scope.checkViewPermission('Player', 'Player', 'RepairPayment') || $scope.checkViewPermission('Player', 'Player', 'RepairTransaction')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
                                         'src': "images/icon/reapplyBlue.png",
@@ -5449,7 +5449,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'right',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'CreditAdjustment')) {
+                                if ($scope.checkViewPermission('Player', 'Credit', 'CreditAdjustment')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
                                         'src': "images/icon/creditAdjustBlue.png",
@@ -5463,7 +5463,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'right',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsConvert')) {
+                                if ($scope.checkViewPermission('Player', 'RewardPoints', 'RewardPointsChange') || $scope.checkViewPermission('Player', 'RewardPoints', 'RewardPointsConvert')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
                                         'src': (row.permission.rewardPointsTask === false ? "images/icon/rewardPointsRed.png" : "images/icon/rewardPointsBlue.png"),
@@ -7322,7 +7322,7 @@ define(['js/app'], function (myApp) {
             console.log(type, data);
             vm.getSMSTemplate();
             var title, text;
-            if (type == 'msg' && authService.checkViewPermission('Platform', 'Player', 'sendSMS')) {
+            if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
                 vm.smsPlayer = {
                     playerId: playerObjId.playerId,
                     name: playerObjId.name,
@@ -7649,9 +7649,9 @@ define(['js/app'], function (myApp) {
                         },
                         isChangeLogTableInitiated: false,
                         playerTopUpGroupLog: vm.playerTopUpGroupLog,
-                        editPlayerPermission: $scope.checkViewPermission('Platform', 'Player', 'Edit'),
-                        editContactPermission: $scope.checkViewPermission('Platform', 'Player', 'EditContact'),
-                        editWithdrawPermission: $scope.checkViewPermission('Platform', 'Player', 'PaymentInformation'),
+                        editPlayerPermission: $scope.checkViewPermission('Player', 'Player', 'Edit'),
+                        editContactPermission: $scope.checkViewPermission('Player', 'Player', 'EditContact'),
+                        editWithdrawPermission: $scope.checkViewPermission('Player', 'Player', 'PaymentInformation'),
                         selectedTab: vm.editSelectedTab,
                         modifyCritical: vm.modifyCritical,
                         verifyPlayerPhoneNumber: vm.verifyPlayerPhoneNumber,
@@ -13545,7 +13545,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.getPlayerCreditLogData = function (newSearch) {
-            if (!authService.checkViewPermission('Platform', 'Player', 'playerDailyCreditLog')) {
+            if (!authService.checkViewPermission('Player', 'Credit', 'playerDailyCreditLog')) {
                 return;
             }
             let sendQuery = {
@@ -13615,7 +13615,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getPlayerApiLogData = function (newSearch) {
-            if (!authService.checkViewPermission('Platform', 'Player', 'playerApiLog')) {
+            if (!authService.checkViewPermission('Player', 'Player', 'playerApiLog')) {
                 return;
             }
 
@@ -18897,7 +18897,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.getAllPartnerLevels = function () {
-            if (!authService.checkViewPermission('Platform', 'Partner', 'Read')) {
+            if (!authService.checkViewPermission('Partner', 'Partner', 'Read')) {
                 return;
             }
             return $scope.$socketPromise(commonAPIs.partnerLevel.getByPlatform, {platformId: vm.selectedPlatform.id})
