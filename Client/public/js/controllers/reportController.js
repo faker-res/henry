@@ -7922,8 +7922,8 @@ define(['js/app'], function (myApp) {
 
                     proposalDetail["partnerName"] = vm.selectedProposal.data.partnerName;
                     proposalDetail["partnerId"] = vm.selectedProposal.data.partnerId;
-                    proposalDetail["realNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
-                    proposalDetail["realNameAfterEdit"] = vm.selectedProposal.data.realNameAfterEdit;
+                    proposalDetail["partnerRealNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
+                    proposalDetail["partnerRealNameAfterEdit"] = vm.selectedProposal.data.realNameAfterEdit;
 
                     for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
                         if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == vm.selectedProposal.inputDevice ){
