@@ -4559,7 +4559,7 @@ let dbPlayerInfo = {
                                     // filter out duplicate credibility remarks
                                     uniqueCredibilityRemarks = players[i].credibilityRemarks.filter((elem, pos, arr) => {
                                         arr = arr.map(remark => {
-                                            remark = remark.toString();
+                                            remark = remark ? remark.toString() : "";
                                             return remark;
                                         });
                                         elem = elem.toString();
