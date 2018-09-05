@@ -71,6 +71,7 @@ const constProposalMainType = {
     //"ManualUnlockPlayerReward": constMainType.UPDATE_PLAYER,
     //"PlayerRegistrationIntention":constMainType.UPDATE_PLAYER,
     "PlayerLevelMigration": constMainType.UPDATE_PLAYER,
+    "UpdatePlayerRealName": constMainType.UPDATE_PLAYER,
 
     //UPDATE_PARTNER
     "UpdatePartnerInfo": constMainType.UPDATE_PARTNER,
@@ -81,6 +82,7 @@ const constProposalMainType = {
     "UpdatePartnerWeChat": constMainType.UPDATE_PARTNER,
     "UpdatePartnerCommissionType": constMainType.UPDATE_PARTNER,
     "CustomizePartnerCommRate": constMainType.UPDATE_PARTNER,
+    "UpdatePartnerRealName": constMainType.UPDATE_PARTNER,
     //"PartnerCommission": constMainType.UPDATE_PARTNER,
     //"UpdatePartnerCredit":constMainType.UPDATE_PARTNER,
 
