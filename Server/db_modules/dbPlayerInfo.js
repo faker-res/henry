@@ -10627,6 +10627,7 @@ let dbPlayerInfo = {
                                                 "data.alipayer": callbackData ? callbackData.payer : "",
                                                 "data.alipayerAccount": callbackData ? callbackData.account : "",
                                                 "data.alipayerNickName": callbackData ? callbackData.nickName : "",
+                                                "data.alipayerRemark": callbackData ? callbackData.remark : "",
                                             }
                                         )
                                     );
