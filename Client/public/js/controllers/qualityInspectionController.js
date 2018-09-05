@@ -1557,7 +1557,7 @@ define(['js/app'], function (myApp) {
                     vm.loadingEvaluationProgressTable = true;
                     let yearMonthObj = JSON.parse(vm.yearMonth)
                     let startDate = new Date(yearMonthObj.month + "-" + "01-" + yearMonthObj.year);
-                    let endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
+                    let endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 1);
                     let sendData = {
                         startDate: startDate,
                         endDate: endDate
