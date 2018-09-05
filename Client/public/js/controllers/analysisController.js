@@ -6389,6 +6389,7 @@ define(['js/app'], function (myApp) {
 
             var dataOptions = {
                 data: tableData,
+                "aaSorting": [],
                 aoColumnDefs: [
                     {targets: '_all', defaultContent: ' ', bSortable: false, sClass: "text-center"}
                 ],

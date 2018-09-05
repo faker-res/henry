@@ -156,6 +156,11 @@ var PlatformServiceImplement = function () {
         let isValidData = Boolean(data && data.ipAddress);
         WebSocketUtil.performAction(conn, wsFunc, data, dbUtility.getIDCIpDetail, [data.ipAddress], isValidData, null, null, true);
     };
+
+    this.getLockedLobbyConfig.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getLockedLobbyConfig, [data.platformId], isValidData, null, null, true);
+    };
 };
 
 var proto = PlatformServiceImplement.prototype = Object.create(PlatformService.prototype);
