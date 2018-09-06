@@ -23344,11 +23344,12 @@ define(['js/app'], function (myApp) {
                         format: 'yyyy/MM/dd hh:mm:ss',
                         startDate: utilService.setLocalDayStartTime(new Date())
                     });
-                    collection[index].expirationTime.data('datetimepicker').setDate(date);
+                    if(collection[index].expirationTime.data('datetimepicker')){
+                        collection[index].expirationTime.data('datetimepicker').setDate(date);
+                    }
                     vm.checkPlayerName(collection[index], tableId, index);
                     return collection;
-                }, 0);
-
+                }, 10);
             };
             vm.cancelPromoCode = function (col, index) {
                 col[index].cancel = true;
