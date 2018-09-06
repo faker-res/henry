@@ -377,7 +377,7 @@
                         tr(ng-repeat='(i,v) in vm.autoFeedbackSearchDetailResult[1]')
                             td {{i}}
                             td
-                                a(ng-click='') {{v.data.length}}
+                                a(ng-click="vm.autoFeedbackShowPromoCodeDetail(vm.autoFeedbackSearchDetailResult[1][i].data)" data-toggle="modal" data-target="#modalAutoFeedbackPromoCodeDetail") {{v.data.length}}
                             td {{v.acceptedCount}}
                             td {{v.accessCount}}
                             td {{v.topUpCount}}
@@ -393,7 +393,7 @@
                         tr(ng-repeat='(i,v) in vm.autoFeedbackSearchDetailResult[2]')
                             td {{i}}
                             td
-                                a(ng-click='') {{v.data.length}}
+                                a(ng-click="vm.autoFeedbackShowPromoCodeDetail(vm.autoFeedbackSearchDetailResult[2][i].data)" data-toggle="modal" data-target="#modalAutoFeedbackPromoCodeDetail") {{v.data.length}}
                             td {{v.acceptedCount}}
                             td {{v.accessCount}}
                             td {{v.topUpCount}}
@@ -409,7 +409,55 @@
                         tr(ng-repeat='(i,v) in vm.autoFeedbackSearchDetailResult[3]')
                             td {{i}}
                             td
-                                a(ng-click='') {{v.data.length}}
+                                a(ng-click="vm.autoFeedbackShowPromoCodeDetail(vm.autoFeedbackSearchDetailResult[3][i].data)" data-toggle="modal" data-target="#modalAutoFeedbackPromoCodeDetail") {{v.data.length}}
                             td {{v.acceptedCount}}
                             td {{v.accessCount}}
                             td {{v.topUpCount}}
+
+#modalAutoFeedbackPromoCodeDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style="width:95%;")
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button' data-dismiss='modal')
+                h4.modal-title {{'AUTO_FEEDBACK' | translate}} {{'PROMO_CODE_HISTORY' | translate}}
+            .modal-body
+                table.simple-table
+                    thead
+                        tr
+                            th {{'ACCOUNT' | translate}}
+                            th {{'PROMO_CODE_TYPE' | translate}}
+                            th {{'PROMO_REWARD_AMOUNT' | translate}}
+                            th {{'PROMO_minTopUpAmount' | translate}}
+                            th {{'PROMO_maxTopUpAmount' | translate}}
+                            th {{'PROMO_CONSUMPTION' | translate}}
+                            th {{'SHARE_WITH_XIMA' | translate}}
+                            th {{'FORBID_WITHDRAW' | translate}}
+                            th {{'PROMO_DUE_DATE' | translate}}
+                            th {{'ALLOWED_PROVIDER' | translate}}
+                            th {{'BANNER_TEXT' | translate}}
+                            th {{'PROMO_CODE' | translate}}
+                            th {{'CREATETIME' | translate}}
+                            th {{'ACCEPTTIME' | translate}}
+                            th {{'proposalId' | translate}}
+                            th {{'CREATED_BY' | translate}}
+                            th {{'REMARK' | translate}}
+                    tbody(style='')
+                        tr(ng-repeat='(i,v) in vm.autoFeedbackPromoCodeDetail')
+                            td {{v.playerName}}
+                            td {{v.name}}
+                            td {{v.amount$}}
+                            td {{v.minTopUpAmount}}
+                            td {{v.maxRewardAmount}}
+                            td {{v.requiredConsumption$}}
+                            td {{v.isSharedWithXIMA$}}
+                            td {{v.isForbidWithdraw$}}
+                            td {{v.expirationTime$}}
+                            td
+                                span(ng-repeat='provider in v.allowedProviders$') {{provider}}
+                            td {{v.bannerText}}
+                            td {{v.code}}
+                            td {{v.createTime$}}
+                            td {{v.acceptedTime$}}
+                            td {{v.proposalId}}
+                            td {{v.adminName$}}
+                            td {{v.remark}}

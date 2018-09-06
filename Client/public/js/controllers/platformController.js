@@ -1080,7 +1080,6 @@ define(['js/app'], function (myApp) {
                             vm.phoneNumFilterClicked();
                             vm.rewardPointsTabClicked();
                             loadPromoCodeTemplate();
-                            vm.getAllAutoFeedback();
                             vm.onGoingLoadPlatformData = false;
                         })
                     },
@@ -33639,6 +33638,22 @@ define(['js/app'], function (myApp) {
                     });
                     $('#autoFeedbackDetailSpin').hide();
                 });
+            };
+            vm.autoFeedbackShowPromoCodeDetail = function(data) {
+                console.log(data);
+                vm.autoFeedbackPromoCodeDetail = data;
+                vm.autoFeedbackPromoCodeDetail.map(item => {
+                    item.amount$ = item.type == 3 ? item.amount + "%" : item.amount;
+                    item.requiredConsumption$ = item.type == 3 ? "*"+item.requiredConsumption : item.requiredConsumption;
+                    item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
+                    item.isForbidWithdraw$ = item.disableWithdraw ? $translate("true") : $translate("false");
+                    item.expirationTime$ = item.expirationTime ? utilService.$getTimeFromStdTimeFormat(item.expirationTime) : "-";
+                    item.allowedProviders$ = item.allowedProviders && item.allowedProviders.length == 0 ?
+                        $translate("ALL_PROVIDERS") : item.allowedProviders.map(e => item.isProviderGroup ? e.name : e.code);
+                    item.createTime$ = item.createTime ? utilService.$getTimeFromStdTimeFormat(item.createTime) : "-";
+                    item.acceptedTime$ = item.acceptedTime ? utilService.$getTimeFromStdTimeFormat(item.acceptedTime) : "-";
+                    item.adminName$ = item.adminName ? item.adminName : $translate("Backstage");
+                })
             };
             vm.getAllAutoFeedback = function() {
                 socketService.$socket($scope.AppSocket, 'getAllAutoFeedback', {platformObjId: vm.selectedPlatform.id}, function (data) {

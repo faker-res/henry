@@ -139,23 +139,35 @@ let dbPlatformAutoFeedback = {
     },
 
     getAutoFeedbackDetail: function (platformObjId, name, startTime, endTime) {
-        let autoFeedbackObjId;
+        let useProviderGroup;
+        let autoFeedbackObjId, autoFeedbackName;
         let autoFeedbackDetail = [];
         let autoFeedbackQuery = {};
         autoFeedbackQuery.platformObjId = platformObjId;
         autoFeedbackQuery.name = name;
-        return dbconfig.collection_autoFeedback.findOne(autoFeedbackQuery).lean().then(autoFeedback => {
-            if(autoFeedback) {
-                autoFeedbackObjId = autoFeedback._id;
-                return autoFeedback;
-            } else {
-                return Promise.reject();
-            }
+        return dbconfig.collection_platform.findOne({_id:platformObjId}).lean().then(platform => {
+            useProviderGroup = platform.useProviderGroup
+        }).then(() => {
+            return dbconfig.collection_autoFeedback.findOne(autoFeedbackQuery).lean();
+        }).then(autoFeedback => {
+                if(autoFeedback) {
+                    autoFeedbackObjId = autoFeedback._id;
+                    autoFeedbackName = autoFeedback.name;
+                    return autoFeedback;
+                } else {
+                    return Promise.reject();
+                }
         }).then(() => {
             let promoCodeQuery = {};
             promoCodeQuery.autoFeedbackMissionObjId = autoFeedbackObjId;
             promoCodeQuery.createTime = {$gte: startTime, $lte:endTime};
-            return dbconfig.collection_promoCode.find(promoCodeQuery).lean();
+            return dbconfig.collection_promoCode.find(promoCodeQuery).populate({
+                path: "allowedProviders",
+                model: useProviderGroup ? dbconfig.collection_gameProviderGroup : dbconfig.collection_gameProvider
+            }).populate({
+                path: "promoCodeTemplateObjId",
+                model: dbconfig.collection_promoCodeTemplate
+            }).lean();
         }).then(promoCodes => {
             if(promoCodes && promoCodes.length > 0) {
                 autoFeedbackDetail = promoCodes;
@@ -178,25 +190,32 @@ let dbPlatformAutoFeedback = {
                 ]);
                 lastAccessProm = dbconfig.collection_players.find({_id: {$in: playerObjIds}}, {
                     _id: 1,
+                    name: 1,
                     lastAccessTime: 1
                 }).lean();
                 return Promise.all([lastTopUpProm, lastAccessProm]);
             }
         }).then(data => {
             if(data && data.length > 0) {
-                let topUpArr = [], accessTimeArr = [];
+                let topUpArr = [], accessTimeArr = [], playerNameArr = [];
                 let lastTopUps = data[0];
-                let lastAccessTimes = data[1];
+                let players = data[1];
                 lastTopUps.forEach(item => {
                     topUpArr[item._id] = item.lastTopUpTime;
                 });
-                lastAccessTimes.forEach(item => {
+                players.forEach(item => {
                     accessTimeArr[item._id] = item.lastAccessTime;
+                });
+                players.forEach(item => {
+                    playerNameArr[item._id] = item.name;
                 });
 
                 autoFeedbackDetail.forEach(item => {
                     item.lastTopUpTime = topUpArr[item.playerObjId];
                     item.lastAccessTime = accessTimeArr[item.playerObjId];
+                    item.playerName = playerNameArr[item.playerObjId];
+                    item.name = autoFeedbackName;
+                    item.type = item.promoCodeTemplateObjId.type;
                 });
             }
             return autoFeedbackDetail;
