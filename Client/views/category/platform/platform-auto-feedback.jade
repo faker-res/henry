@@ -20,13 +20,13 @@
                         input.form-control(type="text" ng-model="vm.autoFeedbackMission.remarks")
                 .full-width-input-block
                     label.control-label {{'Feedback Mission Start Time' | translate}}
-                    #autoFeedbackMissionStartTimePicker.datetimepicker.form-control
+                    #autoFeedbackMissionStartTimePicker.datetimepicker(style="display:inline-block;")
                         input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                 .full-width-input-block
                     label.control-label {{'Feedback Mission End Time' | translate}}
-                    #autoFeedbackMissionEndTimePicker.datetimepicker.form-control
+                    #autoFeedbackMissionEndTimePicker.datetimepicker(style="display:inline-block;")
                         input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
@@ -162,13 +162,13 @@
                         option(value='old') {{'OLD_SYSTEM'|translate}}
                 .full-width-input-block
                     label.control-label {{'REGISTRATION_TIME_START' | translate}}
-                    #autoFeedbackMissionRegisterStartTimePicker.datetimepicker.form-control
+                    #autoFeedbackMissionRegisterStartTimePicker.datetimepicker(style="display:inline-block;")
                         input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                 .full-width-input-block
                     label.control-label {{'REGISTRATION_TIME_END' | translate}}
-                    #autoFeedbackMissionRegisterEndTimePicker.datetimepicker.form-control
+                    #autoFeedbackMissionRegisterEndTimePicker.datetimepicker(style="display:inline-block;")
                         input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
@@ -312,13 +312,13 @@
                         option(ng-repeat='(i,v) in vm.autoFeedbackMissions', value='{{v.name}}') {{v.name}}
                 .inlineBlk
                     label.control-label {{'Mission Create Start Time' | translate}}
-                    #autoFeedbackOverviewCreateTimeStartPicker.datetimepicker.form-control
+                    #autoFeedbackOverviewCreateTimeStartPicker.datetimepicker
                         input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                 .inlineBlk
                     label.control-label {{'Mission Create End Time' | translate}}
-                    #autoFeedbackOverviewCreateTimeEndPicker.datetimepicker.form-control
+                    #autoFeedbackOverviewCreateTimeEndPicker.datetimepicker
                         input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
@@ -336,7 +336,7 @@
                     i.fa.fa-spinner.fa-spin
 
                 br
-                table#autoFeedbackOverviewTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                table#autoFeedbackOverviewTable.display(style="min-width:100%;")
                 #autoFeedbackOverviewTablePage
 
         .panel.panel-primary(ng-if='vm.selectedAutoFeedbackTab === "overview"')
@@ -349,13 +349,13 @@
                         option(ng-repeat='(i,v) in vm.autoFeedbackMissions', value='{{v.name}}') {{v.name}}
                 .inlineBlk
                     label.control-label {{'Start date' | translate}}
-                    #autoFeedbackListStartTimePicker.datetimepicker.form-control
+                    #autoFeedbackListStartTimePicker.datetimepicker
                         input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                 .inlineBlk
                     label.control-label {{'End date' | translate}}
-                    #autoFeedbackListEndTimePicker.datetimepicker.form-control
+                    #autoFeedbackListEndTimePicker.datetimepicker
                         input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')

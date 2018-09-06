@@ -470,12 +470,16 @@ define([], () => {
             };
         };
 
-        this.commonInitTime = (utilService, vm, model, field, queryId, defTime) => {
+        this.commonInitTime = (utilService, vm, model, field, queryId, defTime, defTimeAsIs) => {
             vm[model] = vm[model] || {};
 
             utilService.actionAfterLoaded(queryId, () => {
                 vm[model][field] = utilService.createDatePicker(queryId);
-                $(queryId).data('datetimepicker').setLocalDate(new Date(defTime));
+                if(defTimeAsIs) {
+                    $(queryId).data('datetimepicker').setDate(new Date(defTime));
+                } else {
+                    $(queryId).data('datetimepicker').setLocalDate(new Date(defTime));
+                }
             })
         };
     };
