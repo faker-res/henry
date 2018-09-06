@@ -16,7 +16,7 @@ var gameProviderSchema = new Schema({
     nickName: {type: String},
     prefix: {type: String, default: ''},
     code: {type: String, required: true, unique: true, index: true},
-    status: {type: Number, default: constGameStatus.ENABLE},
+    status: {type: Number, default: constGameStatus.ENABLE, index: true},
     //canChangePassword - 1.Yes, 2.No
     canChangePassword: {type: Number},
     //run time status
