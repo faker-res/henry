@@ -28850,6 +28850,9 @@ define(['js/app'], function (myApp) {
                         // vm.clientQnAData = {}; //reset template
                         vm.clientQnADataErr = err.error && err.error.message? $translate(err.error.message): "";
                         if (err && err.error) {
+                            if (err.error.correctAns && err.error.hasOwnProperty("totalWrongCount")) {
+                                vm.clientQnAInputCheck.totalWrongCount = err.error.totalWrongCount;
+                            }
                             if (err.error.correctAns && err.error.correctAns.length) {
                                 vm.clientQnAInputCheck.correctAns = err.error.correctAns;
                             }
@@ -28978,6 +28981,9 @@ define(['js/app'], function (myApp) {
                             if (ques.des) {
                                 if (copiedText) {
                                     copiedText += " \n";
+                                }
+                                if (vm.clientQnAData.isSecurityQuestion) {
+                                    copiedText += (ques.questionNo + ". ");
                                 }
                                 copiedText += $translate(ques.des);
                             }
