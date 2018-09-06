@@ -579,7 +579,7 @@ function socketActionPartner(socketIO, socket) {
 
         transferPartnerCreditToPlayer: function transferPartnerCreditToPlayer (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformId && data.partnerObjId && data.currentCredit && data.updateCredit && data.totalTransferAmount);
+            let isValidData = Boolean(data && data.platformId && data.partnerObjId);
             socketUtil.emitter(self.socket, dbPartner.transferPartnerCreditToPlayer, [data.platformId, data.partnerObjId, data.currentCredit, data.updateCredit, data.totalTransferAmount, data.transferToPlayers, adminInfo], actionName, isValidData);
         },
 

@@ -1486,7 +1486,7 @@ p
                             tr
                                 td {{'PARTNER_ACCOUNT_BALANCE' | translate}} :
                                 td {{vm.selectedSinglePartner.credits || 0}}
-                                td(style='color:red') {{vm.sumTotalTransferAmount > 0 ? vm.selectedSinglePartner.credits - vm.sumTotalTransferAmount : 0 || 0}}
+                                td(style='color:red') {{vm.sumTotalTransferAmount > 0 ? vm.selectedSinglePartner.credits - vm.sumTotalTransferAmount : 0 || 0 | noRoundTwoDecimalPlaces}}
 
                             tr
                                 td {{'Search by Downline Player Name' | translate}} :
