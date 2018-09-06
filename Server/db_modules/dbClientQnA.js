@@ -75,7 +75,7 @@ var dbClientQnA = {
                     } else if (QnATemplate.action) {
                         actionString = QnATemplate.action;
                     }
-                    return dbClientQnA[actionString](platformObjId, inputDataObj, qnaObjId, type);
+                    return dbClientQnA[actionString](platformObjId, inputDataObj, qnaObjId);
                 }
 
                 return QnATemplate;
@@ -359,14 +359,14 @@ var dbClientQnA = {
         )
     },
 
-    editName4_2: function(platformObjId, inputDataObj, qnaObjId, type){
+    editName4_2: function(platformObjId, inputDataObj, qnaObjId){
         if (!qnaObjId) {
             return Promise.reject({name: "DBError", message: "qnaObjId undefined"})
         }
 
         let playerObjId = null;
         
-        return dbconfig.collection_clientQnATemplateConfig.findOne({type: type, platform: platformObjId}).lean().then(
+        return dbconfig.collection_clientQnATemplateConfig.findOne({type: constClientQnA.EDIT_NAME, platform: platformObjId}).lean().then(
             QnAConfig => {
 
                 if (!QnAConfig) {
