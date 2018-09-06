@@ -969,7 +969,7 @@ define(['js/app'], function (myApp) {
                  vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
                  vm.playerFeedbackTopic, vm.partnerFeedbackTopic, vm.allPlayerFeedbackResults,vm.allPartnerFeedbackResults,
                  [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes,[vm.allGameProviders, vm.gameProvidersList],
-                    [vm.gameProviderGroup, vm.gameProviderGroupNames]
+                    [vm.gameProviderGroup, vm.gameProviderGroupNames], vm.autoFeedbackMissions
                 ] = await Promise.all([
                     commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -987,7 +987,8 @@ define(['js/app'], function (myApp) {
                     commonService.getAllGameTypes($scope).catch(err => Promise.resolve([[], []])),
                     commonService.getAllRewardTypes($scope).catch(err => Promise.resolve([])),
                     commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])),
-                    commonService.getPlatformProviderGroup($scope, vm.selectedPlatform.data._id).catch(err => Promise.resolve([[], []]))
+                    commonService.getPlatformProviderGroup($scope, vm.selectedPlatform.data._id).catch(err => Promise.resolve([[], []])),
+                    commonService.getAllAutoFeedback($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
                 ]);
 
                 // 1st dependencies variable
@@ -33576,7 +33577,9 @@ define(['js/app'], function (myApp) {
                 utilService.actionAfterLoaded("#autoFeedbackDetailSpin", function () {
                     vm.autoFeedbackMissionSearchDetail.startTime = $('#autoFeedbackListStartTimePicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMissionSearchDetail.endTime = $('#autoFeedbackListEndTimePicker').data('datetimepicker').getDate();
-                    vm.autoFeedbackMissionSearchDetail.name = vm.autoFeedbackMissions[0].name;
+                    $scope.$evalAsync(() => {
+                        vm.autoFeedbackMissionSearchDetail.name = vm.autoFeedbackMissions[0].name;
+                    });
                 });
             };
             vm.autoFeedbackSearchMissionDetail = function () {
