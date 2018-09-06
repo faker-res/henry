@@ -25,6 +25,7 @@ db.clientQnATemplate.update(
     },
     {
         $set: {
+            alternativeQuestion: {des: "Inconvenient to accept?", action: "forgotPassword2_1"},
             question: [{questionNo: 1, des: "Please enter phone number of the account, a sms verification code will be sent"}],
             answerInput: [{type: "text", objKey: "phoneNumber", questionNo: 1, placeHolder: "Please enter phone number"}],
             action: "forgotPassword2_1"
