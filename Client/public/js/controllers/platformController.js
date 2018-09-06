@@ -13174,7 +13174,7 @@ define(['js/app'], function (myApp) {
                   ],
                   columns: [
                       {'title': $translate('date'), data: 'createTime$'},
-                      {'title': $translate('Admin'), sClass: "wordWrap realNameCell", data: 'adminName'},
+                      {'title': $translate('ADMIN'), sClass: "wordWrap realNameCell", data: 'adminName'},
                       {'title': $translate('Recipient'), data: 'recipientName'},
                       {'title': $translate('Channel'), data: 'channel'},
                       {'title': $translate('CONTENT'), data: 'message'},

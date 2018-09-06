@@ -15,6 +15,10 @@ let dbReport = {
             createTime: {$gte: startTime, $lt: endTime},
             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
         };
+        let retFields = {
+            proposalId: 1, 'data.playerName': 1, 'data.amount': 1, createTime: 1, 'data.remark': 1,
+            'data.alipayerAccount': 1, 'data.alipayer': 1, 'data.alipayerNickName': 1, 'data.alipayRemark': 1
+        };
 
         if (playerName) { query['data.playerName'] = playerName }
         if (alipayAcc) {
@@ -36,7 +40,7 @@ let dbReport = {
         if (alipayNickname) { query['data.alipayerNickName'] = alipayNickname }
         if (alipayRemark) { query['$or'] = [{'data.alipayRemark': alipayRemark}, {'data.remark': alipayRemark}] }
 
-        return dbPropUtil.getProposalDataOfType(platformObjId, constProposalType.PLAYER_ALIPAY_TOP_UP, query);
+        return dbPropUtil.getProposalDataOfType(platformObjId, constProposalType.PLAYER_ALIPAY_TOP_UP, query, retFields);
     },
 };
 
