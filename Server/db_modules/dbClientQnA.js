@@ -213,6 +213,11 @@ var dbClientQnA = {
     //endregion
 
     //region forgotUserID
+    forgotUserID1_2: function () {
+        let endTitle = "Failed to retrieve account.";
+        let endDes = "Attention: Player has no binded phone number or not able to receive SMS code. Please open a new account if necessary.";
+        return dbClientQnA.qnaEndMessage(endTitle, endDes)
+    }
     //endregion
 
     //region updatePhoneNumber

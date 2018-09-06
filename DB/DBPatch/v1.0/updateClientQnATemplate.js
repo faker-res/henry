@@ -77,13 +77,46 @@ db.clientQnATemplate.update(
 // endregion
 
 //region forgotUserID
+var type2 = "forgotUserID";
+db.clientQnATemplate.update(
+    {
+        processNo: "1_1",
+        type: type2
+    },
+    {
+        $set: {
+            alternativeQuestion: {des: "Cannot receive SMS?", action: "forgotUserID1_2"},
+            question: [{questionNo: 1, des: "Please enter phone number of the account, a sms verification code will be sent"}],
+            answerInput: [{type: "text", objKey: "name", questionNo: 1, placeHolder: "Please enter phone number"}],
+            action: "forgotUserID2-1"
+        }
+    },
+    {upsert: true});
+
+db.clientQnATemplate.update(
+    {
+        processNo: "1_2",
+        type: type2
+    },
+    {
+        $set: {
+            alternativeQuestion: {des: "Cannot receive SMS?", action: "forgotUserID1_2"},
+            question: [{questionNo: 1, des: "Please enter phone number of the account, a sms verification code will be sent"}],
+            answerInput: [{type: "text", objKey: "name", questionNo: 1, placeHolder: "Please enter phone number"}],
+            action: "forgotPassword1"
+        }
+    },
+    {upsert: true});
 //endregion
 
 //region updatePhoneNumber
+var type3 = "updatePhoneNumber";
 //endregion
 
 //region editBankCard
+var type4 = "editBankCard";
 //endregion
 
 //region editName
+var type5 = "editName";
 //endregion
