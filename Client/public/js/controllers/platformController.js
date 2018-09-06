@@ -673,6 +673,7 @@ define(['js/app'], function (myApp) {
                 }
             });
 
+
             vm.getProviderLatestTimeRecord = function () {
                 let longestDelayDate = new Date().toString();
 
@@ -13174,7 +13175,7 @@ define(['js/app'], function (myApp) {
                   ],
                   columns: [
                       {'title': $translate('date'), data: 'createTime$'},
-                      {'title': $translate('Admin'), sClass: "wordWrap realNameCell", data: 'adminName'},
+                      {'title': $translate('ADMIN'), sClass: "wordWrap realNameCell", data: 'adminName'},
                       {'title': $translate('Recipient'), data: 'recipientName'},
                       {'title': $translate('Channel'), data: 'channel'},
                       {'title': $translate('CONTENT'), data: 'message'},
@@ -23361,6 +23362,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.generatePromoCode = function (col, index, data, type) {
+                $scope.$evalAsync(()=>{
                 if (data && data.playerName) {
                     let sendData = Object.assign({}, data);
                     col[index].error = false;
@@ -23387,7 +23389,6 @@ define(['js/app'], function (myApp) {
 
                         return p.then(ret => {
                             vm.endLoadWeekDay();
-                            $scope.safeApply();
                         });
                     } else {
                         let searchQ = {
@@ -23422,46 +23423,54 @@ define(['js/app'], function (myApp) {
                             }
                             else {
                                 return $scope.$socketPromise('checkPlayerHasPromoCode', searchQ).then(ret => {
-                                    if (ret && ret.data && ret.data.length > 0) {
-                                        if (!data.skipCheck) {
-                                            data.hasMoreThanOne = true;
-                                            $scope.safeApply();
+                                    $scope.$evalAsync(()=>{
+                                        if (ret && ret.data && ret.data.length > 0) {
+                                            if (!data.skipCheck) {
+                                                data.hasMoreThanOne = true;
+                                            }
                                         }
-                                    }
 
-                                    if (!data.hasMoreThanOne || (data.skipCheck && !data.cancel)) {
-                                        sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
-                                        let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
+                                        if (!data.hasMoreThanOne || (data.skipCheck && !data.cancel)) {
+                                            sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
+                                            let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
 
-                                        sendData.playerName = sendData.playerName.trim();
-                                        sendData.expirationTime = vm.dateReformat(sendData.expirationTime.data('datetimepicker').getLocalDate());
-                                        sendData.promoCodeTypeObjId = sendData.promoCodeType._id;
-                                        sendData.platformObjId = vm.selectedPlatform.id;
-                                        sendData.allowedProviders = sendData.allowedProviders && sendData.allowedProviders.length == usingGroup.length ? [] : sendData.allowedProviders;
-                                        sendData.smsContent = sendData.promoCodeType.smsContent;
+                                            sendData.playerName = sendData.playerName.trim();
+                                            sendData.expirationTime = vm.dateReformat(sendData.expirationTime.data('datetimepicker').getLocalDate());
+                                            sendData.promoCodeTypeObjId = sendData.promoCodeType._id;
+                                            sendData.platformObjId = vm.selectedPlatform.id;
+                                            sendData.smsContent = sendData.promoCodeType.smsContent;
 
-                                        delete sendData.isBlockPromoCodeUser;
+                                            if(!sendData.allowedProviders){
+                                                sendData.allowedProviders = [];
+                                            }else if(sendData.allowedProviders && sendData.allowedProviders.length == usingGroup.length){
+                                                sendData.allowedProviders = [];
+                                            }
 
-                                        console.log('sendData', sendData);
-                                        return $scope.$socketPromise('generatePromoCode', {
-                                            platformObjId: vm.selectedPlatform.id,
-                                            newPromoCodeEntry: sendData,
-                                            adminName: authService.adminName,
-                                            adminId: authService.adminId
-                                        }).then(ret => {
-                                            col[index].code = ret.data;
-                                            $scope.safeApply();
-                                        }).catch(err=>{
-                                            $scope.$evalAsync(()=>{
-                                                col[index].error = true;
-                                            })
-                                        });
-                                    }
+                                            delete sendData.isBlockPromoCodeUser;
+
+                                            console.log('sendData', sendData);
+                                            return $scope.$socketPromise('generatePromoCode', {
+                                                platformObjId: vm.selectedPlatform.id,
+                                                newPromoCodeEntry: sendData,
+                                                adminName: authService.adminName,
+                                                adminId: authService.adminId
+                                            }).then(ret => {
+                                                $scope.$evalAsync(()=>{
+                                                    col[index].code = ret.data;
+                                                })
+                                            }).catch(err=>{
+                                                $scope.$evalAsync(()=>{
+                                                    col[index].error = true;
+                                                })
+                                            });
+                                        }
                                 });
+                                })
                             }
                         }
                     }
                 }
+              })
             };
 
             vm.generateAllPromoCode = function (col, type, skipCheck) {
