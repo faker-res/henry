@@ -13,7 +13,7 @@ var platformGameGroupSchema = new Schema({
     //group name
     displayName: {type: String, required: true},
     //platform obj id
-    platform: {type: Schema.ObjectId, ref: 'platform', required: true},
+    platform: {type: Schema.ObjectId, ref: 'platform', required: true, index: true},
     //group games
     games: [{index: {type: Number}, game: {type: Schema.ObjectId, ref: 'game'}}],
     //child departments

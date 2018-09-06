@@ -5,7 +5,9 @@
         .row
             br
             div(style='width:90%;margin:auto' ng-if='vm.clientQnAData && checkViewPermission("Platform", "ClientAutoQnA", "Update")')
-                label(style="text-align:left;display:block" ng-if='vm.clientQnAData.questionTitle') {{vm.clientQnAData.questionTitle | translate}}
+                div(style="text-align:left;display:block" ng-if='vm.clientQnAData.questionTitle')
+                    label {{vm.clientQnAData.questionTitle | translate}}
+                    label(style='color:red' ng-if='vm.clientQnAInputCheck && vm.clientQnAInputCheck.hasOwnProperty("totalWrongCount")') {{"&nbsp("}} {{"WRONG_COUNT" | translate}}{{"&nbsp" + vm.clientQnAInputCheck.totalWrongCount + "/" + vm.clientQnASecurityQuesConfig.config.wrongCount + ")"}}                
                 label(style="text-align:center;display:block" ng-if='vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.title') {{vm.clientQnAData.clientQnAEnd.title | translate}}
                 br(ng-if='vm.clientQnAData.questionTitle || (vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.title)')
                 div(ng-repeat='(i,v) in vm.clientQnAData.question')
