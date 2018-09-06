@@ -85,25 +85,25 @@ db.clientQnATemplate.update(
     },
     {
         $set: {
-            alternativeQuestion: {des: "Cannot receive SMS?", action: "forgotUserID1_2"},
+            alternativeQuestion: {des: "Cannot receive SMS?", action: "rejectFailedRetrieveAccount"},
             question: [{questionNo: 1, des: "Please enter phone number of the account, a sms verification code will be sent"}],
-            answerInput: [{type: "text", objKey: "name", questionNo: 1, placeHolder: "Please enter phone number"}],
-            action: "forgotUserID2-1"
+            answerInput: [{type: "text", objKey: "phoneNumber", questionNo: 1, placeHolder: "Please enter phone number"}],
+            action: "forgotUserID1_1"
         }
     },
     {upsert: true});
 
 db.clientQnATemplate.update(
     {
-        processNo: "1_2",
+        processNo: "2_1",
         type: type2
     },
     {
         $set: {
-            alternativeQuestion: {des: "Cannot receive SMS?", action: "forgotUserID1_2"},
-            question: [{questionNo: 1, des: "Please enter phone number of the account, a sms verification code will be sent"}],
-            answerInput: [{type: "text", objKey: "name", questionNo: 1, placeHolder: "Please enter phone number"}],
-            action: "forgotPassword1"
+            alternativeQuestion: {des: "Didn't receive? Send again", action: "forgotUserID1_2"},
+            question: [{questionNo: 1, des: "Please enter the verification code"}],
+            answerInput: [{type: "text", objKey: "smsCode", questionNo: 1, placeHolder: "Verification code"}],
+            action: "forgotUserID2_1"
         }
     },
     {upsert: true});
