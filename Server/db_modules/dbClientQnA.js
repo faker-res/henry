@@ -20,7 +20,7 @@ const pmsAPI = require('../externalAPI/pmsAPI');
 const Q = require("q");
 
 var dbClientQnA = {
-    //region forgot password
+    //region common function
     getClientQnASecurityQuesConfig: function (type, platformObjId) {
         platformObjId = ObjectId(platformObjId);
         let securityQuesProm = dbconfig.collection_clientQnATemplate.findOne({type: type, isSecurityQuestion: true}).lean();
@@ -127,7 +127,9 @@ var dbClientQnA = {
         let endDes = "Security question exceed maximum wrong count, this account has been banned from being modified automatically, please contact customer service";
         return dbClientQnA.qnaEndMessage(endTitle, endDes)
     },
+    //endregion
 
+    //region forgot password
     forgotPassword1_2: function () {
         let QnAQuery = {
             type: constClientQnA.FORGOT_PASSWORD,
