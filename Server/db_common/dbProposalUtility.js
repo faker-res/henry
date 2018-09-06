@@ -3,7 +3,7 @@ const constProposalStatus = require('./../const/constProposalStatus');
 const dbConfig = require('./../modules/dbproperties');
 
 const dbProposalUtility = {
-    getProposalDataOfType: (platformObjId, proposalType, proposalQuery) => {
+    getProposalDataOfType: (platformObjId, proposalType, proposalQuery, fields = {}) => {
         return dbConfig.collection_proposalType.findOne({
             platformId: platformObjId,
             name: proposalType
@@ -11,7 +11,7 @@ const dbProposalUtility = {
             proposalType => {
                 proposalQuery.type = proposalType._id;
 
-                return dbConfig.collection_proposal.find(proposalQuery).populate(
+                return dbConfig.collection_proposal.find(proposalQuery, fields).populate(
                     {path: "process", model: dbConfig.collection_proposalProcess}
                 ).lean();
             }
