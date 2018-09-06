@@ -106,9 +106,7 @@ var dbClientQnA = {
         }
         return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).then(
             clientQnAData => {
-                if (clientQnAData) {
-                    returnObj.totalWrongCount = clientQnAData.totalWrongCount
-                }
+                returnObj.totalWrongCount = clientQnAData && clientQnAData.totalWrongCount? clientQnAData.totalWrongCount: 0;
                 return Promise.reject(returnObj)
             });
     },
@@ -121,6 +119,13 @@ var dbClientQnA = {
                 des: localization.localization.translate(des)
             }
         })
+    },
+
+    // return reject security question when show for the first time
+    rejectSecurityQuestionFirstTime: function () {
+        let endTitle = "Operation failed";
+        let endDes = "Security question exceed maximum wrong count, this account has been banned from being modified automatically, please contact customer service";
+        return dbClientQnA.qnaEndMessage(endTitle, endDes)
     },
 
     forgotPassword1_2: function () {
@@ -166,6 +171,19 @@ var dbClientQnA = {
                                     if (QnATemplate) {
                                         QnATemplate.qnaObjId = clientQnAData._id;
                                     }
+                                    if (QnATemplate && QnATemplate.isSecurityQuestion) {
+                                        return dbconfig.collection_clientQnATemplateConfig.findOne({
+                                            type: constClientQnA.FORGOT_PASSWORD,
+                                            platform: platformObjId}).lean().then(
+                                            configData=> {
+                                                if (configData && configData.hasOwnProperty("wrongCount") && clientQnAData.hasOwnProperty("totalWrongCount") &&  clientQnAData.totalWrongCount > configData.wrongCount) {
+                                                    return dbClientQnA.rejectSecurityQuestionFirstTime()
+                                                } else {
+                                                    return QnATemplate;
+                                                }
+                                            }
+                                        )
+                                    }
                                     return QnATemplate;
                                 }
                             );
@@ -179,13 +197,17 @@ var dbClientQnA = {
         )
     },
 
+    forgotPassword2_1: function (platformObjId, inputDataObj, qnaObjId) {
+
+    },
+
     forgotPassword2_2: function (platformObjId, inputDataObj, qnaObjId) {
         if (!qnaObjId) {
             return Promise.reject({name: "DBError", message: "qnaObjId undefined"})
         }
 
        return dbClientQnA.securityQuestionReject(qnaObjId, [1,2],[3,4]);//test only - incomplete
-    }
+    },
     //endregion
 
     //region forgotUserID
