@@ -74,6 +74,81 @@ db.clientQnATemplate.update(
     },
     {upsert: true});
 
+
+// region edit name - type 5
+var type5 = "editName";
+db.clientQnATemplate.update(
+    {
+        processNo: "1",
+        type: type5
+    },
+    {
+        $set: {
+            question: [{questionNo: 1, des: "Please enter your user ID to modify the name:"}],
+            answerInput: [{type: "text", objKey: "name", questionNo: 1, placeHolder: "Please enter player ID"}],
+            action: "editName1"
+        }
+    },
+    {upsert: true});
+
+db.clientQnATemplate.update(
+    {
+        processNo: "2",
+        type: type5
+    },
+    {
+        $set: {
+            alternativeQuestion: {des: "Inconvenient to accept?", action: "editName4_2"},
+            question: [{questionNo: 1, des: "Please enter phone number of the account, a sms verification code will be sent"}],
+            answerInput: [{type: "text", objKey: "phoneNumber", questionNo: 1, placeHolder: "Please enter phone number"}],
+            action: "editName2"
+        }
+    },
+    {upsert: true});
+
+db.clientQnATemplate.update(
+    {
+        processNo: "3",
+        type: type5
+    },
+    {
+        $set: {
+            question: [{questionNo: 1, des: "Please enter the sms verification code and the new name."}],
+            answerInput: [
+                {type: "text", objKey: "newName", questionNo: 1, placeHolder: "Please enter the new name"},
+                {type: "text", objKey: "smsCode", questionNo: 1, placeHolder: "Please enter the sms verification code"}
+            ],
+            action: "editName3"
+        }
+    },
+    {upsert: true});
+
+db.clientQnATemplate.update(
+    {
+        processNo: "4_2",
+        type: type5
+    },
+    {
+        $set: {
+            isSecurityQuestion: true,
+            questionTitle: "Please answer the question below to validate your identity:",
+            question: [
+                {questionNo: 1, des: "Please enter your phone number"},
+                {questionNo: 2, des: "Please enter your bank account"},
+                {questionNo: 3, des: "Please enter the balance of your bank account"},
+            ],
+            answerInput: [
+                {type: "number", objKey: "phoneNumber", questionNo: 1},
+                {type: "text", objKey: "bankAccount", questionNo: 2},
+                {type: "number", objKey: "bankAccountBalance", questionNo: 3},
+            ],
+            action: "editName4_2"
+        }
+    },
+    {upsert: true});
+
+
+
 // endregion
 
 //region forgotUserID

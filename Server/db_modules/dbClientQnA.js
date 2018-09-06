@@ -18,6 +18,7 @@ const errorUtils = require('../modules/errorUtils');
 const localization = require("../modules/localization");
 const pmsAPI = require('../externalAPI/pmsAPI');
 const Q = require("q");
+const rsaCrypto = require("../modules/rsaCrypto");
 
 var dbClientQnA = {
     //region common function
@@ -74,7 +75,7 @@ var dbClientQnA = {
                     } else if (QnATemplate.action) {
                         actionString = QnATemplate.action;
                     }
-                    return dbClientQnA[actionString](platformObjId, inputDataObj, qnaObjId);
+                    return dbClientQnA[actionString](platformObjId, inputDataObj, qnaObjId, type);
                 }
 
                 return QnATemplate;
@@ -210,6 +211,7 @@ var dbClientQnA = {
 
        return dbClientQnA.securityQuestionReject(qnaObjId, [1,2],[3,4]);//test only - incomplete
     },
+
     //endregion
 
     //region forgotUserID
@@ -222,6 +224,192 @@ var dbClientQnA = {
     //endregion
 
     //region editName
+    editName1: function (platformObjId, inputDataObj) {
+        if (!(inputDataObj && inputDataObj.name)) {
+            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        }
+
+        return dbconfig.collection_players.findOne({platform: platformObjId, name: inputDataObj.name}).lean().then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DBError", message: "Cannot find player"})
+                }
+
+                let updateObj = {
+                    QnAData: {name: inputDataObj.name}
+                };
+                return dbClientQnA.updateClientQnAData(playerData._id, constClientQnA.EDIT_NAME, updateObj).then(
+                    clientQnAData => {
+                        if (!clientQnAData) {
+                            return Promise.reject({name: "DBError", message: "update QnA data failed"})
+                        }
+
+                        if (playerData.phoneNumber) {
+                            return dbconfig.collection_clientQnATemplate.findOne({
+                                type: constClientQnA.EDIT_NAME,
+                                processNo: "2"
+                            }).lean().then( QnATemplate => {
+                                if (QnATemplate){
+                                    // QnATemplate.playerName = inputDataObj.name;
+                                    QnATemplate.qnaObjId = clientQnAData._id;
+                                }
+
+                                return QnATemplate;
+                            })
+                        } else {
+                            let endTitle = "Edit name failed";
+                            let endDes = "Attention! This player does not have the registered phone number (or inconvenient to receive sms code). Please contact customer service to change the name manually";
+                            return dbClientQnA.qnaEndMessage(endTitle, endDes);
+                        }
+                    }
+                )
+            }
+        )
+    },
+
+    editName2: function (platformObjId, inputDataObj, qnaObjId, type) {
+        if (!qnaObjId) {
+            return Promise.reject({name: "DBError", message: "qnaObjId undefined"})
+        }
+
+        if (!inputDataObj || !inputDataObj.phoneNumber){
+            return Promise.reject({name: "DBError", message: "Phone number is not available"})
+        }
+        let playerObjId = null;
+        let validateBoolean = true;
+       
+        return dbconfig.collection_clientQnATemplateConfig.findOne({type: type, platform: platformObjId}).lean().then(
+            QnAConfig => {
+
+                if (!QnAConfig) {
+                    return Promise.reject({name: "DBError", message: "QnAConfig is not found"})
+                }
+
+                return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).lean().then(
+                    clientQnAData => {
+                        if (clientQnAData){
+                            return clientQnAData
+                        }
+                        else{
+                            return Promise.reject({name: "DBError", message: "Could not find the QnA data"})
+                        }
+                    }
+                ).then( retData => {
+                    if (retData && retData.playerObjId){
+
+                        if (retData.hasOwnProperty("totalWrongCount") && retData.totalWrongCount > QnAConfig.wrongCount){
+                            let endTitle = "Authentification Failed";
+                            let endDes = "Attention! Contact CS for further instruction";
+                            return dbClientQnA.qnaEndMessage(endTitle, endDes);
+                        }
+
+                        return dbconfig.collection_players.findOne({platform: platformObjId, _id: retData.playerObjId}).lean().then(
+                            playerData => {
+
+                                if (!playerData) {
+                                    return Promise.reject({name: "DBError", message: "Cannot find player"})
+                                }
+
+                                let updateObj = {};
+                               
+                                if (inputDataObj.phoneNumber == playerData.phoneNumber){
+                                    retData.QnAData.phoneNumber = rsaCrypto.encrypt(playerData.phoneNumber);
+
+                                    updateObj.QnAData =retData.QnAData;
+                                    // reset the wrongCount when succuess
+                                    updateObj.totalWrongCount = 0;
+
+                                    // send sms
+                                }
+                                else{
+                                    updateObj.totalWrongCount = retData.totalWrongCount ? retData.totalWrongCount + 1: 1;
+                                    validateBoolean = false;
+                                }
+
+                                return dbClientQnA.updateClientQnAData(playerData._id, constClientQnA.EDIT_NAME, updateObj).then(
+                                    clientQnARecord => {
+                                        if (!clientQnARecord) {
+                                            return Promise.reject({name: "DBError", message: "update QnA data failed"})
+                                        }
+
+                                        if(!validateBoolean){
+                                            return Promise.reject({name: "DataError", message: "The phone number is not matched with the registered phone number"})
+                                        }
+                                        else{
+                                            return dbconfig.collection_clientQnATemplate.findOne({
+                                                type: constClientQnA.EDIT_NAME,
+                                                processNo: "3"
+                                            }).lean().then(QnATemplate => {
+                                                if (QnATemplate) {
+                                                    QnATemplate.qnaObjId = clientQnARecord._id;
+                                                }
+
+                                                return QnATemplate;
+                                            })
+                                        }
+
+                                    }
+                                )}
+                        )
+                    }
+                })
+
+
+            }
+        )
+    },
+
+    editName4_2: function(platformObjId, inputDataObj, qnaObjId, type){
+        if (!qnaObjId) {
+            return Promise.reject({name: "DBError", message: "qnaObjId undefined"})
+        }
+
+        let playerObjId = null;
+        
+        return dbconfig.collection_clientQnATemplateConfig.findOne({type: type, platform: platformObjId}).lean().then(
+            QnAConfig => {
+
+                if (!QnAConfig) {
+                    return Promise.reject({name: "DBError", message: "QnAConfig is not found"})
+                }
+
+                return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).lean().then(
+                    clientQnAData => {
+                        if (clientQnAData){
+                            if (clientQnAData.hasOwnProperty("totalWrongCount") && clientQnAData.totalWrongCount > QnAConfig.wrongCount){
+                                let endTitle = "Authentification Failed";
+                                let endDes = "Attention! Contact CS for further instruction";
+                                return dbClientQnA.qnaEndMessage(endTitle, endDes);
+                            }
+
+                            // reset the wrongCount
+                            return dbClientQnA.updateClientQnAData(qnaObjId, constClientQnA.EDIT_NAME, {totalWrongCount: 0}).then(
+                                () => {
+                                    return dbconfig.collection_clientQnATemplate.findOne({
+                                        type: constClientQnA.EDIT_NAME,
+                                        processNo: "4_2"
+                                    }).lean().then(QnATemplate => {
+                                        if (QnATemplate) {
+                                            QnATemplate.qnaObjId = clientQnAData._id;
+                                        }
+
+                                        return QnATemplate;
+                                    })
+                                }
+                            )
+                        }
+                        else{
+                            return Promise.reject({name: "DBError", message: "Could not find the QnA data"})
+                        }
+                    }
+                )
+            }
+        )
+    },
+
+    editName3: function (platformObjId, inputDataObj, qnaObjId, type){
+
+    },
     //endregion
 };
 
