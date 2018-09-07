@@ -245,6 +245,11 @@ define([], () => {
             )
         };
 
+        self.getAllAutoFeedback = function($scope, platformObjId) {
+            return $scope.$socketPromise('getAllAutoFeedback', {platformObjId: platformObjId})
+                .then(data => data.data.data);
+        };
+
         self.getPMSDevices = function(num){
             // PMS definition of device type
             // Web: 1, H5: 2, Both: 3, App:4
@@ -274,6 +279,36 @@ define([], () => {
                     break;
             }
             return result
+        }
+
+        self.getMerchantName = function(merchantNo, merchantsFromPMS, merchantTypes, type){
+            let merchantName = '';
+            let result = '';
+            let merchant = [];
+            if (merchantNo && merchantsFromPMS) {
+
+                let inputDevice = self.getPMSDevices(type);
+
+                if(type){
+                    merchant = merchantsFromPMS.filter(item => {
+                        return item.merchantNo == merchantNo && item.targetDevices == inputDevice;
+                    });
+                }else{
+                    merchant = merchantsFromPMS.filter(item => {
+                        return item.merchantNo == merchantNo;
+                    });
+                }
+
+                if (merchant.length > 0) {
+                    let merchantName = merchantTypes.filter(item => {
+                        return item.merchantTypeId == merchant[0].merchantTypeId;
+                    })
+                    if (merchantName[0]) {
+                        result = merchantName[0].name;
+                    }
+                }
+            }
+            return result;
         }
 
         this.updatePageTile = ($translate, pageName, tabName) => {
@@ -470,12 +505,16 @@ define([], () => {
             };
         };
 
-        this.commonInitTime = (utilService, vm, model, field, queryId, defTime) => {
+        this.commonInitTime = (utilService, vm, model, field, queryId, defTime, defTimeAsIs) => {
             vm[model] = vm[model] || {};
 
             utilService.actionAfterLoaded(queryId, () => {
                 vm[model][field] = utilService.createDatePicker(queryId);
-                $(queryId).data('datetimepicker').setLocalDate(new Date(defTime));
+                if(defTimeAsIs) {
+                    $(queryId).data('datetimepicker').setDate(new Date(defTime));
+                } else {
+                    $(queryId).data('datetimepicker').setLocalDate(new Date(defTime));
+                }
             })
         };
     };
