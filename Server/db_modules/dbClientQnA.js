@@ -305,6 +305,115 @@ var dbClientQnA = {
     //endregion
 
     //region updatePhoneNumber
+    updatePhoneNumber1: function(platformObjId, inputDataObj){
+        if (!(inputDataObj && inputDataObj.name)) {
+            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        }
+
+        return dbconfig.collection_players.findOne({platform: platformObjId, name: inputDataObj.name}).lean().then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DBError", message: "Cannot find player"})
+                }
+
+                let updateObj = {
+                    QnAData: {name: inputDataObj.name}
+                };
+                return dbClientQnA.updateClientQnAData(playerData._id, constClientQnA.UPDATE_PHONE, updateObj).then(
+                    clientQnAData => {
+                        if (!clientQnAData) {
+                            return Promise.reject({name: "DBError", message: "update QnA data failed"})
+                        }
+
+                        if (playerData.phoneNumber) {
+                            let processNo;
+                            if (playerData.phoneNumber) {
+                                processNo = "2_1";
+                            }
+                            return dbconfig.collection_clientQnATemplate.findOne({
+                                type: constClientQnA.UPDATE_PHONE,
+                                processNo: processNo
+                            }).lean().then(
+                                QnATemplate => {
+                                    if (QnATemplate) {
+                                        QnATemplate.qnaObjId = clientQnAData._id;
+                                    }
+                                    if (QnATemplate && QnATemplate.isSecurityQuestion) {
+                                        return dbconfig.collection_clientQnATemplateConfig.findOne({
+                                            type: constClientQnA.UPDATE_PHONE,
+                                            platform: platformObjId}).lean().then(
+                                            configData=> {
+                                                if (configData && configData.hasOwnProperty("wrongCount") && clientQnAData.hasOwnProperty("totalWrongCount") &&  clientQnAData.totalWrongCount > configData.wrongCount) {
+                                                    return dbClientQnA.rejectSecurityQuestionFirstTime()
+                                                } else {
+                                                    return QnATemplate;
+                                                }
+                                            }
+                                        )
+                                    }
+                                    return QnATemplate;
+                                }
+                            );
+                        } else {
+                            let endTitle = "Update Phone failed";
+                            let endDes = "Attention! This player does not bind phone number (or inconvenient to receive sms code), cannot verify bank card. Please contact customer service to reset password manually";
+                            return dbClientQnA.qnaEndMessage(endTitle, endDes)
+                        }
+                    });
+            }
+        )
+    },
+
+    updatePhoneNumber2_1: function (platformObjId, inputDataObj, qnaObjId) {
+      
+        if (!(inputDataObj && inputDataObj.phoneNumber)) {
+            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        }
+
+
+        return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).lean().then(
+        clientQnA=>{
+
+            if (!clientQnA) {
+                return Promise.reject({name: "DBError", message: "update QnA data failed"})
+            }
+            let clientQnAData = clientQnA;
+            // Send verification code
+            dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.OLD_PHONE_NUMBER)
+                .catch(errorUtils.reportError);
+
+            let processNo = '3_1';
+
+            return dbconfig.collection_clientQnATemplate.findOne({
+                type: constClientQnA.UPDATE_PHONE,
+                processNo: processNo
+            }).lean().then(
+                QnATemplate => {
+                    if (QnATemplate) {
+                        QnATemplate.qnaObjId = clientQnAData._id;
+                    }
+                    if (QnATemplate && QnATemplate.isSecurityQuestion) {
+                        return dbconfig.collection_clientQnATemplateConfig.findOne({
+                            type: constClientQnA.UPDATE_PHONE,
+                            platform: platformObjId}).lean().then(
+                            configData=> {
+                                if (configData && configData.hasOwnProperty("wrongCount") && clientQnAData.hasOwnProperty("totalWrongCount") &&  clientQnAData.totalWrongCount > configData.wrongCount) {
+                                    return dbClientQnA.rejectSecurityQuestionFirstTime()
+                                } else {
+                                    return QnATemplate;
+                                }
+                            }
+                        )
+                    }
+                    return QnATemplate;
+                }
+            );
+        })
+    },
+    updatePhoneNumber3_1: function (platformObjId, inputDataObj, qnaObjId) {
+
+
+    },
     //endregion
 
     //region editBankCard
@@ -364,7 +473,7 @@ var dbClientQnA = {
         }
         let playerObjId = null;
         let validateBoolean = true;
-       
+
         return dbconfig.collection_clientQnATemplateConfig.findOne({type: type, platform: platformObjId}).lean().then(
             QnAConfig => {
 
@@ -398,7 +507,7 @@ var dbClientQnA = {
                                 }
 
                                 let updateObj = {};
-                               
+
                                 if (inputDataObj.phoneNumber == playerData.phoneNumber){
                                     retData.QnAData.phoneNumber = rsaCrypto.encrypt(playerData.phoneNumber);
 
@@ -452,7 +561,7 @@ var dbClientQnA = {
         }
 
         let playerObjId = null;
-        
+
         return dbconfig.collection_clientQnATemplateConfig.findOne({type: constClientQnA.EDIT_NAME, platform: platformObjId}).lean().then(
             QnAConfig => {
 
