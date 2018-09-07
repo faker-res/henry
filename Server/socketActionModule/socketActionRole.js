@@ -116,6 +116,17 @@ function socketActionRole(socketIO, socket) {
         },
 
         /**
+         * Attach / Detach role from admin user
+         * @param {json} data - data has _id for role and admin user
+         */
+        attachDetachRolesFromUsersById: function attachDetachRolesFromUsersById(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.AttachRoleObjIds && data.DetachRoleObjIds && data.AdminObjIds);
+            socketUtil.emitter(self.socket, dbRole.attachDetachRolesFromUsersById, [data.AdminObjIds, data.AttachRoleObjIds, data.DetachRoleObjIds], actionName, isValidData);
+            socketUtil.notifyClientsPermissionUpdate(self.socketIO);
+        },
+
+        /**
          * Get all server actions
          */
         getAllActions: function getAllActions() {

@@ -4358,15 +4358,21 @@
   "realNameAfterEdit": "玩家真实姓名（编辑后）：",
   "partnerRealNameBeforeEdit": "代理真实姓名（编辑前）：",
   "partnerRealNameAfterEdit": "代理真实姓名（编辑后）：",
-  "Partner Proposal No": "代理提案号",
   "alipayer": "PMS收录玩家支付宝实名",
   "alipayerAccount": "PMS收录玩家支付宝帐号",
   "alipayerNickName": "PMS收录玩家支付宝腻称",
   "alipayerRemark": "PMS收录玩家支付宝备注",
   "getLockedLobbyConfig": "获取平台锁大厅配置",
+
   "Please enter player account":"请输入玩家账号",
   "Please enter current phone number for sms verification": "请输入您原绑定电话号码，将发送短信验证码",
-  "Please enter sms verification code": "请输入您接收到的短信验证码"
-
+  "Please enter sms verification code": "请输入您接收到的短信验证码",
+  "EditAdminRole": "编辑用户角色",
+  "Please tick the following": "请勾选下列",
+  "roles": "角色",
+  "the role will be added or removed to this backstage account": "该角色将『添加/移除』至此后台帐号",
+  "Departments": "部门位子",
+  "List of Roles": "角色列表",
+  "Remove All Selection": "清空勾选"
 
 }
