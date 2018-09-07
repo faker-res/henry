@@ -318,7 +318,7 @@ var playerSchema = new Schema({
     // reward point object
     rewardPointsObjId: {type: Schema.ObjectId, ref: 'rewardPoints'},
     // is tracked for deposit tracking report
-    isDepositTracked: {type: Boolean},
+    isDepositTracked: {type: Boolean, index: true},
     // deposit tracking group object
     depositTrackingGroup: {type: Schema.ObjectId, ref: 'depositTrackingGroup'},
     // xima withdrawal check bypass
