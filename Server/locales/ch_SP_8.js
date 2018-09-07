@@ -457,7 +457,7 @@ var simplifiedChinese = {
     "Parent Partner": "一级代理",
     "1.Partner Commission Proposal No.: ": "1.代理佣金提案号：",
     "2.Parent Partner Commission Rate：": "2.一级代理佣金比例：",
-    "Incorrect parameter type": "参数类型错误",
+    "Incorrect parameter type": "参数类型错误"
 
     //todo::add missing messages here
 
