@@ -128,8 +128,24 @@ var dbClientQnA = {
         let smsCode = dbutility.generateRandomPositiveNumber(1000, 9999);
 
         if (clientQnAData && clientQnAData.QnAData && clientQnAData.QnAData.playerId && clientQnAData.QnAData.platformId) {
-            return dbPlayerMail.sendVerificationCodeToPlayer(
-                clientQnAData.QnAData.playerId, smsCode, clientQnAData.QnAData.platformId, true, purpose, 0)
+            if (clientQnAData.type) {
+                let updObj = {
+                    $set: {
+                        'QnAData.smsCode': smsCode
+                    }
+                };
+
+                if (clientQnAData && clientQnAData.QnAData && !clientQnAData.QnAData.smsCount) {
+                    updObj.$set['QnAData.smsCount'] = 1;
+                    updObj.$set['QnAData.firstSMSTime'] = new Date();
+                } else {
+                    updObj.$inc = {'QnAData.smsCount': 1};
+                }
+
+                return dbClientQnA.updateClientQnAData(null, clientQnAData.type, updObj, clientQnAData._id).then(
+                    dbPlayerMail.sendVerificationCodeToPlayer(clientQnAData.QnAData.playerId, smsCode, clientQnAData.QnAData.platformId, true, purpose, 0)
+                );
+            }
         }
 
         return Promise.resolve(false);
@@ -267,7 +283,7 @@ var dbClientQnA = {
 
                     return dbClientQnA.updateClientQnAData(playerData._id, constClientQnA.FORGOT_USER_ID, updateObj)
                 } else {
-                    return dbClientQnA.rejectFailedRetrieveAccount();
+                    throw new Error('Player not found');
                 }
             }
         ).then(
@@ -296,11 +312,28 @@ var dbClientQnA = {
                 }
                 return QnATemplate;
             }
+        ).catch(
+            error => {
+                return dbClientQnA.rejectFailedRetrieveAccount();
+            }
         )
     },
 
     forgotUserID2_1: function (platformObjId, inputDataObj) {
 
+    },
+
+    resendSMSVerificationCode: function (platformObjId, inputDataObj, qnaObjId) {
+        return dbconfig.collection_clientQnA.findById(qnaObjId).lean().then(
+            qnaObj => {
+                // Check player send count
+                if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCount && qnaObj.QnAData.smsCount >= 5) {
+                    return dbClientQnA.rejectFailedRetrieveAccount();
+                } else {
+                    dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.AUTOQA_FORGOT_USER_ID);
+                }
+            }
+        );
     },
     //endregion
 
