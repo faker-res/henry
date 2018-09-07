@@ -9061,6 +9061,10 @@ let dbPartner = {
         let totalCount = 0;
         let totalPage = 1;
 
+        if (typeof index != 'number' || typeof limit != 'number') {
+            return Promise.reject({name: "DataError", message: "Incorrect parameter type"});
+        }
+
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if (platformData) {
@@ -9277,6 +9281,10 @@ let dbPartner = {
         let totalPage = 1;
         let sortCol = {createTime: 1};
         let totalAmount = 0;
+
+        if (typeof index != 'number' || typeof limit != 'number') {
+            return Promise.reject({name: "DataError", message: "Incorrect parameter type"});
+        }
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
