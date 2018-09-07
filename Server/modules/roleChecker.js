@@ -771,6 +771,7 @@ var roleChecker = {
                 ResetPassword: ['resetAdminPassword'],
                 AttachRole: ['getUnAttachedDepartmentsforAdmin', 'getUnAttachedDepartmentRolesForAdmin', 'attachRolesToUsersById', 'getUnAttachUsers', 'attachRoleToUserByName'],
                 DetachRole: ['getAttachedDepartmentRolesforAdmin', 'detachRolesFromDepartmentsById', 'detachRolesFromUsersById', 'detachRoleFromUserByName'],
+                EditAdminRole: ['getDepartmentRolesForAdmin', 'attachDetachRolesFromUsersById'],
                 ViewLog: ['getAdminActionLog'],
                 UpdateUserDepartment: ['updateAdminDepartment']
             },

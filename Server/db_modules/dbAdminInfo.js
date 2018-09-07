@@ -287,6 +287,100 @@ var dbAdminInfo = {
         return deferred.promise;
     },
 
+    getDepartmentRolesForAdmin: function (adminObjId) {
+        let attachedRoleIds = [];
+        let departmentRolesData;
+        let departmentPathData;
+
+        return dbconfig.collection_admin.findOne({_id: adminObjId}).populate({
+            path: 'departments',
+            model: dbconfig.collection_department,
+            select: {_id: 1, departmentName: 1, roles: 1}
+        }).then(
+            result => {
+                if (result && result.departments) {
+                    attachedRoleIds = result.roles;
+                    let proms = [];
+
+                    for (let i = 0, len = result.departments.length; i < len; i++) {
+                        if (result.departments[i] && result.departments[i].roles) {
+                            proms.push(dbconfig.collection_role.find({_id: {$in: result.departments[i].roles}}, {_id: 1, roleName: 1}).lean().then(
+                                rolesData => {
+                                    let list = [];
+                                    if (rolesData && rolesData.length > 0) {
+                                        if (attachedRoleIds && attachedRoleIds.length > 0) {
+                                            rolesData.map(roles => {
+                                                roles.isAttach = false;
+
+                                                if (attachedRoleIds.indexOf(roles._id) > -1) {
+                                                    roles.isAttach = true;
+                                                }
+                                            });
+                                        }
+                                        list = rolesData;
+                                    }
+                                    return {departmentObjId: result.departments[i]._id, departmentName: result.departments[i].departmentName, roles: list};
+                                }
+                            ));
+                        }
+                    }
+                    return Promise.all(proms);
+                } else {
+                    return Promise.reject({name: "DBError", message: "Failed to find all departments"});
+                }
+            }
+        ).then(data => {
+            departmentRolesData = data ? data : [];
+
+            let proms = [];
+            if (departmentRolesData && departmentRolesData.length > 0) {
+                departmentRolesData.forEach(department => {
+                    if (department && department.departmentObjId) {
+                        let parentPath = "";
+
+                        function getParentName(departmentId) {
+                            return dbconfig.collection_department.findOne({_id: departmentId}).then(
+                                departmentData => {
+                                    if (departmentData){
+                                        parentPath = "/" + departmentData.departmentName + parentPath;
+                                        if(departmentData.parent){
+                                            return getParentName(departmentData.parent);
+                                        }
+                                        return parentPath;
+                                    }
+                                }
+                            )
+                        }
+
+                        proms.push(getParentName(department.departmentObjId).then(data => {
+                            if (data) {
+                                data = data.replace(data.substring(0,1),'').trim();
+                            }
+                            return {_id: department.departmentObjId, path: data};
+                        }));
+                    }
+                })
+            }
+            return Promise.all(proms);
+        }).then(data => {
+            departmentPathData = data ? data : [];
+
+            if (departmentRolesData && departmentRolesData.length > 0) {
+                departmentRolesData.map(department => {
+                    if(department && department.departmentObjId && departmentPathData && departmentPathData.length > 0) {
+                        departmentPathData.forEach(departmentPath => {
+                            if (departmentPath && departmentPath._id && department.departmentObjId.toString() == departmentPath._id.toString()) {
+                                department.departmentPath = departmentPath.path;
+                            }
+                        });
+                    }
+                });
+            }
+
+            return departmentRolesData;
+        });
+    },
+
     /**
      * Get all the roles which are attached to current admin user and admin user's departments
      * @param {String} adminUserObjId - The _id of the admin user

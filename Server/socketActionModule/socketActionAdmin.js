@@ -279,6 +279,16 @@ function socketActionAdmin(socketIO, socket) {
             socketUtil.emitter(self.socket, dbAdminInfo.callTell400, [data.url], actionName, isValidData);
         },
 
+        /**
+         * Get all roles attached or detached to a current admin
+         * @param data
+         */
+        getDepartmentRolesForAdmin: function getDepartmentRolesForAdmin(data) {
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data && data._id);
+            socketUtil.emitter(self.socket, dbAdminInfo.getDepartmentRolesForAdmin, [data._id], actionName, isDataValid);
+        },
+
     };
 
     socketActionAdmin.actions = this.actions;

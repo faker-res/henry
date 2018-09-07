@@ -597,6 +597,121 @@ define(['js/app'], function (myApp) {
                 return i;
             };
 
+            vm.iniEditAdminRole = function () {
+                vm.departmentRolelist = [];
+                vm.cloneDepartmentRolelist = [];
+                vm.attachedRoles = [];
+                vm.detachedRoles = [];
+                $scope.assertEqual(vm.selectedUsersCount, 1);
+                $scope.assertEqual(Object.keys(vm.selectedUsers).length, 1);
+
+                $.each(vm.selectedUsers, function (i, v) {
+                    vm.curUser = v;
+                });
+                $scope.assert(vm.curUser);
+
+                // Get available roles for this user
+                let sendData = {
+                    _id: vm.curUser._id,
+                };
+
+                socketService.$socket($scope.AppSocket, 'getDepartmentRolesForAdmin', sendData, success);
+                function success(data) {
+                    $scope.$evalAsync(() => {
+                        console.log("getDepartmentRolesForAdmin", data.data);
+                        if (data && data.data && data.data.length > 0) {
+                            data.data.map((result, index) => {
+                                result.orderNo = index + 1;
+                            });
+                            vm.departmentRolelist = data.data;
+                            vm.cloneDepartmentRolelist = JSON.parse(JSON.stringify((data.data)));
+                        }
+                    });
+                }
+            };
+
+            vm.removeAllRolesSelection = function () {
+                if (vm.departmentRolelist && vm.departmentRolelist.length > 0) {
+                    for (let i = 0, ilen = vm.departmentRolelist.length; i < ilen; i++) {
+                        let department = vm.departmentRolelist[i];
+
+                        if (department && department.roles && department.roles.length > 0) {
+                            for (let j = 0, jlen = department.roles.length; j < jlen; j++) {
+                                let role = department.roles[j];
+
+                                if (role && role.isAttach) {
+                                    role.isAttach = false;
+                                }
+                            }
+                        }
+                    }
+
+                    $('input[name="selectRoleCheckBox"]').each(function() {
+                        this.checked = false;
+                    });
+
+                    vm.attachedRoles = [];
+                    vm.detachedRoles = [];
+
+                    if (vm.cloneDepartmentRolelist && vm.cloneDepartmentRolelist.length > 0) {
+                        for (let x = 0, xlen = vm.cloneDepartmentRolelist.length; x < xlen; x++) {
+                            let department = vm.cloneDepartmentRolelist[x];
+                            if (department && department.roles && department.roles.length > 0) {
+                                for (let y = 0, ylen = department.roles.length; y < ylen; y++) {
+                                    let role = department.roles[y];
+                                    if (role && role.isAttach) {
+                                        vm.detachedRoles.push(role._id);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            vm.attachDetachAdminRole = function (id, isAttach) {
+                if (!isAttach) {
+                    vm.detachedRoles.push(id);
+
+                    let indexNo = vm.attachedRoles.findIndex(r => r == id)
+                    if(indexNo != -1){
+                        vm.attachedRoles.splice(indexNo, 1);
+                    }
+
+                    vm.checkCurrentAdminRoleToOriginalAdminRole(vm.detachedRoles, false);
+                } else {
+                    vm.attachedRoles.push(id);
+
+                    let indexNo = vm.detachedRoles.findIndex(r => r == id)
+                    if(indexNo != -1){
+                        vm.detachedRoles.splice(indexNo, 1);
+                    }
+                    vm.checkCurrentAdminRoleToOriginalAdminRole(vm.attachedRoles, true);
+                }
+            };
+
+            vm.checkCurrentAdminRoleToOriginalAdminRole = function (arr, flag) {
+                if (vm.cloneDepartmentRolelist && vm.cloneDepartmentRolelist.length > 0) {
+                    for (let i = 0, ilen = vm.cloneDepartmentRolelist.length; i < ilen; i++) {
+                        let department = vm.cloneDepartmentRolelist[i];
+
+                        if (department && department.roles && department.roles.length > 0) {
+                            for (let j = 0, jlen = department.roles.length; j < jlen; j++) {
+                                let role = department.roles[j];
+                                let isAttachFlag = !flag ? !role.isAttach: role.isAttach;
+
+                                if (role && isAttachFlag) {
+                                    let indexNo = arr.findIndex(r => r == role._id)
+                                    if(indexNo != -1){
+                                        arr.splice(indexNo, 1);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
             vm.attachAdminToRole = function () {
                 $scope.assertEqual(vm.selectedUsersCount, 1);
                 $scope.assertEqual(Object.keys(vm.selectedUsers).length, 1);
@@ -691,6 +806,25 @@ define(['js/app'], function (myApp) {
                     $scope.$apply();
                 }
             }
+
+            vm.submitDepartmentRoles = function () {
+                $('#modalEditAdminRole').one('hidden.bs.modal', function () {
+                    let data = {
+                        AdminObjIds: [vm.curUser._id],
+                        AttachRoleObjIds: vm.attachedRoles,
+                        DetachRoleObjIds: vm.detachedRoles
+                    };
+                    console.log("send data", data);
+                    socketService.$socket($scope.AppSocket, 'attachDetachRolesFromUsersById', data, success);
+                    function success(data) {
+                        $scope.$evalAsync(() => {
+                            vm.getDepartmentFullData();
+                            vm.getDepartmentUsersData();
+                        });
+                    }
+                });
+            };
+
             vm.submitDetachRoles = function () {
                 $('#modalDetachRolesFromUser').one('hidden.bs.modal', function () {
                     var userIds = [];
