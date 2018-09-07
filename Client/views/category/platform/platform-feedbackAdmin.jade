@@ -2,7 +2,7 @@
     .col-md-12
         .well.feedbackAdminQueryDiv
             .inlineBlk
-                label.control-label {{'Admin' | translate}}
+                label.control-label {{'ADMIN' | translate}}
                 //input.form-control(ng-model='vm.feedbackAdminQuery.admin', placeholder="{{'SEARCH' | translate}}")
                 select.form-control.feedbackOption(ng-model='vm.feedbackAdminQuery.admin', ng-options='a.adminName as a.adminName group by a.departmentName for a in vm.departmentUsers')
                     option(value="") {{'any' | translate}}
