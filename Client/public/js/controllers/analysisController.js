@@ -285,10 +285,11 @@ define(['js/app'], function (myApp) {
                             for (var i = 1; i < 31; i++) {
                                 vm.dayListLength.push(i);
                             }
+                            vm.queryPara.playerRetention.userType = "all";
+                            vm.checkDomainList();
                             vm.playerRetentionInit(function () {
                                 //vm.getPlayerRetention();
                             });
-                            vm.queryPara.playerRetention.userType = "all";
                             $scope.safeApply();
                         });
                         break;
@@ -456,6 +457,23 @@ define(['js/app'], function (myApp) {
                         break;
                     case "PLAYER_ONLINE_TIME":
                         vm.initSearchParameter('playerOnlineTime', 'day', 3, function () {});
+                        break;
+                    case "DOMAIN_VISIT_AMOUNT":
+                        vm.initSearchParameter('ipDomain', 'day', 3);
+                        vm.initSearchParameter('ipDomainUnique', 'day', 3);
+                        vm.queryPara.ipDomain.domain = '';
+                        vm.queryPara.ipDomainUnique.domain = '';
+                        vm.getIpDomainOption();
+                        vm.getIpDomainUniqueOption();
+                        vm.queryPara["ipDomain"].startTime.off('changeDate');
+                        vm.queryPara["ipDomain"].endTime.off('changeDate');
+                        vm.queryPara["ipDomainUnique"].startTime.off('changeDate');
+                        vm.queryPara["ipDomainUnique"].endTime.off('changeDate');
+                        vm.queryPara["ipDomain"].startTime.on('changeDate', vm.getIpDomainOptionDebounce);
+                        vm.queryPara["ipDomain"].endTime.on('changeDate', vm.getIpDomainOptionDebounce);
+                        vm.queryPara["ipDomainUnique"].startTime.on('changeDate', vm.getIpDomainUniqueOptionDebounce);
+                        vm.queryPara["ipDomainUnique"].endTime.on('changeDate', vm.getIpDomainUniqueOptionDebounce);
+
                         break;
                 }
                 // $(".flot-tick-label.tickLabel").addClass("rotate330");
@@ -1606,6 +1624,9 @@ define(['js/app'], function (myApp) {
                     proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.alipayQRCode || " ";
                     proposalDetail["ALIPAY_QR_ADDRESS"] = vm.selectedProposal.data.qrcodeAddress || " ";
                     proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                    proposalDetail["alipayer"] = vm.selectedProposal.data.alipayer || " ";
+                    proposalDetail["alipayerAccount"] = vm.selectedProposal.data.alipayerAccount || " ";
+                    proposalDetail["alipayerNickName"] = vm.selectedProposal.data.alipayerNickName || " ";
                     vm.selectedProposal.data = proposalDetail;
                 }
 
@@ -4718,10 +4739,53 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        vm.checkDomainList = function (){
+            vm.domainList = null;
+            var sendData = {
+                platformId: vm.selectedPlatform._id,
+                startTime: vm.queryPara.playerRetention.startTime,
+                endTime: vm.queryPara.playerRetention.endTime,
+                playerType: vm.queryPara.playerRetention.playerType
+            };
+
+            switch (vm.queryPara.playerRetention.userType) {
+                case 'all':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    break;
+                case 'individual':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = false;
+                    break;
+                case 'underPartner':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = true;
+                    break;
+                case 'test':
+                    sendData.isRealPlayer = false;
+                    sendData.isTestPlayer = true;
+                    break;
+            }
+            if (typeof sendData.hasPartner !== 'boolean'){
+                sendData.hasPartner = null;
+            }
+
+            socketService.$socket($scope.AppSocket, 'getDomainList', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.domainList = data && data.data && data.data[0] && data.data[0].urls ? data.data[0].urls : [];
+                    console.log('domain data', vm.domainList);
+                })
+            });
+        };
+
         vm.retentionFilterOnChange = function () {
-            vm.queryPara.playerRetention.minTime = utilService.getFormatDate(vm.queryPara.playerRetention.startTime);
-            $scope.safeApply();
-        }
+            $scope.$evalAsync( () => {
+                vm.queryPara.playerRetention.minTime = utilService.getFormatDate(vm.queryPara.playerRetention.startTime);
+                vm.checkDomainList();
+            })
+        };
 
         vm.tableDataReformat = function (data) {
             if (Number.isInteger(data)) {
@@ -4747,6 +4811,10 @@ define(['js/app'], function (myApp) {
                 startTime: vm.queryPara.playerRetention.startTime,
                 endTime: vm.queryPara.playerRetention.endTime,
                 playerType: vm.queryPara.playerRetention.playerType
+            }
+
+            if (vm.chosenDomain && vm.chosenDomain.length > 0 && vm.chosenDomain.length != vm.domainList.length){
+                sendData.domainList = vm.chosenDomain;
             }
 
             switch (vm.queryPara.playerRetention.userType) {
@@ -4834,7 +4902,7 @@ define(['js/app'], function (myApp) {
                     rowData.sort((a, b) => {
                         return a[0] - b[0];
                     });
-                    var lineData = {label: vm.dateReformat(obj.date), data: rowData};
+                    var lineData = {label: obj.date == $translate("average line") ? $translate("average line") : vm.dateReformat(obj.date), data: rowData};
                     vm.allRetentionLineData.push(lineData);
                 }
             })
@@ -6110,6 +6178,230 @@ define(['js/app'], function (myApp) {
             $('#demoPlayerLogTbl').resize();
             $('#demoPlayerLogTbl').off('order.dt');
             $scope.safeApply();
+        };
+
+        vm.analyseIpDomain = function (canRepeat) {
+            let keyword = canRepeat ? "ipDomain" : "ipDomainUnique";
+
+            if (!vm.queryPara || !vm.queryPara[keyword]) return;
+
+            let sendQuery = {
+                platformObjId: vm.selectedPlatform._id,
+                startTime: vm.queryPara[keyword].startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.queryPara[keyword].endTime.data('datetimepicker').getLocalDate(),
+                canRepeat: canRepeat
+            };
+
+            if (vm.queryPara[keyword].domain) {
+                if (canRepeat) {
+                    vm.ipDomainAnalysisDay = true;
+                } else {
+                    vm.ipDomainUniqueAnalysisDay = true;
+                }
+
+                sendQuery.domain = vm.queryPara[keyword].domain;
+            } else {
+                if (canRepeat) {
+                    vm.ipDomainAnalysisDay = false;
+                } else {
+                    vm.ipDomainUniqueAnalysisDay = false;
+                }
+            }
+
+            console.log('sendQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'getIpDomainAnalysis', sendQuery, function (data) {
+                console.log('getIpDomainAnalysis output', data);
+
+                if (canRepeat && vm.ipDomainAnalysisDay) {
+                    let calculatedIpDomainAnalysisDayData = vm.calculateLineDataAndAverage(data.data, 'count', 'AMOUNT');
+                    vm.ipDomainAnalysisDayAverage = calculatedIpDomainAnalysisDayData.average;
+                    vm.plotLineByElementId("#line-ipDomainDayCount", calculatedIpDomainAnalysisDayData.lineData, $translate('AMOUNT'), $translate("DAY"));
+                    vm.drawIpDomainDayTable(data.data, "#ipDomainDayAnalysisTable");
+                } else if (canRepeat) {
+                    vm.drawIpDomainPie(data.data, "#ipDomainAnalysis .pieChart");
+                    vm.drawIpDomainTable(data.data, "#ipDomainAnalysisTable");
+                } else if (vm.ipDomainUniqueAnalysisDay) {
+                    let calculatedIpDomainUniqueAnalysisDayData = vm.calculateLineDataAndAverage(data.data, 'count', 'AMOUNT');
+                    vm.ipDomainUniqueAnalysisDayAverage = calculatedIpDomainUniqueAnalysisDayData.average;
+                    vm.plotLineByElementId("#line-ipDomainUniqueDayCount", calculatedIpDomainUniqueAnalysisDayData.lineData, $translate('AMOUNT'), $translate("DAY"));
+                    vm.drawIpDomainDayTable(data.data, "#ipDomainUniqueDayAnalysisTable");
+                } else {
+                    vm.drawIpDomainPie(data.data, "#ipDomainUniqueAnalysis .pieChart");
+                    vm.drawIpDomainTable(data.data, "#ipDomainUniqueAnalysisTable");
+                }
+            });
+        };
+
+        vm.getIpDomainOption = function () {
+            let sendQuery = {
+                platformObjId: vm.selectedPlatform._id,
+                startTime: vm.queryPara["ipDomain"].startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.queryPara["ipDomain"].endTime.data('datetimepicker').getLocalDate()
+            };
+
+            console.log('sendQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'getUniqueIpDomainsWithinTimeFrame', sendQuery, function (data) {
+                console.log('getUniqueIpDomainsWithinTimeFrame output', data);
+
+                if (data && data.data && data.data.length) {
+                    vm.ipDomainOption = data.data;
+                } else {
+                    vm.ipDomainOption = [];
+                }
+
+                $scope.$evalAsync();
+            });
+        };
+
+        vm.getIpDomainUniqueOption = function () {
+            let sendQuery = {
+                platformObjId: vm.selectedPlatform._id,
+                startTime: vm.queryPara["ipDomainUnique"].startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.queryPara["ipDomainUnique"].endTime.data('datetimepicker').getLocalDate()
+            };
+
+            console.log('sendQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'getUniqueIpDomainsWithinTimeFrame', sendQuery, function (data) {
+                console.log('getUniqueIpDomainsWithinTimeFrame output', data);
+
+                if (data && data.data && data.data.length) {
+                    vm.ipDomainUniqueOption = data.data;
+                } else {
+                    vm.ipDomainUniqueOption = [];
+                }
+
+                $scope.$evalAsync();
+            });
+        };
+
+        vm.getIpDomainOptionDebounce = $scope.debounceSearch(vm.getIpDomainOption);
+        vm.getIpDomainUniqueOptionDebounce = $scope.debounceSearch(vm.getIpDomainUniqueOption);
+
+        vm.drawIpDomainPie = function (srcData, pieChartName) {
+            let placeholder = pieChartName + ' div.graphDiv';
+            let finalizedPieData = [];
+
+            srcData.map(s => {
+                finalizedPieData.push({label: s.domain, data: s.count});
+            });
+
+            function labelFormatter(label, series) {
+                return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
+            }
+
+            var options = {
+                series: {
+                    pie: {
+                        show: true,
+                        radius: 1,
+                        label: {
+                            show: true,
+                            radius: 1,
+                            formatter: labelFormatter,
+                            background: {
+                                opacity: 0.8
+                            }
+                        },
+                        combine: {
+                            color: "#999",
+                            threshold: 0.0
+                        }
+                    }
+                },
+                grid: {
+                    hoverable: true,
+                    clickable: true
+                },
+                legend: {
+                    show: false
+                }
+            };
+
+            socketService.$plotPie(placeholder, finalizedPieData, options, 'clientSourceClickData');
+
+        };
+
+        vm.drawIpDomainTable = function (srcData, tableName) {
+            let tableData = [];
+            let total = 0;
+            let tableAmountColumnName = $translate("VISITED_TIMES") + "(" + $translate("IP_REPEAT") + ")";
+
+            srcData.map(item => {
+                total += item.count;
+            });
+
+            srcData.map(item => {
+                item.ratio = Number(item.count / total * 100).toFixed(2);
+                tableData.push(item);
+            });
+
+            if (tableName == "#ipDomainUniqueAnalysisTable") {
+                tableAmountColumnName = $translate("VISITED_IP_AMOUNT");
+            }
+
+            tableData.push({domain: $translate("total"), count: total, ratio: "100%"});
+
+            var dataOptions = {
+                data: tableData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false, sClass: "text-center"}
+                ],
+                columns: [
+                    {title: $translate("VISITED_DOMAIN"), data: "domain"},
+                    {title: tableAmountColumnName, data: "count"},
+                    {title: $translate('ratio'), data: "ratio", bSortable: true}
+                ],
+                "paging": false,
+            };
+            dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
+            var a = $(tableName).DataTable(dataOptions);
+            a.columns.adjust().draw();
+        };
+
+        vm.drawIpDomainDayTable = function (srcData, tableName) {
+            let tableData = [];
+            let total = 0;
+            let tableAmountColumnName = $translate("VISITED_TIMES") + "(" + $translate("IP_REPEAT") + ")";
+
+            let keyword = "ipDomain";
+
+            if (tableName == "#ipDomainUniqueDayAnalysisTable") {
+                keyword = "ipDomainUnique";
+                tableAmountColumnName = $translate("VISITED_TIMES") + "(" + $translate("IP_NOT_REPEAT") + ")";
+            }
+
+            srcData.map(item => {
+                tableData.push(item);
+                total += item.count;
+            });
+
+            tableData.map(data => {
+                if(data){
+                    if(data.date){
+                        data.date = String(utilService.$getTimeFromStdTimeFormat(new Date(data.date))).substring(0, 10);
+                    }
+                }
+            });
+            tableData.push({date: $translate("total"), count: total});
+
+            var dataOptions = {
+                data: tableData,
+                "aaSorting": [],
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false, sClass: "text-center"}
+                ],
+                columns: [
+                    {title: $translate("DAY") + "(" + vm.queryPara[keyword].domain + ")", data: "date"},
+                    {title: tableAmountColumnName, data: "count"}
+                ],
+                "paging": false,
+            };
+            dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
+            var a = $(tableName).DataTable(dataOptions);
+            a.columns.adjust().draw();
         };
 
         vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {

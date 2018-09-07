@@ -393,28 +393,51 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                     }
                 })
                 .state('teleMarketing', {
-                        url: '/teleMarketing',
-                        templateUrl: 'category/teleMarketing/teleMarketing-home',
-                        controller: 'teleMarketingCtrl',
-                        controllerAs: 'vm',
-                        resolve: {
-                            load: function ($q, $rootScope) {
-                                var deferred = $q.defer();
+                    url: '/teleMarketing',
+                    templateUrl: 'category/teleMarketing/teleMarketing-home',
+                    controller: 'teleMarketingCtrl',
+                    controllerAs: 'vm',
+                    resolve: {
+                        load: function ($q, $rootScope) {
+                            var deferred = $q.defer();
 
-                                var dependencies = [
-                                    "/js/controllers/teleMarketingController.js"
-                                ];
+                            var dependencies = [
+                                "/js/controllers/teleMarketingController.js"
+                            ];
 
-                                require(dependencies, function () {
-                                    $rootScope.$apply(function () {
-                                        deferred.resolve();
-                                    });
+                            require(dependencies, function () {
+                                $rootScope.$apply(function () {
+                                    deferred.resolve();
                                 });
+                            });
 
-                                return deferred.promise;
-                            }
+                            return deferred.promise;
                         }
-                    });
+                    }
+                })
+                .state('themeControl', {
+                    url: '/themeControl',
+                    templateUrl: 'category/themeControl/themeControl-home',
+                    controller: 'themeControlCtrl',
+                    controllerAs: 'vm',
+                    resolve: {
+                        load: function ($q, $rootScope) {
+                            var deferred = $q.defer();
+
+                            var dependencies = [
+                                "/js/controllers/themeControlController.js"
+                            ];
+
+                            require(dependencies, function () {
+                                $rootScope.$apply(function () {
+                                    deferred.resolve();
+                                });
+                            });
+
+                            return deferred.promise;
+                        }
+                    }
+                });
             // .state('testPage', {
             //     url: '/testPage',
             //     templateUrl: 'category/provider/test-home',

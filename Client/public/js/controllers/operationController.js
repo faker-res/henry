@@ -2315,6 +2315,9 @@ define(['js/app'], function (myApp) {
                 proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.alipayQRCode || " ";
                 proposalDetail["ALIPAY_QR_ADDRESS"] = vm.selectedProposal.data.qrcodeAddress || " ";
                 proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                proposalDetail["alipayer"] = vm.selectedProposal.data.alipayer || " ";
+                proposalDetail["alipayerAccount"] = vm.selectedProposal.data.alipayerAccount || " ";
+                proposalDetail["alipayerNickName"] = vm.selectedProposal.data.alipayerNickName || " ";
                 if (vm.selectedProposal.data.hasOwnProperty("pointsBefore")) {
                     proposalDetail["pointsBefore"] = vm.selectedProposal.data.pointsBefore;
                 }
@@ -2483,6 +2486,85 @@ define(['js/app'], function (myApp) {
 
                     proposalDetail[$translate("Targeted Downline Player") + "（" + orderNo + "）" + "/" + $translate("Transferred Amount") + "/" + $translate("PROVIDER_GROUP") + "/" + $translate("Withdraw Consumption")] =  str;
                 });
+
+                vm.selectedProposalDetailForDisplay = proposalDetail;
+            }
+
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "DownlineReceivePartnerCredit") {
+                let proposalDetail = {};
+                let inputDevice = "";
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+
+                proposalDetail["Downline Player ID"] = vm.selectedProposal.data.playerId;
+                proposalDetail["Downline Player Name"] = vm.selectedProposal.data.playerName;
+                proposalDetail["Received Amount"] = vm.selectedProposal.data.amount;
+                proposalDetail["Provider group"] = vm.selectedProposal.data.providerGroup ? vm.selectedProposal.data.providerGroup : $translate("LOCAL_CREDIT");
+                proposalDetail["Withdraw Consumption (Accurate number/non-multiple)"] = vm.selectedProposal.data.withdrawConsumption;
+                proposalDetail["Proposal No. of Partner Transfer Credit to Downline"] = vm.selectedProposal.data.partnerTransferCreditToDownlineProposalNo;
+                proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
+                proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
+
+                for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                    if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == vm.selectedProposal.inputDevice ){
+                        inputDevice =  $translate(Object.keys(vm.inputDevice)[i]);
+                    }
+                }
+
+                proposalDetail["INPUT_DEVICE"] = inputDevice;
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+
+                vm.selectedProposalDetailForDisplay = proposalDetail;
+            }
+
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePlayerRealName") {
+                let proposalDetail = {};
+                let inputDevice = "";
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["PLAYER_Id"] = vm.selectedProposal.data.playerId;
+                proposalDetail["Player Level"] = vm.selectedProposal.data.playerLevelName;
+                proposalDetail["realNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
+                proposalDetail["realNameAfterEdit"] = vm.selectedProposal.data.realNameAfterEdit;
+
+                for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                    if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == vm.selectedProposal.inputDevice ){
+                        inputDevice =  $translate(Object.keys(vm.inputDevice)[i]);
+                    }
+                }
+
+                proposalDetail["INPUT_DEVICE"] = inputDevice;
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+
+                vm.selectedProposalDetailForDisplay = proposalDetail;
+            }
+
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePartnerRealName") {
+                let proposalDetail = {};
+                let inputDevice = "";
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+
+                proposalDetail["partnerName"] = vm.selectedProposal.data.partnerName;
+                proposalDetail["partnerId"] = vm.selectedProposal.data.partnerId;
+                proposalDetail["partnerRealNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
+                proposalDetail["partnerRealNameAfterEdit"] = vm.selectedProposal.data.realNameAfterEdit;
+
+                for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                    if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == vm.selectedProposal.inputDevice ){
+                        inputDevice =  $translate(Object.keys(vm.inputDevice)[i]);
+                    }
+                }
+
+                proposalDetail["INPUT_DEVICE"] = inputDevice;
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
 
                 vm.selectedProposalDetailForDisplay = proposalDetail;
             }

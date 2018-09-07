@@ -406,7 +406,7 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data.query && data.platformId && data.index != null && data.limit);
             var query = utility.buildPlayerQueryString(data.query);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPagePlayerByAdvanceQuery, [data.platformId, query, data.index, data.limit, data.sortCol, getAdminName()], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPagePlayerByAdvanceQuery, [data.platformId, query, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
         getPlayerForAttachGroup: function getPlayerForAttachGroup(data) {
             var actionName = arguments.callee.name;
@@ -1199,13 +1199,19 @@ function socketActionPlayer(socketIO, socket) {
         uploadPhoneFileXLS: function uploadPhoneFileXLS(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && typeof(data.filterAllPlatform) === "boolean" && data.platformObjId && data.arrayPhoneXLS);
-            socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileXLS, [data.filterAllPlatform, data.platformObjId, data.arrayPhoneXLS], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileXLS, [data.filterAllPlatform, data.platformObjId, data.arrayPhoneXLS, data.isTSNewList], actionName, isValidData);
         },
 
         importDiffPhoneNum: function importDiffPhoneNum(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platform && data.phoneNumber && data.dxMission);
             socketUtil.emitter(self.socket, dbPlayerInfo.importDiffPhoneNum, [ObjectId(data.platform), data.phoneNumber, ObjectId(data.dxMission)], actionName, isValidData);
+        },
+
+        importTSNewList: function importTSNewList(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform && data.phoneNumber && data.listName && data.listDesc);
+            socketUtil.emitter(self.socket, dbPlayerInfo.importTSNewList, [ObjectId(data.platform), data.phoneNumber, data.listName, data.listDesc, getAdminId()], actionName, isValidData);
         },
 
         downloadTranslationCSV: function downloadTranslationCSV(data) {
@@ -1297,7 +1303,7 @@ function socketActionPlayer(socketIO, socket) {
         getPagedSimilarIpForPlayers: function getPagedSimilarIpForPlayers(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.platformId && data.isRealPlayer);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPagedSimilarIpForPlayers, [data.playerId, data.platformId, data.lastLoginIp, data.isRealPlayer, data.index, data.limit, data.sortCol, data.admin], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPagedSimilarIpForPlayers, [data.playerId, data.platformId, data.registrationIp, data.isRealPlayer, data.index, data.limit, data.sortCol, data.admin], actionName, isValidData);
         },
 
         checkIPArea: function checkIPArea(data) {

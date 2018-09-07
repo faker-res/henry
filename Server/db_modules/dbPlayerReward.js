@@ -973,7 +973,6 @@ let dbPlayerReward = {
             return similarRewardProposalProm;
         }).then(rewardProposalData => {
 
-            console.log("checking---YH--rewardProposalData", rewardProposalData)
             requiredDeposit = event.param.requiredTopUpAmount;
             requiredBet = event.param.requiredConsumptionAmount;
             requireBoth = event.param.operatorOption;
@@ -1020,10 +1019,7 @@ let dbPlayerReward = {
 
             // let today = dbUtility.getTodaySGTime();
             let currentDay = dbUtility.getTargetSGTime(startCheckTime);
-            let intervalStartTime = intervalTime.startTime; // for dynamic case
-            console.log("checking---YH--currentDay", currentDay);
-            console.log("checking---YH--today.startTime", today.startTime);
-
+            
             while (currentDay.startTime <= today.startTime && player) {
                 checkRequirementMeetProms.push(isDayMeetRequirement(event, player, currentDay, requiredBet, requiredDeposit, requireBoth, isCheckToday));
                 currentDay = dbUtility.getTargetSGTime(currentDay.endTime);
@@ -1101,7 +1097,6 @@ let dbPlayerReward = {
                     }
                 }
 
-                console.log("checking---yH --checkResults", checkResults);
                 if (checkResults.length === 1) {
                     let result = checkResults[0];
                     if (result.meetRequirement) {
@@ -1162,11 +1157,17 @@ let dbPlayerReward = {
                                 let result = maxStreakDetail[i - (consecutiveNumber - 1)];
                                 let targetDate = result.targetDate;
                                 let currentParam = paramOfLevel[currentParamNo];
+                                let topupAmount = result.topUpDayAmount;
+                                if (event.condition.applyType == 3){
+                                    // special handing for Settlement case - JBL
+                                    topupAmount = totalTopUpAmount;
+                                }
+
                                 if(consumptionAmount >= currentParam.totalConsumptionInInterval) {
-                                    let bonus = result.topUpDayAmount * currentParam.rewardPercentage;
+                                    let bonus = topupAmount* currentParam.rewardPercentage;
                                     bonus = checkRewardBonusLimit(bonus, event, currentParam.maxRewardInSingleTopUp);
                                     let requestedTimes = currentParam.spendingTimes || 1;
-                                    let spendingAmount = (bonus + result.topUpDayAmount) * requestedTimes;
+                                    let spendingAmount = (bonus + topupAmount) * requestedTimes;
 
                                     insertOutputList(1, step, bonus, requestedTimes, targetDate,
                                         currentParam.forbidWithdrawAfterApply, currentParam.remark, isSharedWithXIMA,
@@ -1205,7 +1206,7 @@ let dbPlayerReward = {
                                 break;
                             }
                         }
-
+                
                         if (event.condition.isDynamicRewardAmount){
                             let currentParamNo = Math.min(currentStreak-1, numberOfParam - 1);
                             let currentParam = paramOfLevel[currentParamNo];
@@ -1303,7 +1304,6 @@ let dbPlayerReward = {
             }
 
             // for not dynamic case
-            console.log("checking---YH--outputList", outputList)
             if (!event.condition.isDynamicRewardAmount) {
                 for (let i = outputList.length; i < paramOfLevel.length; i++) {
                     let bonus = paramOfLevel[i].rewardAmount;
@@ -1334,7 +1334,7 @@ let dbPlayerReward = {
         });
 
         function checkRewardBonusLimit(bonus, event, maxRewardInSingleTopUp){
-            if ( bonus && event && event.param && event.param.dailyMaxRewardAmount && maxRewardInSingleTopUp) {
+            if ( bonus && event && event.param && !isNaN(parseInt(event.param.dailyMaxRewardAmount)) && !isNaN(parseInt(maxRewardInSingleTopUp)) ) {
                 if (bonus > maxRewardInSingleTopUp) {
                     bonus = maxRewardInSingleTopUp;
                 }
@@ -1346,7 +1346,6 @@ let dbPlayerReward = {
             return bonus
         }
 
-        // function isDayMeetRequirement(event, playerData, targetDate, requiredConsumptionAmount, requiredTopUpAmount, operatorOption, isCheckToday, intervalStartTime, paramOfLevel, dayIndex) {
         function isDayMeetRequirement(event, playerData, targetDate, requiredConsumptionAmount, requiredTopUpAmount, operatorOption, isCheckToday) {
             let playerObjId = ObjectId(playerData._id);
             let startTime = new Date(targetDate.startTime);
@@ -1423,10 +1422,14 @@ let dbPlayerReward = {
 
                     totalTopUpAmount += record.amount;
                     usedTopUpRecord.push(record._id)
-                    if (totalTopUpAmount >= requiredTopUpAmount) {
+                    if (!event.condition.isDynamicRewardAmount && totalTopUpAmount >= requiredTopUpAmount) {
                         requiredTopUpMet = true;
                         break;
                     }
+                }
+                
+                if (totalTopUpAmount >= requiredTopUpAmount) {
+                    requiredTopUpMet = true;
                 }
 
                 let meetRequirement = false;
@@ -3361,7 +3364,7 @@ let dbPlayerReward = {
                     status: constPromoCodeStatus.ACCEPTED,
                     proposalId: newProp.proposalId,
                     acceptedAmount: newProp.data.rewardAmount,
-                    topUpAmount: newProp.data.applyAmount
+                    topUpAmount: newProp.data.applyAmount || topUpProp && topUpProp.data && topUpProp.data.amount || 0
                 })
             }
         ).then(() => {
@@ -5509,8 +5512,6 @@ let dbPlayerReward = {
                         isMultiApplication = true;
                         applyAmount = 0;
 
-                        console.log("checking---YH--rewardSpecificData[0]", rewardSpecificData && rewardSpecificData[0] ? rewardSpecificData[0] : rewardSpecificData)
-
                         if (!rewardSpecificData || !rewardSpecificData[0]) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
@@ -5551,7 +5552,6 @@ let dbPlayerReward = {
                             }
                         }
 
-                        console.log("checking---YH--applicationDetails", applicationDetails)
                         if (applicationDetails && applicationDetails.length < 1) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,

@@ -7,7 +7,23 @@ let promoCodeSchema = new Schema({
     // user id
     playerObjId: {type: Schema.ObjectId, ref: 'player', required: true},
     // promo code type
-    promoCodeTypeObjId: {type: Schema.ObjectId, ref: 'promoCodeType', required: true},
+    promoCodeTypeObjId: {
+        type: Schema.ObjectId,
+        ref: 'promoCodeType',
+        required: [
+            function() { return this.promoCodeTemplateObjId == null; },
+            'promoCodeTypeObjId is required if promoCodeTemplateObjId is unspecified.'
+        ]
+    },
+    // promo code template
+    promoCodeTemplateObjId: {
+        type: Schema.ObjectId,
+        ref: 'promoCodeTemplate',
+        required: [
+            function() { return this.promoCodeTypeObjId == null; },
+            'promoCodeTemplateObjId is required if promoCodeTypeObjId is unspecified.'
+        ]
+    },
     // promo code reward amount
     amount: {type: Number, required: true},
     // promo code minimum top up amount
@@ -59,7 +75,11 @@ let promoCodeSchema = new Schema({
     //admin name, that create this promo code
     adminName: {type: String},
     // remark
-    remark: {type: String}
+    remark: {type: String},
+    //auto feedback mission obj id
+    autoFeedbackMissionObjId: {type: Schema.ObjectId},
+    //auto feedback schedule number (first, second, or third time)
+    autoFeedbackMissionScheduleNumber: {type: Number}
 
 });
 

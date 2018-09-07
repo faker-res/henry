@@ -1,0 +1,31 @@
+#playerAlipayAccountReport.block-query.col-md-12.well
+    div
+        label {{"playerName" | translate}}
+        input.form-control.span.input-sm(ng-model="vm.playerAlipayAccReport.playerName")
+    div
+        label {{"RECORD_ALIPAY_ACC"|translate}}
+        input.form-control.span.input-sm(ng-model="vm.playerAlipayAccReport.alipayAcc")
+    div
+        label {{"RECORD_ALIPAY_NAME"|translate}}
+        input.form-control.span.input-sm(ng-model="vm.playerAlipayAccReport.alipayName")
+    div
+        label {{"RECORD_ALIPAY_NICKNAME"|translate}}
+        input.form-control.span.input-sm(ng-model="vm.playerAlipayAccReport.alipayNickname")
+    div
+        label {{"RECORD_ALIPAY_REMARK"|translate}}
+        input.form-control.span.input-sm(ng-model="vm.playerAlipayAccReport.alipayRemark")
+    div
+        label {{"Start date"|translate}}
+        #playerAlipayAccountReportStartTime
+    div
+        label {{"End date"|translate}}
+        #playerAlipayAccountReportEndTime
+    div
+        label &nbsp;
+        button.btn.btn-success(ng-click='vm.getPlayerAlipayAccReport(true)') {{'SEARCH' | translate}}
+        span#playerAlipayAccReportSpin.collapse
+            i.fa.fa-spinner.fa-spin
+.clearfix
+label {{"Total" | translate}} {{vm.playerAlipayAccReport.totalCount}} {{"records" | translate}}
+table.common-table#playerAlipayAccReportTable.display(style="width:100% ;overflow-x: scroll")
+#playerAlipayAccReportTablePage

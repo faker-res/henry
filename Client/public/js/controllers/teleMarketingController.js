@@ -298,6 +298,19 @@ define(['js/app'], function (myApp) {
 
         vm.loadTab = function (tabName) {
             vm.selectedTab = tabName;
+
+            switch(tabName) {
+                case 'NEW_PHONE_LIST':
+                    vm.tsNewList = {phoneIdx: 0};
+                    vm.phoneNumFilterClicked();
+                    break;
+                case 'PHONE_LISTS':
+                    commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#phoneListStartTimePicker', utilService.getTodayStartTime());
+                    commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#phoneListEndTimePicker', utilService.getTodayEndTime());
+                    break;
+                case 'PHONE_MISSION':
+                    vm.initTeleMarketingOverview();
+            }
         };
 
         //set selected platform node
@@ -321,24 +334,17 @@ define(['js/app'], function (myApp) {
                 return;
             }
             vm.getPlatformProviderGroup();
-            vm.phoneNumFilterClicked();
 
-            vm.teleMarketingTaskTab ='TELEMARKETING_TASK_OVERVIEW';
-            vm.initTeleMarketingOverview();
+            // Zero dependencies variable
+            [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins]] = await Promise.all([
+                commonService.getAllTSPhoneList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                commonService.getAllDepartmentInfo($scope, vm.selectedPlatform.id, vm.selectedPlatform.data.name).catch(err => Promise.resolve([[], [], []])),
+            ]);
         };
 
         //search and select platform node
         vm.searchAndSelectPlatform = function (text, option) {
-            // var findNodes = $('#platformTree').treeview('search', [text, {
-            //     ignoreCase: false,
-            //     exactMatch: true
-            // }]);
-            // if (findNodes && findNodes.length > 0) {
-            //     vm.selectPlatformNode(findNodes[0], option);
-            //     $('#platformTree').treeview('selectNode', [findNodes[0], {silent: true}]);
-            // }
-
-            var findNodes = vm.allPlatformData.filter(e => e.name === text);
+            let findNodes = vm.allPlatformData.filter(e => e.name === text);
             if (findNodes && findNodes.length > 0) {
                 selectPlatformNode(findNodes[0], option);
             } else {
@@ -841,6 +847,28 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        // import phone number to system
+        vm.importTSNewList = function (diffPhoneNum, listName, listDesc) {
+            let sendData = {
+                platform: vm.selectedPlatform.id,
+                phoneNumber: diffPhoneNum,
+                listName: listName,
+                listDesc: listDesc
+            };
+
+            socketService.$socket($scope.AppSocket, 'importTSNewList', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    if (data.success && data.data) {
+                        //display success
+                        vm.importPhoneResult = 'IMPORT_SUCCESS';
+                    } else {
+                        //display error
+                        vm.importPhoneResult = 'IMPORT_FAIL';
+                    }
+                })
+            });
+        };
+
         /****************** CSV - start ******************/
         // upload phone file: csv
         vm.uploadPhoneFileCSV = function (content) {
@@ -1017,16 +1045,14 @@ define(['js/app'], function (myApp) {
 
         /****************** XLS - start ******************/
         vm.uploadPhoneFileXLS = function (data, importXLS, dxMission) {
-            var data = [
-                [] // header row
-            ];
-            var rows = uiGridExporterService.getData(vm.gridApi.grid, uiGridExporterConstants.VISIBLE, uiGridExporterConstants.VISIBLE);
-            var sheet = {};
-            var rowArray = [];
-            var rowArrayMerge;
+            let rows = uiGridExporterService.getData(vm.gridApi.grid, uiGridExporterConstants.VISIBLE, uiGridExporterConstants.VISIBLE);
+            let sheet = {};
+            let rowArray = [];
+            let rowArrayMerge;
+            let isTSNewList = !Boolean(dxMission);
 
             for (let z = 0; z < rows.length; z++) {
-                let rowObject = rows[z][0];
+                let rowObject = rows[z][vm.tsNewList.phoneIdx];
                 let rowObjectValue = Object.values(rowObject);
                 rowArray.push(rowObjectValue);
                 rowArrayMerge = [].concat.apply([], rowArray);
@@ -1035,7 +1061,8 @@ define(['js/app'], function (myApp) {
             let sendData = {
                 filterAllPlatform: vm.filterAllPlatform,
                 platformObjId: vm.selectedPlatform.id,
-                arrayPhoneXLS: rowArrayMerge
+                arrayPhoneXLS: rowArrayMerge,
+                isTSNewList: isTSNewList
             };
 
             socketService.$socket($scope.AppSocket, 'uploadPhoneFileXLS', sendData, function (data) {
@@ -1044,57 +1071,63 @@ define(['js/app'], function (myApp) {
                 vm.diffPhoneTotalXLS = data.data.diffPhoneTotalXLS;
                 vm.samePhoneTotalXLS = data.data.samePhoneTotalXLS;
                 vm.xlsTotal = rows.length;
-                var rowsFilter = rows;
+                let rowsFilter = rows;
 
-                for (let x = 0; x < rowsFilter.length; x++) {
-                    let rowObject = rowsFilter[x][0];
-                    let rowObjectValue = Object.values(rowObject);
-                    for (let y = 0; y < vm.samePhoneXLS.length; y++) {
-                        if (rowObjectValue == vm.samePhoneXLS[y]) {
-                            rowsFilter.splice(x, 1);
-                            --x;
-                            break;
+                if (vm.diffPhoneTotalXLS) {
+                    for (let x = 0; x < rowsFilter.length; x++) {
+                        let rowObject = rowsFilter[x][vm.tsNewList.phoneIdx];
+                        let rowObjectValue = Object.values(rowObject);
+                        for (let y = 0; y < vm.samePhoneXLS.length; y++) {
+                            if (rowObjectValue == vm.samePhoneXLS[y]) {
+                                rowsFilter.splice(x, 1);
+                                --x;
+                                break;
+                            }
                         }
                     }
-                }
 
-                vm.gridApi.grid.columns.forEach(function (col, i) {
-                    if (col.visible) {
-                        var loc = XLSX.utils.encode_cell({r: 0, c: i});
-                        sheet[loc] = {
-                            v: col.displayName
-                        };
-                    }
-                });
-
-                var endLoc;
-                rowsFilter.forEach(function (row, ri) {
-                    ri += 1;
-                    vm.gridApi.grid.columns.forEach(function (col, ci) {
-                        var loc = XLSX.utils.encode_cell({r: ri, c: ci});
-                        sheet[loc] = {
-                            v: row[ci].value,
-                            t: 's'
-                        };
-                        endLoc = loc;
+                    vm.gridApi.grid.columns.forEach(function (col, i) {
+                        if (col.visible) {
+                            let loc = XLSX.utils.encode_cell({r: 0, c: i});
+                            sheet[loc] = {
+                                v: col.displayName
+                            };
+                        }
                     });
-                });
 
-                sheet['!ref'] = XLSX.utils.encode_range({s: 'A1', e: endLoc});
-                var workbook = {
-                    SheetNames: ['Sheet1'],
-                    Sheets: {
-                        Sheet1: sheet
+                    var endLoc;
+                    rowsFilter.forEach(function (row, ri) {
+                        ri += 1;
+                        vm.gridApi.grid.columns.forEach(function (col, ci) {
+                            let loc = XLSX.utils.encode_cell({r: ri, c: ci});
+                            sheet[loc] = {
+                                v: row[ci].value,
+                                t: 's'
+                            };
+                            endLoc = loc;
+                        });
+                    });
+
+                    sheet['!ref'] = XLSX.utils.encode_range({s: 'A1', e: endLoc});
+                    let workbook = {
+                        SheetNames: ['Sheet1'],
+                        Sheets: {
+                            Sheet1: sheet
+                        }
+                    };
+
+                    if (vm.phoneNumXLSResult) {
+                        var wopts = {bookType: 'xlsx', bookSST: false, type: 'binary'};
+                        // write workbook (use type 'binary')
+                        var wbout = XLSX.write(workbook, wopts);
+                        saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
+                    } else if (isTSNewList) {
+                        vm.importTSNewList(vm.diffPhoneXLS, vm.tsNewList.name, vm.tsNewList.description)
+                    } else if (importXLS) {
+                        vm.importDiffPhoneNum(vm.diffPhoneXLS, dxMission)
                     }
-                };
-
-                if (importXLS) {
-                    vm.importDiffPhoneNum(vm.diffPhoneXLS, dxMission)
                 } else {
-                    var wopts = {bookType: 'xlsx', bookSST: false, type: 'binary'};
-                    // write workbook (use type 'binary')
-                    var wbout = XLSX.write(workbook, wopts);
-                    saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
+                    vm.importPhoneResult = 'THERE_IS_NO_DIFFERENT_NUMBER_IN_LIST';
                 }
 
                 $scope.safeApply();
@@ -1358,7 +1391,7 @@ define(['js/app'], function (myApp) {
             console.log(type, data);
             vm.getSMSTemplate();
             var title, text;
-            if (type == 'msg' && authService.checkViewPermission('Platform', 'Player', 'sendSMS')) {
+            if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
                 vm.smsPlayer = {
                     playerId: data.playerId,
                     name: data.name,
@@ -4000,7 +4033,7 @@ define(['js/app'], function (myApp) {
                                 'title': $translate("PHONE"),
                                 'data-placement': 'left',
                             }));
-                            if ($scope.checkViewPermission('Platform', 'Player', 'AddFeedback')) {
+                            if ($scope.checkViewPermission('Player', 'Feedback', 'AddFeedback')) {
                                 link.append($('<a>', {
                                     'style': (row.alerted ? "color:red;" : ""),
                                     'class': 'fa fa-commenting margin-right-5',
@@ -4013,7 +4046,7 @@ define(['js/app'], function (myApp) {
                                 }));
                             }
                             //if(row.isRealPlayer) {
-                                if ($scope.checkViewPermission('Platform', 'Player', 'ApplyManualTopup')) {
+                                if ($scope.checkViewPermission('Player', 'TopUp', 'ApplyManualTopup')) {
                                     link.append($('<a>', {
                                         'class': 'fa fa-plus-circle',
                                         'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row) + ' ;vm.getAllBankCard(); vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);',
@@ -4027,7 +4060,7 @@ define(['js/app'], function (myApp) {
                                     }));
                                 }
                                 link.append($('<br>'));
-                                if ($scope.checkViewPermission('Platform', 'Player', 'applyBonus')) {
+                                if ($scope.checkViewPermission('Player', 'Bonus', 'applyBonus')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5 margin-right-5',
                                         'src': (row.alerted ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
@@ -4041,7 +4074,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'left',   // because top and bottom got hidden behind the table edges
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'AddRewardTask')) {
+                                if ($scope.checkViewPermission('Player', 'Reward', 'AddRewardTask')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5 margin-right-5',
                                         'src': (row.alerted ? "images/icon/rewardRed.png" : "images/icon/rewardBlue.png"),
@@ -4055,7 +4088,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'left',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'RepairPayment') || $scope.checkViewPermission('Platform', 'Player', 'RepairTransaction')) {
+                                if ($scope.checkViewPermission('Player', 'Player', 'RepairPayment') || $scope.checkViewPermission('Player', 'Player', 'RepairTransaction')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
                                         'src': (row.alerted ? "images/icon/reapplyRed.png" : "images/icon/reapplyBlue.png"),
@@ -4068,7 +4101,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'right',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'CreditAdjustment')) {
+                                if ($scope.checkViewPermission('Player', 'Credit', 'CreditAdjustment')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
                                         'src': (row.alerted ? "images/icon/creditAdjustRed.png" : "images/icon/creditAdjustBlue.png"),
@@ -4082,7 +4115,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'right',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsConvert')) {
+                                if ($scope.checkViewPermission('Player', 'RewardPoints', 'RewardPointsChange') || $scope.checkViewPermission('Player', 'RewardPoints', 'RewardPointsConvert')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
                                         'src': (row.alerted ? "images/icon/rewardPointsRed.png" : "images/icon/rewardPointsBlue.png"),
@@ -4568,6 +4601,51 @@ define(['js/app'], function (myApp) {
                 })
             }
         }
+
+        vm.setQueryRole = (modal) => {
+            vm.queryRoles = [];
+
+            vm.queryDepartments.map(e => {
+                if (e._id != "" && (modal.departments.indexOf(e._id) >= 0)) {
+                    vm.queryRoles = vm.queryRoles.concat(e.roles);
+                }
+            });
+
+            if (modal && modal.departments && modal.departments.length > 0) {
+                if (modal.departments.includes("")) {
+                    vm.queryRoles.push({_id:'', roleName:'N/A'});
+
+                    if (!vm.queryAdmins || !vm.queryAdmins.length) {
+                        vm.queryAdmins = [];
+                        vm.queryAdmins.push({_id:'', adminName:'N/A'});
+                    }
+
+                    if (modal && modal.roles && modal.admins) {
+                        modal.roles.push("");
+                        modal.admins.push("");
+                    } else {
+                        modal.roles = [];
+                        modal.admins = [];
+                        modal.roles.push("");
+                        modal.admins.push("");
+                    }
+                }
+            }
+        };
+
+        vm.setQueryAdmins = (modal) => {
+            vm.queryAdmins = [];
+
+            if (modal.departments.includes("") && modal.roles.includes("") && modal.admins.includes("")) {
+                vm.queryAdmins.push({_id:'', adminName:'N/A'});
+            }
+
+            vm.queryRoles.map(e => {
+                if (e._id != "" && (modal.roles.indexOf(e._id) >= 0)) {
+                    vm.queryAdmins = vm.queryAdmins.concat(e.users);
+                }
+            });
+        };
 
     };
 

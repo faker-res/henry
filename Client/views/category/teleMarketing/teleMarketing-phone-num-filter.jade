@@ -182,6 +182,11 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                         br
                                         input(type='file', accept='.csv, .xls, .xlsx, .xlsm, .ods', fileread='', opts='vm.gridOptions', multiple='false')
                         br
+                        .pull-left
+                            label {{"The phone number is at position:" | translate}} &nbsp
+                            select(ng-model="vm.tsNewList.phoneIdx")
+                                option(value=0) 1
+                                option(value=1) 2
                         .pull-left(ng-if="vm.phoneNumXLSResult")
                             label {{"XLS_LENGTH" | translate}}:
                             | &nbsp;
@@ -195,6 +200,9 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             | &nbsp;
                             label(style="color:red") {{vm.diffPhoneTotalXLS}}
                         .pull-right
+                            button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalNewTSPhoneListXLS' ng-click="vm.importPhoneResult = ''; ")
+                                i.fa.fa-upload
+                                text {{"FILTER_THEN_IMPORT_XLS_TS" | translate}}
                             button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalSelectDxMissionXLS' ng-click="vm.importPhoneResult = ''; vm.getAllDxMission();")
                                 i.fa.fa-upload
                                 text {{"FILTER_THEN_IMPORT_XLS" | translate}}
@@ -278,3 +286,5 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                 bbutton.btn.btn-danger.common-button(data-dismiss='modal')
                     i.fa.fa-ban
                     text {{"CANCEL" | translate}}
+
+include ./modalNewTSPhoneListXLS

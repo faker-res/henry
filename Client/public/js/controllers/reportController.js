@@ -204,7 +204,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
                     proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
                     proposalDetail["OnlineTopUpType"] = $translate($scope.merchantTopupTypeJson[vm.selectedProposal.data.topupType]) || " ";
-                    proposalDetail["3rdPartyPlatform"] = vm.getMerchantName(vm.selectedProposal.data.merchantNo) || " ";
+                    proposalDetail["3rdPartyPlatform"] = vm.getMerchantName(vm.selectedProposal.data.merchantNo, vm.selectedProposal.inputDevice) || " ";
                     proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                     proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                     proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
@@ -279,6 +279,9 @@ define(['js/app'], function (myApp) {
                     proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.alipayQRCode || " ";
                     proposalDetail["ALIPAY_QR_ADDRESS"] = vm.selectedProposal.data.qrcodeAddress || " ";
                     proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                    proposalDetail["alipayer"] = vm.selectedProposal.data.alipayer || " ";
+                    proposalDetail["alipayerAccount"] = vm.selectedProposal.data.alipayerAccount || " ";
+                    proposalDetail["alipayerNickName"] = vm.selectedProposal.data.alipayerNickName || " ";
                     vm.selectedProposal.data = proposalDetail;
                 }
 
@@ -995,7 +998,6 @@ define(['js/app'], function (myApp) {
                 vm.seleDataType[choice] = 'bg-bright';
             }
             vm.showPageName = choice;
-            //$('#reportRightTable').removeClass('panel-danger').addClass('panel-primary');
             vm.currentRewardCode = code;
             vm.currentRewardTaskName = null;
             vm.currentEventId = eventObjId;
@@ -1566,7 +1568,7 @@ define(['js/app'], function (myApp) {
                     data.data.data.map(item => {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
                         item.status$ = $translate(item.status);
-                        item.merchantName = vm.getMerchantName(item.data.merchantNo);
+                        item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
                         item.merchantNoDisplay = item.data.merchantNo != null ? item.data.merchantNo
                             : item.data.bankCardNo != null ? item.data.bankCardNo
                             : item.data.wechatAccount != null ? item.data.wechatAccount
@@ -1600,21 +1602,8 @@ define(['js/app'], function (myApp) {
             }, true);
         };
 
-        vm.getMerchantName = function (merchantNo) {
-            let result = '';
-            if (merchantNo && vm.merchantNoList) {
-                let merchant = vm.merchantNoList.filter(item => {
-                    return item.merchantNo == merchantNo
-                })
-                if (merchant.length > 0) {
-                    let merchantName = vm.merchantTypes.filter(item => {
-                        return item.merchantTypeId == merchant[0].merchantTypeId;
-                    })
-                    if (merchantName[0]) {
-                        result = merchantName[0].name;
-                    }
-                }
-            }
+        vm.getMerchantName = function (merchantNo, inputDevice) {
+            let result = commonService.getMerchantName(merchantNo, vm.merchantNoList, vm.merchantTypes, inputDevice);
             return result;
         }
         vm.getOnlineMerchantId = function (merchantNo, targetDevices) {
@@ -2686,7 +2675,72 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        vm.getPlayerAlipayAccReport = function (newSearch) {
+            $('#playerAlipayAccReportSpin').show();
+            vm.playerAlipayAccReport.index = 0;
 
+            let sendQuery = {
+                platformObjId: vm.selectedPlatform._id,
+                startTime: vm.playerAlipayAccReport.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.playerAlipayAccReport.endTime.data('datetimepicker').getLocalDate(),
+            };
+
+            if (vm.playerAlipayAccReport.playerName) { sendQuery.playerName = vm.playerAlipayAccReport.playerName }
+            if (vm.playerAlipayAccReport.alipayAcc) { sendQuery.alipayAcc = vm.playerAlipayAccReport.alipayAcc }
+            if (vm.playerAlipayAccReport.alipayName) { sendQuery.alipayName = vm.playerAlipayAccReport.alipayName }
+            if (vm.playerAlipayAccReport.alipayNickname) { sendQuery.alipayNickname = vm.playerAlipayAccReport.alipayNickname }
+            if (vm.playerAlipayAccReport.alipayRemark) { sendQuery.alipayRemark = vm.playerAlipayAccReport.alipayRemark }
+
+            console.log('sendQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'getPlayerAlipayAccReport', sendQuery, function (data) {
+                console.log('getPlayerAlipayAccReport', data);
+
+                if(data.hasOwnProperty('data')) {
+                    vm.playerAlipayAccDetail = data.data;
+                    vm.playerAlipayAccDetail.map(e => {
+                        e.applyTime$ = $scope.timeReformat(e.createTime);
+                    });
+                    vm.playerAlipayAccReport.totalCount = vm.playerAlipayAccDetail.length;
+                }
+                drawPlayerAlipayAccReport(newSearch);
+                $('#playerAlipayAccReportSpin').hide();
+                $scope.$evalAsync();
+            });
+        };
+
+        function drawPlayerAlipayAccReport (newSearch) {
+            let tableOptions = {
+                data: vm.playerAlipayAccDetail,
+                "order": vm.playerAlipayAccDetail.aaSorting || [[0, 'desc']],
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('Proposal No'), data: "proposalId"},
+                    {title: $translate('RELATED_ACCOUNT'), data: "data.playerName"},
+                    {title: $translate('RELATED_AMOUNT'), data: "data.amount"},
+                    {title: $translate('createTime'), data: "applyTime$"},
+                    {title: $translate('REMARK'), data: "data.remark"},
+                    {title: $translate('RECORD_ALIPAY_ACC'), data: "data.alipayerAccount"},
+                    {title: $translate('RECORD_ALIPAY_NAME'), data: "data.alipayer"},
+                    {title: $translate('RECORD_ALIPAY_NICKNAME'), data: "data.alipayerNickName"},
+                    {title: $translate('RECORD_ALIPAY_REMARK'), data: "data.alipayRemark"},
+                ],
+                "paging": false,
+                "language": {
+                    "info": "Total _MAX_ records",
+                    "emptyTable": $translate("No data available in table"),
+                },
+                bSortClasses: false,
+                fnRowCallback: vm.limitedOfferTableCallback
+            };
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            let playerTbl = utilService.createDatatableWithFooter('#playerAlipayAccReportTable', tableOptions, {}, false);
+            utilService.setDataTablePageInput('playerAlipayAccReportTable', playerTbl, $translate);
+
+            $('#playerAlipayAccReportTable').resize();
+        };
 
         ////////////////////PARTNER REAL TIME COMMISSION REPORT//////////////////////
         vm.getSelectedCommissionPeriod = () => {
@@ -3212,7 +3266,7 @@ define(['js/app'], function (myApp) {
 
 
         /////// player domain report
-        vm.searchPlayerDomainReport = function (newSearch, isExport) {
+        vm.searchPlayerDomainReport = function (newSearch, isExport = false) {
             $('#playerDomainReportTableSpin').show();
 
             let admins = [];
@@ -3257,6 +3311,7 @@ define(['js/app'], function (myApp) {
                 index: isExport ? 0 : (newSearch ? 0 : (vm.playerDomain.index || 0)),
                 limit: isExport ? 5000 : (vm.playerDomain.limit || 10),
                 sortCol: vm.playerDomain.sortCol || {registrationTime: -1},
+                isExport: isExport
             };
             console.log('player domain query', sendquery);
 
@@ -6840,7 +6895,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getGameDetailByProvider', sendData, function (data) {
                     $scope.$evalAsync(() => {
-                        
+
                         if (data && data.data){
                            vm.gameDetails = data.data.map(item => {
                                item.totalAmount = $roundToTwoDecimalPlacesString(item.totalAmount || 0);
@@ -6855,7 +6910,7 @@ define(['js/app'], function (myApp) {
                 })
             }
         }
-        
+
         vm.drawSpecificRewardProposalTable = function (data, size, summary, newSearch) {
             var tableOptions = $.extend(true, {}, vm.commonTableOption, {
                 data: data,
@@ -7798,6 +7853,86 @@ define(['js/app'], function (myApp) {
                     vm.selectedProposal.data = proposalDetail;
                 }
 
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "DownlineReceivePartnerCredit") {
+                    let proposalDetail = {};
+                    let inputDevice = "";
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+
+                    proposalDetail["Downline Player ID"] = vm.selectedProposal.data.playerId;
+                    proposalDetail["Downline Player Name"] = vm.selectedProposal.data.playerName;
+                    proposalDetail["Received Amount"] = vm.selectedProposal.data.amount;
+                    proposalDetail["Provider group"] = vm.selectedProposal.data.providerGroup ? vm.selectedProposal.data.providerGroup : $translate("LOCAL_CREDIT");
+                    proposalDetail["Withdraw Consumption (Accurate number/non-multiple)"] = vm.selectedProposal.data.withdrawConsumption;
+                    proposalDetail["Proposal No. of Partner Transfer Credit to Downline"] = vm.selectedProposal.data.partnerTransferCreditToDownlineProposalNo;
+                    proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
+                    proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
+
+                    for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                        if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == vm.selectedProposal.inputDevice ){
+                            inputDevice =  $translate(Object.keys(vm.inputDevice)[i]);
+                        }
+                    }
+
+                    proposalDetail["INPUT_DEVICE"] = inputDevice;
+                    proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
+
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePlayerRealName") {
+                    let proposalDetail = {};
+                    let inputDevice = "";
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+
+                    proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                    proposalDetail["PLAYER_Id"] = vm.selectedProposal.data.playerId;
+                    proposalDetail["Player Level"] = vm.selectedProposal.data.playerLevelName;
+                    proposalDetail["realNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
+                    proposalDetail["realNameAfterEdit"] = vm.selectedProposal.data.realNameAfterEdit;
+
+                    for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                        if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == vm.selectedProposal.inputDevice ){
+                            inputDevice =  $translate(Object.keys(vm.inputDevice)[i]);
+                        }
+                    }
+
+                    proposalDetail["INPUT_DEVICE"] = inputDevice;
+                    proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
+
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePartnerRealName") {
+                    let proposalDetail = {};
+                    let inputDevice = "";
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+
+                    proposalDetail["partnerName"] = vm.selectedProposal.data.partnerName;
+                    proposalDetail["partnerId"] = vm.selectedProposal.data.partnerId;
+                    proposalDetail["partnerRealNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
+                    proposalDetail["partnerRealNameAfterEdit"] = vm.selectedProposal.data.realNameAfterEdit;
+
+                    for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                        if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == vm.selectedProposal.inputDevice ){
+                            inputDevice =  $translate(Object.keys(vm.inputDevice)[i]);
+                        }
+                    }
+
+                    proposalDetail["INPUT_DEVICE"] = inputDevice;
+                    proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
+
                 if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
                     let proposalDetail = {};
                     if (!vm.selectedProposal.data) {
@@ -7851,7 +7986,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
                     proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
                     proposalDetail["OnlineTopUpType"] = $translate($scope.merchantTopupTypeJson[vm.selectedProposal.data.topupType]) || " ";
-                    proposalDetail["3rdPartyPlatform"] = vm.getMerchantName(vm.selectedProposal.data.merchantNo) || " ";
+                    proposalDetail["3rdPartyPlatform"] = vm.getMerchantName(vm.selectedProposal.data.merchantNo, vm.selectedProposal.inputDevice) || " ";
                     proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                     proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                     proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
@@ -7938,6 +8073,9 @@ define(['js/app'], function (myApp) {
                     proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.alipayQRCode || " ";
                     proposalDetail["ALIPAY_QR_ADDRESS"] = vm.selectedProposal.data.qrcodeAddress || " ";
                     proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                    proposalDetail["alipayer"] = vm.selectedProposal.data.alipayer || " ";
+                    proposalDetail["alipayerAccount"] = vm.selectedProposal.data.alipayerAccount || " ";
+                    proposalDetail["alipayerNickName"] = vm.selectedProposal.data.alipayerNickName || " ";
                     if (vm.selectedProposal.data.hasOwnProperty("pointsBefore")) {
                         proposalDetail["pointsBefore"] = vm.selectedProposal.data.pointsBefore;
                     }
@@ -8150,19 +8288,6 @@ define(['js/app'], function (myApp) {
 
             // generate a download for xls
             vm.exportToExcel = function(tableId, reportName) {
-                var htmls = "";
-                var uri = 'data:application/vnd.ms-excel;base64,';
-                var template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>{table}</table></body></html>';
-                var base64 = function(s) {
-                    return window.btoa(unescape(encodeURIComponent(s)))
-                };
-
-                var format = function(s, c) {
-                    return s.replace(/{(\w+)}/g, function(m, p) {
-                        return c[p];
-                    })
-                };
-
                 let tab = "";
                 let htmlContent = "";
 
@@ -8227,25 +8352,28 @@ define(['js/app'], function (myApp) {
                     htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
                 }
 
-                var ctx = {
-                    worksheet : 'Worksheet',
-                    table : htmlContent
-                }
+                var tab_text = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+                tab_text = tab_text + '<head><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>';
+                tab_text = tab_text + '<x:Name>Test Sheet</x:Name>';
+                tab_text = tab_text + '<x:WorksheetOptions><x:Panes></x:Panes></x:WorksheetOptions></x:ExcelWorksheet>';
+                tab_text = tab_text + '</x:ExcelWorksheets></x:ExcelWorkbook></xml></head><body>';
+                tab_text = tab_text + "<table border='1px'>";
+                tab_text = tab_text + htmlContent;
+                tab_text = tab_text + '</table></body></html>';
+                var fileName = reportName ? $translate(reportName)+ ".xls": "FPMS report.xls";
 
-                var link = document.createElement("a");
-                link.download = reportName ? $translate(reportName)+ ".xls": "FPMS report.xls";
-                link.href = uri + base64(format(template, ctx));
-                link.click();
+                //Save the file
+                var blob = new Blob([tab_text], { type: "application/vnd.ms-excel;charset=utf-8" })
+                window.saveAs(blob, fileName);
             }
         }
 
         function drawReportQuery (choice) {
-
             vm.merchantNoNameObj = {};
             vm.merchantGroupObj = [];
             let merGroupName = {};
             let merGroupList = {};
-            
+
             socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
                 $scope.$evalAsync(() => {
                     if (data && data.data && data.data.data) {
@@ -8446,7 +8574,7 @@ define(['js/app'], function (myApp) {
                             $($multiReward).find('span').text(upText)
                         });
                         $("select#selectFinancialPointsType").multipleSelect("checkAll");
-                        
+
                         vm.financialQuery.pageObj = utilService.createPageForPagingTable("#financialPointsTablePage", {}, $translate,  function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "financialQuery", vm.searchFinancialPointsRecord)
                         });
@@ -8696,6 +8824,10 @@ define(['js/app'], function (myApp) {
                         vm.rewardReportAnalysis.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     })
                     break;
+                case 'PLAYER_ALIPAY_ACCOUNT_REPORT':
+                    vm.playerAlipayAccReport = {};
+                    commonService.commonInitTime(utilService, vm, 'playerAlipayAccReport', 'startTime', '#playerAlipayAccountReportStartTime', utilService.getTodayStartTime());
+                    commonService.commonInitTime(utilService, vm, 'playerAlipayAccReport', 'endTime', '#playerAlipayAccountReportEndTime', utilService.getTodayEndTime());
             }
 
             vm.dynamicGameType = function () {

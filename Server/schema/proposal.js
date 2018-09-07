@@ -77,7 +77,9 @@ proposalSchema.index({"data.bConsumptionReturnRequest": 1});
 proposalSchema.index({"data.bankCardNo": 1});
 proposalSchema.index({"data.eventId": 1});
 proposalSchema.index({type: 1, createTime: 1});
-
+proposalSchema.index({"data.alipayer": 1});
+proposalSchema.index({"data.alipayerAccount": 1});
+proposalSchema.index({"data.alipayerNickName": 1});
 /*
  // Ensure that the caller does not accidentally save an ObjectId in proposal.data.playerId
  proposalSchema.pre('validate', function (next) {

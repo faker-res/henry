@@ -13,11 +13,11 @@
             div
                 label {{"End date"|translate}}
                 input.form-control(type='date', min='{{vm.queryPara.playerRetention.minTime}}',
-                ng-model='vm.queryPara.playerRetention.endTime')
+                ng-model='vm.queryPara.playerRetention.endTime', ng-change = 'vm.retentionFilterOnChange()')
             div
                 label {{"newRegistrationType"|translate}}
                 //select.form-control(ng-model="vm.queryPara.playerRetention.playerType", ng-options='a | translate for a in vm.allNewPlayerType')
-                select.form-control(ng-model="vm.queryPara.playerRetention.playerType")
+                select.form-control(ng-model="vm.queryPara.playerRetention.playerType", ng-change = 'vm.retentionFilterOnChange()')
                     option(ng-repeat='(i,v) in vm.allNewPlayerType', value = '{{i}}') {{v | translate}}
                         //option(value='') {{'all'|translate}}
             div
@@ -40,11 +40,15 @@
                                 a.fa.fa-plus-square(ng-click='vm.retentionAddDay()')
             div
                 label {{'USER_TYPE' | translate}}
-                select.form-control(ng-model='vm.queryPara.playerRetention.userType')
+                select.form-control(ng-model='vm.queryPara.playerRetention.userType', ng-change = 'vm.retentionFilterOnChange()')
                     option(value='all') {{"REAL_PLAYER_ALL"|translate}}
                     option(value='individual') {{"REAL_PLAYER_INDIVIDUAL"|translate}}
                     option(value='underPartner') {{"REAL_PLAYER_UNDER_PARTNER"|translate}}
                     option(value='test') {{"Test Player"|translate}}
+            div(style='max-width:250px;')
+                label {{'Registration Domain' | translate}} ({{'Multiple' | translate}})
+                select.form-control.spicker(ng-options='item for item in vm.domainList', ng-model='vm.chosenDomain', multiple, bsp, data-actions-box='true', data-live-search="true")
+                label.blink(ng-if='!vm.domainList') {{"Searching related domain name..." | translate}}
             div
                 label &nbsp;
                 button.btn.btn-primary.common-button(ng-click='vm.getPlayerRetention()') {{'SEARCH' | translate}}
@@ -66,7 +70,8 @@
                         tr(ng-repeat='(i,v) in vm.retentionData', ng-model='vm.showRetention[i]')
                             td
                                 input(type='checkbox', ng-model='vm.showRetention[i]', ng-click='vm.drawRetentionGraph()')
-                            td {{vm.dateReformat(v.date)}}
+                            td(ng-if="i == 0") {{v.date}}
+                            td(ng-if="i != 0") {{v.date | date:"yyyy-MM-dd"}}
                             td {{vm.tableDataReformat(v.day0)}}
                             td(ng-repeat='a in vm.queryPara.playerRetention.days') {{vm.tableDataReformat(v[a])}}
     .col-md-7

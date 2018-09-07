@@ -213,6 +213,104 @@ define([], () => {
             );
         };
 
+        self.getAllTSPhoneList = function ($scope, platformObjId) {
+            return $scope.$socketPromise("getAllTSPhoneList", {platformObjId: platformObjId}).then(data => data.data)
+        };
+
+        self.getAllDepartmentInfo = function ($scope, platformObjId, platformName) {
+            return $scope.$socketPromise("getDepartmentDetailsByPlatformObjId", {platformObjId: platformObjId}).then(
+                data => {
+                    let parentId;
+                    let queryDepartments = [];
+                    let queryRoles = [];
+                    let queryAdmins = [];
+
+                    queryDepartments.push({_id: '', departmentName: 'N/A'});
+
+                    data.data.map(e => {
+                        if (e.departmentName === platformName) {
+                            queryDepartments.push(e);
+                            parentId = e._id;
+                        }
+                    });
+
+                    data.data.map(e => {
+                        if (String(parentId) === String(e.parent)) {
+                            queryDepartments.push(e);
+                        }
+                    });
+
+                    return [queryDepartments, queryRoles, queryAdmins];
+                }
+            )
+        };
+
+        self.getAllAutoFeedback = function($scope, platformObjId) {
+            return $scope.$socketPromise('getAllAutoFeedback', {platformObjId: platformObjId})
+                .then(data => data.data.data);
+        };
+
+        self.getPMSDevices = function(num){
+            // PMS definition of device type
+            // Web: 1, H5: 2, Both: 3, App:4
+            let result = 7;
+            switch (num) {
+                case 1:
+                    result = 1;
+                    break;
+                case 2:
+                    result = 1;
+                    break;
+                case 3:
+                    result = 2;
+                    break;
+                case 4:
+                    result = 2;
+                    break;
+                case 5:
+                    result = 4;
+                    break;
+                case 6:
+                    result = 4;
+                    break;
+                default:
+                    // if set 0 , might got issues with false or null , so i set 7
+                    result = 7;
+                    break;
+            }
+            return result
+        }
+
+        self.getMerchantName = function(merchantNo, merchantsFromPMS, merchantTypes, type){
+            let merchantName = '';
+            let result = '';
+            let merchant = [];
+            if (merchantNo && merchantsFromPMS) {
+
+                let inputDevice = self.getPMSDevices(type);
+
+                if(type){
+                    merchant = merchantsFromPMS.filter(item => {
+                        return item.merchantNo == merchantNo && item.targetDevices == inputDevice;
+                    });
+                }else{
+                    merchant = merchantsFromPMS.filter(item => {
+                        return item.merchantNo == merchantNo;
+                    });
+                }
+
+                if (merchant.length > 0) {
+                    let merchantName = merchantTypes.filter(item => {
+                        return item.merchantTypeId == merchant[0].merchantTypeId;
+                    })
+                    if (merchantName[0]) {
+                        result = merchantName[0].name;
+                    }
+                }
+            }
+            return result;
+        }
+
         this.updatePageTile = ($translate, pageName, tabName) => {
             window.document.title = $translate(pageName) + "->" + $translate(tabName);
             $(document).one('shown.bs.tab', function (e) {
@@ -405,6 +503,19 @@ define([], () => {
                 });
                 return dptArr.join(',');
             };
+        };
+
+        this.commonInitTime = (utilService, vm, model, field, queryId, defTime, defTimeAsIs) => {
+            vm[model] = vm[model] || {};
+
+            utilService.actionAfterLoaded(queryId, () => {
+                vm[model][field] = utilService.createDatePicker(queryId);
+                if(defTimeAsIs) {
+                    $(queryId).data('datetimepicker').setDate(new Date(defTime));
+                } else {
+                    $(queryId).data('datetimepicker').setLocalDate(new Date(defTime));
+                }
+            })
         };
     };
 

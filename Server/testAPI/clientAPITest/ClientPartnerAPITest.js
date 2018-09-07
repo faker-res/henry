@@ -290,6 +290,24 @@
         this.partnerService.checkAllCrewDetail.once(callback);
     };
 
+    proto.getDownPartnerInfo = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.getDownPartnerInfo.request(data);
+        this.partnerService.getDownPartnerInfo.once(callback);
+    };
+
+    proto.partnerCreditToPlayer = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.partnerCreditToPlayer.request(data);
+        this.partnerService.partnerCreditToPlayer.once(callback);
+    };
+
+    proto.getDownPartnerContribution = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.getDownPartnerContribution.request(data);
+        this.partnerService.getDownPartnerContribution.once(callback);
+    };
+
     proto.notifyNewMail = function (callback, requestData) {
         //var data = requestData || {};
         //this.partnerService.notifyNewMail.request(data);

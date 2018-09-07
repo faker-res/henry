@@ -5,11 +5,11 @@
 .text-center
     p(ng-if="!vm.curPlatformText")
         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
-.col-md-6(ng-if="!checkViewPermission('Platform', 'Player', 'AdvancedSearch') && vm.curPlatformText")
+.col-md-6(ng-if="!checkViewPermission('Player', 'Player', 'AdvancedSearch') && vm.curPlatformText")
     .search-box
         .fa.fa-search.pull-right.margin-all-5
         input#playerTableExactSearch.span.input-sm(type="text", placeholder='{{"SEARCH_HERE" | translate}} : {{"PLAYERNAME" | translate}}' ng-model="playerExactSearchText" ng-change="vm.searchForExactPlayerDebounced(playerExactSearchText)")
-.col-md-12(ng-show="checkViewPermission('Platform', 'Player', 'AdvancedSearch') && vm.curPlatformText")
+.col-md-12(ng-show="checkViewPermission('Player', 'Player', 'AdvancedSearch') && vm.curPlatformText")
     .col-md-12.search-filters-container#playerTable-search-filter.well
         .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'PLAYER_ID' | translate}}
@@ -108,28 +108,28 @@
 .col-md-12.playerBtn
     hr.margin-top-bottom-small
     .btn-group.margin-small
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'Create')", ng-disabled="!vm.selectedPlatform", ng-click='vm.prepareCreatePlayer()', data-toggle="modal", data-target='#modalCreatePlayer')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Player', 'Player', 'Create')", ng-disabled="!vm.selectedPlatform", ng-click='vm.prepareCreatePlayer()', data-toggle="modal", data-target='#modalCreatePlayer')
             text {{"CREATE_NEW_PLAYER" | translate}}
             img.img-create
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'NewPlayerList')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.initPlayerModal()', data-target='#modalNewPlayerList')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Player', 'Player', 'NewPlayerList')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.initPlayerModal()', data-target='#modalNewPlayerList')
             text {{"new player list" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform','Player', 'Read')",ng-disabled="!vm.selectedPlatform", ng-click='vm.prepareShowProviderExpense()')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Player','Player', 'Read')",ng-disabled="!vm.selectedPlatform", ng-click='vm.prepareShowProviderExpense()')
             text {{"EXPENSE" | translate}}
             i.fa.fa-table
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlatformCreditTransferLog')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.showPlatformCreditTransferLog(true)')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Player', 'Player', 'PlatformCreditTransferLog')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.showPlatformCreditTransferLog(true)')
             text {{"Platform Credit Transfer Log" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'CreateTrial')", ng-disabled="!vm.selectedPlatform",data-toggle="modal", ng-click='vm.createtrail=false', data-target='#modalCreateTrailPlayer')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Player', 'Player', 'CreateTrial')", ng-disabled="!vm.selectedPlatform",data-toggle="modal", ng-click='vm.createtrail=false', data-target='#modalCreateTrailPlayer')
             text {{"CREATE_TRIAL" | translate}}
             img.img-create
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'CreditChangeLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initGameCreditLog()', data-target='#modalGameCreditLog')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Player', 'Credit', 'CreditChangeLog')", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initGameCreditLog()', data-target='#modalGameCreditLog')
             text {{"GAME_CREDIT_LOG" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'ClearProposalLimit')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalClearProposalLimit', ng-click='vm.prepareClearPlayerProposalLimit()')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Player', 'Player', 'ClearProposalLimit')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", data-target='#modalClearProposalLimit', ng-click='vm.prepareClearPlayerProposalLimit()')
             text {{"ClearProposalLimit" | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Player', 'PlayerApiLog')",ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalPlayerApiLog', ng-click='vm.selectedSinglePlayer = null; vm.initPlayerApiLog()')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Player', 'Player', 'PlayerApiLog')",ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalPlayerApiLog', ng-click='vm.selectedSinglePlayer = null; vm.initPlayerApiLog()')
             text {{"Player API Log" | translate}}
             img.img-edit
     hr.margin-top-bottom-small
@@ -669,8 +669,8 @@ include modalGameCreditLog
                         span(id="{{'c-'+v}}")
                 .textareaDetail.margin-top-bottom-small
                     textarea.forbidRewardRemark(ng-model='vm.forbidGameRemark', placeholder='{{"Please add remark." | translate}}')
-                button.common-button.margin-right-5.btn.btn-success.forbidGameConfirm(ng-show="checkViewPermission('Platform', 'Player','ForbidProviders') && vm.platformPageName!='batchPermit'", ng-disabled='vm.forbidGameDisable') {{'CONFIRM' | translate}}
-                button.common-button.margin-right-5.btn.btn-success.forbidBatchGameConfirm(ng-show="checkViewPermission('Platform', 'Player','ForbidProviders') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidGameConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidProviders') && vm.platformPageName!='batchPermit'", ng-disabled='vm.forbidGameDisable') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidBatchGameConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidProviders') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
 
                 button.common-button.margin-right-5.btn.btn-warning.forbidGameCancel {{'CANCEL' | translate}}
                 button.common-button.margin-right-5.btn.btn-primary.showForbidGame(data-toggle="modal", data-target="#modalForbidGameLog", ng-click="vm.getForbidGame();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
@@ -690,8 +690,8 @@ include modalGameCreditLog
                         span(id="{{'c-'+v._id}}")
                 .textareaDetail.margin-top-bottom-small
                     textarea.forbidRewardRemark(ng-model='vm.forbidRewardRemark', placeholder='{{"Please add remark." | translate}}')
-                button.common-button.margin-right-5.btn.btn-success.forbidRewardEventConfirm(ng-show="checkViewPermission('Platform', 'Player','ForbidRewards') && vm.platformPageName!='batchPermit'", ng-disabled='vm.forbidRewardDisable') {{'CONFIRM' | translate}}
-                button.common-button.margin-right-5.btn.btn-success.forbidBatchRewardEventConfirm(ng-show="checkViewPermission('Platform', 'Player','ForbidRewards') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidRewardEventConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidRewards') && vm.platformPageName!='batchPermit'", ng-disabled='vm.forbidRewardDisable') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidBatchRewardEventConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidRewards') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
 
                 button.common-button.margin-right-5.btn.btn-warning.forbidRewardEventCancel(data-dismiss='popover') {{'CANCEL' | translate}}
                 button.common-button.margin-right-5.btn.btn-primary.showForbidreward(data-toggle="modal", data-target="#modalForbidRewardLog", ng-click="vm.getForbidReward();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
@@ -707,8 +707,8 @@ include modalGameCreditLog
                         span(id="{{'c-'+i}}")
                 .textareaDetail.margin-top-bottom-small
                     textarea.forbidRewardRemark(ng-model='vm.forbidTopUpRemark', placeholder='{{"Please add remark." | translate}}')
-                button.common-button.margin-right-5.btn.btn-success.forbidTopUpConfirm(ng-show="checkViewPermission('Platform', 'Player','ForbidTopupTypes') && vm.platformPageName!='batchPermit'",ng-disabled='vm.forbidTopUpDisable') {{'CONFIRM' | translate}}
-                button.common-button.margin-right-5.btn.btn-success.forbidBatchTopUpConfirm(ng-show="checkViewPermission('Platform', 'Player','ForbidTopupTypes') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidTopUpConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidTopupTypes') && vm.platformPageName!='batchPermit'",ng-disabled='vm.forbidTopUpDisable') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidBatchTopUpConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidTopupTypes') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning.forbidTopUpCancel {{'CANCEL' | translate}}
                 button.common-button.margin-right-5.btn.btn-primary.showForbidTopUp(data-toggle="modal", data-target="#modalForbidTopUpLog", ng-click="vm.getForbidTopUp();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
 
@@ -736,8 +736,8 @@ include modalGameCreditLog
                         span(id="{{'c-'+v._id}}")
                 .textareaDetail.margin-top-bottom-small
                     textarea.forbidRewardPointsEventRemark(ng-model='vm.forbidRewardPointsEventRemark', placeholder='{{"Please add remark." | translate}}')
-                button.common-button.margin-right-5.btn.btn-success.forbidRewardPointsEventConfirm(ng-show="checkViewPermission('Platform', 'Player','ForbidRewardPointsEvent') && vm.platformPageName!='batchPermit'",ng-disabled='vm.forbidRewardPointsEventDisable') {{'CONFIRM' | translate}}
-                button.common-button.margin-right-5.btn.btn-success.forbidBatchRewardPointsEventConfirm(ng-show="checkViewPermission('Platform', 'Player','ForbidRewardPointsEvent') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidRewardPointsEventConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidRewardPointsEvent') && vm.platformPageName!='batchPermit'",ng-disabled='vm.forbidRewardPointsEventDisable') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidBatchRewardPointsEventConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidRewardPointsEvent') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning.forbidRewardPointsEventCancel {{'CANCEL' | translate}}
                 button.common-button.margin-right-5.btn.btn-primary.showForbidRewardPointsEvent(data-toggle="modal", data-target="#modalForbidRewardPointsEventLog", ng-click="vm.getForbidRewardPointsEvent();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
 
@@ -1158,7 +1158,7 @@ include modalGameCreditLog
             textarea.permissionRemark(placeholder='{{"Please add remark." | translate}}')
         .text-left(style="position:relative;")
             button.btn.btn-primary.submit {{'CONFIRM' | translate}}
-            button#permissionRecordButton.btn.btn-primary.common-button(style="right:0;position:absolute",ng-if="checkViewPermission('Platform', 'Player', 'PermissionHistory')", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog', ng-show="vm.platformPageName!='batchPermit'")
+            button#permissionRecordButton.btn.btn-primary.common-button(style="right:0;position:absolute",ng-if="checkViewPermission('Player', 'Player', 'PermissionHistory')", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog', ng-show="vm.platformPageName!='batchPermit'")
                 text {{"Permission History" | translate}}
         div(ng-show="vm.platformPageName=='batchPermit'") * 若要开启/解除某权限设置，请
         div(ng-show="vm.platformPageName=='batchPermit'") 关闭->开启->再按确定按钮。
@@ -1402,11 +1402,11 @@ include modalGameCreditLog
 
                     ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu
                         .pull-left.padding-all-5
-                        li.active(id = 'newPlayerListTab', ng-show="checkViewPermission('Platform', 'Player','AddFeedback')")
+                        li.active(id = 'newPlayerListTab', ng-show="checkViewPermission('Player', 'Feedback','AddFeedback')")
                             a.common-tab(data-toggle="tab",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.playerModalTab = \'newPlayerListPanel\';vm.newPlayerList();')
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"new player list" | translate}}
-                        li(id = 'attemptNumberListTab',ng-show="checkViewPermission('Platform', 'Player','FeedbackHistory')")
+                        li(id = 'attemptNumberListTab',ng-show="checkViewPermission('Player', 'Feedback','FeedbackHistory')")
                             a.common-tab(data-toggle="tab",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.playerModalTab = \'attemptNumberListPanel\';vm.playerRegistrationSuccessRateList();')
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"attempt number list" | translate}}
@@ -2097,7 +2097,7 @@ include modalGameCreditLog
                             .inlineBlk
                                 button.btn.btn-primary.common-button(ng-click="vm.getProviderExpense(true)") {{"SEARCH" | translate}}
                             br
-                        div(ng-if="checkViewPermission('Platform', 'Player', 'Read')")
+                        div(ng-if="checkViewPermission('Player', 'Player', 'Read')")
                             i.fa.fa-spinner.fa-spin(ng-show='vm.providerExpenseTableLoading')
                             label {{"Total" | translate}} {{vm.expenseQuery.totalCount}} {{"records" | translate}} 
                             table#providerExpenseTable.common-table.display(style='min-width:100%')

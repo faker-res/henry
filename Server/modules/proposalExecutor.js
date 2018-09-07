@@ -257,6 +257,8 @@ var proposalExecutor = {
             this.executions.executeBulkExportPlayerData.des = "Bulk Export Player Data";
             this.executions.executeFinancialPointsAdd.des = "Add Platform Financial Points";
             this.executions.executeFinancialPointsDeduct.des = "Deduct Platform Financial Points";
+            this.executions.executeUpdatePlayerRealName.des = "Update player real name";
+            this.executions.executeUpdatePartnerRealName.des = "Update partner real name";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -327,6 +329,8 @@ var proposalExecutor = {
             this.rejections.rejectBulkExportPlayerData.des = "Reject Bulk Export Player Data";
             this.rejections.rejectFinancialPointsAdd.des = "Reject Add Platform Financial Points";
             this.rejections.rejectFinancialPointsDeduct.des = " Reject Deduct Platform Financial Points";
+            this.rejections.rejectUpdatePlayerRealName.des = "Reject player update real name proposal";
+            this.rejections.rejectUpdatePartnerRealName.des = "Reject partner update real name proposal";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -743,6 +747,35 @@ var proposalExecutor = {
             },
 
             /**
+             * execution function for update player real name proposal type
+             */
+            executeUpdatePlayerRealName: function (proposalData, deferred) {
+                //valid data
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.realNameAfterEdit) {
+
+                    dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).then(
+                        data => {
+                            if(data && data._id && data.platform){
+                                return dbconfig.collection_players.findOneAndUpdate(
+                                    {_id: data._id, platform: data.platform},
+                                    {realName: proposalData.data.realNameAfterEdit}
+                                );
+                            }else{
+                                deferred.reject({name: "DataError", message: "Incorrect player data", error: Error()});
+                            }
+                        }
+                    ).then(
+                        data => {
+                            deferred.resolve(data);
+                        }
+                    )
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
+                }
+            },
+
+            /**
              * execution function for update player info proposal type
              */
             executeUpdatePlayerBankInfo: function (proposalData, deferred) {
@@ -1108,6 +1141,35 @@ var proposalExecutor = {
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect update partner info proposal data"});
+                }
+            },
+
+            /**
+             * execution function for update partner real name proposal type
+             */
+            executeUpdatePartnerRealName: function (proposalData, deferred) {
+                //valid data
+                if (proposalData && proposalData.data && proposalData.data.partnerObjId && proposalData.data.realNameAfterEdit) {
+
+                    dbconfig.collection_partner.findOne({_id: proposalData.data.partnerObjId}).then(
+                        data => {
+                            if(data && data._id && data.platform){
+                                return dbconfig.collection_partner.findOneAndUpdate(
+                                    {_id: data._id, platform: data.platform},
+                                    {realName: proposalData.data.realNameAfterEdit}
+                                );
+                            }else{
+                                deferred.reject({name: "DataError", message: "Incorrect partner data", error: Error()});
+                            }
+                        }
+                    ).then(
+                        data => {
+                            deferred.resolve(data);
+                        }
+                    )
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
                 }
             },
 
@@ -2557,7 +2619,7 @@ var proposalExecutor = {
             },
 
             executePlayerConsecutiveRewardGroup: function (proposalData, deferred) {
-                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && !isNaN(parseInt(proposalData.data.rewardAmount)) ) {
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
                         type: constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
@@ -2887,7 +2949,12 @@ var proposalExecutor = {
                 if (proposalData && proposalData.data && proposalData.data.partnerObjId) {
                     proposalData.data.proposalId = proposalData.proposalId;
                     return dbPartner.changePartnerCredit(proposalData.data.partnerObjId, proposalData.data.platformObjId, proposalData.data.amount, constProposalType.PARTNER_CREDIT_TRANSFER_TO_DOWNLINE, proposalData).then(
-                        data => deferred.resolve(data),
+                        data => {
+                            return dbPlayerInfo.creditTransferedFromPartner(proposalData.proposalId, proposalData.data.platformObjId).then(
+                                creditTransferedData => deferred.resolve(creditTransferedData),
+                                error => deferred.reject(error)
+                            )
+                        },
                         error => deferred.reject(error)
                     );
                 }
@@ -3008,6 +3075,13 @@ var proposalExecutor = {
             },
 
             /**
+             * reject function for UpdatePlayerRealName proposal
+             */
+            rejectUpdatePlayerRealName: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            /**
              * reject function for UpdatePlayerBankInfo proposal
              */
             rejectUpdatePlayerBankInfo: function (proposalData, deferred) {
@@ -3046,6 +3120,13 @@ var proposalExecutor = {
              * reject function for UpdatePartnerInfo proposal
              */
             rejectUpdatePartnerInfo: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            /**
+             * reject function for UpdatePartnerRealName proposal
+             */
+            rejectUpdatePartnerRealName: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
 

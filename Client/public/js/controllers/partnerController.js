@@ -1696,7 +1696,7 @@ define(['js/app'], function (myApp) {
                 console.log(type, data);
                 vm.getSMSTemplate();
                 let title, text;
-                if (type === 'msg' && authService.checkViewPermission('Platform', 'Partner', 'sendSMS')) {
+                if (type === 'msg' && authService.checkViewPermission('Partner', 'Partner', 'sendSMS')) {
                     vm.smsPartner = {
                         partnerId: partnerObjId.partnerId,
                         partnerName: partnerObjId.partnerName,
@@ -1958,7 +1958,7 @@ define(['js/app'], function (myApp) {
                     editingObj.partner = vm.parterSelectedforPlayer ? vm.parterSelectedforPlayer._id : null;
                     $scope.safeApply();
                 });
-                vm.showPartners = vm.partners.map(item => {
+                vm.showPartners = vm.partners ? vm.partners.map(item => {
                     item.parent$ = item.partnerName ? item.partnerName : '';
                     item.children$ = item.children.length;
                     item.registrationTime$ = vm.dateReformat(item.registrationTime);
@@ -1967,7 +1967,7 @@ define(['js/app'], function (myApp) {
                     item.validPlayers$ = vm.partnerPlayerObj[item._id] ? vm.partnerPlayerObj[item._id].validPlayers : 0;
                     item.activePlayers$ = vm.partnerPlayerObj[item._id] ? vm.partnerPlayerObj[item._id].activePlayers : 0;
                     return item;
-                });
+                }) : [];
 
                 vm.drawSelectPartnerTable(vm.showPartners, editingObj);
                 $scope.safeApply();
@@ -3407,7 +3407,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getPlatformRewardProposal = function () {
-                if (!authService.checkViewPermission('Platform', 'Player', 'RewardHistory')) {
+                if (!authService.checkViewPermission('Player', 'Reward', 'RewardHistory')) {
                     return;
                 }
                 socketService.$socket($scope.AppSocket, 'getPlatformRewardProposal', {platform: vm.selectedPlatform.id}, function (data) {
@@ -3638,7 +3638,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPlayerApiLogData = function (newSearch) {
-                if (!authService.checkViewPermission('Platform', 'Player', 'playerApiLog')) {
+                if (!authService.checkViewPermission('Player', 'Player', 'playerApiLog')) {
                     return;
                 }
 
@@ -4945,7 +4945,7 @@ define(['js/app'], function (myApp) {
 
             //get all platform partners data from server
             vm.getPlatformPartnersData = function () {
-                if (!authService.checkViewPermission('Platform', 'Partner', 'Read')) {
+                if (!authService.checkViewPermission('Partner', 'Partner', 'Read')) {
                     return;
                 }
                 $('#partnerRefreshIcon').addClass('fa-spin');
@@ -5405,7 +5405,7 @@ define(['js/app'], function (myApp) {
                             title: $translate('COMMISSION_TYPE'), "data": 'commissionType', advSearch: true, "sClass": "",
                             render: function (data, type, row) {
                                 data = data || '';
-                                if ($scope.checkViewPermission('Platform', 'Partner', 'EditCommission')) {
+                                if ($scope.checkViewPermission('Partner', 'Partner', 'EditCommission')) {
                                     if (row && row.isCustomizeSettingExist) {
                                         return $('<a style="z-index: auto; color:red" data-toggle="modal" data-container="body" ' +
                                             'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
@@ -5642,7 +5642,7 @@ define(['js/app'], function (myApp) {
                                     'title': $translate("PHONE"),
                                     'data-placement': 'left',
                                 }));
-                                if ($scope.checkViewPermission('Platform', 'Partner', 'AddFeedback')) {
+                                if ($scope.checkViewPermission('Partner', 'Feedback', 'AddFeedback')) {
                                     link.append($('<a>', {
                                         'class': 'fa fa-commenting margin-right-5',
                                         'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
@@ -5653,7 +5653,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'left',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Partner', 'ApplyBonus')) {
+                                if ($scope.checkViewPermission('Partner', 'Partner', 'ApplyBonus')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5 margin-right-5',
                                         'src': (row.permission.applyBonus === false ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
@@ -5667,7 +5667,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'left',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Partner', 'CreditAdjustment')) {
+                                if ($scope.checkViewPermission('Partner', 'Partner', 'CreditAdjustment')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
                                         'src': "images/icon/creditAdjustBlue.png",
@@ -6865,10 +6865,10 @@ define(['js/app'], function (myApp) {
                         $scope: $scope,
                         $compile: $compile,
                         childScope: {
-                            editPartnerPermission: $scope.checkViewPermission('Platform', 'Partner', 'Edit'),
-                            editPartnerContactPermission: $scope.checkViewPermission('Platform', 'Partner', 'EditContact'),
-                            editPartnerWithdrawPermission: $scope.checkViewPermission('Platform', 'Partner', 'BankDetail'),
-                            editPartnerCommissionPermission: $scope.checkViewPermission('Platform', 'Partner', 'EditCommission'),
+                            editPartnerPermission: $scope.checkViewPermission('Partner', 'Partner', 'Edit'),
+                            editPartnerContactPermission: $scope.checkViewPermission('Partner', 'Partner', 'EditContact'),
+                            editPartnerWithdrawPermission: $scope.checkViewPermission('Partner', 'Partner', 'BankDetail'),
+                            editPartnerCommissionPermission: $scope.checkViewPermission('Partner', 'Partner', 'EditCommission'),
                             selectedTab: vm.editPartnerSelectedTab,
                             tabClicked: vm.tabClicked,
                             modifyCritical: vm.modifyCritical,
@@ -7018,11 +7018,18 @@ define(['js/app'], function (myApp) {
                 if (Object.keys(updateData).length > 0) {
                     updateData._id = partnerId;
                     var isUpdate = false;
-
+                    let isRealName = false;
+                    let realNameObj = {
+                        isPartner: true
+                    };
                     updateData.partnerName = newPartnerData.name || vm.editPartner.name;
                     updatedKeys.forEach(function (key) {
                         if (key == "bankCardGroup" || key == "alipayGroup" || key == "wechatPayGroup" || key == "merchantGroup" || key == "quickPayGroup" || key == "referralName") {
                             //do nothing
+                        } else if(key == "realName"){
+                            isRealName = true;
+                            realNameObj.realName = updateData.realName;
+                            delete updateData.realName;
                         } else {
                             isUpdate = true;
                         }
@@ -7033,12 +7040,6 @@ define(['js/app'], function (myApp) {
                     }
 
                     updateData.remark = "";
-                    if (updateData.realName) {
-                        if (updateData.remark) {
-                            updateData.remark += ", ";
-                        }
-                        updateData.remark += $translate("realName");
-                    }
                     if (updateData.DOB) {
                         if (updateData.remark) {
                             updateData.remark += ", ";
@@ -7087,6 +7088,25 @@ define(['js/app'], function (myApp) {
                         socketService.$socket($scope.AppSocket, updateString, {
                             creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                             data: updateData,
+                            platformId: vm.selectedPlatform.id
+                        }, function (data) {
+                            if (data.data && data.data.stepInfo) {
+                                socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                            }
+                            vm.getPlatformPartnersData();
+                        }, null, true);
+                    }
+
+                    if (isRealName) {
+                        if (realNameObj) {
+                            realNameObj.updateData = $.extend({}, realNameObj);
+                            realNameObj.partnerObjId = partnerId;
+                            realNameObj.partnerName = vm.selectedSinglePartner.partnerName;
+                        }
+
+                        socketService.$socket($scope.AppSocket, "createUpdatePartnerRealNameProposal", {
+                            creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                            data: realNameObj,
                             platformId: vm.selectedPlatform.id
                         }, function (data) {
                             if (data.data && data.data.stepInfo) {
@@ -7570,7 +7590,7 @@ define(['js/app'], function (myApp) {
 
             vm.getPartnerApiLogData = function (newSearch) {
                 vm.loadingPartnerApiLogTable = true;
-                if (!authService.checkViewPermission('Platform', 'Partner', 'partnerApiLog')) {
+                if (!authService.checkViewPermission('Partner', 'Partner', 'partnerApiLog')) {
                     vm.loadingPartnerApiLogTable = false;
                     return;
                 }
@@ -7734,8 +7754,20 @@ define(['js/app'], function (myApp) {
                 }, null, true);
             }
 
+            vm.initResetPartnerPasswordModal = () => {
+                vm.customNewPassword = "888888";
+                vm.newPartner=vm.selectedSinglePartner;
+                vm.partnerNewPassword = false;
+            };
+
             vm.submitResetPartnerPassword = function () {
-                socketService.$socket($scope.AppSocket, 'resetPartnerPassword', {_id: vm.selectedSinglePartner._id}, function (data) {
+                let sendData = {
+                    _id: vm.selectedSinglePartner._id,
+                    platform: vm.selectedPlatform.id,
+                    newPassword: vm.customNewPassword,
+                };
+
+                socketService.$socket($scope.AppSocket, 'resetPartnerPassword', sendData, function (data) {
                     console.log('password', data);
                     vm.partnerNewPassword = data.data;
                     $scope.safeApply();
@@ -9282,6 +9314,9 @@ define(['js/app'], function (myApp) {
                         proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.alipayQRCode || " ";
                         proposalDetail["ALIPAY_QR_ADDRESS"] = vm.selectedProposal.data.qrcodeAddress || " ";
                         proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                        proposalDetail["alipayer"] = vm.selectedProposal.data.alipayer || " ";
+                        proposalDetail["alipayerAccount"] = vm.selectedProposal.data.alipayerAccount || " ";
+                        proposalDetail["alipayerNickName"] = vm.selectedProposal.data.alipayerNickName || " ";
                         vm.selectedProposal.data = proposalDetail;
                     }
 
@@ -9558,6 +9593,9 @@ define(['js/app'], function (myApp) {
                         proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.alipayQRCode || " ";
                         proposalDetail["ALIPAY_QR_ADDRESS"] = vm.selectedProposal.data.qrcodeAddress || " ";
                         proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                        proposalDetail["alipayer"] = vm.selectedProposal.data.alipayer || " ";
+                        proposalDetail["alipayerAccount"] = vm.selectedProposal.data.alipayerAccount || " ";
+                        proposalDetail["alipayerNickName"] = vm.selectedProposal.data.alipayerNickName || " ";
                         vm.selectedProposal.data = proposalDetail;
                     }
 
@@ -9835,7 +9873,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getAllPartnerLevels = function () {
-                if (!authService.checkViewPermission('Platform', 'Partner', 'Read')) {
+                if (!authService.checkViewPermission('Partner', 'Partner', 'Read')) {
                     return;
                 }
                 return $scope.$socketPromise(commonAPIs.partnerLevel.getByPlatform, {platformId: vm.selectedPlatform.id})
@@ -11710,8 +11748,6 @@ define(['js/app'], function (myApp) {
                         manualAuditBanWithdrawal: srcData.manualAuditBanWithdrawal,
                         autoApproveWhenSingleBonusApplyLessThan: srcData.showAutoApproveWhenSingleBonusApplyLessThan,
                         autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
-                        autoApproveRepeatCount: srcData.showAutoApproveRepeatCount,
-                        autoApproveRepeatDelay: srcData.showAutoApproveRepeatDelay,
                         autoApproveLostThreshold: srcData.lostThreshold,
                         autoApproveConsumptionOffset: srcData.consumptionOffset,
                         autoApproveProfitTimes: srcData.profitTimes,
@@ -15596,7 +15632,7 @@ define(['js/app'], function (myApp) {
                         sum += el.amount;
                     }
                 });
-                vm.sumTotalTransferAmount = sum;
+                vm.sumTotalTransferAmount = $noRoundTwoDecimalPlaces(sum);
             };
 
             vm.editTransferPartnerCreditToPlayer = function () {
@@ -15605,14 +15641,22 @@ define(['js/app'], function (myApp) {
             };
 
             vm.disableTransferPartnerCreditToPlayer = function (value) {
-                if (vm.sumTotalTransferAmount == 0 || value < 0 || (value && value.toString == 'undefined')) {
+                if ($noRoundTwoDecimalPlaces(vm.sumTotalTransferAmount) == 0 || value < 0 || (value && value.toString == 'undefined')) {
                     vm.isTransferPartnerCreditToPlayer = true;
-                } else if (vm.sumTotalTransferAmount <= vm.selectedSinglePartner.credits) {
+                } else if ($noRoundTwoDecimalPlaces(vm.sumTotalTransferAmount) <= vm.selectedSinglePartner.credits) {
                     vm.isTransferPartnerCreditToPlayer = false;
                 } else {
                     vm.isTransferPartnerCreditToPlayer = true;
                 }
-            }
+            };
+
+            vm.checkIsDisableTransferPartnerCreditToPlayer = function (providerGroupId, withdrawConsumption) {
+                if (providerGroupId && (!withdrawConsumption || withdrawConsumption < 0)) {
+                    vm.isTransferPartnerCreditToPlayer = true;
+                } else {
+                    vm.isTransferPartnerCreditToPlayer = false;
+                }
+            };
 
             vm.nextDownlinePlayerPage = function(){
                 vm.downlinePlayers.currentPage += 1;
@@ -15653,7 +15697,7 @@ define(['js/app'], function (myApp) {
                                 playerName: player.name,
                                 amount: player.amount,
                                 providerGroup: player.providerGroup,
-                                withdrawConsumption: player.amount
+                                withdrawConsumption: player.withdrawConsumption || 0
                             });
                         }
                     }
@@ -15663,8 +15707,8 @@ define(['js/app'], function (myApp) {
                     platformId: vm.selectedPlatform.id,
                     partnerObjId: vm.selectedPartnerObjId || vm.selectedSinglePartner._id,
                     currentCredit: vm.selectedSinglePartner.credits || 0,
-                    updateCredit: vm.sumTotalTransferAmount > 0 ? vm.selectedSinglePartner.credits - vm.sumTotalTransferAmount : 0 || 0,
-                    totalTransferAmount: vm.sumTotalTransferAmount,
+                    updateCredit: $noRoundTwoDecimalPlaces(vm.sumTotalTransferAmount) > 0 ? vm.selectedSinglePartner.credits - $noRoundTwoDecimalPlaces(vm.sumTotalTransferAmount) : 0 || 0,
+                    totalTransferAmount: $noRoundTwoDecimalPlaces(vm.sumTotalTransferAmount) || 0,
                     transferToPlayers: playerArr
                 };
                 console.log('sendData', sendData);

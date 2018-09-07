@@ -131,7 +131,8 @@
                 "turnUrlToQr",
                 "getTemplateSetting",
                 "addIpDomainLog",
-                "getIDCIpDetail"
+                "getIDCIpDetail",
+                "getLockedLobbyConfig"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -435,6 +436,9 @@
                 "getCommissionProposalList",
                 "getPartnerConfig",
                 "checkAllCrewDetail",
+                "getDownPartnerInfo",
+                "partnerCreditToPlayer",
+                "getDownPartnerContribution",
                 "notifyNewMail",
                 "getMailList",
                 "deleteAllMail",

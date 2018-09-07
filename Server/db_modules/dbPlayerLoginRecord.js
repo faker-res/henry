@@ -549,7 +549,75 @@ var dbPlayerLoginRecord = {
      * getPlayerRetention
      * @param {String}  platform, country
      */
-    getPlayerRetention: function (platform, startTime, days, playerType, dayCount, isRealPlayer, isTestPlayer, hasPartner) {
+    getDomainList: function (platformId, startTime, endTime, isRealPlayer, isTestPlayer, hasPartner, playerType) {
+
+        let queryObj = {
+            platform: platformId,
+            registrationTime: {
+                $gte: new Date(startTime),
+                $lt: new Date(endTime)
+            },
+            isRealPlayer: isRealPlayer,
+            isTestPlayer: isTestPlayer
+        };
+
+        if (hasPartner !== null){
+            if (hasPartner == true){
+                queryObj.partner = {$type: "objectId"};
+            }else {
+                queryObj['$or'] = [
+                    {partner: null},
+                    {partner: {$exists: false}}
+                ]
+            }
+        }
+
+        let validPlayerProm = Promise.resolve(false);
+        if (playerType) {
+            switch(playerType) {
+                case "2":
+                    queryObj.topUpTimes= {$gte: 1};
+                    break;
+                case "3":
+                    queryObj.topUpTimes = {$gte: 2};
+                    break;
+                case "4":
+                    validPlayerProm = dbconfig.collection_partnerLevelConfig.findOne({platform:platformId}).lean();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return validPlayerProm.then(
+            validPlayerProm => {
+                if (validPlayerProm && playerType == "4" && validPlayerProm.hasOwnProperty("validPlayerTopUpAmount") &&
+                    validPlayerProm.hasOwnProperty("validPlayerConsumptionTimes") && validPlayerProm.hasOwnProperty("validPlayerTopUpTimes")) {
+
+                    queryObj.topUpSum = {$gte: validPlayerProm.validPlayerTopUpAmount};
+                    queryObj.consumptionTimes = {$gte: validPlayerProm.validPlayerConsumptionTimes};
+                    queryObj.consumptionSum = {$gte: validPlayerProm.validPlayerConsumptionAmount};
+                    queryObj.topUpTimes = {$gte: validPlayerProm.validPlayerTopUpTimes}
+                }
+
+                return dbconfig.collection_players.aggregate(
+                    [{
+                        $match: queryObj,
+                    }
+                        , {
+                        $group: {
+                            _id: null,
+                            urls: {
+                                "$addToSet": "$domain"
+                            }
+                        }
+                    }]
+                ).read("secondaryPreferred");
+            }
+        )
+    },
+
+    getPlayerRetention: function (platform, startTime, days, playerType, dayCount, isRealPlayer, isTestPlayer, hasPartner, domainList) {
         var day0PlayerObj = {};
         var dayNPlayerObj = {};
         var day0PlayerArrayProm = [];
@@ -598,16 +666,33 @@ var dbPlayerLoginRecord = {
                         isTestPlayer: isTestPlayer
                     };
 
+                    if (domainList){
+                        if (domainList.indexOf("") != -1){
+                            queryObj['$and'] = [
+                                {$or: [{domain: {$exists: false}}, {domain: {$in: domainList}}]}
+                            ]
+                        }
+                        else{
+                            queryObj.domain = {$in: domainList};
+                        }
+                    }
+
                     if (hasPartner !== null){
                         if (hasPartner == true){
                             queryObj.partner = {$type: "objectId"};
                         }else {
-                            queryObj['$or'] = [
-                                {partner: null},
-                                {partner: {$exists: false}}
-                            ]
+                            if (queryObj.hasOwnProperty("$and")){
+                                queryObj['$and'].push({$or: [ {partner: null}, {partner: {$exists: false}} ]})
+                            }
+                            else{
+                                queryObj['$or'] = [
+                                    {partner: null},
+                                    {partner: {$exists: false}}
+                                ]
+                            }
                         }
                     }
+                    
                     queryObj = Object.assign({}, queryObj, playerFilter);
 
                     var temp = dbconfig.collection_players.aggregate(
@@ -648,15 +733,19 @@ var dbPlayerLoginRecord = {
                         time1.setHours(23, 59, 59, 999);
                         var loginDataArrayProm = [];
                         for (var day = 0; day <= dayCount + days[days.length - 1]; day++) {
+
+                            let matchObj = {
+                                platform: platform,
+                                loginTime: {
+                                    $gte: new Date(time0),
+                                    $lt: new Date(time1)
+                                }
+                            };
+
                             var temp = dbconfig.collection_playerLoginRecord.aggregate(
                                 [{
-                                    $match: {
-                                        platform: platform,
-                                        loginTime: {
-                                            $gte: new Date(time0),
-                                            $lt: new Date(time1)
-                                        }
-                                    },
+                                    $match: matchObj
+
                                 }, {
                                     $group: {
                                         _id: {
@@ -691,9 +780,9 @@ var dbPlayerLoginRecord = {
                                 for (var i = 1; i <= dayCount; i++) {
                                     var date = new Date(startTime);
                                     date.setDate(date.getDate() + i - 1);
-                                    var showDate = new Date(startTime);
-                                    showDate.setDate(showDate.getDate() + i);
-                                    var row = {date: showDate};
+                                    // var showDate = new Date(startTime);
+                                    // showDate.setDate(showDate.getDate() + i);
+                                    var row = {date: date};
                                     var baseArr = [];
 
                                     if (day0PlayerObj[date]) {

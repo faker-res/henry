@@ -1216,6 +1216,10 @@
   "TRACKING_DETAILS_DAILY_REPORT_TITLE": "Daily Report",
   "Month": "Month",
   "DAILY_TOPUP": "Daily TopUp",
+  "ThemeControl": "Theme Control",
+  "themeControl": "Theme Control",
+  "playerTheme": "Player Theme",
+  "partnerTheme": "Partner Theme",
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
   "SMS_VERIFICATION": "SMS Verification",
@@ -1298,8 +1302,6 @@
   "VERIFICATION_TEMPLATE_NOTE": "Note: For SMS Verification insert 'smsCode' at desired position. Example - Hi, your code is smsCode. Happy Betting!",
   "autoApproveWhenSingleBonusApplyLessThan": "Auto Approve: Single Bonus Apply Less Than",
   "autoApproveWhenSingleDayTotalBonusApplyLessThan": "Auto Approve: Single Day Total Bonus Apply Less Than",
-  "autoApproveRepeatCount": "Auto Approve: Repeat Count",
-  "autoApproveRepeatDelay": "Auto Approve: Repeat Delay Time",
   "providerCreditAmount": "Provider Credit Amount",
   "PLAYER_DOUBLE_TOP_UP_REWARD_REPORT": "Player Double Top Up Reward Report",
   "PLAYER_REGISTRATION_REWARD_REPORT": "Player Registration Reward Report",
@@ -1593,10 +1595,23 @@
   "CURRENT_PERIOD": "Current Period",
   "PREVIOUS_X_PERIOD": "Previous X Period",
 
+  "VISITED_DOMAIN": "Visited Domain",
+  "VISITED_TIMES": "Visited Times",
+  "IP_REPEAT": "IP Repeatable",
+  "IP_NOT_REPEAT": "Unique IP",
+  "VISITED_IP_AMOUNT": "Amount of IP Visited",
+  "IP_DOMAIN_ANALYSIS_EXPLAIN": "",
+  "IP_DOMAIN_UNIQUE_ANALYSIS_EXPLAIN": "",
+
+  "DOMAIN_VISIT_AMOUNT": "Domain Visit Rate",
+
   "CALL_PERMISSION": "Call Permission",
   "CALLABLE": "Callable",
   "PAST_COMMISSION_SETTLEMENT": "Settle Previous Period Partner Commission",
   "FORCE_STOP_MISSION_WARNING": "Are you sure you want to force stop FPMS call out mission?",
+
+  "DOMAIN_VISIT_AMOUNT_ANALYSIS_IP_REPEAT": "Domain Visit Amount Analysis",
+  "DOMAIN_VISIT_AMOUNT_ANALYSIS_IP_NOT_REPEAT": "Domain Visit Unique Ip Amount Analysis",
 
   "DX_NEWACCOUNT_REPORT": "Telemarketing New Account Report",
   "REAL_TIME_COMMISSION_REPORT": "Real Time Commission Report",

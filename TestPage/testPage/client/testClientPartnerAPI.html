@@ -1306,6 +1306,119 @@
     </div>
 </div>
 
+<h3>Get Down Partner Info (获取下级代理信息)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Partner Id
+            <input type=text name="partnerId">
+        </label>
+    </div>
+    <div>
+        <label>Start Index
+            <input type=number name="startIndex">
+        </label>
+    </div>
+    <div>
+        <label>Count
+            <input type=number name="count">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <button id="getDownPartnerInfo" data-api-name="getDownPartnerInfo">Get</button>
+    </div>
+</div>
+
+<h3>Transfer Partner Credit To Player (代理转金额给下线)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Partner Id
+            <input type=text name="partnerId">
+        </label>
+    </div>
+    <div>
+        <label>Amount
+            <input type=number name="amount">
+        </label>
+    </div>
+    <div>
+        <label>Username
+            <input type=text name="username">
+        </label>
+    </div>
+    <div>
+        <label>Provider Group ID
+            <input type=number name="lockedCreditId">
+        </label>
+    </div>
+    <div>
+        <label>Withdraw Consumption
+            <input type=number name="spendingTimes">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <button id="partnerCreditToPlayer" data-api-name="partnerCreditToPlayer">Transfer</button>
+    </div>
+</div>
+
+<h3>Get Down Partner Contribution (获取下级代理贡献值详情)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Partner Id
+            <input type=text name="partnerId">
+        </label>
+    </div>
+    <div>
+        <label>Start Index
+            <input name="startIndex" type="number">
+        </label>
+
+        <p>
+    </div>
+    <div>
+        <label>Count
+            <input name="count" type="number">
+        </label>
+
+        <p>
+    </div>
+    <div>
+        <label>Start Time
+            <input name="startTime" type="datetime-local">
+        </label>
+        <p>
+    </div>
+    <div>
+        <label>End Time
+            <input name="endTime" type="datetime-local">
+        </label>
+        <p>
+    </div>
+    <p></p>
+    <div>
+        <button id="getDownPartnerContribution" data-api-name="getDownPartnerContribution">Get</button>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPartnerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
         function (ClientServices, WebSocketClient, TestHelper, ClientPartnerAPITest, ClientConnectionAPITest) {

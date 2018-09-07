@@ -753,18 +753,40 @@ function socketActionPlatform(socketIO, socket) {
         },
         updateAutoFeedback: function updateAutoFeedback(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data._id);
-            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.updateAutoFeedback, [data], actionName, isValidData);
+            let isValidData = Boolean(data && data.autoFeedbackObjId && data.updateData);
+            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.updateAutoFeedback, [data.autoFeedbackObjId, data.updateData], actionName, isValidData);
         },
         getAutoFeedback: function getAutoFeedback(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.createTimeStart && data.createTimeEnd);
-            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data], actionName, isValidData);
+            let isValidData = Boolean(data && data.query && data.query.platformObjId && data.query.createTimeStart && data.query.createTimeEnd);
+            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data.query, data.index, data.limit], actionName, isValidData);
         },
         getAllAutoFeedback: function getAllAutoFeedback(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data], actionName, isValidData);
+        },
+        removeAutoFeedbackByObjId: function removeAutoFeedbackByObjId(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.autoFeedbackObjId);
+            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.removeAutoFeedbackByObjId, [data.autoFeedbackObjId], actionName, isValidData);
+        },
+        getAutoFeedbackDetail: function getAutoFeedbackDetail(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.name && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedbackDetail, [data.platformObjId, data.name, data.startTime, data.endTime], actionName, isValidData);
+        },
+
+        getIpDomainAnalysis: function getIpDomainAnalysis(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPlatform.getIpDomainAnalysis, [data.platformObjId, data.startTime, data.endTime, data.canRepeat, data.domain], actionName, isValidData);
+        },
+
+        getUniqueIpDomainsWithinTimeFrame: function(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPlatform.getUniqueIpDomainsWithinTimeFrame, [data.platformObjId, data.startTime, data.endTime], actionName, isValidData);
         }
     };
     socketActionPlatform.actions = this.actions;
