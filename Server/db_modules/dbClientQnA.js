@@ -8,6 +8,8 @@ const dbutility = require('./../modules/dbutility');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const dbconfig = require('./../modules/dbproperties');
+
+const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const dbPlayerMail = require('./../db_modules/dbPlayerMail');
 const dbProposal = require('./../db_modules/dbProposal');
 const constClientQnA = require('./../const/constClientQnA');
@@ -20,15 +22,18 @@ const errorUtils = require('../modules/errorUtils');
 const localization = require("../modules/localization");
 const pmsAPI = require('../externalAPI/pmsAPI');
 const Q = require("q");
-const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const rsaCrypto = require("../modules/rsaCrypto");
 
 var dbClientQnA = {
     //region common function
+    getClientQnATemplateConfig: function (type, platformObjId) {
+        return dbconfig.collection_clientQnATemplateConfig.findOne({type: type, platform: platformObjId}).lean();
+    },
+
     getClientQnASecurityQuesConfig: function (type, platformObjId) {
         platformObjId = ObjectId(platformObjId);
         let securityQuesProm = dbconfig.collection_clientQnATemplate.findOne({type: type, isSecurityQuestion: true}).lean();
-        let templateConfigProm = dbconfig.collection_clientQnATemplateConfig.findOne({type: type, platform: platformObjId}).lean();
+        let templateConfigProm = dbClientQnA.getClientQnATemplateConfig(type, platformObjId);
         return Promise.all([securityQuesProm,templateConfigProm])
 
     },
@@ -404,7 +409,7 @@ var dbClientQnA = {
         return dbconfig.collection_players.findOne({
             platform: platformObjId,
             phoneNumber: rsaCrypto.encrypt(inputDataObj.phoneNumber)
-        }, '_id platform playerId').populate({
+        }, '_id platform playerId name').populate({
             path: "platform",
             model: dbconfig.collection_platform,
             select: {platformId: 1}
@@ -415,7 +420,9 @@ var dbClientQnA = {
 
                     let updateObj = {
                         QnAData: {
+                            playerObjId: playerData._id,
                             playerId: playerData.playerId,
+                            playerName: playerData.name,
                             phoneNumber: inputDataObj.phoneNumber,
                         }
                     };
@@ -462,8 +469,30 @@ var dbClientQnA = {
         )
     },
 
-    forgotUserID2_1: function (platformObjId, inputDataObj) {
+    forgotUserID2_1: function (platformObjId, inputDataObj = {}, qnaObjId) {
+        let qnaObj, templateObj;
 
+        return dbconfig.collection_clientQnA.findById(qnaObjId).lean().then(
+            qnaData => {
+                if (qnaData && qnaData.QnAData && qnaData.QnAData.smsCode && qnaData.QnAData.smsCode == inputDataObj.smsCode) {
+                    qnaObj = qnaData;
+                    return dbClientQnA.getClientQnATemplateConfig(qnaObj.type, platformObjId)
+                }
+            }
+        ).then(
+            templateData => {
+                if (templateData && templateData.defaultPassword && qnaObj && qnaObj.QnAData && qnaObj.QnAData.playerObjId) {
+                    templateObj = templateData;
+                    return dbPlayerInfo.resetPlayerPassword(qnaObj.playerObjId, templateObj.defaultPassword, platformObjId, false);
+                }
+            }
+        ).then(
+            data => {
+                if (data) {
+                    return dbClientQnA.successChangePassword(qnaObj, templateObj)
+                }
+            }
+        )
     },
 
     resendSMSVerificationCode: function (platformObjId, inputDataObj, qnaObjId) {
@@ -477,6 +506,14 @@ var dbClientQnA = {
                 }
             }
         );
+    },
+
+    successChangePassword: (qnaObj, templateObj) => {
+        let endTitle = "Account found. (Password reset)";
+        let endDes = localization.localization.translate("The binded account is: ") + qnaObj.QnAData.playerName
+            + ", " + localization.localization.translate("Password has reset to: ") + templateObj.defaultPassword
+            + ", " + localization.localization.translate("Please login to change password immediately.");
+        return dbClientQnA.qnaEndMessage(endTitle, endDes, true)
     },
     //endregion
 
