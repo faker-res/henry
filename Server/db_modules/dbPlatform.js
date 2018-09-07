@@ -885,17 +885,42 @@ var dbPlatform = {
                     if (data && data.departments && data.departments.length > 0) {
                         //if root department, show all the platforms
                         //else only show department platform
-                        if (data.departments[0].parent) {
-                            if (data.departments[0].platforms && data.departments[0].platforms.length > 0) {
-                                return dbconfig.collection_platform.find({_id: {$in: data.departments[0].platforms}})
-                                    .populate({path: "csDepartment", model: dbconfig.collection_department})
-                                    .populate({path: "qiDepartment", model: dbconfig.collection_department}).exec();
-                            }
-                            else {
-                                deferred.reject({name: "DataError", message: "No platform available."});
-                            }
-                        }
-                        else {
+                        let rootDepartIndex = data.departments.findIndex(d => d.parent && d.parent.length > 0);
+                        if(rootDepartIndex == -1){
+                            let platformProm = [];
+                            data.departments.forEach(
+                                department => {
+                                    if(department && department.platforms && department.platforms.length > 0){
+                                        platformProm.push(dbconfig.collection_platform.find({_id: {$in: department.platforms}})
+                                            .populate({path: "csDepartment", model: dbconfig.collection_department})
+                                            .populate({path: "qiDepartment", model: dbconfig.collection_department}).exec());
+                                    }
+                                }
+                            )
+
+                            return Promise.all(platformProm).then(
+                                departmentData => {
+                                    let platformList = [];
+                                    if(departmentData && departmentData.length > 0){
+                                        departmentData.forEach(
+                                            department => {
+                                                if(department && department.length > 0){
+                                                    department.forEach(data => {
+                                                        if(data){
+                                                            platformList.push(data);
+                                                        }
+                                                    })
+                                                }
+                                            }
+                                        )
+                                    }
+                                    platformList = platformList.filter(function (a) {
+                                        return !this[a._id] && (this[a._id] = true);
+                                    }, Object.create(null));
+                                    return platformList;
+                                }
+                            );
+                        }else{
                             return dbconfig.collection_platform.find().populate({
                                 path: "csDepartment",
                                 model: dbconfig.collection_department
@@ -916,6 +941,49 @@ var dbPlatform = {
         );
         return deferred.promise;
     },
+
+    // getPlatformByAdminId: function (adminId) {
+    //     var deferred = Q.defer();
+    //     //find admin department platforms data
+    //     dbconfig.collection_admin.findOne({_id: adminId})
+    //         .populate({path: "departments", model: dbconfig.collection_department})
+    //         .then(
+    //             function (data) {
+    //                 if (data && data.departments && data.departments.length > 0) {
+    //                     //if root department, show all the platforms
+    //                     //else only show department platform
+    //                     if (data.departments[0].parent) {
+    //                         if (data.departments[0].platforms && data.departments[0].platforms.length > 0) {
+    //                             console.log("AAAAAAAAAAAAAAAAAAAAAAA",data.departments)
+    //                             return dbconfig.collection_platform.find({_id: {$in: data.departments[0].platforms}})
+    //                                 .populate({path: "csDepartment", model: dbconfig.collection_department})
+    //                                 .populate({path: "qiDepartment", model: dbconfig.collection_department}).exec();
+    //                         }
+    //                         else {
+    //                             deferred.reject({name: "DataError", message: "No platform available."});
+    //                         }
+    //                     }
+    //                     else {
+    //                         return dbconfig.collection_platform.find().populate({
+    //                             path: "csDepartment",
+    //                             model: dbconfig.collection_department
+    //                         }).populate({path: "qiDepartment", model: dbconfig.collection_department}).exec();
+    //                     }
+    //                 }
+    //             },
+    //             function (error) {
+    //                 deferred.reject({name: "DBError", message: "Error finding user.", error: error});
+    //             }
+    //         ).then(
+    //         function (data) {
+    //             deferred.resolve(data);
+    //         },
+    //         function (error) {
+    //             deferred.reject({name: "DBError", message: "Error finding platform for user", error: error});
+    //         }
+    //     );
+    //     return deferred.promise;
+    // },
 
     /*
      * reset player top up and consumption amount for level up check
