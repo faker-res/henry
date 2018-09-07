@@ -323,55 +323,106 @@ var dbAdminInfo = {
     /**
      * Update admin user's department
      * @param {objectId} userId - objectId for admin user
-     * @param {objectId} curDepartmentId - current department id
-     * @param {objectId} newDepartmentId - new department id
+     * @param {objectId} toBeDeletedDepartmentList - department id list to be deleted
+     * @param {objectId} newDepartmentList - new department id list
      */
-    updateAdminDepartment: function (userId, curDepartmentId, newDepartmentId) {
-        var deferred = Q.defer();
-        var departProm = dbconfig.collection_department.update(
-            {
-                _id: curDepartmentId
+    updateAdminDepartment: function (userId, toBeDeletedDepartmentList, newDepartmentList) {
+        let departRemoveUserPromList = [];
+        let departAddUserPromList = [];
+        let departmentDataObj;
+
+        if(toBeDeletedDepartmentList && toBeDeletedDepartmentList.length > 0){
+            toBeDeletedDepartmentList.forEach(toBeDeletedDepartmentId => {
+                if(toBeDeletedDepartmentId){
+                    let departRemoveUserProm = dbconfig.collection_department.findOneAndUpdate(
+                        {
+                            _id: toBeDeletedDepartmentId
+                        },
+                        {
+                            //Todo::have to pull from an array?...mongoose bug? need to check later
+                            $pull: {users: {$in: [userId]}}
+                        }
+                    ).then(
+                        departmentData => {
+                            departmentDataObj = departmentData;
+                            if(departmentData && departmentData.roles && departmentData.roles.length > 0){
+                                return dbconfig.collection_admin.findOneAndUpdate(
+                                    {
+                                        _id: userId
+                                    },
+                                    {
+                                        $pull: {roles: {$in: departmentData.roles}}}
+                                    )
+                            }
+                        }
+                    ).then(
+                        adminData => {
+                            if(departmentDataObj && departmentDataObj.roles && departmentDataObj.roles.length > 0){
+                                let prom = [];
+
+                                departmentDataObj.roles.forEach(
+                                    roleId => {
+                                        if(roleId){
+                                            //remove user's role when his department is changed
+                                            prom.push(dbconfig.collection_role.findOneAndUpdate(
+                                                {_id: roleId},
+                                                {$pull: {users: {$in: [userId]}}}
+                                            ));
+                                        }
+                                    }
+                                );
+
+                                return Promise.all(prom);
+                            }
+                        }
+                    );
+
+                    departRemoveUserPromList.push(departRemoveUserProm);
+                }
+            })
+        }
+
+        if(newDepartmentList && newDepartmentList.length > 0){
+            newDepartmentList.forEach(newDepartmentId => {
+                if(newDepartmentId){
+                    let departAddUserProm = dbconfig.collection_department.update(
+                        {
+                            _id: newDepartmentId
+                        },
+                        {
+                            $addToSet: {users: {$each: [userId]}}
+                        }
+                    );
+
+                    departAddUserPromList.push(departAddUserProm);
+                }
+            })
+        }
+
+        return Promise.all(departRemoveUserPromList).then(
+            () => {
+                return Promise.all(departAddUserPromList);
+            }
+        ).then(
+            () => {
+                return dbconfig.collection_admin.update(
+                    {
+                        _id: userId
+                    },
+                    {
+                        departments: newDepartmentList,
+                    }
+                );
+            }
+        ).then(
+            () => {
+                return;
             },
-            {
-                //Todo::have to pull from an array?...mongoose bug? need to check later
-                $pull: {users: {$in: [userId]}}
+            error => {
+                return Promise.reject({message: "Failed to update user department!", error: error});
             }
-        ).exec();
-        var depart1Prom = dbconfig.collection_department.update(
-            {
-                _id: newDepartmentId
-            },
-            {
-                $addToSet: {users: {$each: userId}}
-            }
-        ).exec();
+        );
 
-        var userProm = dbconfig.collection_admin.update(
-            {
-                _id: userId
-            },
-            {
-                departments: [newDepartmentId],
-                roles: []
-            }
-        ).exec();
-
-        //remove user's role when his department is changed
-        var roleProm = dbconfig.collection_role.update(
-            {},
-            {$pull: {users: {$in: [userId]}}}
-        ).exec();
-
-        Q.all([departProm, depart1Prom, userProm, roleProm]).then(
-            function (data) {
-                deferred.resolve(data);
-            }
-        ).catch(
-            function (error) {
-                deferred.reject({message: "Failed to update user department!", error: error});
-            });
-
-        return deferred.promise;
     },
 
     /**
