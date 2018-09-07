@@ -104,7 +104,7 @@ var dbClientQnA = {
         } else if (qnaObjId) {
             qnaQuery._id = ObjectId(qnaObjId);
         }
-        return dbconfig.collection_clientQnA.findOneAndUpdate(qnaQuery, updateObj,{upsert: true, new: true}).lean();
+        return dbconfig.collection_clientQnA.findOneAndUpdate(qnaQuery, updateObj, {upsert: true, new: true}).lean();
     },
 
     // determine which answer is wrong (return this function if security question does not pass)
@@ -410,37 +410,56 @@ var dbClientQnA = {
     //region forgotUserID
     forgotUserID1_1: function (platformObjId, inputDataObj) {
         let playerData, clientQnAData;
+        let playersArr = [];
 
         if (!(inputDataObj && inputDataObj.phoneNumber)) {
             return Promise.reject({name: "DBError", message: "Invalid Data"})
         }
 
-        return dbconfig.collection_players.findOne({
-            platform: platformObjId,
-            phoneNumber: rsaCrypto.encrypt(inputDataObj.phoneNumber)
-        }, '_id platform playerId name').populate({
-            path: "platform",
-            model: dbconfig.collection_platform,
-            select: {platformId: 1}
-        }).lean().then(
-            player => {
-                if (player && player._id) {
-                    playerData = player;
+        // Create a QnA object at first
+        return new dbconfig.collection_clientQnA({
+            type: constClientQnA.FORGOT_USER_ID,
+            QnAData: {
+                phoneNumber: inputDataObj.phoneNumber
+            }
+        }).save().then(
+            qnaData => {
+                clientQnAData = qnaData;
 
-                    let updateObj = {
-                        QnAData: {
-                            playerObjId: playerData._id,
-                            playerId: playerData.playerId,
-                            playerName: playerData.name,
-                            phoneNumber: inputDataObj.phoneNumber,
+                return dbconfig.collection_players.find({
+                    platform: platformObjId,
+                    phoneNumber: rsaCrypto.encrypt(inputDataObj.phoneNumber)
+                }, '_id platform playerId name').populate({
+                    path: "platform",
+                    model: dbconfig.collection_platform,
+                    select: {platformId: 1}
+                }).lean()
+            }
+        ).then(
+            players => {
+                if (players && players.length) {
+                    // One player found
+                    if (players.length === 1) {
+                        playerData = players[0];
+
+                        let updateObj = {
+                            QnAData: {
+                                playerObjId: playerData._id,
+                                playerId: playerData.playerId,
+                                playerName: playerData.name
+                            }
+                        };
+
+                        if (playerData.platform && playerData.platform.platformId) {
+                            updateObj.QnAData.platformId = playerData.platform.platformId;
                         }
-                    };
 
-                    if (playerData.platform && playerData.platform.platformId) {
-                        updateObj.QnAData.platformId = playerData.platform.platformId;
+                        return dbClientQnA.updateClientQnAData(null, constClientQnA.FORGOT_USER_ID, updateObj, clientQnAData._id)
                     }
 
-                    return dbClientQnA.updateClientQnAData(playerData._id, constClientQnA.FORGOT_USER_ID, updateObj)
+                    // Multiple players found
+                    playersArr = players;
+                    throw new Error ('Multiple players found');
                 } else {
                     throw new Error('Player not found');
                 }
@@ -473,7 +492,13 @@ var dbClientQnA = {
             }
         ).catch(
             error => {
-                return dbClientQnA.rejectFailedRetrieveAccount();
+                if (error.message === 'Player not found') {
+                    return dbClientQnA.rejectFailedRetrieveAccount();
+                }
+
+                if (error.message === "Multiple players found") {
+                    return dbClientQnA.chooseFromMultipleAccount(clientQnAData, playersArr);
+                }
             }
         )
     },
@@ -492,7 +517,7 @@ var dbClientQnA = {
             templateData => {
                 if (templateData && templateData.defaultPassword && qnaObj && qnaObj.QnAData && qnaObj.QnAData.playerObjId) {
                     templateObj = templateData;
-                    return dbPlayerInfo.resetPlayerPassword(qnaObj.playerObjId, templateObj.defaultPassword, platformObjId, false);
+                    return dbPlayerInfo.resetPlayerPassword(qnaObj.playerObjId, templateObj.defaultPassword, platformObjId, false, false, null, true);
                 }
             }
         ).then(
@@ -500,6 +525,25 @@ var dbClientQnA = {
                 if (data) {
                     return dbClientQnA.successChangePassword(qnaObj, templateObj)
                 }
+            }
+        )
+    },
+
+    chooseFromMultipleAccount: function (clientQnAData, playersArr) {
+        console.log('chooseFromMultipleAccount', playersArr);
+        let processNo = '3_2';
+
+        return dbconfig.collection_clientQnATemplate.findOne({
+            type: constClientQnA.FORGOT_USER_ID,
+            processNo: processNo
+        }).lean().then(
+            QnATemplate => {
+                if (QnATemplate) {
+                    QnATemplate.qnaObjId = clientQnAData._id;
+                    QnATemplate.data = playersArr;
+                }
+
+                return QnATemplate;
             }
         )
     },
