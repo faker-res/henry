@@ -4275,6 +4275,8 @@
   "Mission First Run Total Count": "第一次任务发送总次数",
   "Mission Second Run Total Count": "第二次任务发送总次数",
   "Mission Third Run Total Count": "第三次任务发送总次数",
+  "Calculated According to Promo Code Sent (Promo code sent to a same player twice will be calculated as 2) Eg. Send(1st) --> login --> send(2nd) = total count of 2":
+  "根据发送优惠代码的数量计算（同一人在不同轮回发两次＝2）如：（发）第一次 ——＞ 登入 ——＞（发）第一次 = 共计2个第一次",
   "Mission Create Start Time": "任务创建（开始时间）",
   "Mission Create End Time": "任务创建（结束时间）",
   "Delete Mission": "删除任务",
@@ -4376,5 +4378,6 @@
   "Remove All Selection": "清空勾选",
   "UPDATE_PLAYER_DEPARTMENT": "编辑用户部门",
   "Please select the departments below to add/remove department(s) to FPMS account": "请勾选下列部门（复选），该部门将『添加/移除』至此后台帐号",
-  "CLEAR_ALL_CHECKED": "清空勾选"
+  "CLEAR_ALL_CHECKED": "清空勾选",
+  "orderNo": "流水单号"
 }

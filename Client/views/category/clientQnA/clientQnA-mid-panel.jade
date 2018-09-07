@@ -4,7 +4,7 @@
     .panel-body.common-left-sub-panel-body
         .row
             br
-            div(style='width:90%;margin:auto' ng-if='vm.clientQnAData && checkViewPermission("Platform", "ClientAutoQnA", "Update")')
+            div(style='width:90%;margin:auto' ng-if='vm.clientQnAData && checkViewPermission("Platform", "ClientAutoQnA", "Read")')
                 label(style="text-align:center;display:block;color:red" ng-if='vm.clientQnADataErr') {{vm.clientQnADataErr | translate}}
                 div(style="text-align:left;display:block" ng-if='vm.clientQnAData.questionTitle')
                     label {{vm.clientQnAData.questionTitle | translate}}
